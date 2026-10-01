@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{TITLE}} — UCRO harness</title>
+  <link rel="stylesheet" href="assets/ucro.css">
+  <style>
+    /* A Dawn-like theme: Poppins-ish font, yellow rounded buttons. */
+    :root { --color-foreground: 18,18,18; --product-card-corner-radius: 18px; --page-width: 1100px; }
+    body { margin: 0; font: 15px/1.6 system-ui, sans-serif; color: rgb(18,18,18); background: #fafafa; }
+    .page-width { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    .product { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 24px 0; }
+    @media (max-width: 749px) { .product { grid-template-columns: 1fr; } }
+    .product__media { aspect-ratio: 1; background: #e5e5e5; border-radius: 18px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border: 0; border-radius: 20px; background: #ffbd13; color: #121212; font: inherit; font-weight: 600; cursor: pointer; }
+    .button--full-width { width: 100%; }
+    .price-item { font-size: 1.1em; letter-spacing: .05em; }
+    .shopify-payment-button { margin-top: 8px; padding: 12px; text-align: center; background: #ffc439; border-radius: 20px; }
+    cart-drawer { position: fixed; top: 0; right: 0; width: 360px; max-width: 90vw; height: 100vh; background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,.15); transform: translateX(100%); transition: transform .2s; overflow: auto; z-index: 10; }
+    cart-drawer.active { transform: none; }
+    .drawer__inner { padding: 16px; }
+    .drawer__footer { border-top: 1px solid #ddd; padding-top: 12px; }
+    #log { position: fixed; left: 8px; bottom: 8px; max-width: 45vw; max-height: 30vh; overflow: auto; font: 11px/1.4 monospace; background: #111; color: #8f8; padding: 6px; opacity: .85; z-index: 20; }
+  </style>
+  <script>
+    // ---- Dawn-like globals ---------------------------------------------------------
+    window.routes = { cart_add_url: '/cart/add', cart_url: '/cart', product_recommendations_url: '/recommendations/products' };
+    window.PUB_SUB_EVENTS = { cartUpdate: 'cart-update', variantChange: 'variant-change', cartError: 'cart-error' };
+    const subs = {};
+    window.subscribe = (e, cb) => { (subs[e] = subs[e] || []).push(cb); return () => { subs[e] = subs[e].filter((c) => c !== cb); }; };
+    window.publish = (e, data) => (subs[e] || []).forEach((cb) => cb(data));
+    window.__log = [];
+    const log = (...a) => { window.__log.push(a); const el = document.getElementById('log'); if (el) el.textContent = window.__log.map((x) => JSON.stringify(x)).join('\n'); };
+
+    // ---- Fake cart backend ----------------------------------------------------------
+    const realFetch = window.fetch.bind(window);
+    const catalogReady = realFetch('catalog.json').then((r) => r.json());
+    window.__cart = { items: [] };
+    let key = 0;
+    const findVariant = (catalog, id) => {
+      for (const p of Object.values(catalog)) for (const v of p.variants) if (String(v.id) === String(id)) return { p, v };
+      return null;
+    };
+    window.fetch = async (url, opts = {}) => {
+      const u = String(url);
+      const catalog = await catalogReady;
+      const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
+      if (u.includes('/cart/add')) {
+        let items = [];
+        if (opts.body instanceof FormData) {
+          const props = {};
+          for (const [k, v] of opts.body.entries()) { const m = k.match(/^properties\[(.*)\]$/); if (m) props[m[1]] = v; }
+          items = [{ id: Number(opts.body.get('id')), quantity: Number(opts.body.get('quantity') || 1), properties: props }];
+          log('ADD (FormData from theme form)', items);
+        } else {
+          const body = JSON.parse(opts.body);
+          items = body.items;
+          log('ADD (JSON)', { items: body.items, sections: body.sections });
+        }
+        const added = [];
+        for (const it of items) {
+          const hit = findVariant(catalog, it.id);
+          if (!hit || !hit.v.available) return json({ status: 422, message: 'Cart Error', description: 'That item is sold out.' }, 422);
+          const line = { key: `k${++key}`, id: it.id, product_id: hit.p.id, title: hit.p.title, quantity: it.quantity, properties: it.properties || {} };
+          window.__cart.items.push(line);
+          added.push(line);
+        }
+        publishedAdd++;
+        return json({ items: added, sections: { 'cart-drawer': '<div id="CartDrawer">…</div>' } });
+      }
+      if (u.includes('/cart.js')) return json(window.__cart);
+      if (u.includes('/recommendations/products.json')) {
+        const intent = new URL(u, location.href).searchParams.get('intent');
+        log('RECOMMENDATIONS', intent);
+        if (intent === 'complementary') return json({ products: [] });
+        return json({ products: [catalog.sticker, catalog.cairokee, catalog.soldout].map((p) => ({ ...p, featured_image: p.featured_media.src })) });
+      }
+      return realFetch(url, opts);
+    };
+    let publishedAdd = 0;
+
+    // ---- Dawn-like cart drawer --------------------------------------------------------
+    customElements.define('cart-drawer', class extends HTMLElement {
+      getSectionsToRender() { return [{ id: 'cart-drawer', selector: '#CartDrawer' }]; }
+      setActiveElement() {}
+      renderContents(parsed) {
+        log('DRAWER renderContents', { key: parsed.key, id: parsed.id, sections: Object.keys(parsed.sections || {}) });
+        // Dawn replaces the drawer's inner HTML wholesale on every render.
+        this.innerHTML = `<div id="CartDrawer"><div class="drawer__inner"><h3>Your cart</h3><ul>${window.__cart.items.map((i) => `<li>${i.title} × ${i.quantity}${Object.keys(i.properties).length ? `<br><small>${Object.entries(i.properties).map(([k, v]) => `${k}: ${v}`).join('<br>')}</small>` : ''}</li>`).join('')}</ul><div class="drawer__footer"><button class="button button--full-width">Check out</button></div></div></div>`;
+        this.classList.add('active');
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="page-width">
+    <div class="shopify-section" id="shopify-section-main">
+      <div class="product">
+        <div class="product__media"></div>
+        <product-info>
+          <h1>{{TITLE}}</h1>
+          <div class="price"><span class="price-item price-item--regular">LE 149.00</span></div>
+          <!-- Dawn renders this Shop Pay installments form before the real one; offers must ignore it. -->
+          <form action="/cart/add" id="product-form-installment-main" class="installment caption-large" method="post"><input type="hidden" name="id" value="{{VARIANT_ID}}"></form>
+          <form action="/cart/add" id="product-form-main" method="post">
+            <input type="hidden" name="id" value="{{VARIANT_ID}}">
+            <label>Variant (simulated): <select id="variant-picker"><option value="{{VARIANT_ID}}">Default</option><option value="999">Unavailable variant</option></select></label>
+            <p><label>Quantity <input type="number" name="quantity" value="1" min="1" id="qty"></label></p>
+            <button type="submit" class="product-form__submit button button--full-width">Add to cart</button>
+            <div class="shopify-payment-button">Buy with PayPal</div>
+          </form>
+          {{BODY}}
+        </product-info>
+      </div>
+    </div>
+  </div>
+  <cart-drawer><div id="CartDrawer"><div class="drawer__inner is-empty"><p>Your cart is empty</p></div></div></cart-drawer>
+  {{DRAWER_EMBED}}
+  <pre id="log"></pre>
+  <script>
+    // Dawn's product-form: submit → FormData POST, then render the drawer.
+    document.getElementById('product-form-main').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const res = await fetch('/cart/add.js', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!data.status) document.querySelector('cart-drawer').renderContents({ ...data.items[0], sections: data.sections });
+      else log('THEME ADD ERROR', data.description);
+    });
+    document.getElementById('variant-picker').addEventListener('change', (e) => {
+      const input = document.querySelector('#product-form-main [name="id"]');
+      input.value = e.target.value;
+      publish(PUB_SUB_EVENTS.variantChange, { data: { variant: { id: Number(e.target.value) } } });
+    });
+  </script>
+</body>
+</html>

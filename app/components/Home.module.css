@@ -1,0 +1,56 @@
+/* Home: responsive grid of roughly square feature cards (2–4 per row). */
+.cards {
+  display: grid;
+  /* 1 column on phones, then as many ~260px cards as fit: 2, 3 or 4 per row. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  margin-block: 16px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08);
+}
+.card.off .preview { opacity: 0.45; filter: grayscale(1); }
+/* Fixed-height, clipped preview so it can never spill over the card text. */
+.preview {
+  box-sizing: border-box;
+  flex: none;
+  height: 190px;
+  padding: 10px 10px 0;
+  overflow: hidden;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #616161;
+}
+.status {
+  align-self: flex-start;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 18px;
+  border-radius: 9px;
+}
+.success { color: #0c5132; background: #cdfee1; }
+.warning { color: #5e4200; background: #ffef9d; }
+.neutral { color: #4a4a4a; background: #ebebeb; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.body { flex: 1; }

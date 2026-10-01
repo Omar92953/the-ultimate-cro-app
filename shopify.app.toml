@@ -1,0 +1,256 @@
+# The Ultimate CRO App — app configuration.
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration
+client_id = "454b8b4225176212332be23a0605a2c4"
+name = "The Ultimate CRO App"
+application_url = "https://example.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[access_scopes]
+# Every scope and why it is needed is listed in docs/scopes.md.
+scopes = "read_files,read_products,read_themes,write_cart_transforms,write_discounts,write_metaobject_definitions,write_metaobjects"
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]
+
+[webhooks]
+api_version = "2025-10"
+
+  # Handled by: /app/routes/webhooks.app.uninstalled.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  # Handled by: /app/routes/webhooks.app.scopes_update.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # Mandatory privacy (compliance) webhooks — handled by /app/routes/webhooks.compliance.tsx
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/webhooks/compliance"
+
+[pos]
+embedded = false
+
+# ---------------------------------------------------------------------------
+# App-owned data. Shopify creates these definitions on install/deploy.
+# The storefront reads them through the theme app extension (public_read),
+# so shoppers never hit our server. Merchants edit them through the app only.
+# ---------------------------------------------------------------------------
+
+# Singleton (handle "settings"): the on/off switch for each feature.
+[metaobjects.app.cro_settings]
+name = "CRO settings"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_settings.fields.cross_sell_enabled]
+  name = "Cross-sell enabled"
+  type = "boolean"
+
+  [metaobjects.app.cro_settings.fields.upsell_enabled]
+  name = "Upsell enabled"
+  type = "boolean"
+
+  [metaobjects.app.cro_settings.fields.videos_enabled]
+  name = "Video carousel enabled"
+  type = "boolean"
+
+  [metaobjects.app.cro_settings.fields.bundles_enabled]
+  name = "Bundles enabled"
+  type = "boolean"
+
+  # auto | function | native — which engine applies offer discounts at checkout.
+  [metaobjects.app.cro_settings.fields.discount_mode]
+  name = "Discount engine"
+  type = "single_line_text_field"
+  validations.choices = [ "auto", "function", "native" ]
+
+  # Ids of the native automatic discounts the app created (so it can replace them on save).
+  [metaobjects.app.cro_settings.fields.native_discounts]
+  name = "Native discounts created by the app"
+  type = "json"
+
+# One cross-sell or upsell rule.
+[metaobjects.app.cro_rule]
+name = "CRO offer rule"
+display_name_field = "name"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_rule.fields.name]
+  name = "Name"
+  type = "single_line_text_field"
+  required = true
+
+  [metaobjects.app.cro_rule.fields.kind]
+  name = "Kind"
+  type = "single_line_text_field"
+  required = true
+  validations.choices = [ "cross_sell", "upsell" ]
+
+  [metaobjects.app.cro_rule.fields.active]
+  name = "Active"
+  type = "boolean"
+
+  [metaobjects.app.cro_rule.fields.priority]
+  name = "Priority"
+  type = "number_integer"
+
+  [metaobjects.app.cro_rule.fields.trigger_type]
+  name = "Trigger"
+  type = "single_line_text_field"
+  validations.choices = [ "all", "products", "collections" ]
+
+  [metaobjects.app.cro_rule.fields.trigger_products]
+  name = "Trigger products"
+  type = "list.product_reference"
+
+  [metaobjects.app.cro_rule.fields.trigger_collections]
+  name = "Trigger collections"
+  type = "list.collection_reference"
+
+  [metaobjects.app.cro_rule.fields.offered_products]
+  name = "Offered products"
+  type = "list.product_reference"
+
+  [metaobjects.app.cro_rule.fields.tiers]
+  name = "Tiers"
+  type = "json"
+
+  # Upsell only: "quantity" (Buy 1/2/3) or "variant" (tiers are values of one option, e.g. Size).
+  [metaobjects.app.cro_rule.fields.upsell_type]
+  name = "Upsell type"
+  type = "single_line_text_field"
+  validations.choices = [ "quantity", "variant" ]
+
+  # Upsell "variant" type: the option the tiers choose between, e.g. "Size".
+  [metaobjects.app.cro_rule.fields.option_name]
+  name = "Option name"
+  type = "single_line_text_field"
+
+  [metaobjects.app.cro_rule.fields.placements]
+  name = "Placements"
+  type = "list.single_line_text_field"
+
+  [metaobjects.app.cro_rule.fields.headline]
+  name = "Headline"
+  type = "single_line_text_field"
+
+  [metaobjects.app.cro_rule.fields.subheadline]
+  name = "Subheadline"
+  type = "single_line_text_field"
+
+  [metaobjects.app.cro_rule.fields.button_label]
+  name = "Button label"
+  type = "single_line_text_field"
+
+  [metaobjects.app.cro_rule.fields.discount_percent]
+  name = "Discount percent"
+  type = "number_decimal"
+
+  [metaobjects.app.cro_rule.fields.discount_label]
+  name = "Checkout discount label"
+  type = "single_line_text_field"
+
+# One carousel slide.
+[metaobjects.app.cro_slide]
+name = "CRO video slide"
+display_name_field = "caption"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_slide.fields.video]
+  name = "Video"
+  type = "file_reference"
+
+  [metaobjects.app.cro_slide.fields.image]
+  name = "Image (used when there is no video)"
+  type = "file_reference"
+
+  [metaobjects.app.cro_slide.fields.product]
+  name = "Linked product"
+  type = "product_reference"
+
+  [metaobjects.app.cro_slide.fields.caption]
+  name = "Caption"
+  type = "single_line_text_field"
+
+# Singleton (handle "main"): the ordered slide list.
+[metaobjects.app.cro_carousel]
+name = "CRO video carousel"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_carousel.fields.slides]
+  name = "Slides"
+  type = "list.metaobject_reference<$app:cro_slide>"
+
+# One pick-step inside a bundle ("Choose 3 posters").
+[metaobjects.app.cro_bundle_step]
+name = "CRO bundle step"
+display_name_field = "label"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_bundle_step.fields.label]
+  name = "Label"
+  type = "single_line_text_field"
+  required = true
+
+  [metaobjects.app.cro_bundle_step.fields.required]
+  name = "Required"
+  type = "boolean"
+
+  [metaobjects.app.cro_bundle_step.fields.min_picks]
+  name = "Minimum picks"
+  type = "number_integer"
+
+  [metaobjects.app.cro_bundle_step.fields.max_picks]
+  name = "Maximum picks"
+  type = "number_integer"
+
+  [metaobjects.app.cro_bundle_step.fields.products]
+  name = "Products to choose from"
+  type = "list.product_reference"
+
+  [metaobjects.app.cro_bundle_step.fields.collection]
+  name = "Collection to choose from"
+  type = "collection_reference"
+
+# One mix-and-match bundle, sold as its own product.
+[metaobjects.app.cro_bundle]
+name = "CRO bundle"
+display_name_field = "name"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_bundle.fields.name]
+  name = "Name"
+  type = "single_line_text_field"
+  required = true
+
+  [metaobjects.app.cro_bundle.fields.active]
+  name = "Active"
+  type = "boolean"
+
+  [metaobjects.app.cro_bundle.fields.product]
+  name = "Bundle product"
+  type = "product_reference"
+
+  [metaobjects.app.cro_bundle.fields.steps]
+  name = "Steps"
+  type = "list.metaobject_reference<$app:cro_bundle_step>"
+
+  [metaobjects.app.cro_bundle.fields.allow_duplicates]
+  name = "Allow the same item twice"
+  type = "boolean"
+
+  [metaobjects.app.cro_bundle.fields.hide_sold_out]
+  name = "Hide sold-out items"
+  type = "boolean"

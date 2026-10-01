@@ -1,0 +1,109 @@
+{
+  "payload": {
+    "export": "cart-lines-discounts-generate-run",
+    "target": "cart.lines.discounts.generate.run",
+    "input": {
+      "cart": {
+        "lines": [
+          {
+            "id": "gid://shopify/CartLine/2",
+            "quantity": 1,
+            "bundle": null,
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "title": "Default Title",
+              "product": {
+                "id": "gid://shopify/Product/2",
+                "inCollections": []
+              }
+            }
+          },
+          {
+            "id": "gid://shopify/CartLine/3",
+            "quantity": 2,
+            "bundle": null,
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "title": "Default Title",
+              "product": {
+                "id": "gid://shopify/Product/3",
+                "inCollections": []
+              }
+            }
+          }
+        ]
+      },
+      "discount": {
+        "discountClasses": [
+          "PRODUCT"
+        ],
+        "metafield": {
+          "jsonValue": {
+            "upsell": [
+              {
+                "trigger": {
+                  "type": "products",
+                  "products": [
+                    "gid://shopify/Product/1"
+                  ],
+                  "collections": []
+                },
+                "tiers": [
+                  {
+                    "qty": 1,
+                    "pct": 0
+                  },
+                  {
+                    "qty": 2,
+                    "pct": 10
+                  },
+                  {
+                    "qty": 3,
+                    "pct": 15
+                  }
+                ],
+                "label": "Buy more, save more"
+              },
+              {
+                "trigger": {
+                  "type": "collections",
+                  "products": [],
+                  "collections": [
+                    "gid://shopify/Collection/9"
+                  ]
+                },
+                "tiers": [
+                  {
+                    "qty": 2,
+                    "pct": 5
+                  }
+                ],
+                "label": "Collection deal"
+              }
+            ],
+            "crossSell": [
+              {
+                "trigger": {
+                  "type": "products",
+                  "products": [
+                    "gid://shopify/Product/1"
+                  ],
+                  "collections": []
+                },
+                "offered": [
+                  "gid://shopify/Product/2",
+                  "gid://shopify/Product/3"
+                ],
+                "pct": 20,
+                "label": "Pairs well with"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "output": {
+      "operations": []
+    }
+  }
+}

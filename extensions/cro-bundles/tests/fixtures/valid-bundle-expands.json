@@ -1,0 +1,99 @@
+{
+  "payload": {
+    "export": "cart-transform-run",
+    "target": "cart.transform.run",
+    "input": {
+      "cart": {
+        "lines": [
+          {
+            "id": "gid://shopify/CartLine/1",
+            "components": {
+              "value": "101,103|201"
+            },
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "product": {
+                "id": "gid://shopify/Product/500"
+              }
+            }
+          },
+          {
+            "id": "gid://shopify/CartLine/2",
+            "components": null,
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "product": {
+                "id": "gid://shopify/Product/7"
+              }
+            }
+          }
+        ]
+      },
+      "cartTransform": {
+        "metafield": {
+          "jsonValue": {
+            "b": {
+              "500": {
+                "d": 0,
+                "s": [
+                  {
+                    "n": 2,
+                    "x": 2,
+                    "v": [
+                      "2t",
+                      "2u",
+                      "2v"
+                    ]
+                  },
+                  {
+                    "n": 0,
+                    "x": 1,
+                    "v": [
+                      "5l"
+                    ]
+                  }
+                ]
+              },
+              "600": {
+                "d": 1,
+                "s": [
+                  {
+                    "n": 3,
+                    "x": 3,
+                    "v": [
+                      "8d",
+                      "8e"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "output": {
+      "operations": [
+        {
+          "lineExpand": {
+            "cartLineId": "gid://shopify/CartLine/1",
+            "expandedCartItems": [
+              {
+                "merchandiseId": "gid://shopify/ProductVariant/101",
+                "quantity": 1
+              },
+              {
+                "merchandiseId": "gid://shopify/ProductVariant/103",
+                "quantity": 1
+              },
+              {
+                "merchandiseId": "gid://shopify/ProductVariant/201",
+                "quantity": 1
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

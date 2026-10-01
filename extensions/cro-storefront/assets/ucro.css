@@ -1,0 +1,670 @@
+/*
+ * The Ultimate CRO App — storefront styles.
+ * Fonts, colours and line-height are inherited from the theme. Lines and tints are derived from
+ * currentColor, so they follow any colour scheme. --ucro-accent is set at runtime from the
+ * theme's own Add to cart button unless the merchant picked a colour.
+ */
+.ucro {
+  --ucro-line: var(--ucro-border, color-mix(in srgb, currentColor 18%, transparent));
+  --ucro-soft: color-mix(in srgb, currentColor 5%, transparent);
+  --ucro-on: var(--ucro-accent, currentColor);
+  --ucro-radius: var(--product-card-corner-radius, var(--card-corner-radius, var(--border-radius, 10px)));
+  display: block;
+  padding-top: var(--ucro-pt, 0);
+  padding-bottom: var(--ucro-pb, 0);
+  box-sizing: border-box;
+}
+.ucro *,
+.ucro *::before,
+.ucro *::after {
+  box-sizing: border-box;
+}
+.ucro[hidden],
+.ucro [hidden] {
+  display: none !important;
+}
+/* Some themes' editor custom CSS adds margins to every div in the product info, scoped with a
+   section ID no class can outrank. Our layout uses gap, never div margins, so reset them. */
+.ucro div {
+  margin-block: 0 !important;
+}
+
+@media screen and (max-width: 749px) {
+  .ucro-hide-mobile { display: none !important; }
+}
+@media screen and (min-width: 750px) {
+  .ucro-hide-desktop { display: none !important; }
+}
+
+.ucro__heading {
+  margin: 0 0 0.5em;
+  text-align: var(--ucro-align, left);
+  font-family: var(--ucro-heading-font, var(--font-heading-family, inherit));
+  font-weight: var(--ucro-heading-weight, var(--font-heading-weight, 600));
+  font-style: var(--ucro-heading-style, normal);
+  letter-spacing: var(--ucro-heading-spacing, normal);
+  text-transform: var(--ucro-heading-transform, none);
+  line-height: 1.25;
+}
+.ucro__heading--small { font-size: 1.05em; }
+.ucro__heading--medium { font-size: 1.3em; }
+.ucro__heading--large { font-size: 1.7em; }
+.ucro__sub {
+  margin: 0 0 1em;
+  text-align: var(--ucro-align, left);
+  opacity: 0.75;
+}
+.ucro__error {
+  margin: 0.6em 0 0;
+  font-size: 0.9em;
+  color: #b42318;
+}
+.ucro-note {
+  margin: 0.8em 0;
+  padding: 1em;
+  font-size: 0.85em;
+  text-align: center;
+  opacity: 0.7;
+  border: 1px dashed currentColor;
+}
+.ucro-was {
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+.ucro-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--ucro-soft);
+  fill: color-mix(in srgb, currentColor 25%, transparent);
+}
+.ucro-select {
+  display: block;
+  width: 100%;
+  margin-top: 0.6em;
+  padding: 0.45em 0.6em;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--ucro-line);
+  border-radius: 6px;
+}
+
+/* ---- Buttons: theme classes are copied onto .ucro-btn at runtime ------------------ */
+.ucro-btn {
+  width: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+.ucro-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.ucro-btn.ucro-is-busy {
+  opacity: 0.7;
+  pointer-events: none;
+}
+.ucro-btn--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7em 1.2em;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #1a1a1a;
+  border: 0;
+  border-radius: 6px;
+}
+
+/* ---- Cross-sell ------------------------------------------------------------------ */
+.ucro-cross--panel {
+  padding-inline: 1em;
+  padding-top: max(var(--ucro-pt, 0px), 1em);
+  padding-bottom: max(var(--ucro-pb, 0px), 1em);
+  background: var(--ucro-panel, var(--ucro-soft));
+  border-radius: var(--ucro-radius);
+}
+@media screen and (max-width: 749px) {
+  .ucro-cross--bleed {
+    margin-inline: calc(50% - 50vw);
+    border-radius: 0;
+  }
+}
+.ucro-cross__list {
+  display: grid;
+  gap: 0.6em;
+  margin: 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.ucro-offer {
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--ucro-line);
+  border-radius: var(--ucro-radius);
+}
+.ucro-cross--panel .ucro-offer {
+  background: var(--ucro-bg, Canvas);
+  border-color: transparent;
+}
+.ucro-offer__row {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  cursor: pointer;
+}
+.ucro-offer__check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.ucro-offer__box {
+  position: relative;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 5px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.ucro-offer__check:checked + .ucro-offer__box {
+  border-color: var(--ucro-on);
+  background: var(--ucro-on);
+}
+/* The tick is a mask filled with a colour chosen for contrast against the accent. */
+.ucro-offer__check:checked + .ucro-offer__box::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--ucro-on-text, #fff);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 6.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 6.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
+.ucro-offer__check:focus-visible + .ucro-offer__box {
+  outline: 2px solid var(--ucro-on);
+  outline-offset: 2px;
+}
+.ucro-offer__img {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ucro-soft);
+}
+.ucro-offer__img img,
+.ucro-offer__img svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ucro-offer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+.ucro-offer__title {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+.ucro-offer__prices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em;
+}
+
+/* ---- Upsell tiers ------------------------------------------------------------- */
+.ucro-tiers {
+  display: grid;
+  gap: var(--ucro-gap, 12px);
+  padding-top: 0.6em;
+}
+.ucro-tier-wrap {
+  position: relative;
+}
+.ucro-tier {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0.5em 0.9em;
+  font: inherit;
+  text-align: start;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--ucro-line);
+  border-radius: var(--ucro-radius);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.ucro-tier:hover:not(:disabled) { border-color: var(--ucro-on); }
+.ucro-tier:disabled { opacity: 0.5; cursor: not-allowed; }
+.ucro-tier.is-selected {
+  border-color: var(--ucro-on);
+  box-shadow: 0 0 0 1px var(--ucro-on);
+  background: var(--ucro-soft);
+}
+.ucro-tier__radio {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ucro-line);
+  border-radius: 50%;
+}
+.ucro-tier.is-selected .ucro-tier__radio {
+  border-color: var(--ucro-on);
+  background: radial-gradient(circle, var(--ucro-on) 0 45%, transparent 50%);
+}
+.ucro-tier__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+}
+.ucro-tier__price {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.ucro-tier__tags {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0.9em;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  gap: 0.3em;
+  pointer-events: none;
+}
+.ucro-tier__save,
+.ucro-tier__badge {
+  padding: 0.05em 0.6em;
+  font-size: 0.72em;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  border-radius: 40px;
+}
+.ucro-tier__save {
+  color: var(--ucro-save-fg, inherit);
+  background: var(--ucro-save-bg, var(--ucro-bg, Canvas));
+  border: 1px solid var(--ucro-save-bg, var(--ucro-line));
+}
+.ucro-tier__badge {
+  color: var(--ucro-badge-fg, var(--ucro-on-text, #fff));
+  background: var(--ucro-badge-bg, var(--ucro-on));
+  border: 1px solid var(--ucro-badge-bg, var(--ucro-on));
+}
+.ucro-upsell__add {
+  margin-top: 0.9em;
+}
+
+/* ---- Video carousel ----------------------------------------------------------------- */
+.ucro-vc__track {
+  display: flex;
+  gap: var(--ucro-vc-gap, 12px);
+  margin: 0;
+  padding: 0 0 0.2em;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.ucro-vc__track::-webkit-scrollbar { display: none; }
+.ucro-vc__track:focus-visible {
+  outline: 2px solid var(--ucro-on);
+  outline-offset: 4px;
+}
+.ucro-vc__slide {
+  flex: 0 0 calc((100% - (var(--ucro-vc-mobile, 2) - 1) * var(--ucro-vc-gap, 12px)) / var(--ucro-vc-mobile, 2));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+@media screen and (min-width: 750px) {
+  .ucro-vc__slide {
+    flex-basis: calc((100% - (var(--ucro-vc-desktop, 4) - 1) * var(--ucro-vc-gap, 12px)) / var(--ucro-vc-desktop, 4));
+  }
+}
+.ucro-vc__card {
+  position: relative;
+  aspect-ratio: var(--ucro-vc-ratio, 9 / 16);
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--ucro-vc-radius, 12px);
+  background: var(--ucro-soft);
+}
+.ucro-vc__media,
+.ucro-vc__media > video,
+.ucro-vc__media > img,
+.ucro-vc__media > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ucro-vc__media[data-toggle-play] { cursor: pointer; }
+.ucro-vc__play {
+  position: absolute;
+  inset: auto auto 10px 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7 5.5v9l7.5-4.5z' fill='%23fff'/%3E%3C/svg%3E") center / 70% no-repeat;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.ucro-vc__media.is-playing .ucro-vc__play { opacity: 0; }
+.ucro-vc__caption {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  margin: 0;
+  padding: 2.4em 0.8em 0.8em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.ucro-vc__link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.ucro-vc__product {
+  display: grid;
+  gap: 0.3em;
+  padding-top: 0.6em;
+}
+.ucro-vc__title {
+  overflow: hidden;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ucro-vc__add {
+  min-height: 38px;
+  margin-top: 0.2em;
+  padding-block: 0.4em;
+  font-size: 0.9em;
+}
+.ucro-vc__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8em;
+  margin-top: 0.8em;
+}
+.ucro-vc__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--ucro-line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.ucro-vc__arrow svg { width: 18px; height: 18px; }
+.ucro-vc__arrow:disabled { opacity: 0.35; cursor: default; }
+.ucro-vc__counter { font-size: 0.9em; opacity: 0.75; }
+[dir='rtl'] .ucro-vc__arrow svg { transform: scaleX(-1); }
+
+/* ---- Bundle builder ---------------------------------------------------------------- */
+.ucro-bundle__step {
+  margin: 0 0 1.2em;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.ucro-bundle__legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  width: 100%;
+  margin-bottom: 0.6em;
+  padding: 0;
+  font-weight: 600;
+}
+.ucro-bundle__count {
+  font-weight: 400;
+  opacity: 0.75;
+}
+.ucro-bundle__count.is-full { animation: ucro-shake 0.35s; }
+@keyframes ucro-shake {
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+.ucro-bundle__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ucro-cols-m, 2), minmax(0, 1fr));
+  gap: 0.8em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media screen and (min-width: 750px) {
+  .ucro-bundle__grid { grid-template-columns: repeat(var(--ucro-cols-d, 4), minmax(0, 1fr)); }
+}
+.ucro-bundle__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  padding: 0.5em;
+  border: 1px solid var(--ucro-line);
+  border-radius: var(--ucro-radius);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ucro-bundle__card.is-picked {
+  border-color: var(--ucro-on);
+  box-shadow: 0 0 0 1px var(--ucro-on);
+}
+.ucro-bundle__card.is-sold-out { opacity: 0.55; }
+.ucro-bundle__img {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: calc(var(--ucro-radius) * 0.6);
+  background: var(--ucro-soft);
+}
+.ucro-bundle__img img,
+.ucro-bundle__img svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ucro-bundle__name {
+  font-weight: 600;
+  line-height: 1.3;
+}
+.ucro-bundle__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: auto;
+}
+.ucro-bundle__pick,
+.ucro-bundle__minus,
+.ucro-bundle__plus {
+  min-height: 36px;
+  padding: 0.3em 0.8em;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--ucro-line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ucro-bundle__pick { flex: 1 1 auto; }
+.ucro-bundle__pick[aria-pressed='true'] {
+  color: var(--ucro-on-text, #fff);
+  background: var(--ucro-on);
+  border-color: var(--ucro-on);
+}
+.ucro-bundle__qty {
+  flex: 1 1 auto;
+  text-align: center;
+  font-weight: 600;
+}
+.ucro-bundle__soldout { margin-top: auto; font-size: 0.85em; opacity: 0.8; }
+.ucro-bundle__summary {
+  display: grid;
+  gap: 0.5em;
+  padding: 1em;
+  background: var(--ucro-soft);
+  border-radius: var(--ucro-radius);
+}
+.ucro-bundle__summary.is-sticky {
+  position: sticky;
+  bottom: 0.5em;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+}
+.ucro-bundle__picks {
+  margin: 0;
+  padding: 0 0 0 1.1em;
+  font-size: 0.92em;
+}
+.ucro-bundle__picks:empty { display: none; }
+.ucro-bundle__totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin: 0;
+}
+.ucro-bundle__totals [data-value] { text-decoration: line-through; opacity: 0.6; }
+.ucro-bundle__save { margin: 0; font-weight: 600; }
+
+/* ---- Cart drawer offers ------------------------------------------------------------ */
+.ucro-drawer {
+  margin: 1em 0;
+  padding: 0.9em;
+  background: var(--ucro-soft);
+  border-radius: var(--ucro-radius);
+}
+.ucro-drawer__heading { margin: 0 0 0.6em; font-weight: 600; }
+.ucro-drawer__list { display: grid; gap: 0.6em; margin: 0; padding: 0; list-style: none; }
+.ucro-drawer__item {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7em;
+}
+.ucro-drawer__item img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+.ucro-drawer__body { display: grid; gap: 0.15em; min-width: 0; font-size: 0.92em; }
+.ucro-drawer__title {
+  overflow: hidden;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ucro-drawer__prices { display: flex; gap: 0.4em; align-items: baseline; }
+.ucro-drawer__variant { margin-top: 0.3em; padding: 0.25em 0.4em; font-size: 0.9em; }
+.ucro-drawer__add { width: auto; min-width: 0; min-height: 36px; padding: 0.35em 0.9em; font-size: 0.9em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ucro-vc__track { scroll-behavior: auto; }
+  .ucro-bundle__count.is-full { animation: none; }
+}
+
+/* ---- Upsell: small caps label heading ------------------------------------------- */
+.ucro__heading--label {
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* ---- Upsell: grouped list style (one box, rows, tinted selected row with an edge bar) */
+.ucro-upsell--list .ucro-tiers {
+  gap: 0;
+  padding-top: 0;
+  overflow: hidden;
+  border: 1px solid var(--ucro-line);
+  border-radius: var(--ucro-radius);
+}
+.ucro-upsell--list .ucro-tier-wrap + .ucro-tier-wrap {
+  border-top: 1px solid var(--ucro-line);
+}
+.ucro-upsell--list .ucro-tier {
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.ucro-upsell--list .ucro-tier:hover:not(:disabled) { border-color: transparent; background: var(--ucro-soft); }
+.ucro-upsell--list .ucro-tier.is-selected {
+  background: color-mix(in srgb, var(--ucro-on) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--ucro-on);
+}
+.ucro-tier__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+.ucro-tier__line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ucro-upsell--list .ucro-tier__label { flex: 0 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ucro-upsell--list .ucro-tier__badge {
+  padding: 1px 8px;
+  font-size: 0.62em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ucro-tier__save-text {
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ucro-save-fg, var(--ucro-accent-text, var(--ucro-on)));
+}
+.ucro-tier__price--stack {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  line-height: 1.15;
+  text-align: end;
+}
+.ucro-tier__price--stack .ucro-was { font-size: 0.75em; }
+
+/* ---- Upsell: one size picker per item ------------------------------------------ */
+.ucro-tier__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  padding: 10px 14px 12px;
+}
+.ucro-upsell:not(.ucro-upsell--list) .ucro-tier__items { padding: 8px 2px 0; }
+.ucro-upsell--list .ucro-tier-wrap:has(.ucro-tier.is-selected) .ucro-tier__items {
+  background: color-mix(in srgb, var(--ucro-on) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--ucro-on);
+}
+.ucro-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
+.ucro-item__n { flex: none; font-weight: 600; opacity: 0.75; }
+.ucro-item__select { margin-top: 0; }

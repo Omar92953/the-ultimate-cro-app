@@ -1,0 +1,16 @@
+{
+  "ucro": {
+    "add": "Add",
+    "added": "Added",
+    "remove": "Remove",
+    "sold_out": "Sold out",
+    "choose_options": "Choose options",
+    "error": "Sorry, that could not be added. Please try again.",
+    "selected": "[count] selected",
+    "previous": "Previous",
+    "next": "Next",
+    "carousel": "Video carousel",
+    "play": "Play video",
+    "bundle_incomplete": "Please finish choosing your bundle first."
+  }
+}

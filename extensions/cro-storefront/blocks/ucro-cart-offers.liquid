@@ -1,0 +1,114 @@
+{%- comment -%}
+  App embed: cross-sell rules whose placement includes "Cart drawer".
+  All drawer rules are rendered once as JSON; ucro-drawer.js picks the best match for the
+  current cart every time the drawer re-renders. Works with Dawn-family <cart-drawer>;
+  on other themes it stays silent.
+{%- endcomment -%}
+{%- liquid
+  assign cfg = shop.metaobjects['$app:cro_settings']['settings']
+  assign enabled = true
+  if cfg and cfg.cross_sell_enabled.value == false
+    assign enabled = false
+  endif
+-%}
+{%- if enabled and template.name != 'cart' -%}
+  <script type="application/json" id="ucro-drawer-data">
+    {
+      "fmt": {{ shop.money_format | json }},
+      "max": {{ block.settings.max_items | json }},
+      "heading": {{ block.settings.heading | json }},
+      "add": {{ block.settings.add_label | json }},
+      "error": {{ 'ucro.error' | t | json }},
+      "rules": [
+        {%- assign first_rule = true -%}
+        {%- for r in shop.metaobjects['$app:cro_rule'].values -%}
+          {%- if r.kind.value != 'cross_sell' or r.active.value != true -%}{%- continue -%}{%- endif -%}
+          {%- assign placements = r.placements.value -%}
+          {%- unless placements contains 'drawer' -%}{%- continue -%}{%- endunless -%}
+          {%- liquid
+            assign pct = r.discount_percent.value | default: 0
+            assign keep = 100 | minus: pct
+            assign ttype = r.trigger_type.value | default: 'all'
+          -%}
+          {%- unless first_rule -%},{%- endunless -%}{%- assign first_rule = false -%}
+          {
+            "p": {{ r.priority.value | default: 100 | json }},
+            "t": {{ ttype | json }},
+            "ids": [
+              {%- if ttype == 'products' -%}
+                {%- for tp in r.trigger_products.value -%}{{ tp.id }}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}
+              {%- elsif ttype == 'collections' -%}
+                {%- assign first_id = true -%}
+                {%- for tc in r.trigger_collections.value -%}
+                  {%- for cp in tc.products limit: 50 -%}{%- unless first_id -%},{%- endunless -%}{%- assign first_id = false -%}{{ cp.id }}{%- endfor -%}
+                {%- endfor -%}
+              {%- endif -%}
+            ],
+            "h": {{ r.headline.value | default: block.settings.heading | json }},
+            "pct": {{ pct | json }},
+            "offers": [
+              {%- assign first_offer = true -%}
+              {%- for p in r.offered_products.value -%}
+                {%- unless p.available -%}{%- continue -%}{%- endunless -%}
+                {%- unless first_offer -%},{%- endunless -%}{%- assign first_offer = false -%}
+                {
+                  "id": {{ p.id }},
+                  "title": {{ p.title | json }},
+                  "url": {{ p.url | json }},
+                  "img": {% if p.featured_media %}{{ p.featured_media | image_url: width: 160 | json }}{% else %}""{% endif %},
+                  "v": [
+                    {%- assign first_v = true -%}
+                    {%- for v in p.variants -%}
+                      {%- unless v.available -%}{%- continue -%}{%- endunless -%}
+                      {%- unless first_v -%},{%- endunless -%}{%- assign first_v = false -%}
+                      {%- assign now = v.price | times: keep | divided_by: 100.0 | round -%}
+                      { "id": {{ v.id }}, "t": {{ v.title | json }}, "price": {{ now | money | json }}{% if pct > 0 %}, "was": {{ v.price | money | json }}{% endif %} }
+                    {%- endfor -%}
+                  ]
+                }
+              {%- endfor -%}
+            ]
+          }
+        {%- endfor -%}
+      ]
+    }
+  </script>
+  <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
+  <script src="{{ 'ucro-drawer.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Cart drawer offers",
+  "target": "body",
+  "stylesheet": "ucro.css",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Shows Cross-sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "You may also like",
+      "info": "Used when a rule has no headline of its own."
+    },
+    {
+      "type": "range",
+      "id": "max_items",
+      "label": "Products to show",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "text",
+      "id": "add_label",
+      "label": "Add button text",
+      "default": "Add"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,30 @@
+# Render Blueprint for The Ultimate CRO App (Render → New → Blueprint → pick this repo).
+# Nothing here is created until you apply it in the Render dashboard.
+services:
+  - type: web
+    name: ultimate-cro-app
+    runtime: node
+    # "starter" is a paid plan (no sleeping). "free" sleeps after ~15 min idle — fine for testing,
+    # not for App Store review or real merchants. See docs/hosting.md.
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci --include=dev && npm run build:production
+    startCommand: npm run start:production
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SHOPIFY_API_KEY
+        sync: false        # Partner Dashboard → app → Client ID
+      - key: SHOPIFY_API_SECRET
+        sync: false        # Partner Dashboard → app → Client secret
+      - key: SHOPIFY_APP_URL
+        sync: false        # https://<this service>.onrender.com
+      - key: SCOPES
+        value: read_products,read_files,read_themes,write_metaobjects,write_metaobject_definitions,write_discounts,write_cart_transforms
+      - key: DATABASE_URL
+        sync: false        # Supabase → Connect → Session pooler (…pooler.supabase.com:5432/postgres) — Render is a long-running server
+      - key: DIRECT_URL
+        sync: false        # same Session pooler URL (used by prisma migrate deploy)

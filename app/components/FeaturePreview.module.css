@@ -1,0 +1,133 @@
+/* Showcase previews on the Home cards. Decorative; neutral admin palette + sample colours. */
+.frame {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  height: 100%;
+  padding: 11px 12px;
+  overflow: hidden;
+  background: #f6f6f7;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #303030;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 650;
+}
+.count { font-weight: 500; color: #616161; }
+.was { color: #8a8a8a; font-size: 10px; }
+.thumb { display: block; flex: none; border-radius: 5px; }
+
+/* upsell */
+.tiers { display: grid; gap: 9px; padding-top: 5px; }
+.tier {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 7px;
+}
+.tier.selected { border-color: #303030; box-shadow: 0 0 0 1px #303030; }
+.radio { width: 10px; height: 10px; flex: none; border: 1.5px solid #b5b5b5; border-radius: 50%; }
+.selected .radio { border-color: #303030; background: radial-gradient(circle, #303030 0 40%, transparent 45%); }
+.tierLabel { flex: 1; font-weight: 600; }
+.tags { position: absolute; top: 0; right: 8px; display: flex; gap: 3px; transform: translateY(-50%); }
+.save, .badge { padding: 0 5px; font-size: 8.5px; font-weight: 650; line-height: 13px; border-radius: 10px; white-space: nowrap; }
+.save { background: #fff; border: 1px solid #d4d4d4; }
+.badge { color: #fff; background: #303030; }
+
+/* cross-sell */
+.rows { display: grid; gap: 6px; }
+.row { display: flex; align-items: center; gap: 7px; padding: 5px 7px; background: #fff; border-radius: 7px; }
+.check { position: relative; width: 11px; height: 11px; flex: none; border: 1.5px solid #b5b5b5; border-radius: 3px; }
+.check.checked { border-color: #303030; background: #303030; }
+.check.checked::after,
+.tick::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 6.8' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 6.8' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
+.rowText { display: grid; gap: 1px; min-width: 0; }
+.line { overflow: hidden; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.price { display: flex; gap: 4px; align-items: baseline; }
+.button {
+  margin-top: auto;
+  padding: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  background: #303030;
+  border-radius: 6px;
+}
+
+/* video carousel */
+.videos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex: 1; min-height: 0; }
+.video {
+  position: relative;
+  display: block;
+  min-height: 0;
+  max-height: 100%;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-radius: 7px;
+}
+.play {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7 5.5v9l7.5-4.5z' fill='%23fff'/%3E%3C/svg%3E") center / 70% no-repeat;
+}
+.caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 10px 5px 4px;
+  font-size: 8.5px;
+  font-weight: 650;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+}
+
+/* bundles */
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.tile {
+  position: relative;
+  display: block;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+}
+.tile .thumb { width: 100% !important; height: auto !important; aspect-ratio: 1; }
+.tile.picked { border-color: #303030; box-shadow: 0 0 0 1px #303030; }
+.tick {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 11px;
+  height: 11px;
+  background: #303030;
+  border-radius: 50%;
+}
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 7px;
+  background: #fff;
+  border-radius: 6px;
+}

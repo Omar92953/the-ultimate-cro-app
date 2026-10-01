@@ -1,0 +1,23 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "cro-discount"
+uid = "0ce1e881-2cad-83e4-55cb-023eff3f9c194930bfa1"
+type = "function"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+
+  # The dashboard writes {"collectionIds": [...]} here so the input query can check
+  # collection membership for rules triggered by a collection (max 100 ids).
+  [extensions.input.variables]
+  namespace = "$app"
+  key = "function-input"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

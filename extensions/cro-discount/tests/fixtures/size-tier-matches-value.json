@@ -1,0 +1,102 @@
+{
+  "payload": {
+    "export": "cart-lines-discounts-generate-run",
+    "target": "cart.lines.discounts.generate.run",
+    "input": {
+      "cart": {
+        "lines": [
+          {
+            "id": "gid://shopify/CartLine/1",
+            "quantity": 1,
+            "bundle": null,
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "title": "100 ml",
+              "product": {
+                "id": "gid://shopify/Product/20",
+                "inCollections": []
+              }
+            }
+          },
+          {
+            "id": "gid://shopify/CartLine/2",
+            "quantity": 1,
+            "bundle": null,
+            "merchandise": {
+              "__typename": "ProductVariant",
+              "title": "50 ml",
+              "product": {
+                "id": "gid://shopify/Product/20",
+                "inCollections": []
+              }
+            }
+          }
+        ]
+      },
+      "discount": {
+        "discountClasses": [
+          "PRODUCT"
+        ],
+        "metafield": {
+          "jsonValue": {
+            "upsell": [
+              {
+                "trigger": {
+                  "type": "products",
+                  "products": [
+                    "gid://shopify/Product/20"
+                  ],
+                  "collections": []
+                },
+                "type": "variant",
+                "option": "Size",
+                "tiers": [
+                  {
+                    "value": "50 ml",
+                    "pct": 0
+                  },
+                  {
+                    "value": "100 ml",
+                    "pct": 10
+                  },
+                  {
+                    "value": "200 ml",
+                    "pct": 20
+                  }
+                ],
+                "label": "Choose your size"
+              }
+            ],
+            "crossSell": []
+          }
+        }
+      }
+    },
+    "output": {
+      "operations": [
+        {
+          "productDiscountsAdd": {
+            "candidates": [
+              {
+                "message": "Choose your size",
+                "targets": [
+                  {
+                    "cartLine": {
+                      "id": "gid://shopify/CartLine/1"
+                    }
+                  }
+                ],
+                "value": {
+                  "percentage": {
+                    "value": 10
+                  }
+                }
+              }
+            ],
+            "selectionStrategy": "ALL"
+          }
+        }
+      ]
+    }
+  }
+}
