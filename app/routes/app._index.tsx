@@ -20,9 +20,22 @@ import {
 import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
 import { Button, Switch } from "../components/fields";
-import { BundlePreview, CrossSellPreview, UpsellPreview, VideoPreview } from "../components/FeaturePreview";
+import {
+  AnnouncementPreview,
+  BundlePreview,
+  CountdownBarPreview,
+  CountdownPreview,
+  CrossSellPreview,
+  FaqPreview,
+  HeroPreview,
+  LogosPreview,
+  QuickAddPreview,
+  ReviewsPreview,
+  UpsellPreview,
+  VideoPreview,
+} from "../components/FeaturePreview";
 import styles from "../components/Home.module.css";
-import { Card, CardGrid, CardText, Checklist, GroupTitle, Pill } from "../components/ui";
+import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -153,13 +166,27 @@ const FEATURES: {
   },
 ];
 
-/** Sections set up entirely in the theme editor (no list to manage in the app). */
-const THEME_ONLY = [
-  { key: "quick_add", title: "Quick add to cart", embed: true, text: "A button on every product card. Sizes and colours open a small picker." },
-  { key: "hero", title: "Hero image", embed: false, text: "A banner with separate desktop and mobile images, text and buttons." },
-  { key: "countdown", title: "Countdown timer", embed: false, text: "Sale end, a fresh timer per visitor, or a daily order cut-off." },
-  { key: "countdown_bar", title: "Countdown bar", embed: true, text: "A slim timer bar fixed to the top or bottom of every page." },
-] as const;
+type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar";
+
+/** Store sections, shown in the same card format as the features above. */
+const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; Preview: () => JSX.Element }[] = [
+  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Preview: ReviewsPreview },
+  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Preview: FaqPreview },
+  { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Preview: LogosPreview },
+  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Preview: AnnouncementPreview },
+  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Preview: QuickAddPreview },
+  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Preview: HeroPreview },
+  { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Preview: CountdownPreview },
+  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Preview: CountdownBarPreview },
+];
+
+function sectionStatus(list: SectionKind | null, counts: { total: number; shown: number } | null, installed: boolean | null, embed: boolean): Status {
+  if (list && counts && !counts.total) return { tone: "warning", text: `Next: add your first ${SECTIONS[list].singular}`, next: "create" };
+  if (installed === false) return { tone: "warning", text: embed ? "Next: turn it on in your theme" : "Next: add it to your theme", next: "theme" };
+  if (installed === null && !list) return { tone: "neutral", text: "Set it up in the theme editor", next: "theme" };
+  if (list && counts) return { tone: "success", text: `Live · ${counts.shown} of ${plural(counts.total, SECTIONS[list].singular)} shown`, next: null };
+  return { tone: "success", text: embed ? "Live · turned on in your theme" : "Live · in your theme", next: null };
+}
 
 type Status = { tone: "success" | "warning" | "neutral"; text: string; next: "create" | "theme" | null };
 
@@ -295,47 +322,61 @@ export default function Home() {
       </div>
 
       <GroupTitle>Store sections</GroupTitle>
-      <CardGrid cols={4}>
-        {SECTION_KINDS.map((k) => {
-          const cfg = SECTIONS[k];
-          const c = data.sectionCounts[k];
+      <div className={styles.cards}>
+        {SECTION_CARDS.map((c) => {
+          const counts = c.list ? data.sectionCounts[c.list] : null;
+          const isInstalled = installed ? (installed[c.key] ?? false) : null;
+          const status = sectionStatus(c.list, counts, isInstalled, c.embed);
+          const listHref = c.list ? `/app/sections/${c.list}` : null;
+          const themeHref = data.sectionLinks[c.key];
           return (
-            <Card
-              key={k}
-              title={cfg.title}
-              badge={<Pill tone={c.shown ? "ok" : "muted"}>{c.total ? `${c.shown} of ${c.total} shown` : `No ${cfg.plural}`}</Pill>}
-              actions={
-                <>
-                  <Button href={c.total ? `/app/sections/${k}` : `/app/sections/${k}/new`} variant="primary">
-                    {c.total ? "Manage" : cfg.addLabel}
-                  </Button>
-                  <Button href={data.sectionLinks[k]} target="_top" variant="tertiary" icon="theme-edit">
-                    {cfg.embed ? "Turn on" : "Add to theme"}
-                  </Button>
-                </>
-              }
-            >
-              <CardText>{cfg.help.what}</CardText>
-            </Card>
+            <div key={c.key} className={styles.card}>
+              <div className={styles.preview}>
+                <c.Preview />
+              </div>
+              <div className={styles.body}>
+                <div className={styles.titleRow}>
+                  <s-heading>{c.title}</s-heading>
+                </div>
+                <p className={styles.desc}>{c.description}</p>
+                <span className={`${styles.status} ${styles[status.tone]}`}>{status.text}</span>
+                <div className={styles.actions}>
+                  {status.next === "create" && c.list ? (
+                    <Button href={`/app/sections/${c.list}/new`} variant="primary">
+                      {SECTIONS[c.list].addLabel}
+                    </Button>
+                  ) : status.next === "theme" ? (
+                    <Button href={themeHref} target="_top" variant="primary" icon="theme-edit">
+                      {c.embed ? "Turn on" : "Add to theme"}
+                    </Button>
+                  ) : listHref ? (
+                    <Button href={listHref} variant="primary">
+                      Manage
+                    </Button>
+                  ) : (
+                    <Button href={c.embed ? themeHref : data.links.editor} target="_top" variant="primary" icon="theme-edit">
+                      Customize
+                    </Button>
+                  )}
+                  {listHref && status.next !== null ? (
+                    <Button href={listHref} variant="tertiary">
+                      Open
+                    </Button>
+                  ) : listHref ? (
+                    <Button href={c.embed ? themeHref : data.links.editor} target="_top" icon="theme-edit" variant="tertiary">
+                      Theme editor
+                    </Button>
+                  ) : (
+                    <Button href={`https://${data.shop}`} target="_blank" icon="view" variant="tertiary">
+                      View store
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           );
         })}
-      </CardGrid>
-      <CardGrid cols={4}>
-        {THEME_ONLY.map((t) => (
-          <Card
-            key={t.key}
-            title={t.title}
-            badge={<Pill>{t.embed ? "App embed" : "Section"}</Pill>}
-            actions={
-              <Button href={data.sectionLinks[t.key]} target="_top" variant="tertiary" icon="theme-edit">
-                {t.embed ? "Turn on in theme" : "Add to theme"}
-              </Button>
-            }
-          >
-            <CardText>{t.text}</CardText>
-          </Card>
-        ))}
-      </CardGrid>
+      </div>
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
       </s-stack>

@@ -1044,7 +1044,18 @@ export const BLOCKS = {
   videos: "ucro-video-carousel",
   bundles: "ucro-bundle-builder",
   drawer: "ucro-cart-offers",
+  reviews: "ucs-reviews",
+  faq: "ucs-faq",
+  logos: "ucs-logos",
+  announcements: "ucs-announcement",
+  quick_add: "ucs-quick-add",
+  hero: "ucs-hero",
+  countdown: "ucs-countdown",
+  countdown_bar: "ucs-countdown-bar",
 } as const;
+
+/** App embeds (switched on in App embeds) rather than blocks placed in a template. */
+const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "countdown_bar"];
 
 export type ThemeStatus = {
   themeName: string | null;
@@ -1072,11 +1083,13 @@ export async function getThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
   if (!theme) return { themeName: null, installed };
   for (const file of theme.files.nodes) {
     const content: string = file.body?.content ?? "";
-    for (const [key, handle] of Object.entries(BLOCKS)) {
-      if (key === "drawer") continue;
-      if (content.includes(`/blocks/${handle}/`)) installed[key as keyof typeof BLOCKS] = true;
+    for (const [key, handle] of Object.entries(BLOCKS) as [keyof typeof BLOCKS, string][]) {
+      if (EMBEDS.includes(key)) continue;
+      if (content.includes(`/blocks/${handle}/`)) installed[key] = true;
     }
-    if (file.filename === "config/settings_data.json") installed.drawer = embedEnabled(content, BLOCKS.drawer);
+    if (file.filename === "config/settings_data.json") {
+      for (const key of EMBEDS) installed[key] = embedEnabled(content, BLOCKS[key]);
+    }
   }
   return { themeName: theme.name, installed };
 }
