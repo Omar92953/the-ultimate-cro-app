@@ -1,0 +1,46 @@
+{%- comment -%}
+  One tickable product row (cross-sell). Params: p (product), pct (discount %, may be 0), checked (bool).
+  Prices shown are what checkout charges: the discount Function applies the same percentage.
+{%- endcomment -%}
+{%- liquid
+  assign pct = pct | default: 0
+  assign keep = 100 | minus: pct
+  assign v = p.selected_or_first_available_variant
+  assign now = v.price | times: keep | divided_by: 100.0 | round
+-%}
+<li class="ucro-offer">
+  <label class="ucro-offer__row">
+    <input type="checkbox" class="ucro-offer__check"{% if checked %} checked{% endif %}>
+    <span class="ucro-offer__box" aria-hidden="true"></span>
+    <span class="ucro-offer__img">
+      {%- if p.featured_media -%}
+        {{ p.featured_media | image_url: width: 240 | image_tag: loading: 'lazy', widths: '120, 180, 240', sizes: '72px', alt: p.title }}
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'ucro-placeholder' }}
+      {%- endif -%}
+    </span>
+    <span class="ucro-offer__body">
+      <a class="ucro-offer__title" href="{{ p.url }}">{{ p.title }}</a>
+      <span class="ucro-offer__prices">
+        <span class="ucro-offer__price" data-ucro-price>{{ now | money }}</span>
+        {%- if pct > 0 -%}
+          <s class="ucro-was" data-ucro-was>{{ v.price | money }}</s>
+        {%- endif -%}
+      </span>
+    </span>
+  </label>
+  {%- if p.has_only_default_variant -%}
+    <input type="hidden" class="ucro-offer__variant" value="{{ v.id }}">
+  {%- else -%}
+    <select class="ucro-offer__variant ucro-select" aria-label="{{ p.title | escape }}">
+      {%- for variant in p.variants -%}
+        {%- if variant.available -%}
+          {%- assign v_now = variant.price | times: keep | divided_by: 100.0 | round -%}
+          <option value="{{ variant.id }}" data-price="{{ v_now | money | escape }}" data-was="{{ variant.price | money | escape }}"{% if variant.id == v.id %} selected{% endif %}>
+            {{- variant.title -}}
+          </option>
+        {%- endif -%}
+      {%- endfor -%}
+    </select>
+  {%- endif -%}
+</li>

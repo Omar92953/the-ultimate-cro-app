@@ -39,7 +39,7 @@
     var paintFs = function (total) {
       var left = threshold - total;
       var text = total <= 0 ? d.fsEmpty : left > 0 ? d.fsLeft : d.fsDone;
-      fs.querySelector('span').textContent = String(text || '').replace('{amount}', money(Math.max(left, 0))).replace('{threshold}', money(threshold));
+      fs.querySelector('.ucs-ab__fs-text').textContent = String(text || '').replace('{amount}', money(Math.max(left, 0))).replace('{threshold}', money(threshold));
       el.style.setProperty('--ucs-ab-p', Math.min(100, Math.max(0, (total / threshold) * 100)) + '%');
       el.classList.toggle('is-free', total > 0 && left <= 0);
     };

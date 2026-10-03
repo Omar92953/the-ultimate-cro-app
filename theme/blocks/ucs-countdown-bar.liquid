@@ -59,7 +59,7 @@
         <a class="ucs-btn ucs-cdb__btn" href="{{ block.settings.button_link | default: routes.all_products_collection_url }}">{{ block.settings.button_label | escape }}</a>
       {%- endif -%}
       {%- if block.settings.dismissible -%}
-        <button type="button" class="ucs-cdb__close" aria-label="{{ 'ucs.close' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="ucs-cdb__close" aria-label="{{ 'ucs.close' | t | escape }}"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>
       {%- endif -%}
     </div>
   </div>

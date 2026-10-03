@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ext = path.resolve(here, "../../extensions/cro-sections");
+const ext = path.resolve(here, "../../extensions/cro-storefront");
 const out = path.join(here, "out/sections");
 fs.mkdirSync(path.join(out, "assets"), { recursive: true });
 for (const f of fs.readdirSync(path.join(ext, "assets"))) fs.copyFileSync(path.join(ext, "assets", f), path.join(out, "assets", f));

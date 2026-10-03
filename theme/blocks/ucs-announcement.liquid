@@ -29,7 +29,7 @@
       {%- assign icon = m.icon.value | default: 'none' -%}
       <div class="ucs-ab__msg"{% if m.starts_at.value != blank %} data-start="{{ m.starts_at.value | date: '%s' }}"{% endif %}{% if m.ends_at.value != blank %} data-end="{{ m.ends_at.value | date: '%s' }}"{% endif %}>
         {%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}">{% endif -%}
-        {%- if icon != 'none' %}{% render 'ucs-icon', name: icon %}{% endif -%}
+        {%- if icon != 'none' %}<span class="ucs-i ucs-i--{{ icon }}" aria-hidden="true"></span>{% endif -%}
         <span>{{ m.message.value | escape }}</span>
         {%- if m.link.value != blank %}</a>{% endif -%}
       </div>
@@ -73,11 +73,11 @@
   >
     <div class="ucs-ab__inner">
       {%- if block.settings.arrows -%}
-        <button type="button" class="ucs-ab__nav" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="ucs-ab__nav" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>
       {%- endif -%}
       <div class="ucs-ab__track" aria-live="polite">
         {%- if block.settings.free_shipping and threshold > 0 -%}
-          <div class="ucs-ab__msg ucs-ab__fs">{% render 'ucs-icon', name: 'truck' %}<span></span></div>
+          <div class="ucs-ab__msg ucs-ab__fs"><span class="ucs-i ucs-i--truck" aria-hidden="true"></span><span class="ucs-ab__fs-text"></span></div>
         {%- endif -%}
         {{ messages }}
         {%- if messages == blank and request.design_mode and block.settings.free_shipping == false -%}
@@ -85,10 +85,10 @@
         {%- endif -%}
       </div>
       {%- if block.settings.arrows -%}
-        <button type="button" class="ucs-ab__nav" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="ucs-ab__nav" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button>
       {%- endif -%}
       {%- if block.settings.dismissible -%}
-        <button type="button" class="ucs-ab__close" aria-label="{{ 'ucs.close' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="ucs-ab__close" aria-label="{{ 'ucs.close' | t | escape }}"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>
       {%- endif -%}
     </div>
     {%- if block.settings.free_shipping and block.settings.fs_bar -%}<div class="ucs-ab__bar" aria-hidden="true"></div>{%- endif -%}

@@ -1,347 +1,124 @@
 {%- liquid
-  assign cfg = shop.metaobjects['$app:cro_settings']['settings']
-  assign enabled = true
-  if cfg and cfg.cross_sell_enabled.value == false
-    assign enabled = false
-  endif
-
-  assign placement = 'product'
-  if template.name == 'cart'
-    assign placement = 'cart'
-  endif
-
-  assign rule = nil
-  if enabled
-    capture rule_handle
-      render 'ucro-match', kind: 'cross_sell', placement: placement, product: product
-    endcapture
-    assign rule_handle = rule_handle | split: '@@'
-    assign rule_handle = rule_handle[1] | strip
-    if rule_handle != blank
-      assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
-    endif
-  endif
-
-  # Offered products that can actually be bought here: in stock, not the product being
-  # viewed, and (on the cart page) not already in the cart.
-  assign shown = 0
-  if rule
-    for p in rule.offered_products.value
-      if p.available != true
-        continue
-      endif
-      if product != blank and p.id == product.id
-        continue
-      endif
-      assign in_cart = false
-      if placement == 'cart'
-        for item in cart.items
-          if item.product_id == p.id
-            assign in_cart = true
-            break
-          endif
-        endfor
-      endif
-      unless in_cart
-        assign shown = shown | plus: 1
-      endunless
-    endfor
-  endif
-
-  assign mode = ''
-  if shown > 0
-    assign mode = 'rule'
-  elsif enabled and block.settings.fallback == 'recommendations' and product != blank
-    assign mode = 'recommend'
-  endif
-
-  assign pct = 0
-  if rule
-    assign pct = rule.discount_percent.value | default: 0
-  endif
-  assign heading = block.settings.rec_heading
-  assign button_label = block.settings.button_label
-  if mode == 'rule'
-    assign heading = rule.headline.value | default: block.settings.rec_heading
-    assign button_label = rule.button_label.value | default: block.settings.button_label
-  endif
+assign cfg = shop.metaobjects['$app:cro_settings']['settings']
+assign enabled = true
+if cfg and cfg.cross_sell_enabled.value == false
+assign enabled = false
+endif
+assign placement = 'product'
+if template.name == 'cart'
+assign placement = 'cart'
+endif
+assign rule = nil
+if enabled
+capture rule_handle
+render 'ucro-match', kind: 'cross_sell', placement: placement, product: product
+endcapture
+assign rule_handle = rule_handle | split: '@@'
+assign rule_handle = rule_handle[1] | strip
+if rule_handle != blank
+assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
+endif
+endif
+assign shown = 0
+if rule
+for p in rule.offered_products.value
+if p.available != true
+continue
+endif
+if product != blank and p.id == product.id
+continue
+endif
+assign in_cart = false
+if placement == 'cart'
+for item in cart.items
+if item.product_id == p.id
+assign in_cart = true
+break
+endif
+endfor
+endif
+unless in_cart
+assign shown = shown | plus: 1
+endunless
+endfor
+endif
+assign mode = ''
+if shown > 0
+assign mode = 'rule'
+elsif enabled and block.settings.fallback == 'recommendations' and product != blank
+assign mode = 'recommend'
+endif
+assign pct = 0
+if rule
+assign pct = rule.discount_percent.value | default: 0
+endif
+assign heading = block.settings.rec_heading
+assign button_label = block.settings.button_label
+if mode == 'rule'
+assign heading = rule.headline.value | default: block.settings.rec_heading
+assign button_label = rule.button_label.value | default: block.settings.button_label
+endif
 -%}
-
 {%- if mode != blank -%}
-  <ucro-cross-sell
-    class="ucro ucro-cross{% if block.settings.panel %} ucro-cross--panel{% if block.settings.edge_to_edge %} ucro-cross--bleed{% endif %}{% endif %}{% if block.settings.devices == 'mobile' %} ucro-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
-    style="--ucro-align: {{ block.settings.text_align }}; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px;{% if block.settings.accent != blank %} --ucro-accent: {{ block.settings.accent }};{% endif %}{% if block.settings.panel_color != blank %} --ucro-panel: {{ block.settings.panel_color }};{% endif %}{% if block.settings.border_color != blank %} --ucro-border: {{ block.settings.border_color }};{% endif %}{% unless block.settings.theme_radius %} --ucro-radius: {{ block.settings.radius }}px;{% endunless %}"
-    data-radius="{% if block.settings.theme_radius %}theme{% else %}custom{% endif %}"
-    data-mode="{{ mode }}"
-    data-product-id="{{ product.id }}"
-    data-limit="{{ block.settings.rec_limit }}"
-    data-checked="{{ block.settings.preselect }}"
-    data-label="{{ button_label | escape }}"
-    data-money-format="{{ shop.money_format | escape }}"
-    data-error="{{ 'ucro.error' | t | escape }}"
-    {{ block.shopify_attributes }}
-  >
-    {%- if heading != blank -%}
-      <h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}">{{ heading | escape }}</h2>
-    {%- endif -%}
-    {%- if mode == 'rule' and rule.subheadline.value != blank -%}
-      <p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>
-    {%- endif -%}
-
-    <ul class="ucro-cross__list" role="list">
-      {%- if mode == 'rule' -%}
-        {%- for p in rule.offered_products.value -%}
-          {%- if p.available != true -%}{%- continue -%}{%- endif -%}
-          {%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}
-          {%- assign in_cart = false -%}
-          {%- if placement == 'cart' -%}
-            {%- for item in cart.items -%}
-              {%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}
-            {%- endfor -%}
-          {%- endif -%}
-          {%- unless in_cart -%}
-            {%- render 'ucro-offer-row', p: p, pct: pct, checked: block.settings.preselect -%}
-          {%- endunless -%}
-        {%- endfor -%}
-      {%- endif -%}
-    </ul>
-
-    <button type="button" class="ucro-btn ucro-cross__add" disabled>
-      <span class="ucro-cross__label">{{ button_label | escape }}</span>
-    </button>
-    <p class="ucro__error" role="alert" hidden></p>
-  </ucro-cross-sell>
-  <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-  <script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>
-{%- elsif request.design_mode -%}
-  <div class="ucro-note" {{ block.shopify_attributes }}>
-    {%- if enabled == false -%}
-      Cross-sell is switched off in The Ultimate CRO App.
-    {%- elsif rule -%}
-      Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:
-      {%- for p in rule.offered_products.value -%}
-        {%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% elsif p.available != true %} {{ p.title | escape }} (sold out or not on the Online Store){% else %} {{ p.title | escape }} (already in the cart){% endif -%}
-        {%- unless forloop.last -%};{%- endunless -%}
-      {%- else %} its product list is empty or its products aren’t published to the Online Store.
-      {%- endfor %}
-      Only you see this note.
-    {%- else -%}
-      {%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}
-      Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in The Ultimate CRO App, or turn on "Shopify recommendations" below. Only you see this note.
-    {%- endif -%}
-  </div>
+<ucro-cross-sell
+class="ucro ucro-cross{% if block.settings.panel %} ucro-cross--panel{% if block.settings.edge_to_edge %} ucro-cross--bleed{% endif %}{% endif %}{% if block.settings.devices == 'mobile' %} ucro-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
+style="--ucro-align: {{ block.settings.text_align }}; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px;{% if block.settings.accent != blank %} --ucro-accent: {{ block.settings.accent }};{% endif %}{% if block.settings.panel_color != blank %} --ucro-panel: {{ block.settings.panel_color }};{% endif %}{% if block.settings.border_color != blank %} --ucro-border: {{ block.settings.border_color }};{% endif %}{% unless block.settings.theme_radius %} --ucro-radius: {{ block.settings.radius }}px;{% endunless %}"
+data-radius="{% if block.settings.theme_radius %}theme{% else %}custom{% endif %}"
+data-mode="{{ mode }}"
+data-product-id="{{ product.id }}"
+data-limit="{{ block.settings.rec_limit }}"
+data-checked="{{ block.settings.preselect }}"
+data-label="{{ button_label | escape }}"
+data-money-format="{{ shop.money_format | escape }}"
+data-error="{{ 'ucro.error' | t | escape }}"
+{{ block.shopify_attributes }}
+>
+{%- if heading != blank -%}
+<h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}">{{ heading | escape }}</h2>
 {%- endif -%}
-
-{% schema %}
-{
-  "name": "Cross-sell offers",
-  "target": "section",
-  "stylesheet": "ucro.css",
-  "enabled_on": {
-    "templates": [
-      "product",
-      "cart"
-    ]
-  },
-  "settings": [
-    {
-      "type": "paragraph",
-      "content": "Products, headline and discount come from your Cross-sell rules in The Ultimate CRO App."
-    },
-    {
-      "type": "header",
-      "content": "Products"
-    },
-    {
-      "type": "checkbox",
-      "id": "preselect",
-      "label": "Tick every product by default",
-      "default": false
-    },
-    {
-      "type": "select",
-      "id": "fallback",
-      "label": "If no rule matches",
-      "default": "none",
-      "options": [
-        {
-          "value": "none",
-          "label": "Show nothing"
-        },
-        {
-          "value": "recommendations",
-          "label": "Show Shopify recommendations"
-        }
-      ],
-      "info": "Recommendations work on product pages only."
-    },
-    {
-      "type": "text",
-      "id": "rec_heading",
-      "label": "Recommendations heading",
-      "default": "Pairs well with",
-      "visible_if": "{{ block.settings.fallback == 'recommendations' }}"
-    },
-    {
-      "type": "range",
-      "id": "rec_limit",
-      "label": "Number of recommendations",
-      "min": 2,
-      "max": 10,
-      "step": 1,
-      "default": 4,
-      "visible_if": "{{ block.settings.fallback == 'recommendations' }}"
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Button text",
-      "default": "Add selected to cart",
-      "info": "A rule's own button text wins. The count is added automatically, e.g. (2)."
-    },
-    {
-      "type": "header",
-      "content": "Heading"
-    },
-    {
-      "type": "select",
-      "id": "heading_size",
-      "label": "Size",
-      "default": "medium",
-      "options": [
-        {
-          "value": "small",
-          "label": "Small"
-        },
-        {
-          "value": "medium",
-          "label": "Medium"
-        },
-        {
-          "value": "large",
-          "label": "Large"
-        }
-      ]
-    },
-    {
-      "type": "select",
-      "id": "text_align",
-      "label": "Alignment",
-      "default": "left",
-      "options": [
-        {
-          "value": "left",
-          "label": "Left"
-        },
-        {
-          "value": "center",
-          "label": "Center"
-        },
-        {
-          "value": "right",
-          "label": "Right"
-        }
-      ]
-    },
-    {
-      "type": "header",
-      "content": "Colors"
-    },
-    {
-      "type": "color",
-      "id": "accent",
-      "label": "Tick",
-      "info": "Leave any color empty to use your theme's colors."
-    },
-    {
-      "type": "color",
-      "id": "border_color",
-      "label": "Product border"
-    },
-    {
-      "type": "checkbox",
-      "id": "panel",
-      "label": "Show a background panel",
-      "default": true
-    },
-    {
-      "type": "color",
-      "id": "panel_color",
-      "label": "Panel",
-      "visible_if": "{{ block.settings.panel }}"
-    },
-    {
-      "type": "header",
-      "content": "Corners and spacing"
-    },
-    {
-      "type": "checkbox",
-      "id": "theme_radius",
-      "label": "Match my theme's corners",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "radius",
-      "label": "Corner radius",
-      "min": 0,
-      "max": 40,
-      "step": 2,
-      "unit": "px",
-      "default": 12,
-      "visible_if": "{{ block.settings.theme_radius == false }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "edge_to_edge",
-      "label": "Panel edge to edge on mobile",
-      "default": false,
-      "visible_if": "{{ block.settings.panel }}"
-    },
-    {
-      "type": "range",
-      "id": "padding_top",
-      "label": "Space above",
-      "min": 0,
-      "max": 60,
-      "step": 4,
-      "unit": "px",
-      "default": 16
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "label": "Space below",
-      "min": 0,
-      "max": 60,
-      "step": 4,
-      "unit": "px",
-      "default": 16
-    },
-    {
-      "type": "header",
-      "content": "Visibility"
-    },
-    {
-      "type": "select",
-      "id": "devices",
-      "label": "Show on",
-      "default": "all",
-      "options": [
-        {
-          "value": "all",
-          "label": "Desktop and mobile"
-        },
-        {
-          "value": "desktop",
-          "label": "Desktop only"
-        },
-        {
-          "value": "mobile",
-          "label": "Mobile only"
-        }
-      ]
-    }
-  ]
-}
-{% endschema %}
+{%- if mode == 'rule' and rule.subheadline.value != blank -%}
+<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>
+{%- endif -%}
+<ul class="ucro-cross__list" role="list">
+{%- if mode == 'rule' -%}
+{%- for p in rule.offered_products.value -%}
+{%- if p.available != true -%}{%- continue -%}{%- endif -%}
+{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}
+{%- assign in_cart = false -%}
+{%- if placement == 'cart' -%}
+{%- for item in cart.items -%}
+{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}
+{%- endfor -%}
+{%- endif -%}
+{%- unless in_cart -%}
+{%- render 'ucro-offer-row', p: p, pct: pct, checked: block.settings.preselect -%}
+{%- endunless -%}
+{%- endfor -%}
+{%- endif -%}
+</ul>
+<button type="button" class="ucro-btn ucro-cross__add" disabled>
+<span class="ucro-cross__label">{{ button_label | escape }}</span>
+</button>
+<p class="ucro__error" role="alert" hidden></p>
+</ucro-cross-sell>
+<script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
+<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+<div class="ucro-note" {{ block.shopify_attributes }}>
+{%- if enabled == false -%}
+Cross-sell is switched off in The Ultimate CRO App.
+{%- elsif rule -%}
+Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:
+{%- for p in rule.offered_products.value -%}
+{%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% elsif p.available != true %} {{ p.title | escape }} (sold out or not on the Online Store){% else %} {{ p.title | escape }} (already in the cart){% endif -%}
+{%- unless forloop.last -%};{%- endunless -%}
+{%- else %} its product list is empty or its products aren’t published to the Online Store.
+{%- endfor %}
+Only you see this note.
+{%- else -%}
+{%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}
+Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in The Ultimate CRO App, or turn on "Shopify recommendations" below. Only you see this note.
+{%- endif -%}
+</div>
+{%- endif -%}
+{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"paragraph","content":"t:s.k"},{"type":"header","content":"Products"},{"type":"checkbox","id":"preselect","label":"t:s.l","default":false},{"type":"select","id":"fallback","label":"t:s.m","default":"none","options":[{"value":"none","label":"t:s.o"},{"value":"recommendations","label":"t:s.p"}],"info":"t:s.n"},{"type":"text","id":"rec_heading","label":"t:s.q","default":"Pairs well with","visible_if":"{{ block.settings.fallback == 'recommendations' }}"},{"type":"range","id":"rec_limit","label":"t:s.r","min":2,"max":10,"step":1,"default":4,"visible_if":"{{ block.settings.fallback == 'recommendations' }}"},{"type":"text","id":"button_label","label":"Button text","default":"Add selected to cart","info":"t:s.s"},{"type":"header","content":"Heading"},{"type":"select","id":"heading_size","label":"Size","default":"medium","options":[{"value":"small","label":"Small"},{"value":"medium","label":"Medium"},{"value":"large","label":"Large"}]},{"type":"select","id":"text_align","label":"Alignment","default":"left","options":[{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}]},{"type":"header","content":"Colors"},{"type":"color","id":"accent","label":"Tick","info":"t:s.t"},{"type":"color","id":"border_color","label":"t:s.u"},{"type":"checkbox","id":"panel","label":"t:s.v","default":true},{"type":"color","id":"panel_color","label":"Panel","visible_if":"{{ block.settings.panel }}"},{"type":"header","content":"t:s.w"},{"type":"checkbox","id":"theme_radius","label":"t:s.x","default":true},{"type":"range","id":"radius","label":"t:s.y","min":0,"max":40,"step":2,"unit":"px","default":12,"visible_if":"{{ block.settings.theme_radius == false }}"},{"type":"checkbox","id":"edge_to_edge","label":"t:s.z","default":false,"visible_if":"{{ block.settings.panel }}"},{"type":"range","id":"padding_top","label":"Space above","min":0,"max":60,"step":4,"unit":"px","default":16},{"type":"range","id":"padding_bottom","label":"Space below","min":0,"max":60,"step":4,"unit":"px","default":16},{"type":"header","content":"Visibility"},{"type":"select","id":"devices","label":"Show on","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}

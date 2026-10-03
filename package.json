@@ -21,7 +21,9 @@
     "build:production": "prisma generate --schema prisma/postgres/schema.prisma && react-router build",
     "start:production": "prisma migrate deploy --schema prisma/postgres/schema.prisma && react-router-serve ./build/server/index.js",
     "test:functions": "npm --workspace extensions/cro-discount run test && npm --workspace extensions/cro-bundles run test",
-    "test:storefront": "node test/storefront/render.mjs && node test/storefront/sections.mjs"
+    "build:theme": "node scripts/build-theme.mjs",
+    "watch:theme": "node scripts/build-theme.mjs --watch",
+    "test:storefront": "node scripts/build-theme.mjs --check && node test/storefront/render.mjs && node test/storefront/sections.mjs"
   },
   "type": "module",
   "engines": {

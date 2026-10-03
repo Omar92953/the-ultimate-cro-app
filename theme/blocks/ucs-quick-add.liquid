@@ -3,23 +3,6 @@
   Product cards can't hold app blocks, so the button is placed on each card's image by JS.
 {%- endcomment -%}
 {%- liquid
-  case block.settings.icon
-    when 'plus'
-      capture icon
-        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
-      endcapture
-    when 'cart'
-      capture icon
-        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2l1.7-7.3H6.2"/></svg>'
-      endcapture
-    else
-      capture icon
-        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M12 11.5v5M9.5 14h5"/></svg>'
-      endcapture
-  endcase
-  capture check
-    echo '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
-  endcapture
   assign radius = null
   unless block.settings.theme_radius
     assign radius = block.settings.radius
@@ -28,8 +11,7 @@
 <script type="application/json" id="ucs-qa-config">
   {
     "fmt": {{ shop.money_format | json }},
-    "icon": {{ icon | strip | json }},
-    "check": {{ check | strip | json }},
+    "icon": {{ block.settings.icon | json }},
     "shape": {{ block.settings.shape | json }},
     "size": {{ block.settings.size | json }},
     "position": {{ block.settings.position | json }},

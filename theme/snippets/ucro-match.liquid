@@ -1,0 +1,92 @@
+{%- comment -%}
+  Outputs @@handle@@ for the best matching active offer rule (@@@@ when none).
+  Callers: capture it, then `split: '@@'` and take index 1.
+  Rules are app-owned metaobjects written by the dashboard. The lowest "priority" number wins,
+  which is also the order the discount Function uses, so the storefront and checkout agree.
+
+  Params:
+  - kind: 'cross_sell' | 'upsell'
+  - placement: 'product' | 'cart' | 'drawer'
+  - product: the product being viewed (product placement only)
+  Cart placements match against every item in the cart.
+{%- endcomment -%}
+{%- liquid
+  assign best_handle = ''
+  assign best_priority = 1000000
+
+  for r in shop.metaobjects['$app:cro_rule'].values
+    if r.kind.value != kind or r.active.value != true
+      continue
+    endif
+    assign placements = r.placements.value
+    unless placements contains placement
+      continue
+    endunless
+    assign p = r.priority.value | default: 100
+    if p >= best_priority
+      continue
+    endif
+
+    assign hit = false
+    assign ttype = r.trigger_type.value | default: 'all'
+    if ttype == 'all'
+      assign hit = true
+    elsif placement == 'product'
+      if product != blank
+        if ttype == 'products'
+          for tp in r.trigger_products.value
+            if tp.id == product.id
+              assign hit = true
+              break
+            endif
+          endfor
+        else
+          for tc in r.trigger_collections.value
+            for pc in product.collections
+              if pc.id == tc.id
+                assign hit = true
+                break
+              endif
+            endfor
+            if hit
+              break
+            endif
+          endfor
+        endif
+      endif
+    else
+      for item in cart.items
+        if ttype == 'products'
+          for tp in r.trigger_products.value
+            if tp.id == item.product_id
+              assign hit = true
+              break
+            endif
+          endfor
+        else
+          for tc in r.trigger_collections.value
+            for pc in item.product.collections
+              if pc.id == tc.id
+                assign hit = true
+                break
+              endif
+            endfor
+            if hit
+              break
+            endif
+          endfor
+        endif
+        if hit
+          break
+        endif
+      endfor
+    endif
+
+    if hit
+      assign best_handle = r.system.handle
+      assign best_priority = p
+    endif
+  endfor
+-%}
+{%- comment -%} Markers let callers extract the handle even if Shopify wraps snippet output in HTML comments. {%- endcomment -%}
+@@{{- best_handle -}}@@

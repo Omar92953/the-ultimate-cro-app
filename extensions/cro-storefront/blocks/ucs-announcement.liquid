@@ -1,0 +1,90 @@
+{%- liquid
+assign show_here = true
+if block.settings.pages == 'home' and request.page_type != 'index'
+assign show_here = false
+endif
+assign items = shop.metaobjects['$app:cro_announce'].values
+assign keys = ''
+for m in items
+if m.active.value == false or m.message.value == blank
+continue
+endif
+assign p = m.position.value | default: 0 | plus: 100000
+assign keys = keys | append: p | append: '|' | append: forloop.index0 | append: ','
+endfor
+assign order = keys | split: ',' | sort
+-%}
+{%- capture messages -%}
+{%- if order.size > 0 -%}
+{%- for k in order -%}
+{%- assign i = k | split: '|' | last | plus: 0 -%}
+{%- assign m = items[i] -%}
+{%- assign icon = m.icon.value | default: 'none' -%}
+<div class="ucs-ab__msg"{% if m.starts_at.value != blank %} data-start="{{ m.starts_at.value | date: '%s' }}"{% endif %}{% if m.ends_at.value != blank %} data-end="{{ m.ends_at.value | date: '%s' }}"{% endif %}>
+{%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}">{% endif -%}
+{%- if icon != 'none' %}<span class="ucs-i ucs-i--{{ icon }}" aria-hidden="true"></span>{% endif -%}
+<span>{{ m.message.value | escape }}</span>
+{%- if m.link.value != blank %}</a>{% endif -%}
+</div>
+{%- endfor -%}
+{%- else -%}
+{%- for n in (1..3) -%}
+{%- assign text_key = 'text_' | append: n -%}
+{%- assign link_key = 'link_' | append: n -%}
+{%- if block.settings[text_key] != blank -%}
+<div class="ucs-ab__msg">
+{%- if block.settings[link_key] != blank %}<a href="{{ block.settings[link_key] }}">{% endif -%}
+<span>{{ block.settings[text_key] | escape }}</span>
+{%- if block.settings[link_key] != blank %}</a>{% endif -%}
+</div>
+{%- endif -%}
+{%- endfor -%}
+{%- endif -%}
+{%- endcapture -%}
+{%- if show_here -%}
+{%- if block.settings.free_shipping -%}
+{%- assign threshold = block.settings.fs_threshold | plus: 0 | times: 100 -%}
+{%- endif -%}
+<ucs-announcement
+id="ucs-ab"
+class="ucs ucs-ab ucs-ab--{{ block.settings.animation }}{% if block.settings.sticky %} ucs-ab--sticky{% endif %}{% if block.settings.uppercase %} ucs-ab--upper{% endif %}{% if block.settings.devices == 'mobile' %} ucs-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+style="--ucs-ab-bg: {{ block.settings.bg }}; --ucs-ab-fg: {{ block.settings.fg }}; --ucs-ab-fs: {{ block.settings.font_size }}px; --ucs-ab-py: {{ block.settings.padding }}px;"
+role="region"
+aria-label="{{ 'ucs.announcement' | t | escape }}"
+data-interval="{{ block.settings.interval }}"
+{%- if block.settings.dismissible %} data-dismiss{% endif %}
+{%- if block.settings.free_shipping and threshold > 0 %}
+data-fs-threshold="{{ threshold }}"
+data-fs-total="{{ cart.total_price }}"
+data-fs-fmt="{{ shop.money_format | strip_html | escape }}"
+data-fs-empty="{{ block.settings.fs_empty | escape }}"
+data-fs-left="{{ block.settings.fs_left | escape }}"
+data-fs-done="{{ block.settings.fs_done | escape }}"
+{%- if block.settings.fs_bar %} data-fs-bar{% endif %}
+{%- endif %}
+>
+<div class="ucs-ab__inner">
+{%- if block.settings.arrows -%}
+<button type="button" class="ucs-ab__nav" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>
+{%- endif -%}
+<div class="ucs-ab__track" aria-live="polite">
+{%- if block.settings.free_shipping and threshold > 0 -%}
+<div class="ucs-ab__msg ucs-ab__fs"><span class="ucs-i ucs-i--truck" aria-hidden="true"></span><span class="ucs-ab__fs-text"></span></div>
+{%- endif -%}
+{{ messages }}
+{%- if messages == blank and request.design_mode and block.settings.free_shipping == false -%}
+<div class="ucs-ab__msg"><span>{{ 'ucs.announcement_empty' | t }}</span></div>
+{%- endif -%}
+</div>
+{%- if block.settings.arrows -%}
+<button type="button" class="ucs-ab__nav" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button>
+{%- endif -%}
+{%- if block.settings.dismissible -%}
+<button type="button" class="ucs-ab__close" aria-label="{{ 'ucs.close' | t | escape }}"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>
+{%- endif -%}
+</div>
+{%- if block.settings.free_shipping and block.settings.fs_bar -%}<div class="ucs-ab__bar" aria-hidden="true"></div>{%- endif -%}
+</ucs-announcement>
+<script src="{{ 'ucs-announcement.js' | asset_url }}" defer></script>
+{%- endif -%}
+{% schema %}{"name":"Announcement bar","target":"body","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.2d"},{"type":"text","id":"text_1","label":"Message 1","default":"Free shipping on all orders this week"},{"type":"url","id":"link_1","label":"t:s.2e"},{"type":"text","id":"text_2","label":"Message 2"},{"type":"url","id":"link_2","label":"t:s.2f"},{"type":"text","id":"text_3","label":"Message 3"},{"type":"url","id":"link_3","label":"t:s.2g"},{"type":"header","content":"t:s.2h"},{"type":"checkbox","id":"free_shipping","label":"t:s.2i","default":false,"info":"t:s.2j"},{"type":"number","id":"fs_threshold","label":"t:s.2k","default":1000,"visible_if":"{{ block.settings.free_shipping }}"},{"type":"text","id":"fs_empty","label":"t:s.2l","default":"Free shipping on orders over {threshold}","visible_if":"{{ block.settings.free_shipping }}"},{"type":"text","id":"fs_left","label":"Still to go","default":"Spend {amount} more for free shipping","info":"t:s.2m","visible_if":"{{ block.settings.free_shipping }}"},{"type":"text","id":"fs_done","label":"Reached","default":"You've unlocked free shipping!","visible_if":"{{ block.settings.free_shipping }}"},{"type":"checkbox","id":"fs_bar","label":"t:s.2n","default":true,"visible_if":"{{ block.settings.free_shipping }}"},{"type":"header","content":"Look"},{"type":"color","id":"bg","label":"Background","default":"#121212"},{"type":"color","id":"fg","label":"Text","default":"#ffffff"},{"type":"range","id":"font_size","label":"Text size","min":11,"max":18,"step":1,"unit":"px","default":13},{"type":"range","id":"padding","label":"Height","min":4,"max":18,"step":1,"unit":"px","default":9},{"type":"checkbox","id":"uppercase","label":"t:s.2o","default":false},{"type":"header","content":"Behaviour"},{"type":"select","id":"animation","label":"t:s.2p","default":"fade","options":[{"value":"fade","label":"Fade"},{"value":"slide","label":"Slide up"}]},{"type":"range","id":"interval","label":"t:s.2q","min":2,"max":12,"step":1,"unit":"s","default":4},{"type":"checkbox","id":"arrows","label":"Show arrows","default":true},{"type":"checkbox","id":"dismissible","label":"t:s.2r","default":false,"info":"t:s.2s"},{"type":"checkbox","id":"sticky","label":"t:s.2t","default":false,"info":"t:s.2u"},{"type":"select","id":"pages","label":"Show on","default":"all","options":[{"value":"all","label":"All pages"},{"value":"home","label":"t:s.2v"}]},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}

@@ -16,6 +16,13 @@
   var R = window.routes || {};
   var url = function (key, path) { return R[key] || (root + path).replace(/\/+/g, '/'); };
   var T = cfg.text;
+  var stroke = function (w, d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+  var ICONS = {
+    bag: stroke(1.8, '<path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M12 11.5v5M9.5 14h5"/>'),
+    plus: stroke(2.2, '<path d="M12 5v14M5 12h14"/>'),
+    cart: stroke(1.8, '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2l1.7-7.3H6.2"/>'),
+  };
+  var CHECK = stroke(2.4, '<path d="M5 12.5l4.5 4.5L19 7.5"/>').replace('<svg ', '<svg width="18" height="18" ');
   var products = {};
 
   /* ---------- money (Shopify formatMoney) ---------- */
@@ -89,7 +96,7 @@
       btn.className = 'ucs-qa ucs-qa--' + cfg.position;
       btn.setAttribute('data-handle', handle);
       btn.setAttribute('aria-label', T.add + ': ' + (link.textContent || '').trim().slice(0, 80));
-      btn.innerHTML = '<span class="ucs-qa__icon">' + cfg.icon + '</span><span class="ucs-qa__done">' + cfg.check + '</span>';
+      btn.innerHTML = '<span class="ucs-qa__icon">' + (ICONS[cfg.icon] || ICONS.bag) + '</span><span class="ucs-qa__done">' + CHECK + '</span>';
       btn.style.setProperty('--ucs-qa-size', cfg.size + 'px');
       btn.style.setProperty('--ucs-qa-bg', cfg.bg);
       btn.style.setProperty('--ucs-qa-fg', cfg.fg);
@@ -171,7 +178,7 @@
     var title = variant.title && variant.title !== 'Default Title' ? variant.title : '';
     toastEl.innerHTML =
       '<button type="button" class="ucs-toast__close" aria-label="' + esc(T.close) + '">✕</button>' +
-      '<div class="ucs-toast__head">' + cfg.check + ' ' + esc(T.added) + '</div>' +
+      '<div class="ucs-toast__head">' + CHECK + ' ' + esc(T.added) + '</div>' +
       '<div class="ucs-toast__item">' + (src ? '<img src="' + img(src, 120) + '" alt="">' : '') +
       '<div><p class="ucs-toast__name">' + esc(p.title) + '</p><p class="ucs-toast__meta">' + esc(title) + (title ? ' · ' : '') + money(variant.price) + '</p></div></div>' +
       '<div class="ucs-toast__actions"><a class="ucs-btn ucs-btn--ghost" href="' + url('cart_url', 'cart') + '">' + esc(T.view_cart) + '</a>' +

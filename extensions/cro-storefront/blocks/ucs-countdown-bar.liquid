@@ -1,0 +1,65 @@
+{%- liquid
+assign show_here = true
+if block.settings.pages != 'all'
+case request.page_type
+when 'index'
+assign show_here = false
+if block.settings.pages == 'home'
+assign show_here = true
+endif
+when 'product'
+assign show_here = false
+if block.settings.pages == 'product'
+assign show_here = true
+endif
+when 'collection'
+assign show_here = false
+if block.settings.pages == 'collection'
+assign show_here = true
+endif
+when 'cart'
+assign show_here = false
+if block.settings.pages == 'cart'
+assign show_here = true
+endif
+else
+assign show_here = false
+endcase
+endif
+if show_here and block.settings.handles != blank
+assign current = ''
+if request.page_type == 'product'
+assign current = product.handle
+elsif request.page_type == 'collection'
+assign current = collection.handle
+endif
+if current != blank
+assign list = block.settings.handles | downcase | remove: ' ' | split: ','
+unless list contains current
+assign show_here = false
+endunless
+endif
+endif
+-%}
+{%- if show_here -%}
+<div
+id="ucs-cdb"
+class="ucs ucs-cd-host ucs-cdb ucs-cdb--{{ block.settings.position }}{% if block.settings.devices == 'mobile' %} ucs-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+style="--ucs-cdb-bg: {{ block.settings.bg }}; --ucs-cdb-fg: {{ block.settings.fg }}; --ucs-cdb-fs: {{ block.settings.font_size }}px; --ucs-accent: {{ block.settings.box_bg }}; --ucs-on-accent: {{ block.settings.box_fg }};"
+{%- if block.settings.dismissible %} data-dismiss{% endif %}
+>
+<div class="ucs-cdb__inner">
+{%- if block.settings.text != blank %}<span class="ucs-cdb__text">{{ block.settings.text | escape }}</span>{% endif -%}
+{%- render 'ucs-countdown-timer', s: block.settings, key: 'bar' -%}
+<span class="ucs-cd__end" hidden>{{ block.settings.ended_text | escape }}</span>
+{%- if block.settings.button_label != blank -%}
+<a class="ucs-btn ucs-cdb__btn" href="{{ block.settings.button_link | default: routes.all_products_collection_url }}">{{ block.settings.button_label | escape }}</a>
+{%- endif -%}
+{%- if block.settings.dismissible -%}
+<button type="button" class="ucs-cdb__close" aria-label="{{ 'ucs.close' | t | escape }}"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>
+{%- endif -%}
+</div>
+</div>
+<script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
+{%- endif -%}
+{% schema %}{"name":"Countdown bar","target":"body","stylesheet":"ucs-sections.css","settings":[{"type":"header","content":"Timer"},{"type":"select","id":"mode","label":"t:s.2w","default":"fixed","options":[{"value":"fixed","label":"t:s.2x"},{"value":"evergreen","label":"t:s.2y"},{"value":"daily","label":"t:s.2z"}]},{"type":"text","id":"end_date","label":"Ends on","default":"2026-12-31 23:59","info":"t:s.30","visible_if":"{{ block.settings.mode == 'fixed' }}"},{"type":"range","id":"evergreen_hours","label":"t:s.31","min":1,"max":72,"step":1,"unit":"h","default":24,"visible_if":"{{ block.settings.mode == 'evergreen' }}"},{"type":"text","id":"daily_cutoff","label":"t:s.32","default":"17:00","visible_if":"{{ block.settings.mode == 'daily' }}"},{"type":"select","id":"ended","label":"t:s.33","default":"hide","options":[{"value":"hide","label":"t:s.34"},{"value":"message","label":"t:s.35"},{"value":"restart","label":"t:s.36"}]},{"type":"text","id":"ended_text","label":"Message","default":"This offer has ended.","visible_if":"{{ block.settings.ended == 'message' }}"},{"type":"header","content":"Text"},{"type":"text","id":"text","label":"Text","default":"Sale ends in"},{"type":"text","id":"button_label","label":"t:s.37","default":"Shop now"},{"type":"url","id":"button_link","label":"Button link"},{"type":"header","content":"Look"},{"type":"select","id":"position","label":"Position","default":"top","options":[{"value":"top","label":"t:s.38"},{"value":"bottom","label":"t:s.39"}]},{"type":"select","id":"style","label":"Numbers","default":"boxes","options":[{"value":"boxes","label":"In boxes"},{"value":"plain","label":"Plain"}]},{"type":"checkbox","id":"labels","label":"t:s.3a","default":false},{"type":"range","id":"font_size","label":"Text size","min":11,"max":20,"step":1,"unit":"px","default":14},{"type":"color","id":"bg","label":"Background","default":"#b42318"},{"type":"color","id":"fg","label":"Text","default":"#ffffff"},{"type":"color","id":"box_bg","label":"t:s.3b","default":"#ffffff"},{"type":"color","id":"box_fg","label":"t:s.3c","default":"#b42318"},{"type":"header","content":"Where"},{"type":"select","id":"pages","label":"Show on","default":"all","options":[{"value":"all","label":"All pages"},{"value":"home","label":"Home page"},{"value":"product","label":"t:s.3d"},{"value":"collection","label":"t:s.3e"},{"value":"cart","label":"Cart page"}]},{"type":"text","id":"handles","label":"t:s.3f","info":"t:s.3g"},{"type":"checkbox","id":"dismissible","label":"t:s.2r","default":true},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}

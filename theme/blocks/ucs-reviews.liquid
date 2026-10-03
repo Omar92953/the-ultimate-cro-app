@@ -95,30 +95,13 @@
             {%- assign md = m.media.value -%}
             {%- assign src = m.source.value | default: '' -%}
             {%- liquid
-              case src
-                when 'whatsapp'
-                  assign src_name = 'WhatsApp'
-                when 'instagram'
-                  assign src_name = 'Instagram'
-                when 'tiktok'
-                  assign src_name = 'TikTok'
-                when 'facebook'
-                  assign src_name = 'Facebook'
-                when 'google'
-                  assign src_name = 'Google'
-                when 'x'
-                  assign src_name = 'X'
-                when 'snapchat'
-                  assign src_name = 'Snapchat'
-                when 'youtube'
-                  assign src_name = 'YouTube'
-                when 'email'
-                  assign src_name = 'Email'
-                when 'website'
-                  assign src_name = shop.name
-                else
-                  assign src_name = ''
-              endcase
+              assign src_name = ''
+              if src == 'website'
+                assign src_name = shop.name
+              elsif src != blank
+                assign src_key = 'ucs.sources.' | append: src
+                assign src_name = src_key | t
+              endif
               assign media_type = md.media_type | default: ''
               # Liquid reads and/or right to left with no brackets, so work these out first.
               assign has_stars = false
@@ -135,8 +118,8 @@
                 <div class="ucs-rv__media">
                   {%- if media_type == 'video' -%}
                     {{ md | video_tag: muted: true, loop: true, playsinline: true, preload: 'none', image_size: '720x', class: 'ucs-rv__video' }}
-                    <button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="{{ 'ucs.unmute' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="ucs-rv__wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="ucs-rv__x" d="m16 9.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-                    <span class="ucs-rv__play" aria-hidden="true">{% render 'ucs-icon', name: 'play' %}</span>
+                    <button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="{{ 'ucs.unmute' | t | escape }}"><span class="ucs-i ucs-i--muted" aria-hidden="true"></span><span class="ucs-i ucs-i--sound" aria-hidden="true"></span></button>
+                    <span class="ucs-rv__play" aria-hidden="true"><span class="ucs-i ucs-i--play" aria-hidden="true"></span></span>
                   {%- else -%}
                     {{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: m.name.value }}
                   {%- endif -%}
@@ -150,9 +133,9 @@
                     {%- endif -%}
                     {%- if has_src -%}
                       {%- if m.source_url.value != blank -%}
-                        <a class="ucs-rv__src ucs-rv__src--{{ src }}" href="{{ m.source_url.value | escape }}" target="_blank" rel="noopener nofollow" title="{{ 'ucs.on_source' | t: source: src_name | escape }}" aria-label="{{ 'ucs.on_source' | t: source: src_name | escape }}">{% render 'ucs-icon', name: src %}</a>
+                        <a class="ucs-rv__src ucs-rv__src--{{ src }}" href="{{ m.source_url.value | escape }}" target="_blank" rel="noopener nofollow" title="{{ 'ucs.on_source' | t: source: src_name | escape }}" aria-label="{{ 'ucs.on_source' | t: source: src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></a>
                       {%- else -%}
-                        <span class="ucs-rv__src ucs-rv__src--{{ src }}" title="{{ src_name | escape }}">{% render 'ucs-icon', name: src %}</span>
+                        <span class="ucs-rv__src ucs-rv__src--{{ src }}" title="{{ src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></span>
                       {%- endif -%}
                     {%- endif -%}
                   </div>
@@ -164,7 +147,7 @@
                 <footer class="ucs-rv__who">
                   <span class="ucs-rv__name">{{ m.name.value | escape }}</span>
                   {%- if s.show_verified and m.verified.value == true -%}
-                    <span class="ucs-rv__ver">{% render 'ucs-icon', name: 'verified' %}{{ 'ucs.verified' | t }}</span>
+                    <span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>{{ 'ucs.verified' | t }}</span>
                   {%- endif -%}
                   {%- capture meta -%}
                     {%- if s.show_location and m.location.value != blank %}{{ m.location.value | escape }}{% endif -%}
@@ -189,8 +172,8 @@
       </div>
       {%- if s.layout == 'carousel' -%}
         <div class="ucs-rv__nav">
-          <button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>
+          <button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button>
         </div>
       {%- endif -%}
 
@@ -230,7 +213,7 @@
     { "type": "header", "content": "Layout" },
     { "type": "select", "id": "layout", "label": "Layout", "default": "carousel", "options": [{ "value": "carousel", "label": "Carousel" }, { "value": "grid", "label": "Grid" }, { "value": "masonry", "label": "Masonry (different heights)" }] },
     { "type": "range", "id": "columns_desktop", "label": "Cards per row on desktop", "min": 1, "max": 5, "step": 1, "default": 3 },
-    { "type": "range", "id": "columns_mobile", "label": "Cards per row on mobile", "min": 1, "max": 2, "step": 1, "default": 1 },
+    { "type": "select", "id": "columns_mobile", "label": "Cards per row on mobile", "default": "1", "options": [{ "value": "1", "label": "One" }, { "value": "2", "label": "Two" }] },
     { "type": "checkbox", "id": "autoplay", "label": "Move the carousel by itself", "default": false, "visible_if": "{{ block.settings.layout == 'carousel' }}" },
     { "type": "range", "id": "autoplay_seconds", "label": "Every", "min": 3, "max": 10, "step": 1, "unit": "s", "default": 5, "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.autoplay }}" },
     { "type": "header", "content": "Cards" },
