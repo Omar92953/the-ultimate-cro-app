@@ -4,6 +4,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { editorLinks, listBundles } from "../lib/cro.server";
 import { Button } from "../components/fields";
+import { Explainer } from "../components/ui";
+import { HELP } from "../lib/help";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -21,13 +23,8 @@ export default function BundleList() {
         Add block to theme
       </Button>
 
-      <s-section>
-        <s-paragraph>
-          A bundle is sold as its own product at its own price (for example “Any 3 posters — LE 399”). Shoppers build it
-          step by step on that product’s page. At checkout the bundle is split into the items they picked, so each item’s
-          stock goes down and shows on the order.
-        </s-paragraph>
-      </s-section>
+      <s-stack gap="base">
+        <Explainer {...HELP.bundles} />
 
       <s-section heading={`Bundles (${bundles.length})`} padding="none">
         {bundles.length ? (
@@ -65,6 +62,7 @@ export default function BundleList() {
           </s-box>
         )}
       </s-section>
+      </s-stack>
     </s-page>
   );
 }

@@ -1,12 +1,16 @@
 /* Home: responsive grid of roughly square feature cards (2–4 per row). */
 .cards {
   display: grid;
-  /* 1 column on phones, then as many ~260px cards as fit: 2, 3 or 4 per row. */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 16px;
-  margin-block: 16px;
+  /* All four features in one row of equal cards; 2 per row on tablets, 1 on phones. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
+@media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
 .card {
+  height: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;

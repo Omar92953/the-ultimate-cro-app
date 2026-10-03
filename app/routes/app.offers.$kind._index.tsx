@@ -5,6 +5,8 @@ import { authenticate } from "../shopify.server";
 import { editorLinks, listRules } from "../lib/cro.server";
 import { KINDS } from "../lib/kinds";
 import { Button } from "../components/fields";
+import { Explainer } from "../components/ui";
+import { HELP } from "../lib/help";
 
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -41,9 +43,8 @@ export default function RuleList() {
         Add to theme
       </Button>
 
-      <s-section>
-        <s-paragraph>{meta.intro}</s-paragraph>
-      </s-section>
+      <s-stack gap="base">
+        <Explainer {...HELP[meta.kind]} />
 
       <s-section heading={`Your offers (${rules.length})`} padding="none">
         {rules.length ? (
@@ -84,6 +85,7 @@ export default function RuleList() {
         )}
       </s-section>
 
+      </s-stack>
       <s-section slot="aside" heading="Which offer is shown?">
         <s-paragraph>
           If several active offers match the same product, the one with the lowest priority number is shown. The

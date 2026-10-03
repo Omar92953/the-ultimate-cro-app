@@ -22,6 +22,7 @@ import { errorMessage } from "../lib/admin.server";
 import { Button, Switch } from "../components/fields";
 import { BundlePreview, CrossSellPreview, UpsellPreview, VideoPreview } from "../components/FeaturePreview";
 import styles from "../components/Home.module.css";
+import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -179,6 +180,7 @@ export default function Home() {
       <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
         View store
       </Button>
+      <s-stack gap="base">
 
       {data.loadError ? (
         <s-banner tone="critical" heading="Something went wrong">
@@ -192,31 +194,32 @@ export default function Home() {
       ) : null}
 
       {doneCount < 3 ? (
-        <s-section heading={`Get set up · ${doneCount} of 3 done`}>
-          <s-stack gap="small-200">
-            <Step done={steps[0]} title="Create your first offer, video or bundle" action={<Button href="/app/offers/upsell/new">Create an upsell offer</Button>} />
-            <Step
-              done={steps[1]}
-              title={`Add the app's blocks to your theme${data.theme?.themeName ? ` (“${data.theme.themeName}”)` : ""}`}
-              action={
-                <Button href={data.links.upsell} target="_top" icon="theme-edit">
-                  Open theme editor
-                </Button>
-              }
-            />
-            <Step
-              done={steps[2]}
-              title="Check it on your store, then try the discount at checkout"
-              action={
-                <Button href={`https://${data.shop}`} target="_blank" icon="view">
-                  View store
-                </Button>
-              }
-            />
-          </s-stack>
-        </s-section>
+        <Card title="Get set up" badge={<Pill tone="warn">{`${doneCount} of 3 done`}</Pill>}>
+          <Checklist
+            items={[
+              !steps[0] && { text: "Create your first offer, video or bundle", action: <Button href="/app/offers/upsell/new" variant="tertiary">Create an offer</Button> },
+              !steps[1] && {
+                text: `Add the app's blocks to your theme${data.theme?.themeName ? ` (“${data.theme.themeName}”)` : ""}`,
+                action: (
+                  <Button href={data.links.upsell} target="_top" variant="tertiary">
+                    Open theme editor
+                  </Button>
+                ),
+              },
+              !steps[2] && {
+                text: "Check it on your store, then try the discount at checkout",
+                action: (
+                  <Button href={`https://${data.shop}`} target="_blank" variant="tertiary">
+                    View store
+                  </Button>
+                ),
+              },
+            ].filter((x): x is { text: string; action: JSX.Element } => !!x)}
+          />
+        </Card>
       ) : null}
 
+      <GroupTitle>Features</GroupTitle>
       <div className={styles.cards}>
         {FEATURES.map((f) => {
           const on = settings[f.setting];
@@ -273,23 +276,8 @@ export default function Home() {
       </div>
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
-    </s-page>
-  );
-}
-
-function Step(props: { done: boolean; title: string; action?: React.ReactNode }) {
-  return (
-    <s-box padding="small-200" borderWidth="base" borderRadius="base">
-      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-        <s-stack direction="inline" gap="small-200" alignItems="center">
-          <s-icon type={props.done ? "check-circle-filled" : "circle"} tone={props.done ? "success" : "neutral"} />
-          <s-text type={props.done ? "generic" : "strong"} color={props.done ? "subdued" : "base"}>
-            {props.title}
-          </s-text>
-        </s-stack>
-        {props.done ? null : props.action}
       </s-stack>
-    </s-box>
+    </s-page>
   );
 }
 

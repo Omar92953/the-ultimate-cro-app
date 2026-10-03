@@ -8,6 +8,8 @@ import { authenticate } from "../shopify.server";
 import { editorLinks, getSlides, listProductVideos, listVideoFiles, saveSlides } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import type { Ref, Slide } from "../lib/types";
+import { Explainer } from "../components/ui";
+import { HELP } from "../lib/help";
 import { Button, Select, TextField } from "../components/fields";
 
 type VideoOption = { id: string; title: string; image: string | null; duration: number | null };
@@ -109,6 +111,9 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
       <Button slot="secondary-actions" href={props.addBlock} target="_top">
         Add block to theme
       </Button>
+      <s-box paddingBlockEnd="base">
+        <Explainer {...HELP.videos} />
+      </s-box>
 
       {save.data?.error ? (
         <s-banner tone="critical" heading="The carousel was not saved">
