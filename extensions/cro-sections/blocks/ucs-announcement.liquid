@@ -1,0 +1,135 @@
+{%- comment -%}
+  App embed: announcement bar at the very top of the store. Messages come from the app
+  (Store sections → Announcements); the texts below are used until some are added there.
+  Rendered at the end of <body>, then moved to the top by ucs-announcement.js.
+{%- endcomment -%}
+{%- liquid
+  assign show_here = true
+  if block.settings.pages == 'home' and request.page_type != 'index'
+    assign show_here = false
+  endif
+
+  # Sort the app's messages by their "Order" field (Liquid can't sort by a field value directly).
+  assign items = shop.metaobjects['$app:cro_announce'].values
+  assign keys = ''
+  for m in items
+    if m.active.value == false or m.message.value == blank
+      continue
+    endif
+    assign p = m.position.value | default: 0 | plus: 100000
+    assign keys = keys | append: p | append: '|' | append: forloop.index0 | append: ','
+  endfor
+  assign order = keys | split: ',' | sort
+-%}
+{%- capture messages -%}
+  {%- if order.size > 0 -%}
+    {%- for k in order -%}
+      {%- assign i = k | split: '|' | last | plus: 0 -%}
+      {%- assign m = items[i] -%}
+      {%- assign icon = m.icon.value | default: 'none' -%}
+      <div class="ucs-ab__msg"{% if m.starts_at.value != blank %} data-start="{{ m.starts_at.value | date: '%s' }}"{% endif %}{% if m.ends_at.value != blank %} data-end="{{ m.ends_at.value | date: '%s' }}"{% endif %}>
+        {%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}">{% endif -%}
+        {%- if icon != 'none' %}{% render 'ucs-icon', name: icon %}{% endif -%}
+        <span>{{ m.message.value | escape }}</span>
+        {%- if m.link.value != blank %}</a>{% endif -%}
+      </div>
+    {%- endfor -%}
+  {%- else -%}
+    {%- for n in (1..3) -%}
+      {%- assign text_key = 'text_' | append: n -%}
+      {%- assign link_key = 'link_' | append: n -%}
+      {%- if block.settings[text_key] != blank -%}
+        <div class="ucs-ab__msg">
+          {%- if block.settings[link_key] != blank %}<a href="{{ block.settings[link_key] }}">{% endif -%}
+          <span>{{ block.settings[text_key] | escape }}</span>
+          {%- if block.settings[link_key] != blank %}</a>{% endif -%}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- if show_here -%}
+  {%- if block.settings.free_shipping -%}
+    {%- assign threshold = block.settings.fs_threshold | plus: 0 | times: 100 -%}
+  {%- endif -%}
+  <ucs-announcement
+    id="ucs-ab"
+    class="ucs ucs-ab ucs-ab--{{ block.settings.animation }}{% if block.settings.sticky %} ucs-ab--sticky{% endif %}{% if block.settings.uppercase %} ucs-ab--upper{% endif %}{% if block.settings.devices == 'mobile' %} ucs-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+    style="--ucs-ab-bg: {{ block.settings.bg }}; --ucs-ab-fg: {{ block.settings.fg }}; --ucs-ab-fs: {{ block.settings.font_size }}px; --ucs-ab-py: {{ block.settings.padding }}px;"
+    role="region"
+    aria-label="{{ 'ucs.announcement' | t | escape }}"
+    data-interval="{{ block.settings.interval }}"
+    {%- if block.settings.dismissible %} data-dismiss{% endif %}
+    {%- if block.settings.free_shipping and threshold > 0 %}
+      data-fs-threshold="{{ threshold }}"
+      data-fs-total="{{ cart.total_price }}"
+      data-fs-fmt="{{ shop.money_format | strip_html | escape }}"
+      data-fs-empty="{{ block.settings.fs_empty | escape }}"
+      data-fs-left="{{ block.settings.fs_left | escape }}"
+      data-fs-done="{{ block.settings.fs_done | escape }}"
+      {%- if block.settings.fs_bar %} data-fs-bar{% endif %}
+    {%- endif %}
+  >
+    <div class="ucs-ab__inner">
+      {%- if block.settings.arrows -%}
+        <button type="button" class="ucs-ab__nav" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      {%- endif -%}
+      <div class="ucs-ab__track" aria-live="polite">
+        {%- if block.settings.free_shipping and threshold > 0 -%}
+          <div class="ucs-ab__msg ucs-ab__fs">{% render 'ucs-icon', name: 'truck' %}<span></span></div>
+        {%- endif -%}
+        {{ messages }}
+        {%- if messages == blank and request.design_mode and block.settings.free_shipping == false -%}
+          <div class="ucs-ab__msg"><span>{{ 'ucs.announcement_empty' | t }}</span></div>
+        {%- endif -%}
+      </div>
+      {%- if block.settings.arrows -%}
+        <button type="button" class="ucs-ab__nav" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      {%- endif -%}
+      {%- if block.settings.dismissible -%}
+        <button type="button" class="ucs-ab__close" aria-label="{{ 'ucs.close' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      {%- endif -%}
+    </div>
+    {%- if block.settings.free_shipping and block.settings.fs_bar -%}<div class="ucs-ab__bar" aria-hidden="true"></div>{%- endif -%}
+  </ucs-announcement>
+  <script src="{{ 'ucs-announcement.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "target": "body",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "Add messages, icons and dates in the app: Store sections → Announcements. Until then, these texts are shown." },
+    { "type": "text", "id": "text_1", "label": "Message 1", "default": "Free shipping on all orders this week" },
+    { "type": "url", "id": "link_1", "label": "Message 1 link" },
+    { "type": "text", "id": "text_2", "label": "Message 2" },
+    { "type": "url", "id": "link_2", "label": "Message 2 link" },
+    { "type": "text", "id": "text_3", "label": "Message 3" },
+    { "type": "url", "id": "link_3", "label": "Message 3 link" },
+    { "type": "header", "content": "Free shipping progress" },
+    { "type": "checkbox", "id": "free_shipping", "label": "Show how much more to spend for free shipping", "default": false, "info": "Updates live when customers add to cart." },
+    { "type": "number", "id": "fs_threshold", "label": "Free shipping from (store currency)", "default": 1000, "visible_if": "{{ block.settings.free_shipping }}" },
+    { "type": "text", "id": "fs_empty", "label": "Cart is empty", "default": "Free shipping on orders over {threshold}", "visible_if": "{{ block.settings.free_shipping }}" },
+    { "type": "text", "id": "fs_left", "label": "Still to go", "default": "Spend {amount} more for free shipping", "info": "{amount} = what's left.", "visible_if": "{{ block.settings.free_shipping }}" },
+    { "type": "text", "id": "fs_done", "label": "Reached", "default": "You've unlocked free shipping!", "visible_if": "{{ block.settings.free_shipping }}" },
+    { "type": "checkbox", "id": "fs_bar", "label": "Show a progress line", "default": true, "visible_if": "{{ block.settings.free_shipping }}" },
+    { "type": "header", "content": "Look" },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#121212" },
+    { "type": "color", "id": "fg", "label": "Text", "default": "#ffffff" },
+    { "type": "range", "id": "font_size", "label": "Text size", "min": 11, "max": 18, "step": 1, "unit": "px", "default": 13 },
+    { "type": "range", "id": "padding", "label": "Height", "min": 4, "max": 18, "step": 1, "unit": "px", "default": 9 },
+    { "type": "checkbox", "id": "uppercase", "label": "Capital letters", "default": false },
+    { "type": "header", "content": "Behaviour" },
+    { "type": "select", "id": "animation", "label": "Change messages with", "default": "fade", "options": [{ "value": "fade", "label": "Fade" }, { "value": "slide", "label": "Slide up" }] },
+    { "type": "range", "id": "interval", "label": "Time per message", "min": 2, "max": 12, "step": 1, "unit": "s", "default": 4 },
+    { "type": "checkbox", "id": "arrows", "label": "Show arrows", "default": true },
+    { "type": "checkbox", "id": "dismissible", "label": "Customers can close it", "default": false, "info": "Stays closed until they open the store again." },
+    { "type": "checkbox", "id": "sticky", "label": "Stay at the top while scrolling", "default": false, "info": "If your theme's header also stays at the top, it can slide under this bar." },
+    { "type": "select", "id": "pages", "label": "Show on", "default": "all", "options": [{ "value": "all", "label": "All pages" }, { "value": "home", "label": "Home page only" }] },
+    { "type": "select", "id": "devices", "label": "Devices", "default": "all", "options": [{ "value": "all", "label": "Desktop and mobile" }, { "value": "desktop", "label": "Desktop only" }, { "value": "mobile", "label": "Mobile only" }] }
+  ]
+}
+{% endschema %}

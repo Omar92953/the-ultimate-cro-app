@@ -1,0 +1,37 @@
+{%- comment -%}
+  The ticking timer, shared by the countdown block and the countdown bar.
+  {% render 'ucs-countdown-timer', s: block.settings, key: block.id %}
+{%- endcomment -%}
+{%- liquid
+  assign tz = 'now' | date: '%z'
+  assign units = 'd,h,m,s' | split: ','
+-%}
+<ucs-countdown
+  class="ucs-cd ucs-cd--{{ s.style }}"
+  role="timer"
+  aria-label="{{ 'ucs.countdown' | t | escape }}"
+  data-mode="{{ s.mode }}"
+  data-end="{{ s.end_date | escape }}"
+  data-hours="{{ s.evergreen_hours }}"
+  data-cutoff="{{ s.daily_cutoff | escape }}"
+  data-tz="{{ tz }}"
+  data-ended="{{ s.ended }}"
+  data-key="{{ key }}"
+>
+  {%- for u in units -%}
+    {%- liquid
+      case u
+        when 'd'
+          assign label = 'ucs.days' | t
+        when 'h'
+          assign label = 'ucs.hours' | t
+        when 'm'
+          assign label = 'ucs.minutes' | t
+        else
+          assign label = 'ucs.seconds' | t
+      endcase
+    -%}
+    {%- unless forloop.first %}<span class="ucs-cd__sep" data-sep="{{ u }}" aria-hidden="true">:</span>{% endunless -%}
+    <span class="ucs-cd__u" data-u="{{ u }}"><span class="ucs-cd__n">00</span>{% if s.labels %}<span class="ucs-cd__l">{{ label }}</span>{% endif %}</span>
+  {%- endfor -%}
+</ucs-countdown>

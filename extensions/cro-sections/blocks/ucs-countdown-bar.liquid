@@ -1,0 +1,102 @@
+{%- comment -%} App embed: a slim countdown bar fixed to the top or bottom of the store. {%- endcomment -%}
+{%- liquid
+  assign show_here = true
+  if block.settings.pages != 'all'
+    case request.page_type
+      when 'index'
+        assign show_here = false
+        if block.settings.pages == 'home'
+          assign show_here = true
+        endif
+      when 'product'
+        assign show_here = false
+        if block.settings.pages == 'product'
+          assign show_here = true
+        endif
+      when 'collection'
+        assign show_here = false
+        if block.settings.pages == 'collection'
+          assign show_here = true
+        endif
+      when 'cart'
+        assign show_here = false
+        if block.settings.pages == 'cart'
+          assign show_here = true
+        endif
+      else
+        assign show_here = false
+    endcase
+  endif
+
+  # Optional: only on some products / collections.
+  if show_here and block.settings.handles != blank
+    assign current = ''
+    if request.page_type == 'product'
+      assign current = product.handle
+    elsif request.page_type == 'collection'
+      assign current = collection.handle
+    endif
+    if current != blank
+      assign list = block.settings.handles | downcase | remove: ' ' | split: ','
+      unless list contains current
+        assign show_here = false
+      endunless
+    endif
+  endif
+-%}
+{%- if show_here -%}
+  <div
+    id="ucs-cdb"
+    class="ucs ucs-cd-host ucs-cdb ucs-cdb--{{ block.settings.position }}{% if block.settings.devices == 'mobile' %} ucs-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+    style="--ucs-cdb-bg: {{ block.settings.bg }}; --ucs-cdb-fg: {{ block.settings.fg }}; --ucs-cdb-fs: {{ block.settings.font_size }}px; --ucs-accent: {{ block.settings.box_bg }}; --ucs-on-accent: {{ block.settings.box_fg }};"
+    {%- if block.settings.dismissible %} data-dismiss{% endif %}
+  >
+    <div class="ucs-cdb__inner">
+      {%- if block.settings.text != blank %}<span class="ucs-cdb__text">{{ block.settings.text | escape }}</span>{% endif -%}
+      {%- render 'ucs-countdown-timer', s: block.settings, key: 'bar' -%}
+      <span class="ucs-cd__end" hidden>{{ block.settings.ended_text | escape }}</span>
+      {%- if block.settings.button_label != blank -%}
+        <a class="ucs-btn ucs-cdb__btn" href="{{ block.settings.button_link | default: routes.all_products_collection_url }}">{{ block.settings.button_label | escape }}</a>
+      {%- endif -%}
+      {%- if block.settings.dismissible -%}
+        <button type="button" class="ucs-cdb__close" aria-label="{{ 'ucs.close' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      {%- endif -%}
+    </div>
+  </div>
+  <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Countdown bar",
+  "target": "body",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "header", "content": "Timer" },
+    { "type": "select", "id": "mode", "label": "Count down to", "default": "fixed", "options": [{ "value": "fixed", "label": "A date and time" }, { "value": "evergreen", "label": "A fresh timer for each visitor" }, { "value": "daily", "label": "A cut-off time every day" }] },
+    { "type": "text", "id": "end_date", "label": "Ends on", "default": "2026-12-31 23:59", "info": "Year-month-day hour:minute, in your store's time zone.", "visible_if": "{{ block.settings.mode == 'fixed' }}" },
+    { "type": "range", "id": "evergreen_hours", "label": "Each visitor gets", "min": 1, "max": 72, "step": 1, "unit": "h", "default": 24, "visible_if": "{{ block.settings.mode == 'evergreen' }}" },
+    { "type": "text", "id": "daily_cutoff", "label": "Cut-off time", "default": "17:00", "visible_if": "{{ block.settings.mode == 'daily' }}" },
+    { "type": "select", "id": "ended", "label": "When it ends", "default": "hide", "options": [{ "value": "hide", "label": "Hide the bar" }, { "value": "message", "label": "Show a message" }, { "value": "restart", "label": "Start again (visitor timer)" }] },
+    { "type": "text", "id": "ended_text", "label": "Message", "default": "This offer has ended.", "visible_if": "{{ block.settings.ended == 'message' }}" },
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "text", "label": "Text", "default": "Sale ends in" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "header", "content": "Look" },
+    { "type": "select", "id": "position", "label": "Position", "default": "top", "options": [{ "value": "top", "label": "Top of the page" }, { "value": "bottom", "label": "Bottom of the screen (always visible)" }] },
+    { "type": "select", "id": "style", "label": "Numbers", "default": "boxes", "options": [{ "value": "boxes", "label": "In boxes" }, { "value": "plain", "label": "Plain" }] },
+    { "type": "checkbox", "id": "labels", "label": "Show Days / Hours / Min / Sec", "default": false },
+    { "type": "range", "id": "font_size", "label": "Text size", "min": 11, "max": 20, "step": 1, "unit": "px", "default": 14 },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#b42318" },
+    { "type": "color", "id": "fg", "label": "Text", "default": "#ffffff" },
+    { "type": "color", "id": "box_bg", "label": "Boxes and button", "default": "#ffffff" },
+    { "type": "color", "id": "box_fg", "label": "Numbers and button text", "default": "#b42318" },
+    { "type": "header", "content": "Where" },
+    { "type": "select", "id": "pages", "label": "Show on", "default": "all", "options": [{ "value": "all", "label": "All pages" }, { "value": "home", "label": "Home page" }, { "value": "product", "label": "Product pages" }, { "value": "collection", "label": "Collection pages" }, { "value": "cart", "label": "Cart page" }] },
+    { "type": "text", "id": "handles", "label": "Only these products or collections", "info": "Optional. Handles from the page address, separated by commas, e.g. summer-dress, sale." },
+    { "type": "checkbox", "id": "dismissible", "label": "Customers can close it", "default": true },
+    { "type": "select", "id": "devices", "label": "Devices", "default": "all", "options": [{ "value": "all", "label": "Desktop and mobile" }, { "value": "desktop", "label": "Desktop only" }, { "value": "mobile", "label": "Mobile only" }] }
+  ]
+}
+{% endschema %}

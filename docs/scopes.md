@@ -7,7 +7,8 @@ listing's API access justification if asked.
 | Scope | Why the app needs it | Where it's used |
 |---|---|---|
 | `read_products` | Shopify's product and collection picker, product names and images in the dashboard, a product's video media for the carousel, and variant IDs so the bundle checks at checkout know which items are allowed | Rule and bundle editors, video manager, `app/lib/cro.server.ts` |
-| `read_files` | Lists the videos in **Content → Files** so the merchant can pick them for the carousel | Video carousel page |
+| `read_files` | Lists the videos in **Content → Files** (and images) so the merchant can pick them for the carousel, reviews and logos | Video carousel, Reviews and Logos pages |
+| `write_files` | Uploads a photo, video or logo straight from the Reviews and Logos forms (staged upload + `fileCreate`), so the merchant doesn't have to go to Content → Files first | Reviews and Logos pages |
 | `read_themes` | **Read-only.** Checks whether the app's blocks and cart-drawer embed are actually in the published theme, so the Home page can show setup status. This is Shopify's own documented use ("verify theme support") | Home page |
 | `write_metaobjects` | Saves the merchant's rules, slides, bundles and feature switches as app-owned (`$app`) metaobjects in their store. The storefront reads these directly, with no calls to our server | Every save |
 | `write_metaobject_definitions` | Shopify requires it for the app-owned metaobject definitions declared in `shopify.app.toml` | Install and deploy |

@@ -78,6 +78,46 @@ export function TextField(props: Common & { value: string; onValue: (v: string) 
   );
 }
 
+export function TextArea(props: Common & { value: string; onValue: (v: string) => void; rows?: number; placeholder?: string; maxLength?: number }) {
+  const ref = useRef<any>(null);
+  useProp(ref, "defaultValue", props.value);
+  useProp(ref, "value", props.value);
+  useProp(ref, "disabled", !!props.disabled);
+  useFieldEvents(ref, (el) => props.onValue(el.value));
+  return (
+    <s-text-area
+      ref={ref}
+      label={props.label}
+      details={props.details}
+      error={props.error}
+      rows={props.rows ?? 4}
+      placeholder={props.placeholder}
+      maxLength={props.maxLength}
+    />
+  );
+}
+
+/** Date picker field. Value is "YYYY-MM-DD" or "". */
+export function DateField(props: Common & { value: string; onValue: (v: string) => void }) {
+  const ref = useRef<any>(null);
+  useProp(ref, "defaultValue", props.value);
+  useProp(ref, "value", props.value);
+  useProp(ref, "disabled", !!props.disabled);
+  useFieldEvents(ref, (el) => props.onValue(el.value || ""), ["change"]);
+  return <s-date-field ref={ref} label={props.label} details={props.details} error={props.error} />;
+}
+
+/** Drag-and-drop / click-to-choose file zone. Calls onFiles with the chosen files. */
+export function DropZone(props: Common & { accept: string; onFiles: (files: File[]) => void }) {
+  const ref = useRef<any>(null);
+  useProp(ref, "disabled", !!props.disabled);
+  useFieldEvents(ref, (el) => {
+    const files = Array.from((el.files ?? []) as File[]);
+    if (files.length) props.onFiles(files);
+  }, ["change"]);
+  return <s-drop-zone ref={ref} label={props.label} accept={props.accept} error={props.error} accessibilityLabel={props.label} />;
+}
+
 export function NumberField(
   props: Common & { value: number; onValue: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string },
 ) {

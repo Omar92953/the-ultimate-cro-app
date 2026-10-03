@@ -1,0 +1,259 @@
+{%- comment -%}
+  App block: customer reviews / testimonials — text, photo or video cards with a source badge
+  (WhatsApp, Instagram, TikTok…). Carousel, grid or masonry. Reviews come from the app
+  (Store sections → Reviews). On product pages it can show only that product's reviews, with
+  Product review structured data for Google.
+{%- endcomment -%}
+{%- liquid
+  assign s = block.settings
+  assign items = shop.metaobjects['$app:cro_review'].values
+  assign on_product = false
+  if request.page_type == 'product' and product
+    assign on_product = true
+  endif
+  assign keys_all = ''
+  assign keys_prod = ''
+  for m in items
+    if m.active.value == false or m.name.value == blank
+      continue
+    endif
+    if s.filter == 'featured' and m.featured.value != true
+      continue
+    endif
+    assign p = m.position.value | default: 0 | plus: 100000
+    assign key = p | append: '|' | append: forloop.index0 | append: ','
+    assign keys_all = keys_all | append: key
+    if on_product and m.product.value.id == product.id
+      assign keys_prod = keys_prod | append: key
+    endif
+  endfor
+  assign keys = keys_all
+  assign product_only = false
+  if s.filter == 'product' and on_product
+    if keys_prod != blank
+      assign keys = keys_prod
+      assign product_only = true
+    elsif s.fallback == false
+      assign keys = ''
+    endif
+  endif
+  assign order = keys | split: ',' | sort
+
+  assign rated = 0
+  assign total = 0
+  for k in order
+    assign i = k | split: '|' | last | plus: 0
+    assign r = items[i].rating.value | default: 0
+    if r > 0
+      assign rated = rated | plus: 1
+      assign total = total | plus: r
+    endif
+  endfor
+  assign show_summary = false
+  if s.summary and rated > 0
+    assign show_summary = true
+  endif
+  assign avg = 0
+  if rated > 0
+    assign avg = total | times: 1.0 | divided_by: rated | round: 1
+  endif
+-%}
+{%- if order.size > 0 or request.design_mode -%}
+<div
+  class="ucs ucs-rv ucs-rv--{{ s.layout }}{% if s.clamp == 0 %} ucs-rv--full{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+  style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-rv-cols: {{ s.columns_desktop }}; --ucs-rv-cols-m: {{ s.columns_mobile }}; --ucs-rv-star: {{ s.star_color }}; --ucs-rv-radius: {{ s.radius }}px; --ucs-rv-clamp: {{ s.clamp }};{% if s.card_bg != blank %} --ucs-rv-card: {{ s.card_bg }};{% endif %}{% if s.card_fg != blank %} --ucs-rv-fg: {{ s.card_fg }};{% endif %}{% if s.bg != blank %} background: {{ s.bg }};{% endif %}"
+  data-autoplay="{% if s.layout == 'carousel' and s.autoplay %}{{ s.autoplay_seconds }}{% endif %}"
+  data-video="{{ s.video_autoplay }}"
+  data-more="{{ 'ucs.read_more' | t | escape }}"
+  data-less="{{ 'ucs.read_less' | t | escape }}"
+  data-unmute="{{ 'ucs.unmute' | t | escape }}"
+  data-mute="{{ 'ucs.mute' | t | escape }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ucs-wrap">
+    {%- if s.heading != blank or show_summary -%}
+      <div class="ucs-head ucs-rv__head">
+        {%- if s.heading != blank %}<h2>{{ s.heading | escape }}</h2>{% endif -%}
+        {%- if show_summary -%}
+          <div class="ucs-rv__summary">
+            <span class="ucs-rv__avg">{{ avg }}</span>
+            <span class="ucs-rv__stars" style="--r: {{ avg }}" role="img" aria-label="{{ 'ucs.stars' | t: rating: avg | escape }}">★★★★★</span>
+            <span class="ucs-rv__count">{{ 'ucs.reviews_count' | t: count: rated }}</span>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if order.size == 0 -%}
+      <p class="ucs-note">{{ 'ucs.reviews_empty' | t }}</p>
+    {%- else -%}
+      <div class="ucs-rv__viewport">
+        <div class="ucs-rv__track"{% if s.layout == 'carousel' %} tabindex="0" aria-roledescription="carousel"{% endif %}>
+          {%- for k in order limit: s.limit -%}
+            {%- assign i = k | split: '|' | last | plus: 0 -%}
+            {%- assign m = items[i] -%}
+            {%- assign md = m.media.value -%}
+            {%- assign src = m.source.value | default: '' -%}
+            {%- liquid
+              case src
+                when 'whatsapp'
+                  assign src_name = 'WhatsApp'
+                when 'instagram'
+                  assign src_name = 'Instagram'
+                when 'tiktok'
+                  assign src_name = 'TikTok'
+                when 'facebook'
+                  assign src_name = 'Facebook'
+                when 'google'
+                  assign src_name = 'Google'
+                when 'x'
+                  assign src_name = 'X'
+                when 'snapchat'
+                  assign src_name = 'Snapchat'
+                when 'youtube'
+                  assign src_name = 'YouTube'
+                when 'email'
+                  assign src_name = 'Email'
+                when 'website'
+                  assign src_name = shop.name
+                else
+                  assign src_name = ''
+              endcase
+              assign media_type = md.media_type | default: ''
+              # Liquid reads and/or right to left with no brackets, so work these out first.
+              assign has_stars = false
+              if s.show_stars and m.rating.value > 0
+                assign has_stars = true
+              endif
+              assign has_src = false
+              if s.show_source and src != blank and src != 'other'
+                assign has_src = true
+              endif
+            -%}
+            <article class="ucs-rv__card ucs-rv__card--{{ s.card_style }}{% if media_type != blank and s.show_media %} has-media{% endif %}">
+              {%- if media_type != blank and s.show_media -%}
+                <div class="ucs-rv__media">
+                  {%- if media_type == 'video' -%}
+                    {{ md | video_tag: muted: true, loop: true, playsinline: true, preload: 'none', image_size: '720x', class: 'ucs-rv__video' }}
+                    <button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="{{ 'ucs.unmute' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="ucs-rv__wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="ucs-rv__x" d="m16 9.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+                    <span class="ucs-rv__play" aria-hidden="true">{% render 'ucs-icon', name: 'play' %}</span>
+                  {%- else -%}
+                    {{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: m.name.value }}
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+              <div class="ucs-rv__body">
+                {%- if has_stars or has_src -%}
+                  <div class="ucs-rv__top">
+                    {%- if has_stars -%}
+                      <span class="ucs-rv__stars" style="--r: {{ m.rating.value }}" role="img" aria-label="{{ 'ucs.stars' | t: rating: m.rating.value | escape }}">★★★★★</span>
+                    {%- endif -%}
+                    {%- if has_src -%}
+                      {%- if m.source_url.value != blank -%}
+                        <a class="ucs-rv__src ucs-rv__src--{{ src }}" href="{{ m.source_url.value | escape }}" target="_blank" rel="noopener nofollow" title="{{ 'ucs.on_source' | t: source: src_name | escape }}" aria-label="{{ 'ucs.on_source' | t: source: src_name | escape }}">{% render 'ucs-icon', name: src %}</a>
+                      {%- else -%}
+                        <span class="ucs-rv__src ucs-rv__src--{{ src }}" title="{{ src_name | escape }}">{% render 'ucs-icon', name: src %}</span>
+                      {%- endif -%}
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+                {%- if m.text.value != blank -%}
+                  <div class="ucs-rv__text">{{ m.text.value | escape | newline_to_br }}</div>
+                  <button type="button" class="ucs-rv__more" hidden>{{ 'ucs.read_more' | t }}</button>
+                {%- endif -%}
+                <footer class="ucs-rv__who">
+                  <span class="ucs-rv__name">{{ m.name.value | escape }}</span>
+                  {%- if s.show_verified and m.verified.value == true -%}
+                    <span class="ucs-rv__ver">{% render 'ucs-icon', name: 'verified' %}{{ 'ucs.verified' | t }}</span>
+                  {%- endif -%}
+                  {%- capture meta -%}
+                    {%- if s.show_location and m.location.value != blank %}{{ m.location.value | escape }}{% endif -%}
+                    {%- if s.show_date and m.date.value != blank -%}
+                      {%- if s.show_location and m.location.value != blank %} · {% endif -%}
+                      {{ m.date.value | date: '%b %-d, %Y' }}
+                    {%- endif -%}
+                  {%- endcapture -%}
+                  {%- if meta != blank %}<span class="ucs-rv__meta">{{ meta }}</span>{% endif -%}
+                </footer>
+                {%- if s.show_product and product_only == false and m.product.value != blank -%}
+                  {%- assign rp = m.product.value -%}
+                  <a class="ucs-rv__prod" href="{{ rp.url }}">
+                    {%- if rp.featured_image %}{{ rp.featured_image | image_url: width: 96 | image_tag: width: 40, height: 40, loading: 'lazy', alt: '' }}{% endif -%}
+                    <span>{{ rp.title | escape }}</span>
+                  </a>
+                {%- endif -%}
+              </div>
+            </article>
+          {%- endfor -%}
+        </div>
+      </div>
+      {%- if s.layout == 'carousel' -%}
+        <div class="ucs-rv__nav">
+          <button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      {%- endif -%}
+
+      {%- if s.schema and product_only and rated > 0 -%}
+        {%- capture entries -%}
+          {%- for k in order limit: 20 -%}
+            {%- assign i = k | split: '|' | last | plus: 0 -%}
+            {%- assign m = items[i] -%}
+            {%- if m.rating.value > 0 -%}
+              ,{"@type":"Review","author":{"@type":"Person","name":{{ m.name.value | json }}},"reviewRating":{"@type":"Rating","ratingValue":{{ m.rating.value }},"bestRating":5}{% if m.text.value != blank %},"reviewBody":{{ m.text.value | json }}{% endif %}{% if m.date.value != blank %},"datePublished":{{ m.date.value | date: '%Y-%m-%d' | json }}{% endif %}}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endcapture -%}
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":{{ product.title | json }},"url":{{ shop.url | append: product.url | json }}{% if product.featured_image %},"image":{{ product.featured_image | image_url: width: 1200 | prepend: 'https:' | json }}{% endif %},"aggregateRating":{"@type":"AggregateRating","ratingValue":{{ avg }},"reviewCount":{{ rated }},"bestRating":5},"review":[{{ entries | strip | remove_first: ',' }}]}</script>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>
+<script src="{{ 'ucs-reviews.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Customer reviews",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "Add reviews with photos, videos and where they came from (WhatsApp, Instagram, TikTok…) in the app: Store sections → Reviews." },
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "What our customers say" },
+    { "type": "range", "id": "heading_size", "label": "Heading size", "min": 18, "max": 56, "step": 2, "unit": "px", "default": 30 },
+    { "type": "checkbox", "id": "summary", "label": "Show the average rating", "default": true },
+    { "type": "header", "content": "Which reviews" },
+    { "type": "select", "id": "filter", "label": "Show", "default": "all", "options": [{ "value": "all", "label": "All reviews" }, { "value": "featured", "label": "Featured reviews only" }, { "value": "product", "label": "Reviews of this product (product pages)" }] },
+    { "type": "checkbox", "id": "fallback", "label": "If this product has none, show all reviews", "default": true, "visible_if": "{{ block.settings.filter == 'product' }}" },
+    { "type": "range", "id": "limit", "label": "Most reviews to show", "min": 3, "max": 40, "step": 1, "default": 12 },
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "layout", "label": "Layout", "default": "carousel", "options": [{ "value": "carousel", "label": "Carousel" }, { "value": "grid", "label": "Grid" }, { "value": "masonry", "label": "Masonry (different heights)" }] },
+    { "type": "range", "id": "columns_desktop", "label": "Cards per row on desktop", "min": 1, "max": 5, "step": 1, "default": 3 },
+    { "type": "range", "id": "columns_mobile", "label": "Cards per row on mobile", "min": 1, "max": 2, "step": 1, "default": 1 },
+    { "type": "checkbox", "id": "autoplay", "label": "Move the carousel by itself", "default": false, "visible_if": "{{ block.settings.layout == 'carousel' }}" },
+    { "type": "range", "id": "autoplay_seconds", "label": "Every", "min": 3, "max": 10, "step": 1, "unit": "s", "default": 5, "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.autoplay }}" },
+    { "type": "header", "content": "Cards" },
+    { "type": "select", "id": "card_style", "label": "Card style", "default": "classic", "options": [{ "value": "classic", "label": "Classic" }, { "value": "chat", "label": "Chat message (like WhatsApp)" }, { "value": "minimal", "label": "Minimal (no background)" }] },
+    { "type": "checkbox", "id": "show_media", "label": "Show photos and videos", "default": true },
+    { "type": "checkbox", "id": "video_autoplay", "label": "Play videos silently when they come into view", "default": true },
+    { "type": "checkbox", "id": "show_stars", "label": "Show stars", "default": true },
+    { "type": "checkbox", "id": "show_source", "label": "Show where it came from (WhatsApp, Instagram…)", "default": true },
+    { "type": "checkbox", "id": "show_verified", "label": "Show \"Verified buyer\"", "default": true },
+    { "type": "checkbox", "id": "show_location", "label": "Show location", "default": true },
+    { "type": "checkbox", "id": "show_date", "label": "Show date", "default": false },
+    { "type": "checkbox", "id": "show_product", "label": "Show the product reviewed", "default": true },
+    { "type": "range", "id": "clamp", "label": "Shorten long reviews to", "min": 0, "max": 12, "step": 1, "unit": "ln", "default": 5, "info": "0 = always show the full review. Longer ones get \"Read more\"." },
+    { "type": "color", "id": "star_color", "label": "Stars", "default": "#f5a623" },
+    { "type": "color", "id": "card_bg", "label": "Card background", "info": "Leave empty for the default." },
+    { "type": "color", "id": "card_fg", "label": "Card text" },
+    { "type": "color", "id": "bg", "label": "Section background" },
+    { "type": "range", "id": "radius", "label": "Card corners", "min": 0, "max": 28, "step": 2, "unit": "px", "default": 14 },
+    { "type": "header", "content": "More" },
+    { "type": "checkbox", "id": "schema", "label": "Help Google show stars for this product", "default": true, "info": "Adds review structured data on product pages when showing that product's reviews." },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
+    { "type": "select", "id": "devices", "label": "Devices", "default": "all", "options": [{ "value": "all", "label": "Desktop and mobile" }, { "value": "desktop", "label": "Desktop only" }, { "value": "mobile", "label": "Mobile only" }] }
+  ]
+}
+{% endschema %}

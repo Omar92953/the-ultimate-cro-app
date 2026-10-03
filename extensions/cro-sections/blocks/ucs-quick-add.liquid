@@ -1,0 +1,92 @@
+{%- comment -%}
+  App embed: quick add to cart on product cards (collections, home, search, recommendations).
+  Product cards can't hold app blocks, so the button is placed on each card's image by JS.
+{%- endcomment -%}
+{%- liquid
+  case block.settings.icon
+    when 'plus'
+      capture icon
+        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+      endcapture
+    when 'cart'
+      capture icon
+        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2l1.7-7.3H6.2"/></svg>'
+      endcapture
+    else
+      capture icon
+        echo '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M12 11.5v5M9.5 14h5"/></svg>'
+      endcapture
+  endcase
+  capture check
+    echo '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+  endcapture
+  assign radius = null
+  unless block.settings.theme_radius
+    assign radius = block.settings.radius
+  endunless
+-%}
+<script type="application/json" id="ucs-qa-config">
+  {
+    "fmt": {{ shop.money_format | json }},
+    "icon": {{ icon | strip | json }},
+    "check": {{ check | strip | json }},
+    "shape": {{ block.settings.shape | json }},
+    "size": {{ block.settings.size | json }},
+    "position": {{ block.settings.position | json }},
+    "show": {{ block.settings.show | json }},
+    "bg": {{ block.settings.bg | json }},
+    "fg": {{ block.settings.fg | json }},
+    "after": {{ block.settings.after | json }},
+    "autohide": {{ block.settings.autohide | json }},
+    "checkout": {{ block.settings.show_checkout | json }},
+    "addedState": {{ block.settings.added_state | json }},
+    "accent": {{ block.settings.accent | json }},
+    "radius": {{ radius | json }},
+    "selector": {{ block.settings.selector | strip | json }},
+    "text": {
+      "added": {{ block.settings.added_text | json }},
+      "view_cart": {{ block.settings.view_cart_text | json }},
+      "checkout": {{ block.settings.checkout_text | json }},
+      "add": {{ block.settings.add_text | json }},
+      "choose": {{ 'ucs.choose' | t | json }},
+      "sold_out": {{ 'ucs.sold_out' | t | json }},
+      "close": {{ 'ucs.close' | t | json }},
+      "error": {{ 'ucs.error' | t | json }}
+    }
+  }
+</script>
+<script src="{{ 'ucs-quick-add.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Quick add to cart",
+  "target": "body",
+  "stylesheet": "ucs-quick-add.css",
+  "settings": [
+    { "type": "paragraph", "content": "Adds a button to every product card. Products with sizes or colours open a small picker." },
+    { "type": "header", "content": "Button" },
+    { "type": "select", "id": "icon", "label": "Icon", "default": "bag", "options": [{ "value": "bag", "label": "Bag with plus" }, { "value": "plus", "label": "Plus" }, { "value": "cart", "label": "Cart" }] },
+    { "type": "select", "id": "shape", "label": "Shape", "default": "circle", "options": [{ "value": "circle", "label": "Circle" }, { "value": "square", "label": "Rounded square" }] },
+    { "type": "range", "id": "size", "label": "Size", "min": 28, "max": 60, "step": 2, "unit": "px", "default": 40 },
+    { "type": "select", "id": "position", "label": "Position on the image", "default": "br", "options": [{ "value": "br", "label": "Bottom right" }, { "value": "bl", "label": "Bottom left" }, { "value": "tr", "label": "Top right" }, { "value": "tl", "label": "Top left" }] },
+    { "type": "select", "id": "show", "label": "Show", "default": "always", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover (desktop)" }] },
+    { "type": "color", "id": "bg", "label": "Button colour", "default": "#ffffff" },
+    { "type": "color", "id": "fg", "label": "Icon colour", "default": "#111111" },
+    { "type": "checkbox", "id": "added_state", "label": "Show a tick after adding", "default": true },
+    { "type": "header", "content": "After adding" },
+    { "type": "select", "id": "after", "label": "Then", "default": "theme", "options": [{ "value": "theme", "label": "Open my theme's cart (if it has one)" }, { "value": "toast", "label": "Show the “Added to cart” popup" }, { "value": "cart", "label": "Go to the cart page" }], "info": "Themes without a slide-out cart show the popup instead." },
+    { "type": "range", "id": "autohide", "label": "Hide the popup after", "min": 0, "max": 10, "step": 1, "unit": "s", "default": 4, "info": "0 = stays until closed. It waits while the mouse is over it." },
+    { "type": "checkbox", "id": "show_checkout", "label": "Show a Checkout button in the popup", "default": true },
+    { "type": "text", "id": "added_text", "label": "Popup message", "default": "Added to your cart!" },
+    { "type": "text", "id": "view_cart_text", "label": "View cart button", "default": "View cart" },
+    { "type": "text", "id": "checkout_text", "label": "Checkout button", "default": "Checkout" },
+    { "type": "text", "id": "add_text", "label": "Add button (size picker)", "default": "Add to cart" },
+    { "type": "header", "content": "Popup colours and corners" },
+    { "type": "color", "id": "accent", "label": "Button colour in popups", "info": "Leave empty to use your theme's button colour." },
+    { "type": "checkbox", "id": "theme_radius", "label": "Use default corners", "default": true },
+    { "type": "range", "id": "radius", "label": "Corner radius", "min": 0, "max": 24, "step": 2, "unit": "px", "default": 14, "visible_if": "{{ block.settings.theme_radius == false }}" },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "selector", "label": "Product card selector", "info": "Only if the button doesn't appear on your theme's cards, e.g. .product-card. Leave empty for automatic." }
+  ]
+}
+{% endschema %}

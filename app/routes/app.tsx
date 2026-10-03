@@ -23,6 +23,7 @@ export default function App() {
         <s-link href="/app/offers/cross-sell">Cross-sell offers</s-link>
         <s-link href="/app/videos">Video carousel</s-link>
         <s-link href="/app/bundles">Bundles</s-link>
+        <s-link href="/app/sections/reviews">Store sections</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <Outlet />

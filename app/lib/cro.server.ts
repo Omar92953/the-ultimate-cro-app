@@ -90,7 +90,7 @@ const REF_FRAGMENT = `#graphql
   }
 `;
 
-async function upsert(admin: AdminClient, type: string, handle: string, fields: Record<string, string>) {
+export async function upsert(admin: AdminClient, type: string, handle: string, fields: Record<string, string>) {
   try {
     return await upsertOnce(admin, type, handle, fields);
   } catch (e) {
@@ -144,7 +144,7 @@ async function create(admin: AdminClient, type: string, fields: Record<string, s
   return data.metaobjectCreate.metaobject as { id: string; handle: string };
 }
 
-async function remove(admin: AdminClient, id: string) {
+export async function remove(admin: AdminClient, id: string) {
   await gql(
     admin,
     `#graphql
@@ -155,7 +155,7 @@ async function remove(admin: AdminClient, id: string) {
   );
 }
 
-function slug(prefix: string) {
+export function slug(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 

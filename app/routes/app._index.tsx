@@ -22,7 +22,9 @@ import { errorMessage } from "../lib/admin.server";
 import { Button, Switch } from "../components/fields";
 import { BundlePreview, CrossSellPreview, UpsellPreview, VideoPreview } from "../components/FeaturePreview";
 import styles from "../components/Home.module.css";
-import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
+import { Card, CardGrid, CardText, Checklist, GroupTitle, Pill } from "../components/ui";
+import { listItems, sectionLinks } from "../lib/sections.server";
+import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -40,7 +42,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
+  const lists = await Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k)));
+  const sectionCounts = Object.fromEntries(
+    SECTION_KINDS.map((k, i) => {
+      const items = settled(lists[i], []);
+      return [k, { total: items.length, shown: items.filter((it) => itemStatus(k, it).tone === "ok").length }];
+    }),
+  ) as Record<SectionKind, { total: number; shown: number }>;
   return {
+    sectionCounts,
+    sectionLinks: sectionLinks(session.shop),
     shop: session.shop,
     links: editorLinks(session.shop),
     settings: settled(settings, { cross_sell_enabled: true, upsell_enabled: true, videos_enabled: true, bundles_enabled: true }),
@@ -141,6 +152,14 @@ const FEATURES: {
     noun: "bundle",
   },
 ];
+
+/** Sections set up entirely in the theme editor (no list to manage in the app). */
+const THEME_ONLY = [
+  { key: "quick_add", title: "Quick add to cart", embed: true, text: "A button on every product card. Sizes and colours open a small picker." },
+  { key: "hero", title: "Hero image", embed: false, text: "A banner with separate desktop and mobile images, text and buttons." },
+  { key: "countdown", title: "Countdown timer", embed: false, text: "Sale end, a fresh timer per visitor, or a daily order cut-off." },
+  { key: "countdown_bar", title: "Countdown bar", embed: true, text: "A slim timer bar fixed to the top or bottom of every page." },
+] as const;
 
 type Status = { tone: "success" | "warning" | "neutral"; text: string; next: "create" | "theme" | null };
 
@@ -274,6 +293,49 @@ export default function Home() {
           );
         })}
       </div>
+
+      <GroupTitle>Store sections</GroupTitle>
+      <CardGrid cols={4}>
+        {SECTION_KINDS.map((k) => {
+          const cfg = SECTIONS[k];
+          const c = data.sectionCounts[k];
+          return (
+            <Card
+              key={k}
+              title={cfg.title}
+              badge={<Pill tone={c.shown ? "ok" : "muted"}>{c.total ? `${c.shown} of ${c.total} shown` : `No ${cfg.plural}`}</Pill>}
+              actions={
+                <>
+                  <Button href={c.total ? `/app/sections/${k}` : `/app/sections/${k}/new`} variant="primary">
+                    {c.total ? "Manage" : cfg.addLabel}
+                  </Button>
+                  <Button href={data.sectionLinks[k]} target="_top" variant="tertiary" icon="theme-edit">
+                    {cfg.embed ? "Turn on" : "Add to theme"}
+                  </Button>
+                </>
+              }
+            >
+              <CardText>{cfg.help.what}</CardText>
+            </Card>
+          );
+        })}
+      </CardGrid>
+      <CardGrid cols={4}>
+        {THEME_ONLY.map((t) => (
+          <Card
+            key={t.key}
+            title={t.title}
+            badge={<Pill>{t.embed ? "App embed" : "Section"}</Pill>}
+            actions={
+              <Button href={data.sectionLinks[t.key]} target="_top" variant="tertiary" icon="theme-edit">
+                {t.embed ? "Turn on in theme" : "Add to theme"}
+              </Button>
+            }
+          >
+            <CardText>{t.text}</CardText>
+          </Card>
+        ))}
+      </CardGrid>
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
       </s-stack>

@@ -1,0 +1,38 @@
+{
+  "ucs": {
+    "added": "Added to your cart!",
+    "view_cart": "View cart",
+    "checkout": "Checkout",
+    "choose": "Choose options",
+    "add": "Add to cart",
+    "sold_out": "Sold out",
+    "close": "Close",
+    "error": "Couldn't add this item. Please try again.",
+    "previous": "Previous",
+    "next": "Next",
+    "announcement": "Announcements",
+    "announcement_empty": "Add announcement messages in the app: Store sections → Announcements.",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Min",
+    "seconds": "Sec",
+    "countdown": "Countdown",
+    "logos_empty": "Add logos in the app: Store sections → Logos.",
+    "faq_empty": "Add questions in the app: Store sections → FAQ.",
+    "faq_search": "Search questions",
+    "faq_none": "No questions match your search.",
+    "faq_all": "All",
+    "reviews_empty": "Add reviews in the app: Store sections → Reviews.",
+    "reviews_count": {
+      "one": "Based on 1 review",
+      "other": "Based on {{ count }} reviews"
+    },
+    "verified": "Verified buyer",
+    "read_more": "Read more",
+    "read_less": "Show less",
+    "unmute": "Turn sound on",
+    "mute": "Turn sound off",
+    "on_source": "See it on {{ source }}",
+    "stars": "{{ rating }} out of 5 stars"
+  }
+}
