@@ -19,22 +19,23 @@ import {
 } from "../lib/cro.server";
 import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
-import { Button, Switch } from "../components/fields";
+import { Button } from "../components/fields";
 import {
-  AnnouncementPreview,
-  BundlePreview,
-  CountdownBarPreview,
-  CountdownPreview,
-  CrossSellPreview,
-  FaqPreview,
-  HeroPreview,
-  LogosPreview,
-  QuickAddPreview,
-  ReviewsPreview,
-  UpsellPreview,
-  VideoPreview,
-} from "../components/FeaturePreview";
-import styles from "../components/Home.module.css";
+  AnnouncementShowcase,
+  BundlesShowcase,
+  CountdownBarShowcase,
+  CrossSellShowcase,
+  UpsellShowcase,
+  VideosShowcase,
+  CountdownShowcase,
+  FaqShowcase,
+  HeroShowcase,
+  LogosShowcase,
+  QuickAddShowcase,
+  ReviewsShowcase,
+  SectionCard,
+} from "../components/SectionShowcase";
+import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
@@ -119,6 +120,7 @@ const FEATURES: {
   createLabel: string;
   count: (c: Counts) => number;
   noun: string;
+  Preview: () => JSX.Element;
 }[] = [
   {
     key: "upsell",
@@ -130,6 +132,7 @@ const FEATURES: {
     createLabel: "Create an offer",
     count: (c) => c.upsell,
     noun: "offer",
+    Preview: UpsellShowcase,
   },
   {
     key: "cross_sell",
@@ -141,6 +144,7 @@ const FEATURES: {
     createLabel: "Create an offer",
     count: (c) => c.cross_sell,
     noun: "offer",
+    Preview: CrossSellShowcase,
   },
   {
     key: "videos",
@@ -152,6 +156,7 @@ const FEATURES: {
     createLabel: "Add videos",
     count: (c) => c.videos,
     noun: "video",
+    Preview: VideosShowcase,
   },
   {
     key: "bundles",
@@ -163,6 +168,7 @@ const FEATURES: {
     createLabel: "Create a bundle",
     count: (c) => c.bundles,
     noun: "bundle",
+    Preview: BundlesShowcase,
   },
 ];
 
@@ -170,31 +176,31 @@ type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countd
 
 /** Store sections, shown in the same card format as the features above. */
 const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; Preview: () => JSX.Element }[] = [
-  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Preview: ReviewsPreview },
-  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Preview: FaqPreview },
-  { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Preview: LogosPreview },
-  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Preview: AnnouncementPreview },
-  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Preview: QuickAddPreview },
-  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Preview: HeroPreview },
-  { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Preview: CountdownPreview },
-  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Preview: CountdownBarPreview },
+  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Preview: ReviewsShowcase },
+  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Preview: FaqShowcase },
+  { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Preview: LogosShowcase },
+  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Preview: AnnouncementShowcase },
+  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Preview: QuickAddShowcase },
+  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Preview: HeroShowcase },
+  { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Preview: CountdownShowcase },
+  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Preview: CountdownBarShowcase },
 ];
 
 function sectionStatus(list: SectionKind | null, counts: { total: number; shown: number } | null, installed: boolean | null, embed: boolean): Status {
-  if (list && counts && !counts.total) return { tone: "warning", text: `Next: add your first ${SECTIONS[list].singular}`, next: "create" };
-  if (installed === false) return { tone: "warning", text: embed ? "Next: turn it on in your theme" : "Next: add it to your theme", next: "theme" };
-  if (installed === null && !list) return { tone: "neutral", text: "Set it up in the theme editor", next: "theme" };
-  if (list && counts) return { tone: "success", text: `Live · ${counts.shown} of ${plural(counts.total, SECTIONS[list].singular)} shown`, next: null };
-  return { tone: "success", text: embed ? "Live · turned on in your theme" : "Live · in your theme", next: null };
+  if (list && counts && !counts.total) return { tone: "warning", text: "Not set up", next: "create" };
+  if (installed === false) return { tone: "warning", text: embed ? "Turned off" : "Not in theme", next: "theme" };
+  if (installed === null && !list) return { tone: "neutral", text: "Theme editor", next: "theme" };
+  if (list && counts) return { tone: "success", text: `Live · ${counts.shown} shown`, next: null };
+  return { tone: "success", text: "Live", next: null };
 }
 
 type Status = { tone: "success" | "warning" | "neutral"; text: string; next: "create" | "theme" | null };
 
 function featureStatus(on: boolean, count: number, noun: string, installed: boolean | null): Status {
-  if (!on) return { tone: "neutral", text: "Turned off — hidden on your store", next: null };
-  if (!count) return { tone: "warning", text: `Next: set up your first ${noun}`, next: "create" };
-  if (installed === false) return { tone: "warning", text: "Next: add it to your theme", next: "theme" };
-  return { tone: "success", text: `Live · ${plural(count, `active ${noun}`)}`, next: null };
+  if (!on) return { tone: "neutral", text: "Off", next: null };
+  if (!count) return { tone: "warning", text: "Not set up", next: "create" };
+  if (installed === false) return { tone: "warning", text: "Not in theme", next: "theme" };
+  return { tone: "success", text: `Live · ${plural(count, noun)}`, next: null };
 }
 
 export default function Home() {
@@ -265,116 +271,45 @@ export default function Home() {
         </Card>
       ) : null}
 
-      <GroupTitle>Features</GroupTitle>
-      <div className={styles.cards}>
+      <GroupTitle>Sections</GroupTitle>
+      <div className={showcase.grid}>
         {FEATURES.map((f) => {
           const on = settings[f.setting];
           const count = f.count(data.counts);
           const isInstalled = installed ? (installed[f.key] ?? false) : null;
           const status = featureStatus(on, count, f.noun, isInstalled);
+          const action =
+            status.next === "create"
+              ? { label: f.createLabel, href: f.createHref }
+              : status.next === "theme"
+                ? { label: "Add to theme", href: data.links[f.key], external: true }
+                : { label: on ? "Live" : "Manage", done: on, href: f.href };
           return (
-            <div key={f.key} className={`${styles.card} ${on ? "" : styles.off}`}>
-              <div className={styles.preview}>
-                {f.key === "upsell" ? <UpsellPreview /> : null}
-                {f.key === "cross_sell" ? <CrossSellPreview /> : null}
-                {f.key === "videos" ? <VideoPreview /> : null}
-                {f.key === "bundles" ? <BundlePreview /> : null}
-              </div>
-              <div className={styles.body}>
-                <div className={styles.titleRow}>
-                  <s-heading>{f.title}</s-heading>
-                  <Switch
-                    label={on ? "On" : "Off"}
-                    checked={on}
-                    onValue={(value) => fetcher.submit({ key: f.setting, value: String(value) }, { method: "post" })}
-                  />
-                </div>
-                <p className={styles.desc}>{f.description}</p>
-                <span className={`${styles.status} ${styles[status.tone]}`}>{status.text}</span>
-                <div className={styles.actions}>
-                  {status.next === "create" ? (
-                    <Button href={f.createHref} variant="primary">
-                      {f.createLabel}
-                    </Button>
-                  ) : status.next === "theme" ? (
-                    <Button href={data.links[f.key]} target="_top" variant="primary" icon="theme-edit">
-                      Add to theme
-                    </Button>
-                  ) : (
-                    <Button href={f.href} variant="primary">
-                      Manage
-                    </Button>
-                  )}
-                  {status.next === null ? (
-                    <Button href={data.links[f.key]} target="_top" icon="theme-edit" variant="tertiary">
-                      Theme editor
-                    </Button>
-                  ) : (
-                    <Button href={f.href} variant="tertiary">
-                      Open
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <SectionCard
+              key={f.key}
+              title={f.title}
+              status={status}
+              action={action}
+              open={{ href: f.href }}
+              preview={<f.Preview />}
+              off={!on}
+              toggle={{ on, onChange: (value) => fetcher.submit({ key: f.setting, value: String(value) }, { method: "post" }) }}
+            />
           );
         })}
-      </div>
-
-      <GroupTitle>Store sections</GroupTitle>
-      <div className={styles.cards}>
         {SECTION_CARDS.map((c) => {
           const counts = c.list ? data.sectionCounts[c.list] : null;
           const isInstalled = installed ? (installed[c.key] ?? false) : null;
           const status = sectionStatus(c.list, counts, isInstalled, c.embed);
-          const listHref = c.list ? `/app/sections/${c.list}` : null;
           const themeHref = data.sectionLinks[c.key];
-          return (
-            <div key={c.key} className={styles.card}>
-              <div className={styles.preview}>
-                <c.Preview />
-              </div>
-              <div className={styles.body}>
-                <div className={styles.titleRow}>
-                  <s-heading>{c.title}</s-heading>
-                </div>
-                <p className={styles.desc}>{c.description}</p>
-                <span className={`${styles.status} ${styles[status.tone]}`}>{status.text}</span>
-                <div className={styles.actions}>
-                  {status.next === "create" && c.list ? (
-                    <Button href={`/app/sections/${c.list}/new`} variant="primary">
-                      {SECTIONS[c.list].addLabel}
-                    </Button>
-                  ) : status.next === "theme" ? (
-                    <Button href={themeHref} target="_top" variant="primary" icon="theme-edit">
-                      {c.embed ? "Turn on" : "Add to theme"}
-                    </Button>
-                  ) : listHref ? (
-                    <Button href={listHref} variant="primary">
-                      Manage
-                    </Button>
-                  ) : (
-                    <Button href={c.embed ? themeHref : data.links.editor} target="_top" variant="primary" icon="theme-edit">
-                      Customize
-                    </Button>
-                  )}
-                  {listHref && status.next !== null ? (
-                    <Button href={listHref} variant="tertiary">
-                      Open
-                    </Button>
-                  ) : listHref ? (
-                    <Button href={c.embed ? themeHref : data.links.editor} target="_top" icon="theme-edit" variant="tertiary">
-                      Theme editor
-                    </Button>
-                  ) : (
-                    <Button href={`https://${data.shop}`} target="_blank" icon="view" variant="tertiary">
-                      View store
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
+          const open = c.list ? { href: `/app/sections/${c.list}` } : { href: c.embed ? themeHref : data.links.editor, external: true };
+          const action =
+            status.next === "create" && c.list
+              ? { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }
+              : status.next === "theme"
+                ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
+                : { label: "Live", done: true, ...open };
+          return <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} preview={<c.Preview />} />;
         })}
       </div>
 
