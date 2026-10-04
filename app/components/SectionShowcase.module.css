@@ -164,7 +164,6 @@
 .heroH { font-family: Georgia, "Times New Roman", serif; font-size: 3em; font-style: italic; line-height: 1.08; }
 
 /* ---------- countdown ---------- */
-.cd { background: #fff4e5; }
 .cd .tag { color: #fff; background: #111; }
 .timer { display: flex; gap: 0.8em; }
 .unit { display: flex; flex-direction: column; align-items: center; gap: 0.4em; }

@@ -86,11 +86,11 @@ const PHOTO = {
 };
 const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 const PRODUCTS = [
-  { name: "Wireless headphones", price: "LE 1,450", id: "1505740420928-5e560c06d30e" },
-  { name: "Classic watch", price: "LE 2,300", id: "1523275335684-37898b6baf30" },
-  { name: "Instant camera", price: "LE 3,100", id: "1526170375885-4d8ecf77b99f" },
-  { name: "Sunglasses", price: "LE 890", id: "1572635196237-14b3f281503f" },
-  { name: "Ceramic mug", price: "LE 220", id: "1514228742587-6b1558fcca3d" },
+  { name: "Wireless headphones", price: "$79", id: "1505740420928-5e560c06d30e" },
+  { name: "Classic watch", price: "$129", id: "1523275335684-37898b6baf30" },
+  { name: "Instant camera", price: "$149", id: "1526170375885-4d8ecf77b99f" },
+  { name: "Sunglasses", price: "$45", id: "1572635196237-14b3f281503f" },
+  { name: "Ceramic mug", price: "$18", id: "1514228742587-6b1558fcca3d" },
 ];
 const Img = ({ id, w, h, className }: { id: string; w: number; h: number; className?: string }) => (
   <img className={className} src={U(id, w, h)} alt="" loading="lazy" decoding="async" />
@@ -108,9 +108,9 @@ export function UpsellShowcase() {
         <b className={s.h3}>Buy more, save more</b>
         <span className={s.tiers}>
           {[
-            ["Buy 1", "LE 1,450", "", ""],
-            ["Buy 2", "LE 2,610", "LE 2,900", "Save 10%"],
-            ["Buy 3", "LE 3,700", "LE 4,350", "Save 15%"],
+            ["Buy 1", "$79", "", ""],
+            ["Buy 2", "$142", "$158", "Save 10%"],
+            ["Buy 3", "$201", "$237", "Save 15%"],
           ].map(([l, p, was, save], i) => (
             <span key={l} className={`${s.tier} ${i === 2 ? s.tierOn : ""}`}>
               {save ? (
@@ -197,7 +197,7 @@ export function BundlesShowcase() {
     <Stage>
       <span className={`${s.box} ${s.w50}`}>
         <span className={s.between}>
-          <b className={s.h3}>Any 3 for LE 3,999</b>
+          <b className={s.h3}>Any 3 for $299</b>
           <span className={s.count}>2 / 3</span>
         </span>
         <span className={s.picks}>
@@ -214,7 +214,7 @@ export function BundlesShowcase() {
             <i />
           </span>
           <span>
-            <b>LE 3,999</b> <s className={s.muted}>LE 4,750</s>
+            <b>$299</b> <s className={s.muted}>$357</s>
           </span>
           <span className={`${s.btn} ${s.btnDark}`}>Choose 1 more</span>
         </span>
@@ -330,7 +330,7 @@ export function AnnouncementShowcase() {
         <span className={s.annWrap}>
           <span className={s.annBar}>
             <span>‹</span>
-            <span>🚚 Spend LE 150 more for free delivery</span>
+            <span>🚚 Spend $15 more for free delivery</span>
             <span>›</span>
           </span>
           <span className={s.progress} />
@@ -369,7 +369,7 @@ export function QuickAddShowcase() {
             <i>L</i>
             <i className={s.out}>XL</i>
           </span>
-          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart · LE 890</span>
+          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart · $45</span>
         </span>
       </span>
     </Stage>
