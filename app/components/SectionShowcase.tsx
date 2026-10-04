@@ -97,15 +97,8 @@ const U = (id: string, w: number, h: number) => `https://images.unsplash.com/pho
 const PHOTO = {
   shopper: "1483985988355-763728e1935b",
   yellow: "1515886657613-9f3515b0c78f",
-  store: "1441986300917-64674bd600d8",
-  window: "1445205170230-053b83016050",
-  rack: "1490481651871-ab68de25d43d",
-  sale: "1607083206869-4c7672e72a8a",
   pink: "1503342217505-b0a15ec3261c",
   sunny: "1469334031218-e382a71b716b",
-  face1: "1494790108377-be9c29b29330",
-  face2: "1507003211169-0a1dd7228f2d",
-  face3: "1438761681033-6461ffad8d80",
 };
 const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 const PRODUCTS = [
@@ -131,6 +124,32 @@ const Product = ({ i, add, done }: { i: number; add?: boolean; done?: boolean })
     </span>
   );
 };
+
+/** Grey stand-in for the store page around a section (no photos: they aren't part of it). */
+const PageSkeleton = ({ phone }: { phone?: boolean }) => (
+  <>
+    <Head />
+    <span className={`${s.skelHero} ${phone ? s.skelHeroM : ""}`}>
+      <Lines w={[45, 30]} />
+    </span>
+    <span className={phone ? s.skelGrid2 : s.skelGrid3}>
+      {(phone ? [0, 1] : [0, 1, 2]).map((i) => (
+        <span key={i} className={s.skelCard}>
+          <span className={s.skelImg} />
+          <Lines w={[80, 45]} />
+        </span>
+      ))}
+    </span>
+  </>
+);
+/** Product-page context for upsell / cross-sell: title and price as placeholders, no photo. */
+const PdpSkeleton = () => (
+  <span className={s.pdpSkel}>
+    <small className={s.muted}>Product page</small>
+    <Lines w={[70]} />
+    <Lines w={[35]} />
+  </span>
+);
 
 /* ------------------------------------------------------------------ previews -- */
 export function HeroShowcase() {
@@ -170,10 +189,10 @@ export function HeroShowcase() {
 }
 
 const REVIEWS = [
-  { t: "I have very sensitive skin", n: "Barbara · 30 Sep", src: s.wa, face: PHOTO.face1 },
-  { t: "I adopted it!", n: "Cathrine · 29 Jul", src: s.ig, photo: PHOTO.pink, face: PHOTO.face3 },
-  { t: "Wearing it in the video", n: "Omar · 12 Aug", src: s.tt, video: true, face: PHOTO.face2 },
-  { t: "Arrived in two days", n: "Nour · 3 Sep", src: s.fb, face: PHOTO.face1 },
+  { t: "I have very sensitive skin", n: "Barbara · 30 Sep", src: s.wa },
+  { t: "I adopted it!", n: "Cathrine · 29 Jul", src: s.ig, photo: PHOTO.pink },
+  { t: "Wearing it in the video", n: "Omar · 12 Aug", src: s.tt, video: true },
+  { t: "Arrived in two days", n: "Nour · 3 Sep", src: s.fb },
 ];
 export function ReviewsShowcase() {
   return (
@@ -200,10 +219,7 @@ export function ReviewsShowcase() {
               </span>
               <b>{r.t}</b>
               {r.photo || r.video ? <Lines w={[100, 70]} /> : <Lines w={[100, 94, 88, 60]} />}
-              <span className={s.who}>
-                <Img id={r.face} w={60} h={60} className={s.avatar} />
-                <small className={s.muted}>{r.n}</small>
-              </span>
+              <small className={s.muted}>{r.n}</small>
             </span>
           ))}
         </span>
@@ -332,32 +348,14 @@ export function AnnouncementShowcase() {
           <span>›</span>
         </span>
         <span className={s.progress} />
-        <Head />
-        <span className={s.banner}>
-          <Img id={PHOTO.store} w={900} h={300} className={s.cover} />
-          <b>Summer collection</b>
-          <span className={`${s.btn} ${s.btnLight}`}>Shop now</span>
-        </span>
-        <span className={s.products3}>
-          <Product i={0} />
-          <Product i={1} />
-          <Product i={2} />
-        </span>
+        <PageSkeleton />
       </span>
       <Phone>
         <span className={s.annBar}>
           <span>🎁 Eid sale: 20% off</span>
         </span>
         <span className={s.progress} />
-        <Head />
-        <span className={`${s.banner} ${s.bannerM}`}>
-          <Img id={PHOTO.rack} w={300} h={200} className={s.cover} />
-          <b>Summer</b>
-        </span>
-        <span className={s.products2}>
-          <Product i={0} />
-          <Product i={1} />
-        </span>
+        <PageSkeleton phone />
       </Phone>
     </>
   );
@@ -424,7 +422,6 @@ export function CountdownShowcase() {
   return (
     <>
       <span className={`${s.desk} ${s.cdD}`}>
-        <Img id={PHOTO.sale} w={500} h={400} className={s.cdImg} />
         <span className={s.cdCopy}>
           <span className={s.tag}>SUMMER SALE</span>
           <b className={s.h2}>Hurry — the sale ends soon</b>
@@ -435,7 +432,6 @@ export function CountdownShowcase() {
       </span>
       <Phone>
         <span className={s.cdM}>
-          <Img id={PHOTO.sale} w={300} h={180} className={s.cdImgM} />
           <span className={s.tag}>SUMMER SALE</span>
           <b className={s.h3}>The sale ends soon</b>
           <Timer />
@@ -451,17 +447,7 @@ export function CountdownBarShowcase() {
   return (
     <>
       <span className={`${s.desk} ${s.pageD}`}>
-        <Head />
-        <span className={`${s.banner} ${s.bannerAlt}`}>
-          <Img id={PHOTO.window} w={900} h={300} className={s.cover} />
-          <b>New season</b>
-          <span className={`${s.btn} ${s.btnLight}`}>Discover</span>
-        </span>
-        <span className={s.products3}>
-          <Product i={1} />
-          <Product i={2} />
-          <Product i={3} />
-        </span>
+        <PageSkeleton />
         <span className={s.cdBar}>
           <b>Sale ends in</b>
           <span className={s.cdDigits}>
@@ -472,15 +458,7 @@ export function CountdownBarShowcase() {
         </span>
       </span>
       <Phone>
-        <Head />
-        <span className={`${s.banner} ${s.bannerAlt} ${s.bannerM}`}>
-          <Img id={PHOTO.window} w={300} h={200} className={s.cover} />
-          <b>New season</b>
-        </span>
-        <span className={s.products2}>
-          <Product i={1} />
-          <Product i={2} />
-        </span>
+        <PageSkeleton phone />
         <span className={s.cdBar}>
           <b>Ends in</b>
           <span className={s.cdDigits}>
@@ -493,24 +471,6 @@ export function CountdownBarShowcase() {
 }
 
 /* ---------------------------------------------------------- feature previews -- */
-const ProductInfo = ({ i, children }: { i: number; children: ReactNode }) => {
-  const p = PRODUCTS[i];
-  return (
-    <span className={s.pdp}>
-      <span className={s.pdpMedia}>
-        <Img id={p.id} w={500} h={500} />
-      </span>
-      <span className={s.pdpInfo}>
-        <small className={s.muted}>LUMA</small>
-        <b className={s.h2}>{p.name}</b>
-        <span className={s.rating}>
-          <Stars /> <small className={s.muted}>128 reviews</small>
-        </span>
-        {children}
-      </span>
-    </span>
-  );
-};
 const Tiers = () => (
   <span className={s.tiers}>
     {[
@@ -537,16 +497,17 @@ export function UpsellShowcase() {
   return (
     <>
       <span className={`${s.desk} ${s.pdpD}`}>
-        <ProductInfo i={0}>
-          <b>Buy more, save more</b>
+        <span className={s.widget}>
+          <PdpSkeleton />
+          <b className={s.h3}>Buy more, save more</b>
           <Tiers />
           <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
-        </ProductInfo>
+        </span>
       </span>
       <Phone>
         <span className={s.pdpM}>
-          <Img id={PRODUCTS[0].id} w={300} h={220} className={s.pdpMImg} />
-          <b>Wireless headphones</b>
+          <PdpSkeleton />
+          <b>Buy more, save more</b>
           <Tiers />
           <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
         </span>
@@ -575,17 +536,16 @@ export function CrossSellShowcase() {
   return (
     <>
       <span className={`${s.desk} ${s.pdpD}`}>
-        <ProductInfo i={2}>
-          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart · LE 3,100</span>
-          <b>Pairs well with</b>
+        <span className={s.widget}>
+          <PdpSkeleton />
+          <b className={s.h3}>Pairs well with</b>
           <Pairs />
-          <span className={`${s.btn} ${s.btnLight} ${s.outline} ${s.full}`}>Add 2 selected to cart</span>
-        </ProductInfo>
+          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add 2 selected to cart · save 10%</span>
+        </span>
       </span>
       <Phone>
         <span className={s.pdpM}>
-          <Img id={PRODUCTS[2].id} w={300} h={220} className={s.pdpMImg} />
-          <b>Instant camera</b>
+          <PdpSkeleton />
           <b className={s.small}>Pairs well with</b>
           <Pairs n={2} />
           <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add selected</span>
