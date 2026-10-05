@@ -48,6 +48,7 @@ engine.registerFilter("video_tag", (video, ...args) => {
 });
 engine.registerFilter("placeholder_svg_tag", (name, cls) => `<svg class="${cls}" viewBox="0 0 525 300" xmlns="http://www.w3.org/2000/svg"><rect width="525" height="300"/></svg>`);
 engine.registerFilter("asset_url", (name) => `assets/${name}`);
+engine.registerFilter("payment_type_svg_tag", (type, ...args) => `<svg class="${named(args).class ?? ""}" viewBox="0 0 38 24" role="img" aria-label="${type}"><rect width="38" height="24" rx="3" fill="#fff" stroke="#ccc"/><text x="19" y="15" font-size="7" text-anchor="middle" font-family="Arial" font-weight="700">${String(type).toUpperCase()}</text></svg>`);
 engine.registerFilter("handleize", (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
 engine.registerFilter("color_brightness", (hex) => {
   const m = String(hex).replace("#", "").match(/../g) || ["0", "0", "0"];
@@ -106,7 +107,8 @@ const lists = (r, f, l, a) => collectionOf([mo("main", { reviews: shownInOrder(r
 const shop = {
   name: "Harness shop",
   url: "https://harness.example",
-  money_format: "LE {{amount}}",
+  money_format: "${{amount}}",
+  enabled_payment_types: ["visa", "master", "american_express", "paypal", "apple_pay"],
   metaobjects: {
     "$app:cro_announce": collectionOf(announce),
     "$app:cro_faq": collectionOf(faq),
@@ -115,6 +117,26 @@ const shop = {
     "$app:cro_lists": lists(reviews, faq, logos, announce),
   },
 };
+// Boosters: defaults (no saved config) + two real-looking recent purchases.
+const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
+shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null })]);
+shop.metaobjects["$app:cro_recent"] = collectionOf([
+  mo("main", {
+    purchases: [
+      { product: "Classic watch", handle: "classic-watch", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30", city: "Cairo", at: minutesAgo(5) },
+      { product: "Sunglasses", handle: "sunglasses", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f", city: null, at: minutesAgo(90) },
+    ],
+  }),
+]);
+const watch = {
+  id: 77, title: "Classic watch", handle: "classic-watch", url: "/products/classic-watch",
+  variants: [
+    { id: 7701, title: "Silver", inventory_management: "shopify", inventory_policy: "deny", inventory_quantity: 3 },
+    { id: 7702, title: "Black", inventory_management: "shopify", inventory_policy: "deny", inventory_quantity: 1 },
+    { id: 7703, title: "Gold", inventory_management: "shopify", inventory_policy: "deny", inventory_quantity: 40 },
+  ],
+};
+
 const empty = { ...shop, metaobjects: { "$app:cro_lists": lists([], [], [], []) } };
 
 function defaults(name) {
@@ -168,6 +190,26 @@ const pages = {
     label("reviews empty") + (await block("ucs-reviews", {}, { shop: empty, design: true })),
     await block("ucs-announcement", {}, { shop: empty, design: true })),
 };
+const productJs = {
+  id: 77, title: "Classic watch", handle: "classic-watch", featured_image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+  options: [{ name: "Colour", values: ["Silver", "Black", "Gold"] }],
+  variants: [
+    { id: 7701, title: "Silver", options: ["Silver"], price: 12900, compare_at_price: 15900, available: true },
+    { id: 7702, title: "Black", options: ["Black"], price: 12900, compare_at_price: 0, available: true },
+    { id: 7703, title: "Gold", options: ["Gold"], price: 13900, compare_at_price: 0, available: true },
+  ],
+};
+const productForm = `<div class="page-width" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;padding:24px 40px;max-width:1100px;margin:0 auto">
+  <div style="aspect-ratio:1;background:url(https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600) center/cover;border-radius:16px"></div>
+  <div><h1>Classic watch</h1><p style="font-size:20px">$129.00</p>
+    <div class="product-form"><form action="/cart/add" method="post" id="product-form-main">
+      <label>Colour <select name="id" id="variant">${watch.variants.map((v) => `<option value="${v.id}">${v.title}</option>`).join("")}</select></label>
+      <button type="submit" name="add" class="button" style="display:block;width:100%;margin-top:12px;padding:14px;background:#111;color:#fff;border:0;border-radius:24px">Add to cart</button>
+    </form></div>
+    <div style="height:1400px"></div></div></div>
+  <script>const pjs=${JSON.stringify(productJs)};const of=window.fetch;window.fetch=(u,o)=>String(u).includes('/products/')?Promise.resolve(new Response(JSON.stringify(pjs))):of(u,o);</script>`;
+pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-boosters", {}, { page_type: "product", product: watch })).replace('<link', '<link') + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
+
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 
 // ---------------------------------------------------------------- checks --

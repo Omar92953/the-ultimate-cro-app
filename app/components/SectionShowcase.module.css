@@ -248,3 +248,36 @@
 .cdUnits i { display: flex; align-items: baseline; gap: 0.1em; padding: 0.2em 0.4em; font-style: normal; font-weight: 800; color: #111; background: #fff; border-radius: 0.25em; }
 .cdUnits small { font-size: 0.65em; font-weight: 600; color: #6b6b6b; }
 .cdBarDark .btnLight { color: #111; }
+
+/* ---------- boosters ---------- */
+.ghostPage { display: grid; gap: 1.4em; padding: 1.5em; background: #fff; border-radius: 0.8em; }
+.stickyBar { display: flex; align-items: center; gap: 1em; margin-top: 1.4em; padding: 1em 1.2em; background: #fff; border-radius: 0.8em; box-shadow: 0 -0.2em 1.6em rgba(0, 0, 0, 0.14); }
+.stickyBarM { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; border-radius: 0.8em 0.8em 0 0; }
+.stickyImg { flex: none; width: 3.4em; height: 3.4em; object-fit: cover; border-radius: 0.5em; }
+.stickyBar .pairText { flex: 1; }
+.stickySelect { padding: 0.5em 0.9em; font-size: 0.95em; border: 0.1em solid #d4d4d4; border-radius: 0.5em; }
+.phoneFrame { position: relative; display: block; width: 22em; height: 100%; overflow: hidden; background: #f9f9f9; border: 0.5em solid #1a1a1a; border-bottom: 0; border-radius: 2em 2em 0 0; }
+.phoneFrame .ghostPage { margin: 2em 1em; }
+.pdpMini { display: grid; grid-template-columns: 13em 1fr; gap: 1.4em; align-items: center; }
+.pdpMiniImg { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 0.8em; }
+.pdpMiniInfo { display: flex; flex-direction: column; gap: 0.7em; }
+.pdpMiniPrice { font-size: 1.3em; font-weight: 700; }
+.urg { display: inline-flex; align-items: center; gap: 0.6em; font-weight: 700; color: #b42318; }
+.urgBig { font-size: 1.4em; }
+.urgDot { width: 0.7em; height: 0.7em; border-radius: 50%; background: #b42318; box-shadow: 0 0 0 0.3em rgba(180, 35, 24, 0.18); }
+.urgBar { display: block; width: 100%; height: 0.5em; overflow: hidden; background: rgba(180, 35, 24, 0.15); border-radius: 0.3em; }
+.urgBar i { display: block; width: 30%; height: 100%; background: #b42318; }
+.urgBarLast i { width: 8%; }
+.trustRow { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em 1.4em; font-size: 1em; }
+.trustRow span, .trustGrid span { display: flex; align-items: center; gap: 0.6em; }
+.trustRow i, .trustGrid i { font-style: normal; }
+.trustGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+.trustGrid span { padding: 1em; border: 0.1em solid #e3e3e3; border-radius: 0.7em; }
+.payRow { display: flex; flex-wrap: wrap; gap: 0.5em; }
+.payRow i { padding: 0.35em 0.7em; font-size: 0.85em; font-style: normal; font-weight: 800; color: #1a1f71; background: #fff; border: 0.1em solid #d4d4d4; border-radius: 0.35em; }
+.popStage { position: relative; }
+.popStage .salePop { position: absolute; left: -1em; bottom: -1.4em; }
+.salePop { position: relative; display: flex; align-items: center; gap: 1em; width: 26em; padding: 1em 2.4em 1em 1em; background: #fff; border-radius: 1em; box-shadow: 0 0.8em 2.4em rgba(0, 0, 0, 0.2); }
+.salePop + .salePop { margin-top: 1em; margin-left: 4em; }
+.salePopImg { flex: none; width: 4em; height: 4em; object-fit: cover; border-radius: 0.6em; }
+.salePopX { position: absolute; top: 0.4em; right: 0.8em; color: #888; }

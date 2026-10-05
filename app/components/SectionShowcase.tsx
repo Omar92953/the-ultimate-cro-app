@@ -833,3 +833,177 @@ export function CountdownBarDarkShowcase() {
     </Stage>
   );
 }
+
+/* ---------------------------------------------------------------- boosters -- */
+const ProductPage = ({ children }: { children: ReactNode }) => (
+  <span className={s.pdpMini}>
+    <Img id={PRODUCTS[1].id} w={300} h={300} className={s.pdpMiniImg} />
+    <span className={s.pdpMiniInfo}>
+      <b className={s.h3}>Classic watch</b>
+      <span className={s.pdpMiniPrice}>
+        $129 <s className={s.muted}>$159</s>
+      </span>
+      {children}
+    </span>
+  </span>
+);
+
+export function StickyShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52}`}>
+        <span className={s.ghostPage}>
+          <Lines w={[60, 90, 75]} />
+          <Lines w={[85, 50]} />
+        </span>
+        <span className={s.stickyBar}>
+          <Img id={PRODUCTS[1].id} w={80} h={80} className={s.stickyImg} />
+          <span className={s.pairText}>
+            <b>Classic watch</b>
+            <small>$129</small>
+          </span>
+          <span className={s.stickySelect}>Silver ▾</span>
+          <span className={`${s.btn} ${s.btnDark}`}>Add to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function StickyMobileShowcase() {
+  return (
+    <Stage>
+      <span className={s.phoneFrame}>
+        <span className={s.ghostPage}>
+          <Lines w={[70, 90, 60, 80]} />
+        </span>
+        <span className={`${s.stickyBar} ${s.stickyBarM}`}>
+          <Img id={PRODUCTS[0].id} w={80} h={80} className={s.stickyImg} />
+          <span className={s.pairText}>
+            <b>Headphones</b>
+            <small>$79</small>
+          </span>
+          <span className={`${s.btn} ${s.btnDark} ${s.btnSm}`}>Add</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function UrgencyShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w46}`}>
+        <ProductPage>
+          <span className={s.urg}>
+            <span className={s.urgDot} /> Hurry! Only 3 left in stock
+          </span>
+          <span className={s.urgBar}>
+            <i />
+          </span>
+          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+        </ProductPage>
+      </span>
+    </Stage>
+  );
+}
+
+export function UrgencyLastShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w40} ${s.center}`}>
+        <span className={`${s.urg} ${s.urgBig}`}>
+          <span className={s.urgDot} /> Last one in stock!
+        </span>
+        <span className={`${s.urgBar} ${s.urgBarLast}`}>
+          <i />
+        </span>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart · $45</span>
+      </span>
+    </Stage>
+  );
+}
+
+const BADGES = [
+  ["🔒", "Secure checkout"],
+  ["🚚", "Fast delivery"],
+  ["↩", "Free returns"],
+  ["💵", "Cash on delivery"],
+];
+const PAYS = ["VISA", "MC", "AMEX", "PayPal", "Pay", "COD"];
+export function TrustShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w46}`}>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+        <span className={s.trustRow}>
+          {BADGES.map(([i, t]) => (
+            <span key={t}>
+              <i>{i}</i>
+              {t}
+            </span>
+          ))}
+        </span>
+        <span className={s.payRow}>
+          {PAYS.map((p) => (
+            <i key={p}>{p}</i>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function TrustGridShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w40}`}>
+        <b>Why shop with us</b>
+        <span className={s.trustGrid}>
+          {BADGES.map(([i, t]) => (
+            <span key={t}>
+              <i>{i}</i>
+              {t}
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+const Pop = ({ k, line, ago }: { k: number; line: string; ago: string }) => (
+  <span className={s.salePop}>
+    <Img id={PRODUCTS[k].id} w={100} h={100} className={s.salePopImg} />
+    <span className={s.pairText}>
+      <small>{line}</small>
+      <b>{PRODUCTS[k].name}</b>
+      <small className={s.muted}>{ago}</small>
+    </span>
+    <span className={s.salePopX}>×</span>
+  </span>
+);
+export function SalesPopShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52} ${s.popStage}`}>
+        <span className={s.ghostPage}>
+          <Lines w={[60, 90, 75]} />
+          <Lines w={[85, 50]} />
+        </span>
+        <Pop k={1} line="Someone in Cairo bought" ago="5 minutes ago" />
+      </span>
+    </Stage>
+  );
+}
+
+export function SalesPopStackShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w40}`}>
+        <Pop k={0} line="Someone bought" ago="2 minutes ago" />
+        <Pop k={3} line="Someone in Giza bought" ago="1 hour ago" />
+      </span>
+    </Stage>
+  );
+}

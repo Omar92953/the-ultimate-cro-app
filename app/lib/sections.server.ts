@@ -310,6 +310,7 @@ export function sectionLinks(shop: string) {
     quick_add: embed("ucs-quick-add"),
     countdown: block("ucs-countdown"),
     countdown_bar: embed("ucs-countdown-bar"),
+    boosters: embed("ucs-boosters"),
     hero: block("ucs-hero"),
   };
 }

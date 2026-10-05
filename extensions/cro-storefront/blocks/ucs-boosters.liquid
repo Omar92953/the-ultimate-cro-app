@@ -1,0 +1,28 @@
+{%- liquid
+assign cfg = shop.metaobjects['$app:cro_boosters']['main'].config.value
+assign recent = shop.metaobjects['$app:cro_recent']['main'].purchases.value
+-%}
+<script type="application/json" id="ucs-boost">
+{
+"cfg": {{ cfg | json }},
+"recent": {{ recent | json }},
+"fmt": {{ shop.money_format | json }},
+"page": {{ request.page_type | json }}
+{%- if product -%}
+,"product": {
+"handle": {{ product.handle | json }},
+"stock": {
+{%- for v in product.variants -%}
+{%- if v.inventory_management == 'shopify' and v.inventory_policy == 'deny' -%}"{{ v.id }}": {{ v.inventory_quantity }},{%- endif -%}
+{%- endfor -%}
+"_": 0
+}
+}
+{%- endif %}
+}
+</script>
+<template id="ucs-pay">
+{%- for type in shop.enabled_payment_types -%}{{ type | payment_type_svg_tag: class: 'ucs-pay' }}{%- endfor -%}
+</template>
+<script src="{{ 'ucs-boosters.js' | asset_url }}" defer></script>
+{% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.2w"}]}{% endschema %}

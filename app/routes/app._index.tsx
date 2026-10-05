@@ -50,11 +50,21 @@ import {
   UpsellSizesShowcase,
   VideosLargeShowcase,
   VideosShowcase,
+  SalesPopShowcase,
+  SalesPopStackShowcase,
   SectionCard,
+  StickyMobileShowcase,
+  StickyShowcase,
+  TrustGridShowcase,
+  TrustShowcase,
+  UrgencyLastShowcase,
+  UrgencyShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
+import { getBoosters } from "../lib/boosters.server";
+import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
@@ -73,7 +83,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const lists = await Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k)));
+  const [lists, boosters] = await Promise.all([
+    Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
+    getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
+  ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
       const items = settled(lists[i], []);
@@ -81,6 +94,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
   ) as Record<SectionKind, { total: number; shown: number }>;
   return {
+    boosters,
     sectionCounts,
     sectionLinks: sectionLinks(session.shop),
     shop: session.shop,
@@ -201,6 +215,14 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
   { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
+];
+
+/** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
+const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() => JSX.Element)[] }[] = [
+  { key: "sticky", title: "Sticky add to cart", Previews: [StickyShowcase, StickyMobileShowcase] },
+  { key: "urgency", title: "Stock urgency", Previews: [UrgencyShowcase, UrgencyLastShowcase] },
+  { key: "trust", title: "Trust badges", Previews: [TrustShowcase, TrustGridShowcase] },
+  { key: "salesPop", title: "Sales pop-ups", Previews: [SalesPopShowcase, SalesPopStackShowcase] },
 ];
 
 function sectionStatus(list: SectionKind | null, counts: { total: number; shown: number } | null, installed: boolean | null, embed: boolean): Status {
@@ -327,6 +349,31 @@ export default function Home() {
                 ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
                 : { label: "Live", done: true, ...open };
           return <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} />;
+        })}
+              {BOOSTER_CARDS.map((b) => {
+          const embedOn = installed ? (installed.boosters ?? false) : null;
+          const enabled = data.boosters[b.key].enabled;
+          const status: Status = !enabled
+            ? { tone: "neutral", text: "Off", next: null }
+            : embedOn === false
+              ? { tone: "warning", text: "Turned off", next: "theme" }
+              : { tone: "success", text: "Live", next: null };
+          const action =
+            status.next === "theme"
+              ? { label: "Turn on", href: data.sectionLinks.boosters, external: true }
+              : enabled
+                ? { label: "Live", done: true, href: "/app/boosters" }
+                : { label: "Switch on", href: "/app/boosters" };
+          return (
+            <SectionCard
+              key={b.key}
+              title={b.title}
+              status={status}
+              action={action}
+              open={{ href: "/app/boosters" }}
+              previews={b.Previews.map((P, i) => <P key={i} />)}
+            />
+          );
         })}
       </div>
 

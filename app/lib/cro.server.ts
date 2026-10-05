@@ -1052,10 +1052,11 @@ export const BLOCKS = {
   hero: "ucs-hero",
   countdown: "ucs-countdown",
   countdown_bar: "ucs-countdown-bar",
+  boosters: "ucs-boosters",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
-const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "countdown_bar"];
+const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "countdown_bar", "boosters"];
 
 export type ThemeStatus = {
   themeName: string | null;

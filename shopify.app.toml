@@ -11,7 +11,7 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Every scope and why it is needed is listed in docs/scopes.md.
-scopes = "read_files,write_files,read_products,read_themes,write_cart_transforms,write_discounts,write_metaobject_definitions,write_metaobjects"
+scopes = "read_files,write_files,read_orders,read_products,read_themes,write_cart_transforms,write_discounts,write_metaobject_definitions,write_metaobjects"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
@@ -28,6 +28,11 @@ api_version = "2025-10"
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
+
+  # Sales pop-ups: keeps the list of recent purchases fresh. Handled by /app/routes/webhooks.orders.create.tsx
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/orders/create"
 
   # Mandatory privacy (compliance) webhooks — handled by /app/routes/webhooks.compliance.tsx
   [[webhooks.subscriptions]]
@@ -430,3 +435,24 @@ access.storefront = "public_read"
   [metaobjects.app.cro_lists.fields.announcements]
   name = "Announcements"
   type = "list.metaobject_reference<$app:cro_announce>"
+
+# Conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups):
+# all their settings, edited in the app (Boosters page) and read by the "Conversion boosters" embed.
+[metaobjects.app.cro_boosters]
+name = "CRO boosters"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_boosters.fields.config]
+  name = "Settings"
+  type = "json"
+
+# The last real purchases shown by sales pop-ups: product, time and (optionally) city. No names.
+[metaobjects.app.cro_recent]
+name = "CRO recent purchases"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_recent.fields.purchases]
+  name = "Purchases"
+  type = "json"
