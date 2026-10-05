@@ -28,15 +28,19 @@
 .off .canvas { filter: grayscale(1); opacity: 0.55; }
 
 /* ---------- the stage: one section, centred (top padding leaves room for the pills) ---------- */
-.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 5em 2.4em 1.8em; overflow: hidden; }
+.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 5.5em 3em 2.5em; overflow: hidden; }
 .deskWide { padding-left: 0; padding-right: 0; }
 .box { display: flex; flex-direction: column; gap: 1em; padding: 1.8em; background: #fff; border-radius: 1.2em; box-shadow: 0 0.3em 1.2em rgba(0, 0, 0, 0.08); }
 .plain { position: relative; display: flex; flex-direction: column; gap: 1em; }
 .center { align-items: center; text-align: center; }
 .centerText { text-align: center; }
 .centerRow { justify-content: center; }
-/* every section fills the card width */
-.w30, .w40, .w46, .w50, .w52, .w56 { width: 100%; }
+.w30 { width: 30em; }
+.w40 { width: 40em; }
+.w46 { width: 46em; }
+.w50 { width: 50em; }
+.w52 { width: 52em; }
+.w56 { width: 56em; }
 
 /* ---------- shared bits ---------- */
 .cover { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -154,7 +158,7 @@
 .picker { position: absolute; right: -1em; top: 55%; z-index: 3; display: flex; flex-direction: column; gap: 0.8em; width: 16em; padding: 1.3em; background: #fff; border-radius: 1em; box-shadow: 0 1em 3em rgba(0, 0, 0, 0.28); }
 
 /* ---------- hero ---------- */
-.hero { position: relative; display: flex; align-items: center; width: 100%; height: 100%; overflow: hidden; color: #fff; border-radius: 1.2em; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); }
+.hero { position: relative; display: flex; align-items: center; width: 52em; height: 27em; overflow: hidden; color: #fff; border-radius: 1.2em; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(14, 22, 48, 0.85), rgba(14, 22, 48, 0.35) 55%, rgba(14, 22, 48, 0)); }
 .heroCopy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1em; max-width: 26em; padding: 0 3.5em; }
 .heroH { font-family: Georgia, "Times New Roman", serif; font-size: 3em; font-style: italic; line-height: 1.08; }
