@@ -1,7 +1,8 @@
 /* Section cards on Home. Inside the preview, 1em = 1/60 of the card width. */
 .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .card { position: relative; display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
 .stage { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #f4f4f5; container-type: inline-size; }
 .stageLink { position: absolute; inset: 0; display: block; overflow: hidden; color: #111; text-decoration: none; }
