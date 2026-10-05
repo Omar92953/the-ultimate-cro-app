@@ -1,13 +1,13 @@
 /**
- * Section cards on Home: a preview of the section itself (centred), a floating action pill,
- * and the name + status underneath.
+ * Section cards on Home: previews of the section itself (centred) that scroll with small arrows,
+ * a floating action pill, and the name + status underneath.
  * Previews are decorative (aria-hidden) and scale with the card (sizes are in em, the root
  * font-size follows the card width through container query units).
  *
  * Photos: Unsplash (free to use under the Unsplash License, no attribution required), loaded
  * from images.unsplash.com as Unsplash asks. Video: MDN's CC0 sample clip.
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import s from "./SectionShowcase.module.css";
 
@@ -30,11 +30,15 @@ export function SectionCard(props: {
   status: { tone: "success" | "warning" | "neutral"; text: string };
   action: Target & { label: string; done?: boolean };
   open: Target;
-  preview: ReactNode;
+  /** One or more looks of the section; arrows scroll between them. */
+  previews: ReactNode[];
   /** Features can be switched off without removing them from the theme. */
   toggle?: { on: boolean; onChange: (on: boolean) => void };
   off?: boolean;
 }) {
+  const [index, setIndex] = useState(0);
+  const count = props.previews.length;
+  const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
   return (
     <div className={`${s.card} ${props.off ? s.off : ""}`}>
       {props.toggle ? (
@@ -50,11 +54,39 @@ export function SectionCard(props: {
           {props.toggle.on ? "On" : "Off"}
         </button>
       ) : null}
-      <Go className={s.stage} href={props.open.href} external={props.open.external} label={`Open ${props.title}`}>
-        <span className={s.canvas} aria-hidden="true">
-          {props.preview}
-        </span>
-      </Go>
+      <div className={s.stage}>
+        <Go className={s.stageLink} href={props.open.href} external={props.open.external} label={`Open ${props.title}`}>
+          <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-hidden="true">
+            {props.previews.map((preview, i) => (
+              <span key={i} className={s.canvas}>
+                {preview}
+              </span>
+            ))}
+          </span>
+        </Go>
+        {count > 1 ? (
+          <>
+            <button type="button" className={`${s.arrow} ${s.arrowPrev}`} aria-label={`Previous ${props.title} look`} onClick={() => go(-1)}>
+              ‹
+            </button>
+            <button type="button" className={`${s.arrow} ${s.arrowNext}`} aria-label={`Next ${props.title} look`} onClick={() => go(1)}>
+              ›
+            </button>
+            <span className={s.dots}>
+              {props.previews.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`${s.dot} ${i === index ? s.dotOn : ""}`}
+                  aria-label={`Look ${i + 1} of ${count}`}
+                  aria-current={i === index}
+                  onClick={() => setIndex(i)}
+                />
+              ))}
+            </span>
+          </>
+        ) : null}
+      </div>
       <Go className={`${s.pill} ${props.action.done ? s.pillDone : ""}`} href={props.action.href} external={props.action.external}>
         <span aria-hidden="true">{props.action.done ? "✓" : "+"}</span> {props.action.label}
       </Go>
@@ -433,6 +465,370 @@ export function CountdownBarShowcase() {
         </span>
         <span className={`${s.btn} ${s.btnLight}`}>Shop now</span>
         <span className={s.cdClose}>✕</span>
+      </span>
+    </Stage>
+  );
+}
+
+/* ------------------------------------------------- more looks per section -- */
+export function UpsellSizesShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w30}`}>
+        <b className={s.h3}>Choose your size</b>
+        <span className={s.tiers}>
+          {[
+            ["Size M", "$79", "", ""],
+            ["Size L", "$85", "$94", "Save 10%"],
+            ["Size XL", "$89", "$111", "Save 20%"],
+          ].map(([l, p, was, save], i) => (
+            <span key={l} className={`${s.tier} ${i === 1 ? s.tierOn : ""}`}>
+              {save ? (
+                <span className={s.tierTags}>
+                  <i>{save}</i>
+                  {i === 1 ? <i className={s.tierBadge}>Best value</i> : null}
+                </span>
+              ) : null}
+              <span className={s.radio} />
+              <b>{l}</b>
+              {was ? <s className={s.muted}>{was}</s> : null}
+              <b>{p}</b>
+            </span>
+          ))}
+        </span>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+      </span>
+    </Stage>
+  );
+}
+
+export function UpsellListShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w30}`}>
+        <b className={s.h3}>Bundle & save</b>
+        <span className={s.list}>
+          {[
+            ["1 pair", "Standard price", "$45", ""],
+            ["2 pairs", "You save $9", "$81", "Popular"],
+            ["3 pairs", "You save $20", "$115", ""],
+          ].map(([l, sub, p, badge], i) => (
+            <span key={l} className={`${s.listRow} ${i === 1 ? s.listOn : ""}`}>
+              <span className={s.radio} />
+              <span className={s.pairText}>
+                <b>
+                  {l} {badge ? <i className={s.miniBadge}>{badge}</i> : null}
+                </b>
+                <small className={s.muted}>{sub}</small>
+              </span>
+              <b className={s.push}>{p}</b>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function CrossSellCardsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w46}`}>
+        <b className={s.h3}>Frequently bought together</b>
+        <span className={s.fbt}>
+          {[1, 3, 4].map((k, i) => (
+            <span key={k} className={s.fbtItem}>
+              <span className={s.productImg}>
+                <Img id={PRODUCTS[k].id} w={240} h={240} />
+                <span className={`${s.check} ${s.fbtCheck} ${i < 2 ? s.checkOn : ""}`} />
+              </span>
+              <small>{PRODUCTS[k].name}</small>
+              <b>{PRODUCTS[k].price}</b>
+              {i < 2 ? <span className={s.plus}>+</span> : null}
+            </span>
+          ))}
+        </span>
+        <span className={s.between}>
+          <span>
+            Total <b>$156</b> <s className={s.muted}>$174</s>
+          </span>
+          <span className={`${s.btn} ${s.btnDark}`}>Add 3 to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function VideosLargeShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w40}`}>
+        <span className={s.clips2}>
+          {[CLIPS[1], CLIPS[3]].map((c) => (
+            <span key={c.cap} className={s.clip}>
+              <span className={s.clipMedia}>
+                {c.video ? <video src={VIDEO} muted autoPlay loop playsInline preload="metadata" /> : <Img id={c.photo!} w={320} h={520} />}
+                <span className={s.clipPlay}>▶</span>
+              </span>
+              <span className={s.clipProduct}>
+                <Img id={PRODUCTS[c.p].id} w={60} h={60} className={s.clipThumb} />
+                <span className={s.pairText}>
+                  <b>{PRODUCTS[c.p].name}</b>
+                  <small>{PRODUCTS[c.p].price}</small>
+                </span>
+              </span>
+              <span className={`${s.btn} ${s.btnDark} ${s.full} ${s.btnSm}`}>Add to cart</span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function BundlesStepsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w46}`}>
+        <span className={s.steps}>
+          <i className={s.stepDone}>1. Pick 2 items ✓</i>
+          <i className={s.stepOn}>2. Add a case</i>
+          <i>3. Review</i>
+        </span>
+        <span className={s.picks3}>
+          {[2, 3, 4].map((k, i) => (
+            <span key={k} className={`${s.pick} ${i === 0 ? s.picked : ""}`}>
+              <Img id={PRODUCTS[k].id} w={160} h={160} />
+              {i === 0 ? <span className={s.pickTick}>✓</span> : null}
+              <small>{PRODUCTS[k].name}</small>
+            </span>
+          ))}
+        </span>
+        <span className={s.summary}>
+          <span>
+            Bundle <b>$199</b> <s className={s.muted}>$239</s>
+          </span>
+          <span className={`${s.btn} ${s.btnDark}`}>Add bundle to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function ReviewsChatShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w40}`}>
+        <b className={`${s.h3} ${s.centerText}`}>Real messages from customers</b>
+        <span className={s.chat}>
+          <span className={s.bubble}>
+            <b className={s.chatName}>Mariam · Cairo</b>
+            Arrived in two days and the quality is amazing 😍 ordering another one for my sister!
+            <small className={s.chatTime}>10:42 ✓✓</small>
+          </span>
+          <span className={`${s.bubble} ${s.bubbleAlt}`}>
+            <b className={s.chatName}>Youssef · Alexandria</b>
+            Best purchase this month, the camera works perfectly 👌
+            <small className={s.chatTime}>18:05 ✓✓</small>
+          </span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function ReviewsPhotosShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w50}`}>
+        <span className={s.photoGrid}>
+          {[PHOTO.sunny, PHOTO.pink, PHOTO.yellow].map((id, i) => (
+            <span key={id} className={s.photoCard}>
+              <Img id={id} w={300} h={360} />
+              <span className={s.photoMeta}>
+                <Stars n={i === 1 ? 4 : 5} />
+                <b>{["Love the fit", "So comfy", "Perfect colour"][i]}</b>
+              </span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function FaqCardsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52}`}>
+        <span className={s.search}>⌕ Search questions</span>
+        <span className={s.faqCards}>
+          {QS.map((q, i) => (
+            <span key={q} className={`${s.faqCard} ${i === 1 ? s.faqCardOpen : ""}`}>
+              <span className={s.between}>
+                <b>{q}</b>
+                <span>{i === 1 ? "⌃" : "⌄"}</span>
+              </span>
+              {i === 1 ? <Lines w={[90, 55]} /> : null}
+            </span>
+          ))}
+        </span>
+        <span className={`${s.btn} ${s.btnDark} ${s.centerSelf}`}>Still have a question? Contact us</span>
+      </span>
+    </Stage>
+  );
+}
+
+export function LogosOneLineShowcase() {
+  return (
+    <Stage wide>
+      <span className={s.logos}>
+        <b className={s.h3}>As seen in</b>
+        <Marks shift={2} />
+      </span>
+    </Stage>
+  );
+}
+
+export function LogosGridShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w46} ${s.center}`}>
+        <b className={s.h3}>Trusted by 2,000+ brands</b>
+        <span className={s.markGrid}>
+          {MARKS.map((m) => (
+            <i key={m.t} className={m.c}>
+              {m.t}
+            </i>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function AnnouncementShippingShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52}`}>
+        <span className={s.annWrap}>
+          <span className={`${s.annBar} ${s.annCenter}`}>🚚 Spend $15 more for free delivery</span>
+          <span className={s.progress} />
+        </span>
+        <span className={s.annWrap}>
+          <span className={`${s.annBar} ${s.annCenter} ${s.annGreen}`}>🎉 You&apos;ve unlocked free delivery!</span>
+          <span className={`${s.progress} ${s.progressFull}`} />
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function AnnouncementStyleShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52}`}>
+        <span className={`${s.annBar} ${s.annCenter} ${s.annBlue} ${s.annUpper}`}>⭐ New collection just dropped · Shop now</span>
+        <span className={`${s.annBar} ${s.annCenter} ${s.annRose}`}>❤ Free gift wrapping on every order</span>
+      </span>
+    </Stage>
+  );
+}
+
+export function QuickAddToastShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w46}`}>
+        <span className={s.products4}>
+          {[1, 2, 3, 4].map((i) => (
+            <span key={i} className={s.product}>
+              <span className={s.productImg}>
+                <Img id={PRODUCTS[i].id} w={240} h={240} />
+                <span className={`${s.qa} ${i === 2 ? s.qaDone : ""}`}>{i === 2 ? "✓" : "+"}</span>
+              </span>
+              <b>{PRODUCTS[i].name}</b>
+              <small>{PRODUCTS[i].price}</small>
+            </span>
+          ))}
+        </span>
+        <span className={s.toast}>
+          <b>✓ Added to your cart!</b>
+          <span className={s.row}>
+            <span className={`${s.btn} ${s.btnLight} ${s.outline}`}>View cart</span>
+            <span className={`${s.btn} ${s.btnDark}`}>Checkout</span>
+          </span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function HeroCenteredShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.hero} ${s.heroCenter}`}>
+        <Img id={PHOTO.yellow} w={900} h={460} className={s.cover} />
+        <span className={s.heroBox}>
+          <b className={s.heroH}>New season</b>
+          <span>Bright colours for sunny days</span>
+          <span className={`${s.btn} ${s.btnLight}`}>Shop the collection</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function CountdownRowShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w52} ${s.cdRow}`}>
+        <span className={s.pairText}>
+          <b className={s.h3}>Flash sale — 40% off</b>
+          <small className={s.muted}>Ends tonight at midnight</small>
+        </span>
+        <span className={s.timerPlain}>
+          <b>05</b>:<b>42</b>:<b>17</b>
+        </span>
+        <span className={`${s.btn} ${s.btnDark}`}>Shop now</span>
+      </span>
+    </Stage>
+  );
+}
+
+export function CountdownDailyShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w40} ${s.center}`}>
+        <span className={s.dailyIcon}>🚚</span>
+        <b className={s.h3}>Order in the next 3h 20m</b>
+        <span className={s.muted}>and we ship it today</span>
+        <span className={s.meterWide}>
+          <i />
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+export function CountdownBarDarkShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.cdBar} ${s.cdBarDark} ${s.w52}`}>
+        <b>Black Friday ends in</b>
+        <span className={s.cdUnits}>
+          {[
+            ["01", "d"],
+            ["06", "h"],
+            ["14", "m"],
+            ["52", "s"],
+          ].map(([n, l]) => (
+            <i key={l}>
+              {n}
+              <small>{l}</small>
+            </i>
+          ))}
+        </span>
+        <span className={`${s.btn} ${s.btnLight}`}>Get the deal</span>
       </span>
     </Stage>
   );

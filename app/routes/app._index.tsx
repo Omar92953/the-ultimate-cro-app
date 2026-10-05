@@ -21,18 +21,35 @@ import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
 import { Button } from "../components/fields";
 import {
+  AnnouncementShippingShowcase,
   AnnouncementShowcase,
+  AnnouncementStyleShowcase,
   BundlesShowcase,
+  BundlesStepsShowcase,
+  CountdownBarDarkShowcase,
   CountdownBarShowcase,
-  CrossSellShowcase,
-  UpsellShowcase,
-  VideosShowcase,
+  CountdownDailyShowcase,
+  CountdownRowShowcase,
   CountdownShowcase,
+  CrossSellCardsShowcase,
+  CrossSellShowcase,
+  FaqCardsShowcase,
   FaqShowcase,
+  HeroCenteredShowcase,
   HeroShowcase,
+  LogosGridShowcase,
+  LogosOneLineShowcase,
   LogosShowcase,
   QuickAddShowcase,
+  QuickAddToastShowcase,
+  ReviewsChatShowcase,
+  ReviewsPhotosShowcase,
   ReviewsShowcase,
+  UpsellListShowcase,
+  UpsellShowcase,
+  UpsellSizesShowcase,
+  VideosLargeShowcase,
+  VideosShowcase,
   SectionCard,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
@@ -120,7 +137,7 @@ const FEATURES: {
   createLabel: string;
   count: (c: Counts) => number;
   noun: string;
-  Preview: () => JSX.Element;
+  Previews: (() => JSX.Element)[];
 }[] = [
   {
     key: "upsell",
@@ -132,7 +149,7 @@ const FEATURES: {
     createLabel: "Create an offer",
     count: (c) => c.upsell,
     noun: "offer",
-    Preview: UpsellShowcase,
+    Previews: [UpsellShowcase, UpsellSizesShowcase, UpsellListShowcase],
   },
   {
     key: "cross_sell",
@@ -144,7 +161,7 @@ const FEATURES: {
     createLabel: "Create an offer",
     count: (c) => c.cross_sell,
     noun: "offer",
-    Preview: CrossSellShowcase,
+    Previews: [CrossSellShowcase, CrossSellCardsShowcase],
   },
   {
     key: "videos",
@@ -156,7 +173,7 @@ const FEATURES: {
     createLabel: "Add videos",
     count: (c) => c.videos,
     noun: "video",
-    Preview: VideosShowcase,
+    Previews: [VideosShowcase, VideosLargeShowcase],
   },
   {
     key: "bundles",
@@ -168,22 +185,22 @@ const FEATURES: {
     createLabel: "Create a bundle",
     count: (c) => c.bundles,
     noun: "bundle",
-    Preview: BundlesShowcase,
+    Previews: [BundlesShowcase, BundlesStepsShowcase],
   },
 ];
 
 type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar";
 
 /** Store sections, shown in the same card format as the features above. */
-const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; Preview: () => JSX.Element }[] = [
-  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Preview: ReviewsShowcase },
-  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Preview: FaqShowcase },
-  { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Preview: LogosShowcase },
-  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Preview: AnnouncementShowcase },
-  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Preview: QuickAddShowcase },
-  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Preview: HeroShowcase },
-  { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Preview: CountdownShowcase },
-  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Preview: CountdownBarShowcase },
+const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; Previews: (() => JSX.Element)[] }[] = [
+  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
+  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
+  { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
+  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
+  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Previews: [QuickAddShowcase, QuickAddToastShowcase] },
+  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
+  { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
+  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
 
 function sectionStatus(list: SectionKind | null, counts: { total: number; shown: number } | null, installed: boolean | null, embed: boolean): Status {
@@ -291,7 +308,7 @@ export default function Home() {
               status={status}
               action={action}
               open={{ href: f.href }}
-              preview={<f.Preview />}
+              previews={f.Previews.map((P, i) => <P key={i} />)}
               off={!on}
               toggle={{ on, onChange: (value) => fetcher.submit({ key: f.setting, value: String(value) }, { method: "post" }) }}
             />
@@ -309,7 +326,7 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
                 : { label: "Live", done: true, ...open };
-          return <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} preview={<c.Preview />} />;
+          return <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} />;
         })}
       </div>
 

@@ -36,8 +36,9 @@ const upsert = (type, handle, fields) =>
 const fileCache = new Map();
 async function file(url, alt) {
   if (fileCache.has(alt)) return fileCache.get(alt);
-  const found = await gql(`query($q: String!) { files(first: 1, query: $q) { nodes { id } } }`, { q: `alt:"${alt}"` });
-  let id = found.files.nodes[0]?.id;
+  // Shopify's file search is fuzzy, so only reuse a file whose alt text matches exactly.
+  const found = await gql(`query($q: String!) { files(first: 20, query: $q) { nodes { id alt } } }`, { q: `alt:"${alt}"` });
+  let id = found.files.nodes.find((n) => n.alt === alt)?.id;
   if (!id) {
     const made = await gql(
       `mutation($f: [FileCreateInput!]!) { fileCreate(files: $f) { files { id } userErrors { field message } } }`,
