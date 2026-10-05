@@ -5,7 +5,7 @@
 .canvas { position: absolute; inset: 0; font-size: calc(100cqw / 60); line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
 .stage:hover .canvas { filter: brightness(0.98); }
 .stage:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
-.pill { position: absolute; top: 10px; right: 10px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: #303030; text-decoration: none; background: #fff; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.pill { position: absolute; top: 8px; right: 8px; z-index: 6; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; font-size: 11px; font-weight: 600; color: #303030; text-decoration: none; background: #fff; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
 .pill:hover { background: #f3f3f3; }
 .pillDone { color: #0c5132; background: #cdfee1; }
 .pillDone:hover { background: #b4fed2; }
@@ -18,29 +18,25 @@
 .neutral { color: #4a4a4a; background: #ebebeb; }
 
 /* on/off switch (features) */
-.toggle { position: absolute; top: 10px; left: 10px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 5px; font: inherit; font-size: 12px; font-weight: 600; color: #616161; cursor: pointer; background: #fff; border: 0; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
-.knob { position: relative; width: 26px; height: 15px; background: #c9c9c9; border-radius: 8px; transition: background 0.15s; }
-.knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
+.toggle { position: absolute; top: 8px; left: 8px; z-index: 6; display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 4px; font: inherit; font-size: 11px; font-weight: 600; color: #616161; cursor: pointer; background: #fff; border: 0; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.knob { position: relative; width: 20px; height: 12px; background: #c9c9c9; border-radius: 6px; transition: background 0.15s; }
+.knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 8px; height: 8px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
 .toggleOn { color: #303030; }
 .toggleOn .knob { background: #303030; }
-.toggleOn .knob::after { transform: translateX(11px); }
+.toggleOn .knob::after { transform: translateX(8px); }
 .toggle:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
 .off .canvas { filter: grayscale(1); opacity: 0.55; }
 
 /* ---------- the stage: one section, centred (top padding leaves room for the pills) ---------- */
-.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 5.5em 3em 2.5em; overflow: hidden; }
+.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 5em 2.4em 1.8em; overflow: hidden; }
 .deskWide { padding-left: 0; padding-right: 0; }
 .box { display: flex; flex-direction: column; gap: 1em; padding: 1.8em; background: #fff; border-radius: 1.2em; box-shadow: 0 0.3em 1.2em rgba(0, 0, 0, 0.08); }
 .plain { position: relative; display: flex; flex-direction: column; gap: 1em; }
 .center { align-items: center; text-align: center; }
 .centerText { text-align: center; }
 .centerRow { justify-content: center; }
-.w30 { width: 30em; }
-.w40 { width: 40em; }
-.w46 { width: 46em; }
-.w50 { width: 50em; }
-.w52 { width: 52em; }
-.w56 { width: 56em; }
+/* every section fills the card width */
+.w30, .w40, .w46, .w50, .w52, .w56 { width: 100%; }
 
 /* ---------- shared bits ---------- */
 .cover { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -158,7 +154,7 @@
 .picker { position: absolute; right: -1em; top: 55%; z-index: 3; display: flex; flex-direction: column; gap: 0.8em; width: 16em; padding: 1.3em; background: #fff; border-radius: 1em; box-shadow: 0 1em 3em rgba(0, 0, 0, 0.28); }
 
 /* ---------- hero ---------- */
-.hero { position: relative; display: flex; align-items: center; width: 52em; height: 27em; overflow: hidden; color: #fff; border-radius: 1.2em; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); }
+.hero { position: relative; display: flex; align-items: center; width: 100%; height: 100%; overflow: hidden; color: #fff; border-radius: 1.2em; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(14, 22, 48, 0.85), rgba(14, 22, 48, 0.35) 55%, rgba(14, 22, 48, 0)); }
 .heroCopy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1em; max-width: 26em; padding: 0 3.5em; }
 .heroH { font-family: Georgia, "Times New Roman", serif; font-size: 3em; font-style: italic; line-height: 1.08; }

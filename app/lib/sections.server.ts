@@ -162,11 +162,21 @@ export async function saveItem(admin: AdminClient, kind: SectionKind, item: Sect
     position = nextPosition(items);
   }
   const fields = serialize(kind, { ...item, position }, iso);
-  return upsert(admin, cfg.type, item.handle || slug(cfg.singular), fields);
+  const saved = await upsert(admin, cfg.type, item.handle || slug(cfg.singular), fields);
+  await syncList(admin, kind);
+  return saved;
 }
 
-export async function deleteItem(admin: AdminClient, id: string) {
+/** Rewrites the ordered list of shown items that the theme reads ($app:cro_lists "main"). */
+export async function syncList(admin: AdminClient, kind: SectionKind) {
+  const cfg = SECTIONS[kind];
+  const shown = (await listItems(admin, kind)).filter((i) => !cfg.activeKey || i.values[cfg.activeKey] !== false);
+  await upsert(admin, "$app:cro_lists", "main", { [kind]: JSON.stringify(shown.map((i) => i.id)) });
+}
+
+export async function deleteItem(admin: AdminClient, kind: SectionKind, id: string) {
   await remove(admin, id);
+  await syncList(admin, kind);
 }
 
 async function updateFields(admin: AdminClient, updates: { id: string; fields: Record<string, string> }[]) {
@@ -186,14 +196,16 @@ async function updateFields(admin: AdminClient, updates: { id: string; fields: R
 }
 
 /** Saves the order shown in the list (1, 2, 3…). */
-export async function reorder(admin: AdminClient, ids: string[]) {
+export async function reorder(admin: AdminClient, kind: SectionKind, ids: string[]) {
   await updateFields(admin, ids.map((id, i) => ({ id, fields: { position: String(i + 1) } })));
+  await syncList(admin, kind);
 }
 
 export async function setShown(admin: AdminClient, kind: SectionKind, id: string, shown: boolean) {
   const key = SECTIONS[kind].activeKey;
   if (!key) throw new AdminError("This list has no show/hide switch.");
   await updateFields(admin, [{ id, fields: { [key]: shown ? "true" : "false" } }]);
+  await syncList(admin, kind);
 }
 
 /* ------------------------------------------------------------------ files -- */

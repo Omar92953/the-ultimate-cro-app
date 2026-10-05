@@ -1,11 +1,11 @@
 {%- liquid
 assign s = block.settings
 assign only_group = s.group | strip | downcase
-assign items = shop.metaobjects['$app:cro_faq'].values
-assign keys = ''
+assign items = shop.metaobjects['$app:cro_lists']['main'].faq.value
+assign sel = ','
 assign groups = ''
 for m in items
-if m.active.value == false or m.question.value == blank
+if m.question.value == blank
 continue
 endif
 assign g = m.group.value | strip
@@ -18,10 +18,12 @@ endif
 if g != blank
 assign groups = groups | append: g | append: '|'
 endif
-assign p = m.position.value | default: 0 | plus: 100000
-assign keys = keys | append: p | append: '|' | append: forloop.index0 | append: ','
+assign sel = sel | append: m.system.handle | append: ','
 endfor
-assign order = keys | split: ',' | sort
+assign count = 0
+if sel != ','
+assign count = 1
+endif
 assign groups = groups | split: '|' | uniq
 assign show_tabs = false
 if s.group_tabs and only_group == blank and groups.size > 1
@@ -51,7 +53,7 @@ style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --uc
 {%- if s.subheading != blank %}<p>{{ s.subheading | escape }}</p>{% endif -%}
 </div>
 {%- endif -%}
-{%- if order.size > 0 -%}
+{%- if count > 0 -%}
 {%- if s.search or show_tabs -%}
 <div class="ucs-faq__tools">
 {%- if s.search -%}
@@ -71,10 +73,12 @@ style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --uc
 </div>
 {%- endif -%}
 <div class="ucs-faq__list ucs-faq__list--{{ s.columns }}">
-{%- for k in order -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- assign m = items[i] -%}
-<details class="ucs-faq__item" data-group="{{ m.group.value | strip | handleize }}"{% if exclusive != blank %} name="{{ exclusive }}"{% endif %}{% if s.open_first and forloop.first %} open{% endif %}>
+{%- assign n = 0 -%}
+{%- for m in items -%}
+{%- assign key = ',' | append: m.system.handle | append: ',' -%}
+{%- unless sel contains key %}{% continue %}{% endunless -%}
+{%- assign n = n | plus: 1 -%}
+<details class="ucs-faq__item" data-group="{{ m.group.value | strip | handleize }}"{% if exclusive != blank %} name="{{ exclusive }}"{% endif %}{% if s.open_first and n == 1 %} open{% endif %}>
 <summary class="ucs-faq__q"><span>{{ m.question.value | escape }}</span><span class="ucs-faq__icon" aria-hidden="true"></span></summary>
 <div class="ucs-faq__a">{{ m.answer.value | escape | newline_to_br }}</div>
 </details>
@@ -83,9 +87,9 @@ style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --uc
 </div>
 {%- if s.schema -%}
 {%- capture entries -%}
-{%- for k in order -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- assign m = items[i] -%}
+{%- for m in items -%}
+{%- assign key = ',' | append: m.system.handle | append: ',' -%}
+{%- unless sel contains key %}{% continue %}{% endunless -%}
 ,{"@type":"Question","name":{{ m.question.value | json }},"acceptedAnswer":{"@type":"Answer","text":{{ m.answer.value | default: '' | json }}}}
 {%- endfor -%}
 {%- endcapture -%}

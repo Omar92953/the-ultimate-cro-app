@@ -1,42 +1,43 @@
 {%- liquid
 assign s = block.settings
-assign items = shop.metaobjects['$app:cro_review'].values
+assign items = shop.metaobjects['$app:cro_lists']['main'].reviews.value
 assign on_product = false
 if request.page_type == 'product' and product
 assign on_product = true
 endif
-assign keys_all = ''
-assign keys_prod = ''
+assign sel_all = ','
+assign sel_prod = ','
 for m in items
-if m.active.value == false or m.name.value == blank
-continue
-endif
 if s.filter == 'featured' and m.featured.value != true
 continue
 endif
-assign p = m.position.value | default: 0 | plus: 100000
-assign key = p | append: '|' | append: forloop.index0 | append: ','
-assign keys_all = keys_all | append: key
+assign sel_all = sel_all | append: m.system.handle | append: ','
 if on_product and m.product.value.id == product.id
-assign keys_prod = keys_prod | append: key
+assign sel_prod = sel_prod | append: m.system.handle | append: ','
 endif
 endfor
-assign keys = keys_all
+assign sel = sel_all
 assign product_only = false
 if s.filter == 'product' and on_product
-if keys_prod != blank
-assign keys = keys_prod
+if sel_prod != ','
+assign sel = sel_prod
 assign product_only = true
 elsif s.fallback == false
-assign keys = ''
+assign sel = ','
 endif
 endif
-assign order = keys | split: ',' | sort
+assign count = 0
+if sel != ','
+assign count = 1
+endif
 assign rated = 0
 assign total = 0
-for k in order
-assign i = k | split: '|' | last | plus: 0
-assign r = items[i].rating.value | default: 0
+for m in items
+assign key = ',' | append: m.system.handle | append: ','
+unless sel contains key
+continue
+endunless
+assign r = m.rating.value | default: 0
 if r > 0
 assign rated = rated | plus: 1
 assign total = total | plus: r
@@ -51,7 +52,7 @@ if rated > 0
 assign avg = total | times: 1.0 | divided_by: rated | round: 1
 endif
 -%}
-{%- if order.size > 0 or request.design_mode -%}
+{%- if count > 0 or request.design_mode -%}
 <div
 class="ucs ucs-rv ucs-rv--{{ s.layout }}{% if s.clamp == 0 %} ucs-rv--full{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
 style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-rv-cols: {{ s.columns_desktop }}; --ucs-rv-cols-m: {{ s.columns_mobile }}; --ucs-rv-star: {{ s.star_color }}; --ucs-rv-radius: {{ s.radius }}px; --ucs-rv-clamp: {{ s.clamp }};{% if s.card_bg != blank %} --ucs-rv-card: {{ s.card_bg }};{% endif %}{% if s.card_fg != blank %} --ucs-rv-fg: {{ s.card_fg }};{% endif %}{% if s.bg != blank %} background: {{ s.bg }};{% endif %}"
@@ -76,14 +77,17 @@ data-mute="{{ 'ucs.mute' | t | escape }}"
 {%- endif -%}
 </div>
 {%- endif -%}
-{%- if order.size == 0 -%}
+{%- if count == 0 -%}
 <p class="ucs-note">{{ 'ucs.reviews_empty' | t }}</p>
 {%- else -%}
 <div class="ucs-rv__viewport">
 <div class="ucs-rv__track"{% if s.layout == 'carousel' %} tabindex="0" aria-roledescription="carousel"{% endif %}>
-{%- for k in order limit: s.limit -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- assign m = items[i] -%}
+{%- assign n = 0 -%}
+{%- for m in items -%}
+{%- assign key = ',' | append: m.system.handle | append: ',' -%}
+{%- unless sel contains key %}{% continue %}{% endunless -%}
+{%- assign n = n | plus: 1 -%}
+{%- if n > s.limit %}{% break %}{% endif -%}
 {%- assign md = m.media.value -%}
 {%- assign src = m.source.value | default: '' -%}
 {%- liquid
@@ -169,10 +173,9 @@ endif
 {%- endif -%}
 {%- if s.schema and product_only and rated > 0 -%}
 {%- capture entries -%}
-{%- for k in order limit: 20 -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- assign m = items[i] -%}
-{%- if m.rating.value > 0 -%}
+{%- for m in items -%}
+{%- assign key = ',' | append: m.system.handle | append: ',' -%}
+{%- if sel contains key and m.rating.value > 0 -%}
 ,{"@type":"Review","author":{"@type":"Person","name":{{ m.name.value | json }}},"reviewRating":{"@type":"Rating","ratingValue":{{ m.rating.value }},"bestRating":5}{% if m.text.value != blank %},"reviewBody":{{ m.text.value | json }}{% endif %}{% if m.date.value != blank %},"datePublished":{{ m.date.value | date: '%Y-%m-%d' | json }}{% endif %}}
 {%- endif -%}
 {%- endfor -%}

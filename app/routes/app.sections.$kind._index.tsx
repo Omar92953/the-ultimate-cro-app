@@ -32,9 +32,9 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const form = await request.formData();
   const intent = String(form.get("intent"));
   try {
-    if (intent === "reorder") await reorder(admin, JSON.parse(String(form.get("ids"))) as string[]);
+    if (intent === "reorder") await reorder(admin, kind, JSON.parse(String(form.get("ids"))) as string[]);
     else if (intent === "shown") await setShown(admin, kind, String(form.get("id")), form.get("shown") === "true");
-    else if (intent === "delete") await deleteItem(admin, String(form.get("id")));
+    else if (intent === "delete") await deleteItem(admin, kind, String(form.get("id")));
     else return { ok: false, error: "Unknown action." };
     return { ok: true, error: null, intent };
   } catch (e) {

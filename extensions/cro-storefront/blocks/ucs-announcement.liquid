@@ -3,22 +3,12 @@ assign show_here = true
 if block.settings.pages == 'home' and request.page_type != 'index'
 assign show_here = false
 endif
-assign items = shop.metaobjects['$app:cro_announce'].values
-assign keys = ''
-for m in items
-if m.active.value == false or m.message.value == blank
-continue
-endif
-assign p = m.position.value | default: 0 | plus: 100000
-assign keys = keys | append: p | append: '|' | append: forloop.index0 | append: ','
-endfor
-assign order = keys | split: ',' | sort
+assign items = shop.metaobjects['$app:cro_lists']['main'].announcements.value
 -%}
 {%- capture messages -%}
-{%- if order.size > 0 -%}
-{%- for k in order -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- assign m = items[i] -%}
+{%- if items.size > 0 -%}
+{%- for m in items -%}
+{%- if m.message.value == blank %}{% continue %}{% endif -%}
 {%- assign icon = m.icon.value | default: 'none' -%}
 <div class="ucs-ab__msg"{% if m.starts_at.value != blank %} data-start="{{ m.starts_at.value | date: '%s' }}"{% endif %}{% if m.ends_at.value != blank %} data-end="{{ m.ends_at.value | date: '%s' }}"{% endif %}>
 {%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}">{% endif -%}

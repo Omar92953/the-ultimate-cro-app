@@ -407,3 +407,26 @@ access.storefront = "public_read"
   [metaobjects.app.cro_announce.fields.active]
   name = "Shown"
   type = "boolean"
+
+# The ordered, shown items of each store-section list. The app rewrites it on every change, so the
+# theme can simply loop through it (Liquid can't sort metaobjects by a field).
+[metaobjects.app.cro_lists]
+name = "CRO section lists"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_lists.fields.reviews]
+  name = "Reviews"
+  type = "list.metaobject_reference<$app:cro_review>"
+
+  [metaobjects.app.cro_lists.fields.faq]
+  name = "FAQ"
+  type = "list.metaobject_reference<$app:cro_faq>"
+
+  [metaobjects.app.cro_lists.fields.logos]
+  name = "Logos"
+  type = "list.metaobject_reference<$app:cro_logo>"
+
+  [metaobjects.app.cro_lists.fields.announcements]
+  name = "Announcements"
+  type = "list.metaobject_reference<$app:cro_announce>"

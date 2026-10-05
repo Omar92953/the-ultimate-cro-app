@@ -99,6 +99,10 @@ const reviews = [
   mo("r5", { name: "Salma R.", text: "Got it as a gift and my friend loved it.", rating: 5, source: "facebook", product: mug, active: true, position: 5 }),
   mo("r6", { name: "Hidden H.", text: "HIDDEN — must not show", rating: 1, active: false, position: 0 }),
 ];
+// What the app writes to $app:cro_lists "main": shown items, in "Order" order.
+const shownInOrder = (items) => items.filter((m) => m.active?.value !== false).sort((a, b) => (a.position?.value ?? 0) - (b.position?.value ?? 0));
+const lists = (r, f, l, a) => collectionOf([mo("main", { reviews: shownInOrder(r), faq: shownInOrder(f), logos: shownInOrder(l), announcements: shownInOrder(a) })]);
+
 const shop = {
   name: "Harness shop",
   url: "https://harness.example",
@@ -108,9 +112,10 @@ const shop = {
     "$app:cro_faq": collectionOf(faq),
     "$app:cro_logo": collectionOf(logos),
     "$app:cro_review": collectionOf(reviews),
+    "$app:cro_lists": lists(reviews, faq, logos, announce),
   },
 };
-const empty = { ...shop, metaobjects: { "$app:cro_announce": collectionOf([]), "$app:cro_faq": collectionOf([]), "$app:cro_logo": collectionOf([]), "$app:cro_review": collectionOf([]) } };
+const empty = { ...shop, metaobjects: { "$app:cro_lists": lists([], [], [], []) } };
 
 function defaults(name) {
   const src = fs.readFileSync(path.join(ext, "blocks", `${name}.liquid`), "utf8");

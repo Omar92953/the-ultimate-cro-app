@@ -1,18 +1,9 @@
 {%- liquid
 assign s = block.settings
-assign items = shop.metaobjects['$app:cro_logo'].values
-assign keys = ''
-for m in items
-if m.image.value == blank
-continue
-endif
-assign p = m.position.value | default: 0 | plus: 100000
-assign keys = keys | append: p | append: '|' | append: forloop.index0 | append: ','
-endfor
-assign order = keys | split: ',' | sort
+assign items = shop.metaobjects['$app:cro_lists']['main'].logos.value
 -%}
 {%- liquid
-assign count = order.size
+assign count = items.size
 assign reps = 1
 if s.mode == 'marquee' and count > 0
 assign reps = 16.0 | divided_by: count | ceil | at_least: 1
@@ -27,30 +18,30 @@ endif
 assign shift = count | divided_by: 2 | floor
 -%}
 {%- capture logos -%}
-{%- for k in order -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- render 'ucs-logo-item', m: items[i], height: s.logo_height, ghost: false -%}
+{%- for m in items -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: false -%}
 {%- endfor -%}
 {%- endcapture -%}
 {%- capture ghost -%}
-{%- for k in order -%}
-{%- assign i = k | split: '|' | last | plus: 0 -%}
-{%- render 'ucs-logo-item', m: items[i], height: s.logo_height, ghost: true -%}
+{%- for m in items -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: true -%}
 {%- endfor -%}
 {%- endcapture -%}
 {%- if two_lines -%}
 {%- capture logos2 -%}
-{%- for k in order -%}
-{%- assign j = forloop.index0 | plus: shift | modulo: count -%}
-{%- assign i = order[j] | split: '|' | last | plus: 0 -%}
-{%- render 'ucs-logo-item', m: items[i], height: s.logo_height, ghost: false -%}
+{%- for m in items offset: shift -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: false -%}
+{%- endfor -%}
+{%- for m in items limit: shift -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: false -%}
 {%- endfor -%}
 {%- endcapture -%}
 {%- capture ghost2 -%}
-{%- for k in order -%}
-{%- assign j = forloop.index0 | plus: shift | modulo: count -%}
-{%- assign i = order[j] | split: '|' | last | plus: 0 -%}
-{%- render 'ucs-logo-item', m: items[i], height: s.logo_height, ghost: true -%}
+{%- for m in items offset: shift -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: true -%}
+{%- endfor -%}
+{%- for m in items limit: shift -%}
+{%- render 'ucs-logo-item', m: m, height: s.logo_height, ghost: true -%}
 {%- endfor -%}
 {%- endcapture -%}
 {%- endif -%}

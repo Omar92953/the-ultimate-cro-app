@@ -99,4 +99,15 @@ for (const [i, [message, link, icon]] of announce.entries()) {
   await upsert("$app:cro_announce", `sample-announce-${i + 1}`, { message, link, icon, position: i + 1, active: true });
 }
 console.log(`✓ ${announce.length} announcements`);
+
+// ------------------------------------------- ordered lists the theme reads --
+// Same as the app's syncList(): shown items, sorted by their Order field.
+const lists = {};
+for (const [kind, type] of Object.entries({ reviews: "$app:cro_review", faq: "$app:cro_faq", logos: "$app:cro_logo", announcements: "$app:cro_announce" })) {
+  const data = await gql(`query($t: String!) { metaobjects(type: $t, first: 250) { nodes { id fields { key value } } } }`, { t: type });
+  const rows = data.metaobjects.nodes.map((n) => ({ id: n.id, f: Object.fromEntries(n.fields.map((x) => [x.key, x.value])) }));
+  lists[kind] = JSON.stringify(rows.filter((r) => r.f.active !== "false").sort((a, b) => Number(a.f.position || 0) - Number(b.f.position || 0)).map((r) => r.id));
+}
+await upsert("$app:cro_lists", "main", lists);
+console.log("✓ ordered lists");
 await prisma.$disconnect();

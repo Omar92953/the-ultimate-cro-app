@@ -28,7 +28,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
-      await deleteItem(admin, String(form.get("id")));
+      await deleteItem(admin, kind, String(form.get("id")));
       return redirect(`/app/sections/${kind}`);
     }
     await saveItem(admin, kind, JSON.parse(String(form.get("item"))) as SectionItem);
