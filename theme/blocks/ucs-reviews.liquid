@@ -73,9 +73,10 @@
   {{ block.shopify_attributes }}
 >
   <div class="ucs-wrap">
-    {%- if s.heading != blank or show_summary -%}
+    {%- if s.heading != blank or s.subheading != blank or show_summary -%}
       <div class="ucs-head ucs-rv__head">
         {%- if s.heading != blank %}<h2>{{ s.heading | escape }}</h2>{% endif -%}
+        {%- if s.subheading != blank %}<p>{{ s.subheading | escape }}</p>{% endif -%}
         {%- if show_summary -%}
           <div class="ucs-rv__summary">
             <span class="ucs-rv__avg">{{ avg }}</span>
@@ -100,6 +101,13 @@
             {%- assign md = m.media.value -%}
             {%- assign src = m.source.value | default: '' -%}
             {%- liquid
+              # No photo of its own: show the reviewed product's photo (not on that product's own page).
+              assign rp = m.product.value
+              assign from_prod = false
+              if md == blank and product_only == false and rp.featured_image
+                assign md = rp.featured_image
+                assign from_prod = true
+              endif
               assign src_name = ''
               if src == 'website'
                 assign src_name = shop.name
@@ -120,13 +128,14 @@
             -%}
             <article class="ucs-rv__card ucs-rv__card--{{ s.card_style }}{% if media_type != blank and s.show_media %} has-media{% endif %}">
               {%- if media_type != blank and s.show_media -%}
-                <div class="ucs-rv__media">
+                <div class="ucs-rv__media{% if from_prod == false and media_type != 'video' %} ucs-rv__media--shot{% endif %}">
                   {%- if media_type == 'video' -%}
                     {{ md | video_tag: muted: true, loop: true, playsinline: true, preload: 'none', image_size: '720x', class: 'ucs-rv__video' }}
                     <button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="{{ 'ucs.unmute' | t | escape }}"><span class="ucs-i ucs-i--muted" aria-hidden="true"></span><span class="ucs-i ucs-i--sound" aria-hidden="true"></span></button>
                     <span class="ucs-rv__play" aria-hidden="true"><span class="ucs-i ucs-i--play" aria-hidden="true"></span></span>
                   {%- else -%}
-                    {{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: m.name.value }}
+                    {%- if from_prod %}{% assign alt = rp.title %}{% else %}{% assign alt = m.name.value %}{% endif -%}
+                    {{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: alt }}
                   {%- endif -%}
                 </div>
               {%- endif -%}
@@ -163,10 +172,9 @@
                   {%- endcapture -%}
                   {%- if meta != blank %}<span class="ucs-rv__meta">{{ meta }}</span>{% endif -%}
                 </footer>
-                {%- if s.show_product and product_only == false and m.product.value != blank -%}
-                  {%- assign rp = m.product.value -%}
+                {%- if s.show_product and product_only == false and rp != blank -%}
                   <a class="ucs-rv__prod" href="{{ rp.url }}">
-                    {%- if rp.featured_image %}{{ rp.featured_image | image_url: width: 96 | image_tag: width: 40, height: 40, loading: 'lazy', alt: '' }}{% endif -%}
+                    {%- if rp.featured_image and from_prod == false %}{{ rp.featured_image | image_url: width: 96 | image_tag: width: 40, height: 40, loading: 'lazy', alt: '' }}{% endif -%}
                     <span>{{ rp.title | escape }}</span>
                   </a>
                 {%- endif -%}
@@ -208,6 +216,7 @@
     { "type": "paragraph", "content": "Add reviews with photos, videos and where they came from (WhatsApp, Instagram, TikTok…) in the app: Store sections → Reviews." },
     { "type": "header", "content": "Text" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "What our customers say" },
+    { "type": "text", "id": "subheading", "label": "Subheading", "default": "Real feedback from real customers." },
     { "type": "range", "id": "heading_size", "label": "Heading size", "min": 18, "max": 56, "step": 2, "unit": "px", "default": 30 },
     { "type": "checkbox", "id": "summary", "label": "Show the average rating", "default": true },
     { "type": "header", "content": "Which reviews" },
@@ -228,7 +237,7 @@
     { "type": "checkbox", "id": "show_source", "label": "Show where it came from (WhatsApp, Instagram…)", "default": true },
     { "type": "checkbox", "id": "show_verified", "label": "Show \"Verified buyer\"", "default": true },
     { "type": "checkbox", "id": "show_location", "label": "Show location", "default": true },
-    { "type": "checkbox", "id": "show_date", "label": "Show date", "default": false },
+    { "type": "checkbox", "id": "show_date", "label": "Show date", "default": true },
     { "type": "checkbox", "id": "show_product", "label": "Show the product reviewed", "default": true },
     { "type": "range", "id": "clamp", "label": "Shorten long reviews to", "min": 0, "max": 12, "step": 1, "unit": "ln", "default": 5, "info": "0 = always show the full review. Longer ones get \"Read more\"." },
     { "type": "color", "id": "star_color", "label": "Stars", "default": "#f5a623" },

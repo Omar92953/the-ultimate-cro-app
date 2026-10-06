@@ -29,6 +29,15 @@
 .title { min-width: 0; overflow: hidden; font-size: clamp(11px, 4.8cqw, 15px); font-weight: 600; color: #303030; text-decoration: none; white-space: nowrap; text-overflow: ellipsis; }
 .title:hover { text-decoration: underline; }
 .status { flex: none; padding: 1px clamp(5px, 2.2cqw, 8px); font-size: clamp(9.5px, 3.6cqw, 12px); font-weight: 550; line-height: 20px; border-radius: 10px; white-space: nowrap; }
+.footEnd { display: inline-flex; flex: none; align-items: center; gap: clamp(2px, 1.5cqw, 6px); }
+/* bookmark: 24px target */
+.save { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; color: #8a8a8a; cursor: pointer; background: none; border: 0; border-radius: 6px; }
+.save svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.save:hover { color: #303030; background: #f1f1f1; }
+.save:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
+.saveOn { color: #303030; }
+.saveOn svg { fill: currentColor; }
+.empty { grid-column: 1 / -1; padding: 28px 16px; color: #616161; text-align: center; background: #fff; border-radius: 14px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08); }
 .success { color: #0c5132; background: #cdfee1; }
 .warning { color: #5e4200; background: #ffef9d; }
 .neutral { color: #4a4a4a; background: #ebebeb; }

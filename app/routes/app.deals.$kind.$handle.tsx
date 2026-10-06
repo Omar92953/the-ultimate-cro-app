@@ -60,7 +60,7 @@ const toProduct = (r: Ref) => ({ id: r.id, title: r.title, image: r.image ?? nul
 const toCollection = (r: Ref) => ({ id: r.id, title: r.title, handle: r.handle ?? "" });
 
 /** "Which products?" — all, specific products, or collections. */
-function TargetPicker(props: { label: string; value: Target; onChange: (t: Target) => void; allLabel?: string }) {
+function TargetPicker(props: { label: string; value: Target; onChange: (t: Target) => void; allLabel?: string; productsOnly?: boolean }) {
   const t = props.value;
   return (
     <s-stack gap="base">
@@ -68,11 +68,15 @@ function TargetPicker(props: { label: string; value: Target; onChange: (t: Targe
         label={props.label}
         value={t.type}
         onValue={(v) => props.onChange({ ...t, type: v as Target["type"] })}
-        options={[
-          { value: "all", label: props.allLabel ?? "Any product" },
-          { value: "products", label: "Specific products" },
-          { value: "collections", label: "Products in collections" },
-        ]}
+        options={
+          props.productsOnly
+            ? [{ value: "products", label: "Specific products" }]
+            : [
+                { value: "all", label: props.allLabel ?? "Any product" },
+                { value: "products", label: "Specific products" },
+                { value: "collections", label: "Products in collections" },
+              ]
+        }
       />
       {t.type === "products" ? (
         <ResourceList type="product" label="Products" value={t.products} onChange={(v) => props.onChange({ ...t, products: v.map(toProduct) })} />
@@ -354,7 +358,7 @@ export default function DealEditor() {
                   onValue={(v) => setConfig({ onlyWith: v ? { type: "products", products: [], collections: [] } : null })}
                 />
                 {(config as GiftConfig).onlyWith ? (
-                  <TargetPicker label="Products" value={(config as GiftConfig).onlyWith!} onChange={(v) => setConfig({ onlyWith: v })} />
+                  <TargetPicker label="Products" productsOnly value={(config as GiftConfig).onlyWith!} onChange={(v) => setConfig({ onlyWith: v })} />
                 ) : null}
               </s-stack>
             </s-section>

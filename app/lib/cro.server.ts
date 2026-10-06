@@ -31,7 +31,7 @@ import type {
 } from "./types";
 import { FEATURE_KEYS } from "./types";
 import { validateBundle, validateRule } from "./validate";
-import { toFunctionDeal, toStorefrontDeal, type Deal, type DealKind } from "./deals";
+import { DEAL_TEXT, toFunctionDeal, toStorefrontDeal, type Deal, type DealKind } from "./deals";
 export * from "./types";
 export { validateBundle, validateRule };
 
@@ -220,6 +220,26 @@ export async function setSetting(admin: AdminClient, key: keyof Settings, value:
   );
 }
 
+/** Home: the section cards the merchant saved, newest first. */
+export async function getSavedSections(admin: AdminClient): Promise<string[]> {
+  const data = await gql(
+    admin,
+    `#graphql
+    query CroSavedSections {
+      metaobjectByHandle(handle: { type: "$app:cro_settings", handle: "settings" }) { field(key: "saved_sections") { value } }
+    }`,
+  );
+  const value = json<unknown>((data.metaobjectByHandle?.field ?? undefined) as Field | undefined, []);
+  return Array.isArray(value) ? value.filter((k): k is string => typeof k === "string") : [];
+}
+
+export async function setSectionSaved(admin: AdminClient, key: string, saved: boolean) {
+  const current = (await getSavedSections(admin)).filter((k) => k !== key);
+  const next = saved ? [key, ...current] : current;
+  await upsert(admin, "$app:cro_settings", "settings", { saved_sections: JSON.stringify(next.slice(0, 100)) });
+  return next;
+}
+
 /* ----------------------------------------------------------------- rules -- */
 export async function listRules(admin: AdminClient, kind?: RuleKind): Promise<Rule[]> {
   const data = await gql(
@@ -403,7 +423,7 @@ export async function listDeals(admin: AdminClient): Promise<Deal[]> {
 
 /** The storefront copy of active deals ($app:cro_offers "main"), read by the boosters script. */
 async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
-  const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal) };
+  const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal), t: DEAL_TEXT };
   await upsert(admin, "$app:cro_offers", "main", { data: JSON.stringify(data) });
 }
 

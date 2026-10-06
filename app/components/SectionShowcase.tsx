@@ -35,6 +35,8 @@ export function SectionCard(props: {
   /** Features can be switched off without removing them from the theme. */
   toggle?: { on: boolean; onChange: (on: boolean) => void };
   off?: boolean;
+  /** Bookmark: saved cards are listed under Home → Saved. */
+  save?: { saved: boolean; onChange: (saved: boolean) => void };
 }) {
   const [index, setIndex] = useState(0);
   const count = props.previews.length;
@@ -94,7 +96,23 @@ export function SectionCard(props: {
         <Go className={s.title} href={props.open.href} external={props.open.external}>
           {props.title}
         </Go>
-        <span className={`${s.status} ${s[props.status.tone]}`}>{props.status.text}</span>
+        <span className={s.footEnd}>
+          <span className={`${s.status} ${s[props.status.tone]}`}>{props.status.text}</span>
+          {props.save ? (
+            <button
+              type="button"
+              className={`${s.save} ${props.save.saved ? s.saveOn : ""}`}
+              aria-pressed={props.save.saved}
+              aria-label={props.save.saved ? `Remove ${props.title} from saved` : `Save ${props.title}`}
+              title={props.save.saved ? "Saved" : "Save"}
+              onClick={() => props.save!.onChange(!props.save!.saved)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M5.5 3h9A1.5 1.5 0 0 1 16 4.5V17l-6-3.6L4 17V4.5A1.5 1.5 0 0 1 5.5 3Z" />
+              </svg>
+            </button>
+          ) : null}
+        </span>
       </div>
     </div>
   );

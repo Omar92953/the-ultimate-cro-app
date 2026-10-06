@@ -1,18 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, type ReactElement } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import {
   editorLinks,
   getDiscountStatus,
+  getSavedSections,
   getSettings,
   getSlides,
   getThemeStatus,
   hasCartTransform,
   listBundles,
   listRules,
+  setSectionSaved,
   setSetting,
   FEATURE_KEYS,
   type Settings,
@@ -61,7 +63,7 @@ import {
   UrgencyShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
-import { Card, Checklist, GroupTitle, Pill } from "../components/ui";
+import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
@@ -83,9 +85,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters] = await Promise.all([
+  const [lists, boosters, saved] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
+    getSavedSections(admin).catch(() => [] as string[]),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -95,6 +98,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   ) as Record<SectionKind, { total: number; shown: number }>;
   return {
     boosters,
+    saved,
     sectionCounts,
     sectionLinks: sectionLinks(session.shop),
     shop: session.shop,
@@ -126,13 +130,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
+  if (form.get("intent") === "save") {
+    try {
+      const saved = form.get("value") === "true";
+      await setSectionSaved(admin, String(form.get("key")), saved);
+      return { ok: true, error: null, message: saved ? "Added to Saved" : "Removed from Saved" };
+    } catch (e) {
+      return { ok: false, error: errorMessage(e), message: null };
+    }
+  }
   const key = String(form.get("key")) as keyof Settings;
-  if (!FEATURE_KEYS.includes(key)) return { ok: false, error: "Unknown feature." };
+  if (!FEATURE_KEYS.includes(key)) return { ok: false, error: "Unknown feature.", message: null };
   try {
     await setSetting(admin, key, form.get("value") === "true");
-    return { ok: true, error: null };
+    return { ok: true, error: null, message: "Saved" };
   } catch (e) {
-    return { ok: false, error: errorMessage(e) };
+    return { ok: false, error: errorMessage(e), message: null };
   }
 };
 
@@ -247,10 +260,29 @@ export default function Home() {
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
 
+  const saveFetcher = useFetcher<typeof action>();
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "saved" ? "saved" : "all";
+
   useEffect(() => {
-    if (fetcher.data?.ok) shopify.toast.show("Saved");
+    if (fetcher.data?.ok) shopify.toast.show(fetcher.data.message || "Saved");
     if (fetcher.data?.error) shopify.toast.show(fetcher.data.error, { isError: true });
   }, [fetcher.data, shopify]);
+  useEffect(() => {
+    if (saveFetcher.data?.ok && saveFetcher.data.message) shopify.toast.show(saveFetcher.data.message);
+    if (saveFetcher.data?.error) shopify.toast.show(saveFetcher.data.error, { isError: true });
+  }, [saveFetcher.data, shopify]);
+
+  // Saved cards, newest first; a click shows right away while it's being stored.
+  let saved = data.saved;
+  if (saveFetcher.formData?.get("intent") === "save") {
+    const key = String(saveFetcher.formData.get("key"));
+    saved = saveFetcher.formData.get("value") === "true" ? [key, ...saved.filter((k) => k !== key)] : saved.filter((k) => k !== key);
+  }
+  const save = (key: string) => ({
+    saved: saved.includes(key),
+    onChange: (value: boolean) => saveFetcher.submit({ intent: "save", key, value: String(value) }, { method: "post" }),
+  });
 
   const settings: Settings = { ...data.settings };
   if (fetcher.formData?.get("key")) {
@@ -310,9 +342,22 @@ export default function Home() {
         </Card>
       ) : null}
 
-      <GroupTitle>Sections</GroupTitle>
+      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+        <GroupTitle>Sections</GroupTitle>
+        <Segmented
+          label="Show"
+          value={view}
+          options={[
+            { value: "all", label: "All sections" },
+            { value: "saved", label: `Saved (${saved.length})` },
+          ]}
+          onChange={(v) => setParams(v === "saved" ? { view: "saved" } : {}, { replace: true })}
+        />
+      </s-stack>
       <div className={showcase.grid}>
-        {FEATURES.map((f) => {
+        {(() => {
+        const cards: { key: string; el: ReactElement }[] = [];
+        FEATURES.forEach((f) => {
           const on = settings[f.setting];
           const count = f.count(data.counts);
           const isInstalled = installed ? (installed[f.key] ?? false) : null;
@@ -323,7 +368,7 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: "Add to theme", href: data.links[f.key], external: true }
                 : { label: on ? "Live" : "Manage", done: on, href: f.href };
-          return (
+          cards.push({ key: f.key, el: (
             <SectionCard
               key={f.key}
               title={f.title}
@@ -333,10 +378,11 @@ export default function Home() {
               previews={f.Previews.map((P, i) => <P key={i} />)}
               off={!on}
               toggle={{ on, onChange: (value) => fetcher.submit({ key: f.setting, value: String(value) }, { method: "post" }) }}
+              save={save(f.key)}
             />
-          );
-        })}
-        {SECTION_CARDS.map((c) => {
+          ) });
+        });
+        SECTION_CARDS.forEach((c) => {
           const counts = c.list ? data.sectionCounts[c.list] : null;
           const isInstalled = installed ? (installed[c.key] ?? false) : null;
           const status = sectionStatus(c.list, counts, isInstalled, c.embed);
@@ -348,9 +394,9 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
                 : { label: "Live", done: true, ...open };
-          return <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} />;
-        })}
-              {BOOSTER_CARDS.map((b) => {
+          cards.push({ key: c.key, el: <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} save={save(c.key)} /> });
+        });
+        BOOSTER_CARDS.forEach((b) => {
           const embedOn = installed ? (installed.boosters ?? false) : null;
           const enabled = data.boosters[b.key].enabled;
           const status: Status = !enabled
@@ -364,7 +410,7 @@ export default function Home() {
               : enabled
                 ? { label: "Live", done: true, href: "/app/boosters" }
                 : { label: "Switch on", href: "/app/boosters" };
-          return (
+          cards.push({ key: b.key, el: (
             <SectionCard
               key={b.key}
               title={b.title}
@@ -372,9 +418,18 @@ export default function Home() {
               action={action}
               open={{ href: "/app/boosters" }}
               previews={b.Previews.map((P, i) => <P key={i} />)}
+              save={save(b.key)}
             />
-          );
-        })}
+          ) });
+        });
+        if (view === "all") return cards.map((c) => c.el);
+        const shown = saved.map((k) => cards.find((c) => c.key === k)).filter((c): c is { key: string; el: ReactElement } => !!c);
+        return shown.length ? (
+          shown.map((c) => c.el)
+        ) : (
+          <div className={showcase.empty}>No saved sections yet. Click the bookmark on any section to keep it here.</div>
+        );
+        })()}
       </div>
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}

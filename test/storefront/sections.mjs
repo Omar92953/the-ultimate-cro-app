@@ -69,8 +69,12 @@ const collectionOf = (items) => Object.assign(Object.fromEntries(items.map((m) =
 const photo = (seed, w = 800, h = 1000) => ({ media_type: "image", src: `https://picsum.photos/seed/${seed}/${w}/${h}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
 const video = (n) => ({ media_type: "video", preview_image: { src: `https://picsum.photos/seed/v${n}/720/900` }, sources: [{ url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" }] });
 const logo = (text, color) => ({ media_type: "image", src: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60"><text x="0" y="44" font-family="Arial" font-weight="700" font-size="40" fill="${color}">${text}</text></svg>`)}`, width: 200, height: 60, aspect_ratio: 200 / 60 });
-const tee = { id: 30, title: "Basic tee", url: "/products/basic-tee", featured_image: { src: "https://picsum.photos/seed/tee/300/300" } };
-const mug = { id: 31, title: "Logo mug", url: "/products/logo-mug", featured_image: { src: "https://picsum.photos/seed/mug/300/300" } };
+// Real chat screenshots (the owner's store files) for screenshot-style reviews.
+const shot = (f, w, h) => ({ media_type: "image", src: `https://cdn.shopify.com/s/files/1/0792/6959/3237/files/${f}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
+// Product photos: Unsplash (free to use). Reviews without their own photo show these.
+const tee = { id: 30, title: "Wireless headphones", url: "/products/basic-tee", featured_image: { media_type: "image", src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=1000&fit=crop&q=60&auto=format", width: 800, height: 1000, aspect_ratio: 0.8, alt: "" } };
+const mug = { id: 31, title: "Ceramic mug", url: "/products/logo-mug", featured_image: { media_type: "image", src: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800&h=1000&fit=crop&q=60&auto=format", width: 800, height: 1000, aspect_ratio: 0.8, alt: "" } };
+const camera = { id: 32, title: "Instant camera", url: "/products/instant-camera", featured_image: { media_type: "image", src: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&h=1000&fit=crop&q=60&auto=format", width: 800, height: 1000, aspect_ratio: 0.8, alt: "" } };
 
 const hour = 3600;
 const now = Math.floor(Date.now() / 1000);
@@ -93,11 +97,11 @@ const faq = [
 const logos = ["ACME", "Globex", "Initech", "Umbrella", "Hooli"].map((n, i) => mo(`l${i}`, { name: n, image: logo(n, ["#e11d48", "#2563eb", "#16a34a", "#9333ea", "#ea580c"][i]), link: i === 0 ? "https://example.com" : "", position: 5 - i }));
 const long = "I ordered on Sunday and it arrived on Tuesday, perfectly packed. The fabric is thick and soft, the print hasn't faded after five washes, and the fit is exactly as described in the size guide. Customer service answered on WhatsApp within minutes when I asked to change the size. Will definitely order again for my brother.";
 const reviews = [
-  mo("r1", { name: "Mariam A.", text: long, rating: 5, source: "whatsapp", product: tee, location: "Cairo", date: "2026-09-12", verified: true, featured: true, active: true, position: 1 }),
-  mo("r2", { name: "Youssef K.", text: "Love it! Wearing it in the video 😄", rating: 5, media: video(1), source: "tiktok", source_url: "https://www.tiktok.com/", product: tee, location: "Alexandria", verified: true, featured: true, active: true, position: 2 }),
-  mo("r3", { name: "Nour H.", text: "Colours are even better in person.", rating: 4, media: photo("rv3"), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3 }),
-  mo("r4", { name: "Omar S.", text: "Quick delivery, good quality.", rating: 4, source: "google", active: true, position: 4 }),
-  mo("r5", { name: "Salma R.", text: "Got it as a gift and my friend loved it.", rating: 5, source: "facebook", product: mug, active: true, position: 5 }),
+  mo("r1", { name: "Mariam A.", text: "", rating: 5, media: shot("5.jpg?v=1790872416", 1080, 540), source: "whatsapp", product: tee, location: "Cairo", date: "2026-09-12", verified: true, featured: true, active: true, position: 1 }),
+  mo("r2", { name: "Youssef K.", text: "Great sound and the battery lasts all week.", rating: 5, source: "tiktok", source_url: "https://www.tiktok.com/", product: tee, location: "Alexandria", date: "2026-09-20", verified: true, featured: true, active: true, position: 4 }),
+  mo("r3", { name: "Nour H.", text: "", rating: 5, media: shot("2.jpg?v=1790872390", 1080, 470), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3 }),
+  mo("r4", { name: "Omar S.", text: "Quick delivery, good quality.", rating: 4, source: "google", product: camera, location: "Mansoura", date: "2026-09-25", active: true, position: 2 }),
+  mo("r5", { name: "Salma R.", text: "Got it as a gift and my friend loved it.", rating: 5, source: "facebook", product: mug, date: "2026-10-01", active: true, position: 5 }),
   mo("r6", { name: "Hidden H.", text: "HIDDEN — must not show", rating: 1, active: false, position: 0 }),
 ];
 // What the app writes to $app:cro_lists "main": shown items, in "Order" order.
@@ -178,7 +182,7 @@ const pages = {
     label("countdown: already ended → hide (nothing below this line)") + (await block("ucs-countdown", { end_date: "2020-01-01 00:00", ended: "hide" })) +
     label("logos: grid, colour") + (await block("ucs-logos", { mode: "grid", grayscale: false, heading: "As seen in" })) +
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
-    label("reviews: grid, minimal, full text") + (await block("ucs-reviews", { layout: "grid", card_style: "minimal", clamp: 0, columns_desktop: 4 })) +
+    label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +
     label("faq: cards, chevron, 2 columns, only Shipping") + (await block("ucs-faq", { style: "cards", icon: "chevron", columns: "2", group: "shipping", accent: "#ffbd13" })),
     (await block("ucs-countdown-bar", { position: "top", mode: "evergreen", evergreen_hours: 2 })) + (await block("ucs-announcement", { animation: "slide", dismissible: true, uppercase: true }))),
   "product.html": page("Product page reviews",
@@ -210,6 +214,49 @@ const productForm = `<div class="page-width" style="display:grid;grid-template-c
   <script>const pjs=${JSON.stringify(productJs)};const of=window.fetch;window.fetch=(u,o)=>String(u).includes('/products/')?Promise.resolve(new Response(JSON.stringify(pjs))):of(u,o);</script>`;
 pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-boosters", {}, { page_type: "product", product: watch })).replace('<link', '<link') + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
 
+// Bundle deals: all four types on the watch page, a sunglasses product for the fixed bundle, and a
+// working fake cart (add/change/cart.js) so the gift can be added and removed.
+const sunglassesJs = { id: 78, title: "Sunglasses", handle: "sunglasses", featured_image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f", price: 4500,
+  variants: [{ id: 7801, title: "Default Title", options: ["Default Title"], price: 4500, available: true }] };
+const offersData = {
+  t: { add_bundle: "Add bundle to cart", bundle_total: "Bundle price", save: "Save {amount}", tier: "Buy {qty}+", off: "{pct}% off", each: "{price} each", free: "free",
+    bogo_same: "Add {n} to your cart: {y} of them {reward}", bogo: "Buy {x}, get {y} {reward}", gift_left: "Spend {amount} more to get {gift} free",
+    gift_ok: "You've unlocked a free {gift}!", error: "Couldn't add the bundle. Please try again." },
+  deals: [
+    { id: "d-bogo", t: "bogo", name: "Buy 2, get 1 free", buy: { type: "all", p: [], c: [] }, x: 2, get: { type: "all", p: [], c: [] }, y: 1, pct: 100 },
+    { id: "d-vol", t: "volume", name: "Buy more, save more", target: { type: "collections", p: [], c: [500] }, tiers: [{ qty: 3, pct: 15 }, { qty: 2, pct: 10 }] },
+    { id: "d-fix", t: "fixed", name: "Watch + sunglasses set", items: [{ h: "classic-watch", id: 77, q: 1 }, { h: "sunglasses", id: 78, q: 1 }], pct: 15 },
+    { id: "d-gift", t: "gift", name: "Free mug", gift: { v: 9901, h: "mug", title: "Ceramic mug", img: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d" }, min: 150, only: null },
+  ],
+};
+const dealShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_offers": collectionOf([mo("main", { data: offersData })]) } };
+const dealCart = `<script>
+  window.__dc = { items: [{ key: "w1", id: 7701, product_id: 77, quantity: 1, final_line_price: 12900, properties: {} }] };
+  (function () {
+    const products = { "classic-watch": ${JSON.stringify({ ...productJs, price: 12900 })}, sunglasses: ${JSON.stringify(sunglassesJs)} };
+    const res = (o) => Promise.resolve(new Response(JSON.stringify(o), { headers: { "Content-Type": "application/json" } }));
+    const prices = { 7701: 12900, 7702: 12900, 7703: 13900, 7801: 4500, 9901: 1800 };
+    const pids = { 7701: 77, 7702: 77, 7703: 77, 7801: 78, 9901: 99 };
+    window.fetch = (u, o) => {
+      u = String(u);
+      const body = o && o.body ? JSON.parse(o.body) : {};
+      if (u.includes("/products/")) return res(products[u.split("/products/")[1].split(".js")[0]]);
+      if (u.includes("/cart/add")) {
+        (body.items || []).forEach((i) => __dc.items.push({ key: "k" + Math.random().toString(36).slice(2, 6), id: i.id, product_id: pids[i.id], quantity: i.quantity, final_line_price: prices[i.id] * i.quantity, properties: i.properties || {} }));
+        return res({ items: __dc.items });
+      }
+      if (u.includes("/cart/change")) {
+        __dc.items = __dc.items.map((i) => (i.key === body.id ? Object.assign(i, { quantity: body.quantity, final_line_price: prices[i.id] * body.quantity }) : i)).filter((i) => i.quantity > 0);
+        return res({ items: __dc.items });
+      }
+      if (u.includes("/cart.js")) return res({ items: __dc.items });
+      return res({});
+    };
+  })();
+</script>`;
+const dealForm = productForm.replace(/<script>const pjs=[\s\S]*?<\/script>/, "") + dealCart;
+pages["deals.html"] = page("Bundle deals", dealForm, (await block("ucs-boosters", {}, { page_type: "product", product: { ...watch, collections: [{ id: 500 }] }, shop: dealShop })) + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
+
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 
 // ---------------------------------------------------------------- checks --
@@ -230,6 +277,8 @@ check(rows.length === 2 && rows[0] !== rows[1] && new Set(rows[1].split(",")).si
 check((pages["product.html"].match(/class="ucs-rv__card /g) || []).length === 2, "product page should show only the tee's 2 reviews");
 check(/"reviewCount":2/.test(pages["product.html"]), "product JSON-LD should count 2 reviews");
 check((idx.match(/class="ucs-faq__item"/g) || []).length === 4, "FAQ should show the 4 shown questions");
+check(pages["deals.html"].includes("ucs-deals.js") && !pages["boosters.html"].includes("ucs-deals.js"), "deals script should load only when the shop has deals");
+check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "product collection ids should reach the deals script");
 if (problems.length) {
   console.error("✗ sections harness:\n  " + problems.join("\n  "));
   process.exit(1);

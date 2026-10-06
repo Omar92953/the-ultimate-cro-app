@@ -51,15 +51,16 @@ async function file(url, alt) {
 }
 const U = (id, w = 900, h = 1100) => `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=75&fm=jpg`;
 
-const products = await gql(`{ products(first: 3) { nodes { id title } } }`);
-const [p1, p2] = products.products.nodes;
+// Active products with a photo: review cards without their own photo show the product's.
+const products = await gql(`{ products(first: 20, query: "status:active") { nodes { id title featuredMedia { id } } } }`);
+const [p1, p2, p3, p4] = products.products.nodes.filter((p) => p.featuredMedia);
 
 // ---------------------------------------------------------------- reviews --
 const reviews = [
   { h: "sample-review-1", name: "Mariam A.", text: "I ordered on Sunday and it arrived on Tuesday, perfectly packed. The quality is even better than in the photos and customer service answered on WhatsApp within minutes. Will order again!", rating: 5, source: "whatsapp", location: "Cairo", verified: true, featured: true, product: p1?.id },
-  { h: "sample-review-2", name: "Youssef K.", text: "Colours are even better in person.", rating: 5, source: "instagram", source_url: "https://www.instagram.com/", location: "Alexandria", verified: true, featured: true, media: ["1503342217505-b0a15ec3261c", "Sample review photo 1"], product: p1?.id },
-  { h: "sample-review-3", name: "Nour H.", text: "Got it as a gift and my friend loved it.", rating: 4, source: "tiktok", location: "Giza", verified: false, featured: true, media: ["1469334031218-e382a71b716b", "Sample review photo 2"], product: p2?.id },
-  { h: "sample-review-4", name: "Omar S.", text: "Fast delivery and great quality. Recommended.", rating: 5, source: "google", location: "Mansoura", verified: true, featured: false },
+  { h: "sample-review-2", name: "Youssef K.", text: "Colours are even better in person.", rating: 5, source: "instagram", source_url: "https://www.instagram.com/", location: "Alexandria", verified: true, featured: true, product: p2?.id },
+  { h: "sample-review-3", name: "Nour H.", text: "Got it as a gift and my friend loved it.", rating: 4, source: "tiktok", location: "Giza", verified: false, featured: true, product: p3?.id },
+  { h: "sample-review-4", name: "Omar S.", text: "Fast delivery and great quality. Recommended.", rating: 5, source: "google", location: "Mansoura", verified: true, featured: false, product: p4?.id },
 ];
 for (const [i, r] of reviews.entries()) {
   const fields = { name: r.name, text: r.text, rating: r.rating, source: r.source, location: r.location, verified: r.verified, featured: r.featured, active: true, position: i + 1, date: `2026-09-${String(10 + i * 4).padStart(2, "0")}` };

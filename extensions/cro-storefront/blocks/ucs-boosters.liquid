@@ -17,10 +17,13 @@ assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 "recent": {{ recent | json }},
 "fmt": {{ shop.money_format | json }},
 "page": {{ request.page_type | json }},
+"offers": {{ shop.metaobjects['$app:cro_offers']['main'].data.value | json }},
 "t": { "close": {{ 'ucs.close' | t | json }}, "in": {{ 'ucs.pop_in' | t | json }} }
 {%- if product -%}
 ,"product": {
 "handle": {{ product.handle | json }},
+"id": {{ product.id }},
+"cols": [{% for c in product.collections %}{{ c.id }},{% endfor %}0],
 "stock": {
 {%- for v in product.variants -%}
 {%- if urg and v.inventory_management == 'shopify' and v.inventory_policy == 'deny' -%}"{{ v.id }}": {% if v.inventory_quantity > cap %}{{ cap }}{% else %}{{ v.inventory_quantity }}{% endif %},{%- endif -%}
@@ -35,4 +38,5 @@ assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 {%- for type in shop.enabled_payment_types -%}{{ type | payment_type_svg_tag: class: 'ucs-pay' }}{%- endfor -%}
 </template>
 <script src="{{ 'ucs-boosters.js' | asset_url }}" defer></script>
+{%- if shop.metaobjects['$app:cro_offers']['main'].data.value.deals.size > 0 %}<script src="{{ 'ucs-deals.js' | asset_url }}" defer></script>{% endif %}
 {% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.2w"}]}{% endschema %}

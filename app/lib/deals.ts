@@ -81,6 +81,22 @@ export const DEAL_TYPES: Record<
   },
 };
 
+/** Words the storefront widgets use (sent with the deals; {placeholders} are filled in there). */
+export const DEAL_TEXT = {
+  add_bundle: "Add bundle to cart",
+  bundle_total: "Bundle price",
+  save: "Save {amount}",
+  tier: "Buy {qty}+",
+  off: "{pct}% off",
+  each: "{price} each",
+  free: "free",
+  bogo_same: "Add {n} to your cart: {y} of them {reward}",
+  bogo: "Buy {x}, get {y} {reward}",
+  gift_left: "Spend {amount} more to get {gift} free",
+  gift_ok: "You've unlocked a free {gift}!",
+  error: "Couldn't add the bundle. Please try again.",
+};
+
 export function isDealKind(v: string | undefined): v is DealKind {
   return !!v && (DEAL_KINDS as string[]).includes(v);
 }
@@ -150,6 +166,8 @@ export function validateDeal(d: Deal): string[] {
     if (!c.gift) p.push("Choose the gift product.");
     if (!(c.min >= 0)) p.push("The minimum amount can't be negative.");
     target(c.onlyWith, "Only with");
+    // The storefront adds the gift itself, so it must be able to check the condition exactly.
+    if (c.onlyWith?.type === "collections") p.push("Only with: choose specific products (collections aren't supported for gifts).");
   }
   return p;
 }

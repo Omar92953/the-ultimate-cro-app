@@ -205,10 +205,19 @@
 .ucs-rv--masonry .ucs-rv__track { display: block; column-count: var(--ucs-rv-cols-m, 1); column-gap: var(--ucs-rv-gap); }
 @media (min-width: 750px) { .ucs-rv--masonry .ucs-rv__track { column-count: var(--ucs-rv-cols, 3); } }
 .ucs-rv--masonry .ucs-rv__card { break-inside: avoid; margin-bottom: var(--ucs-rv-gap); }
-.ucs-rv--carousel .ucs-rv__track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - (var(--ucs-rv-cols-m, 1) - 1) * var(--ucs-rv-gap)) / var(--ucs-rv-cols-m, 1) - 24px); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+.ucs-rv--carousel .ucs-rv__track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--ucs-rv-cols-m, 1) * var(--ucs-rv-gap)) / (var(--ucs-rv-cols-m, 1) + 0.5)); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
 .ucs-rv--carousel .ucs-rv__track::-webkit-scrollbar { display: none; }
 @media (min-width: 750px) { .ucs-rv--carousel .ucs-rv__track { grid-auto-columns: calc((100% - (var(--ucs-rv-cols, 3) - 1) * var(--ucs-rv-gap)) / var(--ucs-rv-cols, 3)); } }
 .ucs-rv--carousel .ucs-rv__card { scroll-snap-align: start; }
+/* Phones: one and a half cards per view (the half shows there's more), so cards are compact. */
+@media (max-width: 749px) {
+  .ucs-rv--carousel .ucs-rv__body { gap: 8px; padding: 12px 12px 14px; }
+  .ucs-rv--carousel .ucs-rv__text { font-size: 0.9em; line-height: 1.5; }
+  .ucs-rv--carousel .ucs-rv__stars { font-size: 14px; letter-spacing: 1px; }
+  .ucs-rv--carousel .ucs-rv__src { width: 24px; height: 24px; }
+  .ucs-rv--carousel .ucs-rv__src .ucs-i { width: 13px; height: 13px; }
+  .ucs-rv--carousel .ucs-rv__who, .ucs-rv--carousel .ucs-rv__prod { font-size: 0.85em; }
+}
 .ucs-rv__track:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .ucs-rv__nav { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
 .ucs-rv.is-static .ucs-rv__nav { display: none; }
@@ -217,11 +226,19 @@
 .ucs-rv__arrow:disabled { opacity: 0.35; cursor: default; }
 
 .ucs-rv__card { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--ucs-rv-radius, 14px); background: var(--ucs-rv-card, rgba(127, 127, 127, 0.07)); color: var(--ucs-rv-fg, inherit); }
-.ucs-rv__card--minimal { background: transparent; border-radius: 0; }
-.ucs-rv__card--minimal .ucs-rv__body { padding-left: 0; padding-right: 0; }
+/* Minimal: no fill, but still a card — a light outline around photo and review. */
+.ucs-rv__card--minimal { background: transparent; border: 1px solid rgba(127, 127, 127, 0.22); }
 .ucs-rv__media { position: relative; aspect-ratio: 4 / 5; background: rgba(127, 127, 127, 0.15); cursor: pointer; }
 .ucs-rv__media img, .ucs-rv__media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.ucs-rv__card--minimal .ucs-rv__media { border-radius: var(--ucs-rv-radius, 14px); overflow: hidden; }
+/* The customer's own photo or chat screenshot: shown whole, at its own shape (never cropped). */
+.ucs-rv__media--shot { display: flex; align-items: center; justify-content: center; aspect-ratio: auto; min-height: 120px; background: var(--ucs-rv-shot, #111); cursor: default; }
+.ucs-rv__media--shot img { position: static; width: 100%; height: auto; max-height: 460px; object-fit: contain; }
+/* When cards in a row share a height, the screenshot area takes the spare room (screenshot
+   centred on the dark backdrop), so stars, name and product stay together at the bottom. */
+.ucs-rv__card:has(> .ucs-rv__media--shot) .ucs-rv__media--shot { flex: 1 0 auto; }
+.ucs-rv__card:has(> .ucs-rv__media--shot) .ucs-rv__body { flex: none; }
+/* With a picture on top, the channel badge (WhatsApp, Instagram…) sits in the card's top-right corner. */
+.ucs-rv__card.has-media .ucs-rv__src { position: absolute; top: 10px; right: 10px; z-index: 2; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
 .ucs-rv__sound { position: absolute; right: 10px; bottom: 10px; z-index: 2; width: 36px; height: 36px; padding: 8px; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; }
 .ucs-rv__sound .ucs-i { width: 100%; height: 100%; display: block; }
 .ucs-rv__sound .ucs-i--sound, .ucs-rv__sound[aria-pressed="true"] .ucs-i--muted { display: none; }

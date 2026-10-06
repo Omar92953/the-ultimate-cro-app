@@ -22,10 +22,13 @@
     "recent": {{ recent | json }},
     "fmt": {{ shop.money_format | json }},
     "page": {{ request.page_type | json }},
+    "offers": {{ shop.metaobjects['$app:cro_offers']['main'].data.value | json }},
     "t": { "close": {{ 'ucs.close' | t | json }}, "in": {{ 'ucs.pop_in' | t | json }} }
     {%- if product -%}
       ,"product": {
         "handle": {{ product.handle | json }},
+        "id": {{ product.id }},
+        "cols": [{% for c in product.collections %}{{ c.id }},{% endfor %}0],
         "stock": {
           {%- for v in product.variants -%}
             {%- if urg and v.inventory_management == 'shopify' and v.inventory_policy == 'deny' -%}"{{ v.id }}": {% if v.inventory_quantity > cap %}{{ cap }}{% else %}{{ v.inventory_quantity }}{% endif %},{%- endif -%}
@@ -40,6 +43,7 @@
   {%- for type in shop.enabled_payment_types -%}{{ type | payment_type_svg_tag: class: 'ucs-pay' }}{%- endfor -%}
 </template>
 <script src="{{ 'ucs-boosters.js' | asset_url }}" defer></script>
+{%- if shop.metaobjects['$app:cro_offers']['main'].data.value.deals.size > 0 %}<script src="{{ 'ucs-deals.js' | asset_url }}" defer></script>{% endif %}
 
 {% schema %}
 {
@@ -47,7 +51,7 @@
   "target": "body",
   "stylesheet": "ucs-boosters.css",
   "settings": [
-    { "type": "paragraph", "content": "Sticky add to cart, stock urgency, trust badges and sales pop-ups. Turn each one on and edit it in the app: Boosters." }
+    { "type": "paragraph", "content": "Sticky add to cart, stock urgency, trust badges, sales pop-ups and bundle deals. Edit them in the app: Boosters and Bundles." }
   ]
 }
 {% endschema %}
