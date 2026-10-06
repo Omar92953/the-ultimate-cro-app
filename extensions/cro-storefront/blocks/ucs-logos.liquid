@@ -56,6 +56,7 @@ style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --uc
 {%- endif -%}
 {%- if count > 0 -%}
 {%- if s.mode == 'marquee' -%}
+<label class="ucs-logos__pp"><input type="checkbox" aria-label="{{ 'ucs.pause' | t | escape }}"><span></span></label>
 <div class="ucs-logos__viewport">
 <ul class="ucs-logos__track" role="list">
 {{- logos -}}

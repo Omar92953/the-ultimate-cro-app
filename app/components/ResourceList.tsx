@@ -32,6 +32,7 @@ export function ResourceList(props: {
         id: r.id,
         title: r.title,
         image: r.images?.[0]?.originalSrc ?? r.image?.originalSrc ?? null,
+        handle: r.handle ?? undefined,
       })),
     );
   }

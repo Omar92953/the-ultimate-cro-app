@@ -28,6 +28,10 @@
 .ucs-ab--slide .ucs-ab__msg { transform: translateY(70%); }
 .ucs-ab--slide .ucs-ab__msg.is-on { transform: none; }
 .ucs-ab--slide .ucs-ab__msg.is-out { transform: translateY(-70%); }
+.ucs-ab__pp { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.7; }
+.ucs-ab__pp-i { width: 8px; height: 10px; border-left: 3px solid currentColor; border-right: 3px solid currentColor; }
+.ucs-ab__pp-i.is-play { width: 0; height: 0; margin-left: 2px; border-style: solid; border-width: 5px 0 5px 8px; border-color: transparent transparent transparent currentColor; }
+.ucs-ab__pp:hover { opacity: 1; background: rgba(127, 127, 127, 0.18); }
 .ucs-ab__nav, .ucs-ab__close { flex: none; width: 28px; height: 28px; padding: 5px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.8; }
 .ucs-ab__nav:hover, .ucs-ab__close:hover { opacity: 1; background: rgba(127, 127, 127, 0.18); }
 .ucs-ab__nav .ucs-i, .ucs-ab__close .ucs-i { width: 100%; height: 100%; display: block; }
@@ -132,6 +136,16 @@
 .ucs-logos--right .ucs-logos__track--rev { animation-direction: normal; }
 .ucs-logos__viewport--2 { margin-top: calc(var(--ucs-logo-gap, 56px) / 2); }
 .ucs-logos--pause .ucs-logos__viewport:hover .ucs-logos__track { animation-play-state: paused; }
+/* Pause control (WCAG 2.2.2): a checkbox styled as a small pause/play button; CSS only. Keyboard
+   focus inside the logos pauses them too. */
+.ucs-logos .ucs-wrap { position: relative; }
+.ucs-logos:focus-within .ucs-logos__track, .ucs-logos:has(.ucs-logos__pp input:checked) .ucs-logos__track { animation-play-state: paused; }
+.ucs-logos__pp { position: absolute; right: 8px; bottom: -4px; z-index: 2; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(127, 127, 127, 0.16); cursor: pointer; opacity: 0.55; transition: opacity 0.15s; }
+.ucs-logos__pp:hover, .ucs-logos__pp:focus-within { opacity: 1; }
+.ucs-logos__pp input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.ucs-logos__pp span { width: 8px; height: 9px; border-left: 3px solid currentColor; border-right: 3px solid currentColor; }
+.ucs-logos__pp input:checked + span { width: 0; height: 0; border-width: 5px 0 5px 8px; border-style: solid; border-color: transparent transparent transparent currentColor; }
+.ucs-logos__pp:has(input:focus-visible) { outline: 2px solid currentColor; outline-offset: 2px; }
 /* two identical halves; the left padding makes -50% land exactly on the copy */
 @keyframes ucs-marquee { to { transform: translateX(-50%); } }
 .ucs-logos__grid { display: grid; grid-template-columns: repeat(var(--ucs-logo-cols-m, 3), minmax(0, 1fr)); gap: calc(var(--ucs-logo-gap, 56px) / 2) var(--ucs-logo-gap, 56px); margin: 0; padding: 0; }
@@ -139,6 +153,7 @@
 @media (min-width: 750px) { .ucs-logos__grid { grid-template-columns: repeat(var(--ucs-logo-cols, 5), minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) {
   .ucs-logos__track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; padding: 0; }
+  .ucs-logos__pp { display: none; }
   .ucs-logos__track [aria-hidden="true"], .ucs-logos__viewport--2 { display: none; }
 }
 
@@ -184,7 +199,8 @@
 .ucs-rv__stars { --p: calc(var(--r, 5) / 5 * 100%); display: inline-block; font-size: 17px; line-height: 1; letter-spacing: 2px; background: linear-gradient(90deg, var(--ucs-rv-star, #f5a623) var(--p), rgba(127, 127, 127, 0.3) var(--p)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .ucs-rv__summary .ucs-rv__stars { font-size: 20px; }
 
-.ucs-rv__track { display: grid; gap: var(--ucs-rv-gap); grid-template-columns: repeat(var(--ucs-rv-cols-m, 1), minmax(0, 1fr)); align-items: start; }
+/* Cards in a row share one height; name, badge and product line up at the bottom. */
+.ucs-rv__track { display: grid; gap: var(--ucs-rv-gap); grid-template-columns: repeat(var(--ucs-rv-cols-m, 1), minmax(0, 1fr)); align-items: stretch; }
 @media (min-width: 750px) { .ucs-rv__track { grid-template-columns: repeat(var(--ucs-rv-cols, 3), minmax(0, 1fr)); } }
 .ucs-rv--masonry .ucs-rv__track { display: block; column-count: var(--ucs-rv-cols-m, 1); column-gap: var(--ucs-rv-gap); }
 @media (min-width: 750px) { .ucs-rv--masonry .ucs-rv__track { column-count: var(--ucs-rv-cols, 3); } }

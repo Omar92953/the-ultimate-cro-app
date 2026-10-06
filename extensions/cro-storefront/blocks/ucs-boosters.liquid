@@ -1,19 +1,29 @@
 {%- liquid
 assign cfg = shop.metaobjects['$app:cro_boosters']['main'].config.value
 assign recent = shop.metaobjects['$app:cro_recent']['main'].purchases.value
+comment
+Stock goes into the page only for stock urgency, capped just above its threshold, so exact
+inventory isn't published.
+endcomment
+assign urg = true
+if cfg.urgency.enabled == false
+assign urg = false
+endif
+assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 -%}
 <script type="application/json" id="ucs-boost">
 {
 "cfg": {{ cfg | json }},
 "recent": {{ recent | json }},
 "fmt": {{ shop.money_format | json }},
-"page": {{ request.page_type | json }}
+"page": {{ request.page_type | json }},
+"t": { "close": {{ 'ucs.close' | t | json }}, "in": {{ 'ucs.pop_in' | t | json }} }
 {%- if product -%}
 ,"product": {
 "handle": {{ product.handle | json }},
 "stock": {
 {%- for v in product.variants -%}
-{%- if v.inventory_management == 'shopify' and v.inventory_policy == 'deny' -%}"{{ v.id }}": {{ v.inventory_quantity }},{%- endif -%}
+{%- if urg and v.inventory_management == 'shopify' and v.inventory_policy == 'deny' -%}"{{ v.id }}": {% if v.inventory_quantity > cap %}{{ cap }}{% else %}{{ v.inventory_quantity }}{% endif %},{%- endif -%}
 {%- endfor -%}
 "_": 0
 }

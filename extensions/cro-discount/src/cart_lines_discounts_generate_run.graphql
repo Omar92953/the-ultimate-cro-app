@@ -1,14 +1,29 @@
 query CartInput($collectionIds: [ID!]) {
+  presentmentCurrencyRate
   cart {
+    cost {
+      subtotalAmount {
+        amount
+      }
+    }
     lines {
       id
       quantity
       bundle: attribute(key: "_bundle_components") {
         value
       }
+      gift: attribute(key: "_cro_gift") {
+        value
+      }
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
       merchandise {
         __typename
         ... on ProductVariant {
+          id
           title
           product {
             id

@@ -133,4 +133,5 @@ export type RecentPurchase = {
   image: string | null;
   city: string | null;
   at: string; // ISO time
+  order?: string; // numeric order id: for de-duplication and customers/redact
 };

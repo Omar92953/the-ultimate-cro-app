@@ -175,6 +175,23 @@ Use the dev store's test payments (Bogus Gateway), and test in an incognito wind
   curl -i -X POST https://YOUR-TUNNEL/webhooks/compliance -d '{}'
   ```
 
+### App Store review checks (from docs/submission-review.md, 2026-10-07)
+Only possible on the dev store or the production host:
+- [ ] Install from a fresh dev store lands on OAuth, then straight into the app's Home (no error page).
+- [ ] Uninstall → reinstall: OAuth again, Home loads, no "already installed" errors.
+- [ ] Open the app in Chrome **incognito** with third-party cookies blocked: every page still works.
+- [ ] Click every nav item, tab and button once, including Bundles → each deal tab, Store sections → each list, Boosters and Settings. No 404 or 500 anywhere.
+- [ ] Every app block shows without Liquid errors in the theme editor **and** on the storefront, on two themes (Dawn + one other), including with empty data.
+- [ ] Each theme-editor deep link in the app opens the editor with the block added or the embed switched on.
+- [ ] Compliance webhooks on the **production URL**: unsigned POST → 401, `shopify app webhook trigger` for each of the 3 topics → 200.
+- [ ] After protected-data access is approved: place a test order and check the sales pop-up shows it once, with no name and the city only if switched on. Then trigger `customers/redact` for that customer and check the entry disappears.
+- [ ] Sales pop-ups with only 1 recent order: it appears once per visit, not repeatedly.
+- [ ] Stock urgency matches real inventory; trust badges and payment icons show; sticky bar adds the selected variant.
+- [ ] Bundle deals at checkout (when built): fixed set, buy X get Y, volume tiers, gift. The gift is added only when free and removed when the cart drops below the minimum.
+- [ ] Lighthouse (mobile) before vs after installing and configuring the app on home, product and collection pages. The weighted drop (17/40/43 %) must be ≤ 10 points; average 3 runs.
+- [ ] Keyboard only: quick-add popup (Tab cycles inside, Escape closes, focus returns), announcement bar, reviews carousel, FAQ.
+- [ ] VoiceOver: the rotating announcement bar isn't read out on every rotation (after fix #17).
+
 ## 4. Afterwards
 
 Once every box is ticked on both themes:

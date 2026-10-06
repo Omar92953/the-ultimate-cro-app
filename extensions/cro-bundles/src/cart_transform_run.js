@@ -90,7 +90,8 @@ export function validate(raw, bundle) {
 
     const allowed = new Set(step.v || []);
     for (const id of ids) {
-      if (!/^\d{1,16}$/.test(id)) return null;
+      // Plain ids only: no leading zeros, so "044" can't pose as a second, different "44".
+      if (!/^[1-9]\d{0,15}$/.test(id)) return null;
       if (!allowed.has(Number(id).toString(36))) return null;
       if (!bundle.d && counts.has(id)) return null;
       counts.set(id, (counts.get(id) || 0) + 1);

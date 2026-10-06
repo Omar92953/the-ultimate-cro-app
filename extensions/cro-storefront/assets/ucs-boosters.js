@@ -180,28 +180,32 @@
     return r && r.handle && Date.now() - Date.parse(r.at) < (Number(P.maxAgeDays) || 7) * 864e5;
   });
   if (P.enabled && recent.length && onDevice(P.devices) && session(function (s) { return s.getItem('ucs-pop-off'); }) !== '1') {
+    // Each real purchase is shown at most once per visit, so one order never looks like several.
     var shown = Number(session(function (s) { return s.getItem('ucs-pop-n'); })) || 0;
-    var index = shown % recent.length;
+    var limit = Math.min(Number(P.perVisit) || 5, recent.length);
+    var T = data.t || {};
+    var rtf = null;
+    try { rtf = new Intl.RelativeTimeFormat(document.documentElement.lang || undefined, { numeric: 'always' }); } catch (e) { rtf = null; }
     var pop = document.createElement('div');
     pop.className = 'ucs-pop ucs-pop--' + P.position;
     pop.setAttribute('role', 'status');
     document.body.appendChild(pop);
+    // "5 minutes ago" in the shop's language (the browser formats it).
     var ago = function (iso) {
       var m = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
-      if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
-      var h = Math.round(m / 60);
-      if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
-      var d = Math.round(h / 24);
-      return d + (d === 1 ? ' day ago' : ' days ago');
+      var h = Math.round(m / 60), d = Math.round(h / 24);
+      var v = m < 60 ? [m, 'minute'] : h < 24 ? [h, 'hour'] : [d, 'day'];
+      return rtf ? rtf.format(-v[0], v[1]) : v[0] + ' ' + v[1] + (v[0] === 1 ? '' : 's') + ' ago';
     };
     var next = function () {
-      if (shown >= (Number(P.perVisit) || 5)) return;
-      var r = recent[index++ % recent.length];
-      var line = String(P.text).replace('{city}', P.showCity && r.city ? ' in ' + r.city : '').replace('{product}', '');
+      if (shown >= limit) return;
+      var r = recent[shown];
+      var where = P.showCity && r.city ? String(T['in'] || ' in {city}').replace('{city}', r.city) : '';
+      var line = String(P.text).replace('{city}', where).replace('{product}', '');
       pop.innerHTML = '<a class="ucs-pop__in" href="' + root + 'products/' + encodeURIComponent(r.handle) + '">' +
         (r.image ? '<img src="' + esc(r.image + (r.image.indexOf('?') > -1 ? '&' : '?') + 'width=120') + '" alt="" width="52" height="52">' : '') +
         '<span class="ucs-pop__txt"><span>' + esc(line.trim()) + '</span><b>' + esc(r.product) + '</b><small>' + ago(r.at) + '</small></span></a>' +
-        '<button type="button" class="ucs-pop__x" aria-label="Close">×</button>';
+        '<button type="button" class="ucs-pop__x" aria-label="' + esc(T.close || 'Close') + '">×</button>';
       pop.classList.add('is-on');
       shown++;
       session(function (s) { s.setItem('ucs-pop-n', String(shown)); });

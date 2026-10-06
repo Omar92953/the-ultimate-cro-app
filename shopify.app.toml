@@ -29,10 +29,12 @@ api_version = "2025-10"
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
 
-  # Sales pop-ups: keeps the list of recent purchases fresh. Handled by /app/routes/webhooks.orders.create.tsx
-  [[webhooks.subscriptions]]
-  topics = [ "orders/create" ]
-  uri = "/webhooks/orders/create"
+  # Sales pop-ups: keeps the list of recent purchases fresh (handled by app/routes/webhooks.orders.create.tsx).
+  # OFF until Shopify approves protected customer data for this app — without approval Shopify refuses
+  # the whole config (even `shopify app dev`). Turn back on by removing the "# " from the 3 lines below.
+  # [[webhooks.subscriptions]]
+  # topics = [ "orders/create" ]
+  # uri = "/webhooks/orders/create"
 
   # Mandatory privacy (compliance) webhooks — handled by /app/routes/webhooks.compliance.tsx
   [[webhooks.subscriptions]]
@@ -455,4 +457,43 @@ access.storefront = "public_read"
 
   [metaobjects.app.cro_recent.fields.purchases]
   name = "Purchases"
+  type = "json"
+
+# Bundle deals beyond mix & match: fixed bundles, buy X get Y, volume tiers, gift with purchase.
+[metaobjects.app.cro_deal]
+name = "CRO deal"
+display_name_field = "name"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_deal.fields.name]
+  name = "Name"
+  type = "single_line_text_field"
+  required = true
+
+  [metaobjects.app.cro_deal.fields.kind]
+  name = "Type"
+  type = "single_line_text_field"
+  validations.choices = [ "fixed", "bogo", "volume", "gift" ]
+
+  [metaobjects.app.cro_deal.fields.active]
+  name = "Active"
+  type = "boolean"
+
+  [metaobjects.app.cro_deal.fields.position]
+  name = "Order"
+  type = "number_integer"
+
+  [metaobjects.app.cro_deal.fields.config]
+  name = "Settings"
+  type = "json"
+
+# Compact copy of the active deals for the storefront (written by the app on every change).
+[metaobjects.app.cro_offers]
+name = "CRO storefront offers"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_offers.fields.data]
+  name = "Data"
   type = "json"

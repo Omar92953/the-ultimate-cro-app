@@ -1,5 +1,5 @@
 /** Types shared by the dashboard UI and the server (no server code here). */
-export type Ref = { id: string; title: string; image?: string | null };
+export type Ref = { id: string; title: string; image?: string | null; handle?: string };
 export type TriggerType = "all" | "products" | "collections";
 /** A quantity tier (qty) or, for "variant" upsells, an option-value tier (value, e.g. "100 ml"). */
 export type Tier = { qty: number; pct: number; label?: string; badge?: string; value?: string };

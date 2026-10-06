@@ -6,6 +6,7 @@ import { editorLinks, listBundles } from "../lib/cro.server";
 import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
+import { BundleTabs } from "../components/BundleTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -15,15 +16,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function BundleList() {
   const { bundles, addBlock } = useLoaderData<typeof loader>();
   return (
-    <s-page heading="Bundles">
+    <s-page heading="Bundles" inlineSize="large">
       <Button slot="primary-action" variant="primary" href="/app/bundles/new">
-        Create bundle
+        Create mix & match bundle
       </Button>
       <Button slot="secondary-actions" href={addBlock} target="_top">
         Add block to theme
       </Button>
 
       <s-stack gap="base">
+        <BundleTabs />
         <Explainer {...HELP.bundles} />
 
       <s-section heading={`Bundles (${bundles.length})`} padding="none">
@@ -56,7 +58,7 @@ export default function BundleList() {
               <s-heading>No bundles yet</s-heading>
               <s-paragraph>First create the product you’ll sell as the bundle (with its bundle price) in Products.</s-paragraph>
               <Button variant="primary" href="/app/bundles/new">
-                Create bundle
+                Create mix & match bundle
               </Button>
             </s-stack>
           </s-box>

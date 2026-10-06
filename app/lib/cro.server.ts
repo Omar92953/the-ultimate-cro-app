@@ -31,6 +31,7 @@ import type {
 } from "./types";
 import { FEATURE_KEYS } from "./types";
 import { validateBundle, validateRule } from "./validate";
+import { toFunctionDeal, toStorefrontDeal, type Deal, type DealKind } from "./deals";
 export * from "./types";
 export { validateBundle, validateRule };
 
@@ -378,7 +379,35 @@ async function findOfferDiscount(admin: AdminClient) {
   );
 }
 
-export function buildDiscountConfig(rules: Rule[]) {
+/* ------------------------------------------------------------------ deals -- */
+export async function listDeals(admin: AdminClient): Promise<Deal[]> {
+  const data = await gql(
+    admin,
+    `#graphql
+    query CroDeals { metaobjects(type: "$app:cro_deal", first: 100) { nodes { id handle fields { key value } } } }`,
+  );
+  const deals: Deal[] = data.metaobjects.nodes.map((node: any) => {
+    const f = fieldsOf(node);
+    return {
+      id: node.id,
+      handle: node.handle,
+      kind: (f.kind?.value || "fixed") as DealKind,
+      name: f.name?.value || "",
+      active: bool(f.active, true),
+      position: num(f.position, 0),
+      config: json(f.config, {} as any),
+    };
+  });
+  return deals.sort((a, b) => a.position - b.position || String(a.handle).localeCompare(String(b.handle)));
+}
+
+/** The storefront copy of active deals ($app:cro_offers "main"), read by the boosters script. */
+async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
+  const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal) };
+  await upsert(admin, "$app:cro_offers", "main", { data: JSON.stringify(data) });
+}
+
+export function buildDiscountConfig(rules: Rule[], deals: Deal[] = []) {
   const active = rules.filter((r) => r.active).sort((a, b) => a.priority - b.priority);
   const trigger = (r: Rule) => ({
     type: r.triggerType,
@@ -411,12 +440,16 @@ export function buildDiscountConfig(rules: Rule[]) {
         pct: r.discountPercent,
         label: r.discountLabel || r.headline || r.name,
       })),
+    deals: deals.filter((d) => d.active).sort((a, b) => a.position - b.position).map(toFunctionDeal),
   };
+  const dealCollections = config.deals.flatMap((d: any) =>
+    [d.trigger, d.buy, d.get].filter(Boolean).flatMap((t: any) => t.collections || []),
+  );
   const collectionIds = [
-    ...new Set([...config.upsell, ...config.crossSell].flatMap((r) => r.trigger.collections)),
+    ...new Set([...config.upsell, ...config.crossSell].flatMap((r) => r.trigger.collections).concat(dealCollections)),
   ];
   const needed =
-    config.upsell.some((r) => r.tiers.some((t) => t.pct > 0)) || config.crossSell.length > 0;
+    config.upsell.some((r) => r.tiers.some((t) => t.pct > 0)) || config.crossSell.length > 0 || config.deals.length > 0;
   return { config, collectionIds, needed };
 }
 
@@ -449,6 +482,8 @@ export async function syncDiscounts(admin: AdminClient): Promise<DiscountStatus>
   }
 
   // Native: never let the Function discount run alongside (it would double-discount).
+  // Bundle deals need the Function, so the storefront must not advertise them here.
+  await syncStorefrontDeals(admin, []);
   const fn = await findOfferDiscount(admin);
   if (fn) await deleteAutomaticDiscount(admin, fn.id);
 
@@ -638,7 +673,8 @@ async function syncFunctionDiscount(
   admin: AdminClient,
   rules: Rule[],
 ): Promise<{ id: string | null; status: string | null; needed: boolean }> {
-  const { config, collectionIds, needed } = buildDiscountConfig(rules);
+  const deals = await listDeals(admin);
+  const { config, collectionIds, needed } = buildDiscountConfig(rules, deals);
   const value = JSON.stringify(config);
   if (value.length > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(
@@ -663,9 +699,15 @@ async function syncFunctionDiscount(
       }`,
       { metafields: metafields.map((m) => ({ ...m, ownerId: existing.id })) },
     );
+    // The storefront copy is written only after checkout's config is saved, so shoppers are never
+    // shown a deal that checkout doesn't apply.
+    await syncStorefrontDeals(admin, deals);
     return { id: existing.id, status: existing.discount.status, needed };
   }
-  if (!needed) return { id: null, status: null, needed };
+  if (!needed) {
+    await syncStorefrontDeals(admin, deals);
+    return { id: null, status: null, needed };
+  }
 
   const data = await gql(
     admin,
@@ -688,6 +730,7 @@ async function syncFunctionDiscount(
     },
   );
   const created = data.discountAutomaticAppCreate.automaticAppDiscount;
+  await syncStorefrontDeals(admin, deals);
   return { id: created.discountId, status: created.status, needed };
 }
 

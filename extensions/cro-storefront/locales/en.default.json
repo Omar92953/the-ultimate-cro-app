@@ -58,6 +58,9 @@
       "snapchat": "Snapchat",
       "youtube": "YouTube",
       "email": "Email"
-    }
+    },
+    "pop_in": " in {city}",
+    "pause": "Pause",
+    "play": "Play"
   }
 }
