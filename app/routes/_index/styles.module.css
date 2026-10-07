@@ -1,73 +1,26 @@
-.index {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  text-align: center;
-  padding: 1rem;
-}
-
-.heading,
-.text {
-  padding: 0;
-  margin: 0;
-}
-
-.text {
-  font-size: 1.2rem;
-  padding-bottom: 2rem;
-}
-
-.content {
+/* Public landing page (the app's address outside Shopify). */
+.page {
+  min-height: 100vh;
   display: grid;
-  gap: 2rem;
+  place-items: center;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f1f5f9, #eef2ff);
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
-
-.form {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 0 auto;
-  gap: 1rem;
+.card {
+  width: min(680px, 100%);
+  padding: clamp(24px, 5vw, 48px);
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 40px rgba(15, 23, 42, 0.08);
 }
-
-.label {
-  display: grid;
-  gap: 0.2rem;
-  max-width: 20rem;
-  text-align: left;
-  font-size: 1rem;
-}
-
-.input {
-  padding: 0.4rem;
-}
-
-.button {
-  padding: 0.4rem;
-}
-
-.list {
-  list-style: none;
-  padding: 0;
-  padding-top: 3rem;
-  margin: 0;
-  display: flex;
-  gap: 2rem;
-}
-
-.list > li {
-  max-width: 20rem;
-  text-align: left;
-}
-
-@media only screen and (max-width: 50rem) {
-  .list {
-    display: block;
-  }
-
-  .list > li {
-    padding-bottom: 1rem;
-  }
-}
+.heading { margin: 0 0 8px; font-size: clamp(26px, 5vw, 36px); line-height: 1.15; }
+.lead { margin: 0 0 24px; font-size: 17px; line-height: 1.5; color: #4a4a4a; }
+.list { display: grid; gap: 12px; margin: 0 0 28px; padding: 0; list-style: none; }
+.list li { display: grid; gap: 2px; padding: 14px 16px; border-radius: 12px; background: #f6f6f7; }
+.list b { font-size: 15px; }
+.list span { font-size: 14px; line-height: 1.5; color: #4a4a4a; }
+.note { margin: 0; font-size: 14px; color: #616161; }
