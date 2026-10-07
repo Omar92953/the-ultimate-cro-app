@@ -83,7 +83,7 @@ export function Checklist({ items }: { items: { text: string; action: ReactNode 
 }
 
 /** Segmented buttons (e.g. which metric a chart shows). */
-export function Segmented<T extends string>(props: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
+export function Segmented<T extends string>(props: { value: T; options: { value: T; label: string; count?: number }[]; onChange: (v: T) => void; label: string }) {
   return (
     <div className={styles.tabs} role="radiogroup" aria-label={props.label}>
       {props.options.map((o) => (
@@ -96,6 +96,7 @@ export function Segmented<T extends string>(props: { value: T; options: { value:
           onClick={() => props.onChange(o.value)}
         >
           {o.label}
+          {o.count !== undefined ? <span className={styles.segCount}>{o.count}</span> : null}
         </button>
       ))}
     </div>

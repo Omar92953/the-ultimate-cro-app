@@ -41,6 +41,7 @@
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #ebebeb; border-radius: 10px; width: fit-content; max-width: 100%; }
 .tab { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 550; color: #303030; text-decoration: none; white-space: nowrap; }
 .tab:hover { background: rgba(255, 255, 255, 0.6); }
+.segCount { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; font-size: 11px; font-weight: 600; line-height: 16px; color: #616161; text-align: center; vertical-align: 1px; background: rgba(0, 0, 0, 0.07); border-radius: 8px; }
 .tabActive { background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
 
 .pill { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 550; line-height: 20px; white-space: nowrap; }

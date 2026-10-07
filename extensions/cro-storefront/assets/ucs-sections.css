@@ -122,13 +122,15 @@
 @keyframes ucs-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ucs-hero__img, .ucs-hero__inner > * { animation: none !important; } }
 
-/* ---------- Trusted-by logos ---------- */
+/* ---------- Scrolling logos and text ---------- */
 .ucs-logos .ucs-head h2 { font-size: var(--ucs-h, 22px); }
 .ucs-logos__wide { max-width: none; padding-left: 0; padding-right: 0; }
 .ucs-logos__item { flex: none; display: flex; align-items: center; justify-content: center; list-style: none; margin: 0; padding: 0; }
 .ucs-logos__item a { display: flex; }
 .ucs-logos__img { display: block; height: var(--ucs-logo-h, 40px); width: auto; max-width: none; object-fit: contain; opacity: var(--ucs-logo-op, 0.8); transition: filter 0.25s ease, opacity 0.25s ease; }
 .ucs-logos--gray .ucs-logos__img { filter: grayscale(1); }
+/* an item with no image: its name, sized to the logo height */
+.ucs-logos__text { display: flex; align-items: center; font-size: calc(var(--ucs-logo-h, 40px) * 0.55); font-weight: 600; line-height: 1; letter-spacing: 0.02em; white-space: nowrap; }
 .ucs-logos__item:hover .ucs-logos__img { filter: none; opacity: 1; }
 .ucs-logos__viewport { overflow: hidden; }
 .ucs-logos--fade .ucs-logos__viewport { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }

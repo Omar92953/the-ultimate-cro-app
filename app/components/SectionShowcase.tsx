@@ -330,45 +330,72 @@ export function BundlesShowcase() {
   );
 }
 
-const REVIEWS = [
-  { t: "I have very sensitive skin", n: "Barbara · Cairo", src: s.wa },
-  { t: "I adopted it!", n: "Cathrine · Giza", src: s.ig, photo: PHOTO.pink },
-  { t: "Wearing it in the video", n: "Omar · Alexandria", src: s.tt, video: true },
-  { t: "Arrived in two days", n: "Nour · Cairo", src: s.fb },
+/* Reviews: the storefront card — picture on top (a chat screenshot or a product photo, all the same
+   height), the channel badge in its corner, stars, the review, name · city · date, then the product. */
+type Rv = { t: string; who: string; date: string; src: string; stars: number; shot?: string[]; photo?: string; product: number };
+const REVIEWS: Rv[] = [
+  { t: "Arrived in two days, the quality is amazing", who: "Mariam · Cairo", date: "12 Sep", src: s.wa, stars: 5, shot: ["Arrived in two days 😍", "the quality is amazing!!"], product: 0 },
+  { t: "Wearing it every day", who: "Cathrine · Giza", date: "3 Sep", src: s.ig, stars: 5, photo: PHOTO.pink, product: 1 },
+  { t: "Best purchase this month", who: "Youssef · Alexandria", date: "28 Aug", src: s.wa, stars: 4, shot: ["Best purchase this month 👌", "works perfectly"], product: 2 },
+  { t: "Ordering another one", who: "Nour · Cairo", date: "21 Aug", src: s.fb, stars: 5, shot: ["Ordering another one for my sister"], product: 3 },
 ];
-export function ReviewsShowcase() {
+function ReviewCard({ r, text = true, fill }: { r: Rv; text?: boolean; fill?: string }) {
+  const p = PRODUCTS[r.product];
+  return (
+    <span className={s.rvCard}>
+      <span className={`${s.rvMedia} ${fill ?? ""}`}>
+        {r.photo ? (
+          <Img id={r.photo} w={300} h={300} className={s.rvPhoto} />
+        ) : (
+          <span className={s.rvShot}>
+            {r.shot!.map((m, i) => (
+              <span key={i} className={`${s.rvBubble} ${i % 2 ? s.rvBubbleMe : ""}`}>
+                {m}
+              </span>
+            ))}
+          </span>
+        )}
+        <span className={`${s.src} ${s.rvBadge} ${r.src}`} />
+      </span>
+      <span className={s.rvBody}>
+        <Stars n={r.stars} />
+        {text ? <b className={s.rvText}>{r.t}</b> : null}
+        <small className={s.muted}>
+          {r.who} · {r.date}
+        </small>
+        <span className={s.rvProd}>
+          <Img id={p.id} w={80} h={80} />
+          <span>
+            <b>{p.name}</b>
+            <small className={s.muted}>{p.price}</small>
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+}
+function ReviewsSection({ text, fill, heading = "What customers say" }: { text?: boolean; fill?: string; heading?: string }) {
   return (
     <Stage>
       <span className={`${s.plain} ${s.center} ${s.w56}`}>
-        <b className={s.h3}>What our customers say</b>
-        <span className={s.rating}>
-          <b>4.8</b> <Stars /> <small className={s.muted}>Based on 1,284 reviews</small>
+        <span className={s.rvHead}>
+          <b className={s.h3}>{heading}</b>
+          <small className={s.muted}>Real messages from real customers</small>
+          <span className={s.rating}>
+            <b>4.8</b> <Stars /> <small className={s.muted}>Based on 1,284 reviews</small>
+          </span>
         </span>
-        <span className={s.reviewRow}>
-          {REVIEWS.map((r, i) => (
-            <span key={r.t} className={s.reviewCard}>
-              {r.photo ? <Img id={r.photo} w={300} h={220} className={s.reviewPhoto} /> : null}
-              {r.video ? (
-                <span className={s.reviewVideo}>
-                  <video src={VIDEO} muted autoPlay loop playsInline preload="metadata" />
-                  <span className={s.sound}>🔇</span>
-                </span>
-              ) : null}
-              <span className={s.between}>
-                <Stars n={i === 2 ? 4 : 5} />
-                <span className={`${s.src} ${r.src}`} />
-              </span>
-              <b>{r.t}</b>
-              {r.photo || r.video ? <Lines w={[90]} /> : <Lines w={[100, 90, 60]} />}
-              <small className={s.muted}>
-                {r.n} <span className={s.verified}>✓ Verified</span>
-              </small>
-            </span>
+        <span className={s.rvRow}>
+          {REVIEWS.map((r) => (
+            <ReviewCard key={r.who} r={r} text={text} fill={fill} />
           ))}
         </span>
       </span>
     </Stage>
   );
+}
+export function ReviewsShowcase() {
+  return <ReviewsSection text />;
 }
 
 const QS = ["How long does delivery take?", "Can I pay cash on delivery?", "What is your return policy?", "Do you ship outside Egypt?"];
@@ -690,46 +717,14 @@ export function BundlesStepsShowcase() {
   );
 }
 
+/** Same cards, screenshots on a dotted fill. */
 export function ReviewsChatShowcase() {
-  return (
-    <Stage>
-      <span className={`${s.plain} ${s.w40}`}>
-        <b className={`${s.h3} ${s.centerText}`}>Real messages from customers</b>
-        <span className={s.chat}>
-          <span className={s.bubble}>
-            <b className={s.chatName}>Mariam · Cairo</b>
-            Arrived in two days and the quality is amazing 😍 ordering another one for my sister!
-            <small className={s.chatTime}>10:42 ✓✓</small>
-          </span>
-          <span className={`${s.bubble} ${s.bubbleAlt}`}>
-            <b className={s.chatName}>Youssef · Alexandria</b>
-            Best purchase this month, the camera works perfectly 👌
-            <small className={s.chatTime}>18:05 ✓✓</small>
-          </span>
-        </span>
-      </span>
-    </Stage>
-  );
+  return <ReviewsSection text fill={s.rvDots} heading="Real messages from customers" />;
 }
 
+/** Same cards with the review text switched off: picture, stars, name and product only. */
 export function ReviewsPhotosShowcase() {
-  return (
-    <Stage>
-      <span className={`${s.plain} ${s.w50}`}>
-        <span className={s.photoGrid}>
-          {[PHOTO.sunny, PHOTO.pink, PHOTO.yellow].map((id, i) => (
-            <span key={id} className={s.photoCard}>
-              <Img id={id} w={300} h={360} />
-              <span className={s.photoMeta}>
-                <Stars n={i === 1 ? 4 : 5} />
-                <b>{["Love the fit", "So comfy", "Perfect colour"][i]}</b>
-              </span>
-            </span>
-          ))}
-        </span>
-      </span>
-    </Stage>
-  );
+  return <ReviewsSection text={false} heading="Loved by our customers" />;
 }
 
 export function FaqCardsShowcase() {

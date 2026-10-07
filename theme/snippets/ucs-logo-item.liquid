@@ -1,7 +1,11 @@
-{%- comment -%} One logo in the "Trusted by" strip. {% render 'ucs-logo-item', m: logo, height: 40, ghost: false %} {%- endcomment -%}
+{%- comment -%} One logo (or, with no image, its name as text) in the scrolling strip. {% render 'ucs-logo-item', m: logo, height: 40, ghost: false %} {%- endcomment -%}
 {%- assign h2x = height | times: 2 -%}
 <li class="ucs-logos__item"{% if ghost %} aria-hidden="true"{% endif %}>
   {%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}" target="_blank" rel="noopener"{% if ghost %} tabindex="-1"{% endif %}>{% endif -%}
-  {{ m.image.value | image_url: height: h2x | image_tag: height: height, alt: m.name.value, loading: 'lazy', class: 'ucs-logos__img' }}
+  {%- if m.image.value != blank -%}
+    {{ m.image.value | image_url: height: h2x | image_tag: height: height, alt: m.name.value, loading: 'lazy', class: 'ucs-logos__img' }}
+  {%- else -%}
+    <span class="ucs-logos__img ucs-logos__text">{{ m.name.value | escape }}</span>
+  {%- endif -%}
   {%- if m.link.value != blank %}</a>{% endif -%}
 </li>
