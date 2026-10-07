@@ -10,13 +10,15 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
 }
-.ucs-qa--br { right: var(--ucs-qa-inset, 12px); bottom: var(--ucs-qa-inset, 12px); }
-.ucs-qa--bl { left: var(--ucs-qa-inset, 12px); bottom: var(--ucs-qa-inset, 12px); }
-.ucs-qa--tr { right: var(--ucs-qa-inset, 12px); top: var(--ucs-qa-inset, 12px); }
-.ucs-qa--tl { left: var(--ucs-qa-inset, 12px); top: var(--ucs-qa-inset, 12px); }
+/* !important: some themes pin every child of the image box to top/left 0 and full size. */
+.ucs-qa.ucs-qa { position: absolute !important; inset: auto !important; margin: 0 !important; transform-origin: center; }
+.ucs-qa.ucs-qa--br { right: var(--ucs-qa-inset, 12px) !important; bottom: var(--ucs-qa-inset, 12px) !important; }
+.ucs-qa.ucs-qa--bl { left: var(--ucs-qa-inset, 12px) !important; bottom: var(--ucs-qa-inset, 12px) !important; }
+.ucs-qa.ucs-qa--tr { right: var(--ucs-qa-inset, 12px) !important; top: var(--ucs-qa-inset, 12px) !important; }
+.ucs-qa.ucs-qa--tl { left: var(--ucs-qa-inset, 12px) !important; top: var(--ucs-qa-inset, 12px) !important; }
 .ucs-qa:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); }
 .ucs-qa:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.ucs-qa svg { width: 50%; height: 50%; display: block; }
+.ucs-qa.ucs-qa svg { position: static !important; width: 50% !important; height: 50% !important; display: block; }
 .ucs-qa[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
 .ucs-qa[disabled] { opacity: 0.4; cursor: not-allowed; }
 .ucs-qa__done { display: none; }

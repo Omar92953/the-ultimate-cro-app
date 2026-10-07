@@ -11,10 +11,13 @@
 .canvas { position: relative; flex: 0 0 100%; height: 100%; font-size: calc(100cqw / 60); line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
 @media (prefers-reduced-motion: reduce) { .track { transition: none; } }
 /* small arrows + dots to scroll through the looks */
-.arrow { position: absolute; top: 50%; z-index: 5; display: grid; place-items: center; width: 24px; height: 24px; margin-top: -12px; padding: 0 0 2px; font-size: 16px; line-height: 1; color: #303030; cursor: pointer; background: rgba(255, 255, 255, 0.92); border: 0; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); opacity: 0.85; transition: opacity 0.15s; }
+.arrow { position: absolute; top: 50%; z-index: 5; display: grid; place-items: center; width: 20px; height: 20px; margin-top: -10px; padding: 0 0 1px; font-size: 13px; line-height: 1; color: #303030; cursor: pointer; background: rgba(255, 255, 255, 0.95); border: 0; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); opacity: 0; transition: opacity 0.15s; }
+.card:hover .arrow { opacity: 0.85; }
 .arrow:hover, .arrow:focus-visible { opacity: 1; }
-.arrowPrev { left: 6px; }
-.arrowNext { right: 6px; }
+/* touch screens have no hover: keep them visible */
+@media (hover: none) { .arrow { opacity: 0.85; } }
+.arrowPrev { left: 5px; }
+.arrowNext { right: 5px; }
 .dots { position: absolute; left: 50%; bottom: 0; z-index: 5; display: flex; transform: translateX(-50%); }
 /* 6px dot, 24px click target (WCAG 2.5.8) */
 .dot { position: relative; width: 20px; height: 24px; padding: 0; cursor: pointer; background: none; border: 0; }

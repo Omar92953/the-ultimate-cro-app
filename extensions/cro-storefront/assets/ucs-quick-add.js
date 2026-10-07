@@ -18,7 +18,8 @@
   var T = cfg.text;
   var stroke = function (w, d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
   var ICONS = {
-    bag: stroke(1.8, '<path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M12 11.5v5M9.5 14h5"/>'),
+    // The Backrooms theme's quick-add bag.
+    bag: stroke(1.5, '<path d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/>'),
     plus: stroke(2.2, '<path d="M12 5v14M5 12h14"/>'),
     cart: stroke(1.8, '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3.5h2.6l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2l1.7-7.3H6.2"/>'),
   };
@@ -68,7 +69,7 @@
   /* ---------- find product cards and add the button ---------- */
   var CARDS = cfg.selector || '.card-wrapper, .product-card, .product-card-wrapper, .product-item, .grid-product, .grid-view-item, .product-grid-item, [data-product-card], .card--product, .productitem';
   var SKIP = '.ucs-pop, .ucs-toast, cart-drawer, .cart-drawer, #CartDrawer, cart-notification, header, .header, predictive-search, .predictive-search, .product__media-wrapper, .product-media-modal';
-  var MEDIA = '.card__media, .card__inner, .product-card__image, .product-card__media, .product-item__image, .grid-product__image-wrap, .media';
+  var MEDIA_ORDER = ['.card__media', '.card__inner', '.product-card__image', '.product-card__media', '.product-item__image', '.grid-product__image-wrap', '.media'];
 
   function handleOf(href) {
     var m = String(href).match(/\/products\/([^/?#]+)/);
@@ -86,7 +87,12 @@
       var handle = handleOf(link.getAttribute('href'));
       if (!image || !handle) continue;
       card.__ucs = true;
-      var host = image.closest(MEDIA) || image.parentElement;
+      // The outer media box, like the Backrooms theme: Dawn's inner ".media" stretches every child
+      // to fill it, which would turn the button into a giant oval.
+      var host = null;
+      for (var k = 0; k < MEDIA_ORDER.length && !host; k++) host = image.closest(MEDIA_ORDER[k]);
+      host = host || image.parentElement;
+      if (host.matches('.media') && host.parentElement) host = host.parentElement;
       if (host.tagName === 'A' && host !== link) host = host.parentElement;
       if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
       host.classList.add('ucs-qa-host');
@@ -97,7 +103,10 @@
       btn.setAttribute('data-handle', handle);
       btn.setAttribute('aria-label', T.add + ': ' + (link.textContent || '').trim().slice(0, 80));
       btn.innerHTML = '<span class="ucs-qa__icon">' + (ICONS[cfg.icon] || ICONS.bag) + '</span><span class="ucs-qa__done">' + CHECK + '</span>';
-      btn.style.setProperty('--ucs-qa-size', cfg.size + 'px');
+      var size = (Number(cfg.size) || 40) + 'px';
+      btn.style.setProperty('--ucs-qa-size', size);
+      // Theme rules can't resize or stretch it (some make every child of the image box full-size).
+      ['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height'].forEach(function (p) { btn.style.setProperty(p, size, 'important'); });
       btn.style.setProperty('--ucs-qa-bg', cfg.bg);
       btn.style.setProperty('--ucs-qa-fg', cfg.fg);
       btn.style.setProperty('--ucs-qa-radius', cfg.shape === 'square' ? '8px' : '50%');
