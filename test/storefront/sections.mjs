@@ -142,6 +142,9 @@ const shop = {
 // Boosters: defaults (no saved config) + two real-looking recent purchases.
 const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
 shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null })]);
+// Countdown bar: designed in the app — the app's defaults, saved the way the app saves them.
+const { toStorefrontCountdownBar, withCountdownBarDefaults } = await import("../../app/lib/designs.ts");
+shop.metaobjects["$app:cro_design"] = collectionOf([mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) })]);
 shop.metaobjects["$app:cro_recent"] = collectionOf([
   mo("main", {
     purchases: [

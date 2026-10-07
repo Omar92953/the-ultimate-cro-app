@@ -454,6 +454,16 @@ access.storefront = "public_read"
   name = "Settings"
   type = "json"
 
+# Section designs edited in the app (handle = section, e.g. "countdown_bar"): settings + ready-made CSS.
+[metaobjects.app.cro_design]
+name = "CRO section design"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_design.fields.config]
+  name = "Settings"
+  type = "json"
+
 # Pages designed in the app (handle = page type, e.g. "contact"): settings + ready-made CSS.
 [metaobjects.app.cro_page]
 name = "CRO page design"

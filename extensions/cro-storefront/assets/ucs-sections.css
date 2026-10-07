@@ -56,15 +56,21 @@
   .ucs-cdh--row .ucs-cdh__text { flex: 1; }
 }
 
-.ucs-cdb { display: none; position: relative; z-index: 6; background: var(--ucs-cdb-bg, #b42318); color: var(--ucs-cdb-fg, #fff); font-size: var(--ucs-cdb-fs, 14px); --ucs-cd-size: 1.15em; --ucs-cd-radius: 5px; }
+.ucs-cdb { display: none; position: relative; z-index: 6; background: var(--ucs-cdb-bg, #b42318); color: var(--ucs-cdb-fg, #fff); font-size: var(--ucs-cdb-fs, 14px); --ucs-cd-size: var(--ucs-cdb-ns, 1.15em); --ucs-cd-radius: 5px; }
 .ucs-cdb.is-ready { display: block; }
 .ucs-cdb[hidden] { display: none; }
 .ucs-cdb--bottom { position: fixed; left: 0; right: 0; bottom: 0; box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15); }
-.ucs-cdb__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; max-width: var(--page-width, 1200px); margin: 0 auto; padding: 8px 44px 8px 16px; position: relative; text-align: center; }
+.ucs-cdb__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; max-width: var(--page-width, 1200px); margin: 0 auto; padding: var(--ucs-cdb-pad, 8px) 44px var(--ucs-cdb-pad, 8px) 16px; position: relative; text-align: center; }
 .ucs-cdb__text { font-weight: 600; }
-.ucs-cdb .ucs-cd__l { font-size: 9px; }
+.ucs-cdb .ucs-cd__l { font-size: var(--ucs-cdb-ls, 9px); }
 .ucs-cdb .ucs-cd__u { gap: 3px; }
-.ucs-cdb__btn { min-height: 32px; padding: 0 14px; font-size: 0.9em; }
+.ucs-cdb__btn { min-height: 32px; padding: 0 14px; border: 0; background: var(--ucs-cdb-btn-bg, var(--ucs-accent)); color: var(--ucs-cdb-btn-fg, var(--ucs-on-accent)); font: inherit; font-size: var(--ucs-cdb-bs, 0.9em); font-weight: 600; cursor: pointer; }
+/* Slim: everything on one line, also on phones (the text shortens with … if space runs out). */
+.ucs-cdb--slim .ucs-cdb__inner { flex-wrap: nowrap; gap: 10px; }
+.ucs-cdb--slim .ucs-cdb__text { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ucs-cdb--slim .ucs-cd, .ucs-cdb--slim .ucs-cdb__btn { flex: none; }
+.ucs-cdb--slim .ucs-cdb__btn { min-height: 0; padding: 0.35em 0.9em; white-space: nowrap; }
+.ucs-cdb--slim .ucs-cd--boxes .ucs-cd__n { padding: 0.18em 0.2em; }
 .ucs-cdb__close { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; padding: 5px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
 .ucs-cdb__close .ucs-i { width: 100%; height: 100%; display: block; }
 .ucs [hidden], .ucs[hidden] { display: none !important; }
@@ -273,10 +279,11 @@
 .ucs-rv__card--chat .ucs-rv__name { color: #128c7e; }
 .ucs-rv__card--chat .ucs-rv__meta { flex-basis: auto; margin-left: auto; }
 @media (max-width: 749px) {
-  /* phones: the text gets its own centred line, timer + button on the line below */
-  .ucs-cdb__inner { flex-wrap: wrap; gap: 4px 8px; padding: 6px 36px 8px 36px; }
-  .ucs-cdb__text { flex-basis: 100%; min-width: 0; overflow: hidden; font-size: 0.88em; line-height: 1.25; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
-  .ucs-cdb__btn { flex: none; min-height: 30px; padding: 0 10px; white-space: nowrap; font-size: 0.82em; }
+  /* phones (regular bar): the text gets its own centred line, timer + button on the line below */
+  .ucs-cdb:not(.ucs-cdb--slim) .ucs-cdb__inner { flex-wrap: wrap; gap: 4px 8px; padding: var(--ucs-cdb-pad, 6px) 36px var(--ucs-cdb-pad, 8px) 36px; }
+  .ucs-cdb:not(.ucs-cdb--slim) .ucs-cdb__text { flex-basis: 100%; min-width: 0; overflow: hidden; font-size: 0.88em; line-height: 1.25; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+  .ucs-cdb__btn { flex: none; white-space: nowrap; }
+  .ucs-cdb--slim .ucs-cdb__inner { gap: 6px; padding-left: 10px; padding-right: 34px; }
   .ucs-cdb__close { right: 4px; }
 }
 

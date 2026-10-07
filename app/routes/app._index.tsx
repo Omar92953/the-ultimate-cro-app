@@ -219,7 +219,8 @@ const FEATURES: {
 type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar";
 
 /** Store sections, shown in the same card format as the features above. */
-const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; Previews: (() => JSX.Element)[] }[] = [
+/** `app`: designed in the app (the theme editor only switches it on). */
+const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
   { key: "logos", title: "Trusted-by logos", description: "Press and partner logos in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
@@ -227,7 +228,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
-  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
+  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
 
 /** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
@@ -387,7 +388,7 @@ export default function Home() {
           const isInstalled = installed ? (installed[c.key] ?? false) : null;
           const status = sectionStatus(c.list, counts, isInstalled, c.embed);
           const themeHref = data.sectionLinks[c.key];
-          const open = c.list ? { href: `/app/sections/${c.list}` } : { href: c.embed ? themeHref : data.links.editor, external: true };
+          const open = c.app ? { href: c.app } : c.list ? { href: `/app/sections/${c.list}` } : { href: c.embed ? themeHref : data.links.editor, external: true };
           const action =
             status.next === "create" && c.list
               ? { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }

@@ -59,6 +59,7 @@
       if (left <= 0) return this.finish();
       var s = Math.floor(left / 1000);
       var v = { d: Math.floor(s / 86400), h: Math.floor(s / 3600) % 24, m: Math.floor(s / 60) % 60, s: s % 60 };
+      if (!this.n.d) v.h = Math.floor(s / 3600); // no days shown: hours run past 24
       for (var k in v) if (this.n[k]) this.n[k].firstChild.textContent = pad(v[k]);
       this.classList.toggle('is-nodays', v.d === 0);
       this.classList.add('is-live');
@@ -81,29 +82,68 @@
   }
   if (!customElements.get('ucs-countdown')) customElements.define('ucs-countdown', Countdown);
 
-  /* ---------- the bar: place it, leave room for it, let customers close it ---------- */
+  /* ---------- the bar: built from the app's design (Store sections → Countdown bar) ---------- */
   var KEY = 'ucs-cdb-closed';
+  var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]; }); };
+  var session = function (fn) { try { return fn(window.sessionStorage); } catch (e) { return null; } };
   function bar() {
     var el = document.getElementById('ucs-cdb');
     if (!el) return;
-    var bottom = el.classList.contains('ucs-cdb--bottom');
-    if (bottom) document.body.style.paddingBottom = el.hidden ? '' : el.offsetHeight + 'px';
+    if (el.classList.contains('ucs-cdb--bottom')) document.body.style.paddingBottom = el.hidden ? '' : el.offsetHeight + 'px';
   }
   function setupBar() {
     var el = document.getElementById('ucs-cdb');
     if (!el || el.__ucs) return;
     el.__ucs = true;
-    var session = function (fn) { try { return fn(window.sessionStorage); } catch (e) { return null; } };
-    if (el.hasAttribute('data-dismiss') && session(function (s) { return s.getItem(KEY); }) === '1') { el.remove(); return; }
-    if (el.classList.contains('ucs-cdb--top')) {
+    var data = el.querySelector('script[type="application/json"]');
+    var c;
+    try { c = JSON.parse(data.textContent); } catch (e) { return; }
+    var T = c.timer || {}, W = c.where || {}, L = c.layout || {}, B = c.button || {}, X = c.text || {};
+
+    // Where it shows
+    var type = { index: 'home', product: 'product', collection: 'collection', cart: 'cart' }[el.dataset.page] || 'other';
+    var design = window.Shopify && window.Shopify.designMode;
+    var off = !W.all && (W.pages || []).indexOf(type) < 0;
+    var handles = c.handleList || [];
+    if (handles.length && (type === 'product' || type === 'collection') && handles.indexOf(String(el.dataset.handle).toLowerCase()) < 0) off = true;
+    if (L.dismissible && !design && session(function (st) { return st.getItem(KEY); }) === '1') off = true;
+    if (off && !design) { el.remove(); return; }
+
+    el.className = 'ucs ucs-cd-host ucs-cdb ucs-cdb--' + L.position + (L.slim ? ' ucs-cdb--slim' : '') +
+      (W.devices === 'mobile' ? ' ucs-hide-desktop' : W.devices === 'desktop' ? ' ucs-hide-mobile' : '');
+    if (c.css) el.setAttribute('style', c.css);
+    var units = (T.showDays === false ? ['h', 'm', 's'] : ['d', 'h', 'm', 's']).map(function (u, i) {
+      return (i ? '<span class="ucs-cd__sep" data-sep="' + u + '" aria-hidden="true">:</span>' : '') +
+        '<span class="ucs-cd__u" data-u="' + u + '"><span class="ucs-cd__n">00</span>' + (T.labels ? '<span class="ucs-cd__l">' + esc((T.labelText || {})[u]) + '</span>' : '') + '</span>';
+    }).join('');
+    var btn = '';
+    if (B.show && B.text) {
+      btn = B.action === 'scroll'
+        ? '<button type="button" class="ucs-btn ucs-cdb__btn" data-scroll>' + esc(B.text) + '</button>'
+        : '<a class="ucs-btn ucs-cdb__btn" href="' + esc(B.link || '/collections/all') + '">' + esc(B.text) + '</a>';
+    }
+    el.innerHTML = '<div class="ucs-cdb__inner">' +
+      (X.show && X.value ? '<span class="ucs-cdb__text">' + esc(X.value) + '</span>' : '') +
+      '<ucs-countdown class="ucs-cd ucs-cd--' + esc(T.style) + '" role="timer" aria-label="' + esc(X.value || 'Countdown') + '" data-mode="' + esc(T.mode) + '" data-end="' + esc(T.end) +
+      '" data-hours="' + esc(T.hours) + '" data-cutoff="' + esc(T.cutoff) + '" data-tz="' + esc(el.dataset.tz) + '" data-ended="' + esc(T.ended) + '" data-key="bar">' + units + '</ucs-countdown>' +
+      '<span class="ucs-cd__end" hidden>' + esc(T.endedText) + '</span>' + btn +
+      (L.dismissible ? '<button type="button" class="ucs-cdb__close" aria-label="Close"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>' : '') + '</div>';
+    el.hidden = false;
+
+    if (L.position === 'top') {
       var ab = document.getElementById('ucs-ab');
       if (ab && ab.__ucs) ab.after(el); // the announcement bar already moved itself to the top
       else document.body.insertBefore(el, document.body.firstChild);
     }
     el.classList.add('is-ready');
+    var scroll = el.querySelector('[data-scroll]');
+    if (scroll) scroll.addEventListener('click', function () {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollBy({ top: Math.round(window.innerHeight * 0.85), behavior: reduce ? 'auto' : 'smooth' });
+    });
     var close = el.querySelector('.ucs-cdb__close');
     if (close) close.addEventListener('click', function () {
-      session(function (s) { s.setItem(KEY, '1'); });
+      session(function (st) { st.setItem(KEY, '1'); });
       el.hidden = true;
       bar();
     });
