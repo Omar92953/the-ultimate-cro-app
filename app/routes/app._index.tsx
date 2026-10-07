@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -14,7 +14,7 @@ import {
   hasCartTransform,
   listBundles,
   listRules,
-  setSectionSaved,
+  setSavedSections,
   setSetting,
   FEATURE_KEYS,
   type Settings,
@@ -143,11 +143,11 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
-  if (form.get("intent") === "save") {
+  if (form.get("intent") === "saved") {
+    // The page sends the whole saved list, so quick clicks on several cards can't overwrite each other.
     try {
-      const saved = form.get("value") === "true";
-      await setSectionSaved(admin, String(form.get("key")), saved);
-      return { ok: true, error: null, message: saved ? "Added to Saved" : "Removed from Saved" };
+      await setSavedSections(admin, JSON.parse(String(form.get("list"))));
+      return { ok: true, error: null, message: String(form.get("message") || "") };
     } catch (e) {
       return { ok: false, error: errorMessage(e), message: null };
     }
@@ -307,15 +307,26 @@ export default function Home() {
     if (saveFetcher.data?.error) shopify.toast.show(saveFetcher.data.error, { isError: true });
   }, [saveFetcher.data, shopify]);
 
-  // Saved cards, newest first; a click shows right away while it's being stored.
-  let saved = data.saved;
-  if (saveFetcher.formData?.get("intent") === "save") {
-    const key = String(saveFetcher.formData.get("key"));
-    saved = saveFetcher.formData.get("value") === "true" ? [key, ...saved.filter((k) => k !== key)] : saved.filter((k) => k !== key);
+  // Saved cards, newest first. The page keeps its own copy, updated the moment a bookmark is
+  // clicked, so switching to Saved straight away shows it; the store is updated in the background.
+  const [saved, setSaved] = useState<string[]>(data.saved);
+  const [loadedSaved, setLoadedSaved] = useState(data.saved);
+  if (loadedSaved !== data.saved && saveFetcher.state === "idle") {
+    setLoadedSaved(data.saved);
+    setSaved(data.saved);
   }
+  // Several quick clicks send one request with the final list (an older request can't land last).
+  const pending = useRef<ReturnType<typeof setTimeout>>();
   const save = (key: string) => ({
     saved: saved.includes(key),
-    onChange: (value: boolean) => saveFetcher.submit({ intent: "save", key, value: String(value) }, { method: "post" }),
+    onChange: (value: boolean) => {
+      const next = value ? [key, ...saved.filter((x) => x !== key)] : saved.filter((x) => x !== key);
+      setSaved(next);
+      clearTimeout(pending.current);
+      pending.current = setTimeout(() => {
+        saveFetcher.submit({ intent: "saved", list: JSON.stringify(next), message: value ? "Added to Saved" : "Removed from Saved" }, { method: "post" });
+      }, 350);
+    },
   });
 
   const settings: Settings = { ...data.settings };

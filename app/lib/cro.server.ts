@@ -233,10 +233,10 @@ export async function getSavedSections(admin: AdminClient): Promise<string[]> {
   return Array.isArray(value) ? value.filter((k): k is string => typeof k === "string") : [];
 }
 
-export async function setSectionSaved(admin: AdminClient, key: string, saved: boolean) {
-  const current = (await getSavedSections(admin)).filter((k) => k !== key);
-  const next = saved ? [key, ...current] : current;
-  await upsert(admin, "$app:cro_settings", "settings", { saved_sections: JSON.stringify(next.slice(0, 100)) });
+/** Replaces the saved list (the Home page sends the whole list, newest first). */
+export async function setSavedSections(admin: AdminClient, list: unknown) {
+  const next = [...new Set(Array.isArray(list) ? list.filter((k): k is string => typeof k === "string" && k.length <= 60) : [])].slice(0, 100);
+  await upsert(admin, "$app:cro_settings", "settings", { saved_sections: JSON.stringify(next) });
   return next;
 }
 
