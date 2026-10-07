@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
@@ -13,14 +14,12 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { Segmented } from "../components/ui";
 import { CountdownBarPreview } from "../components/CountdownBarPreview";
 import ui from "../components/PageEditor.module.css";
-import sectionsCss from "../../extensions/cro-storefront/assets/ucs-sections.css?url";
 
-export const links: LinksFunction = () => [{ rel: "stylesheet", href: sectionsCss }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getCountdownBar(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, embedOn: theme ? theme.installed.countdown_bar : null, embedLink: sectionLinks(session.shop).countdown_bar };
+  return { config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, embedLink: sectionLinks(session.shop).countdown_bar };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -213,6 +212,7 @@ export default function CountdownBarDesigner() {
               <span>Live preview</span>
               <Segmented label="Preview size" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />
             </div>
+            <style>{data.css}</style>
             <div className={ui.frame} style={{ padding: 16 }}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 {cfg.on ? <CountdownBarPreview config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}

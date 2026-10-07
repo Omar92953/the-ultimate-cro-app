@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { editorLinks, getThemeStatus } from "../lib/cro.server";
 import { getContact, saveContact } from "../lib/pages.server";
@@ -13,14 +14,12 @@ import { Segmented } from "../components/ui";
 import { ContactPreview } from "../components/ContactPreview";
 import ui from "../components/PageEditor.module.css";
 // The storefront's own stylesheet, so the preview matches the store exactly.
-import contactCss from "../../extensions/cro-storefront/assets/ucs-contact.css?url";
 
-export const links: LinksFunction = () => [{ rel: "stylesheet", href: contactCss }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getContact(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, inTheme: theme ? theme.installed.contact : null, themeLink: editorLinks(session.shop).contact };
+  return { config, saved, css: storefrontCss("ucs-contact.css"), inTheme: theme ? theme.installed.contact : null, themeLink: editorLinks(session.shop).contact };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -208,6 +207,7 @@ export default function ContactPage() {
                 onChange={setDevice}
               />
             </div>
+            <style>{data.css}</style>
             <div className={ui.frame}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 <ContactPreview config={cfg} />
