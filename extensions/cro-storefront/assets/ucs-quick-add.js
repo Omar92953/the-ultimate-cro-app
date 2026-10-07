@@ -60,7 +60,8 @@
 
   /* ---------- find product cards and add the button ---------- */
   var CARDS = cfg.selector || '.card-wrapper, .product-card, .product-card-wrapper, .product-item, .grid-product, .grid-view-item, .product-grid-item, [data-product-card], .card--product, .productitem';
-  var SKIP = '.ucs-pop, .ucs-toast, cart-drawer, .cart-drawer, #CartDrawer, cart-notification, header, .header, predictive-search, .predictive-search, .product__media-wrapper, .product-media-modal';
+  // Not inside the app's own sections (reviews, bundles, offers…): they have their own buttons.
+  var SKIP = '.ucs, .ucro, .ucs-pop, .ucs-toast, cart-drawer, .cart-drawer, #CartDrawer, cart-notification, header, .header, predictive-search, .predictive-search, .product__media-wrapper, .product-media-modal';
   var MEDIA_ORDER = ['.card__media', '.card__inner', '.product-card__image', '.product-card__media', '.product-item__image', '.grid-product__image-wrap', '.media'];
 
   function handleOf(href) {

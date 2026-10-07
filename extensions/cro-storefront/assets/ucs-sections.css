@@ -28,10 +28,6 @@
 .ucs-ab--slide .ucs-ab__msg { transform: translateY(70%); }
 .ucs-ab--slide .ucs-ab__msg.is-on { transform: none; }
 .ucs-ab--slide .ucs-ab__msg.is-out { transform: translateY(-70%); }
-.ucs-ab__pp { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.7; }
-.ucs-ab__pp-i { width: 8px; height: 10px; border-left: 3px solid currentColor; border-right: 3px solid currentColor; }
-.ucs-ab__pp-i.is-play { width: 0; height: 0; margin-left: 2px; border-style: solid; border-width: 5px 0 5px 8px; border-color: transparent transparent transparent currentColor; }
-.ucs-ab__pp:hover { opacity: 1; background: rgba(127, 127, 127, 0.18); }
 .ucs-ab__nav, .ucs-ab__close { flex: none; width: 28px; height: 28px; padding: 5px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.8; }
 .ucs-ab__nav:hover, .ucs-ab__close:hover { opacity: 1; background: rgba(127, 127, 127, 0.18); }
 .ucs-ab__nav .ucs-i, .ucs-ab__close .ucs-i { width: 100%; height: 100%; display: block; }
@@ -136,16 +132,8 @@
 .ucs-logos--right .ucs-logos__track--rev { animation-direction: normal; }
 .ucs-logos__viewport--2 { margin-top: calc(var(--ucs-logo-gap, 56px) / 2); }
 .ucs-logos--pause .ucs-logos__viewport:hover .ucs-logos__track { animation-play-state: paused; }
-/* Pause control (WCAG 2.2.2): a checkbox styled as a small pause/play button; CSS only. Keyboard
-   focus inside the logos pauses them too. */
-.ucs-logos .ucs-wrap { position: relative; }
-.ucs-logos:focus-within .ucs-logos__track, .ucs-logos:has(.ucs-logos__pp input:checked) .ucs-logos__track { animation-play-state: paused; }
-.ucs-logos__pp { position: absolute; right: 8px; bottom: -4px; z-index: 2; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(127, 127, 127, 0.16); cursor: pointer; opacity: 0.55; transition: opacity 0.15s; }
-.ucs-logos__pp:hover, .ucs-logos__pp:focus-within { opacity: 1; }
-.ucs-logos__pp input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
-.ucs-logos__pp span { width: 8px; height: 9px; border-left: 3px solid currentColor; border-right: 3px solid currentColor; }
-.ucs-logos__pp input:checked + span { width: 0; height: 0; border-width: 5px 0 5px 8px; border-style: solid; border-color: transparent transparent transparent currentColor; }
-.ucs-logos__pp:has(input:focus-visible) { outline: 2px solid currentColor; outline-offset: 2px; }
+/* Keyboard focus inside the logos pauses them too. */
+.ucs-logos:focus-within .ucs-logos__track { animation-play-state: paused; }
 /* two identical halves; the left padding makes -50% land exactly on the copy */
 @keyframes ucs-marquee { to { transform: translateX(-50%); } }
 .ucs-logos__grid { display: grid; grid-template-columns: repeat(var(--ucs-logo-cols-m, 3), minmax(0, 1fr)); gap: calc(var(--ucs-logo-gap, 56px) / 2) var(--ucs-logo-gap, 56px); margin: 0; padding: 0; }
@@ -153,8 +141,7 @@
 @media (min-width: 750px) { .ucs-logos__grid { grid-template-columns: repeat(var(--ucs-logo-cols, 5), minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) {
   .ucs-logos__track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; padding: 0; }
-  .ucs-logos__pp { display: none; }
-  .ucs-logos__track [aria-hidden="true"], .ucs-logos__viewport--2 { display: none; }
+    .ucs-logos__track [aria-hidden="true"], .ucs-logos__viewport--2 { display: none; }
 }
 
 /* ---------- FAQ ---------- */
@@ -205,11 +192,11 @@
 .ucs-rv--masonry .ucs-rv__track { display: block; column-count: var(--ucs-rv-cols-m, 1); column-gap: var(--ucs-rv-gap); }
 @media (min-width: 750px) { .ucs-rv--masonry .ucs-rv__track { column-count: var(--ucs-rv-cols, 3); } }
 .ucs-rv--masonry .ucs-rv__card { break-inside: avoid; margin-bottom: var(--ucs-rv-gap); }
-.ucs-rv--carousel .ucs-rv__track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--ucs-rv-cols-m, 1) * var(--ucs-rv-gap)) / (var(--ucs-rv-cols-m, 1) + 0.5)); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+.ucs-rv--carousel .ucs-rv__track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--ucs-rv-cols-m, 1) * var(--ucs-rv-gap)) / (var(--ucs-rv-cols-m, 1) + 0.15)); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
 .ucs-rv--carousel .ucs-rv__track::-webkit-scrollbar { display: none; }
 @media (min-width: 750px) { .ucs-rv--carousel .ucs-rv__track { grid-auto-columns: calc((100% - (var(--ucs-rv-cols, 3) - 1) * var(--ucs-rv-gap)) / var(--ucs-rv-cols, 3)); } }
 .ucs-rv--carousel .ucs-rv__card { scroll-snap-align: start; }
-/* Phones: one and a half cards per view (the half shows there's more), so cards are compact. */
+/* Phones: wide cards with a small part of the next one showing (so shoppers know to swipe). */
 @media (max-width: 749px) {
   .ucs-rv--carousel .ucs-rv__body { gap: 8px; padding: 12px 12px 14px; }
   .ucs-rv--carousel .ucs-rv__text { font-size: 0.9em; line-height: 1.5; }
@@ -231,12 +218,21 @@
 .ucs-rv__media { position: relative; aspect-ratio: 4 / 5; background: rgba(127, 127, 127, 0.15); cursor: pointer; }
 .ucs-rv__media img, .ucs-rv__media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 /* The customer's own photo or chat screenshot: shown whole, at its own shape (never cropped). */
-.ucs-rv__media--shot { display: flex; align-items: center; justify-content: center; aspect-ratio: auto; min-height: 120px; background: var(--ucs-rv-shot, #111); cursor: default; }
+.ucs-rv__media--shot { display: flex; align-items: center; justify-content: center; aspect-ratio: auto; min-height: 120px; background-color: var(--ucs-rv-shot, #111); cursor: default; }
 .ucs-rv__media--shot img { position: static; width: 100%; height: auto; max-height: 460px; object-fit: contain; }
-/* When cards in a row share a height, the screenshot area takes the spare room (screenshot
-   centred on the dark backdrop), so stars, name and product stay together at the bottom. */
-.ucs-rv__card:has(> .ucs-rv__media--shot) .ucs-rv__media--shot { flex: 1 0 auto; }
-.ucs-rv__card:has(> .ucs-rv__media--shot) .ucs-rv__body { flex: none; }
+/* The fill around smaller photos (theme editor: Cards → Space around smaller photos). */
+.ucs-rv--fill-image .ucs-rv__media--shot { background-image: var(--ucs-rv-fill-img, none); background-size: cover; background-position: center; }
+.ucs-rv--fill-pattern .ucs-rv__media--shot { --pat: rgba(127, 127, 127, 0.28); }
+.ucs-rv--fill-pattern.ucs-rv--pat-dots .ucs-rv__media--shot { background-image: radial-gradient(var(--pat) 1.3px, transparent 1.6px); background-size: 14px 14px; }
+.ucs-rv--fill-pattern.ucs-rv--pat-grid .ucs-rv__media--shot { background-image: linear-gradient(var(--pat) 1px, transparent 1px), linear-gradient(90deg, var(--pat) 1px, transparent 1px); background-size: 18px 18px; }
+.ucs-rv--fill-pattern.ucs-rv--pat-lines .ucs-rv__media--shot { background-image: repeating-linear-gradient(45deg, var(--pat) 0 1px, transparent 1px 10px); }
+.ucs-rv--fill-pattern.ucs-rv--pat-chat .ucs-rv__media--shot { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%23fff' stroke-opacity='.09' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 18h26a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6H24l-8 7v-7h-2a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6z'/%3E%3Cpath d='M86 14l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z'/%3E%3Cpath d='M72 78a10 10 0 1 0 20 0a10 10 0 1 0-20 0M78 76h.01M86 76h.01M78 82q4 3 8 0'/%3E%3Cpath d='M20 86c0-6 9-6 9 0c0-6 9-6 9 0c0 7-9 11-9 11s-9-4-9-11z'/%3E%3Cpath d='M100 98l10 4-10 4 3-4z'/%3E%3C/svg%3E"); background-size: 120px 120px; }
+/* Every picture in the section gets the height of the tallest one (measured by ucs-reviews.js). */
+.ucs-rv.is-sized .ucs-rv__media { height: var(--ucs-rv-media-h); aspect-ratio: auto; flex: none; }
+.ucs-rv.is-sized .ucs-rv__media--shot img { max-height: 100%; }
+/* Name/badge/date and product take the same room in every card (also set by the script),
+   so all cards line up. */
+.ucs-rv__prod span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 /* With a picture on top, the channel badge (WhatsApp, Instagram…) sits in the card's top-right corner. */
 .ucs-rv__card.has-media .ucs-rv__src { position: absolute; top: 10px; right: 10px; z-index: 2; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
 .ucs-rv__sound { position: absolute; right: 10px; bottom: 10px; z-index: 2; width: 36px; height: 36px; padding: 8px; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; }
@@ -277,8 +273,9 @@
 .ucs-rv__card--chat .ucs-rv__name { color: #128c7e; }
 .ucs-rv__card--chat .ucs-rv__meta { flex-basis: auto; margin-left: auto; }
 @media (max-width: 749px) {
-  .ucs-cdb__inner { flex-wrap: nowrap; gap: 8px; padding: 7px 38px 7px 10px; }
-  .ucs-cdb__text { min-width: 0; font-size: 0.88em; line-height: 1.2; }
+  /* phones: the text gets its own centred line, timer + button on the line below */
+  .ucs-cdb__inner { flex-wrap: wrap; gap: 4px 8px; padding: 6px 36px 8px 36px; }
+  .ucs-cdb__text { flex-basis: 100%; min-width: 0; overflow: hidden; font-size: 0.88em; line-height: 1.25; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
   .ucs-cdb__btn { flex: none; min-height: 30px; padding: 0 10px; white-space: nowrap; font-size: 0.82em; }
   .ucs-cdb__close { right: 4px; }
 }

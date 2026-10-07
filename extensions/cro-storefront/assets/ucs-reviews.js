@@ -40,11 +40,37 @@
         if (more && more.classList.contains('ucs-rv__more')) more.hidden = t.scrollHeight <= t.clientHeight + 2;
       });
     };
-    measure();
-    window.addEventListener('load', measure);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    /* same size everywhere: every picture as tall as the tallest one (smaller ones sit on the
+       fill), and the name/badge/date and product rows equally tall in every card */
+    var level = function () {
+      root.classList.remove('is-sized');
+      var tallest = 0;
+      root.querySelectorAll('.ucs-rv__media').forEach(function (m) {
+        var w = m.clientWidth, img = m.querySelector('img');
+        // Lazy images aren't loaded yet off-screen: their width/height attributes give the shape.
+        var iw = img && (img.naturalWidth || Number(img.getAttribute('width'))), ih = img && (img.naturalHeight || Number(img.getAttribute('height')));
+        var h = m.classList.contains('ucs-rv__media--shot') ? (iw && ih ? Math.min(460, (w * ih) / iw) : 0) : w * 1.25;
+        tallest = Math.max(tallest, h);
+      });
+      if (tallest > 0) {
+        root.style.setProperty('--ucs-rv-media-h', Math.round(tallest) + 'px');
+        root.classList.add('is-sized');
+      }
+      ['.ucs-rv__who', '.ucs-rv__prod'].forEach(function (sel) {
+        var els = root.querySelectorAll(sel);
+        els.forEach(function (e) { e.style.minHeight = ''; });
+        var max = 0;
+        els.forEach(function (e) { max = Math.max(max, e.offsetHeight); });
+        if (els.length > 1) els.forEach(function (e) { e.style.minHeight = max + 'px'; });
+      });
+    };
+    var settle = function () { measure(); level(); };
+    root.querySelectorAll('.ucs-rv__media img').forEach(function (i) { if (!i.complete) i.addEventListener('load', settle); });
+    settle();
+    window.addEventListener('load', settle);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(settle);
     var rt;
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(measure, 150); });
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(settle, 150); });
 
     /* videos */
     root.querySelectorAll('.ucs-rv__video, .ucs-rv__media video').forEach(function (v) {

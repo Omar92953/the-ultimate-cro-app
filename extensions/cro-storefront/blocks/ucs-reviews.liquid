@@ -51,11 +51,9 @@ assign avg = 0
 if rated > 0
 assign avg = total | times: 1.0 | divided_by: rated | round: 1
 endif
--%}
-{%- if count > 0 or request.design_mode -%}
-<div
-class="ucs ucs-rv ucs-rv--{{ s.layout }}{% if s.clamp == 0 %} ucs-rv--full{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
-style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-rv-cols: {{ s.columns_desktop }}; --ucs-rv-cols-m: {{ s.columns_mobile }}; --ucs-rv-star: {{ s.star_color }}; --ucs-rv-radius: {{ s.radius }}px; --ucs-rv-clamp: {{ s.clamp }};{% if s.card_bg != blank %} --ucs-rv-card: {{ s.card_bg }};{% endif %}{% if s.card_fg != blank %} --ucs-rv-fg: {{ s.card_fg }};{% endif %}{% if s.bg != blank %} background: {{ s.bg }};{% endif %}"
+-%}{%- if count > 0 or request.design_mode -%}<div
+class="ucs ucs-rv ucs-rv--{{ s.layout }} ucs-rv--fill-{{ s.fill }} ucs-rv--pat-{{ s.fill_pattern }}{% if s.clamp == 0 %} ucs-rv--full{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+style="--ucs-rv-shot: {{ s.fill_color }};{% if s.fill == 'image' and s.fill_image %} --ucs-rv-fill-img: url({{ s.fill_image | image_url: width: 1200 }});{% endif %} --ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-rv-cols: {{ s.columns_desktop }}; --ucs-rv-cols-m: {{ s.columns_mobile }}; --ucs-rv-star: {{ s.star_color }}; --ucs-rv-radius: {{ s.radius }}px; --ucs-rv-clamp: {{ s.clamp }};{% if s.card_bg != blank %} --ucs-rv-card: {{ s.card_bg }};{% endif %}{% if s.card_fg != blank %} --ucs-rv-fg: {{ s.card_fg }};{% endif %}{% if s.bg != blank %} background: {{ s.bg }};{% endif %}"
 data-autoplay="{% if s.layout == 'carousel' and s.autoplay %}{{ s.autoplay_seconds }}{% endif %}"
 data-video="{{ s.video_autoplay }}"
 data-more="{{ 'ucs.read_more' | t | escape }}"
@@ -64,34 +62,12 @@ data-unmute="{{ 'ucs.unmute' | t | escape }}"
 data-mute="{{ 'ucs.mute' | t | escape }}"
 {{ block.shopify_attributes }}
 >
-<div class="ucs-wrap">
-{%- if s.heading != blank or s.subheading != blank or show_summary -%}
-<div class="ucs-head ucs-rv__head">
-{%- if s.heading != blank %}<h2>{{ s.heading | escape }}</h2>{% endif -%}
-{%- if s.subheading != blank %}<p>{{ s.subheading | escape }}</p>{% endif -%}
-{%- if show_summary -%}
-<div class="ucs-rv__summary">
+<div class="ucs-wrap">{%- if s.heading != blank or s.subheading != blank or show_summary -%}<div class="ucs-head ucs-rv__head">{%- if s.heading != blank %}<h2>{{ s.heading | escape }}</h2>{% endif -%}{%- if s.subheading != blank %}<p>{{ s.subheading | escape }}</p>{% endif -%}{%- if show_summary -%}<div class="ucs-rv__summary">
 <span class="ucs-rv__avg">{{ avg }}</span>
 <span class="ucs-rv__stars" style="--r: {{ avg }}" role="img" aria-label="{{ 'ucs.stars' | t: rating: avg | escape }}">★★★★★</span>
 <span class="ucs-rv__count">{{ 'ucs.reviews_count' | t: count: rated }}</span>
-</div>
-{%- endif -%}
-</div>
-{%- endif -%}
-{%- if count == 0 -%}
-<p class="ucs-note">{{ 'ucs.reviews_empty' | t }}</p>
-{%- else -%}
-<div class="ucs-rv__viewport">
-<div class="ucs-rv__track"{% if s.layout == 'carousel' %} tabindex="0" aria-roledescription="carousel"{% endif %}>
-{%- assign n = 0 -%}
-{%- for m in items -%}
-{%- assign key = ',' | append: m.system.handle | append: ',' -%}
-{%- unless sel contains key %}{% continue %}{% endunless -%}
-{%- assign n = n | plus: 1 -%}
-{%- if n > s.limit %}{% break %}{% endif -%}
-{%- assign md = m.media.value -%}
-{%- assign src = m.source.value | default: '' -%}
-{%- liquid
+</div>{%- endif -%}</div>{%- endif -%}{%- if count == 0 -%}<p class="ucs-note">{{ 'ucs.reviews_empty' | t }}</p>{%- else -%}<div class="ucs-rv__viewport">
+<div class="ucs-rv__track"{% if s.layout == 'carousel' %} tabindex="0" aria-roledescription="carousel"{% endif %}>{%- assign n = 0 -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless sel contains key %}{% continue %}{% endunless -%}{%- assign n = n | plus: 1 -%}{%- if n > s.limit %}{% break %}{% endif -%}{%- assign md = m.media.value -%}{%- assign src = m.source.value | default: '' -%}{%- liquid
 assign rp = m.product.value
 assign from_prod = false
 if md == blank and product_only == false and rp.featured_image
@@ -114,84 +90,16 @@ assign has_src = false
 if s.show_source and src != blank and src != 'other'
 assign has_src = true
 endif
--%}
-<article class="ucs-rv__card ucs-rv__card--{{ s.card_style }}{% if media_type != blank and s.show_media %} has-media{% endif %}">
-{%- if media_type != blank and s.show_media -%}
-<div class="ucs-rv__media{% if from_prod == false and media_type != 'video' %} ucs-rv__media--shot{% endif %}">
-{%- if media_type == 'video' -%}
-{{ md | video_tag: muted: true, loop: true, playsinline: true, preload: 'none', image_size: '720x', class: 'ucs-rv__video' }}
+-%}<article class="ucs-rv__card ucs-rv__card--{{ s.card_style }}{% if media_type != blank and s.show_media %} has-media{% endif %}">{%- if media_type != blank and s.show_media -%}<div class="ucs-rv__media{% if from_prod == false and media_type != 'video' %} ucs-rv__media--shot{% endif %}">{%- if media_type == 'video' -%}{{ md | video_tag: muted: true, loop: true, playsinline: true, preload: 'none', image_size: '720x', class: 'ucs-rv__video' }}
 <button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="{{ 'ucs.unmute' | t | escape }}"><span class="ucs-i ucs-i--muted" aria-hidden="true"></span><span class="ucs-i ucs-i--sound" aria-hidden="true"></span></button>
-<span class="ucs-rv__play" aria-hidden="true"><span class="ucs-i ucs-i--play" aria-hidden="true"></span></span>
-{%- else -%}
-{%- if from_prod %}{% assign alt = rp.title %}{% else %}{% assign alt = m.name.value %}{% endif -%}
-{{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: alt }}
-{%- endif -%}
-</div>
-{%- endif -%}
-<div class="ucs-rv__body">
-{%- if has_stars or has_src -%}
-<div class="ucs-rv__top">
-{%- if has_stars -%}
-<span class="ucs-rv__stars" style="--r: {{ m.rating.value }}" role="img" aria-label="{{ 'ucs.stars' | t: rating: m.rating.value | escape }}">★★★★★</span>
-{%- endif -%}
-{%- if has_src -%}
-{%- if m.source_url.value != blank -%}
-<a class="ucs-rv__src ucs-rv__src--{{ src }}" href="{{ m.source_url.value | escape }}" target="_blank" rel="noopener nofollow" title="{{ 'ucs.on_source' | t: source: src_name | escape }}" aria-label="{{ 'ucs.on_source' | t: source: src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></a>
-{%- else -%}
-<span class="ucs-rv__src ucs-rv__src--{{ src }}" title="{{ src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></span>
-{%- endif -%}
-{%- endif -%}
-</div>
-{%- endif -%}
-{%- if m.text.value != blank -%}
-<div class="ucs-rv__text">{{ m.text.value | escape | newline_to_br }}</div>
-<button type="button" class="ucs-rv__more" hidden>{{ 'ucs.read_more' | t }}</button>
-{%- endif -%}
-<footer class="ucs-rv__who">
-<span class="ucs-rv__name">{{ m.name.value | escape }}</span>
-{%- if s.show_verified and m.verified.value == true -%}
-<span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>{{ 'ucs.verified' | t }}</span>
-{%- endif -%}
-{%- capture meta -%}
-{%- if s.show_location and m.location.value != blank %}{{ m.location.value | escape }}{% endif -%}
-{%- if s.show_date and m.date.value != blank -%}
-{%- if s.show_location and m.location.value != blank %} · {% endif -%}
-{{ m.date.value | date: '%b %-d, %Y' }}
-{%- endif -%}
-{%- endcapture -%}
-{%- if meta != blank %}<span class="ucs-rv__meta">{{ meta }}</span>{% endif -%}
-</footer>
-{%- if s.show_product and product_only == false and rp != blank -%}
-<a class="ucs-rv__prod" href="{{ rp.url }}">
-{%- if rp.featured_image and from_prod == false %}{{ rp.featured_image | image_url: width: 96 | image_tag: width: 40, height: 40, loading: 'lazy', alt: '' }}{% endif -%}
-<span>{{ rp.title | escape }}</span>
-</a>
-{%- endif -%}
-</div>
-</article>
-{%- endfor -%}
-</div>
-</div>
-{%- if s.layout == 'carousel' -%}
-<div class="ucs-rv__nav">
+<span class="ucs-rv__play" aria-hidden="true"><span class="ucs-i ucs-i--play" aria-hidden="true"></span></span>{%- else -%}{%- if from_prod %}{% assign alt = rp.title %}{% else %}{% assign alt = m.name.value %}{% endif -%}{{ md | image_url: width: 720 | image_tag: widths: '360, 540, 720', sizes: '(min-width: 750px) 33vw, 90vw', loading: 'lazy', class: 'ucs-rv__img', alt: alt }}{%- endif -%}</div>{%- endif -%}<div class="ucs-rv__body">{%- if has_stars or has_src -%}<div class="ucs-rv__top">{%- if has_stars -%}<span class="ucs-rv__stars" style="--r: {{ m.rating.value }}" role="img" aria-label="{{ 'ucs.stars' | t: rating: m.rating.value | escape }}">★★★★★</span>{%- endif -%}{%- if has_src -%}{%- if m.source_url.value != blank -%}<a class="ucs-rv__src ucs-rv__src--{{ src }}" href="{{ m.source_url.value | escape }}" target="_blank" rel="noopener nofollow" title="{{ 'ucs.on_source' | t: source: src_name | escape }}" aria-label="{{ 'ucs.on_source' | t: source: src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></a>{%- else -%}<span class="ucs-rv__src ucs-rv__src--{{ src }}" title="{{ src_name | escape }}"><span class="ucs-i ucs-i--{{ src }}" aria-hidden="true"></span></span>{%- endif -%}{%- endif -%}</div>{%- endif -%}{%- if s.show_text and m.text.value != blank -%}<div class="ucs-rv__text">{{ m.text.value | escape | newline_to_br }}</div>
+<button type="button" class="ucs-rv__more" hidden>{{ 'ucs.read_more' | t }}</button>{%- endif -%}<footer class="ucs-rv__who">
+<span class="ucs-rv__name">{{ m.name.value | escape }}</span>{%- if s.show_verified and m.verified.value == true -%}<span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>{{ 'ucs.verified' | t }}</span>{%- endif -%}{%- capture meta -%}{%- if s.show_location and m.location.value != blank %}{{ m.location.value | escape }}{% endif -%}{%- if s.show_date and m.date.value != blank -%}{%- if s.show_location and m.location.value != blank %} · {% endif -%}{{ m.date.value | date: '%b %-d, %Y' }}{%- endif -%}{%- endcapture -%}{%- if meta != blank %}<span class="ucs-rv__meta">{{ meta }}</span>{% endif -%}</footer>{%- if s.show_product and product_only == false and rp != blank -%}<a class="ucs-rv__prod" href="{{ rp.url }}">{%- if rp.featured_image and from_prod == false %}{{ rp.featured_image | image_url: width: 96 | image_tag: width: 40, height: 40, loading: 'lazy', alt: '' }}{% endif -%}<span>{{ rp.title | escape }}</span>
+</a>{%- endif -%}</div>
+</article>{%- endfor -%}</div>
+</div>{%- if s.layout == 'carousel' -%}<div class="ucs-rv__nav">
 <button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>
 <button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button>
+</div>{%- endif -%}{%- if s.schema and product_only and rated > 0 -%}{%- capture entries -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- if sel contains key and m.rating.value > 0 -%},{"@type":"Review","author":{"@type":"Person","name":{{ m.name.value | json }}},"reviewRating":{"@type":"Rating","ratingValue":{{ m.rating.value }},"bestRating":5}{% if m.text.value != blank %},"reviewBody":{{ m.text.value | json }}{% endif %}{% if m.date.value != blank %},"datePublished":{{ m.date.value | date: '%Y-%m-%d' | json }}{% endif %}}{%- endif -%}{%- endfor -%}{%- endcapture -%}<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":{{ product.title | json }},"url":{{ shop.url | append: product.url | json }}{% if product.featured_image %},"image":{{ product.featured_image | image_url: width: 1200 | prepend: 'https:' | json }}{% endif %},"aggregateRating":{"@type":"AggregateRating","ratingValue":{{ avg }},"reviewCount":{{ rated }},"bestRating":5},"review":[{{ entries | strip | remove_first: ',' }}]}</script>{%- endif -%}{%- endif -%}</div>
 </div>
-{%- endif -%}
-{%- if s.schema and product_only and rated > 0 -%}
-{%- capture entries -%}
-{%- for m in items -%}
-{%- assign key = ',' | append: m.system.handle | append: ',' -%}
-{%- if sel contains key and m.rating.value > 0 -%}
-,{"@type":"Review","author":{"@type":"Person","name":{{ m.name.value | json }}},"reviewRating":{"@type":"Rating","ratingValue":{{ m.rating.value }},"bestRating":5}{% if m.text.value != blank %},"reviewBody":{{ m.text.value | json }}{% endif %}{% if m.date.value != blank %},"datePublished":{{ m.date.value | date: '%Y-%m-%d' | json }}{% endif %}}
-{%- endif -%}
-{%- endfor -%}
-{%- endcapture -%}
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":{{ product.title | json }},"url":{{ shop.url | append: product.url | json }}{% if product.featured_image %},"image":{{ product.featured_image | image_url: width: 1200 | prepend: 'https:' | json }}{% endif %},"aggregateRating":{"@type":"AggregateRating","ratingValue":{{ avg }},"reviewCount":{{ rated }},"bestRating":5},"review":[{{ entries | strip | remove_first: ',' }}]}</script>
-{%- endif -%}
-{%- endif -%}
-</div>
-</div>
-<script src="{{ 'ucs-reviews.js' | asset_url }}" defer></script>
-{%- endif -%}
-{% schema %}{"name":"Customer reviews","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.62"},{"type":"header","content":"Text"},{"type":"text","id":"heading","label":"Heading","default":"What our customers say"},{"type":"text","id":"subheading","label":"Subheading","default":"Real feedback from real customers."},{"type":"range","id":"heading_size","label":"t:s.3q","min":18,"max":56,"step":2,"unit":"px","default":30},{"type":"checkbox","id":"summary","label":"t:s.63","default":true},{"type":"header","content":"t:s.64"},{"type":"select","id":"filter","label":"Show","default":"all","options":[{"value":"all","label":"All reviews"},{"value":"featured","label":"t:s.65"},{"value":"product","label":"t:s.66"}]},{"type":"checkbox","id":"fallback","label":"t:s.67","default":true,"visible_if":"{{ block.settings.filter == 'product' }}"},{"type":"range","id":"limit","label":"t:s.68","min":3,"max":40,"step":1,"default":12},{"type":"header","content":"Layout"},{"type":"select","id":"layout","label":"Layout","default":"carousel","options":[{"value":"carousel","label":"Carousel"},{"value":"grid","label":"Grid"},{"value":"masonry","label":"t:s.69"}]},{"type":"range","id":"columns_desktop","label":"t:s.6a","min":1,"max":5,"step":1,"default":3},{"type":"select","id":"columns_mobile","label":"t:s.6b","default":"1","options":[{"value":"1","label":"One"},{"value":"2","label":"Two"}]},{"type":"checkbox","id":"autoplay","label":"t:s.6c","default":false,"visible_if":"{{ block.settings.layout == 'carousel' }}"},{"type":"range","id":"autoplay_seconds","label":"Every","min":3,"max":10,"step":1,"unit":"s","default":5,"visible_if":"{{ block.settings.layout == 'carousel' and block.settings.autoplay }}"},{"type":"header","content":"Cards"},{"type":"select","id":"card_style","label":"Card style","default":"classic","options":[{"value":"classic","label":"Classic"},{"value":"chat","label":"t:s.6d"},{"value":"minimal","label":"t:s.6e"}]},{"type":"checkbox","id":"show_media","label":"t:s.6f","default":true},{"type":"checkbox","id":"video_autoplay","label":"t:s.6g","default":true},{"type":"checkbox","id":"show_stars","label":"Show stars","default":true},{"type":"checkbox","id":"show_source","label":"t:s.6h","default":true},{"type":"checkbox","id":"show_verified","label":"t:s.6i","default":true},{"type":"checkbox","id":"show_location","label":"t:s.6j","default":true},{"type":"checkbox","id":"show_date","label":"Show date","default":true},{"type":"checkbox","id":"show_product","label":"t:s.6k","default":true},{"type":"range","id":"clamp","label":"t:s.6l","min":0,"max":12,"step":1,"unit":"ln","default":5,"info":"t:s.6m"},{"type":"color","id":"star_color","label":"Stars","default":"#f5a623"},{"type":"color","id":"card_bg","label":"t:s.41","info":"t:s.6n"},{"type":"color","id":"card_fg","label":"Card text"},{"type":"color","id":"bg","label":"t:s.3k"},{"type":"range","id":"radius","label":"t:s.40","min":0,"max":28,"step":2,"unit":"px","default":14},{"type":"header","content":"More"},{"type":"checkbox","id":"schema","label":"t:s.6o","default":true,"info":"t:s.6p"},{"type":"range","id":"padding_top","label":"Top padding","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"range","id":"padding_bottom","label":"t:s.3n","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}
+<script src="{{ 'ucs-reviews.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Customer reviews","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.62"},{"type":"header","content":"Text"},{"type":"text","id":"heading","label":"Heading","default":"What our customers say"},{"type":"text","id":"subheading","label":"Subheading","default":"Real feedback from real customers."},{"type":"range","id":"heading_size","label":"t:s.3q","min":18,"max":56,"step":2,"unit":"px","default":30},{"type":"checkbox","id":"summary","label":"t:s.63","default":true},{"type":"header","content":"t:s.64"},{"type":"select","id":"filter","label":"Show","default":"all","options":[{"value":"all","label":"All reviews"},{"value":"featured","label":"t:s.65"},{"value":"product","label":"t:s.66"}]},{"type":"checkbox","id":"fallback","label":"t:s.67","default":true,"visible_if":"{{ block.settings.filter == 'product' }}"},{"type":"range","id":"limit","label":"t:s.68","min":3,"max":40,"step":1,"default":12},{"type":"header","content":"Layout"},{"type":"select","id":"layout","label":"Layout","default":"carousel","options":[{"value":"carousel","label":"Carousel"},{"value":"grid","label":"Grid"},{"value":"masonry","label":"t:s.69"}]},{"type":"range","id":"columns_desktop","label":"t:s.6a","min":1,"max":5,"step":1,"default":3},{"type":"select","id":"columns_mobile","label":"t:s.6b","default":"1","options":[{"value":"1","label":"One"},{"value":"2","label":"Two"}]},{"type":"checkbox","id":"autoplay","label":"t:s.6c","default":false,"visible_if":"{{ block.settings.layout == 'carousel' }}"},{"type":"range","id":"autoplay_seconds","label":"Every","min":3,"max":10,"step":1,"unit":"s","default":5,"visible_if":"{{ block.settings.layout == 'carousel' and block.settings.autoplay }}"},{"type":"header","content":"Cards"},{"type":"select","id":"card_style","label":"Card style","default":"classic","options":[{"value":"classic","label":"Classic"},{"value":"chat","label":"t:s.6d"},{"value":"minimal","label":"t:s.6e"}]},{"type":"checkbox","id":"show_text","label":"t:s.6f","default":true},{"type":"checkbox","id":"show_media","label":"t:s.6g","default":true},{"type":"select","id":"fill","label":"t:s.6h","default":"color","options":[{"value":"color","label":"Colour"},{"value":"pattern","label":"Pattern"},{"value":"image","label":"Image"}],"info":"t:s.6i"},{"type":"color","id":"fill_color","label":"Fill colour","default":"#111111"},{"type":"select","id":"fill_pattern","label":"Pattern","default":"chat","options":[{"value":"chat","label":"t:s.6j"},{"value":"dots","label":"Dots"},{"value":"grid","label":"Grid"},{"value":"lines","label":"t:s.6k"}],"visible_if":"{{ block.settings.fill == 'pattern' }}"},{"type":"image_picker","id":"fill_image","label":"Fill image","visible_if":"{{ block.settings.fill == 'image' }}"},{"type":"checkbox","id":"video_autoplay","label":"t:s.6l","default":true},{"type":"checkbox","id":"show_stars","label":"Show stars","default":true},{"type":"checkbox","id":"show_source","label":"t:s.6m","default":true},{"type":"checkbox","id":"show_verified","label":"t:s.6n","default":true},{"type":"checkbox","id":"show_location","label":"t:s.6o","default":true},{"type":"checkbox","id":"show_date","label":"Show date","default":true},{"type":"checkbox","id":"show_product","label":"t:s.6p","default":true},{"type":"range","id":"clamp","label":"t:s.6q","min":0,"max":12,"step":1,"unit":"ln","default":5,"info":"t:s.6r"},{"type":"color","id":"star_color","label":"Stars","default":"#f5a623"},{"type":"color","id":"card_bg","label":"t:s.41","info":"t:s.6s"},{"type":"color","id":"card_fg","label":"Card text"},{"type":"color","id":"bg","label":"t:s.3k"},{"type":"range","id":"radius","label":"t:s.40","min":0,"max":28,"step":2,"unit":"px","default":14},{"type":"header","content":"More"},{"type":"checkbox","id":"schema","label":"t:s.6t","default":true,"info":"t:s.6u"},{"type":"range","id":"padding_top","label":"Top padding","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"range","id":"padding_bottom","label":"t:s.3n","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}

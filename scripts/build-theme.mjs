@@ -78,11 +78,15 @@ export function minify(source, file = "", strings = new Map()) {
   // Inside {% liquid %} tags: drop "# …" comment lines.
   s = s.replace(/\{%-?\s*liquid\b[\s\S]*?-?%\}/g, (tag) => tag.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n"));
   // Indentation and blank lines (newlines are kept: {% liquid %} needs them).
-  return s
+  s = s
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean)
-    .join("\n") + "\n";
+    .join("\n");
+  // A line break next to a whitespace-trimming tag ("-%}", "-}}", "{%-", "{{-") never reaches the
+  // page, so it can go. Lines inside {% liquid %} neither end nor start that way, so they keep theirs.
+  // Never right after a "{": "{" + "{%-" would read as an output tag.
+  return s.replace(/(-%\}|-\}\})\n(?!\{(?![{%]))/g, "$1").replace(/([^{])\n(?=\{%-|\{\{-)/g, "$1") + "\n";
 }
 
 function sources() {

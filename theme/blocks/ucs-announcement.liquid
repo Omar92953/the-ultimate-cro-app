@@ -49,7 +49,7 @@
     style="--ucs-ab-bg: {{ block.settings.bg }}; --ucs-ab-fg: {{ block.settings.fg }}; --ucs-ab-fs: {{ block.settings.font_size }}px; --ucs-ab-py: {{ block.settings.padding }}px;"
     role="region"
     aria-label="{{ 'ucs.announcement' | t | escape }}"
-    data-interval="{{ block.settings.interval }}" data-pause="{{ 'ucs.pause' | t | escape }}" data-play="{{ 'ucs.play' | t | escape }}"
+    data-interval="{{ block.settings.interval }}"
     {%- if block.settings.dismissible %} data-dismiss{% endif %}
     {%- if block.settings.free_shipping and threshold > 0 %}
       data-fs-threshold="{{ threshold }}"

@@ -33,41 +33,15 @@ assign has_buttons = false
 if s.button_1_label != blank or s.button_2_label != blank
 assign has_buttons = true
 endif
--%}
-<div
+-%}<div
 class="ucs ucs-hero ucs-hero--dv-{{ s.position_desktop | slice: 0 }} ucs-hero--dh-{{ s.position_desktop | slice: 1 }} ucs-hero--mv-{{ s.position_mobile | slice: 0 }} ucs-hero--mh-{{ s.position_mobile | slice: 1 }}{% if s.full_width %} ucs-hero--full{% endif %}{% if s.zoom %} ucs-hero--zoom{% endif %}{% if s.animate %} ucs-hero--animate{% endif %}{% if s.text_box %} ucs-hero--box{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
 style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-hero-hd: {{ h_d }}; --ucs-hero-hm: {{ h_m }}; --ucs-hero-ard: {{ ar_d }}; --ucs-hero-arm: {{ ar_m }}; --ucs-hero-fpd: {{ fp_d }}; --ucs-hero-fpm: {{ fp_m }}; --ucs-hero-ov: {{ s.overlay }}; --ucs-hero-op: {{ opacity }}; --ucs-hero-fg: {{ s.text_color }}; --ucs-hero-hs: {{ s.heading_size }}px; --ucs-hero-radius: {{ s.radius }}px; --ucs-accent: {{ s.button_bg }}; --ucs-on-accent: {{ s.button_fg }};"
 {{ block.shopify_attributes }}
 >
 <div class="ucs-hero__frame">
-<picture class="ucs-hero__media">
-{%- if img_d != blank -%}
-{%- if s.image_mobile != blank -%}
-<source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 500 }} 500w, {{ img_m | image_url: width: 750 }} 750w, {{ img_m | image_url: width: 1100 }} 1100w, {{ img_m | image_url: width: 1500 }} 1500w" sizes="100vw" width="{{ img_m.width }}" height="{{ img_m.height }}">
-{%- endif -%}
-{{ img_d | image_url: width: 3000 | image_tag: widths: '750, 1100, 1500, 2000, 2500, 3000', sizes: '100vw', loading: s.loading, fetchpriority: s.fetchpriority, class: 'ucs-hero__img', alt: img_d.alt }}
-{%- else -%}
-{{ 'hero-apparel-1' | placeholder_svg_tag: 'ucs-hero__img ucs-hero__ph' }}
-{%- endif -%}
-</picture>
-<div class="ucs-hero__overlay" aria-hidden="true"></div>
-{%- if s.link != blank -%}
-<a class="ucs-hero__link" href="{{ s.link }}" aria-label="{{ s.heading | default: shop.name | escape }}"></a>
-{%- endif -%}
-{%- if s.heading != blank or s.text != blank or has_buttons -%}
-<div class="ucs-hero__content">
-<div class="ucs-hero__inner">
-{%- if s.heading != blank %}<h2 class="ucs-hero__title">{{ s.heading | escape }}</h2>{% endif -%}
-{%- if s.text != blank %}<div class="ucs-hero__text">{{ s.text }}</div>{% endif -%}
-{%- if has_buttons -%}
-<div class="ucs-hero__buttons">
-{%- if s.button_1_label != blank %}<a class="ucs-btn" href="{{ s.button_1_link | default: routes.all_products_collection_url }}">{{ s.button_1_label | escape }}</a>{% endif -%}
-{%- if s.button_2_label != blank %}<a class="ucs-btn ucs-btn--outline" href="{{ s.button_2_link | default: routes.root_url }}">{{ s.button_2_label | escape }}</a>{% endif -%}
-</div>
-{%- endif -%}
-</div>
-</div>
-{%- endif -%}
-</div>
+<picture class="ucs-hero__media">{%- if img_d != blank -%}{%- if s.image_mobile != blank -%}<source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 500 }} 500w, {{ img_m | image_url: width: 750 }} 750w, {{ img_m | image_url: width: 1100 }} 1100w, {{ img_m | image_url: width: 1500 }} 1500w" sizes="100vw" width="{{ img_m.width }}" height="{{ img_m.height }}">{%- endif -%}{{ img_d | image_url: width: 3000 | image_tag: widths: '750, 1100, 1500, 2000, 2500, 3000', sizes: '100vw', loading: s.loading, fetchpriority: s.fetchpriority, class: 'ucs-hero__img', alt: img_d.alt }}{%- else -%}{{ 'hero-apparel-1' | placeholder_svg_tag: 'ucs-hero__img ucs-hero__ph' }}{%- endif -%}</picture>
+<div class="ucs-hero__overlay" aria-hidden="true"></div>{%- if s.link != blank -%}<a class="ucs-hero__link" href="{{ s.link }}" aria-label="{{ s.heading | default: shop.name | escape }}"></a>{%- endif -%}{%- if s.heading != blank or s.text != blank or has_buttons -%}<div class="ucs-hero__content">
+<div class="ucs-hero__inner">{%- if s.heading != blank %}<h2 class="ucs-hero__title">{{ s.heading | escape }}</h2>{% endif -%}{%- if s.text != blank %}<div class="ucs-hero__text">{{ s.text }}</div>{% endif -%}{%- if has_buttons -%}<div class="ucs-hero__buttons">{%- if s.button_1_label != blank %}<a class="ucs-btn" href="{{ s.button_1_link | default: routes.all_products_collection_url }}">{{ s.button_1_label | escape }}</a>{% endif -%}{%- if s.button_2_label != blank %}<a class="ucs-btn ucs-btn--outline" href="{{ s.button_2_link | default: routes.root_url }}">{{ s.button_2_label | escape }}</a>{% endif -%}</div>{%- endif -%}</div>
+</div>{%- endif -%}</div>
 </div>
 {% schema %}{"name":"Hero image","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"header","content":"Images"},{"type":"image_picker","id":"image_desktop","label":"t:s.46","info":"t:s.47"},{"type":"image_picker","id":"image_mobile","label":"t:s.48","info":"t:s.49"},{"type":"url","id":"link","label":"t:s.4a"},{"type":"select","id":"height_desktop","label":"t:s.4b","default":"adapt","options":[{"value":"adapt","label":"t:s.4c"},{"value":"small","label":"Small"},{"value":"medium","label":"Medium"},{"value":"large","label":"Large"},{"value":"full","label":"Full screen"}]},{"type":"select","id":"height_mobile","label":"t:s.4d","default":"adapt","options":[{"value":"adapt","label":"t:s.4c"},{"value":"small","label":"Small"},{"value":"medium","label":"Medium"},{"value":"large","label":"Large"},{"value":"full","label":"Full screen"}]},{"type":"header","content":"t:s.4e"},{"type":"text","id":"heading","label":"Heading","default":"New collection"},{"type":"range","id":"heading_size","label":"t:s.3q","min":20,"max":88,"step":2,"unit":"px","default":48},{"type":"richtext","id":"text","label":"Text","default":"<p>Made to be worn every day.</p>"},{"type":"text","id":"button_1_label","label":"t:s.4f","default":"Shop now"},{"type":"url","id":"button_1_link","label":"t:s.4g"},{"type":"text","id":"button_2_label","label":"t:s.4h"},{"type":"url","id":"button_2_link","label":"t:s.4i"},{"type":"header","content":"t:s.4j"},{"type":"select","id":"position_desktop","label":"On desktop","default":"ml","options":[{"value":"tl","label":"Top left"},{"value":"tc","label":"Top centre"},{"value":"tr","label":"Top right"},{"value":"ml","label":"Middle left"},{"value":"mc","label":"t:s.4k"},{"value":"mr","label":"t:s.4l"},{"value":"bl","label":"Bottom left"},{"value":"bc","label":"t:s.4m"},{"value":"br","label":"t:s.4n"}]},{"type":"select","id":"position_mobile","label":"On mobile","default":"bc","options":[{"value":"tl","label":"Top left"},{"value":"tc","label":"Top centre"},{"value":"ml","label":"Middle left"},{"value":"mc","label":"t:s.4k"},{"value":"bl","label":"Bottom left"},{"value":"bc","label":"t:s.4m"}]},{"type":"checkbox","id":"text_box","label":"t:s.4o","default":false},{"type":"header","content":"Look"},{"type":"color","id":"text_color","label":"Text","default":"#ffffff"},{"type":"color","id":"button_bg","label":"Button","default":"#ffffff"},{"type":"color","id":"button_fg","label":"Button text","default":"#121212"},{"type":"color","id":"overlay","label":"Overlay","default":"#000000"},{"type":"range","id":"overlay_opacity","label":"t:s.4p","min":0,"max":90,"step":5,"unit":"%","default":25},{"type":"checkbox","id":"full_width","label":"Full width","default":true},{"type":"range","id":"radius","label":"t:s.4q","min":0,"max":40,"step":2,"unit":"px","default":16},{"type":"checkbox","id":"zoom","label":"t:s.4r","default":false},{"type":"checkbox","id":"animate","label":"t:s.4s","default":true},{"type":"header","content":"t:s.4t"},{"type":"range","id":"padding_top","label":"Top padding","min":0,"max":80,"step":4,"unit":"px","default":0},{"type":"range","id":"padding_bottom","label":"t:s.3n","min":0,"max":80,"step":4,"unit":"px","default":0},{"type":"select","id":"loading","label":"t:s.4u","default":"eager","options":[{"value":"eager","label":"t:s.4v"},{"value":"lazy","label":"t:s.4w"}]},{"type":"select","id":"fetchpriority","label":"Priority","default":"high","options":[{"value":"high","label":"t:s.4x"},{"value":"auto","label":"Normal"}]},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}

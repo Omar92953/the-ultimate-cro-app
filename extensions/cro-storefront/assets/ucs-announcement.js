@@ -76,7 +76,7 @@
   if (!msgs.length) { el.remove(); return; }
 
   /* ---------- rotation ---------- */
-  var i = 0, timer2 = null, paused = false, stopped = false, track = el.querySelector('.ucs-ab__track');
+  var i = 0, timer2 = null, paused = false, track = el.querySelector('.ucs-ab__track');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var ms = Math.max(2, Number(el.getAttribute('data-interval')) || 4) * 1000;
   function show(n) {
@@ -91,7 +91,7 @@
   }
   function play() {
     clearInterval(timer2);
-    var auto = msgs.length > 1 && !paused && !stopped && !reduce;
+    var auto = msgs.length > 1 && !paused && !reduce;
     if (auto) timer2 = setInterval(function () { show(i + 1); }, ms);
     // Screen readers hear messages the shopper switches to, not every automatic rotation.
     if (track) track.setAttribute('aria-live', auto ? 'off' : 'polite');
@@ -102,21 +102,6 @@
       b.hidden = false;
       b.addEventListener('click', function () { show(i + Number(b.getAttribute('data-dir'))); play(); });
     });
-    if (!reduce) {
-      // A pause button (WCAG 2.2.2): moving content must be stoppable without a mouse.
-      var pp = document.createElement('button');
-      pp.type = 'button';
-      pp.className = 'ucs-ab__pp';
-      var label = function () {
-        pp.setAttribute('aria-label', el.getAttribute(stopped ? 'data-play' : 'data-pause') || (stopped ? 'Play' : 'Pause'));
-        pp.setAttribute('aria-pressed', String(stopped));
-        pp.innerHTML = '<span class="ucs-ab__pp-i' + (stopped ? ' is-play' : '') + '" aria-hidden="true"></span>';
-      };
-      label();
-      pp.addEventListener('click', function () { stopped = !stopped; label(); play(); });
-      var inner = el.querySelector('.ucs-ab__inner');
-      inner.insertBefore(pp, el.querySelector('.ucs-ab__close'));
-    }
     el.addEventListener('mouseenter', function () { paused = true; play(); });
     el.addEventListener('mouseleave', function () { paused = false; play(); });
     el.addEventListener('focusin', function () { paused = true; play(); });
