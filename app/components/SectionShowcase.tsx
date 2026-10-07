@@ -1,13 +1,13 @@
 /**
  * Section cards on Home: previews of the section itself (centred) that scroll with small arrows,
- * a floating action pill, and the name + status underneath.
+ * and underneath the name, one status line with the next step, a bookmark and a ⋯ menu.
  * Previews are decorative (aria-hidden) and scale with the card (sizes are in em, the root
  * font-size follows the card width through container query units).
  *
  * Photos: Unsplash (free to use under the Unsplash License, no attribution required), loaded
  * from images.unsplash.com as Unsplash asks. Video: MDN's CC0 sample clip.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import s from "./SectionShowcase.module.css";
 
@@ -25,37 +25,41 @@ function Go(props: Target & { className: string; children: ReactNode; label?: st
   );
 }
 
+export type CardMenuItem = (Target & { label: string }) | { label: string; onClick: () => void };
+
 export function SectionCard(props: {
   title: string;
+  /** One line under the name: what state it's in, and the next step when one is needed. */
   status: { tone: "success" | "warning" | "neutral"; text: string };
-  action: Target & { label: string; done?: boolean };
+  next?: Target & { label: string };
   open: Target;
   /** One or more looks of the section; arrows scroll between them. */
   previews: ReactNode[];
-  /** Features can be switched off without removing them from the theme. */
-  toggle?: { on: boolean; onChange: (on: boolean) => void };
+  /** Everything else (manage, turn on/off, theme editor) lives in the ⋯ menu. */
+  menu?: CardMenuItem[];
   off?: boolean;
   /** Bookmark: saved cards are listed under Home → Saved. */
   save?: { saved: boolean; onChange: (saved: boolean) => void };
 }) {
   const [index, setIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const count = props.previews.length;
   const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [menuOpen]);
   return (
     <div className={`${s.card} ${props.off ? s.off : ""}`}>
-      {props.toggle ? (
-        <button
-          type="button"
-          className={`${s.toggle} ${props.toggle.on ? s.toggleOn : ""}`}
-          role="switch"
-          aria-checked={props.toggle.on}
-          aria-label={`${props.title}: ${props.toggle.on ? "on" : "off"}`}
-          onClick={() => props.toggle!.onChange(!props.toggle!.on)}
-        >
-          <span className={s.knob} />
-          {props.toggle.on ? "On" : "Off"}
-        </button>
-      ) : null}
       <div className={s.stage}>
         <Go className={s.stageLink} href={props.open.href} external={props.open.external} label={`Open ${props.title}`}>
           <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-hidden="true">
@@ -89,30 +93,83 @@ export function SectionCard(props: {
           </>
         ) : null}
       </div>
-      <Go className={`${s.pill} ${props.action.done ? s.pillDone : ""}`} href={props.action.href} external={props.action.external}>
-        <span aria-hidden="true">{props.action.done ? "✓" : "+"}</span> {props.action.label}
-      </Go>
       <div className={s.foot}>
-        <Go className={s.title} href={props.open.href} external={props.open.external}>
-          {props.title}
-        </Go>
-        <span className={s.footEnd}>
-          <span className={`${s.status} ${s[props.status.tone]}`}>{props.status.text}</span>
-          {props.save ? (
-            <button
-              type="button"
-              className={`${s.save} ${props.save.saved ? s.saveOn : ""}`}
-              aria-pressed={props.save.saved}
-              aria-label={props.save.saved ? `Remove ${props.title} from saved` : `Save ${props.title}`}
-              title={props.save.saved ? "Saved" : "Save"}
-              onClick={() => props.save!.onChange(!props.save!.saved)}
-            >
-              <svg viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M5.5 3h9A1.5 1.5 0 0 1 16 4.5V17l-6-3.6L4 17V4.5A1.5 1.5 0 0 1 5.5 3Z" />
-              </svg>
-            </button>
+        <div className={s.head}>
+          <Go className={s.title} href={props.open.href} external={props.open.external}>
+            {props.title}
+          </Go>
+          <span className={s.footEnd}>
+            {props.save ? (
+              <button
+                type="button"
+                className={`${s.iconBtn} ${s.save} ${props.save.saved ? s.saveOn : ""}`}
+                aria-pressed={props.save.saved}
+                aria-label={props.save.saved ? `Remove ${props.title} from saved` : `Save ${props.title}`}
+                title={props.save.saved ? "Saved" : "Save"}
+                onClick={() => props.save!.onChange(!props.save!.saved)}
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M5.5 3h9A1.5 1.5 0 0 1 16 4.5V17l-6-3.6L4 17V4.5A1.5 1.5 0 0 1 5.5 3Z" />
+                </svg>
+              </button>
+            ) : null}
+            {props.menu?.length ? (
+              <div className={s.menuWrap} ref={menuRef}>
+                <button
+                  type="button"
+                  className={`${s.iconBtn} ${menuOpen ? s.iconBtnOn : ""}`}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  aria-label={`Manage ${props.title}`}
+                  title="Manage"
+                  onClick={() => setMenuOpen((o) => !o)}
+                >
+                  <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                    <circle cx="4.5" cy="10" r="1.5" />
+                    <circle cx="10" cy="10" r="1.5" />
+                    <circle cx="15.5" cy="10" r="1.5" />
+                  </svg>
+                </button>
+                {menuOpen ? (
+                  <div className={s.menu} role="menu">
+                    {props.menu.map((m) =>
+                      "onClick" in m ? (
+                        <button
+                          key={m.label}
+                          type="button"
+                          role="menuitem"
+                          className={s.menuItem}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            m.onClick();
+                          }}
+                        >
+                          {m.label}
+                        </button>
+                      ) : (
+                        <span key={m.label} role="none" onClick={() => setMenuOpen(false)}>
+                          <Go className={s.menuItem} href={m.href} external={m.external}>
+                            {m.label}
+                            {m.external ? <span aria-hidden="true"> ↗</span> : null}
+                          </Go>
+                        </span>
+                      ),
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </span>
+        </div>
+        <div className={s.statusLine}>
+          <span className={`${s.dotTone} ${s[props.status.tone]}`} aria-hidden="true" />
+          <span className={s.statusText}>{props.status.text}</span>
+          {props.next ? (
+            <Go className={s.next} href={props.next.href} external={props.next.external}>
+              {props.next.label} →
+            </Go>
           ) : null}
-        </span>
+        </div>
       </div>
     </div>
   );

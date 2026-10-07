@@ -55,6 +55,7 @@ import {
   SalesPopShowcase,
   SalesPopStackShowcase,
   SectionCard,
+  type CardMenuItem,
   StickyMobileShowcase,
   StickyShowcase,
   TrustGridShowcase,
@@ -260,22 +261,8 @@ const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() =
   { key: "salesPop", title: "Sales pop-ups", Previews: [SalesPopShowcase, SalesPopStackShowcase] },
 ];
 
-function sectionStatus(list: SectionKind | null, counts: { total: number; shown: number } | null, installed: boolean | null, embed: boolean): Status {
-  if (list && counts && !counts.total) return { tone: "warning", text: "Not set up", next: "create" };
-  if (installed === false) return { tone: "warning", text: embed ? "Turned off" : "Not in theme", next: "theme" };
-  if (installed === null && !list) return { tone: "neutral", text: "Theme editor", next: "theme" };
-  if (list && counts) return { tone: "success", text: `Live · ${counts.shown} shown`, next: null };
-  return { tone: "success", text: "Live", next: null };
-}
-
-type Status = { tone: "success" | "warning" | "neutral"; text: string; next: "create" | "theme" | null };
-
-function featureStatus(on: boolean, count: number, noun: string, installed: boolean | null): Status {
-  if (!on) return { tone: "neutral", text: "Off", next: null };
-  if (!count) return { tone: "warning", text: "Not set up", next: "create" };
-  if (installed === false) return { tone: "warning", text: "Not in theme", next: "theme" };
-  return { tone: "success", text: `Live · ${plural(count, noun)}`, next: null };
-}
+type Status = { tone: "success" | "warning" | "neutral"; text: string };
+type Next = { label: string; href: string; external?: boolean };
 
 export default function Home() {
   const data = useLoaderData<typeof loader>();
@@ -389,93 +376,126 @@ export default function Home() {
 
       {(() => {
         type Cat = "offers" | "sections" | "boosters" | "pages";
-        type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; el: ReactElement };
+        /** `onStore`: it's in the theme right now (on or off), so it belongs in "On my store". */
+        type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; onStore: boolean; el: ReactElement };
         const cards: Entry[] = [];
+        const add = (e: Omit<Entry, "el" | "tone"> & { status: Status; next?: Next; open: { href: string; external?: boolean }; previews: (() => JSX.Element)[]; menu: CardMenuItem[]; off?: boolean }) =>
+          cards.push({
+            key: e.key,
+            cat: e.cat,
+            title: e.title,
+            tone: e.status.tone,
+            onStore: e.onStore,
+            el: (
+              <SectionCard
+                key={e.key}
+                title={e.title}
+                status={e.status}
+                next={e.next}
+                open={e.open}
+                previews={e.previews.map((P, i) => <P key={i} />)}
+                menu={e.menu}
+                off={e.off}
+                save={save(e.key)}
+              />
+            ),
+          });
+        const editor = (href: string, inTheme: boolean | null): CardMenuItem => ({ label: inTheme ? "Open in theme editor" : "Add to theme", href, external: true });
+
         FEATURES.forEach((f) => {
           const on = settings[f.setting];
           const count = f.count(data.counts);
-          const isInstalled = installed ? (installed[f.key] ?? false) : null;
-          const status = featureStatus(on, count, f.noun, isInstalled);
-          const action =
-            status.next === "create"
-              ? { label: f.createLabel, href: f.createHref }
-              : status.next === "theme"
-                ? { label: "Add to theme", href: data.links[f.key], external: true }
-                : { label: on ? "Live" : "Manage", done: on, href: f.href };
-          // The video carousel is a section on the store page, not an offer.
-          cards.push({ key: f.key, cat: f.key === "videos" ? "sections" : "offers", title: f.title, tone: status.tone, el: (
-            <SectionCard
-              key={f.key}
-              title={f.title}
-              status={status}
-              action={action}
-              open={{ href: f.href }}
-              previews={f.Previews.map((P, i) => <P key={i} />)}
-              off={!on}
-              toggle={{ on, onChange: (value) => fetcher.submit({ key: f.setting, value: String(value) }, { method: "post" }) }}
-              save={save(f.key)}
-            />
-          ) });
+          const inTheme = installed ? (installed[f.key] ?? false) : null;
+          let status: Status, next: Next | undefined;
+          if (!on) status = { tone: "neutral", text: "Turned off" };
+          else if (!count) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: f.createLabel, href: f.createHref }];
+          else if (inTheme === false) [status, next] = [{ tone: "warning", text: `${plural(count, f.noun)} ready` }, { label: "Add to theme", href: data.links[f.key], external: true }];
+          else status = { tone: "success", text: `Live · ${plural(count, f.noun)}` };
+          add({
+            key: f.key,
+            // The video carousel is a section on the store page, not an offer.
+            cat: f.key === "videos" ? "sections" : "offers",
+            title: f.title,
+            onStore: inTheme === true,
+            status,
+            next,
+            open: { href: f.href },
+            previews: f.Previews,
+            off: !on,
+            menu: [
+              { label: "Manage", href: f.href },
+              ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
+              { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
+              editor(data.links[f.key], inTheme),
+            ],
+          });
         });
         SECTION_CARDS.forEach((c) => {
           const counts = c.list ? data.sectionCounts[c.list] : null;
-          const isInstalled = installed ? (installed[c.key] ?? false) : null;
-          const status = sectionStatus(c.list, counts, isInstalled, c.embed);
+          const inTheme = installed ? (installed[c.key] ?? false) : null;
           const themeHref = data.sectionLinks[c.key];
-          const open = c.app ? { href: c.app } : c.list ? { href: `/app/sections/${c.list}` } : { href: c.embed ? themeHref : data.links.editor, external: true };
-          const action =
-            status.next === "create" && c.list
-              ? { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }
-              : status.next === "theme"
-                ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
-                : { label: "Live", done: true, ...open };
-          cards.push({ key: c.key, cat: "sections", title: c.title, tone: status.tone, el: <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} save={save(c.key)} /> });
+          const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
+          let status: Status, next: Next | undefined;
+          if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
+          else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];
+          else if (inTheme === null && !c.list) status = { tone: "neutral", text: "Set up in theme editor" };
+          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : "Live" };
+          add({
+            key: c.key,
+            cat: "sections",
+            title: c.title,
+            onStore: inTheme === true,
+            status,
+            next,
+            open: manage ? { href: manage } : { href: c.embed ? themeHref : data.links.editor, external: true },
+            previews: c.Previews,
+            menu: [
+              ...(manage ? [{ label: c.app ? "Design" : "Manage", href: manage }] : []),
+              ...(c.list && counts?.total ? [{ label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }] : []),
+              { ...editor(themeHref, inTheme), ...(c.embed && !inTheme ? { label: "Turn on in theme" } : {}) },
+            ],
+          });
         });
         BOOSTER_CARDS.forEach((b) => {
           const embedOn = installed ? (installed.boosters ?? false) : null;
           const enabled = data.boosters[b.key].enabled;
-          const status: Status = !enabled
-            ? { tone: "neutral", text: "Off", next: null }
-            : embedOn === false
-              ? { tone: "warning", text: "Turned off", next: "theme" }
-              : { tone: "success", text: "Live", next: null };
-          const action =
-            status.next === "theme"
-              ? { label: "Turn on", href: data.sectionLinks.boosters, external: true }
-              : enabled
-                ? { label: "Live", done: true, href: "/app/boosters" }
-                : { label: "Switch on", href: "/app/boosters" };
-          cards.push({ key: b.key, cat: "boosters", title: b.title, tone: status.tone, el: (
-            <SectionCard
-              key={b.key}
-              title={b.title}
-              status={status}
-              action={action}
-              open={{ href: "/app/boosters" }}
-              previews={b.Previews.map((P, i) => <P key={i} />)}
-              save={save(b.key)}
-            />
-          ) });
+          let status: Status, next: Next | undefined;
+          if (!enabled) [status, next] = [{ tone: "neutral", text: "Turned off" }, { label: "Switch on", href: "/app/boosters" }];
+          else if (embedOn === false) [status, next] = [{ tone: "warning", text: "Off in theme" }, { label: "Turn on", href: data.sectionLinks.boosters, external: true }];
+          else status = { tone: "success", text: "Live" };
+          add({
+            key: b.key,
+            cat: "boosters",
+            title: b.title,
+            onStore: embedOn === true && enabled,
+            status,
+            next,
+            open: { href: "/app/boosters" },
+            previews: b.Previews,
+            off: !enabled,
+            menu: [{ label: "Manage boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
+          });
         });
         PAGE_CARDS.forEach((pg) => {
           const ready = pg.key === "page_contact";
-          const status: Status = !ready
-            ? { tone: "neutral", text: "Coming soon", next: null }
-            : !data.contactSaved
-              ? { tone: "warning", text: "Not designed", next: "create" }
-              : installed && installed.contact === false
-                ? { tone: "warning", text: "Not in theme", next: "theme" }
-                : { tone: "success", text: "Live", next: null };
-          const action = !ready
-            ? { label: "Soon", href: "/app/pages" }
-            : status.next === "theme"
-              ? { label: "Add to page", href: data.links.contact, external: true }
-              : status.next === "create"
-                ? { label: "Design", href: pg.href }
-                : { label: "Live", done: true, href: pg.href };
-          cards.push({ key: pg.key, cat: "pages", title: pg.title, tone: status.tone, el: (
-            <SectionCard key={pg.key} title={pg.title} status={status} action={action} open={{ href: pg.href }} previews={pg.Previews.map((P, i) => <P key={i} />)} save={save(pg.key)} off={!ready} />
-          ) });
+          const inTheme = installed ? (installed.contact ?? false) : null;
+          let status: Status, next: Next | undefined;
+          if (!ready) status = { tone: "neutral", text: "Coming soon" };
+          else if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: pg.href }];
+          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Designed" }, { label: "Add to page", href: data.links.contact, external: true }];
+          else status = { tone: "success", text: "Live" };
+          add({
+            key: pg.key,
+            cat: "pages",
+            title: pg.title,
+            onStore: ready && inTheme === true,
+            status,
+            next,
+            open: { href: pg.href },
+            previews: pg.Previews,
+            off: !ready,
+            menu: ready ? [{ label: "Design", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }] : [],
+          });
         });
 
         const CATS: { key: Cat; title: string }[] = [
@@ -484,58 +504,60 @@ export default function Home() {
           { key: "boosters", title: "Boosters" },
           { key: "pages", title: "Pages" },
         ];
+        const onStoreCount = cards.filter((c) => c.onStore).length;
         const q = query.trim().toLowerCase();
         const match = (c: Entry) =>
+          (cat !== "store" || c.onStore) &&
           (status === "all" || (status === "live" ? c.tone === "success" : status === "setup" ? c.tone === "warning" : c.tone === "neutral")) &&
           (!q || c.title.toLowerCase().includes(q));
         const empty = (text: string) => <div className={showcase.empty}>{text}</div>;
         const grid = (list: Entry[]) => <div className={showcase.grid}>{list.map((c) => c.el)}</div>;
+        const grouped = (cats: typeof CATS, emptyText: string) => {
+          const groups = cats.map((c) => ({ ...c, list: cards.filter((x) => x.cat === c.key && match(x)) })).filter((g) => g.list.length || cats.length === 1);
+          if (!groups.length) return empty(emptyText);
+          return groups.map((g) => (
+            <s-stack key={g.key} gap="small-200">
+              <GroupTitle>{`${g.title} (${g.list.length})`}</GroupTitle>
+              {g.list.length ? grid(g.list) : empty("Nothing matches these filters.")}
+            </s-stack>
+          ));
+        };
 
         return (
           <>
-            <s-stack gap="small-200">
-              <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                <Segmented
-                  label="Category"
-                  value={cat}
-                  options={[
-                    { value: "all", label: "All" },
-                    ...CATS.map((c) => ({ value: c.key, label: c.title })),
-                    { value: "saved", label: `Saved (${saved.length})` },
-                  ]}
-                  onChange={(v) => setFilter({ cat: v })}
-                />
-                <s-stack direction="inline" gap="small-200" alignItems="center">
-                  <Segmented
-                    label="Status"
-                    value={status}
-                    options={[
-                      { value: "all", label: "Any status" },
-                      { value: "live", label: "Live" },
-                      { value: "setup", label: "Needs setup" },
-                      { value: "off", label: "Off / soon" },
-                    ]}
-                    onChange={(v) => setFilter({ status: v })}
-                  />
-                  <input className={showcase.find} type="search" placeholder="Find…" aria-label="Find a section" value={query} onChange={(e) => setQuery(e.target.value)} />
-                </s-stack>
+            <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+              <Segmented
+                label="Category"
+                value={cat}
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "store", label: `On my store (${onStoreCount})` },
+                  ...CATS.map((c) => ({ value: c.key, label: c.title })),
+                  { value: "saved", label: `Saved (${saved.length})` },
+                ]}
+                onChange={(v) => setFilter({ cat: v })}
+              />
+              <s-stack direction="inline" gap="small-200" alignItems="center">
+                <select className={showcase.find} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
+                  <option value="all">Any status</option>
+                  <option value="live">Live</option>
+                  <option value="setup">Needs a step</option>
+                  <option value="off">Off or coming soon</option>
+                </select>
+                <input className={showcase.find} type="search" placeholder="Find…" aria-label="Find a section" value={query} onChange={(e) => setQuery(e.target.value)} />
               </s-stack>
             </s-stack>
+            {cat === "store" ? (
+              <s-text color="subdued">Everything from the app that is in your theme right now. Use ⋯ on a card to manage it, turn it off or open it in the theme editor.</s-text>
+            ) : null}
             {cat === "saved"
               ? (() => {
                   const list = saved.map((k) => cards.find((c) => c.key === k)).filter((c): c is Entry => !!c && match(c));
                   return list.length ? grid(list) : empty("No saved items here. Click the bookmark on any card to keep it in Saved.");
                 })()
-              : CATS.filter((c) => cat === "all" || cat === c.key).map((c) => {
-                  const list = cards.filter((x) => x.cat === c.key && match(x));
-                  if (!list.length && cat === "all") return null;
-                  return (
-                    <s-stack key={c.key} gap="small-200">
-                      <GroupTitle>{`${c.title} (${list.length})`}</GroupTitle>
-                      {list.length ? grid(list) : empty("Nothing matches these filters.")}
-                    </s-stack>
-                  );
-                })}
+              : cat === "store"
+                ? grouped(CATS, "Nothing from the app is on your store yet. Pick a card and follow its next step to add it.")
+                : grouped(CATS.filter((c) => cat === "all" || cat === c.key), "Nothing matches these filters.")}
           </>
         );
       })()}

@@ -35,7 +35,7 @@
 .cardText { margin: 0; font-size: 13px; line-height: 1.45; color: #616161; }
 .cardActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: auto; padding-top: 4px; }
 
-.groupTitle { margin: 4px 0 8px; font-size: 13px; font-weight: 650; color: #616161; text-transform: uppercase; letter-spacing: 0.04em; }
+.groupTitle { margin: 4px 0 6px; font-size: 12px; font-weight: 600; color: #616161; text-transform: capitalize; }
 
 /* Tabs as links (keeps each tab's URL shareable). */
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #ebebeb; border-radius: 10px; width: fit-content; max-width: 100%; }

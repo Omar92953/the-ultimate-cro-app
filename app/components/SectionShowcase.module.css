@@ -1,10 +1,10 @@
 /* Section cards on Home. Inside the preview, 1em = 1/60 of the card width. */
-.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 14px; }
 @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-.card { position: relative; display: flex; flex-direction: column; overflow: hidden; container-type: inline-size; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.stage { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #f4f4f5; container-type: inline-size; }
+.card { position: relative; display: flex; flex-direction: column; container-type: inline-size; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
+.stage { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px 14px 0 0; background: #f4f4f5; container-type: inline-size; }
 .stageLink { position: absolute; inset: 0; display: block; overflow: hidden; color: #111; text-decoration: none; }
 .stageLink:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
 .track { position: absolute; inset: 0; display: flex; transition: transform 0.35s ease; }
@@ -24,36 +24,37 @@
 .dot::after { content: ""; position: absolute; left: 7px; top: 12px; width: 6px; height: 6px; background: rgba(0, 0, 0, 0.22); border-radius: 50%; }
 .dotOn::after { background: #303030; }
 .dot:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; border-radius: 4px; }
-.pill { position: absolute; top: 8px; right: 8px; z-index: 6; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; font-size: 11px; font-weight: 600; color: #303030; text-decoration: none; background: #fff; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
-.pill:hover { background: #f3f3f3; }
-.pillDone { color: #0c5132; background: #cdfee1; }
-.pillDone:hover { background: #b4fed2; }
-.foot { display: flex; align-items: center; justify-content: space-between; gap: clamp(4px, 2.5cqw, 10px); min-height: calc(2 * 1.25 * clamp(11px, 4.6cqw, 15px)); padding: clamp(8px, 3.5cqw, 12px) clamp(10px, 4.5cqw, 16px) clamp(10px, 4cqw, 14px); }
-.title { min-width: 0; font-size: clamp(11px, 4.6cqw, 15px); font-weight: 600; line-height: 1.25; color: #303030; text-decoration: none; }
+.foot { display: grid; gap: 4px; padding: clamp(8px, 3.5cqw, 12px) clamp(10px, 4.5cqw, 16px) clamp(10px, 4cqw, 14px); }
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: clamp(4px, 2.5cqw, 10px); min-height: calc(2 * 1.25 * clamp(11px, 4.6cqw, 15px)); }
+.title { min-width: 0; padding-top: 2px; font-size: clamp(11px, 4.6cqw, 15px); font-weight: 600; line-height: 1.25; color: #303030; text-decoration: none; }
 /* Full names always: long ones wrap to a second line (never cut with …); footers keep one height. */
 .title:hover { text-decoration: underline; }
-.status { flex: none; padding: 1px clamp(5px, 2.2cqw, 8px); font-size: clamp(9.5px, 3.6cqw, 12px); font-weight: 550; line-height: 20px; border-radius: 10px; white-space: nowrap; }
-.footEnd { display: inline-flex; flex: none; align-items: center; gap: clamp(2px, 1.5cqw, 6px); }
-/* bookmark: 24px target */
-.save { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; color: #8a8a8a; cursor: pointer; background: none; border: 0; border-radius: 6px; }
+.footEnd { display: inline-flex; flex: none; align-items: center; gap: 2px; }
+/* one status line: coloured dot, short text, and the next step as a link */
+.statusLine { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: clamp(10.5px, 3.8cqw, 13px); line-height: 1.35; color: #616161; }
+.dotTone { flex: none; width: 7px; height: 7px; border-radius: 50%; }
+.statusText { white-space: nowrap; }
+.next { font-weight: 600; color: #005bd3; text-decoration: none; white-space: nowrap; }
+.next:hover { text-decoration: underline; }
+.next:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; border-radius: 3px; }
+.success { background: #29845a; }
+.warning { background: #e8a200; }
+.neutral { background: #b5b5b5; }
+/* bookmark and ⋯: 24px targets */
+.iconBtn { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; color: #8a8a8a; cursor: pointer; background: none; border: 0; border-radius: 6px; }
+.iconBtn:hover, .iconBtnOn { color: #303030; background: #f1f1f1; }
+.iconBtn:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
 .save svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
-.save:hover { color: #303030; background: #f1f1f1; }
-.save:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
 .saveOn { color: #303030; }
 .saveOn svg { fill: currentColor; }
+.dotsIcon { width: 16px; height: 16px; fill: currentColor; }
+.menuWrap { position: relative; }
+.menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; display: grid; min-width: 190px; padding: 6px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.menu > span { display: contents; }
+.menuItem { display: block; padding: 7px 10px; font: inherit; font-size: 13px; color: #303030; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; background: none; border: 0; border-radius: 6px; }
+.menuItem:hover, .menuItem:focus-visible { background: #f1f1f1; outline: none; }
 .empty { grid-column: 1 / -1; padding: 28px 16px; color: #616161; text-align: center; background: #fff; border-radius: 14px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.success { color: #0c5132; background: #cdfee1; }
-.warning { color: #5e4200; background: #ffef9d; }
-.neutral { color: #4a4a4a; background: #ebebeb; }
 
-/* on/off switch (features) */
-.toggle { position: absolute; top: 8px; left: 8px; z-index: 6; display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 4px; font: inherit; font-size: 11px; font-weight: 600; color: #616161; cursor: pointer; background: #fff; border: 0; border-radius: 999px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08); }
-.knob { position: relative; width: 20px; height: 12px; background: #c9c9c9; border-radius: 6px; transition: background 0.15s; }
-.knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 8px; height: 8px; background: #fff; border-radius: 50%; transition: transform 0.15s; }
-.toggleOn { color: #303030; }
-.toggleOn .knob { background: #303030; }
-.toggleOn .knob::after { transform: translateX(8px); }
-.toggle:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
 .off .track { filter: grayscale(1); opacity: 0.55; }
 
 /* ---------- the stage: one section, centred (top padding leaves room for the pills) ---------- */
