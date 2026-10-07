@@ -1119,10 +1119,11 @@ export const BLOCKS = {
   contact: "ucs-contact",
   image_carousel: "ucs-image-carousel",
   addons: "ucs-addons",
+  header: "ucs-header",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
-const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "countdown_bar", "boosters"];
+const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "boosters"];
 
 export type ThemeStatus = {
   themeName: string | null;
@@ -1150,8 +1151,9 @@ export async function getThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
   if (!theme) return { themeName: null, installed };
   for (const file of theme.files.nodes) {
     const content: string = file.body?.content ?? "";
+    // Blocks live in templates and section groups; settings_data.json only holds app embeds.
     for (const [key, handle] of Object.entries(BLOCKS) as [keyof typeof BLOCKS, string][]) {
-      if (EMBEDS.includes(key)) continue;
+      if (EMBEDS.includes(key) || file.filename === "config/settings_data.json") continue;
       if (content.includes(`/blocks/${handle}/`)) installed[key] = true;
     }
     if (file.filename === "config/settings_data.json") {

@@ -5,6 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig } from "./designs";
+import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
@@ -80,5 +81,20 @@ export async function saveAddons(admin: AdminClient, config: AddonsConfig) {
   const clean = withAddonsDefaults(config);
   await upsert(admin, "$app:cro_design", "addons", { config: JSON.stringify(toStorefrontAddons(clean)) });
   await upsert(admin, "$app:cro_design", "addons_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* -------------------------------------------------------------------- header -- */
+export async function getHeader(admin: AdminClient): Promise<{ config: HeaderConfig; saved: boolean }> {
+  const raw = await getDesign(admin, "header_editor");
+  return { config: withHeaderDefaults(raw), saved: raw !== null };
+}
+
+export async function saveHeader(admin: AdminClient, config: HeaderConfig) {
+  const clean = withHeaderDefaults(config);
+  const logo = clean.logo.image ? (await imageFiles(admin, [clean.logo.image.id])).get(clean.logo.image.id) : undefined;
+  clean.logo.url = logo?.url ?? null;
+  await upsert(admin, "$app:cro_design", "header", { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
+  await upsert(admin, "$app:cro_design", "header_editor", { config: JSON.stringify(clean) });
   return clean;
 }

@@ -72,13 +72,14 @@ import {
   CollectionPageShowcase,
   HeaderGlassShowcase,
   HeaderRoundedShowcase,
+  FooterShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { getContact } from "../lib/pages.server";
-import { getAddons, getImageCarousel } from "../lib/designs.server";
+import { getAddons, getHeader, getImageCarousel } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -98,13 +99,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters, saved, contact, carousel, addons] = await Promise.all([
+  const [lists, boosters, saved, contact, carousel, addons, header] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
     getContact(admin).catch(() => ({ saved: false })),
     getImageCarousel(admin).catch(() => null),
     getAddons(admin).catch(() => null),
+    getHeader(admin).catch(() => null),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -116,6 +118,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     boosters,
     saved,
     contactSaved: contact.saved,
+    headerSaved: !!header?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
@@ -253,7 +256,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
-  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
+  { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: false, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
 
 /** Pages designed in the app (Contact page now; the others are coming). */
@@ -261,7 +264,6 @@ const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => J
   { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
   { key: "page_product", title: "Product page", href: "/app/pages", Previews: [ProductPageShowcase] },
   { key: "page_collection", title: "Collection page", href: "/app/pages", Previews: [CollectionPageShowcase] },
-  { key: "page_header", title: "Headers", href: "/app/pages", Previews: [HeaderGlassShowcase, HeaderRoundedShowcase] },
 ];
 
 /** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
@@ -386,7 +388,7 @@ export default function Home() {
       ) : null}
 
       {(() => {
-        type Cat = "offers" | "sections" | "boosters" | "pages";
+        type Cat = "offers" | "sections" | "boosters" | "pages" | "layout";
         /** `onStore`: it's in the theme right now (on or off), so it belongs in "On my store". */
         type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; onStore: boolean; el: ReactElement };
         const cards: Entry[] = [];
@@ -511,10 +513,32 @@ export default function Home() {
           });
         });
 
+        // Headers and footers: the header is designed in the app and switched on as an app embed.
+        {
+          const inTheme = installed ? (installed.header ?? false) : null;
+          let status: Status, next: Next | undefined;
+          if (!data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/header" }];
+          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Not on store" }, { label: "Add to header", href: data.sectionLinks.header, external: true }];
+          else status = { tone: "success", text: "Live" };
+          add({
+            key: "header",
+            cat: "layout",
+            title: "Header",
+            onStore: inTheme === true,
+            status,
+            next,
+            open: { href: "/app/designs/header" },
+            previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
+            menu: [{ label: "Design", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
+          });
+          add({ key: "footer", cat: "layout", title: "Footer", onStore: false, status: { tone: "neutral", text: "Coming soon" }, open: { href: "/app?cat=layout" }, previews: [FooterShowcase], off: true, menu: [] });
+        }
+
         const CATS: { key: Cat; title: string }[] = [
           { key: "offers", title: "Offers and bundles" },
           { key: "sections", title: "Store sections" },
           { key: "boosters", title: "Boosters" },
+          { key: "layout", title: "Headers and footers" },
           { key: "pages", title: "Pages" },
         ];
         const onStoreCount = cards.filter((c) => c.onStore).length;

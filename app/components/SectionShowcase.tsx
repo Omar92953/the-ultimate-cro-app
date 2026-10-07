@@ -747,7 +747,7 @@ const ADDONS = [
   { t: "Greeting card", x: "Your message, handwritten", p: "+$3.00", on: false, id: "1607344645866-009c320b63e0" },
   { t: "2-year warranty", x: "Repairs and replacements", p: "+$12.00", on: false, id: PRODUCTS[1].id },
 ];
-/** Add-ons: tick boxes under the Add to cart button, and a gift message. */
+/** Add-ons: one tick box (gift wrapping) under the Add to cart button. */
 export function AddonsShowcase() {
   return (
     <Stage>
@@ -759,7 +759,7 @@ export function AddonsShowcase() {
         <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
         <b>Make it extra special</b>
         <span className={s.aoList}>
-          {ADDONS.map((a) => (
+          {ADDONS.slice(0, 1).map((a) => (
             <span key={a.t} className={`${s.aoItem} ${a.on ? s.aoOn : ""}`}>
               <span className={`${s.aoBox} ${a.on ? s.aoBoxOn : ""}`}>{a.on ? "✓" : ""}</span>
               <Img id={a.id} w={80} h={80} className={s.aoImg} />
@@ -1306,6 +1306,32 @@ export function HeaderRoundedShowcase() {
           <span>Cart (2)</span>
         </span>
         <span className={s.heroText}>New season</span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Footer (coming soon): link columns, a newsletter box and payment icons. */
+export function FooterShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w56} ${s.footShow}`}>
+        <span className={s.footCols}>
+          <span>
+            <b>section.store</b>
+            <small className={s.muted}>Made for everyday wear.</small>
+          </span>
+          {["Shop", "Help", "Company"].map((h) => (
+            <span key={h}>
+              <b>{h}</b>
+              <Lines w={[70, 55, 80]} />
+            </span>
+          ))}
+        </span>
+        <span className={s.footNews}>
+          <span className={s.footInput}>Your email</span>
+          <span className={`${s.btn} ${s.btnDark} ${s.btnSm}`}>Subscribe</span>
+        </span>
       </span>
     </Stage>
   );

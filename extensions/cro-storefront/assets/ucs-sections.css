@@ -56,6 +56,7 @@
   .ucs-cdh--row .ucs-cdh__text { flex: 1; }
 }
 
+.ucs-in-group > * { max-width: none !important; margin: 0 !important; padding: 0 !important; }
 .ucs-cdb { display: none; position: relative; z-index: 6; background: var(--ucs-cdb-bg, #b42318); color: var(--ucs-cdb-fg, #fff); font-size: var(--ucs-cdb-fs, 14px); --ucs-cd-size: var(--ucs-cdb-ns, 1.15em); --ucs-cd-radius: 5px; }
 .ucs-cdb.is-ready { display: block; }
 .ucs-cdb[hidden] { display: none; }
@@ -129,6 +130,10 @@
 .ucs-logos__item a { display: flex; }
 .ucs-logos__img { display: block; height: var(--ucs-logo-h, 40px); width: auto; max-width: none; object-fit: contain; opacity: var(--ucs-logo-op, 0.8); transition: filter 0.25s ease, opacity 0.25s ease; }
 .ucs-logos--gray .ucs-logos__img { filter: grayscale(1); }
+/* white backgrounds inside logo pictures melt into a light section background */
+.ucs-logos--blend img.ucs-logos__img { mix-blend-mode: multiply; }
+/* the moving strip is its own layer: give it the section colour so the blend has something to melt into */
+.ucs-logos--blend :is(.ucs-logos__track, .ucs-logos__grid) { background: var(--ucs-logo-bg, rgb(var(--color-background, 255, 255, 255))); }
 /* an item with no image: its name, sized to the logo height */
 .ucs-logos__text { display: flex; align-items: center; font-size: calc(var(--ucs-logo-h, 40px) * 0.55); font-weight: 600; line-height: 1; letter-spacing: 0.02em; white-space: nowrap; }
 .ucs-logos__item:hover .ucs-logos__img { filter: none; opacity: 1; }

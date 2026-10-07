@@ -302,6 +302,8 @@ export function sectionLinks(shop: string) {
   const base = `https://${shop}/admin/themes/current/editor`;
   const block = (handle: string, template = "index") => `${base}?template=${template}&addAppBlockId=${key}/${handle}&target=newAppsSection`;
   const embed = (handle: string) => `${base}?context=apps&activateAppId=${key}/${handle}`;
+  // Blocks for the theme's Header area (selectable with the theme editor's inspector)
+  const headerBlock = (handle: string) => `${base}?template=index&addAppBlockId=${key}/${handle}&target=sectionGroup:header`;
   return {
     reviews: block(SECTIONS.reviews.block),
     faq: block(SECTIONS.faq.block),
@@ -309,10 +311,11 @@ export function sectionLinks(shop: string) {
     announcements: embed(SECTIONS.announcements.block),
     quick_add: embed("ucs-quick-add"),
     countdown: block("ucs-countdown"),
-    countdown_bar: embed("ucs-countdown-bar"),
+    countdown_bar: headerBlock("ucs-countdown-bar"),
     boosters: embed("ucs-boosters"),
     hero: block("ucs-hero"),
     image_carousel: block("ucs-image-carousel"),
     addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
+    header: headerBlock("ucs-header"),
   };
 }

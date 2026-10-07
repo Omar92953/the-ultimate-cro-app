@@ -16,7 +16,7 @@
   endif
   assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 -%}
-<script type="application/json" id="ucs-boost">
+<script type="application/json" id="ucs-boost" {{ block.shopify_attributes }}>
   {
     "cfg": {{ cfg | json }},
     "recent": {{ recent | json }},

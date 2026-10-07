@@ -22,6 +22,14 @@
   endif
   # The second line starts halfway through the list, so the two lines don't mirror each other.
   assign shift = count | divided_by: 2 | floor
+  # Light background: blend logo pictures into it, so white boxes around them disappear.
+  assign light = true
+  if s.bg != blank
+    assign b = s.bg | color_brightness
+    if b < 128
+      assign light = false
+    endif
+  endif
 -%}
 {%- capture logos -%}
   {%- for m in items -%}
@@ -52,8 +60,8 @@
   {%- endcapture -%}
 {%- endif -%}
 <div
-  class="ucs ucs-logos ucs-logos--{{ s.mode }}{% if s.grayscale %} ucs-logos--gray{% endif %}{% if s.fade_edges %} ucs-logos--fade{% endif %}{% if s.pause_hover %} ucs-logos--pause{% endif %}{% if s.direction == 'right' %} ucs-logos--right{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
-  style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-logo-h: {{ s.logo_height }}px; --ucs-logo-gap: {{ s.gap }}px; --ucs-logo-op: {{ s.opacity | divided_by: 100.0 }}; --ucs-logo-dur: {{ duration }}s; --ucs-logo-cols: {{ s.columns_desktop }}; --ucs-logo-cols-m: {{ s.columns_mobile }};{% if s.bg != blank %} background: {{ s.bg }};{% endif %}"
+  class="ucs ucs-logos ucs-logos--{{ s.mode }}{% if s.grayscale %} ucs-logos--gray{% endif %}{% if s.fade_edges %} ucs-logos--fade{% endif %}{% if s.pause_hover %} ucs-logos--pause{% endif %}{% if light %} ucs-logos--blend{% endif %}{% if s.direction == 'right' %} ucs-logos--right{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+  style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-logo-h: {{ s.logo_height }}px; --ucs-logo-gap: {{ s.gap }}px; --ucs-logo-op: {{ s.opacity | divided_by: 100.0 }}; --ucs-logo-dur: {{ duration }}s; --ucs-logo-cols: {{ s.columns_desktop }}; --ucs-logo-cols-m: {{ s.columns_mobile }};{% if s.bg != blank %} background: {{ s.bg }}; --ucs-logo-bg: {{ s.bg }};{% endif %}"
   {{ block.shopify_attributes }}
 >
   <div class="ucs-wrap{% if s.full_width and s.mode == 'marquee' %} ucs-logos__wide{% endif %}">

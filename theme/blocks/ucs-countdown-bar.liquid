@@ -1,11 +1,11 @@
 {%- comment -%}
-  App embed: countdown bar at the top or bottom of the store. Everything (date, texts, button,
+  App block for the theme's Header area: countdown bar at the top or bottom of the store. Everything (date, texts, button,
   sizes, colours, pages) is designed in the app: Store sections → Countdown bar, stored in
   $app:cro_design "countdown_bar". This passes it to ucs-countdown.js with the page and time zone.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['countdown_bar'].config.value -%}
 {%- if c.on -%}
-  <div id="ucs-cdb" class="ucs ucs-cd-host ucs-cdb" data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden>
+  <div id="ucs-cdb" class="ucs ucs-cd-host ucs-cdb" data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden {{ block.shopify_attributes }}>
     <script type="application/json">{{ c | json }}</script>
   </div>
   <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
@@ -14,7 +14,8 @@
 {% schema %}
 {
   "name": "Countdown bar",
-  "target": "body",
+  "target": "section",
+  "enabled_on": { "groups": ["header"] },
   "stylesheet": "ucs-sections.css",
   "settings": [
     { "type": "paragraph", "content": "Date, texts, button, sizes, colours and pages are set in the app: Store sections → Countdown bar." }

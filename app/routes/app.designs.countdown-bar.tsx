@@ -73,12 +73,12 @@ export default function CountdownBarDesigner() {
         Save
       </Button>
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
-        {data.embedOn ? "Open in theme editor" : "Turn on in theme"}
+        {data.embedOn ? "Open in theme editor" : "Add to header"}
       </Button>
       <s-stack gap="base">
         {data.embedOn === false ? (
-          <s-banner tone="info" heading="Turn the bar on in your theme">
-            Click “Turn on in theme”, switch on “Countdown bar” in App embeds and save. Everything else is set here.
+          <s-banner tone="info" heading="Add the bar to your theme’s header">
+            Click “Add to header”: the bar is added to your theme’s Header area. Save there, and design everything else here. You can click it with the theme editor’s inspector to select it.
           </s-banner>
         ) : null}
         {!data.saved ? (

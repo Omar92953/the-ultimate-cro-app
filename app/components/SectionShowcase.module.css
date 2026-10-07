@@ -381,3 +381,10 @@
 .aoCard { flex-direction: column; align-items: flex-start; gap: 0.4em; }
 .aoCorner { position: absolute; top: 0.7em; right: 0.7em; }
 .aoMsg { padding: 0.9em 1em; color: #303030; background: #fff; border-radius: 0.8em; box-shadow: 0 0 0 0.1em #e3e3e3; }
+
+/* footer */
+.footShow { display: flex; flex-direction: column; gap: 1.6em; padding: 2em; }
+.footCols { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 1.6em; }
+.footCols > span { display: flex; flex-direction: column; gap: 0.6em; }
+.footNews { display: flex; gap: 0.8em; padding-top: 1.2em; border-top: 0.08em solid #eee; }
+.footInput { flex: 1; padding: 0.7em 1em; color: #8a8a8a; border-radius: 0.6em; box-shadow: inset 0 0 0 0.1em #ddd; }

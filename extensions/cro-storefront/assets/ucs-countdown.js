@@ -130,7 +130,9 @@
       (L.dismissible ? '<button type="button" class="ucs-cdb__close" aria-label="Close"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>' : '') + '</div>';
     el.hidden = false;
 
-    if (L.position === 'top') {
+    var group = el.closest('.shopify-section');
+    if (group) group.classList.add('ucs-in-group'); // a block in the Header area: stays where it's placed
+    if (L.position === 'top' && !group) {
       var ab = document.getElementById('ucs-ab');
       if (ab && ab.__ucs) ab.after(el); // the announcement bar already moved itself to the top
       else document.body.insertBefore(el, document.body.firstChild);

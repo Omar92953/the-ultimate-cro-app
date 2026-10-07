@@ -46,6 +46,7 @@
   <ucs-announcement
     id="ucs-ab"
     class="ucs ucs-ab ucs-ab--{{ block.settings.animation }}{% if block.settings.sticky %} ucs-ab--sticky{% endif %}{% if block.settings.uppercase %} ucs-ab--upper{% endif %}{% if block.settings.devices == 'mobile' %} ucs-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
+    {{ block.shopify_attributes }}
     style="--ucs-ab-bg: {{ block.settings.bg }}; --ucs-ab-fg: {{ block.settings.fg }}; --ucs-ab-fs: {{ block.settings.font_size }}px; --ucs-ab-py: {{ block.settings.padding }}px;"
     role="region"
     aria-label="{{ 'ucs.announcement' | t | escape }}"

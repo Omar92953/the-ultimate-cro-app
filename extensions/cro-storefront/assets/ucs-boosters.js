@@ -109,6 +109,8 @@
       var S = C.sticky;
       var bar = document.createElement('div');
       bar.className = 'ucs-sticky ucs-sticky--' + S.position;
+      // Theme editor: lets the inspector select the boosters embed.
+      if (el.hasAttribute('data-shopify-editor-block')) bar.setAttribute('data-shopify-editor-block', el.getAttribute('data-shopify-editor-block'));
       bar.setAttribute('role', 'region');
       bar.setAttribute('aria-label', p.title);
       bar.style.setProperty('--ucs-st-bg', S.bg);
