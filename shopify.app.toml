@@ -454,6 +454,16 @@ access.storefront = "public_read"
   name = "Settings"
   type = "json"
 
+# Pages designed in the app (handle = page type, e.g. "contact"): settings + ready-made CSS.
+[metaobjects.app.cro_page]
+name = "CRO page design"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_page.fields.config]
+  name = "Settings"
+  type = "json"
+
 # The last real purchases shown by sales pop-ups: product, time and (optionally) city. No names.
 [metaobjects.app.cro_recent]
 name = "CRO recent purchases"

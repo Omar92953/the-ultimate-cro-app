@@ -1,0 +1,11 @@
+/* Page designers: settings on the left, sticky live preview on the right (stacked on small screens). */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.preview { position: sticky; top: 12px; overflow: hidden; background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08), 0 1px 0 rgba(26, 26, 26, 0.07); }
+.previewBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #ebebeb; font-size: 12px; font-weight: 600; color: #616161; }
+.frame { max-height: calc(100vh - 120px); overflow: auto; background: #f1f1f1; }
+.phone { max-width: 390px; margin: 0 auto; background: #fff; }
+.fieldRow { display: grid; gap: 8px; padding: 12px; border: 1px solid #e3e3e3; border-radius: 10px; }
+.fieldHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fieldTitle { font-weight: 600; font-size: 13px; }
+.fieldMoves { display: inline-flex; gap: 4px; }

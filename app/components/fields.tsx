@@ -78,6 +78,16 @@ export function TextField(props: Common & { value: string; onValue: (v: string) 
   );
 }
 
+/** Colour picker with a hex text box (Polaris s-color-field). Value is "#rrggbb". */
+export function ColorField(props: Common & { value: string; onValue: (v: string) => void }) {
+  const ref = useRef<any>(null);
+  useProp(ref, "defaultValue", props.value);
+  useProp(ref, "value", props.value);
+  useProp(ref, "disabled", !!props.disabled);
+  useFieldEvents(ref, (el) => props.onValue(el.value));
+  return <s-color-field ref={ref} label={props.label} details={props.details} error={props.error} />;
+}
+
 export function TextArea(props: Common & { value: string; onValue: (v: string) => void; rows?: number; placeholder?: string; maxLength?: number }) {
   const ref = useRef<any>(null);
   useProp(ref, "defaultValue", props.value);

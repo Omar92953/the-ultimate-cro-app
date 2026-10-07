@@ -1116,6 +1116,7 @@ export const BLOCKS = {
   countdown: "ucs-countdown",
   countdown_bar: "ucs-countdown-bar",
   boosters: "ucs-boosters",
+  contact: "ucs-contact",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
@@ -1178,6 +1179,7 @@ export function editorLinks(shop: string) {
     videos: `${base}?template=index&addAppBlockId=${key}/${BLOCKS.videos}&target=newAppsSection`,
     bundles: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.bundles}&target=mainSection`,
     drawer: `${base}?context=apps&activateAppId=${key}/${BLOCKS.drawer}`,
+    contact: `${base}?template=page.contact&addAppBlockId=${key}/${BLOCKS.contact}&target=newAppsSection`,
     editor: base,
   };
 }

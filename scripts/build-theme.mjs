@@ -77,6 +77,17 @@ export function minify(source, file = "", strings = new Map()) {
   s = s.replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, "");
   // Inside {% liquid %} tags: drop "# …" comment lines.
   s = s.replace(/\{%-?\s*liquid\b[\s\S]*?-?%\}/g, (tag) => tag.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n"));
+  // Blocks: "block.settings" → "bs" (assigned once at the top). Saves ~12 bytes per use; the schema
+  // (whose visible_if conditions must say block.settings) is left alone.
+  if (file.startsWith("blocks")) {
+    const at = s.indexOf("{% schema %}");
+    const body = at < 0 ? s : s.slice(0, at);
+    const uses = (body.match(/\bblock\.settings\b/g) || []).length;
+    if (uses >= 3) {
+      if (/\bbs\b/.test(body)) throw new Error(`${file}: uses a variable named "bs", which the build reserves`);
+      s = "{%- assign bs = block.settings -%}\n" + body.replace(/\bblock\.settings\b/g, "bs") + (at < 0 ? "" : s.slice(at));
+    }
+  }
   // Indentation and blank lines (newlines are kept: {% liquid %} needs them).
   s = s
     .split("\n")

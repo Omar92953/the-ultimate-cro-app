@@ -1,4 +1,4 @@
-{%- liquid
+{%- assign bs = block.settings -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.cross_sell_enabled.value == false
@@ -45,32 +45,32 @@ endif
 assign mode = ''
 if shown > 0
 assign mode = 'rule'
-elsif enabled and block.settings.fallback == 'recommendations' and product != blank
+elsif enabled and bs.fallback == 'recommendations' and product != blank
 assign mode = 'recommend'
 endif
 assign pct = 0
 if rule
 assign pct = rule.discount_percent.value | default: 0
 endif
-assign heading = block.settings.rec_heading
-assign button_label = block.settings.button_label
+assign heading = bs.rec_heading
+assign button_label = bs.button_label
 if mode == 'rule'
-assign heading = rule.headline.value | default: block.settings.rec_heading
-assign button_label = rule.button_label.value | default: block.settings.button_label
+assign heading = rule.headline.value | default: bs.rec_heading
+assign button_label = rule.button_label.value | default: bs.button_label
 endif
 -%}{%- if mode != blank -%}<ucro-cross-sell
-class="ucro ucro-cross{% if block.settings.panel %} ucro-cross--panel{% if block.settings.edge_to_edge %} ucro-cross--bleed{% endif %}{% endif %}{% if block.settings.devices == 'mobile' %} ucro-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
-style="--ucro-align: {{ block.settings.text_align }}; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px;{% if block.settings.accent != blank %} --ucro-accent: {{ block.settings.accent }};{% endif %}{% if block.settings.panel_color != blank %} --ucro-panel: {{ block.settings.panel_color }};{% endif %}{% if block.settings.border_color != blank %} --ucro-border: {{ block.settings.border_color }};{% endif %}{% unless block.settings.theme_radius %} --ucro-radius: {{ block.settings.radius }}px;{% endunless %}"
-data-radius="{% if block.settings.theme_radius %}theme{% else %}custom{% endif %}"
+class="ucro ucro-cross{% if bs.panel %} ucro-cross--panel{% if bs.edge_to_edge %} ucro-cross--bleed{% endif %}{% endif %}{% if bs.devices == 'mobile' %} ucro-hide-desktop{% elsif bs.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
+style="--ucro-align: {{ bs.text_align }}; --ucro-pt: {{ bs.padding_top }}px; --ucro-pb: {{ bs.padding_bottom }}px;{% if bs.accent != blank %} --ucro-accent: {{ bs.accent }};{% endif %}{% if bs.panel_color != blank %} --ucro-panel: {{ bs.panel_color }};{% endif %}{% if bs.border_color != blank %} --ucro-border: {{ bs.border_color }};{% endif %}{% unless bs.theme_radius %} --ucro-radius: {{ bs.radius }}px;{% endunless %}"
+data-radius="{% if bs.theme_radius %}theme{% else %}custom{% endif %}"
 data-mode="{{ mode }}"
 data-product-id="{{ product.id }}"
-data-limit="{{ block.settings.rec_limit }}"
-data-checked="{{ block.settings.preselect }}"
+data-limit="{{ bs.rec_limit }}"
+data-checked="{{ bs.preselect }}"
 data-label="{{ button_label | escape }}"
 data-money-format="{{ shop.money_format | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}">{{ heading | escape }}</h2>{%- endif -%}{%- if mode == 'rule' and rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<ul class="ucro-cross__list" role="list">{%- if mode == 'rule' -%}{%- for p in rule.offered_products.value -%}{%- if p.available != true -%}{%- continue -%}{%- endif -%}{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}{%- assign in_cart = false -%}{%- if placement == 'cart' -%}{%- for item in cart.items -%}{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}{%- endfor -%}{%- endif -%}{%- unless in_cart -%}{%- render 'ucro-offer-row', p: p, pct: pct, checked: block.settings.preselect -%}{%- endunless -%}{%- endfor -%}{%- endif -%}</ul>
+>{%- if heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ bs.heading_size }}">{{ heading | escape }}</h2>{%- endif -%}{%- if mode == 'rule' and rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<ul class="ucro-cross__list" role="list">{%- if mode == 'rule' -%}{%- for p in rule.offered_products.value -%}{%- if p.available != true -%}{%- continue -%}{%- endif -%}{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}{%- assign in_cart = false -%}{%- if placement == 'cart' -%}{%- for item in cart.items -%}{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}{%- endfor -%}{%- endif -%}{%- unless in_cart -%}{%- render 'ucro-offer-row', p: p, pct: pct, checked: bs.preselect -%}{%- endunless -%}{%- endfor -%}{%- endif -%}</ul>
 <button type="button" class="ucro-btn ucro-cross__add" disabled>
 <span class="ucro-cross__label">{{ button_label | escape }}</span>
 </button>

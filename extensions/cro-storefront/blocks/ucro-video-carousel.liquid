@@ -1,27 +1,27 @@
-{%- liquid
+{%- assign bs = block.settings -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.videos_enabled.value == false
 assign enabled = false
 endif
 assign show_here = true
-if block.settings.show_on != 'everywhere'
+if bs.show_on != 'everywhere'
 assign type_match = false
 case request.page_type
 when 'index'
-assign type_match = block.settings.pt_home
+assign type_match = bs.pt_home
 when 'product'
-assign type_match = block.settings.pt_product
+assign type_match = bs.pt_product
 when 'collection', 'list-collections'
-assign type_match = block.settings.pt_collection
+assign type_match = bs.pt_collection
 when 'cart'
-assign type_match = block.settings.pt_cart
+assign type_match = bs.pt_cart
 when 'page'
-assign type_match = block.settings.pt_page
+assign type_match = bs.pt_page
 when 'blog', 'article'
-assign type_match = block.settings.pt_blog
+assign type_match = bs.pt_blog
 when 'search'
-assign type_match = block.settings.pt_search
+assign type_match = bs.pt_search
 endcase
 assign current_handle = ''
 case request.page_type
@@ -37,8 +37,8 @@ when 'article'
 assign current_handle = article.handle
 endcase
 assign handle_match = false
-if block.settings.handles != blank and current_handle != blank
-assign handle_list = block.settings.handles | downcase | remove: ' ' | split: ','
+if bs.handles != blank and current_handle != blank
+assign handle_list = bs.handles | downcase | remove: ' ' | split: ','
 if handle_list contains current_handle
 assign handle_match = true
 endif
@@ -47,7 +47,7 @@ assign is_match = false
 if type_match or handle_match
 assign is_match = true
 endif
-if block.settings.show_on == 'only'
+if bs.show_on == 'only'
 assign show_here = is_match
 elsif is_match
 assign show_here = false
@@ -55,18 +55,18 @@ endif
 endif
 assign slides = shop.metaobjects['$app:cro_carousel']['main'].slides.value
 assign radius = 'var(--product-card-corner-radius, var(--media-radius, 12px))'
-if block.settings.corners == 'square'
+if bs.corners == 'square'
 assign radius = '0px'
-elsif block.settings.corners == 'round'
+elsif bs.corners == 'round'
 assign radius = '28px'
 endif
 -%}{%- if enabled and show_here and slides.size > 0 -%}<ucro-video-carousel
-class="ucro ucro-vc{% if block.settings.devices == 'mobile' %} ucro-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
-style="--ucro-align: {{ block.settings.text_align }}; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px; --ucro-vc-gap: {{ block.settings.gap }}px; --ucro-vc-desktop: {{ block.settings.slides_desktop }}; --ucro-vc-mobile: {{ block.settings.slides_mobile }}; --ucro-vc-ratio: {{ block.settings.aspect_ratio }}; --ucro-vc-radius: {{ radius }};"
-data-autoplay="{{ block.settings.autoplay }}"
+class="ucro ucro-vc{% if bs.devices == 'mobile' %} ucro-hide-desktop{% elsif bs.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
+style="--ucro-align: {{ bs.text_align }}; --ucro-pt: {{ bs.padding_top }}px; --ucro-pb: {{ bs.padding_bottom }}px; --ucro-vc-gap: {{ bs.gap }}px; --ucro-vc-desktop: {{ bs.slides_desktop }}; --ucro-vc-mobile: {{ bs.slides_mobile }}; --ucro-vc-ratio: {{ bs.aspect_ratio }}; --ucro-vc-radius: {{ radius }};"
+data-autoplay="{{ bs.autoplay }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if block.settings.heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}">{{ block.settings.heading | escape }}</h2>{%- endif -%}{%- if block.settings.subheading != blank -%}<p class="ucro__sub">{{ block.settings.subheading | escape }}</p>{%- endif -%}{%- assign track_label = 'ucro.carousel' | t -%}{%- if block.settings.heading != blank -%}{%- assign track_label = block.settings.heading -%}{%- endif -%}<ul class="ucro-vc__track" role="list" tabindex="0" aria-roledescription="carousel" aria-label="{{ track_label | strip_html | escape }}">{%- for slide in slides -%}{%- liquid
+>{%- if bs.heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ bs.heading_size }}">{{ bs.heading | escape }}</h2>{%- endif -%}{%- if bs.subheading != blank -%}<p class="ucro__sub">{{ bs.subheading | escape }}</p>{%- endif -%}{%- assign track_label = 'ucro.carousel' | t -%}{%- if bs.heading != blank -%}{%- assign track_label = bs.heading -%}{%- endif -%}<ul class="ucro-vc__track" role="list" tabindex="0" aria-roledescription="carousel" aria-label="{{ track_label | strip_html | escape }}">{%- for slide in slides -%}{%- liquid
 assign video = slide.video.value
 assign image = slide.image.value
 assign linked = slide.product.value
@@ -97,9 +97,9 @@ preload="none"
 {% if video.preview_image %}poster="{{ video.preview_image | image_url: width: 720 }}"{% endif %}
 aria-label="{{ label | escape }}"
 {% if pick %}data-src="{{ pick.url }}"{% endif %}
-></video>{%- if linked == blank -%}<span class="ucro-vc__play" aria-hidden="true"></span>{%- endif -%}{%- elsif image != blank -%}{{ image | image_url: width: 720 | image_tag: loading: 'lazy', widths: '360, 540, 720', sizes: '(min-width: 750px) 25vw, 70vw', alt: label }}{%- else -%}{{ 'lifestyle-1' | placeholder_svg_tag: 'ucro-placeholder' }}{%- endif -%}</div>{%- if caption != blank -%}<p class="ucro-vc__caption">{{ caption | escape }}</p>{%- endif -%}{%- if linked != blank -%}<a class="ucro-vc__link" href="{{ linked.url }}" aria-label="{{ linked.title | escape }}" tabindex="-1"></a>{%- endif -%}</div>{%- if linked != blank and block.settings.show_product -%}<div class="ucro-vc__product">
+></video>{%- if linked == blank -%}<span class="ucro-vc__play" aria-hidden="true"></span>{%- endif -%}{%- elsif image != blank -%}{{ image | image_url: width: 720 | image_tag: loading: 'lazy', widths: '360, 540, 720', sizes: '(min-width: 750px) 25vw, 70vw', alt: label }}{%- else -%}{{ 'lifestyle-1' | placeholder_svg_tag: 'ucro-placeholder' }}{%- endif -%}</div>{%- if caption != blank -%}<p class="ucro-vc__caption">{{ caption | escape }}</p>{%- endif -%}{%- if linked != blank -%}<a class="ucro-vc__link" href="{{ linked.url }}" aria-label="{{ linked.title | escape }}" tabindex="-1"></a>{%- endif -%}</div>{%- if linked != blank and bs.show_product -%}<div class="ucro-vc__product">
 <a class="ucro-vc__title" href="{{ linked.url }}">{{ linked.title | escape }}</a>
-<span class="ucro-vc__price" data-ucro-price>{{ linked.price | money }}</span>{%- if block.settings.show_add -%}{%- if linked.available and linked.has_only_default_variant -%}<button type="button" class="ucro-btn ucro-vc__add" data-variant="{{ linked.first_available_variant.id }}">{{ block.settings.add_label | escape }}</button>{%- elsif linked.available -%}<a class="ucro-btn ucro-vc__add" href="{{ linked.url }}">{{ 'ucro.choose_options' | t }}</a>{%- else -%}<button type="button" class="ucro-btn ucro-vc__add" disabled>{{ 'ucro.sold_out' | t }}</button>{%- endif -%}{%- endif -%}</div>{%- endif -%}</li>{%- endfor -%}</ul>{%- if block.settings.show_arrows and slides.size > 1 -%}<div class="ucro-vc__nav">
+<span class="ucro-vc__price" data-ucro-price>{{ linked.price | money }}</span>{%- if bs.show_add -%}{%- if linked.available and linked.has_only_default_variant -%}<button type="button" class="ucro-btn ucro-vc__add" data-variant="{{ linked.first_available_variant.id }}">{{ bs.add_label | escape }}</button>{%- elsif linked.available -%}<a class="ucro-btn ucro-vc__add" href="{{ linked.url }}">{{ 'ucro.choose_options' | t }}</a>{%- else -%}<button type="button" class="ucro-btn ucro-vc__add" disabled>{{ 'ucro.sold_out' | t }}</button>{%- endif -%}{%- endif -%}</div>{%- endif -%}</li>{%- endfor -%}</ul>{%- if bs.show_arrows and slides.size > 1 -%}<div class="ucro-vc__nav">
 <button type="button" class="ucro-vc__arrow" data-dir="-1" aria-label="{{ 'ucro.previous' | t }}">
 <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>

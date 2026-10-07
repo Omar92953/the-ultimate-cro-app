@@ -1,4 +1,4 @@
-{%- liquid
+{%- assign bs = block.settings -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.bundles_enabled.value == false
@@ -24,23 +24,23 @@ assign dup = true
 endif
 -%}{%- if bundle and bundle.steps.value.size > 0 -%}<ucro-bundle
 class="ucro ucro-bundle"
-style="--ucro-align: {{ block.settings.text_align }}; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px; --ucro-cols-d: {{ block.settings.columns_desktop }}; --ucro-cols-m: {{ block.settings.columns_mobile }};{% if block.settings.accent != blank %} --ucro-accent: {{ block.settings.accent }};{% endif %}"
+style="--ucro-align: {{ bs.text_align }}; --ucro-pt: {{ bs.padding_top }}px; --ucro-pb: {{ bs.padding_bottom }}px; --ucro-cols-d: {{ bs.columns_desktop }}; --ucro-cols-m: {{ bs.columns_mobile }};{% if bs.accent != blank %} --ucro-accent: {{ bs.accent }};{% endif %}"
 data-key="{{ product.id }}"
 data-variant-id="{{ bv.id }}"
 data-price="{{ bv.price }}"
 data-dup="{{ dup }}"
-data-theme-button="{{ block.settings.use_theme_button }}"
+data-theme-button="{{ bs.use_theme_button }}"
 data-money-format="{{ shop.money_format | escape }}"
-data-t-button="{{ block.settings.button_label | escape }}"
-data-t-remaining="{{ block.settings.remaining_label | escape }}"
-data-t-value="{{ block.settings.value_text | escape }}"
-data-t-save="{{ block.settings.save_text | escape }}"
-data-t-pick="{{ block.settings.pick_label | escape }}"
-data-t-picked="{{ block.settings.picked_label | escape }}"
+data-t-button="{{ bs.button_label | escape }}"
+data-t-remaining="{{ bs.remaining_label | escape }}"
+data-t-value="{{ bs.value_text | escape }}"
+data-t-save="{{ bs.save_text | escape }}"
+data-t-pick="{{ bs.pick_label | escape }}"
+data-t-picked="{{ bs.picked_label | escape }}"
 data-t-incomplete="{{ 'ucro.bundle_incomplete' | t | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if block.settings.heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}">{{ block.settings.heading | escape }}</h2>{%- endif -%}{%- if block.settings.subheading != blank -%}<p class="ucro__sub">{{ block.settings.subheading | escape }}</p>{%- endif -%}{%- for step in bundle.steps.value -%}{%- liquid
+>{%- if bs.heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ bs.heading_size }}">{{ bs.heading | escape }}</h2>{%- endif -%}{%- if bs.subheading != blank -%}<p class="ucro__sub">{{ bs.subheading | escape }}</p>{%- endif -%}{%- for step in bundle.steps.value -%}{%- liquid
 assign max = step.max_picks.value | default: 1
 assign min = step.min_picks.value | default: 1
 if step.required.value == false
@@ -64,15 +64,15 @@ endif
 <span class="ucro-bundle__img">{%- if p.featured_media -%}{{ p.featured_media | image_url: width: 400 | image_tag: loading: 'lazy', widths: '200, 300, 400', sizes: '(min-width: 750px) 20vw, 45vw', alt: p.title }}{%- else -%}{{ 'product-1' | placeholder_svg_tag: 'ucro-placeholder' }}{%- endif -%}</span>
 <span class="ucro-bundle__name">{{ p.title | escape }}</span>
 <span class="ucro-bundle__price" data-ucro-price>{{ pv.price | money }}</span>{%- if p.has_only_default_variant -%}<input type="hidden" class="ucro-bundle__variant" value="{{ pv.id }}" data-cents="{{ pv.price }}" data-title="">{%- else -%}<select class="ucro-bundle__variant ucro-select" aria-label="{{ p.title | escape }}">{%- for variant in p.variants -%}{%- if hide_sold_out and variant.available == false -%}{%- continue -%}{%- endif -%}<option value="{{ variant.id }}" data-cents="{{ variant.price }}" data-price="{{ variant.price | money | escape }}" data-title="{{ variant.title | escape }}"{% if variant.id == pv.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>{{- variant.title -}}</option>{%- endfor -%}</select>{%- endif -%}{%- if p.available -%}<span class="ucro-bundle__actions">
-<button type="button" class="ucro-bundle__pick" aria-pressed="false">{{ block.settings.pick_label | escape }}</button>{%- if dup -%}<button type="button" class="ucro-bundle__minus" aria-label="{{ 'ucro.remove' | t }}" hidden>−</button>
+<button type="button" class="ucro-bundle__pick" aria-pressed="false">{{ bs.pick_label | escape }}</button>{%- if dup -%}<button type="button" class="ucro-bundle__minus" aria-label="{{ 'ucro.remove' | t }}" hidden>−</button>
 <span class="ucro-bundle__qty" hidden>0</span>
 <button type="button" class="ucro-bundle__plus" aria-label="{{ 'ucro.add' | t }}" hidden>+</button>{%- endif -%}</span>{%- else -%}<span class="ucro-bundle__soldout">{{ 'ucro.sold_out' | t }}</span>{%- endif -%}</li>{%- endfor -%}</ul>
-</fieldset>{%- endfor -%}<div class="ucro-bundle__summary{% if block.settings.sticky_summary %} is-sticky{% endif %}">{%- if block.settings.show_summary -%}<ul class="ucro-bundle__picks" role="list" data-picks></ul>
+</fieldset>{%- endfor -%}<div class="ucro-bundle__summary{% if bs.sticky_summary %} is-sticky{% endif %}">{%- if bs.show_summary -%}<ul class="ucro-bundle__picks" role="list" data-picks></ul>
 <p class="ucro-bundle__totals">
 <span data-value></span>
 <strong data-ucro-price data-price>{{ bv.price | money }}</strong>
 </p>
-<p class="ucro-bundle__save" data-save hidden></p>{%- endif -%}<button type="button" class="ucro-btn ucro-bundle__add" disabled>{{ block.settings.button_label | escape }}</button>
+<p class="ucro-bundle__save" data-save hidden></p>{%- endif -%}<button type="button" class="ucro-btn ucro-bundle__add" disabled>{{ bs.button_label | escape }}</button>
 <p class="ucro__error" role="alert" hidden></p>
 </div>
 </ucro-bundle>

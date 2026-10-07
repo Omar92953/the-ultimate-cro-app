@@ -48,6 +48,24 @@ engine.registerFilter("video_tag", (video, ...args) => {
 });
 engine.registerFilter("placeholder_svg_tag", (name, cls) => `<svg class="${cls}" viewBox="0 0 525 300" xmlns="http://www.w3.org/2000/svg"><rect width="525" height="300"/></svg>`);
 engine.registerFilter("asset_url", (name) => `assets/${name}`);
+engine.registerFilter("default_errors", (e) => `<ul><li>${e}</li></ul>`);
+// {% form 'contact' %} … {% endform %}: a plain form posting to /contact, with an empty "form" object.
+engine.registerTag("form", {
+  parse(token, remain) {
+    this.cls = (token.args.match(/class:\s*'([^']*)'/) || [])[1] || "";
+    this.tpls = [];
+    const stream = this.liquid.parser.parseStream(remain);
+    stream.on("tag:endform", () => stream.stop()).on("template", (t) => this.tpls.push(t)).on("end", () => { throw new Error("form not closed"); });
+    stream.start();
+  },
+  *render(ctx, emitter) {
+    emitter.write(`<form method="post" action="/contact" class="${this.cls}"><input type="hidden" name="form_type" value="contact">`);
+    ctx.push({ form: { posted_successfully: false, errors: null, email: "", body: "" } });
+    yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
+    ctx.pop();
+    emitter.write("</form>");
+  },
+});
 engine.registerFilter("payment_type_svg_tag", (type, ...args) => `<svg class="${named(args).class ?? ""}" viewBox="0 0 38 24" role="img" aria-label="${type}"><rect width="38" height="24" rx="3" fill="#fff" stroke="#ccc"/><text x="19" y="15" font-size="7" text-anchor="middle" font-family="Arial" font-weight="700">${String(type).toUpperCase()}</text></svg>`);
 engine.registerFilter("handleize", (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
 engine.registerFilter("color_brightness", (hex) => {
@@ -268,6 +286,13 @@ const qaPage = `<style>.media{display:block;overflow:hidden}.media > *:not(.zoom
 <div style="display:flex;gap:24px;padding:32px 40px">${qaCard("classic-watch", "Classic watch", "https://images.unsplash.com/photo-1523275335684-37898b6baf30", "$129.00")}${qaCard("sunglasses", "Sunglasses", "https://images.unsplash.com/photo-1572635196237-14b3f281503f", "$45.00")}</div>
 <script>(function(){const P=${JSON.stringify(qaProducts)};const res=(o)=>Promise.resolve(new Response(JSON.stringify(o),{headers:{"Content-Type":"application/json"}}));window.fetch=(u,o)=>{u=String(u);if(u.includes("/products/"))return res(P[u.split("/products/")[1].split(".js")[0]]);if(u.includes("/cart/add"))return res({items:[{key:"k1",id:7801,quantity:1}]});return res({});};})();</script>`;
 pages["quick-add.html"] = page("Quick add", qaPage, (await block("ucs-quick-add", { after: "toast", autohide: 0 })) + '<link rel="stylesheet" href="assets/ucs-quick-add.css">');
+
+// Contact page (Pages → Contact page in the app): the app's own defaults, made storefront-ready the
+// way the app saves them, with the contact details panel on.
+const { DEFAULT_CONTACT, toStorefrontContact, withContactDefaults } = await import("../../app/lib/pages.ts");
+const contactCfg = toStorefrontContact(withContactDefaults({ ...DEFAULT_CONTACT, info: { ...DEFAULT_CONTACT.info, show: true, email: "hello@example.com", phone: "+20 100 123 4567", whatsapp: "+20 100 123 4567", address: "12 Nile St, Cairo", hours: "Sat–Thu, 10am–8pm" } }));
+const contactShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_page": collectionOf([mo("contact", { config: contactCfg })]) } };
+pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 

@@ -1,4 +1,4 @@
-{%- liquid
+{%- assign bs = block.settings -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.cross_sell_enabled.value == false
@@ -7,9 +7,9 @@ endif
 -%}{%- if enabled and template.name != 'cart' -%}<script type="application/json" id="ucro-drawer-data">
 {
 "fmt": {{ shop.money_format | json }},
-"max": {{ block.settings.max_items | json }},
-"heading": {{ block.settings.heading | json }},
-"add": {{ block.settings.add_label | json }},
+"max": {{ bs.max_items | json }},
+"heading": {{ bs.heading | json }},
+"add": {{ bs.add_label | json }},
 "error": {{ 'ucro.error' | t | json }},
 "rules": [{%- assign first_rule = true -%}{%- for r in shop.metaobjects['$app:cro_rule'].values -%}{%- if r.kind.value != 'cross_sell' or r.active.value != true -%}{%- continue -%}{%- endif -%}{%- assign placements = r.placements.value -%}{%- unless placements contains 'drawer' -%}{%- continue -%}{%- endunless -%}{%- liquid
 assign pct = r.discount_percent.value | default: 0
@@ -20,7 +20,7 @@ assign ttype = r.trigger_type.value | default: 'all'
 "p": {{ r.priority.value | default: 100 | json }},
 "t": {{ ttype | json }},
 "ids": [{%- if ttype == 'products' -%}{%- for tp in r.trigger_products.value -%}{{ tp.id }}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}{%- elsif ttype == 'collections' -%}{%- assign first_id = true -%}{%- for tc in r.trigger_collections.value -%}{%- for cp in tc.products limit: 50 -%}{%- unless first_id -%},{%- endunless -%}{%- assign first_id = false -%}{{ cp.id }}{%- endfor -%}{%- endfor -%}{%- endif -%}],
-"h": {{ r.headline.value | default: block.settings.heading | json }},
+"h": {{ r.headline.value | default: bs.heading | json }},
 "pct": {{ pct | json }},
 "offers": [{%- assign first_offer = true -%}{%- for p in r.offered_products.value -%}{%- unless p.available -%}{%- continue -%}{%- endunless -%}{%- unless first_offer -%},{%- endunless -%}{%- assign first_offer = false -%}
 {

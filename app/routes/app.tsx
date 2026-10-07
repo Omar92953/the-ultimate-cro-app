@@ -25,6 +25,7 @@ export default function App() {
         <s-link href="/app/bundles">Bundles</s-link>
         <s-link href="/app/sections/reviews">Store sections</s-link>
         <s-link href="/app/boosters">Boosters</s-link>
+        <s-link href="/app/pages">Pages</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <Outlet />
