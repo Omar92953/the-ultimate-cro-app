@@ -742,6 +742,66 @@ export function ImageCarouselOverlayShowcase() {
   );
 }
 
+const ADDONS = [
+  { t: "Gift wrapping", x: "Wrapped by hand in recycled paper", p: "+$5.00", on: true, id: "1513885535751-8b9238bd345a" },
+  { t: "Greeting card", x: "Your message, handwritten", p: "+$3.00", on: false, id: "1607344645866-009c320b63e0" },
+  { t: "2-year warranty", x: "Repairs and replacements", p: "+$12.00", on: false, id: PRODUCTS[1].id },
+];
+/** Add-ons: tick boxes under the Add to cart button, and a gift message. */
+export function AddonsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w40}`}>
+        <span className={s.between}>
+          <b className={s.h3}>Classic watch</b>
+          <b>$129</b>
+        </span>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+        <b>Make it extra special</b>
+        <span className={s.aoList}>
+          {ADDONS.map((a) => (
+            <span key={a.t} className={`${s.aoItem} ${a.on ? s.aoOn : ""}`}>
+              <span className={`${s.aoBox} ${a.on ? s.aoBoxOn : ""}`}>{a.on ? "✓" : ""}</span>
+              <Img id={a.id} w={80} h={80} className={s.aoImg} />
+              <span className={s.aoBody}>
+                <b>{a.t}</b>
+                <small className={s.muted}>{a.x}</small>
+              </span>
+              <b>{a.p}</b>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Add-ons as cards side by side, with the gift message open. */
+export function AddonsCardsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w46}`}>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+        <span className={s.aoCards}>
+          {ADDONS.map((a) => (
+            <span key={a.t} className={`${s.aoItem} ${s.aoCard} ${a.on ? s.aoOn : ""}`}>
+              <Img id={a.id} w={80} h={80} className={s.aoImg} />
+              <b>{a.t}</b>
+              <small className={s.muted}>{a.p}</small>
+              <span className={`${s.aoBox} ${s.aoCorner} ${a.on ? s.aoBoxOn : ""}`}>{a.on ? "✓" : ""}</span>
+            </span>
+          ))}
+        </span>
+        <span className={`${s.aoItem} ${s.aoOn}`}>
+          <span className={`${s.aoBox} ${s.aoBoxOn}`}>✓</span>
+          <b>Add a gift message</b>
+        </span>
+        <span className={s.aoMsg}>Happy birthday Sara! Love, Omar</span>
+      </span>
+    </Stage>
+  );
+}
+
 export function BundlesStepsShowcase() {
   return (
     <Stage>

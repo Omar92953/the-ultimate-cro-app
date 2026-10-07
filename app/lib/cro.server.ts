@@ -1118,6 +1118,7 @@ export const BLOCKS = {
   boosters: "ucs-boosters",
   contact: "ucs-contact",
   image_carousel: "ucs-image-carousel",
+  addons: "ucs-addons",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
@@ -1181,6 +1182,7 @@ export function editorLinks(shop: string) {
     bundles: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.bundles}&target=mainSection`,
     drawer: `${base}?context=apps&activateAppId=${key}/${BLOCKS.drawer}`,
     contact: `${base}?template=page.contact&addAppBlockId=${key}/${BLOCKS.contact}&target=newAppsSection`,
+    addons: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.addons}&target=mainSection`,
     editor: base,
   };
 }

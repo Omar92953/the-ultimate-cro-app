@@ -368,3 +368,16 @@
 .icDots { display: flex; justify-content: center; gap: 0.6em; }
 .icDots i { width: 0.6em; height: 0.6em; background: #111; border-radius: 50%; opacity: 0.25; }
 .icDots .icDotOn { opacity: 1; }
+
+/* add-ons */
+.aoList { display: flex; flex-direction: column; gap: 0.7em; }
+.aoItem { position: relative; display: flex; align-items: center; gap: 0.9em; padding: 0.8em 1em; background: #fff; border-radius: 0.8em; box-shadow: 0 0 0 0.1em #e3e3e3; }
+.aoOn { box-shadow: 0 0 0 0.18em #121212; }
+.aoBox { display: grid; flex: none; place-items: center; width: 1.4em; height: 1.4em; font-size: 0.9em; color: #fff; border-radius: 0.3em; box-shadow: inset 0 0 0 0.12em #8a8a8a; }
+.aoBoxOn { background: #121212; box-shadow: none; }
+.aoImg { flex: none; width: 3.2em; height: 3.2em; object-fit: cover; border-radius: 0.5em; }
+.aoBody { display: flex; flex: 1; flex-direction: column; gap: 0.15em; min-width: 0; }
+.aoCards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8em; }
+.aoCard { flex-direction: column; align-items: flex-start; gap: 0.4em; }
+.aoCorner { position: absolute; top: 0.7em; right: 0.7em; }
+.aoMsg { padding: 0.9em 1em; color: #303030; background: #fff; border-radius: 0.8em; box-shadow: 0 0 0 0.1em #e3e3e3; }

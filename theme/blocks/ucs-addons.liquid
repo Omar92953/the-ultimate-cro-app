@@ -1,0 +1,25 @@
+{%- comment -%}
+  App block: add-ons under the Add to cart button (gift wrapping, a gift message…). Set in the app
+  (Offers → Add-ons), stored in $app:cro_design "addons"; ucs-addons.js builds it and adds ticked
+  add-ons to the cart together with the product.
+{%- endcomment -%}
+{%- assign c = shop.metaobjects['$app:cro_design']['addons'].config.value -%}
+{%- if product and c.a.size > 0 or product and c.m -%}
+  <div class="ucs ucs-ao" data-ucs-ao data-handle="{{ product.handle }}" data-title="{{ product.title | escape }}" data-cols="{{ product.collections | map: 'handle' | join: ',' }}" hidden {{ block.shopify_attributes }}>
+    <script type="application/json">{{ c | json }}</script>
+  </div>
+  <script src="{{ 'ucs-addons.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+  <p class="ucs-note">{{ 'ucs.ao_empty' | t }}</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Add-ons",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers → Add-ons." }
+  ]
+}
+{% endschema %}

@@ -313,5 +313,6 @@ export function sectionLinks(shop: string) {
     boosters: embed("ucs-boosters"),
     hero: block("ucs-hero"),
     image_carousel: block("ucs-image-carousel"),
+    addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
   };
 }
