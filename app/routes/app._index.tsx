@@ -526,17 +526,24 @@ export default function Home() {
         return (
           <>
             <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-              <Segmented
-                label="Category"
-                value={cat}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "store", label: `On my store (${onStoreCount})` },
-                  ...CATS.map((c) => ({ value: c.key, label: c.title })),
-                  { value: "saved", label: `Saved (${saved.length})` },
-                ]}
-                onChange={(v) => setFilter({ cat: v })}
-              />
+              {/* Categories, then (set a little apart) the two personal views: what's on the store and what's saved. */}
+              <s-stack direction="inline" gap="small-100" alignItems="center">
+                <Segmented
+                  label="Category"
+                  value={cat}
+                  options={[{ value: "all", label: "All" }, ...CATS.map((c) => ({ value: c.key, label: c.title }))]}
+                  onChange={(v) => setFilter({ cat: v })}
+                />
+                <Segmented
+                  label="My views"
+                  value={cat}
+                  options={[
+                    { value: "store", label: `On my store (${onStoreCount})` },
+                    { value: "saved", label: `Saved (${saved.length})` },
+                  ]}
+                  onChange={(v) => setFilter({ cat: v })}
+                />
+              </s-stack>
               <s-stack direction="inline" gap="small-200" alignItems="center">
                 <select className={showcase.find} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
                   <option value="all">Any status</option>
