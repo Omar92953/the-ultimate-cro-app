@@ -69,8 +69,8 @@ const collectionOf = (items) => Object.assign(Object.fromEntries(items.map((m) =
 const photo = (seed, w = 800, h = 1000) => ({ media_type: "image", src: `https://picsum.photos/seed/${seed}/${w}/${h}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
 const video = (n) => ({ media_type: "video", preview_image: { src: `https://picsum.photos/seed/v${n}/720/900` }, sources: [{ url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" }] });
 const logo = (text, color) => ({ media_type: "image", src: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60"><text x="0" y="44" font-family="Arial" font-weight="700" font-size="40" fill="${color}">${text}</text></svg>`)}`, width: 200, height: 60, aspect_ratio: 200 / 60 });
-// Real chat screenshots (the owner's store files) for screenshot-style reviews.
-const shot = (f, w, h) => ({ media_type: "image", src: `https://cdn.shopify.com/s/files/1/0792/6959/3237/files/${f}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
+// Real chat screenshots (uploaded to the dev store's files) for screenshot-style reviews.
+const shot = (f, w, h) => ({ media_type: "image", src: `https://cdn.shopify.com/s/files/1/0836/6669/8457/files/${f}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
 // Product photos: Unsplash (free to use). Reviews without their own photo show these.
 const tee = { id: 30, title: "Wireless headphones", url: "/products/basic-tee", featured_image: { media_type: "image", src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=1000&fit=crop&q=60&auto=format", width: 800, height: 1000, aspect_ratio: 0.8, alt: "" } };
 const mug = { id: 31, title: "Ceramic mug", url: "/products/logo-mug", featured_image: { media_type: "image", src: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800&h=1000&fit=crop&q=60&auto=format", width: 800, height: 1000, aspect_ratio: 0.8, alt: "" } };
@@ -97,9 +97,9 @@ const faq = [
 const logos = ["ACME", "Globex", "Initech", "Umbrella", "Hooli"].map((n, i) => mo(`l${i}`, { name: n, image: logo(n, ["#e11d48", "#2563eb", "#16a34a", "#9333ea", "#ea580c"][i]), link: i === 0 ? "https://example.com" : "", position: 5 - i }));
 const long = "I ordered on Sunday and it arrived on Tuesday, perfectly packed. The fabric is thick and soft, the print hasn't faded after five washes, and the fit is exactly as described in the size guide. Customer service answered on WhatsApp within minutes when I asked to change the size. Will definitely order again for my brother.";
 const reviews = [
-  mo("r1", { name: "Mariam A.", text: "", rating: 5, media: shot("5.jpg?v=1790872416", 1080, 540), source: "whatsapp", product: tee, location: "Cairo", date: "2026-09-12", verified: true, featured: true, active: true, position: 1 }),
+  mo("r1", { name: "Mariam A.", text: "", rating: 5, media: shot("review-chat-1.jpg?v=1791333868", 1023, 336), source: "whatsapp", product: tee, location: "Cairo", date: "2026-09-12", verified: true, featured: true, active: true, position: 1 }),
   mo("r2", { name: "Youssef K.", text: "Great sound and the battery lasts all week.", rating: 5, source: "tiktok", source_url: "https://www.tiktok.com/", product: tee, location: "Alexandria", date: "2026-09-20", verified: true, featured: true, active: true, position: 4 }),
-  mo("r3", { name: "Nour H.", text: "", rating: 5, media: shot("2.jpg?v=1790872390", 1080, 470), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3 }),
+  mo("r3", { name: "Nour H.", text: "", rating: 5, media: shot("review-chat-3.jpg?v=1791333868", 1284, 506), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3 }),
   mo("r4", { name: "Omar S.", text: "Quick delivery, good quality.", rating: 4, source: "google", product: camera, location: "Mansoura", date: "2026-09-25", active: true, position: 2 }),
   mo("r5", { name: "Salma R.", text: "Got it as a gift and my friend loved it.", rating: 5, source: "facebook", product: mug, date: "2026-10-01", active: true, position: 5 }),
   mo("r6", { name: "Hidden H.", text: "HIDDEN — must not show", rating: 1, active: false, position: 0 }),
@@ -256,6 +256,18 @@ const dealCart = `<script>
 </script>`;
 const dealForm = productForm.replace(/<script>const pjs=[\s\S]*?<\/script>/, "") + dealCart;
 pages["deals.html"] = page("Bundle deals", dealForm, (await block("ucs-boosters", {}, { page_type: "product", product: { ...watch, collections: [{ id: 500 }] }, shop: dealShop })) + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
+
+// Quick add on Dawn-style cards. Dawn's ".media > *" rule (which once stretched the button into a
+// card-sized oval) is included on purpose; the fake cart answers /products/*.js and /cart/add.js.
+const qaCard = (h, title, img, price) => `<div class="card-wrapper" style="width:260px"><div class="card card--media"><div class="card__inner"><div class="card__media"><div class="media" style="position:relative;padding-bottom:125%"><img src="${img}?w=500" alt="" style="object-fit:cover"></div></div></div><div class="card__content"><h3 class="card__heading"><a href="/products/${h}">${title}</a></h3><span>${price}</span></div></div></div>`;
+const qaProducts = {
+  "classic-watch": { ...productJs, price: 12900 },
+  sunglasses: sunglassesJs,
+};
+const qaPage = `<style>.media{display:block;overflow:hidden}.media > *:not(.zoom):not(.deferred-media__poster-button){display:block;max-width:100%;position:absolute;top:0;left:0;height:100%;width:100%}.card__media{position:relative}</style>
+<div style="display:flex;gap:24px;padding:32px 40px">${qaCard("classic-watch", "Classic watch", "https://images.unsplash.com/photo-1523275335684-37898b6baf30", "$129.00")}${qaCard("sunglasses", "Sunglasses", "https://images.unsplash.com/photo-1572635196237-14b3f281503f", "$45.00")}</div>
+<script>(function(){const P=${JSON.stringify(qaProducts)};const res=(o)=>Promise.resolve(new Response(JSON.stringify(o),{headers:{"Content-Type":"application/json"}}));window.fetch=(u,o)=>{u=String(u);if(u.includes("/products/"))return res(P[u.split("/products/")[1].split(".js")[0]]);if(u.includes("/cart/add"))return res({items:[{key:"k1",id:7801,quantity:1}]});return res({});};})();</script>`;
+pages["quick-add.html"] = page("Quick add", qaPage, (await block("ucs-quick-add", { after: "toast", autohide: 0 })) + '<link rel="stylesheet" href="assets/ucs-quick-add.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 

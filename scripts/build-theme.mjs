@@ -24,7 +24,7 @@ const OUT = path.join(root, "extensions/cro-storefront");
 const DIRS = ["blocks", "snippets"];
 const LOCALE = path.join(OUT, "locales/en.default.schema.json");
 const LOCALE_LIMIT = 15 * 1024;
-const LOCALE_KEYS = 240; // Shopify allows 250 translation keys
+const LOCALE_KEYS = 248; // Shopify allows 250 translation keys
 const LIMIT = 100 * 1024;
 const WARN = 92 * 1024;
 

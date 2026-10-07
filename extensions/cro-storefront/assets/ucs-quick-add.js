@@ -45,25 +45,17 @@
     return s + (s.indexOf('?') > -1 ? '&' : '?') + 'width=' + w;
   }
 
-  /* ---------- the theme's accent (its main button colour) ---------- */
-  function themeAccent() {
-    if (cfg.accent) return cfg.accent;
-    var b = document.querySelector('.product-form__submit, .button:not(.button--secondary):not(.button--tertiary), .btn--primary, button[name="add"]');
-    var bg = b && getComputedStyle(b).backgroundColor;
-    return bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg) ? bg : '#121212';
-  }
-  function onColor(color) {
-    var m = String(color).match(/\d+(\.\d+)?/g);
-    if (!m) return '#fff';
-    var l = (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255;
-    return l > 0.6 ? '#121212' : '#ffffff';
-  }
-  var accent = null;
+  /* ---------- popup button colours (theme editor: Popup buttons) ---------- */
+  // [view cart bg, text, border, checkout bg, text, border, border width, corner radius]
+  var POP = cfg.pop || ['#ffffff', '#121212', '#121212', '#121212', '#ffffff', '#121212', 1, 4];
   function paint(el) {
-    accent = accent || themeAccent();
-    el.style.setProperty('--ucs-accent', accent);
-    el.style.setProperty('--ucs-on-accent', onColor(accent));
-    if (cfg.radius !== null) el.style.setProperty('--ucs-radius', cfg.radius + 'px');
+    var names = ['vc-bg', 'vc-text', 'vc-border', 'co-bg', 'co-text', 'co-border'];
+    names.forEach(function (n, i) { if (POP[i]) el.style.setProperty('--ucs-' + n, POP[i]); });
+    el.style.setProperty('--ucs-btn-bw', (Number(POP[6]) || 0) + 'px');
+    el.style.setProperty('--ucs-btn-radius', (Number(POP[7]) || 0) + 'px');
+    // The size picker's buttons use the Checkout colours.
+    el.style.setProperty('--ucs-accent', POP[3] || '#121212');
+    el.style.setProperty('--ucs-on-accent', POP[4] || '#ffffff');
   }
 
   /* ---------- find product cards and add the button ---------- */
@@ -185,13 +177,16 @@
     paint(toastEl);
     var src = (variant.featured_image && variant.featured_image.src) || p.featured_image;
     var title = variant.title && variant.title !== 'Default Title' ? variant.title : '';
+    // Same layout as the Backrooms theme's cart popup: round close button above the box, green
+    // "Added" banner, photo with name and price, then View cart + Checkout side by side.
     toastEl.innerHTML =
-      '<button type="button" class="ucs-toast__close" aria-label="' + esc(T.close) + '">✕</button>' +
-      '<div class="ucs-toast__head">' + CHECK + ' ' + esc(T.added) + '</div>' +
-      '<div class="ucs-toast__item">' + (src ? '<img src="' + img(src, 120) + '" alt="">' : '') +
-      '<div><p class="ucs-toast__name">' + esc(p.title) + '</p><p class="ucs-toast__meta">' + esc(title) + (title ? ' · ' : '') + money(variant.price) + '</p></div></div>' +
-      '<div class="ucs-toast__actions"><a class="ucs-btn ucs-btn--ghost" href="' + url('cart_url', 'cart') + '">' + esc(T.view_cart) + '</a>' +
-      (cfg.checkout ? '<a class="ucs-btn" href="' + root + 'checkout">' + esc(T.checkout) + '</a>' : '<span></span>') + '</div>';
+      '<button type="button" class="ucs-toast__close" aria-label="' + esc(T.close) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+      '<div class="ucs-toast__head"><span class="ucs-toast__tick">' + CHECK + '</span>' + esc(T.added) + '</div>' +
+      '<div class="ucs-toast__item">' + (src ? '<img src="' + img(src, 160) + '" alt="">' : '') +
+      '<div><p class="ucs-toast__name">' + esc(p.title) + '</p>' + (title ? '<p class="ucs-toast__meta">' + esc(title) + '</p>' : '') +
+      '<p class="ucs-toast__price">' + money(variant.price) + '</p></div></div>' +
+      '<div class="ucs-toast__actions' + (cfg.checkout ? '' : ' is-one') + '"><a class="ucs-toast__vc" href="' + url('cart_url', 'cart') + '">' + esc(T.view_cart) + '</a>' +
+      (cfg.checkout ? '<a class="ucs-toast__co" href="' + root + 'checkout">' + esc(T.checkout) + '</a>' : '') + '</div>';
     requestAnimationFrame(function () { toastEl.classList.add('is-open'); });
     schedule();
   }

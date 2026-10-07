@@ -2,12 +2,6 @@
   App embed: quick add to cart on product cards (collections, home, search, recommendations).
   Product cards can't hold app blocks, so the button is placed on each card's image by JS.
 {%- endcomment -%}
-{%- liquid
-  assign radius = null
-  unless block.settings.theme_radius
-    assign radius = block.settings.radius
-  endunless
--%}
 <script type="application/json" id="ucs-qa-config">
   {
     "fmt": {{ shop.money_format | json }},
@@ -22,8 +16,7 @@
     "autohide": {{ block.settings.autohide | json }},
     "checkout": {{ block.settings.show_checkout | json }},
     "addedState": {{ block.settings.added_state | json }},
-    "accent": {{ block.settings.accent | json }},
-    "radius": {{ radius | json }},
+    "pop": [{{ block.settings.vc_bg | json }}, {{ block.settings.vc_text | json }}, {{ block.settings.vc_border | json }}, {{ block.settings.co_bg | json }}, {{ block.settings.co_text | json }}, {{ block.settings.co_border | json }}, {{ block.settings.btn_border }}, {{ block.settings.btn_radius }}],
     "selector": {{ block.settings.selector | strip | json }},
     "text": {
       "added": {{ block.settings.added_text | json }},
@@ -56,17 +49,22 @@
     { "type": "color", "id": "fg", "label": "Icon colour", "default": "#111111" },
     { "type": "checkbox", "id": "added_state", "label": "Show a tick after adding", "default": true },
     { "type": "header", "content": "After adding" },
-    { "type": "select", "id": "after", "label": "Then", "default": "theme", "options": [{ "value": "theme", "label": "Open my theme's cart (if it has one)" }, { "value": "toast", "label": "Show the “Added to cart” popup" }, { "value": "cart", "label": "Go to the cart page" }], "info": "Themes without a slide-out cart show the popup instead." },
-    { "type": "range", "id": "autohide", "label": "Hide the popup after", "min": 0, "max": 10, "step": 1, "unit": "s", "default": 4, "info": "0 = stays until closed. It waits while the mouse is over it." },
+    { "type": "select", "id": "after", "label": "Then", "default": "toast", "options": [{ "value": "toast", "label": "Show the “Added to cart” popup" }, { "value": "theme", "label": "Open my theme's cart (if it has one)" }, { "value": "cart", "label": "Go to the cart page" }] },
+    { "type": "range", "id": "autohide", "label": "Hide the popup after", "min": 0, "max": 10, "step": 1, "unit": "s", "default": 3, "info": "0 = stays until closed. It waits while the mouse is over it." },
     { "type": "checkbox", "id": "show_checkout", "label": "Show a Checkout button in the popup", "default": true },
     { "type": "text", "id": "added_text", "label": "Popup message", "default": "Added to your cart!" },
     { "type": "text", "id": "view_cart_text", "label": "View cart button", "default": "View cart" },
     { "type": "text", "id": "checkout_text", "label": "Checkout button", "default": "Checkout" },
     { "type": "text", "id": "add_text", "label": "Add button (size picker)", "default": "Add to cart" },
-    { "type": "header", "content": "Popup colours and corners" },
-    { "type": "color", "id": "accent", "label": "Button colour in popups", "info": "Leave empty to use your theme's button colour." },
-    { "type": "checkbox", "id": "theme_radius", "label": "Use default corners", "default": true },
-    { "type": "range", "id": "radius", "label": "Corner radius", "min": 0, "max": 24, "step": 2, "unit": "px", "default": 14, "visible_if": "{{ block.settings.theme_radius == false }}" },
+    { "type": "header", "content": "Popup buttons" },
+    { "type": "color", "id": "vc_bg", "label": "View cart background", "default": "#ffffff" },
+    { "type": "color", "id": "vc_text", "label": "View cart text", "default": "#121212" },
+    { "type": "color", "id": "vc_border", "label": "View cart border", "default": "#121212" },
+    { "type": "color", "id": "co_bg", "label": "Checkout background", "default": "#121212" },
+    { "type": "color", "id": "co_text", "label": "Checkout text", "default": "#ffffff" },
+    { "type": "color", "id": "co_border", "label": "Checkout border", "default": "#121212" },
+    { "type": "range", "id": "btn_border", "label": "Border width", "min": 0, "max": 4, "step": 1, "unit": "px", "default": 1 },
+    { "type": "range", "id": "btn_radius", "label": "Corner radius", "min": 0, "max": 24, "step": 1, "unit": "px", "default": 4 },
     { "type": "header", "content": "Advanced" },
     { "type": "text", "id": "selector", "label": "Product card selector", "info": "Only if the button doesn't appear on your theme's cards, e.g. .product-card. Leave empty for automatic." }
   ]
