@@ -1,5 +1,5 @@
-import { useEffect, type ReactElement } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { useEffect, useState, type ReactElement } from "react";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -61,11 +61,18 @@ import {
   TrustShowcase,
   UrgencyLastShowcase,
   UrgencyShowcase,
+  ContactShowcase,
+  ContactInfoShowcase,
+  ProductPageShowcase,
+  CollectionPageShowcase,
+  HeaderGlassShowcase,
+  HeaderRoundedShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
+import { getContact } from "../lib/pages.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -85,10 +92,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters, saved] = await Promise.all([
+  const [lists, boosters, saved, contact] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
+    getContact(admin).catch(() => ({ saved: false })),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -99,6 +107,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return {
     boosters,
     saved,
+    contactSaved: contact.saved,
     sectionCounts,
     sectionLinks: sectionLinks(session.shop),
     shop: session.shop,
@@ -126,6 +135,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     loadError: [settings, rules].find((r) => r.status === "rejected") ? "Some data could not be loaded. Refresh to try again." : null,
   };
 };
+
+/** Changing the Home filters only changes the address: no need to reload everything. */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl, formMethod, defaultShouldRevalidate }) =>
+  !formMethod && currentUrl.pathname === nextUrl.pathname ? false : defaultShouldRevalidate;
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -231,6 +244,14 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
 
+/** Pages designed in the app (Contact page now; the others are coming). */
+const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => JSX.Element)[] }[] = [
+  { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
+  { key: "page_product", title: "Product page", href: "/app/pages", Previews: [ProductPageShowcase] },
+  { key: "page_collection", title: "Collection page", href: "/app/pages", Previews: [CollectionPageShowcase] },
+  { key: "page_header", title: "Headers", href: "/app/pages", Previews: [HeaderGlassShowcase, HeaderRoundedShowcase] },
+];
+
 /** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
 const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "sticky", title: "Sticky add to cart", Previews: [StickyShowcase, StickyMobileShowcase] },
@@ -263,7 +284,19 @@ export default function Home() {
 
   const saveFetcher = useFetcher<typeof action>();
   const [params, setParams] = useSearchParams();
-  const view = params.get("view") === "saved" ? "saved" : "all";
+  // Home filters (kept in the address, so going back returns to the same view)
+  const cat = params.get("cat") ?? (params.get("view") === "saved" ? "saved" : "all");
+  const status = params.get("status") ?? "all";
+  const [query, setQuery] = useState("");
+  const setFilter = (patch: { cat?: string; status?: string }) => {
+    const next = new URLSearchParams(params);
+    next.delete("view");
+    for (const [k, v] of Object.entries(patch)) {
+      if (!v || v === "all") next.delete(k);
+      else next.set(k, v);
+    }
+    setParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (fetcher.data?.ok) shopify.toast.show(fetcher.data.message || "Saved");
@@ -343,21 +376,10 @@ export default function Home() {
         </Card>
       ) : null}
 
-      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-        <GroupTitle>Sections</GroupTitle>
-        <Segmented
-          label="Show"
-          value={view}
-          options={[
-            { value: "all", label: "All sections" },
-            { value: "saved", label: `Saved (${saved.length})` },
-          ]}
-          onChange={(v) => setParams(v === "saved" ? { view: "saved" } : {}, { replace: true })}
-        />
-      </s-stack>
-      <div className={showcase.grid}>
-        {(() => {
-        const cards: { key: string; el: ReactElement }[] = [];
+      {(() => {
+        type Cat = "offers" | "sections" | "boosters" | "pages";
+        type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; el: ReactElement };
+        const cards: Entry[] = [];
         FEATURES.forEach((f) => {
           const on = settings[f.setting];
           const count = f.count(data.counts);
@@ -369,7 +391,7 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: "Add to theme", href: data.links[f.key], external: true }
                 : { label: on ? "Live" : "Manage", done: on, href: f.href };
-          cards.push({ key: f.key, el: (
+          cards.push({ key: f.key, cat: "offers", title: f.title, tone: status.tone, el: (
             <SectionCard
               key={f.key}
               title={f.title}
@@ -395,7 +417,7 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }
                 : { label: "Live", done: true, ...open };
-          cards.push({ key: c.key, el: <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} save={save(c.key)} /> });
+          cards.push({ key: c.key, cat: "sections", title: c.title, tone: status.tone, el: <SectionCard key={c.key} title={c.title} status={status} action={action} open={open} previews={c.Previews.map((P, i) => <P key={i} />)} save={save(c.key)} /> });
         });
         BOOSTER_CARDS.forEach((b) => {
           const embedOn = installed ? (installed.boosters ?? false) : null;
@@ -411,7 +433,7 @@ export default function Home() {
               : enabled
                 ? { label: "Live", done: true, href: "/app/boosters" }
                 : { label: "Switch on", href: "/app/boosters" };
-          cards.push({ key: b.key, el: (
+          cards.push({ key: b.key, cat: "boosters", title: b.title, tone: status.tone, el: (
             <SectionCard
               key={b.key}
               title={b.title}
@@ -423,15 +445,88 @@ export default function Home() {
             />
           ) });
         });
-        if (view === "all") return cards.map((c) => c.el);
-        const shown = saved.map((k) => cards.find((c) => c.key === k)).filter((c): c is { key: string; el: ReactElement } => !!c);
-        return shown.length ? (
-          shown.map((c) => c.el)
-        ) : (
-          <div className={showcase.empty}>No saved sections yet. Click the bookmark on any section to keep it here.</div>
+        PAGE_CARDS.forEach((pg) => {
+          const ready = pg.key === "page_contact";
+          const status: Status = !ready
+            ? { tone: "neutral", text: "Coming soon", next: null }
+            : !data.contactSaved
+              ? { tone: "warning", text: "Not designed", next: "create" }
+              : installed && installed.contact === false
+                ? { tone: "warning", text: "Not in theme", next: "theme" }
+                : { tone: "success", text: "Live", next: null };
+          const action = !ready
+            ? { label: "Soon", href: "/app/pages" }
+            : status.next === "theme"
+              ? { label: "Add to page", href: data.links.contact, external: true }
+              : status.next === "create"
+                ? { label: "Design", href: pg.href }
+                : { label: "Live", done: true, href: pg.href };
+          cards.push({ key: pg.key, cat: "pages", title: pg.title, tone: status.tone, el: (
+            <SectionCard key={pg.key} title={pg.title} status={status} action={action} open={{ href: pg.href }} previews={pg.Previews.map((P, i) => <P key={i} />)} save={save(pg.key)} off={!ready} />
+          ) });
+        });
+
+        const CATS: { key: Cat; title: string }[] = [
+          { key: "offers", title: "Offers and bundles" },
+          { key: "sections", title: "Store sections" },
+          { key: "boosters", title: "Boosters" },
+          { key: "pages", title: "Pages" },
+        ];
+        const q = query.trim().toLowerCase();
+        const match = (c: Entry) =>
+          (status === "all" || (status === "live" ? c.tone === "success" : status === "setup" ? c.tone === "warning" : c.tone === "neutral")) &&
+          (!q || c.title.toLowerCase().includes(q));
+        const empty = (text: string) => <div className={showcase.empty}>{text}</div>;
+        const grid = (list: Entry[]) => <div className={showcase.grid}>{list.map((c) => c.el)}</div>;
+
+        return (
+          <>
+            <s-stack gap="small-200">
+              <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+                <Segmented
+                  label="Category"
+                  value={cat}
+                  options={[
+                    { value: "all", label: "All" },
+                    ...CATS.map((c) => ({ value: c.key, label: c.title })),
+                    { value: "saved", label: `Saved (${saved.length})` },
+                  ]}
+                  onChange={(v) => setFilter({ cat: v })}
+                />
+                <s-stack direction="inline" gap="small-200" alignItems="center">
+                  <Segmented
+                    label="Status"
+                    value={status}
+                    options={[
+                      { value: "all", label: "Any status" },
+                      { value: "live", label: "Live" },
+                      { value: "setup", label: "Needs setup" },
+                      { value: "off", label: "Off / soon" },
+                    ]}
+                    onChange={(v) => setFilter({ status: v })}
+                  />
+                  <input className={showcase.find} type="search" placeholder="Find…" aria-label="Find a section" value={query} onChange={(e) => setQuery(e.target.value)} />
+                </s-stack>
+              </s-stack>
+            </s-stack>
+            {cat === "saved"
+              ? (() => {
+                  const list = saved.map((k) => cards.find((c) => c.key === k)).filter((c): c is Entry => !!c && match(c));
+                  return list.length ? grid(list) : empty("No saved items here. Click the bookmark on any card to keep it in Saved.");
+                })()
+              : CATS.filter((c) => cat === "all" || cat === c.key).map((c) => {
+                  const list = cards.filter((x) => x.cat === c.key && match(x));
+                  if (!list.length && cat === "all") return null;
+                  return (
+                    <s-stack key={c.key} gap="small-200">
+                      <GroupTitle>{`${c.title} (${list.length})`}</GroupTitle>
+                      {list.length ? grid(list) : empty("Nothing matches these filters.")}
+                    </s-stack>
+                  );
+                })}
+          </>
         );
-        })()}
-      </div>
+      })()}
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
       </s-stack>

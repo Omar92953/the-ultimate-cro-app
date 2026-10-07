@@ -296,3 +296,32 @@
 .salePop + .salePop { margin-top: 1em; margin-left: 4em; }
 .salePopImg { flex: none; width: 4em; height: 4em; object-fit: cover; border-radius: 0.6em; }
 .salePopX { position: absolute; top: 0.4em; right: 0.8em; color: #888; }
+
+/* ---- pages: contact form, product/collection layouts, headers ---- */
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7em; }
+.field { display: grid; gap: 0.35em; grid-column: 1 / -1; font-size: 0.85em; font-weight: 650; }
+.half { grid-column: auto; }
+.field i { display: block; height: 2.6em; background: #fff; border: 1px solid #d4d4d4; border-radius: 0.5em; }
+.field i.tall { height: 5.5em; }
+.split { display: grid; grid-template-columns: 0.75fr 1.4fr; gap: 1em; align-items: start; }
+.infoPanel { display: grid; gap: 0.7em; padding: 1.4em; color: #fff; background: #1f2937; border-radius: 1em; font-size: 0.9em; }
+.infoPanel b { font-size: 1.15em; }
+.infoRow { display: flex; align-items: center; gap: 0.6em; opacity: 0.9; }
+.infoRow::before { content: ""; width: 0.9em; height: 0.9em; border-radius: 50%; background: #34d399; flex: none; }
+.gradBg { background: linear-gradient(135deg, #eef2ff, #fdf2f8); }
+.pdp { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4em; align-items: start; }
+.pdp img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 0.8em; display: block; }
+.coll { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8em; }
+.coll img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 0.6em; display: block; }
+.filters { display: flex; gap: 0.5em; flex-wrap: wrap; font-size: 0.8em; }
+.filters i { padding: 0.3em 0.8em; border: 1px solid #d4d4d4; border-radius: 999px; font-style: normal; }
+.navBar { display: flex; align-items: center; justify-content: space-between; gap: 1em; padding: 0.9em 1.6em; font-size: 0.95em; font-weight: 650; }
+.navLinks { display: flex; gap: 1.2em; font-weight: 500; opacity: 0.8; }
+.glass { color: #fff; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 999px; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); backdrop-filter: blur(10px); }
+.roundNav { color: #111; background: #fff; border-radius: 1.2em; box-shadow: 0 0.3em 1.2em rgba(0, 0, 0, 0.1); }
+.headerScene { position: relative; display: grid; gap: 1.4em; width: 46em; padding: 1.4em; border-radius: 1.2em; background: url("https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&h=500&fit=crop&q=60&auto=format") center / cover; }
+.headerScene .heroText { padding: 2em 1.6em 3em; color: #fff; font-size: 2em; font-weight: 750; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+
+/* Home: find box next to the filters */
+.find { width: 12em; height: 30px; padding: 0 10px; border: 1px solid #c9cccf; border-radius: 8px; background: #fff; font: inherit; font-size: 13px; }
+.find:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }

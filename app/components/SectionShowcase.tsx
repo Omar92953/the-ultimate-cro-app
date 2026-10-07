@@ -1025,3 +1025,122 @@ export function SalesPopStackShowcase() {
     </Stage>
   );
 }
+
+/* ------------------------------------------------------------------- pages -- */
+const Field = ({ label, half, tall }: { label: string; half?: boolean; tall?: boolean }) => (
+  <span className={`${s.field} ${half ? s.half : ""}`}>
+    {label}
+    <i className={tall ? s.tall : undefined} />
+  </span>
+);
+const ContactForm = () => (
+  <span className={s.form}>
+    <Field label="Name" half />
+    <Field label="Email *" half />
+    <Field label="Phone" />
+    <Field label="Message *" tall />
+    <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Send message</span>
+  </span>
+);
+export function ContactShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w40}`}>
+        <b className={`${s.h2} ${s.centerText}`}>Get in touch</b>
+        <Lines w={[80, 55]} />
+        <ContactForm />
+      </span>
+    </Stage>
+  );
+}
+export function ContactInfoShowcase() {
+  return (
+    <Stage wide>
+      <span className={`${s.split} ${s.w56}`}>
+        <span className={s.infoPanel}>
+          <b>Contact us</b>
+          <span className={s.infoRow}>hello@store.com</span>
+          <span className={s.infoRow}>+20 100 123 4567</span>
+          <span className={s.infoRow}>WhatsApp</span>
+          <span className={s.infoRow}>Sat–Thu, 10–8</span>
+        </span>
+        <span className={`${s.box} ${s.gradBg}`}>
+          <b className={s.h3}>Send us a message</b>
+          <ContactForm />
+        </span>
+      </span>
+    </Stage>
+  );
+}
+export function ProductPageShowcase() {
+  return (
+    <Stage wide>
+      <span className={`${s.pdp} ${s.w56}`}>
+        <Img id={PRODUCTS[0].id} w={500} h={500} />
+        <span className={s.plain}>
+          <b className={s.h2}>{PRODUCTS[0].name}</b>
+          <b className={s.h3}>{PRODUCTS[0].price}</b>
+          <Lines w={[95, 85, 60]} />
+          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
+export function CollectionPageShowcase() {
+  return (
+    <Stage wide>
+      <span className={`${s.plain} ${s.w56}`}>
+        <span className={s.between}>
+          <b className={s.h3}>New arrivals</b>
+          <span className={s.filters}>
+            <i>Price</i>
+            <i>Size</i>
+            <i>Colour</i>
+          </span>
+        </span>
+        <span className={s.coll}>
+          {PRODUCTS.slice(0, 4).map((p) => (
+            <Img key={p.id} id={p.id} w={300} h={375} />
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+export function HeaderGlassShowcase() {
+  return (
+    <Stage wide>
+      <span className={s.headerScene}>
+        <span className={`${s.navBar} ${s.glass}`}>
+          <span>STORE</span>
+          <span className={s.navLinks}>
+            <span>Shop</span>
+            <span>New</span>
+            <span>About</span>
+          </span>
+          <span>Cart (2)</span>
+        </span>
+        <span className={s.heroText}>Summer collection</span>
+      </span>
+    </Stage>
+  );
+}
+export function HeaderRoundedShowcase() {
+  return (
+    <Stage wide>
+      <span className={s.headerScene}>
+        <span className={`${s.navBar} ${s.roundNav}`}>
+          <span>STORE</span>
+          <span className={s.navLinks}>
+            <span>Shop</span>
+            <span>New</span>
+            <span>About</span>
+          </span>
+          <span>Cart (2)</span>
+        </span>
+        <span className={s.heroText}>New season</span>
+      </span>
+    </Stage>
+  );
+}
