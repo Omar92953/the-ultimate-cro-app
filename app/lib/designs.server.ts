@@ -5,6 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig } from "./designs";
+import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
 async function getDesign(admin: AdminClient, handle: string): Promise<unknown> {
   const data = await gql(
@@ -31,4 +32,39 @@ export async function saveCountdownBar(admin: AdminClient, config: CountdownBarC
   const clean = withCountdownBarDefaults(config);
   await upsert(admin, "$app:cro_design", "countdown_bar", { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
   return clean;
+}
+
+/* ------------------------------------------------------------ image carousel -- */
+export async function getImageCarousel(admin: AdminClient): Promise<{ config: ImageCarouselConfig; saved: boolean }> {
+  // The editor's copy (file ids, empty slides) is kept apart from the lean storefront copy.
+  const raw = await getDesign(admin, "image_carousel_editor");
+  return { config: withImageCarouselDefaults(raw), saved: raw !== null };
+}
+
+/** Looks up each slide's image (CDN address and size) so the storefront needs no extra Liquid. */
+async function imageFiles(admin: AdminClient, ids: string[]) {
+  const out = new Map<string, { url: string; width: number; height: number }>();
+  if (!ids.length) return out;
+  const data = await gql(
+    admin,
+    `#graphql
+    query CroCarouselImages($ids: [ID!]!) {
+      nodes(ids: $ids) { ... on MediaImage { id image { url width height } } }
+    }`,
+    { ids },
+  );
+  for (const n of data.nodes ?? []) {
+    if (n?.image?.url) out.set(n.id, { url: n.image.url, width: n.image.width ?? 1000, height: n.image.height ?? 1000 });
+  }
+  return out;
+}
+
+export async function saveImageCarousel(admin: AdminClient, config: ImageCarouselConfig) {
+  const clean = withImageCarouselDefaults(config);
+  const images = await imageFiles(admin, [...new Set(clean.slides.flatMap((s) => (s.image ? [s.image.id] : [])))]);
+  const missing = clean.slides.filter((s) => s.image && !images.has(s.image.id)).length;
+  const storefront = toStorefrontImageCarousel(clean, images);
+  await upsert(admin, "$app:cro_design", "image_carousel", { config: JSON.stringify(storefront) });
+  await upsert(admin, "$app:cro_design", "image_carousel_editor", { config: JSON.stringify(clean) });
+  return { config: clean, missing };
 }

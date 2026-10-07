@@ -312,5 +312,6 @@ export function sectionLinks(shop: string) {
     countdown_bar: embed("ucs-countdown-bar"),
     boosters: embed("ucs-boosters"),
     hero: block("ucs-hero"),
+    image_carousel: block("ucs-image-carousel"),
   };
 }

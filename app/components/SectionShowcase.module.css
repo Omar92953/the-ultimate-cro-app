@@ -58,7 +58,13 @@
 .off .track { filter: grayscale(1); opacity: 0.55; }
 
 /* ---------- the stage: one section, centred (top padding leaves room for the pills) ---------- */
-.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 5.5em 3em 2.5em; overflow: hidden; }
+.desk { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 2em 2.4em 2.6em; overflow: hidden; }
+/* Each preview is scaled up as one piece (same shape) to fill the card: narrow ones grow more. */
+.desk > .w30 { font-size: 1.3em; }
+.desk > .w40 { font-size: 1.2em; }
+.desk > .w46 { font-size: 1.12em; }
+.desk > .w50 { font-size: 1.07em; }
+.desk > .w52 { font-size: 1.04em; }
 .deskWide { padding-left: 0; padding-right: 0; }
 .box { display: flex; flex-direction: column; gap: 1em; padding: 1.8em; background: #fff; border-radius: 1.2em; box-shadow: 0 0.3em 1.2em rgba(0, 0, 0, 0.08); }
 .plain { position: relative; display: flex; flex-direction: column; gap: 1em; }
@@ -343,4 +349,22 @@
 
 /* Home: find box next to the filters */
 .find { width: 12em; height: 30px; padding: 0 10px; border: 1px solid #c9cccf; border-radius: 8px; background: #fff; font: inherit; font-size: 13px; }
+.statusSel { width: auto; padding-right: 4px; }
 .find:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
+
+/* image carousel */
+.icRow { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1em; text-align: left; }
+.icRow3 { grid-template-columns: repeat(3, 1fr); }
+.icSlide { display: flex; flex-direction: column; gap: 0.3em; min-width: 0; }
+.icImg { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 0.8em; margin-bottom: 0.3em; }
+.icRow3 .icImg { aspect-ratio: 1; }
+.icOver { position: relative; }
+.icCap { position: absolute; inset: auto 0 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5em; padding: 1em; color: #fff; border-radius: 0 0 0.8em 0.8em; background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent); }
+.icCap b { font-size: 1.2em; }
+.icBtn { color: #111; background: #fff; }
+.icArrow { position: absolute; top: 38%; display: grid; place-items: center; width: 2.4em; height: 2.4em; font-size: 1.3em; line-height: 1; color: #111; background: #fff; border-radius: 50%; box-shadow: 0 0.1em 0.5em rgba(0, 0, 0, 0.2); }
+.icPrev { left: -0.8em; }
+.icNext { right: -0.8em; }
+.icDots { display: flex; justify-content: center; gap: 0.6em; }
+.icDots i { width: 0.6em; height: 0.6em; background: #111; border-radius: 50%; opacity: 0.25; }
+.icDots .icDotOn { opacity: 1; }

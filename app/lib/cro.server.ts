@@ -1117,6 +1117,7 @@ export const BLOCKS = {
   countdown_bar: "ucs-countdown-bar",
   boosters: "ucs-boosters",
   contact: "ucs-contact",
+  image_carousel: "ucs-image-carousel",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */

@@ -688,6 +688,60 @@ export function VideosLargeShowcase() {
   );
 }
 
+const SHOTS = [
+  { id: PHOTO.yellow, t: "New season", x: "Fresh colours for spring" },
+  { id: PHOTO.pink, t: "Everyday basics", x: "Soft cotton, easy fits" },
+  { id: PHOTO.sunny, t: "Weekend edit", x: "Made for slow days" },
+  { id: PHOTO.shopper, t: "Gift ideas", x: "Something for everyone" },
+];
+/** Image carousel: pictures with a title and text underneath, arrows and dots. */
+export function ImageCarouselShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.center} ${s.w52}`}>
+        <b className={s.h3}>Shop the look</b>
+        <span className={s.icRow}>
+          {SHOTS.map((x) => (
+            <span key={x.id} className={s.icSlide}>
+              <Img id={x.id} w={260} h={325} className={s.icImg} />
+              <b>{x.t}</b>
+              <small className={s.muted}>{x.x}</small>
+            </span>
+          ))}
+          <span className={`${s.icArrow} ${s.icPrev}`}>‹</span>
+          <span className={`${s.icArrow} ${s.icNext}`}>›</span>
+        </span>
+        <span className={s.icDots}>
+          <i className={s.icDotOn} />
+          <i />
+          <i />
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Image carousel: bigger pictures with the title and a button on the picture. */
+export function ImageCarouselOverlayShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.w52}`}>
+        <span className={`${s.icRow} ${s.icRow3}`}>
+          {SHOTS.slice(0, 3).map((x) => (
+            <span key={x.id} className={`${s.icSlide} ${s.icOver}`}>
+              <Img id={x.id} w={300} h={300} className={s.icImg} />
+              <span className={s.icCap}>
+                <b>{x.t}</b>
+                <span className={`${s.btn} ${s.btnSm} ${s.icBtn}`}>Shop now</span>
+              </span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
 export function BundlesStepsShowcase() {
   return (
     <Stage>

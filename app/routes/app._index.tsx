@@ -51,6 +51,8 @@ import {
   UpsellShowcase,
   UpsellSizesShowcase,
   VideosLargeShowcase,
+  ImageCarouselShowcase,
+  ImageCarouselOverlayShowcase,
   VideosShowcase,
   SalesPopShowcase,
   SalesPopStackShowcase,
@@ -74,6 +76,7 @@ import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { getContact } from "../lib/pages.server";
+import { getImageCarousel } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -93,11 +96,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters, saved, contact] = await Promise.all([
+  const [lists, boosters, saved, contact, carousel] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
     getContact(admin).catch(() => ({ saved: false })),
+    getImageCarousel(admin).catch(() => null),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -109,6 +113,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     boosters,
     saved,
     contactSaved: contact.saved,
+    carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
     sectionLinks: sectionLinks(session.shop),
     shop: session.shop,
@@ -230,7 +235,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar";
+type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar" | "image_carousel";
 
 /** Store sections, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -242,6 +247,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
+  { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
   { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: true, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
 
@@ -436,10 +442,11 @@ export default function Home() {
           const themeHref = data.sectionLinks[c.key];
           const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
           let status: Status, next: Next | undefined;
-          if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
+          if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
+          else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];
           else if (inTheme === null && !c.list) status = { tone: "neutral", text: "Set up in theme editor" };
-          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : "Live" };
+          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : "Live" };
           add({
             key: c.key,
             cat: "sections",
@@ -545,13 +552,13 @@ export default function Home() {
                 />
               </s-stack>
               <s-stack direction="inline" gap="small-200" alignItems="center">
-                <select className={showcase.find} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
-                  <option value="all">Any status</option>
+                <select className={`${showcase.find} ${showcase.statusSel}`} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
+                  <option value="all">All statuses</option>
                   <option value="live">Live</option>
                   <option value="setup">Needs a step</option>
                   <option value="off">Off or coming soon</option>
                 </select>
-                <input className={showcase.find} type="search" placeholder="Find…" aria-label="Find a section" value={query} onChange={(e) => setQuery(e.target.value)} />
+                <input className={showcase.find} type="search" placeholder="Search…" aria-label="Search sections" value={query} onChange={(e) => setQuery(e.target.value)} />
               </s-stack>
             </s-stack>
             {cat === "store" ? (
