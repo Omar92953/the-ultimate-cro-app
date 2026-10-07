@@ -402,7 +402,8 @@ export default function Home() {
               : status.next === "theme"
                 ? { label: "Add to theme", href: data.links[f.key], external: true }
                 : { label: on ? "Live" : "Manage", done: on, href: f.href };
-          cards.push({ key: f.key, cat: "offers", title: f.title, tone: status.tone, el: (
+          // The video carousel is a section on the store page, not an offer.
+          cards.push({ key: f.key, cat: f.key === "videos" ? "sections" : "offers", title: f.title, tone: status.tone, el: (
             <SectionCard
               key={f.key}
               title={f.title}
