@@ -57,44 +57,21 @@
             }
           },
           {
-            "id": "gid://shopify/CartLine/3",
+            "id": "gid://shopify/CartLine/5",
             "quantity": 1,
             "bundle": {
-              "value": "500:g1:1"
+              "value": "500:g2:0"
             },
             "cost": {
               "amountPerQuantity": {
-                "amount": "18.00"
+                "amount": "30.00"
               }
             },
             "merchandise": {
               "__typename": "ProductVariant",
-              "id": "gid://shopify/ProductVariant/201",
+              "id": "gid://shopify/ProductVariant/103",
               "product": {
-                "id": "gid://shopify/Product/7"
-              },
-              "inCollections": [
-                {
-                  "collectionId": "gid://shopify/Collection/900",
-                  "isMember": true
-                }
-              ]
-            }
-          },
-          {
-            "id": "gid://shopify/CartLine/4",
-            "quantity": 1,
-            "bundle": null,
-            "cost": {
-              "amountPerQuantity": {
-                "amount": "5.00"
-              }
-            },
-            "merchandise": {
-              "__typename": "ProductVariant",
-              "id": "gid://shopify/ProductVariant/999",
-              "product": {
-                "id": "gid://shopify/Product/99"
+                "id": "gid://shopify/Product/12"
               },
               "inCollections": [
                 {
@@ -107,11 +84,54 @@
         ]
       },
       "cartTransform": {
-        "metafield": null
+        "metafield": {
+          "jsonValue": {
+            "b": {
+              "500": {
+                "pv": "5001",
+                "t": "Candle set",
+                "d": 0,
+                "k": "f",
+                "pr": 6000,
+                "s": [
+                  {
+                    "n": 2,
+                    "x": 2,
+                    "c": "900"
+                  },
+                  {
+                    "n": 0,
+                    "x": 1,
+                    "p": [
+                      "7"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "output": {
-      "operations": []
+      "operations": [
+        {
+          "linesMerge": {
+            "cartLines": [
+              {
+                "cartLineId": "gid://shopify/CartLine/1",
+                "quantity": 1
+              },
+              {
+                "cartLineId": "gid://shopify/CartLine/2",
+                "quantity": 1
+              }
+            ],
+            "parentVariantId": "gid://shopify/ProductVariant/5001",
+            "title": "Candle set"
+          }
+        }
+      ]
     }
   }
 }

@@ -266,6 +266,20 @@ access.storefront = "public_read"
   name = "Hide sold-out items"
   type = "boolean"
 
+  # "fixed" = the bundle product's price; "percent" = percent_off off the picked items.
+  [metaobjects.app.cro_bundle.fields.pricing]
+  name = "Pricing"
+  type = "single_line_text_field"
+
+  [metaobjects.app.cro_bundle.fields.percent_off]
+  name = "Percent off"
+  type = "number_decimal"
+
+  # Shoppers can also build it from product and collection pages (Add to bundle + bundle tray).
+  [metaobjects.app.cro_bundle.fields.store_wide]
+  name = "Build it anywhere in the store"
+  type = "boolean"
+
 # ---------- Store sections (cro-sections extension) ----------
 
 # A customer review / testimonial: text, photo or video, from a chosen source.

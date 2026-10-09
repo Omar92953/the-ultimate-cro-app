@@ -65,6 +65,11 @@ export type Bundle = {
   steps: BundleStep[];
   allowDuplicates: boolean;
   hideSoldOut: boolean;
+  /** "fixed": shoppers pay the bundle product's price; "percent": percentOff off the picked items. */
+  pricing: "fixed" | "percent";
+  percentOff: number;
+  /** Shoppers can also build it from product and collection pages (Add to bundle + bundle tray). */
+  storeWide: boolean;
 };
 
 export const FEATURE_KEYS = [

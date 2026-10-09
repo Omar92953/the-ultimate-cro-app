@@ -107,11 +107,63 @@
         ]
       },
       "cartTransform": {
-        "metafield": null
+        "metafield": {
+          "jsonValue": {
+            "b": {
+              "500": {
+                "pv": "5001",
+                "t": "Candle set",
+                "d": 0,
+                "k": "f",
+                "pr": 6000,
+                "s": [
+                  {
+                    "n": 2,
+                    "x": 2,
+                    "c": "900"
+                  },
+                  {
+                    "n": 0,
+                    "x": 1,
+                    "p": [
+                      "7"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "output": {
-      "operations": []
+      "operations": [
+        {
+          "linesMerge": {
+            "cartLines": [
+              {
+                "cartLineId": "gid://shopify/CartLine/1",
+                "quantity": 1
+              },
+              {
+                "cartLineId": "gid://shopify/CartLine/2",
+                "quantity": 1
+              },
+              {
+                "cartLineId": "gid://shopify/CartLine/3",
+                "quantity": 1
+              }
+            ],
+            "parentVariantId": "gid://shopify/ProductVariant/5001",
+            "title": "Candle set",
+            "price": {
+              "percentageDecrease": {
+                "value": 11.76
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

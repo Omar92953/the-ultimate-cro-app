@@ -9,7 +9,7 @@ import { deleteBundle, listBundles, saveBundle } from "../lib/cro.server";
 import { validateBundle } from "../lib/validate";
 import { errorMessage } from "../lib/admin.server";
 import type { Bundle, BundleStep } from "../lib/types";
-import { Button, Checkbox, NumberField, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
@@ -25,6 +25,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       steps: [{ ...blankStep(), label: "Choose your items", min: 3, max: 3 }],
       allowDuplicates: false,
       hideSoldOut: true,
+      pricing: "fixed",
+      percentOff: 10,
+      storeWide: true,
     };
     return { bundle, others: all, isNew: true, shop: session.shop };
   }
@@ -132,9 +135,27 @@ export default function BundleEditor() {
             type="product"
             multiple={false}
             label="Bundle product"
-            details="The product shoppers buy. Its price is the bundle price. Create it first in Products."
+            details="The bundle as it shows in the cart and on the order (its title and picture). Create it first in Products."
             value={bundle.product ? [bundle.product] : []}
             onChange={(v) => set("product", v[0] ?? null)}
+          />
+          <Select
+            label="Bundle price"
+            value={bundle.pricing}
+            onValue={(v) => set("pricing", v === "percent" ? "percent" : "fixed")}
+            options={[
+              { value: "fixed", label: "One price: the bundle product's price" },
+              { value: "percent", label: "A percentage off the items shoppers pick" },
+            ]}
+          />
+          {bundle.pricing === "percent" ? (
+            <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
+          ) : null}
+          <Switch
+            label="Let shoppers build it anywhere in the store"
+            details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."
+            checked={bundle.storeWide}
+            onValue={(v) => set("storeWide", v)}
           />
           <Checkbox
             label="Allow the same item more than once"

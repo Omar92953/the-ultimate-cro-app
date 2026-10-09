@@ -40,7 +40,7 @@
               "500": {
                 "pv": "5001",
                 "t": "Candle set",
-                "d": 0,
+                "d": 1,
                 "k": "f",
                 "pr": 6000,
                 "s": [
@@ -64,7 +64,20 @@
       }
     },
     "output": {
-      "operations": []
+      "operations": [
+        {
+          "linesMerge": {
+            "cartLines": [
+              {
+                "cartLineId": "gid://shopify/CartLine/1",
+                "quantity": 2
+              }
+            ],
+            "parentVariantId": "gid://shopify/ProductVariant/5001",
+            "title": "Candle set"
+          }
+        }
+      ]
     }
   }
 }

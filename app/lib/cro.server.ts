@@ -886,30 +886,66 @@ export async function listProductVideos(admin: AdminClient, productId: string) {
 }
 
 /* ---------------------------------------------------------------- bundles -- */
+const jsonList = (v: unknown): string[] => {
+  try {
+    const a = JSON.parse(String(v ?? "[]"));
+    return Array.isArray(a) ? a.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Products (or any nodes) as refs, 100 per query, keyed by id. */
+async function refsByIds(admin: AdminClient, ids: string[]) {
+  const out = new Map<string, Ref>();
+  for (let i = 0; i < ids.length; i += 100) {
+    const data = await gql(
+      admin,
+      `#graphql
+      ${REF_FRAGMENT}
+      query CroRefs($ids: [ID!]!) { nodes(ids: $ids) { ...CroRef } }`,
+      { ids: ids.slice(i, i + 100) },
+    );
+    for (const n of data.nodes ?? []) {
+      const r = toRef(n);
+      if (r) out.set(r.id, r);
+    }
+  }
+  return out;
+}
+
 export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
   const data = await gql(
     admin,
     `#graphql
     ${REF_FRAGMENT}
     query CroBundles {
-      metaobjects(type: "$app:cro_bundle", first: 50) {
+      metaobjects(type: "$app:cro_bundle", first: 25) {
         nodes {
           id
           handle
-          fields {
+          # One aliased field each, so only the reference fields ask for references (keeps the cost low).
+          name: field(key: "name") { key value }
+          active: field(key: "active") { key value }
+          product: field(key: "product") { key value reference { ...CroRef } }
+          allow_duplicates: field(key: "allow_duplicates") { key value }
+          hide_sold_out: field(key: "hide_sold_out") { key value }
+          pricing: field(key: "pricing") { key value }
+          percent_off: field(key: "percent_off") { key value }
+          store_wide: field(key: "store_wide") { key value }
+          steps: field(key: "steps") {
             key
             value
-            reference { ...CroRef }
-            references(first: 20) {
+            references(first: 10) {
               nodes {
                 ... on Metaobject {
                   id
-                  fields {
-                    key
-                    value
-                    reference { ...CroRef }
-                    references(first: 50) { nodes { ...CroRef } }
-                  }
+                  label: field(key: "label") { key value }
+                  required: field(key: "required") { key value }
+                  min_picks: field(key: "min_picks") { key value }
+                  max_picks: field(key: "max_picks") { key value }
+                  collection: field(key: "collection") { key value reference { ...CroRef } }
+                  products: field(key: "products") { key value }
                 }
               }
             }
@@ -918,8 +954,15 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       }
     }`,
   );
+  const aliased = (node: any, keys: string[]) => ({ fields: keys.map((k) => node[k]).filter(Boolean) as Field[] });
+  // Step products are stored as a list of ids; load them all in one go (a nested connection per step costs too much).
+  const productIds = new Set<string>();
+  for (const node of data.metaobjects.nodes as any[]) {
+    for (const s of node.steps?.references?.nodes ?? []) for (const id of jsonList(s.products?.value)) productIds.add(id);
+  }
+  const products = await refsByIds(admin, [...productIds]);
   return data.metaobjects.nodes.map((node: any) => {
-    const f = fieldsOf(node);
+    const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "store_wide", "steps"]));
     return {
       id: node.id,
       handle: node.handle,
@@ -928,14 +971,17 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       product: toRef(f.product?.reference),
       allowDuplicates: bool(f.allow_duplicates),
       hideSoldOut: bool(f.hide_sold_out, true),
+      pricing: f.pricing?.value === "percent" ? "percent" : "fixed",
+      percentOff: Math.min(90, Math.max(0, Number(f.percent_off?.value) || 0)),
+      storeWide: bool(f.store_wide, true),
       steps: (f.steps?.references?.nodes ?? []).map((s: any) => {
-        const sf = fieldsOf(s);
+        const sf = fieldsOf(aliased(s, ["label", "required", "min_picks", "max_picks", "collection", "products"]));
         return {
           label: sf.label?.value || "",
           required: bool(sf.required, true),
           min: num(sf.min_picks, 1),
           max: num(sf.max_picks, 1),
-          products: refs(sf.products),
+          products: jsonList(sf.products?.value).flatMap((id) => (products.has(id) ? [products.get(id)!] : [])),
           collection: toRef(sf.collection?.reference),
         } satisfies BundleStep;
       }),
@@ -974,6 +1020,9 @@ export async function saveBundle(admin: AdminClient, bundle: Bundle) {
     steps: JSON.stringify(stepIdsNew),
     allow_duplicates: String(bundle.allowDuplicates),
     hide_sold_out: String(bundle.hideSoldOut),
+    pricing: bundle.pricing === "percent" ? "percent" : "fixed",
+    percent_off: String(Math.min(90, Math.max(0, Number(bundle.percentOff) || 0))),
+    store_wide: String(bundle.storeWide !== false),
   });
   for (const id of oldSteps) await remove(admin, id);
   await syncBundles(admin);
@@ -1004,70 +1053,69 @@ export async function deleteBundle(admin: AdminClient, handle: string) {
   await syncBundles(admin);
 }
 
-async function productVariantIds(admin: AdminClient, productIds: string[]) {
-  const out = new Map<string, string[]>();
+/** Each bundle product's first variant (the merged line's parent) and its price in cents. */
+async function bundleParents(admin: AdminClient, productIds: string[]) {
+  const out = new Map<string, { variant: string; cents: number }>();
   for (let i = 0; i < productIds.length; i += 50) {
     const data = await gql(
       admin,
       `#graphql
-      query CroVariants($ids: [ID!]!) {
-        nodes(ids: $ids) { ... on Product { id variants(first: 100) { nodes { id } } } }
+      query CroBundleParents($ids: [ID!]!) {
+        nodes(ids: $ids) { ... on Product { id variants(first: 1) { nodes { id price } } } }
       }`,
       { ids: productIds.slice(i, i + 50) },
     );
-    for (const p of data.nodes) if (p?.id) out.set(p.id, p.variants.nodes.map((v: any) => v.id));
+    for (const p of data.nodes) {
+      const v = p?.variants?.nodes?.[0];
+      if (p?.id && v) out.set(p.id, { variant: numericId(v.id), cents: Math.round(Number(v.price) * 100) });
+    }
   }
   return out;
 }
 
-async function collectionVariantIds(admin: AdminClient, collectionId: string): Promise<string[]> {
-  // First 50 products in the collection's own order — the same 50 the storefront block shows.
-  const data = await gql(
-    admin,
-    `#graphql
-    query CroCollectionVariants($id: ID!) {
-      collection(id: $id) {
-        products(first: 50, sortKey: COLLECTION_DEFAULT) {
-          nodes { variants(first: 100) { nodes { id } } }
-        }
-      }
-    }`,
-    { id: collectionId },
-  );
-  return (data.collection?.products.nodes ?? []).flatMap((p: any) => p.variants.nodes.map((v: any) => v.id));
-}
-
+/**
+ * The checkout config for the cro-bundles Cart Transform: steps point at a collection (checked by
+ * Shopify, any size) or a short product list, so it stays small for big catalogues.
+ */
 export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[]) {
   const active = bundles.filter((b) => b.active && b.product);
-  const productIds = [...new Set(active.flatMap((b) => b.steps.flatMap((s) => (s.collection ? [] : s.products.map((p) => p.id)))))];
-  const variants = await productVariantIds(admin, productIds);
-  const b: Record<string, { d: 0 | 1; s: { n: number; x: number; v: string[] }[] }> = {};
+  const parents = await bundleParents(admin, [...new Set(active.map((b) => b.product!.id))]);
+  const collections = new Set<string>();
+  const b: Record<string, unknown> = {};
   for (const bundle of active) {
-    const steps = [];
-    for (const s of bundle.steps) {
-      const ids = s.collection
-        ? await collectionVariantIds(admin, s.collection.id)
-        : s.products.flatMap((p) => variants.get(p.id) ?? []);
-      const min = s.required ? Math.max(1, Math.round(s.min)) : 0;
-      steps.push({
-        n: min,
-        x: Math.max(min, Math.round(s.max)),
-        v: [...new Set(ids.map((id) => Number(numericId(id)).toString(36)))],
-      });
-    }
-    b[numericId(bundle.product!.id)] = { d: bundle.allowDuplicates ? 1 : 0, s: steps };
+    const parent = parents.get(bundle.product!.id);
+    if (!parent) continue;
+    b[numericId(bundle.product!.id)] = {
+      pv: parent.variant,
+      d: bundle.allowDuplicates ? 1 : 0,
+      k: bundle.pricing === "percent" ? "p" : "f",
+      pr: parent.cents,
+      pc: bundle.pricing === "percent" ? bundle.percentOff : 0,
+      s: bundle.steps.map((s) => {
+        const n = s.required ? Math.max(1, Math.round(s.min)) : 0;
+        const x = Math.max(n, Math.round(s.max), 1);
+        if (s.collection) {
+          collections.add(s.collection.id);
+          return { n, x, c: numericId(s.collection.id) };
+        }
+        return { n, x, p: s.products.map((p) => Number(numericId(p.id)).toString(36)) };
+      }),
+    };
   }
   const value = JSON.stringify({ b });
   if (value.length > FUNCTION_METAFIELD_LIMIT) {
-    throw new AdminError(
-      `Your bundles offer too many product variants for Shopify's checkout engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use smaller collections or fewer products per step.`,
-    );
+    throw new AdminError(`Your bundles list too many single products for Shopify's checkout engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use a collection for the bigger steps.`);
   }
-  return value;
+  return { value, vars: JSON.stringify({ collections: [...collections] }) };
+}
+
+/** How the storefront adds bundles: "merge" (picks as items, merged at checkout) or "line" (one bundle line). */
+async function setBundleMode(admin: AdminClient, mode: "merge" | "line") {
+  await upsert(admin, "$app:cro_design", "bundle_mode", { config: JSON.stringify({ m: mode }) });
 }
 
 export async function syncBundles(admin: AdminClient) {
-  const value = await buildBundleConfig(admin, await listBundles(admin));
+  const { value, vars } = await buildBundleConfig(admin, await listBundles(admin));
   const data = await gql(
     admin,
     `#graphql
@@ -1076,19 +1124,26 @@ export async function syncBundles(admin: AdminClient) {
   const existing = data.cartTransforms.nodes[0];
   if (!existing && (await resolveDiscountEngine(admin)).engine === "native") {
     // Custom install on a non-Plus plan: Shopify doesn't run custom-app Cart Transforms there.
-    // Bundles still sell at the bundle price with the picks on the order; stock isn't split.
+    // Bundles then sell as one line at the bundle price with the picks listed; stock isn't split.
+    await setBundleMode(admin, "line");
     return null;
   }
-  const metafield = { namespace: "$app", key: "bundles", type: "json", value };
+  const metafields = [
+    { namespace: "$app", key: "bundles", type: "json", value },
+    { namespace: "$app", key: "bundle_vars", type: "json", value: vars },
+  ];
+  await setBundleMode(admin, "merge");
   if (existing) {
-    await gql(
+    const set = await gql(
       admin,
       `#graphql
       mutation CroBundleConfig($metafields: [MetafieldsSetInput!]!) {
         metafieldsSet(metafields: $metafields) { metafields { id } userErrors { field message } }
       }`,
-      { metafields: [{ ...metafield, ownerId: existing.id }] },
+      { metafields: metafields.map((m) => ({ ...m, ownerId: existing.id })) },
     );
+    const errors = set.metafieldsSet?.userErrors ?? [];
+    if (errors.length) throw new AdminError(errors.map((e: { message: string }) => e.message).join(" "));
     return existing.id as string;
   }
   const created = await gql(
@@ -1100,7 +1155,7 @@ export async function syncBundles(admin: AdminClient) {
         userErrors { field message }
       }
     }`,
-    { metafields: [metafield] },
+    { metafields },
   );
   return created.cartTransformCreate.cartTransform.id as string;
 }

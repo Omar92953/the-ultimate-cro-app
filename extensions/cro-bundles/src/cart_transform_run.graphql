@@ -1,15 +1,27 @@
-query CartTransformRunInput {
+query CartTransformRunInput($collections: [ID!]) {
+  presentmentCurrencyRate
   cart {
     lines {
       id
-      components: attribute(key: "_bundle_components") {
+      quantity
+      bundle: attribute(key: "_bundle") {
         value
+      }
+      cost {
+        amountPerQuantity {
+          amount
+        }
       }
       merchandise {
         __typename
         ... on ProductVariant {
+          id
           product {
             id
+          }
+          inCollections(ids: $collections) {
+            collectionId
+            isMember
           }
         }
       }

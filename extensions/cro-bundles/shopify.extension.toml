@@ -15,3 +15,8 @@ description = "t:description"
   [extensions.build]
   command = ""
   path = "dist/function.wasm"
+
+  # The step collections, for inCollections in the input query (set by the dashboard).
+  [extensions.input.variables]
+  namespace = "$app"
+  key = "bundle_vars"

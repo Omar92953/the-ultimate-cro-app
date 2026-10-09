@@ -1,11 +1,12 @@
 /*
  * CRO Toolbox — <ucro-bundle>, the mix-and-match bundle builder.
  *
- * Adds the bundle product (its own price) with the picks as line properties:
- *   "<Step label>": "Poster A, Poster B ×2"      (readable, shown in cart and order)
- *   "_bundle_components": "111,222,222|333"       (hidden; one "|" group per step)
- * The cro-bundles Cart Transform validates _bundle_components and expands the line into the
- * real products at checkout, so their inventory is tracked. Keep both sides in sync.
+ * "merge" mode (normal): each pick is added as its own cart line with the hidden property
+ *   "_bundle": "<bundle product id>:<group>:<step index>"
+ * and the cro-bundles Cart Transform checks the group and merges it into the bundle at the bundle
+ * price (each item's stock goes down). Keep both sides in sync (also ucro-bundle-tray.js).
+ * "line" mode (custom installs without Cart Transforms): one bundle product line with the picks as
+ * readable properties.
  */
 (function () {
   var U = window.UCRO;
@@ -199,6 +200,16 @@
       return out;
     }
 
+    /** The cart lines to add: the picks (merge mode) or the bundle product with the picks listed (line mode). */
+    items() {
+      if (this.dataset.mode === 'line') return [{ id: Number(this.dataset.variantId), quantity: 1, properties: this.properties() }];
+      var group = Math.random().toString(36).slice(2, 10);
+      var bundle = this.dataset.bundle;
+      var items = [];
+      this.steps.forEach((s, i) => s.picks.forEach((p) => items.push({ id: Number(p.id), quantity: 1, properties: { _bundle: bundle + ':' + group + ':' + i } })));
+      return items;
+    }
+
     properties() {
       var props = {};
       this.steps.forEach((s) => {
@@ -207,7 +218,6 @@
         while (props[key]) key += ' ';
         props[key] = this.grouped(s).map((g) => g.title + (g.qty > 1 ? ' ×' + g.qty : '')).join(', ');
       });
-      props._bundle_components = this.steps.map((s) => s.picks.map((p) => p.id).join(',')).join('|');
       return props;
     }
 
@@ -216,7 +226,7 @@
       this.busy = true;
       this.button.classList.add('loading', 'ucro-is-busy');
       this.error('');
-      U.add([{ id: Number(this.dataset.variantId), quantity: 1, properties: this.properties() }])
+      U.add(this.items())
         .then(() => {
           this.steps.forEach((s) => (s.picks = []));
           this.clearSaved();
@@ -254,9 +264,11 @@
         var form = this.form;
         var isSubmit = e.type === 'submit' ? e.target === form
           : !!(e.target.closest && e.target.closest('[type="submit"]') && (e.target.closest('form') === form || e.target.closest('[type="submit"]').getAttribute('form') === form.getAttribute('id')));
-        if (!isSubmit || this.complete()) return;
+        if (!isSubmit) return;
+        if (this.complete() && this.dataset.mode === 'line') return; // the theme's form carries the picks
         e.preventDefault();
         e.stopImmediatePropagation();
+        if (this.complete()) return this.submit(); // merge mode: the picks go in as their own lines
         this.error(this.dataset.tIncomplete);
         this.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
@@ -265,7 +277,7 @@
     }
 
     syncForm() {
-      if (!this.hiddenBox) return;
+      if (!this.hiddenBox || this.dataset.mode !== 'line') return;
       this.hiddenBox.innerHTML = '';
       if (!this.complete()) return;
       var props = this.properties();
