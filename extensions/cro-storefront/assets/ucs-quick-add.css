@@ -18,12 +18,14 @@
 .ucs-qa.ucs-qa--tl { left: var(--ucs-qa-inset, 12px) !important; top: var(--ucs-qa-inset, 12px) !important; }
 .ucs-qa:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); }
 .ucs-qa:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.ucs-qa.ucs-qa svg { position: static !important; width: 50% !important; height: 50% !important; display: block; }
+/* The icon layer fills the button and centres the icon, whatever the theme does to spans and svgs. */
+.ucs-qa.ucs-qa > span { position: absolute !important; inset: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; transform: none !important; line-height: 0 !important; }
+.ucs-qa.ucs-qa svg { position: static !important; flex: none; width: 50% !important; height: 50% !important; max-width: none !important; margin: 0 !important; display: block; }
 .ucs-qa[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
 .ucs-qa[disabled] { opacity: 0.4; cursor: not-allowed; }
-.ucs-qa__done { display: none; }
-.ucs-qa.is-added .ucs-qa__icon { display: none; }
-.ucs-qa.is-added .ucs-qa__done { display: block; }
+.ucs-qa.ucs-qa > .ucs-qa__done { display: none !important; }
+.ucs-qa.ucs-qa.is-added > .ucs-qa__icon { display: none !important; }
+.ucs-qa.ucs-qa.is-added > .ucs-qa__done { display: flex !important; }
 @media (hover: hover) and (min-width: 750px) {
   .ucs-qa-host--hover .ucs-qa { opacity: 0; transform: translateY(4px); }
   .ucs-qa-host--hover:hover .ucs-qa, .ucs-qa-host--hover .ucs-qa:focus-visible, .ucs-qa-host--hover .ucs-qa.is-added { opacity: 1; transform: none; }
