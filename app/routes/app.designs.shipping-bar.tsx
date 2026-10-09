@@ -13,6 +13,7 @@ import { SHIPPING_BAR_PRESETS, withShippingBarDefaults, type ShippingBarConfig }
 import { Checkbox, ColorField, NumberField, Select, Switch, TextField, Button } from "../components/fields";
 import { ShippingBarPreview } from "../components/ShippingBarPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -51,6 +52,7 @@ const PAGES: { value: C["where"]["pages"][number]; label: string }[] = [
 export default function ShippingBarDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const [cart, setCart] = useState(Math.round(data.config.goal * 0.6));
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -80,6 +82,7 @@ export default function ShippingBarDesigner() {
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to header"}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the bar in your theme">
@@ -92,7 +95,8 @@ export default function ShippingBarDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
-        <s-section heading="Start from a look">
+        <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {SHIPPING_BAR_PRESETS.map((p) => (
               <button key={p.key} type="button" style={LOOK} aria-label={`Use the ${p.title} look`} onClick={() => setCfg((c) => ({ ...c, look: { ...c.look, ...p.look } }))}>
@@ -103,20 +107,20 @@ export default function ShippingBarDesigner() {
               </button>
             ))}
           </div>
-        </s-section>
+        </s-section></Pane>
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="Goal and messages">
+            <Pane show={tab === "content"}><s-section heading="Goal and messages">
               <s-stack gap="base">
                 <NumberField label="Free shipping from" suffix={data.currency} min={1} max={1000000} step={1} value={cfg.goal} onValue={(v) => setCfg((c) => ({ ...c, goal: v }))} />
                 <TextField label="Empty cart" details="{goal} shows the amount." value={cfg.text.empty} onValue={(v) => text({ empty: v })} />
                 <TextField label="On the way" details="{left} shows what's still needed." value={cfg.text.progress} onValue={(v) => text({ progress: v })} />
                 <TextField label="Goal reached" value={cfg.text.done} onValue={(v) => text({ done: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="What shows">
+            <Pane show={tab === "content"}><s-section heading="What shows">
               <s-stack gap="base">
                 <Switch label="Free shipping bar" details="Off: it disappears from your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
                 <Switch label="Progress line" checked={cfg.show.bar} onValue={(v) => show({ bar: v })} />
@@ -125,9 +129,9 @@ export default function ShippingBarDesigner() {
                 <Switch label="Little celebration when the goal is reached" checked={cfg.show.celebrate} onValue={(v) => show({ celebrate: v })} />
                 <Select label="Icon" value={cfg.show.icon} onValue={(v) => show({ icon: v as C["show"]["icon"] })} options={[{ value: "truck", label: "Delivery truck" }, { value: "gift", label: "Gift" }, { value: "none", label: "No icon" }]} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Where it shows">
+            <Pane show={tab === "display"}><s-section heading="Where it shows">
               <s-stack gap="base">
                 <Checkbox label="On all pages" checked={cfg.where.all} onValue={(v) => where({ all: v })} />
                 {!cfg.where.all ? (
@@ -139,9 +143,9 @@ export default function ShippingBarDesigner() {
                 ) : null}
                 <Select label="Devices" value={cfg.where.devices} onValue={(v) => where({ devices: v as C["where"]["devices"] })} options={[{ value: "all", label: "Desktop and mobile" }, { value: "desktop", label: "Desktop only" }, { value: "mobile", label: "Mobile only" }]} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Look">
+            <Pane show={tab === "style"}><s-section heading="Look">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Shape" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "bar", label: "Full-width bar" }, { value: "card", label: "Rounded card" }]} />
                 <NumberField label="Corners (card)" details="999 = pill" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
@@ -158,7 +162,7 @@ export default function ShippingBarDesigner() {
               <s-box paddingBlockStart="base">
                 <Checkbox label="CAPITAL LETTERS" checked={cfg.look.upper} onValue={(v) => look({ upper: v })} />
               </s-box>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -174,6 +178,7 @@ export default function ShippingBarDesigner() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }

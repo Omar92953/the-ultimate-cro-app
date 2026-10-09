@@ -13,6 +13,7 @@ import { withAddonsDefaults, type AddonItem, type AddonsConfig } from "../lib/ad
 import { Button, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { AddonsPreview } from "../components/AddonsPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -37,6 +38,7 @@ const numericId = (gid: string) => gid.split("/").pop() ?? "";
 export default function AddonsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -93,6 +95,7 @@ export default function AddonsDesigner() {
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the add-ons on your product page">
@@ -103,7 +106,8 @@ export default function AddonsDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
+        <DesignTabs tabs={["content", "style", "display"]} value={tab} onChange={setTab} />
+            <Pane show={tab === "content"}><s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
               <s-stack gap="base">
                 <s-text color="subdued">
                   Each add-on is a product in your store, like “Gift wrapping”. Shoppers tick it and it goes into the cart with the product. Add-ons always start unticked: Shopify requires shoppers to choose paid extras themselves.{" "}
@@ -140,9 +144,9 @@ export default function AddonsDesigner() {
                   </Button>
                 </s-box>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Gift message">
+            <Pane show={tab === "content"}><s-section heading="Gift message">
               <s-stack gap="base">
                 <Switch label="Let shoppers write a message" details="Saved on the order line, next to the product." checked={cfg.message.on} onValue={(v) => message({ on: v })} />
                 {cfg.message.on ? (
@@ -156,9 +160,9 @@ export default function AddonsDesigner() {
                   </>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Where it shows">
+            <Pane show={tab === "display"}><s-section heading="Where it shows">
               <s-stack gap="base">
                 <Select
                   label="Show on"
@@ -181,9 +185,9 @@ export default function AddonsDesigner() {
                   </s-stack>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Look">
+            <Pane show={tab === "style"}><s-section heading="Look">
               <s-stack gap="base">
                 <TextField label="Heading (optional)" value={cfg.heading} onValue={(v) => setCfg((c) => ({ ...c, heading: v }))} />
                 <Select label="Layout" value={cfg.style} onValue={(v) => setCfg((c) => ({ ...c, style: v as C["style"] }))} options={[{ value: "list", label: "List" }, { value: "cards", label: "Cards side by side" }]} />
@@ -196,7 +200,7 @@ export default function AddonsDesigner() {
                   <NumberField label="Note size" suffix="px" min={10} max={18} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />
                 </s-grid>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -210,6 +214,7 @@ export default function AddonsDesigner() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }

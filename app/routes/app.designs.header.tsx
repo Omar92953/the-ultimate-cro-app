@@ -15,6 +15,7 @@ import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { HeaderPreview } from "../components/HeaderPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -54,6 +55,7 @@ type C = HeaderConfig;
 export default function HeaderDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -83,6 +85,7 @@ export default function HeaderDesigner() {
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Add to header"}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         {data.embedOn === false ? (
           <s-banner tone="info" heading="Add the header to your theme">
@@ -91,7 +94,8 @@ export default function HeaderDesigner() {
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
-        <s-section heading="Start from a look">
+        <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <s-grid gridTemplateColumns="repeat(auto-fill, minmax(180px, 1fr))" gap="small-200">
             {PRESETS.map((p) => (
               <s-clickable
@@ -113,15 +117,15 @@ export default function HeaderDesigner() {
               </s-clickable>
             ))}
           </s-grid>
-        </s-section>
+        </s-section></Pane>
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="Header">
+            <Pane show={tab === "content"}><s-section heading="Header">
               <Switch label="Use this header on my store" details="Off: your theme's own header comes back." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Logo">
+            <Pane show={tab === "content"}><s-section heading="Logo">
               <s-stack gap="base">
                 <MediaPicker label="Logo image" details="A PNG or SVG with a transparent background. Leave empty to show your store name." accept="image" value={cfg.logo.image} onValue={(v) => logo({ image: v })} alt="Logo" />
                 {!cfg.logo.image ? <TextField label="Text instead of a logo" placeholder="Your store name" value={cfg.logo.text} onValue={(v) => logo({ text: v })} /> : null}
@@ -130,9 +134,9 @@ export default function HeaderDesigner() {
                   <NumberField label="Logo width on phones" suffix="px" min={30} max={220} step={2} value={cfg.logo.mobileWidth} onValue={(v) => logo({ mobileWidth: v })} />
                 </s-grid>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Layout">
+            <Pane show={tab === "layout"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Logo" value={cfg.layout.logo} onValue={(v) => layout({ logo: v as C["layout"]["logo"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centre" }]} />
                 <Select
@@ -181,9 +185,9 @@ export default function HeaderDesigner() {
                   ) : null}
                 </s-stack>
               </s-box>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Menu">
+            <Pane show={tab === "content"}><s-section heading="Menu">
               <s-stack gap="base">
                 <TextField
                   label="Menu"
@@ -204,9 +208,9 @@ export default function HeaderDesigner() {
                 <Checkbox label="Highlight links as pills" checked={cfg.menu.pill} onValue={(v) => menu({ pill: v })} />
                 <Checkbox label="CAPITAL LETTERS" checked={cfg.menu.upper} onValue={(v) => menu({ upper: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Icons and button">
+            <Pane show={tab === "content"}><s-section heading="Icons and button">
               <s-stack gap="base">
                 <Checkbox label="Search (with live results)" checked={cfg.icons.search} onValue={(v) => icons({ search: v })} />
                 <Checkbox label="Account" checked={cfg.icons.account} onValue={(v) => icons({ account: v })} />
@@ -224,9 +228,9 @@ export default function HeaderDesigner() {
                   </s-grid>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Colours and glass">
+            <Pane show={tab === "style"}><s-section heading="Colours and glass">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Bar" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                 <NumberField label="Bar see-through" details="100 = solid" suffix="%" min={0} max={100} step={5} value={cfg.look.opacity} onValue={(v) => look({ opacity: v })} />
@@ -243,9 +247,9 @@ export default function HeaderDesigner() {
               <s-box paddingBlockStart="base">
                 <Checkbox label="Soft shadow" checked={cfg.look.shadow} onValue={(v) => look({ shadow: v })} />
               </s-box>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Phones">
+            <Pane show={tab === "layout"}><s-section heading="Phones">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select
                   label="Menu on phones"
@@ -260,16 +264,16 @@ export default function HeaderDesigner() {
                 <Select label="Logo on phones" value={cfg.mobile.logo} onValue={(v) => mobile({ logo: v as C["mobile"]["logo"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centre" }]} />
                 <NumberField label="Height on phones" suffix="px" min={44} max={90} step={2} value={cfg.mobile.height} onValue={(v) => mobile({ height: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Advanced">
+            <Pane show={tab === "display"}><s-section heading="Advanced">
               <TextField
                 label="Your theme's header (CSS selector)"
                 details="Only if your theme's own header still shows: the selector of its header bar, e.g. .site-header. Most themes are found automatically."
                 value={cfg.hideTheme}
                 onValue={(v) => setCfg((c) => ({ ...c, hideTheme: v }))}
               />
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -283,6 +287,7 @@ export default function HeaderDesigner() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }

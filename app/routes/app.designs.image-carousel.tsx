@@ -15,6 +15,7 @@ import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { ImageCarouselPreview } from "../components/ImageCarouselPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -39,6 +40,7 @@ const BLANK: ImageSlide = { image: null, alt: "", title: "", text: "", link: "",
 export default function ImageCarouselDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -78,6 +80,7 @@ export default function ImageCarouselDesigner() {
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to theme"}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the carousel in your theme">
@@ -88,7 +91,8 @@ export default function ImageCarouselDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading={`Images (${cfg.slides.length})`}>
+        <DesignTabs tabs={["content", "layout", "style"]} value={tab} onChange={setTab} />
+            <Pane show={tab === "content"}><s-section heading={`Images (${cfg.slides.length})`}>
               <s-stack gap="base">
                 {cfg.slides.map((s, i) => (
                   <s-box key={i} padding="base" borderWidth="base" borderRadius="base">
@@ -121,9 +125,9 @@ export default function ImageCarouselDesigner() {
                   </Button>
                 </s-box>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Heading">
+            <Pane show={tab === "content"}><s-section heading="Heading">
               <s-stack gap="base">
                 <Switch label="Show a heading" checked={cfg.heading.show} onValue={(v) => heading({ show: v })} />
                 {cfg.heading.show ? (
@@ -137,9 +141,9 @@ export default function ImageCarouselDesigner() {
                   </>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Layout">
+            <Pane show={tab === "layout"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Images per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
                 <NumberField label="Images per row on phones" details="A slice of the next one always peeks in." min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
@@ -162,9 +166,9 @@ export default function ImageCarouselDesigner() {
               <s-box paddingBlockStart="base">
                 <Checkbox label="Full width (edge to edge)" checked={cfg.layout.fullWidth} onValue={(v) => layout({ fullWidth: v })} />
               </s-box>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Scrolling">
+            <Pane show={tab === "layout"}><s-section heading="Scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select
                   label="Shoppers move it with"
@@ -184,9 +188,9 @@ export default function ImageCarouselDesigner() {
                 )}
                 <NumberField label="Move on its own every" details="0 = off. Pauses while shoppers hover or touch it." suffix="sec" min={0} max={15} step={1} value={cfg.nav.autoplay} onValue={(v) => nav({ autoplay: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Colours and text sizes">
+            <Pane show={tab === "style"}><s-section heading="Colours and text sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
                 <ColorField label="Shade behind text on pictures" value={cfg.look.overlay} onValue={(v) => look({ overlay: v })} />
@@ -195,7 +199,7 @@ export default function ImageCarouselDesigner() {
                 <NumberField label="Title size" suffix="px" min={11} max={40} step={1} value={cfg.look.titleSize} onValue={(v) => look({ titleSize: v })} />
                 <NumberField label="Text size" suffix="px" min={10} max={24} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -212,6 +216,7 @@ export default function ImageCarouselDesigner() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }

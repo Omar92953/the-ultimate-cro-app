@@ -14,6 +14,7 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { Segmented } from "../components/ui";
 import { CountdownBarPreview } from "../components/CountdownBarPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 
 const placeFrom = (url: string): CountdownPlace => {
@@ -55,6 +56,7 @@ const PAGE_OPTIONS: { value: C["where"]["pages"][number]; label: string }[] = [
 export default function CountdownBarDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -88,6 +90,7 @@ export default function CountdownBarDesigner() {
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {addLabel}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         <Segmented
           label="Where the countdown is"
@@ -106,7 +109,8 @@ export default function CountdownBarDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
-        <s-section heading="Start from a look">
+        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <div className={ui.looks} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {COUNTDOWN_BAR_PRESETS.map((p) => (
               <button key={p.key} type="button" className={ui.look} style={LOOK} onClick={() => setCfg((c) => applyCountdownBarPreset(c, p.key))} aria-label={`Use the ${p.title} look`}>
@@ -117,11 +121,11 @@ export default function CountdownBarDesigner() {
               </button>
             ))}
           </div>
-        </s-section>
+        </s-section></Pane>
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="What shows">
+            <Pane show={tab === "content"}><s-section heading="What shows">
               <s-stack gap="base">
                 <Switch label={`${placeInfo.title} countdown`} details="Off: it disappears from this place on your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
                 <Select
@@ -139,10 +143,10 @@ export default function CountdownBarDesigner() {
                 {cfg.kind === "bar" ? <Switch label="Close (X) button" details="Shoppers can hide the bar for the rest of their visit." checked={cfg.layout.dismissible} onValue={(v) => layout({ dismissible: v })} /> : null}
                 <Switch label="Days / Hours / Min / Sec under the numbers" checked={cfg.timer.labels} onValue={(v) => timer({ labels: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
             {cfg.kind === "section" ? (
-              <s-section heading="Heading">
+              <Pane show={tab === "content"}><s-section heading="Heading">
                 <s-stack gap="base">
                   <TextField label="Heading" value={cfg.section.heading} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, heading: v } }))} />
                   <TextField label="Text under the heading" value={cfg.section.sub} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, sub: v } }))} />
@@ -153,10 +157,10 @@ export default function CountdownBarDesigner() {
                     <NumberField label="Space below" suffix="px" min={0} max={120} step={4} value={cfg.section.paddingBottom} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, paddingBottom: v } }))} />
                   </s-grid>
                 </s-stack>
-              </s-section>
+              </s-section></Pane>
             ) : null}
 
-            <s-section heading="Timer">
+            <Pane show={tab === "content"}><s-section heading="Timer">
               <s-stack gap="base">
                 <Select
                   label="Count down to"
@@ -194,9 +198,9 @@ export default function CountdownBarDesigner() {
                   </s-grid>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Text and button">
+            <Pane show={tab === "content"}><s-section heading="Text and button">
               <s-stack gap="base">
                 {cfg.text.show ? <TextField label="Text" value={cfg.text.value} onValue={(v) => text({ value: v })} /> : <s-text color="subdued">The text is switched off above.</s-text>}
                 {cfg.button.show ? (
@@ -217,9 +221,9 @@ export default function CountdownBarDesigner() {
                   </>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Layout and pages">
+            <Pane show={tab === "layout"}><s-section heading="Layout and pages">
               <s-stack gap="base">
                 {cfg.kind === "bar" && data.place === "header" ? <Select label="Position" value={cfg.layout.position} onValue={(v) => layout({ position: v as C["layout"]["position"] })} options={[{ value: "top", label: "Top of the page" }, { value: "bottom", label: "Bottom of the screen (always visible)" }]} /> : null}
                 {cfg.kind === "bar" ? <Checkbox label="Slim: everything on one line" details="Also on phones; long text shortens with …" checked={cfg.layout.slim} onValue={(v) => layout({ slim: v })} /> : null}
@@ -239,9 +243,9 @@ export default function CountdownBarDesigner() {
                 <TextField label="Only these products or collections (optional)" details="Handles from the page address, separated by commas, e.g. summer-dress, sale" value={cfg.where.handles} onValue={(v) => where({ handles: v })} />
                 <Select label="Devices" value={cfg.where.devices} onValue={(v) => where({ devices: v as C["where"]["devices"] })} options={[{ value: "all", label: "Desktop and mobile" }, { value: "desktop", label: "Desktop only" }, { value: "mobile", label: "Mobile only" }]} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Design">
+            <Pane show={tab === "style"}><s-section heading="Design">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Numbers" value={t.style} onValue={(v) => timer({ style: v as C["timer"]["style"] })} options={NUMBER_STYLES} />
                 <Select label="Font" value={cfg.look.font} onValue={(v) => look({ font: v as C["look"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
@@ -253,9 +257,9 @@ export default function CountdownBarDesigner() {
               <s-box paddingBlockStart="base">
                 <Checkbox label="CAPITAL LETTERS" checked={cfg.look.upper} onValue={(v) => look({ upper: v })} />
               </s-box>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Colours">
+            <Pane show={tab === "style"}><s-section heading="Colours">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
@@ -264,9 +268,9 @@ export default function CountdownBarDesigner() {
                 <ColorField label="Button" value={cfg.look.buttonBg} onValue={(v) => look({ buttonBg: v })} />
                 <ColorField label="Button text" value={cfg.look.buttonText} onValue={(v) => look({ buttonText: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Sizes">
+            <Pane show={tab === "style"}><s-section heading="Sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Bar height (space above and below)" suffix="px" min={0} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
                 <NumberField label="Text" suffix="px" min={10} max={24} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />
@@ -275,7 +279,7 @@ export default function CountdownBarDesigner() {
                 <NumberField label="Button text" suffix="px" min={10} max={20} step={1} value={cfg.look.buttonSize} onValue={(v) => look({ buttonSize: v })} />
                 <NumberField label="Number box corners" details="999 = round" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -291,6 +295,7 @@ export default function CountdownBarDesigner() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }

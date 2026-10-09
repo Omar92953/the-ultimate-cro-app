@@ -13,6 +13,7 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, Te
 import { Segmented } from "../components/ui";
 import { ContactPreview } from "../components/ContactPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 // The storefront's own stylesheet, so the preview matches the store exactly.
 
 
@@ -40,6 +41,7 @@ type Layout = ContactConfig["layout"];
 export default function ContactPage() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<ContactConfig>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -82,6 +84,7 @@ export default function ContactPage() {
       <Button slot="secondary-actions" href={data.themeLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to Contact page"}
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Add the form to your Contact page">
@@ -93,7 +96,8 @@ export default function ContactPage() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="Text">
+        <DesignTabs tabs={["content", "layout", "style"]} value={tab} onChange={setTab} />
+            <Pane show={tab === "content"}><s-section heading="Text">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.heading} maxLength={160} onValue={(v) => set({ heading: v })} />
                 <TextArea label="Text under the heading" rows={3} value={cfg.text} onValue={(v) => set({ text: v })} />
@@ -101,9 +105,9 @@ export default function ContactPage() {
                 <TextField label="Message after sending" value={cfg.success} onValue={(v) => set({ success: v })} />
                 <TextArea label="Note under the fields (optional)" rows={2} details="For example how you use their details." value={cfg.privacy} onValue={(v) => set({ privacy: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Fields">
+            <Pane show={tab === "content"}><s-section heading="Fields">
               <s-stack gap="small-200">
                 {cfg.fields.map((f, i) => {
                   const isEmail = f.key === "email";
@@ -136,9 +140,9 @@ export default function ContactPage() {
                   );
                 })}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Layout">
+            <Pane show={tab === "layout"}><s-section heading="Layout">
               <s-stack gap="base">
                 <Select label="Width" value={cfg.layout.width} onValue={(v) => layout({ width: v as Layout["width"] })} options={[{ value: "narrow", label: "Narrow" }, { value: "medium", label: "Medium" }, { value: "wide", label: "Wide" }]} />
                 <Select label="Heading alignment" value={cfg.layout.align} onValue={(v) => layout({ align: v as Layout["align"] })} options={[{ value: "center", label: "Centre" }, { value: "left", label: "Left" }]} />
@@ -146,9 +150,9 @@ export default function ContactPage() {
                 <Select label="Labels" value={cfg.layout.labels} onValue={(v) => layout({ labels: v as Layout["labels"] })} options={[{ value: "above", label: "Above each field" }, { value: "inside", label: "Inside the field" }]} />
                 <Select label="Field style" value={cfg.look.fieldStyle} onValue={(v) => look({ fieldStyle: v as Look["fieldStyle"] })} options={[{ value: "outlined", label: "Outlined" }, { value: "filled", label: "Filled" }, { value: "underline", label: "Underline only" }]} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Contact details next to the form">
+            <Pane show={tab === "content"}><s-section heading="Contact details next to the form">
               <s-stack gap="base">
                 <Switch label="Show your contact details" checked={cfg.info.show} onValue={(v) => info({ show: v })} />
                 {cfg.info.show ? (
@@ -164,9 +168,9 @@ export default function ContactPage() {
                   </>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Colours">
+            <Pane show={tab === "style"}><s-section heading="Colours">
               <s-stack gap="base">
                 <Select label="Page background" value={cfg.look.bgType} onValue={(v) => look({ bgType: v as Look["bgType"] })} options={[{ value: "color", label: "One colour" }, { value: "gradient", label: "Gradient (two colours)" }]} />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -180,9 +184,9 @@ export default function ContactPage() {
                   <ColorField label="Button text" value={cfg.look.accentText} onValue={(v) => look({ accentText: v })} />
                 </s-grid>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Sizes">
+            <Pane show={tab === "style"}><s-section heading="Sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Heading" suffix="px" min={16} max={64} step={1} value={cfg.look.headingSize} onValue={(v) => look({ headingSize: v })} />
                 <NumberField label="Text" suffix="px" min={12} max={22} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />
@@ -191,7 +195,7 @@ export default function ContactPage() {
                 <NumberField label="Corners" suffix="px" min={0} max={32} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
                 <NumberField label="Space above and below" suffix="px" min={0} max={120} step={4} value={cfg.look.padding} onValue={(v) => look({ padding: v })} />
               </s-grid>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
           <div className={ui.preview}>
@@ -216,6 +220,7 @@ export default function ContactPage() {
           </div>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }
