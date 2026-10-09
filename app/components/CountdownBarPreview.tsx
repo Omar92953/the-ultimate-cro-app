@@ -21,9 +21,13 @@ export function CountdownBarPreview({ config: c }: { config: CountdownBarConfig 
   // The clock starts after the page has loaded, so the server and the browser draw the same first frame.
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 1000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
   }, []);
   const t = c.timer;
   const left = now === null ? 0 : Math.max(0, deadline(c, now) - now);
