@@ -679,3 +679,7 @@
 .ucro-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
 .ucro-item__n { flex: none; font-weight: 600; opacity: 0.75; }
 .ucro-item__select { margin-top: 0; }
+
+/* ---- Add to bundle (product page) ---------------------------------------------------- */
+.ucro-atb { margin: 10px 0; }
+.ucro-atb.ucro-scheme { padding-block: 10px; }

@@ -8,7 +8,7 @@ import { bundleVars, type BundleDesign } from "../lib/bundle-design";
 import type { PreviewTheme } from "../lib/theme-style";
 
 export type PreviewItem = { title: string; image: string | null; cents: number };
-export type PreviewBundle = { name: string; handle?: string; price: number; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
+export type PreviewBundle = { name: string; handle?: string; price: number; pricing?: { kind: "fixed" | "percent"; percent: number }; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
 
 const TINTS = ["linear-gradient(145deg,#ffd6a5,#f4a261)", "linear-gradient(145deg,#bde0fe,#6c9bd2)", "linear-gradient(145deg,#cdb4db,#9b72b0)", "linear-gradient(145deg,#b7e4c7,#52b788)", "linear-gradient(145deg,#ffc8dd,#e07a9a)"];
 export const SAMPLE_BUNDLE: PreviewBundle = {

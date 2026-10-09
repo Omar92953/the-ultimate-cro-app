@@ -35,4 +35,4 @@ assign ttype = r.trigger_type.value | default: 'all'
 }
 </script>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-drawer.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Cart drawer offers","target":"body","stylesheet":"ucro.css","settings":[{"type":"paragraph","content":"t:s.1"},{"type":"text","id":"heading","label":"Heading","default":"You may also like","info":"t:s.2"},{"type":"range","id":"max_items","label":"t:s.3","min":1,"max":4,"step":1,"default":2},{"type":"text","id":"add_label","label":"t:s.4","default":"Add"}]}{% endschema %}
+<script src="{{ 'ucro-drawer.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Cart drawer offers","target":"body","stylesheet":"ucro.css","settings":[{"type":"paragraph","content":"t:s.3"},{"type":"text","id":"heading","label":"Heading","default":"You may also like","info":"t:s.4"},{"type":"range","id":"max_items","label":"t:s.5","min":1,"max":4,"step":1,"default":2},{"type":"text","id":"add_label","label":"t:s.6","default":"Add"}]}{% endschema %}

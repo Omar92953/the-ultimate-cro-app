@@ -70,6 +70,12 @@
         return json({ items: added, sections: { 'cart-drawer': '<div id="CartDrawer">…</div>' } });
       }
       if (u.includes('/cart.js')) return json(window.__cart);
+      const prod = u.match(/\/products\/([^/?#]+)\.js/);
+      if (prod) {
+        const p = Object.values(catalog).find((x) => x.handle === decodeURIComponent(prod[1]));
+        if (!p) return json({}, 404);
+        return json({ id: p.id, title: p.title, handle: p.handle, featured_image: p.featured_media.src, variants: p.variants.map((v) => ({ id: v.id, title: v.title, price: v.price, available: v.available, featured_image: null })) });
+      }
       if (u.includes('/recommendations/products.json')) {
         const intent = new URL(u, location.href).searchParams.get('intent');
         log('RECOMMENDATIONS', intent);

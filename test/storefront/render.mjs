@@ -85,7 +85,8 @@ for (const p of Object.values(P)) for (const v of p.variants) v.options = v.opti
 const keychains = { id: 50, handle: "keychains", products: [P.batman, P.cairokee] };
 P.batman.collections = [keychains];
 P.cairokee.collections = [keychains];
-const frames = { id: 51, handle: "frames", products: [P.frame] };
+const frames = { id: 51, handle: "frames", url: "/collections/frames", products: [P.frame] };
+P.frame.collections = [frames];
 
 const f = (value) => ({ value });
 const metaobject = (handle, fields) => ({ system: { handle }, ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, f(v)])) });
@@ -232,6 +233,17 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
   const render = (design_mode) => engine.renderFile("ucro-upsell", { ...teeCtx, block: { id: "u", settings: {}, shopify_attributes: "" } }, { globals: { shop: withDraft, request: { design_mode, page_type: "product" }, template: { name: "product" }, cart: { items: [] } } });
   const [live, editor] = [await render(false), await render(true)];
   console.log("upsell draft:", JSON.stringify({ liveIsList: live.includes("ucro-upsell--list"), liveNoScheme: !live.includes("ucro-scheme"), editorScheme: editor.includes("ucro-scheme color-accent-2"), editorCards: !editor.includes("ucro-upsell--list") }));
+}
+// Bundles built anywhere: "Add to bundle" on a product page, "+" on the step collection's cards, the tray.
+{
+  // Shopify adds an embed's schema stylesheet itself; the harness links it.
+  const embed = async (ctx) => '<link rel="stylesheet" href="assets/ucro-bundle-tray.css">' + await engine.renderFile("ucro-bundle-tray", { ...ctx, block: { id: "bt", settings: {}, shopify_attributes: "" } }, { globals: { shop, request: { design_mode: false, page_type: ctx.page_type }, template: { name: ctx.page_type }, cart: { items: [] } } });
+  const atb = await block("ucro-add-to-bundle", { product: P.poster2, page_type: "product" });
+  fs.writeFileSync(path.join(out, "bundle-anywhere-product.html"), page("Poster Two — Add to bundle", P.poster2.id, 601, atb + (await embed({ page_type: "product", product: P.poster2 }))));
+  const card = (p) => `<li class="card-wrapper" style="list-style:none;width:180px;border:1px solid #ddd;padding:8px"><a href="${p.url}"><img src="${p.featured_media.src}" width="160" height="160" alt=""><br>${p.title}</a></li>`;
+  const grid = `<ul style="display:flex;gap:12px;padding:0">${[P.frame, P.poster1, P.poster3, P.batman].map(card).join("")}</ul>`;
+  fs.writeFileSync(path.join(out, "bundle-anywhere-collection.html"), page("Frames collection", P.frame.id, 801, grid + (await embed({ page_type: "collection", collection: frames }))));
+  console.log("bundle anywhere:", JSON.stringify({ button: atb.includes("data-ucro-atb") ? atb.match(/data-fits="([^"]*)"/)[1] : "none" }));
 }
 fs.writeFileSync(path.join(out, "cart-page.html"), cartPage);
 fs.writeFileSync(path.join(out, "catalog.json"), JSON.stringify(P, (k, v) => (k === "collections" ? undefined : v)));

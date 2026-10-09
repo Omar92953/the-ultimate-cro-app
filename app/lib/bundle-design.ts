@@ -12,6 +12,8 @@ export type BundleDesign = {
   products: { desktop: number; mobile: number; pick: string; picked: string };
   summary: { show: boolean; value: string; save: string; sticky: boolean };
   button: { theme: boolean; label: string; remaining: string };
+  /** Building it anywhere: the "Add to bundle" buttons and the bundle tray that follows the shopper. */
+  tray: { add: string; cart: string; checkout: string; position: "bottom" | "right" };
   look: { themeAccent: boolean; accent: string; themeRadius: boolean; radius: number; top: number; bottom: number; scheme: string };
 };
 
@@ -20,6 +22,7 @@ export const DEFAULT_BUNDLE_DESIGN: BundleDesign = {
   products: { desktop: 4, mobile: 2, pick: "Add", picked: "Added" },
   summary: { show: true, value: "Worth [amount]", save: "You save [amount] ([percent]%)", sticky: false },
   button: { theme: false, label: "Add bundle to cart", remaining: "Choose [remaining] more" },
+  tray: { add: "Add to bundle", cart: "Add bundle to cart", checkout: "Checkout", position: "bottom" },
   look: { themeAccent: true, accent: "#111111", themeRadius: true, radius: 12, top: 16, bottom: 16, scheme: "" },
 };
 
@@ -51,7 +54,7 @@ const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fa
 export function withBundleDesignDefaults(raw: unknown): BundleDesign {
   const r = obj(raw);
   const d = DEFAULT_BUNDLE_DESIGN;
-  const t = obj(r.text), p = obj(r.products), s = obj(r.summary), b = obj(r.button), k = obj(r.look);
+  const t = obj(r.text), p = obj(r.products), s = obj(r.summary), b = obj(r.button), k = obj(r.look), tr = obj(r.tray);
   return {
     text: {
       heading: str(t.heading, d.text.heading, 120),
@@ -75,6 +78,12 @@ export function withBundleDesignDefaults(raw: unknown): BundleDesign {
       theme: bool(b.theme, d.button.theme),
       label: str(b.label, d.button.label, 40) || d.button.label,
       remaining: str(b.remaining, d.button.remaining, 60) || d.button.remaining,
+    },
+    tray: {
+      add: str(tr.add, d.tray.add, 30) || d.tray.add,
+      cart: str(tr.cart, d.tray.cart, 40) || d.tray.cart,
+      checkout: str(tr.checkout, d.tray.checkout, 30) || d.tray.checkout,
+      position: pick(tr.position, ["bottom", "right"] as const, d.tray.position),
     },
     look: {
       themeAccent: bool(k.themeAccent, d.look.themeAccent),
@@ -116,6 +125,10 @@ export function toStorefrontBundle(c: BundleDesign) {
     tb: c.button.theme,
     btn: c.button.label,
     rem: c.button.remaining,
+    ta: c.tray.add,
+    tc: c.tray.cart,
+    tk: c.tray.checkout,
+    tp: c.tray.position,
     cls: c.look.scheme ? ` ucro-scheme color-${c.look.scheme}` : "",
     css: Object.entries(bundleVars(c))
       .map(([k, v]) => `${k}: ${v};`)

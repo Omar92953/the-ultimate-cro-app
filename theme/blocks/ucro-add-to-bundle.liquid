@@ -1,0 +1,60 @@
+{%- comment -%}
+  App block: "Add to bundle" on product pages. Shows only when this product fits a step of a
+  store-wide mix & match bundle (in the step's collection or product list); ucro-bundle-tray.js
+  adds the selected variant to the bundle tray (or asks which bundle when it fits several).
+{%- endcomment -%}
+{%- liquid
+  assign d = shop.metaobjects['$app:cro_design']['bundles'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+  endif
+  # "<bundle product id>:<step>," for every step this product fits.
+  assign fits = ''
+  if product != blank
+    for b in shop.metaobjects['$app:cro_bundle'].values
+      if b.active.value != true or b.store_wide.value == false or b.product.value == blank or b.product.value.id == product.id
+        continue
+      endif
+      for st in b.steps.value
+        assign ok = false
+        if st.collection.value
+          for c in product.collections
+            if c.id == st.collection.value.id
+              assign ok = true
+              break
+            endif
+          endfor
+        else
+          for p in st.products.value
+            if p.id == product.id
+              assign ok = true
+              break
+            endif
+          endfor
+        endif
+        if ok
+          assign fits = fits | append: b.product.value.id | append: ':' | append: forloop.index0 | append: ','
+        endif
+      endfor
+    endfor
+  endif
+-%}
+{%- if fits != blank and product.available -%}
+  <div class="ucro ucro-atb{{ d.cls }}" style="{{ d.css }}" data-ucro-atb data-fits="{{ fits }}" data-handle="{{ product.handle }}" {{ block.shopify_attributes }}>
+    <button type="button" class="ucro-btn ucro-atb__btn">{{ d.ta | default: 'Add to bundle' | escape }}</button>
+  </div>
+{%- elsif request.design_mode -%}
+  <div class="ucro-note" {{ block.shopify_attributes }}>Add to bundle: this product isn't in any store-wide bundle (CRO Toolbox → Bundles). Only you see this note.</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Add to bundle",
+  "target": "section",
+  "stylesheet": "ucro.css",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "paragraph", "content": "Shows when this product is part of a mix & match bundle. Needs the Bundle tray app embed on. Words and look: CRO Toolbox → Bundles → Design." }
+  ]
+}
+{% endschema %}

@@ -86,6 +86,15 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   of your bundle where you can pick items: ready-made looks, heading, button and summary words,
   columns, sticky summary, using your theme's Add to cart button, colour and corners. The theme editor
   only places the block.
+- **Bundle price:** one price (the bundle product's price) or a percentage off the items the shopper
+  picks. Steps can use a whole collection of any size: checkout checks each pick's collection.
+- **Build it anywhere** (on by default): shoppers add items from product pages (the **Add to bundle**
+  block) and from each step's collection page ("+ Add to bundle" on every product card; products with
+  options open a small size/colour picker). The **bundle tray** follows them across pages with each
+  step's progress, the picks (remove any), "Browse more" links and, once complete, **Add bundle to
+  cart** or **Checkout**. In the cart the items merge into one bundle line at the bundle price.
+  Turn on the **Bundle tray** app embed and add the **Add to bundle** block (Bundles page has both
+  links). Words, tray position and colours: **Bundles → Design** (preview: Bundle page / Collection page).
 
 ## Free shipping bar
 - Set the goal and messages in **Boosters → Free shipping bar**. With **Give free shipping

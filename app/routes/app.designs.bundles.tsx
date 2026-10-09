@@ -17,6 +17,7 @@ import type { Bundle } from "../lib/types";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { BundlePreview, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
+import { BundleCollectionPreview } from "../components/BundleCollectionPreview";
 import ui from "../components/PageEditor.module.css";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
@@ -50,6 +51,7 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
     .map((b) => ({
       name: b.name,
       handle: b.product ? (byId.get(b.product.id)?.handle as string | undefined) : undefined,
+      pricing: { kind: b.pricing, percent: b.percentOff },
       price: b.product ? item(byId.get(b.product.id)).cents : 0,
       steps: b.steps.map((s) => ({
         label: s.label,
@@ -65,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin).catch(() => FALLBACK_STYLE)]);
   const { list, currency } = await previewBundles(admin, bundles).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
-  return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
+  return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css") + storefrontCss("ucro-bundle-tray.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -91,6 +93,7 @@ export default function BundleDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
+  const [view, setView] = useState<"page" | "collection">("page");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -107,7 +110,7 @@ export default function BundleDesigner() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
-  const text = part("text"), products = part("products"), summary = part("summary"), button = part("button"), look = part("look");
+  const text = part("text"), products = part("products"), summary = part("summary"), button = part("button"), look = part("look"), tray = part("tray");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const bundle = data.bundles[which];
   // The link opens the theme editor on the bundle's page while the unsaved changes are stored as a draft.
@@ -187,6 +190,20 @@ export default function BundleDesigner() {
               </Pane>
 
               <Pane show={tab === "content"}>
+                <s-section heading="Building it anywhere in the store">
+                  <s-stack gap="base">
+                    <s-text color="subdued">For bundles with “Let shoppers build it anywhere”: the Add to bundle buttons and the bundle tray.</s-text>
+                    <TextField label="Add to bundle button" value={cfg.tray.add} onValue={(v) => tray({ add: v })} />
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <TextField label="Tray: add to cart" value={cfg.tray.cart} onValue={(v) => { tray({ cart: v }); setView("collection"); }} />
+                      <TextField label="Tray: checkout" value={cfg.tray.checkout} onValue={(v) => { tray({ checkout: v }); setView("collection"); }} />
+                    </s-grid>
+                    <Select label="Tray position" value={cfg.tray.position} onValue={(v) => { tray({ position: v as C["tray"]["position"] }); setView("collection"); }} options={[{ value: "bottom", label: "Bottom centre" }, { value: "right", label: "Bottom right" }]} />
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "content"}>
                 <s-section heading="Add to cart">
                   <s-stack gap="base">
                     <Switch label="Use my theme's Add to cart button" details="Hides the builder's button; your theme's button adds the bundle once it's complete. Express checkout buttons are hidden on that page." checked={cfg.button.theme} onValue={(v) => button({ theme: v })} />
@@ -240,7 +257,12 @@ export default function BundleDesigner() {
 
             <PreviewFrame
               title={bundle ? `Bundle page · ${bundle.name}` : "Bundle page · example"}
-              tools={<Segmented label="Device" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />}
+              tools={
+                <span style={{ display: "inline-flex", gap: 6 }}>
+                  <Segmented label="Page" value={view} options={[{ value: "page", label: "Bundle page" }, { value: "collection", label: "Collection page" }]} onChange={setView} />
+                  {view === "page" ? <Segmented label="Device" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} /> : null}
+                </span>
+              }
             >
               {data.bundles.length > 1 ? (
                 <div style={{ padding: "10px 16px 0" }}>
@@ -248,7 +270,11 @@ export default function BundleDesigner() {
                 </div>
               ) : null}
               <ThemeLook style={data.style}>
-                <BundlePreview key={which} config={cfg} bundle={bundle} currency={data.currency} phone={device === "phone"} page={pageLook} block={blockLook} />
+{view === "collection" ? (
+                  <BundleCollectionPreview key={`c${which}`} config={cfg} bundle={bundle} currency={data.currency} page={pageLook} block={blockLook} pricing={bundle?.pricing} />
+                ) : (
+                  <BundlePreview key={which} config={cfg} bundle={bundle} currency={data.currency} phone={device === "phone"} page={pageLook} block={blockLook} />
+                )}
               </ThemeLook>
             </PreviewFrame>
           </div>

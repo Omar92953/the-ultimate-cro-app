@@ -1,0 +1,22 @@
+{%- liquid
+assign cfg = shop.metaobjects['$app:cro_settings']['settings']
+assign on = true
+if cfg and cfg.bundles_enabled.value == false
+assign on = false
+endif
+assign d = shop.metaobjects['$app:cro_design']['bundles'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+endif
+-%}{%- capture bundles -%}{%- for b in shop.metaobjects['$app:cro_bundle'].values -%}{%- if b.active.value != true or b.store_wide.value == false or b.product.value == blank -%}{%- continue -%}{%- endif -%}{%- assign bp = b.product.value -%}
+{"id":{{ bp.id }},"v":{{ bp.selected_or_first_available_variant.id }},"n":{{ b.name.value | json }},"u":{{ bp.url | json }},"pr":{{ bp.price }},"k":{{ b.pricing.value | default: 'fixed' | json }},"pc":{{ b.percent_off.value | default: 0 }},"d":{% if b.allow_duplicates.value %}1{% else %}0{% endif %},"s":[{%- for st in b.steps.value -%}{%- liquid
+assign mn = st.min_picks.value | default: 1
+if st.required.value == false
+assign mn = 0
+endif
+-%}
+{"l":{{ st.label.value | json }},"n":{{ mn }},"x":{{ st.max_picks.value | default: 1 }},{% if st.collection.value %}"c":{{ st.collection.value.id }},"cu":{{ st.collection.value.url | json }}{% else %}"c":null,"cu":null,"h":[{% for p in st.products.value %}{{ p.handle | json }}{% unless forloop.last %},{% endunless %}{% endfor %}]{% endif %}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]},{%- endfor -%}{%- endcapture -%}{%- if on and bundles != blank -%}<script type="application/json" id="ucro-bt-data">
+{"mode":{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' | json }},"fmt":{{ shop.money_format | json }},"page":{{ request.page_type | json }},"col":{% if collection %}{{ collection.id }}{% else %}null{% endif %},"cls":{{ d.cls | default: '' | json }},"css":{{ d.css | default: '' | json }},"tp":{{ d.tp | default: 'bottom' | json }},"t":{"add":{{ d.ta | default: 'Add to bundle' | json }},"cart":{{ d.tc | default: 'Add bundle to cart' | json }},"go":{{ d.tk | default: 'Checkout' | json }},"more":{{ d.rem | default: 'Choose [remaining] more' | json }}},"b":[{{ bundles | strip | remove_last: ',' }}]}
+</script>
+<script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
+<script src="{{ 'ucro-bundle-tray.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Bundle tray","target":"body","stylesheet":"ucro-bundle-tray.css","settings":[{"type":"paragraph","content":"t:s.2"}]}{% endschema %}

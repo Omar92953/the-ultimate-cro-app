@@ -1,0 +1,228 @@
+/*
+ * CRO Toolbox — bundle tray, the bundle chooser and "+ Add to bundle" on product cards.
+ * Loaded on every page by the Bundle tray embed, so it stands on its own (no ucro.css needed).
+ * Fonts come from the theme; --ucro-accent (from the app's design or the theme's button) colours it.
+ */
+.ucro-bt,
+.ucro-bt-choose,
+.ucro-atb-card {
+  --ucro-on: var(--ucro-accent, #121212);
+  --ucro-line: color-mix(in srgb, currentColor 16%, transparent);
+  --ucro-r: var(--ucro-radius, 12px);
+  --ucro-bt-bg: #fff;
+  --ucro-bt-fg: #121212;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.ucro-bt *,
+.ucro-bt-choose * { box-sizing: border-box; }
+.ucro-bt[hidden],
+.ucro-bt [hidden],
+.ucro-bt-choose[hidden] { display: none !important; }
+
+/* ---- the tray ---- */
+.ucro-bt {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column-reverse;
+  width: min(440px, calc(100vw - 24px));
+  max-height: min(78vh, 680px);
+  color: var(--ucro-bt-fg);
+  background: var(--ucro-bt-bg);
+  border: 1px solid var(--ucro-line);
+  border-radius: var(--ucro-r);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  font-size: 14px;
+  line-height: 1.4;
+}
+/* A theme colour scheme picked in the app (Dawn-style themes): its colours instead of white. */
+.ucro-scheme.ucro-bt,
+.ucro-scheme.ucro-bt-choose {
+  --ucro-bt-bg: rgb(var(--color-background));
+  --ucro-bt-fg: rgb(var(--color-foreground));
+  --ucro-accent: rgb(var(--color-button, var(--color-foreground)));
+  --ucro-on-text: rgb(var(--color-button-text, var(--color-background)));
+  padding: 0;
+  background: transparent;
+}
+.ucro-scheme.ucro-bt { background: var(--ucro-bt-bg); }
+.ucro-bt--bottom { left: 50%; bottom: 12px; transform: translateX(-50%); }
+.ucro-bt--right { right: 12px; bottom: 12px; }
+.ucro-bt__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.ucro-bt__thumbs { display: flex; flex: none; }
+.ucro-bt__thumbs img,
+.ucro-bt__thumbs .ucro-bt__ph {
+  width: 36px;
+  height: 36px;
+  margin-inline-end: -8px;
+  object-fit: cover;
+  border: 2px solid var(--ucro-bt-bg);
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.ucro-bt__title { display: grid; flex: 1 1 auto; min-width: 0; margin-inline-start: 8px; }
+.ucro-bt__title strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ucro-bt__title span { font-size: 0.9em; opacity: 0.75; }
+.ucro-bt__chev {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-135deg);
+  transition: transform 0.2s;
+}
+.ucro-bt__bar[aria-expanded='true'] .ucro-bt__chev { transform: rotate(45deg); }
+.ucro-bt__panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-bottom: 1px solid var(--ucro-line);
+}
+.ucro-bt__steps { overflow: auto; padding: 12px 14px 4px; }
+.ucro-bt__step + .ucro-bt__step { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ucro-line); }
+.ucro-bt__step-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.ucro-bt__step-head span { opacity: 0.7; white-space: nowrap; }
+.ucro-bt__picks { display: grid; gap: 6px; margin: 0 0 6px; padding: 0; list-style: none; }
+.ucro-bt__picks li { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 10px; }
+.ucro-bt__picks img,
+.ucro-bt__picks .ucro-bt__ph { width: 44px; height: 44px; object-fit: cover; border-radius: calc(var(--ucro-r) * 0.5); background: color-mix(in srgb, currentColor 8%, transparent); }
+.ucro-bt__name { display: grid; min-width: 0; }
+.ucro-bt__name small { opacity: 0.7; }
+.ucro-bt__remove {
+  width: 32px;
+  height: 32px;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--ucro-line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.ucro-bt__browse { display: inline-block; margin: 2px 0 4px; color: var(--ucro-on); font-weight: 600; text-decoration: none; }
+.ucro-bt__browse:hover { text-decoration: underline; }
+.ucro-bt__foot { display: grid; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--ucro-line); }
+.ucro-bt__total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; }
+.ucro-bt__total s { opacity: 0.6; }
+.ucro-bt__save { color: var(--ucro-on); font-weight: 600; font-size: 0.9em; }
+.ucro-bt__actions { display: flex; gap: 8px; }
+.ucro-bt__actions .ucro-btn { flex: 1 1 0; min-height: 44px; margin: 0; cursor: pointer; }
+.ucro-bt__actions .ucro-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+.ucro-bt .ucro-btn--fallback,
+.ucro-bt-choose .ucro-btn--fallback {
+  padding: 0.7em 1.2em;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ucro-on-text, #fff);
+  background: var(--ucro-on);
+  border: 0;
+  border-radius: calc(var(--ucro-r) * 0.6);
+}
+.ucro-bt__clear { justify-self: start; padding: 0; font: inherit; font-size: 0.85em; color: inherit; opacity: 0.7; background: none; border: 0; text-decoration: underline; cursor: pointer; }
+.ucro-bt .ucro__error { margin: 0; color: #b42318; font-size: 0.9em; }
+.ucro-bt.is-busy .ucro-bt__actions { opacity: 0.6; pointer-events: none; }
+.ucro-bt__toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(18, 18, 18, 0.92);
+  border-radius: 99px;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.ucro-bt__toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---- choosing a bundle / a size ---- */
+.ucro-bt-choose {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.ucro-bt-choose__box {
+  display: grid;
+  gap: 8px;
+  width: min(380px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 14px;
+  color: var(--ucro-bt-fg);
+  background: var(--ucro-bt-bg);
+  border-radius: var(--ucro-r);
+}
+.ucro-bt-choose__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.ucro-bt-choose__head button { width: 32px; height: 32px; font-size: 20px; color: inherit; background: none; border: 0; cursor: pointer; }
+.ucro-bt-choose__opt {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 1px solid var(--ucro-line);
+  border-radius: calc(var(--ucro-r) * 0.7);
+  cursor: pointer;
+}
+.ucro-bt-choose__opt:hover:not(:disabled),
+.ucro-bt-choose__opt:focus-visible { border-color: var(--ucro-on); outline: none; box-shadow: 0 0 0 1px var(--ucro-on); }
+.ucro-bt-choose__opt:disabled { opacity: 0.45; cursor: not-allowed; }
+.ucro-bt-choose__opt span { opacity: 0.75; }
+
+/* ---- "+ Add to bundle" on product cards ---- */
+.ucro-atb-card {
+  position: relative;
+  z-index: 3;
+  display: block;
+  width: calc(100% - 12px);
+  min-height: 38px;
+  margin: 8px 6px 6px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--ucro-on);
+  background: var(--ucro-bt-bg);
+  border: 1px solid var(--ucro-on);
+  border-radius: 99px;
+  cursor: pointer;
+}
+.ucro-atb-card:hover { color: var(--ucro-on-text, #fff); background: var(--ucro-on); }
+.ucro-atb-card.is-in { color: var(--ucro-on-text, #fff); background: var(--ucro-on); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ucro-bt__chev,
+  .ucro-bt__toast { transition: none; }
+}
+@media (max-width: 749px) {
+  .ucro-bt--bottom,
+  .ucro-bt--right { left: 8px; right: 8px; bottom: 8px; width: auto; transform: none; }
+}

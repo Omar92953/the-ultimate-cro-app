@@ -1175,6 +1175,8 @@ export const BLOCKS = {
   upsell: "ucro-upsell",
   videos: "ucro-video-carousel",
   bundles: "ucro-bundle-builder",
+  bundle_button: "ucro-add-to-bundle",
+  bundle_tray: "ucro-bundle-tray",
   drawer: "ucro-cart-offers",
   reviews: "ucs-reviews",
   faq: "ucs-faq",
@@ -1193,7 +1195,7 @@ export const BLOCKS = {
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
-const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "boosters"];
+const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "boosters", "bundle_tray"];
 
 export type ThemeStatus = {
   themeName: string | null;
@@ -1252,6 +1254,8 @@ export function editorLinks(shop: string) {
     upsell: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.upsell}&target=mainSection`,
     videos: `${base}?template=index&addAppBlockId=${key}/${BLOCKS.videos}&target=newAppsSection`,
     bundles: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.bundles}&target=mainSection`,
+    bundle_button: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.bundle_button}&target=mainSection`,
+    bundle_tray: `${base}?context=apps&activateAppId=${key}/${BLOCKS.bundle_tray}`,
     drawer: `${base}?context=apps&activateAppId=${key}/${BLOCKS.drawer}`,
     contact: `${base}?template=page.contact&addAppBlockId=${key}/${BLOCKS.contact}&target=newAppsSection`,
     addons: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.addons}&target=mainSection`,
