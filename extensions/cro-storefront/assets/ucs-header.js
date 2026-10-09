@@ -217,6 +217,16 @@
   var box = section || el;
 
   var over = c.overlay === "all" || (c.overlay === "home" && HOME);
+  // Over the page, the header must be the last thing in the Header area: other bars there
+  // (countdown, announcements) stay above it instead of sliding under it.
+  if (over && section) {
+    var last = section, next = section.nextElementSibling;
+    while (next && /shopify-section-group-header/.test(next.className)) {
+      last = next;
+      next = next.nextElementSibling;
+    }
+    if (last !== section) last.after(section);
+  }
   if (over) {
     el.classList.add("uh--over");
     // Sit over the first section without pushing it down, and stay sticky.
