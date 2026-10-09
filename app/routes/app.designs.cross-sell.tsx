@@ -15,7 +15,7 @@ import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
 import { applyCrossSellPreset, CROSS_SELL_PRESETS, matchCrossSellTheme, withCrossSellDefaults, type CrossSellDesign } from "../lib/cross-sell-design";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
-import { CrossSellDesignPreview, SAMPLE_CROSS_SELL, type CrossSellOffer } from "../components/CrossSellDesignPreview";
+import { CrossSellDesignPreview, CrossSellDrawerPreview, SAMPLE_CROSS_SELL, type CrossSellOffer } from "../components/CrossSellDesignPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
@@ -88,7 +88,7 @@ export default function CrossSellDesigner() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends Exclude<keyof C, "scheme">>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
-  const products = part("products"), heading = part("heading"), look = part("look"), space = part("space");
+  const products = part("products"), heading = part("heading"), look = part("look"), space = part("space"), drawer = part("drawer");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const offer = data.offers[which] ?? SAMPLE_CROSS_SELL;
   const handle = data.offers[which]?.handle ?? data.sampleHandle;
@@ -164,6 +164,20 @@ export default function CrossSellDesigner() {
                 </s-section>
               </Pane>
 
+              <Pane show={tab === "content"}>
+                <s-section heading="Cart drawer">
+                  <s-stack gap="base">
+                    <s-text color="subdued">For offers with “Cart drawer” ticked, shown inside your theme’s slide-out cart (turn on the “Cart drawer offers” embed in the theme editor).</s-text>
+                    <TextField label="Heading" details="Used when an offer has no headline of its own." value={cfg.drawer.heading} onValue={(v) => drawer({ heading: v })} />
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <NumberField label="Products to show" min={1} max={4} step={1} value={cfg.drawer.max} onValue={(v) => drawer({ max: v })} />
+                      <TextField label="Add button text" value={cfg.drawer.add} onValue={(v) => drawer({ add: v })} />
+                    </s-grid>
+                    <Checkbox label="Use the same colours and corners as the offers block" checked={cfg.drawer.matchLook} onValue={(v) => drawer({ matchLook: v })} />
+                  </s-stack>
+                </s-section>
+              </Pane>
+
               <Pane show={tab === "style"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -211,6 +225,8 @@ export default function CrossSellDesigner() {
               ) : null}
               <ThemeLook style={data.style}>
                 <CrossSellDesignPreview key={which} config={cfg} offer={offer} currency={data.currency} page={pageLook} block={blockLook} />
+                <p style={{ margin: "8px 20px 6px", fontSize: 12, color: "#616161" }}>In the cart drawer</p>
+                <CrossSellDrawerPreview config={cfg} offer={offer} currency={data.currency} page={pageLook} />
               </ThemeLook>
             </PreviewFrame>
           </div>

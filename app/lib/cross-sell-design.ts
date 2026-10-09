@@ -13,6 +13,8 @@ export type CrossSellDesign = {
   heading: { size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
   look: { themeColors: boolean; accent: string; border: string; panel: boolean; panelColor: string; themeRadius: boolean; radius: number; edge: boolean };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
+  /** The "Cart drawer offers" embed (rules with "Cart drawer" ticked). */
+  drawer: { heading: string; max: number; add: string; matchLook: boolean };
 };
 
 export const DEFAULT_CROSS_SELL: CrossSellDesign = {
@@ -21,6 +23,7 @@ export const DEFAULT_CROSS_SELL: CrossSellDesign = {
   heading: { size: "medium", align: "left" },
   look: { themeColors: true, accent: "#111111", border: "#dddddd", panel: true, panelColor: "#f5f5f5", themeRadius: true, radius: 12, edge: false },
   space: { top: 16, bottom: 16, devices: "all" },
+  drawer: { heading: "You may also like", max: 2, add: "Add", matchLook: true },
 };
 
 type Patch = { look?: Partial<CrossSellDesign["look"]>; heading?: Partial<CrossSellDesign["heading"]> };
@@ -50,7 +53,7 @@ const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fa
 export function withCrossSellDefaults(raw: unknown): CrossSellDesign {
   const r = obj(raw);
   const d = DEFAULT_CROSS_SELL;
-  const p = obj(r.products), h = obj(r.heading), k = obj(r.look), s = obj(r.space);
+  const p = obj(r.products), h = obj(r.heading), k = obj(r.look), s = obj(r.space), w = obj(r.drawer);
   return {
     scheme: schemeId(r.scheme),
     products: {
@@ -78,12 +81,27 @@ export function withCrossSellDefaults(raw: unknown): CrossSellDesign {
       bottom: num(s.bottom, 0, 80, d.space.bottom),
       devices: pick(s.devices, ["all", "desktop", "mobile"] as const, d.space.devices),
     },
+    drawer: {
+      heading: str(w.heading, d.drawer.heading, 80),
+      max: num(w.max, 1, 4, d.drawer.max),
+      add: str(w.add, d.drawer.add, 30) || d.drawer.add,
+      matchLook: bool(w.matchLook, d.drawer.matchLook),
+    },
   };
 }
 
 export function crossSellVars(c: CrossSellDesign): Record<string, string> {
   const v: Record<string, string> = { "--ucro-align": c.heading.align, "--ucro-pt": `${c.space.top}px`, "--ucro-pb": `${c.space.bottom}px` };
   if (!c.look.themeColors) Object.assign(v, { "--ucro-accent": c.look.accent, "--ucro-border": c.look.border, "--ucro-panel": c.look.panelColor });
+  if (!c.look.themeRadius) v["--ucro-radius"] = `${c.look.radius}px`;
+  return v;
+}
+
+/** The cart drawer box's colours and corners: the same as the block's, or the theme's. */
+export function drawerVars(c: CrossSellDesign): Record<string, string> {
+  if (!c.drawer.matchLook) return {};
+  const v: Record<string, string> = {};
+  if (!c.look.themeColors) Object.assign(v, { "--ucro-accent": c.look.accent, "--ucro-border": c.look.border, "--ucro-soft": c.look.panelColor });
   if (!c.look.themeRadius) v["--ucro-radius"] = `${c.look.radius}px`;
   return v;
 }
@@ -113,5 +131,12 @@ export function toStorefrontCrossSell(c: CrossSellDesign) {
     css: Object.entries(crossSellVars(c))
       .map(([k, v]) => `${k}: ${v};`)
       .join(" "),
+    dh: c.drawer.heading,
+    dm: c.drawer.max,
+    da: c.drawer.add,
+    dcss: Object.entries(drawerVars(c))
+      .map(([k, v]) => `${k}: ${v};`)
+      .join(" "),
+    dcls: c.drawer.matchLook && c.scheme ? ` ucro-scheme color-${c.scheme}` : "",
   };
 }

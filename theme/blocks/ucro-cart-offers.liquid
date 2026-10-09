@@ -10,14 +10,22 @@
   if cfg and cfg.cross_sell_enabled.value == false
     assign enabled = false
   endif
+  # Heading, number of products, button and look are designed in the app (Cross-sell → Design): $app:cro_design "cross_sell".
+  assign d = shop.metaobjects['$app:cro_design']['cross_sell'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
+  endif
+  assign heading = d.dh | default: 'You may also like'
 -%}
 {%- if enabled and template.name != 'cart' -%}
   <script type="application/json" id="ucro-drawer-data">
     {
       "fmt": {{ shop.money_format | json }},
-      "max": {{ block.settings.max_items | json }},
-      "heading": {{ block.settings.heading | json }},
-      "add": {{ block.settings.add_label | json }},
+      "max": {{ d.dm | default: 2 | json }},
+      "heading": {{ heading | json }},
+      "add": {{ d.da | default: 'Add' | json }},
+      "css": {{ d.dcss | default: '' | json }},
+      "cls": {{ d.dcls | default: '' | json }},
       "error": {{ 'ucro.error' | t | json }},
       "rules": [
         {%- assign first_rule = true -%}
@@ -44,7 +52,7 @@
                 {%- endfor -%}
               {%- endif -%}
             ],
-            "h": {{ r.headline.value | default: block.settings.heading | json }},
+            "h": {{ r.headline.value | default: heading | json }},
             "pct": {{ pct | json }},
             "offers": [
               {%- assign first_offer = true -%}
@@ -85,29 +93,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Shows Cross-sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it."
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "default": "You may also like",
-      "info": "Used when a rule has no headline of its own."
-    },
-    {
-      "type": "range",
-      "id": "max_items",
-      "label": "Products to show",
-      "min": 1,
-      "max": 4,
-      "step": 1,
-      "default": 2
-    },
-    {
-      "type": "text",
-      "id": "add_label",
-      "label": "Add button text",
-      "default": "Add"
+      "content": "Shows Cross-sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it. Heading, products and button are set in CRO Toolbox → Cross-sell offers → Design."
     }
   ]
 }

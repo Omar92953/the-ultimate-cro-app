@@ -39,7 +39,8 @@
 
   function build(found) {
     var box = document.createElement('div');
-    box.className = 'ucro ucro-drawer';
+    box.className = 'ucro ucro-drawer' + (data.cls || '');
+    if (data.css) box.style.cssText = data.css;
     box.setAttribute('data-ucro-drawer', '');
     var h = document.createElement('p');
     h.className = 'ucro-drawer__heading';

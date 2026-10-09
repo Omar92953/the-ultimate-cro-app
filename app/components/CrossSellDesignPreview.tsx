@@ -4,7 +4,7 @@
  * and prices) or a sample. Ticking works like on the store; nothing starts ticked.
  */
 import { useState, type CSSProperties } from "react";
-import { crossSellClass, crossSellVars, type CrossSellDesign } from "../lib/cross-sell-design";
+import { crossSellClass, crossSellVars, drawerVars, type CrossSellDesign } from "../lib/cross-sell-design";
 import type { PreviewTheme } from "../lib/theme-style";
 
 export type CrossSellItem = { title: string; image: string | null; cents: number };
@@ -74,6 +74,49 @@ export function CrossSellDesignPreview({ config: c, offer = SAMPLE_CROSS_SELL, c
           {label}
           {count ? ` (${count})` : ""}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** The same offer as it shows in the theme's slide-out cart ("Cart drawer offers", ucro-drawer.js markup). */
+export function CrossSellDrawerPreview({ config: c, offer = SAMPLE_CROSS_SELL, currency = "USD", page }: { config: CrossSellDesign; offer?: CrossSellOffer; currency?: string; page: PreviewTheme }) {
+  const money = (cents: number) => {
+    try {
+      return new Intl.NumberFormat("en", { style: "currency", currency }).format(cents / 100);
+    } catch {
+      return (cents / 100).toFixed(2);
+    }
+  };
+  const own = drawerVars(c);
+  const accent = own["--ucro-accent"] ?? page.accent;
+  const vars = { "--ucro-soft": "rgba(127,127,127,0.08)", "--ucro-radius": `${page.radius}px`, ...own } as CSSProperties;
+  return (
+    <div style={{ padding: "4px 20px 16px", fontSize: 14, lineHeight: 1.5 }}>
+      <div style={{ maxWidth: 380, marginLeft: "auto", padding: "14px 16px", border: "1px solid rgba(127,127,127,0.25)", borderRadius: 10, background: "#fff" }}>
+        <p style={{ margin: 0, fontWeight: 600 }}>Your cart</p>
+        <div className="ucro ucro-drawer" style={vars}>
+          <p className="ucro-drawer__heading">{offer.headline || c.drawer.heading}</p>
+          <ul className="ucro-drawer__list">
+            {offer.items.slice(0, c.drawer.max).map((it, i) => (
+              <li key={i} className="ucro-drawer__item">
+                {it.image ? <img src={`${it.image}${it.image.includes("?") ? "&" : "?"}width=160`} alt="" width={56} height={56} /> : <span style={{ width: 56, height: 56, borderRadius: 6, background: TINTS[i % TINTS.length] }} />}
+                <span className="ucro-drawer__body">
+                  <a className="ucro-drawer__title" href="#preview" onClick={(e) => e.preventDefault()}>
+                    {it.title}
+                  </a>
+                  <span className="ucro-drawer__prices">
+                    <span>{money(Math.round(it.cents * (1 - offer.pct / 100)))}</span>
+                    {offer.pct > 0 ? <s className="ucro-was">{money(it.cents)}</s> : null}
+                  </span>
+                </span>
+                <button type="button" className="ucro-btn ucro-drawer__add" style={{ font: "inherit", fontWeight: 600, color: own["--ucro-accent"] ? "#fff" : page.accentText, background: accent, border: 0, borderRadius: page.buttonRadius }}>
+                  {c.drawer.add}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
