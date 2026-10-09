@@ -137,6 +137,7 @@
   background: var(--ucro-panel, var(--ucro-soft));
   border-radius: var(--ucro-radius);
 }
+.ucro-scheme.ucro-cross--panel { background: var(--ucro-panel, rgb(var(--color-background))); }
 @media screen and (max-width: 749px) {
   .ucro-cross--bleed {
     margin-inline: calc(50% - 50vw);

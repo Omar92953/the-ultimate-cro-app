@@ -413,6 +413,8 @@
       U.styleButton(b, b.closest('.shopify-section') || document);
       if (b.classList.contains('button')) b.classList.add('button--secondary');
     });
+    // On phones the open tray would cover the page you just opened: start closed (one tap opens it).
+    if (state && state.open && window.matchMedia && window.matchMedia('(max-width: 749px)').matches) state.open = false;
     render();
     decorateCards();
     // Filters, sorting and infinite scroll redraw the grid.

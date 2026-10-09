@@ -194,7 +194,16 @@ console.log("video carousel:", JSON.stringify({
   exceptHandle: vcChecks.exceptHandle.includes("ucro-vc__track"),
 }));
 const drawer = await block("ucro-cart-offers", { page_type: "product" });
-const recs = await block("ucro-cross-sell", { product: P.frame, page_type: "product" }, { fallback: "recommendations" });
+// Cross-sell designed in the app ($app:cro_design "cross_sell"): Shopify recommendations when no rule matches.
+const crossDesign = (extra) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([metaobject("cross_sell", { config: { fb: "none", rh: "Pairs well with", rl: 4, btn: "Add selected to cart", hc: "ucro__heading--medium", cls: " ucro-cross--panel", rad: "theme", css: "--ucro-pt: 16px; --ucro-pb: 16px;", ...extra } })]) } });
+const recs = await block("ucro-cross-sell", { product: P.frame, page_type: "product" }, {}, crossDesign({ fb: "recommendations", rh: "You may also like", rl: 3 }));
+const crossNoPanel = await block("ucro-cross-sell", { product: P.batman, page_type: "product" }, {}, crossDesign({ cls: "", btn: "Add these" }));
+console.log("cross-sell:", JSON.stringify({
+  defaultPanel: productPage[1].includes('class="ucro ucro-cross ucro-cross--panel"'),
+  recommendations: recs.includes('data-mode="recommend"') && recs.includes("You may also like") && recs.includes('data-limit="3"'),
+  noPanel: crossNoPanel.includes('class="ucro ucro-cross"') && crossNoPanel.includes("Add these") === false ? "rule label wins" : crossNoPanel.includes('class="ucro ucro-cross"'),
+  neverPreTicked: !/ucro-offer__check" checked/.test(productPage[1]),
+}));
 const bundlePage = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" });
 // Bundle builder designed in the app ($app:cro_design "bundles"): the theme's own button adds the bundle.
 const bundleDesign = (extra) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([metaobject("bundles", { config: { h: "Pick your set", sub: "", hc: "ucro__heading--large", pk: "Choose", pd: "Chosen", sm: true, val: "Worth [amount]", sv: "Save [amount]", st: true, tb: false, btn: "Add set", rem: "[remaining] to go", css: "--ucro-cols-d: 3; --ucro-accent: #16a34a;", ...extra } })]) } });

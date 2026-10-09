@@ -11,6 +11,7 @@ import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
+import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
@@ -206,5 +207,20 @@ export async function saveBundleDesign(admin: AdminClient, config: BundleDesign)
   await upsert(admin, "$app:cro_design", "bundles", { config: live });
   await upsert(admin, "$app:cro_design", "bundles_editor", { config: JSON.stringify(clean) });
   await upsert(admin, "$app:cro_design", "bundles_draft", { config: live });
+  return clean;
+}
+
+/* ------------------------------------------------------------- cross-sell -- */
+export async function getCrossSellDesign(admin: AdminClient): Promise<{ config: CrossSellDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "cross_sell_editor");
+  return { config: withCrossSellDefaults(raw), saved: raw !== null };
+}
+
+export async function saveCrossSellDesign(admin: AdminClient, config: CrossSellDesign, draftOnly = false) {
+  const clean = withCrossSellDefaults(config);
+  const live = JSON.stringify(toStorefrontCrossSell(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "cross_sell", { config: live });
+  await upsert(admin, "$app:cro_design", "cross_sell_draft", { config: live });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "cross_sell_editor", { config: JSON.stringify(clean) });
   return clean;
 }

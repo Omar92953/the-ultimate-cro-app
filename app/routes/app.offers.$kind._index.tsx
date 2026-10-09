@@ -39,8 +39,8 @@ export default function RuleList() {
       <Button slot="primary-action" variant="primary" href={`/app/offers/${kindSlug}/new`}>
         Create {meta.singular}
       </Button>
-      {meta.kind === "upsell" ? (
-        <Button slot="secondary-actions" href="/app/designs/upsell">
+      {meta.kind === "upsell" || meta.kind === "cross_sell" ? (
+        <Button slot="secondary-actions" href={meta.kind === "upsell" ? "/app/designs/upsell" : "/app/designs/cross-sell"}>
           Design
         </Button>
       ) : null}
