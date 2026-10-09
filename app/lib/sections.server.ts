@@ -318,5 +318,6 @@ export function sectionLinks(shop: string) {
     addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
     header: headerBlock("ucs-header"),
     collection_pills: block("ucs-collection-pills", "collection"),
+    shipping_bar: headerBlock("ucs-shipping-bar"),
   };
 }

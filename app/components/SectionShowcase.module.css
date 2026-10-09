@@ -396,3 +396,14 @@
 .cpSoft { padding: 0.5em 1.4em 0.5em 0.5em; text-transform: none; letter-spacing: 0; background: #f1f1f1; box-shadow: none; }
 .cpOn { color: #fff; background: #1a1a1a; box-shadow: none; }
 .cpImg { width: 2.4em; height: 2.4em; object-fit: cover; border-radius: 50%; }
+
+/* free shipping bar */
+.fsbScene { display: flex; flex-direction: column; width: 100%; height: 100%; background: #fafafa; }
+.fsbBar { display: flex; flex-direction: column; align-items: center; gap: 0.8em; padding: 1.2em 0 0; color: #fff; font-size: 1.3em; font-weight: 600; background: #111; }
+.fsbTrack { display: block; width: 100%; height: 0.5em; background: #3a3a3a; }
+.fsbTrack > i { display: block; height: 100%; background: #d7f25c; }
+.fsbPage { padding: 3em 4em; }
+.fsbDrawer { display: flex; flex-direction: column; gap: 1.2em; }
+.fsbCard { display: flex; flex-direction: column; gap: 0.7em; padding: 1em 1.2em; font-weight: 600; border-radius: 0.8em; box-shadow: 0 0 0 0.1em #e6e6e6; }
+.fsbCard .fsbTrack { border-radius: 1em; overflow: hidden; background: #ececec; }
+.fsbDone > i { background: #16a34a; }

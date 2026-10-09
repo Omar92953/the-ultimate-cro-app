@@ -5,6 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig } from "./designs";
+import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
@@ -110,5 +111,18 @@ export async function savePills(admin: AdminClient, config: CollectionPillsConfi
   const clean = withPillsDefaults(config);
   await upsert(admin, "$app:cro_design", "collection_pills", { config: JSON.stringify(toStorefrontPills(clean)) });
   await upsert(admin, "$app:cro_design", "collection_pills_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------------------ shipping bar -- */
+export async function getShippingBar(admin: AdminClient): Promise<{ config: ShippingBarConfig; saved: boolean }> {
+  const raw = await getDesign(admin, "shipping_bar_editor");
+  return { config: withShippingBarDefaults(raw), saved: raw !== null };
+}
+
+export async function saveShippingBar(admin: AdminClient, config: ShippingBarConfig) {
+  const clean = withShippingBarDefaults(config);
+  await upsert(admin, "$app:cro_design", "shipping_bar", { config: JSON.stringify(toStorefrontShippingBar(clean)) });
+  await upsert(admin, "$app:cro_design", "shipping_bar_editor", { config: JSON.stringify(clean) });
   return clean;
 }

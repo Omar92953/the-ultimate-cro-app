@@ -245,6 +245,7 @@
   "6q": "0 = always show the full review. Longer ones get \"Read more\".",
   "6r": "Leave empty for the default.",
   "6s": "Help Google show stars for this product",
-  "6t": "Adds review structured data on product pages when showing that product's reviews."
+  "6t": "Adds review structured data on product pages when showing that product's reviews.",
+  "6u": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
  }
 }

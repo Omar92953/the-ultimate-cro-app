@@ -54,6 +54,8 @@ import {
   ImageCarouselShowcase,
   AddonsShowcase,
   CollectionPillsShowcase,
+  ShippingBarShowcase,
+  ShippingBarCardShowcase,
   CollectionPillsImagesShowcase,
   AddonsCardsShowcase,
   ImageCarouselOverlayShowcase,
@@ -81,7 +83,7 @@ import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { getContact } from "../lib/pages.server";
-import { getAddons, getHeader, getImageCarousel, getPills } from "../lib/designs.server";
+import { getAddons, getHeader, getImageCarousel, getPills, getShippingBar } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -101,7 +103,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters, saved, contact, carousel, addons, header, pills] = await Promise.all([
+  const [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
@@ -110,6 +112,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getAddons(admin).catch(() => null),
     getHeader(admin).catch(() => null),
     getPills(admin).catch(() => null),
+    getShippingBar(admin).catch(() => null),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -123,6 +126,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     contactSaved: contact.saved,
     headerSaved: !!header?.saved,
     pillCount: pills ? pills.config.items.length : 0,
+    shipBarSaved: !!shipBar?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
@@ -246,11 +250,11 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills";
+type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
 /** Store sections, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
-const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers"; Previews: (() => JSX.Element)[] }[] = [
+const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers" | "boosters"; Previews: (() => JSX.Element)[] }[] = [
   { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
   { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
@@ -259,6 +263,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
+  { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, with a progress line that fills up.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarShowcase, ShippingBarCardShowcase] },
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
   { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: false, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
@@ -454,7 +459,8 @@ export default function Home() {
           const themeHref = data.sectionLinks[c.key];
           const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
           let status: Status, next: Next | undefined;
-          if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
+          if (c.key === "shipping_bar" && !data.shipBarSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Set the goal", href: c.app! }];
+          else if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
           else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
           else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
           else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];

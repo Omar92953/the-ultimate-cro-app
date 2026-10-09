@@ -1375,3 +1375,44 @@ export function CollectionPillsImagesShowcase() {
     </Stage>
   );
 }
+
+/** Free shipping bar: message and a progress line filling up. */
+export function ShippingBarShowcase() {
+  return (
+    <Stage wide>
+      <span className={s.fsbScene}>
+        <span className={s.fsbBar}>
+          <span>🚚 You&rsquo;re $28 away from free shipping</span>
+          <i className={s.fsbTrack}>
+            <i style={{ width: "72%" }} />
+          </i>
+        </span>
+        <span className={s.fsbPage}>
+          <Lines w={[40, 70, 55]} />
+        </span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Free shipping bar as a card inside the cart drawer, goal reached. */
+export function ShippingBarCardShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.box} ${s.w40} ${s.fsbDrawer}`}>
+        <b className={s.h3}>Your cart</b>
+        <span className={s.fsbCard}>
+          <span>🎉 You&rsquo;ve got free shipping!</span>
+          <i className={`${s.fsbTrack} ${s.fsbDone}`}>
+            <i style={{ width: "100%" }} />
+          </i>
+        </span>
+        <span className={s.between}>
+          <span>Classic watch</span>
+          <b>$129</b>
+        </span>
+        <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Check out</span>
+      </span>
+    </Stage>
+  );
+}

@@ -1135,6 +1135,7 @@ export const BLOCKS = {
   addons: "ucs-addons",
   header: "ucs-header",
   collection_pills: "ucs-collection-pills",
+  shipping_bar: "ucs-shipping-bar",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
