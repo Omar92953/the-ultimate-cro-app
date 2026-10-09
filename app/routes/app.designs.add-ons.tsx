@@ -10,7 +10,7 @@ import { errorMessage } from "../lib/admin.server";
 import { editorLinks, getThemeStatus } from "../lib/cro.server";
 import { getAddons, saveAddons } from "../lib/designs.server";
 import { withAddonsDefaults, type AddonItem, type AddonsConfig } from "../lib/addons";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { AddonsPreview } from "../components/AddonsPreview";
 import ui from "../components/PageEditor.module.css";
 
@@ -106,7 +106,7 @@ export default function AddonsDesigner() {
             <s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
               <s-stack gap="base">
                 <s-text color="subdued">
-                  Each add-on is a product in your store, like “Gift wrapping”. Shoppers tick it and it goes into the cart with the product.{" "}
+                  Each add-on is a product in your store, like “Gift wrapping”. Shoppers tick it and it goes into the cart with the product. Add-ons always start unticked: Shopify requires shoppers to choose paid extras themselves.{" "}
                   <s-link href={`https://${data.shop}/admin/products/new`} target="_top">
                     Create a product
                   </s-link>{" "}
@@ -126,7 +126,6 @@ export default function AddonsDesigner() {
                         <TextField label="Name shown (optional)" placeholder={a.title} value={a.label} onValue={(v) => item(i, { label: v })} />
                         <TextField label="Short note (optional)" placeholder="Wrapped by hand in recycled paper" value={a.text} onValue={(v) => item(i, { text: v })} />
                       </s-grid>
-                      <Checkbox label="Ticked by default" details="Use with care: shoppers should choose extras themselves." checked={a.checked} onValue={(v) => item(i, { checked: v })} />
                       <s-box>
                         <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setCfg((c) => ({ ...c, items: c.items.filter((_, j) => j !== i) }))}>
                           Remove

@@ -67,7 +67,8 @@ export function withAddonsDefaults(raw: unknown): AddonsConfig {
           }),
           label: str(a.label, "", 80),
           text: str(a.text, "", 200),
-          checked: bool(a.checked, false),
+          // Never pre-ticked: App Store rule 1.1.9 (explicit buyer consent before adding charges).
+          checked: false,
         },
       ];
     }),
@@ -110,7 +111,7 @@ export function addonsVars(c: AddonsConfig): Record<string, string> {
 export function toStorefrontAddons(c: AddonsConfig) {
   return {
     h: c.heading,
-    a: c.items.map((x) => ({ h: x.handle, v: x.variantId, t: x.label || x.title, x: x.text, i: x.image, c: x.checked })),
+    a: c.items.map((x) => ({ h: x.handle, v: x.variantId, t: x.label || x.title, x: x.text, i: x.image, c: false })),
     m: c.message.on ? { l: c.message.label, p: c.message.placeholder, n: c.message.max, k: c.message.name } : null,
     st: c.style,
     w: { m: c.where.mode, p: c.where.products.map((x) => x.handle), c: c.where.collections.map((x) => x.handle) },
