@@ -1,4 +1,4 @@
-/* Ultimate CRO — conversion boosters: sticky add to cart, stock urgency, trust badges, sales pop-ups. */
+/* CRO Toolbox — conversion boosters: sticky add to cart, stock urgency, trust badges, sales pop-ups. */
 /* stock urgency */
 .ucs-urg { display: grid; gap: 6px; margin: 10px 0 12px; font-size: 0.92em; font-weight: 600; color: var(--ucs-urg, #b42318); }
 .ucs-urg[hidden] { display: none; }

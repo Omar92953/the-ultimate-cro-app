@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — conversion boosters (app embed): sticky add to cart, stock urgency, trust badges
+ * CRO Toolbox — conversion boosters (app embed): sticky add to cart, stock urgency, trust badges
  * and sales pop-ups. Settings come from the app (Boosters page) via #ucs-boost. Everything shown
  * is real: stock from the store, purchases from real orders.
  */

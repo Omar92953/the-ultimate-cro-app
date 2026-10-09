@@ -32,6 +32,7 @@ hand-typed reviews published as Google review markup.
 
 ## Fix status (updated 2026-10-07, after review)
 
+- **#15 (name):** renamed to **CRO Toolbox** on 2026-10-09 (checked: no app with this or a similar name in the App Store; "CROkit" exists, so "CRO Kit" was avoided). Takes effect in Shopify after the next `shopify app deploy`.
 - **Fixed:** #1 (deal editor built for all 4 types; no more 404s), #2 (redact/data_request now act on the sales pop-up list, which keeps the order id per entry), #5, #8, #9, #10, #11, #12 (+ tests), #13, #17, #18, #19, #21, #24.
 - **#3 workaround:** the `orders/create` subscription is commented out in `shopify.app.toml`. Without protected-data approval Shopify refused to start even `shopify app dev`. Turn it back on after approval. Until then, "Load recent orders" on the Boosters page shows the approval message.
 - **Also changed:** review cards in a row now share one height, with name, badge and product aligned at the bottom.

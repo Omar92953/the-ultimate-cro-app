@@ -1,5 +1,5 @@
 /*
- * The Ultimate CRO App — <ucro-bundle>, the mix-and-match bundle builder.
+ * CRO Toolbox — <ucro-bundle>, the mix-and-match bundle builder.
  *
  * Adds the bundle product (its own price) with the picks as line properties:
  *   "<Step label>": "Poster A, Poster B ×2"      (readable, shown in cart and order)

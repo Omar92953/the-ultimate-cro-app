@@ -265,7 +265,7 @@
 {%- elsif request.design_mode -%}
   <div class="ucro-note" {{ block.shopify_attributes }}>
     {%- if enabled == false -%}
-      Upsell is switched off in The Ultimate CRO App.
+      Upsell is switched off in CRO Toolbox.
     {%- elsif product == blank -%}
       Upsell only works on product pages.
     {%- elsif product.available == false -%}
@@ -273,7 +273,7 @@
     {%- elsif rule and utype == 'variant' and opt_pos == 0 -%}
       Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.
     {%- else -%}
-      Upsell: no rule matches this product yet. Add one in The Ultimate CRO App. Only you see this note.
+      Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.
     {%- endif -%}
   </div>
 {%- endif -%}
@@ -291,7 +291,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Offers, prices and discounts come from your Upsell rules in The Ultimate CRO App. Discounts apply at checkout automatically."
+      "content": "Offers, prices and discounts come from your Upsell rules in CRO Toolbox. Discounts apply at checkout automatically."
     },
     {
       "type": "header",

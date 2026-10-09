@@ -116,7 +116,7 @@
 {%- elsif request.design_mode -%}
   <div class="ucro-note" {{ block.shopify_attributes }}>
     {%- if enabled == false -%}
-      Cross-sell is switched off in The Ultimate CRO App.
+      Cross-sell is switched off in CRO Toolbox.
     {%- elsif rule -%}
       Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:
       {%- for p in rule.offered_products.value -%}
@@ -127,7 +127,7 @@
       Only you see this note.
     {%- else -%}
       {%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}
-      Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in The Ultimate CRO App, or turn on "Shopify recommendations" below. Only you see this note.
+      Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on "Shopify recommendations" below. Only you see this note.
     {%- endif -%}
   </div>
 {%- endif -%}
@@ -146,7 +146,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Products, headline and discount come from your Cross-sell rules in The Ultimate CRO App."
+      "content": "Products, headline and discount come from your Cross-sell rules in CRO Toolbox."
     },
     {
       "type": "header",

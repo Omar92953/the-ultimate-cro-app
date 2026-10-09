@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — customer reviews: carousel arrows/autoplay, "Read more" for long reviews,
+ * CRO Toolbox — customer reviews: carousel arrows/autoplay, "Read more" for long reviews,
  * and videos that play silently in view with a tap-for-sound button (one with sound at a time).
  */
 (function () {

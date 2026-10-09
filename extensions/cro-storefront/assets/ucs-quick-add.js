@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — quick add to cart on product cards (app embed). Works on any theme:
+ * CRO Toolbox — quick add to cart on product cards (app embed). Works on any theme:
  * finds product cards (Dawn's .card-wrapper and common patterns, or a custom selector), puts a
  * floating button on the image, adds single-variant products instantly and opens a small option
  * picker for the rest. After adding: the theme's own cart drawer/notification (Dawn family), our

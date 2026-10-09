@@ -1,7 +1,7 @@
 // @ts-check
 
 /*
- * The Ultimate CRO App — offer discounts.
+ * CRO Toolbox — offer discounts.
  *
  * The dashboard writes the configuration below to this discount's
  * `$app.function-configuration` metafield every time a rule is saved, so what the

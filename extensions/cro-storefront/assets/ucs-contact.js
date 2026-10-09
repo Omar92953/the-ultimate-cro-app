@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — contact form layout (Pages → Contact page in the app). The block renders Shopify's
+ * CRO Toolbox — contact form layout (Pages → Contact page in the app). The block renders Shopify's
  * contact form and its messages; this adds the fields, texts, contact details and design from the
  * app's settings (JSON next to the form). Same markup as the app's live preview.
  */

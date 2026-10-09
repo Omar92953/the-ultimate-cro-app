@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — bundle deals on the storefront. Loaded by the Conversion boosters embed only when
+ * CRO Toolbox — bundle deals on the storefront. Loaded by the Conversion boosters embed only when
  * the shop has active deals (written by the app to $app:cro_offers). Shows:
  *  - buy X get Y and volume-tier messages on qualifying product pages,
  *  - the fixed-bundle box with one "Add bundle to cart" button,

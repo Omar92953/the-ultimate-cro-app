@@ -28,7 +28,7 @@ export default function Landing() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <h1 className={styles.heading}>The Ultimate CRO App</h1>
+        <h1 className={styles.heading}>CRO Toolbox</h1>
         <p className={styles.lead}>Everything that turns visits into orders, for any Online Store 2.0 theme.</p>
         <ul className={styles.list}>
           {FEATURES.map(([title, text]) => (

@@ -1,4 +1,4 @@
-# The Ultimate CRO App: merchant guide
+# CRO Toolbox: merchant guide
 
 Four tools that raise order value, for any Online Store 2.0 theme:
 
@@ -81,7 +81,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
 
 ## Good to know
 - **One discount does it all.** The app creates one automatic discount called
-  **"Ultimate CRO offers"** (see Discounts). You can change which other discounts it combines with
+  **"CRO Toolbox offers"** (see Discounts). You can change which other discounts it combines with
   there. Don't delete it: the app recreates it on your next save, but offers show without their
   discount until then.
 - **Priority:** if several rules match a product, the lowest priority number is shown.

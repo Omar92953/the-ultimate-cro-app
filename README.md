@@ -1,4 +1,4 @@
-# The Ultimate CRO App
+# CRO Toolbox
 
 Cross-sell, quantity upsell, shoppable video carousel and mix-and-match bundles for any Online Store
 2.0 theme. It's a public-distribution-ready Shopify app, built on the official React Router template.

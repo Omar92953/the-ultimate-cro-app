@@ -1,4 +1,4 @@
-/* Ultimate CRO — FAQ: search, group buttons, and "one answer at a time" for browsers without <details name>. */
+/* CRO Toolbox — FAQ: search, group buttons, and "one answer at a time" for browsers without <details name>. */
 (function () {
   if (window.__ucsFaq) return;
   window.__ucsFaq = true;

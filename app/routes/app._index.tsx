@@ -349,7 +349,7 @@ export default function Home() {
     data.discount.engine === "native" ? data.discount.nativeCount > 0 : data.discount.status === "ACTIVE";
 
   return (
-    <s-page heading="The Ultimate CRO App" inlineSize="large">
+    <s-page heading="CRO Toolbox" inlineSize="large">
       <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
         View store
       </Button>

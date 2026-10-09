@@ -12,7 +12,7 @@ listing's API access justification if asked.
 | `read_themes` | **Read-only.** Checks whether the app's blocks and cart-drawer embed are actually in the published theme, so the Home page can show setup status. This is Shopify's own documented use ("verify theme support") | Home page |
 | `write_metaobjects` | Saves the merchant's rules, slides, bundles and feature switches as app-owned (`$app`) metaobjects in their store. The storefront reads these directly, with no calls to our server | Every save |
 | `write_metaobject_definitions` | Shopify requires it for the app-owned metaobject definitions declared in `shopify.app.toml` | Install and deploy |
-| `write_discounts` | Creates and updates the single automatic discount ("Ultimate CRO offers") that runs the app's discount Function, and writes its configuration | Saving a rule |
+| `write_discounts` | Creates and updates the single automatic discount ("CRO Toolbox offers") that runs the app's discount Function, and writes its configuration | Saving a rule |
 | `write_cart_transforms` | Registers the bundle Cart Transform and writes its configuration, so bundles split into their real items at checkout | Saving a bundle |
 
 ## What the app does not do

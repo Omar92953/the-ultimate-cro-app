@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — announcement bar (app embed). Moves the bar to the top of the page, drops
+ * CRO Toolbox — announcement bar (app embed). Moves the bar to the top of the page, drops
  * messages outside their dates, rotates them, remembers "closed" for the visit, and keeps the
  * free-shipping message in step with the cart.
  */

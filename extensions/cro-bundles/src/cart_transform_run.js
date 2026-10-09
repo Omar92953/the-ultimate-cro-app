@@ -1,7 +1,7 @@
 // @ts-check
 
 /*
- * The Ultimate CRO App — mix-and-match bundles.
+ * CRO Toolbox — mix-and-match bundles.
  *
  * A bundle is sold as its own product (with its own price). The bundle builder block adds that
  * product with a hidden line property:

@@ -1,4 +1,4 @@
-# Render Blueprint for The Ultimate CRO App (Render → New → Blueprint → pick this repo).
+# Render Blueprint for CRO Toolbox (Render → New → Blueprint → pick this repo).
 # Nothing here is created until you apply it in the Render dashboard.
 services:
   - type: web

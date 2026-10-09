@@ -421,7 +421,7 @@ export default function RuleEditor() {
         <s-paragraph>
           {engine === "native"
             ? "Saving creates Shopify automatic discounts for this offer. Don't edit them in Discounts; the app replaces them on every save."
-            : "Applied by the “Ultimate CRO offers” automatic discount, which combines with order and shipping discounts."}
+            : "Applied by the “CRO Toolbox offers” automatic discount, which combines with order and shipping discounts."}
         </s-paragraph>
       </s-section>
     </s-page>

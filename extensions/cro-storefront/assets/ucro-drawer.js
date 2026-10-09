@@ -1,5 +1,5 @@
 /*
- * The Ultimate CRO App — cross-sell inside Dawn-family cart drawers.
+ * CRO Toolbox — cross-sell inside Dawn-family cart drawers.
  * The drawer's markup is replaced on every cart change, so the offer box is re-inserted after
  * each render (MutationObserver) and re-matched against the live cart.
  */

@@ -1,7 +1,7 @@
-# The Ultimate CRO App — app configuration.
+# CRO Toolbox — app configuration.
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration
 client_id = "454b8b4225176212332be23a0605a2c4"
-name = "The Ultimate CRO App"
+name = "CRO Toolbox"
 application_url = "https://example.com"
 embedded = true
 

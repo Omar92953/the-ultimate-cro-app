@@ -1,5 +1,5 @@
 /*
- * Ultimate CRO — countdown timers (block and bar). Modes: a fixed date (store time zone),
+ * CRO Toolbox — countdown timers (block and bar). Modes: a fixed date (store time zone),
  * a per-visitor "evergreen" timer kept in localStorage, or a daily cut-off.
  */
 (function () {

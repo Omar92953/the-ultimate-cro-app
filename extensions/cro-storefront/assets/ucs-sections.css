@@ -1,4 +1,4 @@
-/* Ultimate CRO — store sections. Theme-agnostic: inherits the theme's fonts, colours and widths. */
+/* CRO Toolbox — store sections. Theme-agnostic: inherits the theme's fonts, colours and widths. */
 .ucs, .ucs *, .ucs *::before, .ucs *::after { box-sizing: border-box; }
 .ucs { font-family: inherit; }
 .ucs-wrap { max-width: var(--ucs-max, var(--page-width, 1200px)); margin: 0 auto; padding: var(--ucs-pt, 36px) 20px var(--ucs-pb, 36px); }

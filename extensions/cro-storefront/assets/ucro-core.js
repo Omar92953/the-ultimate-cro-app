@@ -1,5 +1,5 @@
 /*
- * The Ultimate CRO App — shared storefront helpers (window.UCRO).
+ * CRO Toolbox — shared storefront helpers (window.UCRO).
  * Loaded by every block with `defer`, before the feature script, so it may run more than once;
  * the guard keeps one copy. No theme is assumed: Dawn-family globals are used when present.
  */

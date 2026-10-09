@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- raw Admin API JSON; operations are schema-checked by `npm run graphql-codegen` */
 /**
- * The Ultimate CRO App — all merchant configuration lives in Shopify, never in our database.
+ * CRO Toolbox — all merchant configuration lives in Shopify, never in our database.
  *
  *  - $app:cro_settings  (handle "settings")  feature switches
  *  - $app:cro_rule                              cross-sell / upsell rules
@@ -371,6 +371,9 @@ export async function resolveDiscountEngine(
   };
 }
 
+/** The automatic discount that runs the offer Function (merchants see it under Discounts). */
+const OFFER_DISCOUNT_TITLE = "CRO Toolbox offers";
+
 async function findOfferDiscount(admin: AdminClient) {
   const data = await gql(
     admin,
@@ -719,6 +722,17 @@ async function syncFunctionDiscount(
       }`,
       { metafields: metafields.map((m) => ({ ...m, ownerId: existing.id })) },
     );
+    // Discounts made before the app was renamed keep their old title until the next save.
+    if (existing.discount.title !== OFFER_DISCOUNT_TITLE) {
+      await gql(
+        admin,
+        `#graphql
+        mutation CroDiscountRename($id: ID!, $discount: DiscountAutomaticAppInput!) {
+          discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $discount) { userErrors { field message } }
+        }`,
+        { id: existing.id, discount: { title: OFFER_DISCOUNT_TITLE } },
+      ).catch(() => null); // a cosmetic rename never blocks saving offers
+    }
     // The storefront copy is written only after checkout's config is saved, so shoppers are never
     // shown a deal that checkout doesn't apply.
     await syncStorefrontDeals(admin, deals);
@@ -740,7 +754,7 @@ async function syncFunctionDiscount(
     }`,
     {
       discount: {
-        title: "Ultimate CRO offers",
+        title: OFFER_DISCOUNT_TITLE,
         functionHandle: "cro-discount",
         discountClasses: ["PRODUCT"],
         startsAt: new Date().toISOString(),

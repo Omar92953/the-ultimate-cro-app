@@ -1,4 +1,4 @@
-/* Ultimate CRO — contact form (Pages → Contact page in the app). All values come from --uc-* variables. */
+/* CRO Toolbox — contact form (Pages → Contact page in the app). All values come from --uc-* variables. */
 .ucs-ct { container-type: inline-size; box-sizing: border-box; padding: var(--uc-pad, 48px) 16px; background: var(--uc-bg, #f6f6f7); color: var(--uc-fg, #121212); font-size: var(--uc-ts, 15px); }
 .ucs-ct *, .ucs-ct *::before, .ucs-ct *::after { box-sizing: border-box; }
 .ucs-ct-note { padding: 24px; margin: 16px; border: 1px dashed rgba(0, 0, 0, 0.3); border-radius: 8px; text-align: center; font-size: 14px; }

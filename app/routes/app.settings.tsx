@@ -92,7 +92,7 @@ export default function SettingsPage() {
           how={
             discount?.engine === "native"
               ? "Discounts are real Shopify discounts: the app creates one automatic discount per upsell tier and cross-sell offer. You'll see them under Discounts; edit them here, not there."
-              : "Discounts are real Shopify discounts, applied at checkout by one automatic discount called “Ultimate CRO offers” (under Discounts)."
+              : "Discounts are real Shopify discounts, applied at checkout by one automatic discount called “CRO Toolbox offers” (under Discounts)."
           }
           example="Native mode differences: an upsell's minimum quantity counts all its products together, and an “All products” cross-sell discounts the offered products even when bought alone."
         />

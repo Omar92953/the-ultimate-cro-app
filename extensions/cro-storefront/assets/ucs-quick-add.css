@@ -1,4 +1,4 @@
-/* Ultimate CRO — quick add: floating card button, option popup, "added" toast. Theme-agnostic. */
+/* CRO Toolbox — quick add: floating card button, option popup, "added" toast. Theme-agnostic. */
 .ucs-qa {
   --ucs-qa-size: 40px;
   position: absolute; z-index: 3;

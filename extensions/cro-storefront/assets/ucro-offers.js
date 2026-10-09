@@ -1,5 +1,5 @@
 /*
- * The Ultimate CRO App — <ucro-cross-sell> and <ucro-upsell>.
+ * CRO Toolbox — <ucro-cross-sell> and <ucro-upsell>.
  * Every element sets itself up in connectedCallback and undoes it in disconnectedCallback,
  * because the theme editor (and some themes on variant change) replace sections wholesale.
  */

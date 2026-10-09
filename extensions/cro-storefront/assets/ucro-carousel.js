@@ -1,5 +1,5 @@
 /*
- * The Ultimate CRO App — <ucro-video-carousel>.
+ * CRO Toolbox — <ucro-video-carousel>.
  * Scroll-snap track (native swipe), arrow buttons, arrow keys. Videos load only when a slide
  * comes near the screen and play muted only while mostly visible. Space is reserved with
  * aspect-ratio in CSS, so nothing shifts when a video loads.

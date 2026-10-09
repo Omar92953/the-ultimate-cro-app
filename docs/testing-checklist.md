@@ -33,7 +33,7 @@ shopify auth logout
 ```
 
 Link the project to your Partner organization. Choose **Create a new app**, and name it
-**The Ultimate CRO App**:
+**CRO Toolbox**:
 
 ```bash
 shopify app config link
@@ -88,14 +88,14 @@ button (Online Store → Themes).
 
 Run everything on **Dawn (test)** and on the **live theme copy**.
 
-### Dashboard (in the dev store's admin → Apps → The Ultimate CRO App)
+### Dashboard (in the dev store's admin → Apps → CRO Toolbox)
 - [ ] Home loads with no error banner, and the four features show "Not configured" and "Block not added".
 - [ ] Each on/off switch saves (you see a toast) and survives a page refresh.
 - [ ] Cross-sell: create a rule with trigger = the 3-variant product, offer 2 products, placements product + cart + drawer, 10% discount. Save, reload, and edit. The list shows it with the right priority.
 - [ ] Cross-sell: validation stops a save with no offered products, and shows a clear message.
 - [ ] Edit a rule that has a subheadline, clear the subheadline, save → it's gone on the storefront (confirms Shopify accepts an empty value to clear a field).
 - [ ] Upsell: create a rule for a collection with tiers 1/0%, 2/10%, 3/15% + badge "Most popular". Save, then reload.
-- [ ] After saving a discounted rule: **Discounts** lists "Ultimate CRO offers" (automatic, active), and Home shows "Checkout discount: active".
+- [ ] After saving a discounted rule: **Discounts** lists "CRO Toolbox offers" (automatic, active), and Home shows "Checkout discount: active".
 - [ ] Video carousel: add 2 videos from Files and 1 from a product's media. Reorder them, link products, add a caption, save and reload. The order is kept.
 - [ ] Bundles: create a bundle with the bundle product, step 1 "Choose 2 posters" (min 2, max 2) and step 2 "Add a frame" (optional, from a collection). Save. Home shows "Stock tracking on".
 - [ ] Bundles: choosing a bundle product that already has a bundle is refused with a message.
@@ -126,7 +126,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 - [ ] Upsell rule type **Size upgrade** (option "Size", tiers M / L −10% / XL −20%) on a product with sizes: clicking a tier switches the theme's size picker and the price; checkout discounts only that size.
 - [ ] Quantity rule on a product with sizes: "Buy 2" shows two size pickers; choose M + L; the theme's Add to cart adds one of each; checkout gives the Buy 2 discount on both.
 - [ ] Block **Style → Grouped list** and **Heading style → Small caps label** look right on both themes and on mobile.
-- [x] Home → Checkout discounts → **Native Shopify discounts**: Discounts lists the app's native discounts; cart prices match; switching back to **Automatic** removes them and restores "Ultimate CRO offers". *(Done on the dev store: 2 units → 10%, 3–4 units → 15% only, not stacked; switching back restored "Ultimate CRO offers".)*
+- [x] Home → Checkout discounts → **Native Shopify discounts**: Discounts lists the app's native discounts; cart prices match; switching back to **Automatic** removes them and restores "CRO Toolbox offers". *(Done on the dev store: 2 units → 10%, 3–4 units → 15% only, not stacked; switching back restored "CRO Toolbox offers".)*
 
 ### Discounts at checkout (the part that costs money if wrong)
 Use the dev store's test payments (Bogus Gateway), and test in an incognito window.
@@ -134,7 +134,7 @@ Use the dev store's test payments (Bogus Gateway), and test in an incognito wind
 - [ ] **Negative test:** go from 3 back down to 1 in the cart → the discount disappears.
 - [ ] Cross-sell: offered product alone → full price. Add the trigger product → 10% off the offered product only. Remove the trigger → discount gone.
 - [ ] The checkout shows the discount name you set ("discount name at checkout").
-- [ ] With a normal discount code as well → the result matches the "combines with" settings of "Ultimate CRO offers" in Discounts.
+- [ ] With a normal discount code as well → the result matches the "combines with" settings of "CRO Toolbox offers" in Discounts.
 - [ ] Bundle line: never gets an upsell or cross-sell discount on top.
 - [ ] Pause a rule → its discount stops at checkout immediately.
 
@@ -162,7 +162,7 @@ Use the dev store's test payments (Bogus Gateway), and test in an incognito wind
 
 ### Uninstall, then reinstall
 - [ ] Uninstall from the dev store's Apps page. The storefront shows no app blocks and no errors, and
-      checkout no longer applies "Ultimate CRO offers".
+      checkout no longer applies "CRO Toolbox offers".
 - [ ] Reinstall. Note whether rules, videos and bundles come back. Record what you see, because
       Shopify's handling of app-owned data on uninstall decides this. Blocks placed in themes
       reappear once the app is back.
