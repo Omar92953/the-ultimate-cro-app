@@ -207,7 +207,7 @@ export default function ContactPage() {
                 onChange={setDevice}
               />
             </div>
-            <style>{data.css}</style>
+            <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 <ContactPreview config={cfg} />

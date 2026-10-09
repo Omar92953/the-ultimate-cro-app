@@ -144,7 +144,12 @@ const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
 shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null })]);
 // Countdown bar: designed in the app — the app's defaults, saved the way the app saves them.
 const { toStorefrontCountdownBar, withCountdownBarDefaults } = await import("../../app/lib/designs.ts");
-shop.metaobjects["$app:cro_design"] = collectionOf([mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) })]);
+const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
+shop.metaobjects["$app:cro_design"] = collectionOf([
+  mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) }),
+  mo("countdown_home", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "fixed", end: in3days } }, "home"), ) }),
+  mo("countdown_product", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 2 } }, "product")) }),
+]);
 shop.metaobjects["$app:cro_recent"] = collectionOf([
   mo("main", {
     purchases: [
@@ -191,16 +196,14 @@ const label = (t) => `<h3 class="t">${t}</h3>`;
 const pages = {
   "index.html": page("All sections",
     label("hero (desktop + mobile images)") + (await block("ucs-hero", { image_desktop: photo("herod", 2400, 1000), image_mobile: photo("herom", 1000, 1250), button_2_label: "Our story" })) +
-    label("countdown (fixed date)") + (await block("ucs-countdown", { end_date: new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16).replace("T", " ") })) +
+    label("countdown: home section (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar")) + "</div>" +
     label("logos (marquee, two lines)") + (await block("ucs-logos", { lines: "2" })) +
     label("reviews (carousel, all)") + (await block("ucs-reviews")) +
     label("faq (tabs + search)") + (await block("ucs-faq", { search: true })),
     (await block("ucs-announcement", { free_shipping: true, fs_threshold: 1000 })) + (await block("ucs-countdown-bar", { position: "bottom", mode: "daily", daily_cutoff: "23:59", text: "Order in the next" }))),
   "variants.html": page("Variants",
     label("hero: no images, text box, centred, small") + (await block("ucs-hero", { text_box: true, position_desktop: "mc", height_desktop: "small", full_width: false })) +
-    label("countdown: evergreen 1h, row, plain") + (await block("ucs-countdown", { mode: "evergreen", evergreen_hours: 1, layout: "row", style: "plain", bg: "#fff4e5" })) +
-    label("countdown: already ended → message") + (await block("ucs-countdown", { end_date: "2020-01-01 00:00", ended: "message" })) +
-    label("countdown: already ended → hide (nothing below this line)") + (await block("ucs-countdown", { end_date: "2020-01-01 00:00", ended: "hide" })) +
+    label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
     label("logos: grid, colour") + (await block("ucs-logos", { mode: "grid", grayscale: false, heading: "As seen in" })) +
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
     label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +

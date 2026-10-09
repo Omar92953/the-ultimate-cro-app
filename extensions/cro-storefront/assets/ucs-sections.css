@@ -447,3 +447,14 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 @keyframes ucs-fsb-pop { 40% { transform: scale(1.06); } }
 @keyframes ucs-fsb-shine { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .ucs-fsb__fill { transition: none; } .ucs-fsb.is-party .ucs-fsb__in, .ucs-fsb.is-party::after { animation: none; } }
+
+/* ---------- Countdown shapes designed in the app: section (big, with heading) and inline (product page) ---------- */
+.ucs-cdk .ucs-cdh__title { font-size: var(--ucs-cdh-h, 30px); font-weight: var(--ucs-cdb-fw, 700); }
+.ucs-cdk .ucs-cdh__sub { font-size: var(--ucs-cdb-fs, 16px); }
+.ucs-cdk .ucs-cd__l { font-size: var(--ucs-cdb-ls, 11px); }
+.ucs-cdk .ucs-cdb__btn { min-height: 44px; padding: 0 22px; }
+.ucs-cdi { margin: 12px 0; border-radius: var(--ucs-cd-radius, 8px); }
+.ucs-cdi__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: calc(var(--ucs-cdb-pad, 6px) + 4px) 14px; }
+.ucs-cdi .ucs-cdb__text { font-weight: var(--ucs-cdb-fw, 600); }
+.ucs-cdi .ucs-cd__l { font-size: var(--ucs-cdb-ls, 9px); }
+.ucs-cdi .ucs-cdb__btn { min-height: 34px; margin-left: auto; padding: 0 14px; }

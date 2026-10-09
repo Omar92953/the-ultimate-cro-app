@@ -203,7 +203,7 @@ export default function ImageCarouselDesigner() {
               <span>Live preview</span>
               <Segmented label="Preview size" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />
             </div>
-            <style>{data.css}</style>
+            <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 <ImageCarouselPreview config={cfg} phone={device === "phone"} />

@@ -4,7 +4,7 @@
  */
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
-import { toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig } from "./designs";
+import { COUNTDOWN_PLACES, toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "./designs";
 import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
@@ -27,14 +27,16 @@ async function getDesign(admin: AdminClient, handle: string): Promise<unknown> {
   }
 }
 
-export async function getCountdownBar(admin: AdminClient): Promise<{ config: CountdownBarConfig; saved: boolean }> {
-  const raw = await getDesign(admin, "countdown_bar");
-  return { config: withCountdownBarDefaults(raw), saved: raw !== null };
+const countdownHandle = (place: CountdownPlace) => COUNTDOWN_PLACES.find((p) => p.key === place)!.handle;
+
+export async function getCountdownBar(admin: AdminClient, place: CountdownPlace = "header"): Promise<{ config: CountdownBarConfig; saved: boolean }> {
+  const raw = await getDesign(admin, countdownHandle(place));
+  return { config: withCountdownBarDefaults(raw, place), saved: raw !== null };
 }
 
-export async function saveCountdownBar(admin: AdminClient, config: CountdownBarConfig) {
-  const clean = withCountdownBarDefaults(config);
-  await upsert(admin, "$app:cro_design", "countdown_bar", { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
+export async function saveCountdownBar(admin: AdminClient, config: CountdownBarConfig, place: CountdownPlace = "header") {
+  const clean = withCountdownBarDefaults(config, place);
+  await upsert(admin, "$app:cro_design", countdownHandle(place), { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
   return clean;
 }
 

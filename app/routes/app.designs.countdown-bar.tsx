@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -9,24 +9,33 @@ import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getCountdownBar, saveCountdownBar } from "../lib/designs.server";
-import { COUNTDOWN_BAR_PRESETS, FONTS, NUMBER_STYLES, applyCountdownBarPreset, withCountdownBarDefaults, type CountdownBarConfig } from "../lib/designs";
+import { COUNTDOWN_BAR_PRESETS, COUNTDOWN_PLACES, FONTS, NUMBER_STYLES, applyCountdownBarPreset, isCountdownPlace, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "../lib/designs";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { CountdownBarPreview } from "../components/CountdownBarPreview";
 import ui from "../components/PageEditor.module.css";
 
 
+const placeFrom = (url: string): CountdownPlace => {
+  const p = new URL(url).searchParams.get("place");
+  return isCountdownPlace(p) ? p : "header";
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme] = await Promise.all([getCountdownBar(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, embedLink: sectionLinks(session.shop).countdown_bar };
+  const place = placeFrom(request.url);
+  const [{ config, saved }, theme] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin).catch(() => null)]);
+  const links = sectionLinks(session.shop);
+  const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product }[place];
+  return { place, config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, addLink, editorLink: links.editor };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveCountdownBar(admin, withCountdownBarDefaults(JSON.parse(String(form.get("config")))));
+    const place = placeFrom(request.url);
+    const config = await saveCountdownBar(admin, withCountdownBarDefaults(JSON.parse(String(form.get("config"))), place), place);
     return { ok: true, error: null, config };
   } catch (e) {
     return { ok: false, error: errorMessage(e), config: null };
@@ -49,6 +58,9 @@ export default function CountdownBarDesigner() {
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
+  const navigate = useNavigate();
+  const placeInfo = COUNTDOWN_PLACES.find((p) => p.key === data.place)!;
+  const addLabel = { header: "Add to header", footer: "Add to footer", home: "Add to home page", product: "Add to product page" }[data.place];
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
     setLoaded(data.config);
@@ -56,40 +68,44 @@ export default function CountdownBarDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Countdown bar saved — live on your store");
+    if (fetcher.data.ok) shopify.toast.show(`${placeInfo.title} countdown saved — live on your store`);
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
-  }, [fetcher.state, fetcher.data, shopify]);
+  }, [fetcher.state, fetcher.data, shopify, placeInfo.title]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const timer = part("timer"), text = part("text"), button = part("button"), layout = part("layout"), where = part("where"), look = part("look");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: `?place=${data.place}` });
   const t = cfg.timer;
 
   return (
-    <s-page heading="Countdown bar" inlineSize="large">
+    <s-page heading="Countdown timers" inlineSize="large">
       <s-link slot="breadcrumb-actions" href="/app">
         Home
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
-        {data.embedOn ? "Open in theme editor" : "Add to header"}
+      <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
+        {addLabel}
       </Button>
       <s-stack gap="base">
-        {data.embedOn === false ? (
-          <s-banner tone="info" heading="Add the bar to your theme’s header">
-            Click “Add to header”: the bar is added to your theme’s Header area. Save there, and design everything else here. You can click it with the theme editor’s inspector to select it.
-          </s-banner>
-        ) : null}
+        <Segmented
+          label="Where the countdown is"
+          value={data.place}
+          options={COUNTDOWN_PLACES.map((p) => ({ value: p.key, label: p.title }))}
+          onChange={(v) => navigate(`/app/designs/countdown-bar?place=${v}`)}
+        />
+        <s-text color="subdued">
+          {placeInfo.hint} Each place has its own design. In your theme, add the “Countdown” block there with “{addLabel}”; the same block shows the right design wherever it is.
+        </s-text>
         {!data.saved ? (
           <s-banner tone="warning" heading="Not saved yet">
-            Your store shows the bar once you save here.
+            This countdown shows on your store once you switch it on and save.
           </s-banner>
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
-        <style>{data.css}</style>
+        <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <s-section heading="Start from a look">
           <div className={ui.looks} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {COUNTDOWN_BAR_PRESETS.map((p) => (
@@ -107,13 +123,38 @@ export default function CountdownBarDesigner() {
           <s-stack gap="base">
             <s-section heading="What shows">
               <s-stack gap="base">
-                <Switch label="Countdown bar" details="Off: the bar disappears from your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
+                <Switch label={`${placeInfo.title} countdown`} details="Off: it disappears from this place on your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
+                <Select
+                  label="Shape"
+                  value={cfg.kind}
+                  onValue={(v) => setCfg((c) => ({ ...c, kind: v as C["kind"] }))}
+                  options={[
+                    { value: "bar", label: "Slim bar (header and footer)" },
+                    { value: "section", label: "Big section with a heading" },
+                    { value: "inline", label: "Compact box (under the price)" },
+                  ]}
+                />
                 <Switch label="Text" checked={cfg.text.show} onValue={(v) => text({ show: v })} />
                 <Switch label="Button (Shop now)" checked={cfg.button.show} onValue={(v) => button({ show: v })} />
-                <Switch label="Close (X) button" details="Shoppers can hide the bar for the rest of their visit." checked={cfg.layout.dismissible} onValue={(v) => layout({ dismissible: v })} />
+                {cfg.kind === "bar" ? <Switch label="Close (X) button" details="Shoppers can hide the bar for the rest of their visit." checked={cfg.layout.dismissible} onValue={(v) => layout({ dismissible: v })} /> : null}
                 <Switch label="Days / Hours / Min / Sec under the numbers" checked={cfg.timer.labels} onValue={(v) => timer({ labels: v })} />
               </s-stack>
             </s-section>
+
+            {cfg.kind === "section" ? (
+              <s-section heading="Heading">
+                <s-stack gap="base">
+                  <TextField label="Heading" value={cfg.section.heading} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, heading: v } }))} />
+                  <TextField label="Text under the heading" value={cfg.section.sub} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, sub: v } }))} />
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <Select label="Layout" value={cfg.section.layout} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, layout: v as C["section"]["layout"] } }))} options={[{ value: "stack", label: "Centred" }, { value: "row", label: "In one row" }]} />
+                    <NumberField label="Heading size" suffix="px" min={14} max={60} step={1} value={cfg.section.headingSize} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, headingSize: v } }))} />
+                    <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.section.paddingTop} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, paddingTop: v } }))} />
+                    <NumberField label="Space below" suffix="px" min={0} max={120} step={4} value={cfg.section.paddingBottom} onValue={(v) => setCfg((c) => ({ ...c, section: { ...c.section, paddingBottom: v } }))} />
+                  </s-grid>
+                </s-stack>
+              </s-section>
+            ) : null}
 
             <s-section heading="Timer">
               <s-stack gap="base">
@@ -180,8 +221,8 @@ export default function CountdownBarDesigner() {
 
             <s-section heading="Layout and pages">
               <s-stack gap="base">
-                <Select label="Position" value={cfg.layout.position} onValue={(v) => layout({ position: v as C["layout"]["position"] })} options={[{ value: "top", label: "Top of the page" }, { value: "bottom", label: "Bottom of the screen (always visible)" }]} />
-                <Checkbox label="Slim: everything on one line" details="Also on phones; long text shortens with …" checked={cfg.layout.slim} onValue={(v) => layout({ slim: v })} />
+                {cfg.kind === "bar" && data.place === "header" ? <Select label="Position" value={cfg.layout.position} onValue={(v) => layout({ position: v as C["layout"]["position"] })} options={[{ value: "top", label: "Top of the page" }, { value: "bottom", label: "Bottom of the screen (always visible)" }]} /> : null}
+                {cfg.kind === "bar" ? <Checkbox label="Slim: everything on one line" details="Also on phones; long text shortens with …" checked={cfg.layout.slim} onValue={(v) => layout({ slim: v })} /> : null}
                 <Checkbox label="Show on all pages" checked={cfg.where.all} onValue={(v) => where({ all: v })} />
                 {!cfg.where.all ? (
                   <s-stack gap="small-200">

@@ -17,6 +17,9 @@ const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fa
 
 export type CountdownBarConfig = {
   on: boolean;
+  /** bar = a strip (header/footer), section = big block with a heading, inline = compact box (product page) */
+  kind: "bar" | "section" | "inline";
+  section: { heading: string; sub: string; layout: "stack" | "row"; headingSize: number; paddingTop: number; paddingBottom: number };
   timer: {
     mode: "fixed" | "evergreen" | "daily";
     end: string; // "YYYY-MM-DDTHH:mm", store time zone
@@ -81,6 +84,8 @@ const in30days = () => {
 
 export const DEFAULT_COUNTDOWN_BAR: CountdownBarConfig = {
   on: true,
+  kind: "bar",
+  section: { heading: "Hurry — the sale ends soon", sub: "Up to 30% off. Don't miss out.", layout: "stack", headingSize: 30, paddingTop: 36, paddingBottom: 36 },
   timer: {
     mode: "fixed",
     end: "",
@@ -145,9 +150,29 @@ export function applyCountdownBarPreset(c: CountdownBarConfig, key: string): Cou
 
 const PAGES = ["home", "product", "collection", "cart", "other"] as const;
 
-export function withCountdownBarDefaults(raw: unknown): CountdownBarConfig {
-  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<CountdownBarConfig>;
+/** Where a countdown can be placed; each place has its own design. */
+export type CountdownPlace = "header" | "footer" | "home" | "product";
+export const COUNTDOWN_PLACES: { key: CountdownPlace; title: string; handle: string; hint: string }[] = [
+  { key: "header", title: "Header", handle: "countdown_bar", hint: "A slim bar at the top of every page." },
+  { key: "footer", title: "Footer", handle: "countdown_footer", hint: "A bar above your footer." },
+  { key: "home", title: "Home and other pages", handle: "countdown_home", hint: "A big section with a heading, anywhere on a page." },
+  { key: "product", title: "Product page", handle: "countdown_product", hint: "A compact timer under the price." },
+];
+export const isCountdownPlace = (v: unknown): v is CountdownPlace => COUNTDOWN_PLACES.some((p) => p.key === v);
+
+/** A sensible starting design for each place (used until the merchant saves one). */
+export function countdownDefaultsFor(place: CountdownPlace): CountdownBarConfig {
   const d = DEFAULT_COUNTDOWN_BAR;
+  if (place === "footer") return { ...d, on: false };
+  if (place === "home") return { ...d, on: false, kind: "section", timer: { ...d.timer, labels: true }, look: { ...d.look, bg: "#ffffff", text: "#121212", boxBg: "#121212", boxText: "#ffffff", buttonBg: "#121212", buttonText: "#ffffff", numberSize: 34, textSize: 16, radius: 8 } };
+  if (place === "product") return { ...d, on: false, kind: "inline", text: { show: true, value: "Sale ends in" }, button: { ...d.button, show: false }, layout: { ...d.layout, dismissible: false }, look: { ...d.look, bg: "#fff4f2", text: "#b42318", boxBg: "#b42318", boxText: "#ffffff", numberSize: 15, textSize: 14, radius: 6 } };
+  return d;
+}
+
+export function withCountdownBarDefaults(raw: unknown, place: CountdownPlace = "header"): CountdownBarConfig {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<CountdownBarConfig>;
+  const d = countdownDefaultsFor(place);
+  const sec = (r.section ?? {}) as Partial<CountdownBarConfig["section"]>;
   const t = (r.timer ?? {}) as Partial<CountdownBarConfig["timer"]>;
   const lt = (t.labelText ?? {}) as Partial<CountdownBarConfig["timer"]["labelText"]>;
   const x = (r.text ?? {}) as Partial<CountdownBarConfig["text"]>;
@@ -158,6 +183,15 @@ export function withCountdownBarDefaults(raw: unknown): CountdownBarConfig {
   const end = str(t.end, "", 16);
   return {
     on: bool(r.on, d.on),
+    kind: pick(r.kind, ["bar", "section", "inline"] as const, d.kind),
+    section: {
+      heading: str(sec.heading, d.section.heading, 120),
+      sub: str(sec.sub, d.section.sub, 240),
+      layout: pick(sec.layout, ["stack", "row"] as const, d.section.layout),
+      headingSize: num(sec.headingSize, 14, 60, d.section.headingSize),
+      paddingTop: num(sec.paddingTop, 0, 120, d.section.paddingTop),
+      paddingBottom: num(sec.paddingBottom, 0, 120, d.section.paddingBottom),
+    },
     timer: {
       mode: pick(t.mode, ["fixed", "evergreen", "daily"] as const, d.timer.mode),
       end: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(end) ? end : in30days(),
@@ -244,6 +278,10 @@ export function countdownBarVars(c: CountdownBarConfig): Record<string, string> 
     "--ucs-cdb-fw": String(k.textWeight),
     "--ucs-cd-nw": String(k.numberWeight),
     "--ucs-cdb-btn-r": `${k.buttonRadius}px`,
+    "--ucs-cd-size": `${k.numberSize}px`,
+    "--ucs-cdh-h": `${c.section.headingSize}px`,
+    "--ucs-pt": `${c.section.paddingTop}px`,
+    "--ucs-pb": `${c.section.paddingBottom}px`,
   };
 }
 

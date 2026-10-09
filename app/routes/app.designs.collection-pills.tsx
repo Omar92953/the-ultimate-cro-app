@@ -178,7 +178,7 @@ export default function CollectionPillsDesigner() {
             <div className={ui.previewBar}>
               <span>Live preview</span>
             </div>
-            <style>{data.css}</style>
+            <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <CollectionPillsPreview config={cfg} />
             </div>

@@ -90,7 +90,7 @@ export default function ShippingBarDesigner() {
           Set the same amount as your free shipping rate in Settings → Shipping and delivery. The bar shows the goal; Shopify’s shipping rates give the free shipping.
         </s-banner>
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
-        <style>{data.css}</style>
+        <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
         <s-section heading="Start from a look">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>

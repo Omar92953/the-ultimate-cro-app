@@ -1127,7 +1127,6 @@ export const BLOCKS = {
   announcements: "ucs-announcement",
   quick_add: "ucs-quick-add",
   hero: "ucs-hero",
-  countdown: "ucs-countdown",
   countdown_bar: "ucs-countdown-bar",
   boosters: "ucs-boosters",
   contact: "ucs-contact",

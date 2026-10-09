@@ -203,7 +203,7 @@ export default function AddonsDesigner() {
             <div className={ui.previewBar}>
               <span>Live preview</span>
             </div>
-            <style>{data.css}</style>
+            <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <AddonsPreview config={cfg} />
             </div>
