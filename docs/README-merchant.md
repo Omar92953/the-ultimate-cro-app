@@ -67,8 +67,10 @@ anything.
 - Upload videos in **Content → Files** (or to a product's media), then add them in the app, set the
   order, add captions and link each to a product.
 - Linked videos show the product name, price and an Add to cart button.
-- In the theme editor: choose the shape (9:16 and others), how many are visible, and which pages
-  show it (e.g. put it in the footer and pick "All product pages").
+- **Video carousel → Design** sets the look and where it shows, with a live preview of your videos
+  (desktop and phone): ready-made looks, shape (9:16 and others), slides per row, corners, product
+  name/price/button, arrows, and pages (e.g. put it in the footer and pick "Only on: All product
+  pages"). The theme editor only places the section.
 
 ## Bundles
 1. In **Products**, create the product you'll sell as the bundle, with the **bundle price**, and

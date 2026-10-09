@@ -177,6 +177,21 @@ const productPage = await Promise.all([
   block("ucro-cross-sell", { product: P.batman, page_type: "product" }),
 ]);
 const carousel = await block("ucro-video-carousel", { product: P.batman, page_type: "product" });
+// Video carousel designed in the app ($app:cro_design "videos"): page rules, wording, hidden parts.
+const vcDesign = (extra) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([metaobject("videos", { config: { h: "Watch", sub: "", hc: "ucro__heading--small", ap: false, sp: true, sa: false, al: "Buy", ar: false, cls: " ucro-hide-mobile", so: "everywhere", pt: [], hs: [], css: "--ucro-vc-desktop: 3;", ...extra } })]) } });
+const vcChecks = {
+  designed: await block("ucro-video-carousel", { product: P.batman, page_type: "product" }, {}, vcDesign({})),
+  onlyHome: await block("ucro-video-carousel", { product: P.batman, page_type: "product" }, {}, vcDesign({ so: "only", pt: ["index"] })),
+  onlyProduct: await block("ucro-video-carousel", { product: P.batman, page_type: "product" }, {}, vcDesign({ so: "only", pt: ["product"] })),
+  exceptHandle: await block("ucro-video-carousel", { product: P.batman, page_type: "product" }, {}, vcDesign({ so: "except", hs: [P.batman.handle] })),
+};
+console.log("video carousel:", JSON.stringify({
+  default: { heading: /ucro__heading--large">See it in action/.test(carousel), arrows: carousel.includes("ucro-vc__nav"), add: carousel.includes("ucro-vc__add"), autoplay: carousel.includes('data-autoplay="true"') },
+  designed: { heading: /ucro__heading--small">Watch/.test(vcChecks.designed), arrows: vcChecks.designed.includes("ucro-vc__nav"), add: vcChecks.designed.includes("ucro-vc__add"), price: vcChecks.designed.includes("ucro-vc__price"), autoplay: vcChecks.designed.includes('data-autoplay="false"'), cls: vcChecks.designed.includes('class="ucro ucro-vc ucro-hide-mobile"') },
+  onlyHome: vcChecks.onlyHome.includes("ucro-vc__track"),
+  onlyProduct: vcChecks.onlyProduct.includes("ucro-vc__track"),
+  exceptHandle: vcChecks.exceptHandle.includes("ucro-vc__track"),
+}));
 const drawer = await block("ucro-cart-offers", { page_type: "product" });
 const recs = await block("ucro-cross-sell", { product: P.frame, page_type: "product" }, { fallback: "recommendations" });
 const bundlePage = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" });

@@ -10,6 +10,7 @@ import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfi
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
+import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
@@ -156,5 +157,18 @@ export async function saveUpsellDesign(admin: AdminClient, config: UpsellDesign)
   const clean = withUpsellDefaults(config);
   await upsert(admin, "$app:cro_design", "upsell", { config: JSON.stringify(toStorefrontUpsell(clean)) });
   await upsert(admin, "$app:cro_design", "upsell_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* -------------------------------------------------------- video carousel -- */
+export async function getVideoCarouselDesign(admin: AdminClient): Promise<{ config: VideoCarouselDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "videos_editor");
+  return { config: withVideoCarouselDefaults(raw), saved: raw !== null };
+}
+
+export async function saveVideoCarouselDesign(admin: AdminClient, config: VideoCarouselDesign) {
+  const clean = withVideoCarouselDefaults(config);
+  await upsert(admin, "$app:cro_design", "videos", { config: JSON.stringify(toStorefrontVideoCarousel(clean)) });
+  await upsert(admin, "$app:cro_design", "videos_editor", { config: JSON.stringify(clean) });
   return clean;
 }

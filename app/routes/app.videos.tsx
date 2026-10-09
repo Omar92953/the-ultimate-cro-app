@@ -108,6 +108,9 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
       <Button slot="primary-action" variant="primary" loading={busy} onClick={() => save.submit({ slides: JSON.stringify(slides) }, { method: "post" })}>
         Save
       </Button>
+      <Button slot="secondary-actions" href="/app/designs/video-carousel">
+        Design
+      </Button>
       <Button slot="secondary-actions" href={props.addBlock} target="_top">
         Add block to theme
       </Button>
