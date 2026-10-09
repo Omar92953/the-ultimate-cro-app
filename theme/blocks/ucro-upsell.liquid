@@ -42,8 +42,19 @@
   endif
   assign opt_i = opt_pos | minus: 1
 
+  # Look and wording are designed in the app (Offers → Upsell → Design): $app:cro_design "upsell".
+  assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
+  assign d_pi = true
+  assign d_ss = true
+  if d.pi == false
+    assign d_pi = false
+  endif
+  if d.ss == false
+    assign d_ss = false
+  endif
+
   assign per_item = false
-  if utype == 'quantity' and block.settings.per_item and product.has_only_default_variant == false
+  if utype == 'quantity' and d_pi and product.has_only_default_variant == false
     assign per_item = true
   endif
 
@@ -54,26 +65,26 @@
     endif
   endif
   assign list = false
-  if block.settings.style == 'list'
+  if d.list
     assign list = true
   endif
 -%}
 
 {%- if renderable -%}
   <ucro-upsell
-    class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if block.settings.devices == 'mobile' %} ucro-hide-desktop{% elsif block.settings.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
-    style="--ucro-align: {{ block.settings.text_align }}; --ucro-gap: {{ block.settings.gap }}px; --ucro-pt: {{ block.settings.padding_top }}px; --ucro-pb: {{ block.settings.padding_bottom }}px;{% if block.settings.accent != blank %} --ucro-accent: {{ block.settings.accent }};{% endif %}{% if block.settings.border_color != blank %} --ucro-border: {{ block.settings.border_color }};{% endif %}{% if block.settings.badge_bg != blank %} --ucro-badge-bg: {{ block.settings.badge_bg }};{% endif %}{% if block.settings.badge_text != blank %} --ucro-badge-fg: {{ block.settings.badge_text }};{% endif %}{% if block.settings.save_bg != blank %} --ucro-save-bg: {{ block.settings.save_bg }};{% endif %}{% if block.settings.save_text != blank %} --ucro-save-fg: {{ block.settings.save_text }};{% endif %}{% unless block.settings.theme_radius %} --ucro-radius: {{ block.settings.radius }}px;{% endunless %}"
-    data-radius="{% if block.settings.theme_radius %}theme{% else %}custom{% endif %}"
+    class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{{ d.cls }}"
+    style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
+    data-radius="{{ d.rad | default: 'theme' }}"
     data-type="{{ utype }}"
     data-variant-id="{{ sv.id }}"
-    data-own-button="{{ block.settings.own_button }}"
+    data-own-button="{% if d.own %}true{% else %}false{% endif %}"
     data-per-item="{{ per_item }}"
-    data-item-label="{{ block.settings.item_label | escape }}"
+    data-item-label="{{ d.il | default: '#[n]' | escape }}"
     data-error="{{ 'ucro.error' | t | escape }}"
     {{ block.shopify_attributes }}
   >
     {%- if rule.headline.value != blank -%}
-      <h2 class="ucro__heading ucro__heading--{{ block.settings.heading_size }}{% if block.settings.heading_style == 'label' %} ucro__heading--label{% endif %}">{{ rule.headline.value | escape }}</h2>
+      <h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ rule.headline.value | escape }}</h2>
     {%- endif -%}
     {%- if rule.subheadline.value != blank -%}
       <p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>
@@ -127,14 +138,14 @@
             if utype == 'variant'
               assign label = tier.value
             else
-              assign label = block.settings.label_pattern | default: 'Buy [quantity]' | replace: '[quantity]', qty
+              assign label = d.label | default: 'Buy [quantity]' | replace: '[quantity]', qty
             endif
           endif
           assign show_save = false
-          if pct > 0 and block.settings.show_saving
+          if pct > 0 and d_ss
             assign show_save = true
           endif
-          assign save_text = block.settings.saving_text | replace: '[percent]', pct
+          assign save_text = d.save | default: 'Save [percent]%' | replace: '[percent]', pct
         -%}
         <div class="ucro-tier-wrap">
           <button
@@ -183,7 +194,7 @@
       {%- endfor -%}
     </div>
 
-    <button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ block.settings.button_label | escape }}</button>
+    <button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ d.btn | default: 'Add to cart' | escape }}</button>
     <p class="ucro__error" role="alert" hidden></p>
 
     {%- comment -%} Prices formatted by Shopify, so the script never formats money itself. {%- endcomment -%}
@@ -283,261 +294,9 @@
   "name": "Upsell offers",
   "target": "section",
   "stylesheet": "ucro.css",
-  "enabled_on": {
-    "templates": [
-      "product"
-    ]
-  },
+  "enabled_on": { "templates": ["product"] },
   "settings": [
-    {
-      "type": "paragraph",
-      "content": "Offers, prices and discounts come from your Upsell rules in CRO Toolbox. Discounts apply at checkout automatically."
-    },
-    {
-      "type": "header",
-      "content": "Offers"
-    },
-    {
-      "type": "select",
-      "id": "style",
-      "label": "Style",
-      "default": "cards",
-      "options": [
-        {
-          "value": "cards",
-          "label": "Cards"
-        },
-        {
-          "value": "list",
-          "label": "Grouped list"
-        }
-      ],
-      "info": "Cards: one box per offer. Grouped list: one box with a row per offer."
-    },
-    {
-      "type": "text",
-      "id": "label_pattern",
-      "label": "Offer name",
-      "default": "Buy [quantity]",
-      "info": "[quantity] becomes the number, e.g. Buy 2."
-    },
-    {
-      "type": "checkbox",
-      "id": "show_saving",
-      "label": "Show the saving",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "saving_text",
-      "label": "Saving text",
-      "default": "Save [percent]%",
-      "info": "[percent] becomes the discount, e.g. Save 10%.",
-      "visible_if": "{{ block.settings.show_saving }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "per_item",
-      "label": "Let shoppers pick a size for each item",
-      "default": true,
-      "info": "For products with sizes: choosing Buy 2 shows two size pickers."
-    },
-    {
-      "type": "text",
-      "id": "item_label",
-      "label": "Item picker label",
-      "default": "#[n]",
-      "info": "[n] becomes the item number.",
-      "visible_if": "{{ block.settings.per_item }}"
-    },
-    {
-      "type": "checkbox",
-      "id": "own_button",
-      "label": "Show a separate Add to cart button",
-      "default": false,
-      "info": "Off: shoppers use your theme's normal Add to cart button."
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Button text",
-      "default": "Add to cart",
-      "visible_if": "{{ block.settings.own_button }}"
-    },
-    {
-      "type": "header",
-      "content": "Heading"
-    },
-    {
-      "type": "select",
-      "id": "heading_style",
-      "label": "Style",
-      "default": "heading",
-      "options": [
-        {
-          "value": "heading",
-          "label": "Heading"
-        },
-        {
-          "value": "label",
-          "label": "Small caps label"
-        }
-      ]
-    },
-    {
-      "type": "select",
-      "id": "heading_size",
-      "label": "Size",
-      "default": "medium",
-      "options": [
-        {
-          "value": "small",
-          "label": "Small"
-        },
-        {
-          "value": "medium",
-          "label": "Medium"
-        },
-        {
-          "value": "large",
-          "label": "Large"
-        }
-      ],
-      "visible_if": "{{ block.settings.heading_style == 'heading' }}"
-    },
-    {
-      "type": "select",
-      "id": "text_align",
-      "label": "Alignment",
-      "default": "left",
-      "options": [
-        {
-          "value": "left",
-          "label": "Left"
-        },
-        {
-          "value": "center",
-          "label": "Center"
-        },
-        {
-          "value": "right",
-          "label": "Right"
-        }
-      ]
-    },
-    {
-      "type": "header",
-      "content": "Colors"
-    },
-    {
-      "type": "color",
-      "id": "accent",
-      "label": "Selected offer",
-      "info": "Leave any color empty to use your theme's colors."
-    },
-    {
-      "type": "color",
-      "id": "border_color",
-      "label": "Offer border"
-    },
-    {
-      "type": "color",
-      "id": "badge_bg",
-      "label": "Badge background",
-      "info": "The badge set on a tier in the app, e.g. Most popular."
-    },
-    {
-      "type": "color",
-      "id": "badge_text",
-      "label": "Badge text"
-    },
-    {
-      "type": "color",
-      "id": "save_bg",
-      "label": "Saving tag background",
-      "visible_if": "{{ block.settings.style == 'cards' }}"
-    },
-    {
-      "type": "color",
-      "id": "save_text",
-      "label": "Saving text"
-    },
-    {
-      "type": "header",
-      "content": "Corners and spacing"
-    },
-    {
-      "type": "checkbox",
-      "id": "theme_radius",
-      "label": "Match my theme's corners",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "radius",
-      "label": "Corner radius",
-      "min": 0,
-      "max": 40,
-      "step": 2,
-      "unit": "px",
-      "default": 12,
-      "visible_if": "{{ block.settings.theme_radius == false }}"
-    },
-    {
-      "type": "range",
-      "id": "gap",
-      "label": "Space between offers",
-      "min": 10,
-      "max": 32,
-      "step": 2,
-      "unit": "px",
-      "default": 12,
-      "visible_if": "{{ block.settings.style == 'cards' }}"
-    },
-    {
-      "type": "range",
-      "id": "padding_top",
-      "label": "Space above",
-      "min": 0,
-      "max": 60,
-      "step": 4,
-      "unit": "px",
-      "default": 12
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "label": "Space below",
-      "min": 0,
-      "max": 60,
-      "step": 4,
-      "unit": "px",
-      "default": 12
-    },
-    {
-      "type": "header",
-      "content": "Visibility"
-    },
-    {
-      "type": "select",
-      "id": "devices",
-      "label": "Show on",
-      "default": "all",
-      "options": [
-        {
-          "value": "all",
-          "label": "Desktop and mobile"
-        },
-        {
-          "value": "desktop",
-          "label": "Desktop only"
-        },
-        {
-          "value": "mobile",
-          "label": "Mobile only"
-        }
-      ]
-    }
+    { "type": "paragraph", "content": "Offers come from your Upsell rules in CRO Toolbox; their look and wording are set in the app: Upsell offers → Design." }
   ]
 }
 {% endschema %}

@@ -445,6 +445,7 @@ export default function Home() {
             off: !on,
             menu: [
               { label: "Manage", href: f.href },
+              ...(f.key === "upsell" ? [{ label: "Design", href: "/app/designs/upsell" }] : []),
               ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
               { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
               editor(data.links[f.key], inTheme),

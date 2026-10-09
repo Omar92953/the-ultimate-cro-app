@@ -39,6 +39,11 @@ export default function RuleList() {
       <Button slot="primary-action" variant="primary" href={`/app/offers/${kindSlug}/new`}>
         Create {meta.singular}
       </Button>
+      {meta.kind === "upsell" ? (
+        <Button slot="secondary-actions" href="/app/designs/upsell">
+          Design
+        </Button>
+      ) : null}
       <Button slot="secondary-actions" href={addBlock} target="_top">
         Add to theme
       </Button>

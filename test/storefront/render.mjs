@@ -143,9 +143,11 @@ const shop = {
   },
 };
 
-const shopWith = (extraRules) => ({
+// The upsell look as the app saves it ($app:cro_design "upsell", see app/lib/upsell-design.ts).
+const listDesign = { list: true, label: "Buy [quantity]", ss: true, save: "Save [percent]%", pi: true, il: "#[n]", own: false, btn: "Add to cart", hc: "ucro__heading--medium ucro__heading--label", cls: "", rad: "custom", css: "--ucro-align: left; --ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px; --ucro-accent: #2563eb; --ucro-radius: 12px;" };
+const shopWith = (extraRules, design) => ({
   ...shop,
-  metaobjects: { ...shop.metaobjects, "$app:cro_rule": collectionOf(extraRules) },
+  metaobjects: { ...shop.metaobjects, "$app:cro_rule": collectionOf(extraRules), ...(design ? { "$app:cro_design": collectionOf([metaobject("upsell", { config: design })]) } : {}) },
 });
 const quantityListRule = metaobject("rule-qty-tee", {
   kind: "upsell", active: true, priority: 1, trigger_type: "all", upsell_type: "quantity",
@@ -197,9 +199,9 @@ const teeCtx = { product: { ...P.tee, selected_or_first_available_variant: teeSv
 const sizePicker = `<fieldset class="product-form__input"><legend>Size</legend>${["S", "M", "L", "XL"].map((s) => `<input type="radio" id="opt-size-${s}" name="Size-1" value="${s}"${s === "M" ? " checked" : ""}><label for="opt-size-${s}">${s}</label>`).join("")}</fieldset>`;
 const teeScript = `<script>window.__variants=${JSON.stringify(P.tee.variants)};document.addEventListener('change',function(e){if(!e.target.name||e.target.name.indexOf('Size')!==0)return;var id=document.querySelector('#product-form-main [name="id"]');var cur=window.__variants.find(function(v){return String(v.id)===id.value});var next=window.__variants.find(function(v){return v.options[0]===cur.options[0]&&v.options[1]===e.target.value});if(next){id.value=next.id;window.publish(window.PUB_SUB_EVENTS.variantChange,{data:{variant:{id:next.id}}});}});</script>`;
 fs.writeFileSync(path.join(out, "upsell-list.html"), page("Tee — grouped list", P.tee.id, teeSv.id,
-  sizePicker + (await block("ucro-upsell", teeCtx, { style: "list", heading_style: "label" }, shopWith([quantityListRule]))) + teeScript));
+  sizePicker + (await block("ucro-upsell", teeCtx, {}, shopWith([quantityListRule], listDesign))) + teeScript));
 fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade", P.tee.id, teeSv.id,
-  sizePicker + (await block("ucro-upsell", teeCtx, { style: "list" }, shopWith([sizeRule]))) + teeScript));
+  sizePicker + (await block("ucro-upsell", teeCtx, {}, shopWith([sizeRule], { ...listDesign, hc: "ucro__heading--medium" }))) + teeScript));
 fs.writeFileSync(path.join(out, "cart-page.html"), cartPage);
 fs.writeFileSync(path.join(out, "catalog.json"), JSON.stringify(P, (k, v) => (k === "collections" ? undefined : v)));
 console.log("rendered:", fs.readdirSync(out).join(", "));

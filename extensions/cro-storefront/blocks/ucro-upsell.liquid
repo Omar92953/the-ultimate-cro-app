@@ -1,4 +1,4 @@
-{%- assign bs = block.settings -%}{%- liquid
+{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.upsell_enabled.value == false
@@ -36,8 +36,17 @@ endif
 endfor
 endif
 assign opt_i = opt_pos | minus: 1
+assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
+assign d_pi = true
+assign d_ss = true
+if d.pi == false
+assign d_pi = false
+endif
+if d.ss == false
+assign d_ss = false
+endif
 assign per_item = false
-if utype == 'quantity' and bs.per_item and product.has_only_default_variant == false
+if utype == 'quantity' and d_pi and product.has_only_default_variant == false
 assign per_item = true
 endif
 assign renderable = false
@@ -47,21 +56,21 @@ assign renderable = true
 endif
 endif
 assign list = false
-if bs.style == 'list'
+if d.list
 assign list = true
 endif
 -%}{%- if renderable -%}<ucro-upsell
-class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if bs.devices == 'mobile' %} ucro-hide-desktop{% elsif bs.devices == 'desktop' %} ucro-hide-mobile{% endif %}"
-style="--ucro-align: {{ bs.text_align }}; --ucro-gap: {{ bs.gap }}px; --ucro-pt: {{ bs.padding_top }}px; --ucro-pb: {{ bs.padding_bottom }}px;{% if bs.accent != blank %} --ucro-accent: {{ bs.accent }};{% endif %}{% if bs.border_color != blank %} --ucro-border: {{ bs.border_color }};{% endif %}{% if bs.badge_bg != blank %} --ucro-badge-bg: {{ bs.badge_bg }};{% endif %}{% if bs.badge_text != blank %} --ucro-badge-fg: {{ bs.badge_text }};{% endif %}{% if bs.save_bg != blank %} --ucro-save-bg: {{ bs.save_bg }};{% endif %}{% if bs.save_text != blank %} --ucro-save-fg: {{ bs.save_text }};{% endif %}{% unless bs.theme_radius %} --ucro-radius: {{ bs.radius }}px;{% endunless %}"
-data-radius="{% if bs.theme_radius %}theme{% else %}custom{% endif %}"
+class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{{ d.cls }}"
+style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
+data-radius="{{ d.rad | default: 'theme' }}"
 data-type="{{ utype }}"
 data-variant-id="{{ sv.id }}"
-data-own-button="{{ bs.own_button }}"
+data-own-button="{% if d.own %}true{% else %}false{% endif %}"
 data-per-item="{{ per_item }}"
-data-item-label="{{ bs.item_label | escape }}"
+data-item-label="{{ d.il | default: '#[n]' | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if rule.headline.value != blank -%}<h2 class="ucro__heading ucro__heading--{{ bs.heading_size }}{% if bs.heading_style == 'label' %} ucro__heading--label{% endif %}">{{ rule.headline.value | escape }}</h2>{%- endif -%}{%- if rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<div class="ucro-tiers" role="radiogroup" aria-label="{{ rule.headline.value | default: rule.name.value | escape }}">{%- for tier in tiers -%}{%- liquid
+>{%- if rule.headline.value != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ rule.headline.value | escape }}</h2>{%- endif -%}{%- if rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<div class="ucro-tiers" role="radiogroup" aria-label="{{ rule.headline.value | default: rule.name.value | escape }}">{%- for tier in tiers -%}{%- liquid
 assign pct = tier.pct | default: 0
 assign keep = 100 | minus: pct
 assign qty = 1
@@ -104,14 +113,14 @@ if label == blank
 if utype == 'variant'
 assign label = tier.value
 else
-assign label = bs.label_pattern | default: 'Buy [quantity]' | replace: '[quantity]', qty
+assign label = d.label | default: 'Buy [quantity]' | replace: '[quantity]', qty
 endif
 endif
 assign show_save = false
-if pct > 0 and bs.show_saving
+if pct > 0 and d_ss
 assign show_save = true
 endif
-assign save_text = bs.saving_text | replace: '[percent]', pct
+assign save_text = d.save | default: 'Save [percent]%' | replace: '[percent]', pct
 -%}<div class="ucro-tier-wrap">
 <button
 type="button"
@@ -134,7 +143,7 @@ data-qty="{{ qty }}"
 <s class="ucro-was"{% if pct == 0 %} hidden{% endif %}>{{ was | money }}</s>
 <strong class="ucro-tier__total" data-ucro-price>{{ total | money }}</strong>
 </span>{%- endif -%}</button>{%- unless list -%}{%- if show_save or tier.badge != blank -%}<span class="ucro-tier__tags">{%- if show_save -%}<span class="ucro-tier__save">{{ save_text }}</span>{%- endif -%}{%- if tier.badge != blank -%}<span class="ucro-tier__badge">{{ tier.badge | escape }}</span>{%- endif -%}</span>{%- endif -%}{%- endunless -%}{%- if per_item and qty > 1 -%}<div class="ucro-tier__items" hidden></div>{%- endif -%}</div>{%- endfor -%}</div>
-<button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ bs.button_label | escape }}</button>
+<button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ d.btn | default: 'Add to cart' | escape }}</button>
 <p class="ucro__error" role="alert" hidden></p>
 <script type="application/json" data-ucro-prices>
 {
@@ -177,4 +186,4 @@ assign v_total = v_was | times: v_keep | divided_by: 100.0 | round
 </script>
 </ucro-upsell>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif product.available == false -%}Upsell is hidden because this product is sold out.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.12"},{"type":"header","content":"Offers"},{"type":"select","id":"style","label":"Style","default":"cards","options":[{"value":"cards","label":"Cards"},{"value":"list","label":"t:s.14"}],"info":"t:s.13"},{"type":"text","id":"label_pattern","label":"Offer name","default":"Buy [quantity]","info":"t:s.15"},{"type":"checkbox","id":"show_saving","label":"t:s.16","default":true},{"type":"text","id":"saving_text","label":"Saving text","default":"Save [percent]%","info":"t:s.17","visible_if":"{{ block.settings.show_saving }}"},{"type":"checkbox","id":"per_item","label":"t:s.18","default":true,"info":"t:s.19"},{"type":"text","id":"item_label","label":"t:s.1a","default":"#[n]","info":"t:s.1b","visible_if":"{{ block.settings.per_item }}"},{"type":"checkbox","id":"own_button","label":"t:s.1c","default":false,"info":"t:s.1d"},{"type":"text","id":"button_label","label":"Button text","default":"Add to cart","visible_if":"{{ block.settings.own_button }}"},{"type":"header","content":"Heading"},{"type":"select","id":"heading_style","label":"Style","default":"heading","options":[{"value":"heading","label":"Heading"},{"value":"label","label":"t:s.1e"}]},{"type":"select","id":"heading_size","label":"Size","default":"medium","options":[{"value":"small","label":"Small"},{"value":"medium","label":"Medium"},{"value":"large","label":"Large"}],"visible_if":"{{ block.settings.heading_style == 'heading' }}"},{"type":"select","id":"text_align","label":"Alignment","default":"left","options":[{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}]},{"type":"header","content":"Colors"},{"type":"color","id":"accent","label":"t:s.1f","info":"t:s.t"},{"type":"color","id":"border_color","label":"t:s.1g"},{"type":"color","id":"badge_bg","label":"t:s.1h","info":"t:s.1i"},{"type":"color","id":"badge_text","label":"Badge text"},{"type":"color","id":"save_bg","label":"t:s.1j","visible_if":"{{ block.settings.style == 'cards' }}"},{"type":"color","id":"save_text","label":"Saving text"},{"type":"header","content":"t:s.w"},{"type":"checkbox","id":"theme_radius","label":"t:s.x","default":true},{"type":"range","id":"radius","label":"t:s.y","min":0,"max":40,"step":2,"unit":"px","default":12,"visible_if":"{{ block.settings.theme_radius == false }}"},{"type":"range","id":"gap","label":"t:s.1k","min":10,"max":32,"step":2,"unit":"px","default":12,"visible_if":"{{ block.settings.style == 'cards' }}"},{"type":"range","id":"padding_top","label":"Space above","min":0,"max":60,"step":4,"unit":"px","default":12},{"type":"range","id":"padding_bottom","label":"Space below","min":0,"max":60,"step":4,"unit":"px","default":12},{"type":"header","content":"Visibility"},{"type":"select","id":"devices","label":"Show on","default":"all","options":[{"value":"all","label":"t:s.10"},{"value":"desktop","label":"t:s.11"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}
+<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif product.available == false -%}Upsell is hidden because this product is sold out.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.12"}]}{% endschema %}

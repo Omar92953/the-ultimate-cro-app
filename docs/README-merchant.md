@@ -55,11 +55,13 @@ anything.
 - **Upsell type → Size upgrade:** tiers are values of one option (e.g. Size: M / L −10% / XL −20%).
   Picking a tier switches the product to that size using your theme's own size picker, and the
   discount applies at checkout to that size.
-- **Quantity breaks on products with sizes:** in the theme editor keep **Let shoppers pick a size for
-  each item** on. Choosing "Buy 2" then shows a size picker per item (e.g. M + L); your normal Add to
+- **Quantity breaks on products with sizes:** in **Upsell offers → Design → Content** keep **Let shoppers
+  pick a size for each item** on. Choosing "Buy 2" then shows a size picker per item (e.g. M + L); your normal Add to
   cart adds each size, and the tier discount still applies.
-- **Style → Grouped list** gives the one-box look (rows, the selected row tinted with a bar on its
-  edge, "Save 10%" under each offer). **Heading style → Small caps label** gives a small uppercase title.
+- **Upsell offers → Design** sets the whole look, with a live preview of your own offer: ready-made
+  looks, Cards or **Grouped list** (one box, the selected row tinted with a bar on its edge), offer
+  and saving wording, heading style (e.g. **Small caps label**), colours, corners, spacing and devices.
+  The theme editor only places the block.
 
 ## Video carousel
 - Upload videos in **Content → Files** (or to a product's media), then add them in the app, set the

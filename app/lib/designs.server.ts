@@ -10,6 +10,7 @@ import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfi
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
+import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
 async function getDesign(admin: AdminClient, handle: string): Promise<unknown> {
@@ -142,5 +143,18 @@ export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesig
   clean.fill.imageUrl = img?.url ?? null;
   await upsert(admin, "$app:cro_design", "reviews", { config: JSON.stringify(toStorefrontReviews(clean)) });
   await upsert(admin, "$app:cro_design", "reviews_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* --------------------------------------------------------------- upsell -- */
+export async function getUpsellDesign(admin: AdminClient): Promise<{ config: UpsellDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "upsell_editor");
+  return { config: withUpsellDefaults(raw), saved: raw !== null };
+}
+
+export async function saveUpsellDesign(admin: AdminClient, config: UpsellDesign) {
+  const clean = withUpsellDefaults(config);
+  await upsert(admin, "$app:cro_design", "upsell", { config: JSON.stringify(toStorefrontUpsell(clean)) });
+  await upsert(admin, "$app:cro_design", "upsell_editor", { config: JSON.stringify(clean) });
   return clean;
 }

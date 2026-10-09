@@ -125,7 +125,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 ### Size upgrades, sizes per item, grouped list
 - [ ] Upsell rule type **Size upgrade** (option "Size", tiers M / L −10% / XL −20%) on a product with sizes: clicking a tier switches the theme's size picker and the price; checkout discounts only that size.
 - [ ] Quantity rule on a product with sizes: "Buy 2" shows two size pickers; choose M + L; the theme's Add to cart adds one of each; checkout gives the Buy 2 discount on both.
-- [ ] Block **Style → Grouped list** and **Heading style → Small caps label** look right on both themes and on mobile.
+- [ ] **Upsell offers → Design**: **Grouped list** and **Small caps label** (and each ready-made look) look right on both themes and on mobile.
 - [x] Home → Checkout discounts → **Native Shopify discounts**: Discounts lists the app's native discounts; cart prices match; switching back to **Automatic** removes them and restores "CRO Toolbox offers". *(Done on the dev store: 2 units → 10%, 3–4 units → 15% only, not stacked; switching back restored "CRO Toolbox offers".)*
 
 ### Discounts at checkout (the part that costs money if wrong)

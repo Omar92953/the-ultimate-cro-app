@@ -1,0 +1,193 @@
+import { useEffect, useState } from "react";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { boundary } from "@shopify/shopify-app-react-router/server";
+import { authenticate } from "../shopify.server";
+import { storefrontCss } from "../lib/storefront-css.server";
+import { errorMessage } from "../lib/admin.server";
+import { editorLinks, getThemeStatus, listRules } from "../lib/cro.server";
+import { getUpsellDesign, saveUpsellDesign } from "../lib/designs.server";
+import { applyUpsellPreset, UPSELL_PRESETS, withUpsellDefaults, type UpsellDesign } from "../lib/upsell-design";
+import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { SAMPLE_OFFER, UpsellDesignPreview, type PreviewOffer } from "../components/UpsellDesignPreview";
+import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { admin, session } = await authenticate.admin(request);
+  const [{ config, saved }, theme, rules] = await Promise.all([getUpsellDesign(admin), getThemeStatus(admin).catch(() => null), listRules(admin, "upsell").catch(() => [])]);
+  // The merchant's own offers, so the preview shows their real tiers and badges.
+  const offers: (PreviewOffer & { name: string })[] = rules
+    .filter((r) => r.tiers.length)
+    .sort((a, b) => Number(b.active) - Number(a.active))
+    .slice(0, 10)
+    .map((r) => ({ name: r.name, headline: r.headline, subheadline: r.subheadline, variant: r.upsellType === "variant", tiers: r.tiers }));
+  return { config, saved, offers, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.upsell : null, addLink: editorLinks(session.shop).upsell };
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+  const form = await request.formData();
+  try {
+    const config = await saveUpsellDesign(admin, withUpsellDefaults(JSON.parse(String(form.get("config")))));
+    return { ok: true, error: null, config };
+  } catch (e) {
+    return { ok: false, error: errorMessage(e), config: null };
+  }
+};
+
+type C = UpsellDesign;
+const DEVICES = [
+  { value: "all", label: "Desktop and mobile" },
+  { value: "desktop", label: "Desktop only" },
+  { value: "mobile", label: "Mobile only" },
+];
+
+export default function UpsellDesigner() {
+  const data = useLoaderData<typeof loader>();
+  const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
+  const [which, setWhich] = useState(0);
+  const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+  const [loaded, setLoaded] = useState(data.config);
+  if (loaded !== data.config) {
+    setLoaded(data.config);
+    setCfg(data.config);
+  }
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.ok) shopify.toast.show("Upsell design saved — live on your store");
+    else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+  }, [fetcher.state, fetcher.data, shopify]);
+
+  const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
+  const offers = part("offers"), heading = part("heading"), look = part("look"), space = part("space");
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const offer = data.offers[which] ?? SAMPLE_OFFER;
+
+  return (
+    <s-page heading="Upsell offers design" inlineSize="large">
+      <s-link slot="breadcrumb-actions" href="/app/offers/upsell">
+        Upsell offers
+      </s-link>
+      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
+        Save
+      </Button>
+      <Button slot="secondary-actions" href="/app/offers/upsell">
+        Manage offers
+      </Button>
+      <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
+        {data.inTheme ? "Open in theme editor" : "Add to product page"}
+      </Button>
+      <div className={ui.shell}>
+        <s-stack gap="base">
+          <s-text color="subdued">
+            The offers, prices and discounts come from your Upsell offers. Here you choose how they look on the product page. In the theme editor you only place the “Upsell offers” block.
+          </s-text>
+          {!data.saved ? (
+            <s-banner tone="info" heading="Not saved yet">
+              Your store uses the standard look until you save here.
+            </s-banner>
+          ) : null}
+          {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
+          <style dangerouslySetInnerHTML={{ __html: data.css }} />
+          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+
+          <Pane show={tab === "looks"}>
+            <s-section heading="Start from a look">
+              <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
+                {UPSELL_PRESETS.map((p) => (
+                  <s-clickable key={p.key} onClick={() => setCfg((c) => applyUpsellPreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
+                    <s-text type="strong">{p.title}</s-text>
+                  </s-clickable>
+                ))}
+              </s-grid>
+            </s-section>
+          </Pane>
+
+          <div className={ui.layout}>
+            <s-stack gap="base">
+              <Pane show={tab === "content"}>
+                <s-section heading="Offers">
+                  <s-stack gap="base">
+                    <Select label="Style" details="Cards: one box per offer. Grouped list: one box with a row per offer." value={cfg.offers.style} onValue={(v) => offers({ style: v as C["offers"]["style"] })} options={[{ value: "cards", label: "Cards" }, { value: "list", label: "Grouped list" }]} />
+                    <TextField label="Offer name" details="[quantity] becomes the number, e.g. Buy 2. Size offers show the size instead." value={cfg.offers.label} onValue={(v) => offers({ label: v })} />
+                    <Switch label="Show the saving" checked={cfg.offers.showSaving} onValue={(v) => offers({ showSaving: v })} />
+                    {cfg.offers.showSaving ? <TextField label="Saving text" details="[percent] becomes the discount, e.g. Save 10%." value={cfg.offers.saving} onValue={(v) => offers({ saving: v })} /> : null}
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "content"}>
+                <s-section heading="Sizes and button">
+                  <s-stack gap="base">
+                    <Switch label="Let shoppers pick a size for each item" details="For products with sizes: choosing Buy 2 shows two size pickers." checked={cfg.offers.perItem} onValue={(v) => offers({ perItem: v })} />
+                    {cfg.offers.perItem ? <TextField label="Item picker label" details="[n] becomes the item number." value={cfg.offers.itemLabel} onValue={(v) => offers({ itemLabel: v })} /> : null}
+                    <Switch label="Show a separate Add to cart button" details="Off: shoppers use your theme's normal Add to cart button." checked={cfg.offers.ownButton} onValue={(v) => offers({ ownButton: v })} />
+                    {cfg.offers.ownButton ? <TextField label="Button text" value={cfg.offers.button} onValue={(v) => offers({ button: v })} /> : null}
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Heading">
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <Select label="Style" value={cfg.heading.style} onValue={(v) => heading({ style: v as C["heading"]["style"] })} options={[{ value: "heading", label: "Heading" }, { value: "label", label: "Small caps label" }]} />
+                    {cfg.heading.style === "heading" ? (
+                      <Select label="Size" value={cfg.heading.size} onValue={(v) => heading({ size: v as C["heading"]["size"] })} options={[{ value: "small", label: "Small" }, { value: "medium", label: "Medium" }, { value: "large", label: "Large" }]} />
+                    ) : null}
+                    <Select label="Alignment" value={cfg.heading.align} onValue={(v) => heading({ align: v as C["heading"]["align"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }]} />
+                  </s-grid>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Colours and corners">
+                  <s-stack gap="base">
+                    <Checkbox label="Use my theme's colours" checked={cfg.look.themeColors} onValue={(v) => look({ themeColors: v })} />
+                    {!cfg.look.themeColors ? (
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        <ColorField label="Selected offer" value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
+                        <ColorField label="Offer border" value={cfg.look.border} onValue={(v) => look({ border: v })} />
+                        <ColorField label="Badge background" value={cfg.look.badgeBg} onValue={(v) => look({ badgeBg: v })} />
+                        <ColorField label="Badge text" value={cfg.look.badgeText} onValue={(v) => look({ badgeText: v })} />
+                        {cfg.offers.style === "cards" ? <ColorField label="Saving tag background" value={cfg.look.saveBg} onValue={(v) => look({ saveBg: v })} /> : null}
+                        <ColorField label="Saving text" value={cfg.look.saveText} onValue={(v) => look({ saveText: v })} />
+                      </s-grid>
+                    ) : null}
+                    <Checkbox label="Match my theme's corners" checked={cfg.look.themeRadius} onValue={(v) => look({ themeRadius: v })} />
+                    {!cfg.look.themeRadius ? <NumberField label="Corner radius" suffix="px" min={0} max={40} step={2} value={cfg.look.radius} onValue={(v) => look({ radius: v })} /> : null}
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "display"}>
+                <s-section heading="Spacing and devices">
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    {cfg.offers.style === "cards" ? <NumberField label="Space between offers" suffix="px" min={0} max={40} step={2} value={cfg.space.gap} onValue={(v) => space({ gap: v })} /> : null}
+                    <NumberField label="Space above" suffix="px" min={0} max={80} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />
+                    <NumberField label="Space below" suffix="px" min={0} max={80} step={4} value={cfg.space.bottom} onValue={(v) => space({ bottom: v })} />
+                    <Select label="Show on" value={cfg.space.devices} onValue={(v) => space({ devices: v as C["space"]["devices"] })} options={DEVICES} />
+                  </s-grid>
+                </s-section>
+              </Pane>
+            </s-stack>
+
+            <PreviewFrame title={data.offers.length ? "Product page · your offer" : "Product page · example offer"}>
+              {data.offers.length > 1 ? (
+                <div style={{ padding: "10px 20px 0" }}>
+                  <Select label="Offer to preview" value={String(which)} onValue={(v) => setWhich(Number(v))} options={data.offers.map((o, i) => ({ value: String(i), label: o.name || `Offer ${i + 1}` }))} />
+                </div>
+              ) : null}
+              <UpsellDesignPreview config={cfg} offer={offer} />
+            </PreviewFrame>
+          </div>
+        </s-stack>
+      </div>
+    </s-page>
+  );
+}
+
+export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

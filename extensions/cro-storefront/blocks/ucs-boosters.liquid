@@ -29,4 +29,4 @@ assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 </script>
 <template id="ucs-pay">{%- for type in shop.enabled_payment_types -%}{{ type | payment_type_svg_tag: class: 'ucs-pay' }}{%- endfor -%}</template>
 <script src="{{ 'ucs-boosters.js' | asset_url }}" defer></script>{%- if shop.metaobjects['$app:cro_offers']['main'].data.value.deals.size > 0 %}<script src="{{ 'ucs-deals.js' | asset_url }}" defer></script>{% endif %}
-{% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.2x"}]}{% endschema %}
+{% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.2f"}]}{% endschema %}
