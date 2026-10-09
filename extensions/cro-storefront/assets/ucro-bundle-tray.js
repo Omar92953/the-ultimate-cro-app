@@ -323,7 +323,7 @@
       var parts = x.split(':');
       var b = bundleOf(parts[0]);
       return b && b.s[Number(parts[1])] ? { b: b, s: Number(parts[1]) } : null;
-    }).filter(Boolean);
+    }).filter(Boolean).sort(function (a, b) { return (b.b.s[b.s].h ? 1 : 0) - (a.b.s[a.s].h ? 1 : 0); }); // named steps first
     if (!fits.length) return;
     var form = U.productForm(host);
     var idInput = form && form.querySelector('[name="id"]');
@@ -338,30 +338,39 @@
   /* ---- "+ Add to bundle" on product cards ------------------------------------------------- */
   /** The places a card's product fits on this page: the steps whose collection this is, or product lists. */
   function cardFits(handle) {
-    var out = [];
+    var named = [];
+    var inCollection = [];
     D.b.forEach(function (b) {
       b.s.forEach(function (s, i) {
-        if ((s.c && D.page === 'collection' && String(s.c) === String(D.col)) || (s.h && s.h.indexOf(handle) >= 0)) out.push({ b: b, s: i });
+        if (s.h && s.h.indexOf(handle) >= 0) named.push({ b: b, s: i });
+        else if (s.c && D.page === 'collection' && String(s.c) === String(D.col)) inCollection.push({ b: b, s: i });
       });
     });
-    return out;
+    return named.concat(inCollection); // a step that names the product comes first
   }
   function handleOf(a) {
     var m = /\/products\/([^/?#]+)/.exec(a.getAttribute('href') || '');
     return m ? decodeURIComponent(m[1]) : null;
   }
   var CARD = '.card-wrapper, .product-card-wrapper, .product-card, .card, .grid-product, .product-item, .product-grid-item, [class*="product-card"], li';
+  /** One entry per product card: the outermost card element around a product link (themes link both the picture and the title). */
   function cards() {
     var main = document.querySelector('main, #MainContent') || document.body;
-    var seen = {};
     var out = [];
     main.querySelectorAll('a[href*="/products/"]').forEach(function (a) {
-      if (a.closest('.ucro, [data-ucro-atb]')) return;
+      if (a.closest('.ucro, [data-ucro-atb], .ucro-bt, .ucro-bt-choose')) return;
       var handle = handleOf(a);
       var card = a.closest(CARD);
-      if (!handle || !card || card === main || seen[handle + '|' + out.length] || card.querySelector('.ucro-atb-card')) return;
-      if (!card.querySelector('img') && !a.querySelector('img')) return;
-      seen[handle + '|' + out.length] = true;
+      if (!handle || !card || card === main) return;
+      // Climb to the outermost card that still holds only this product.
+      for (var up = card.parentElement && card.parentElement.closest(CARD); up && up !== main && main.contains(up); up = up.parentElement && up.parentElement.closest(CARD)) {
+        var others = Array.prototype.some.call(up.querySelectorAll('a[href*="/products/"]'), function (x) { return handleOf(x) !== handle; });
+        if (others) break;
+        card = up;
+      }
+      if (card.hasAttribute('data-ucro-bt-card') || card.querySelector('[data-ucro-bt-card], .ucro-atb-card') || card.closest('[data-ucro-bt-card]')) return;
+      if (!card.querySelector('img')) return;
+      card.setAttribute('data-ucro-bt-card', handle);
       out.push({ card: card, handle: handle });
     });
     return out;
@@ -380,8 +389,11 @@
         e.stopPropagation();
         addFromCard(x.handle, cardFits(x.handle));
       });
-      if (getComputedStyle(x.card).position === 'static') x.card.style.position = 'relative';
-      x.card.appendChild(btn);
+      // Under the price (inside the card's text area), so it stays within the theme's card height.
+      var price = x.card.querySelector('.price, [class*="price"]');
+      var block = price && (price.closest('div, p') || price);
+      if (block && x.card.contains(block) && block !== x.card) block.insertAdjacentElement('afterend', btn);
+      else x.card.appendChild(btn);
     });
     markCards();
   }

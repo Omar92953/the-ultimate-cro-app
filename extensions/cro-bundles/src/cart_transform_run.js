@@ -131,7 +131,7 @@ export function percentOff(bundle, total, rate) {
   return clamp((1 - price / total) * 100);
 }
 
-/** @param {number} v */
+/** Four decimals, so a fixed price lands on the cent (two decimals left e.g. $1,200.05 on $1,634.95). @param {number} v */
 function clamp(v) {
-  return Math.round(Math.min(100, Math.max(0, v)) * 100) / 100;
+  return Math.round(Math.min(100, Math.max(0, v)) * 10000) / 10000;
 }

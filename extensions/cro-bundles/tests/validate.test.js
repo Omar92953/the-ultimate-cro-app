@@ -28,6 +28,7 @@ describe("bundle group validation (shopper-controlled property)", () => {
 describe("bundle price", () => {
   test("fixed price becomes a percentage of the picks' total, never an increase", () => {
     expect(percentOff({ k: "f", pr: 6000 }, 80, 1)).toBe(25);
+    expect(percentOff({ k: "f", pr: 120000 }, 1634.95, 1)).toBe(26.6033);
     expect(percentOff({ k: "f", pr: 6000 }, 50, 1)).toBe(0);
     expect(percentOff({ k: "f", pr: 6000 }, 160, 2)).toBe(25);
   });
