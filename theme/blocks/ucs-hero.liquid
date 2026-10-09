@@ -2,6 +2,8 @@
   App block: hero banner with separate desktop and mobile images (served with <picture>, so each
   device downloads only its own image), overlay, text, up to two buttons and a whole-image link.
   Banners are made in the app (Hero banners); this block picks one, or shows the first banner.
+  The picker's metaobject_type must be the resolved type (Shopify rejects "$app:" there):
+  app--<this app's numeric id>--cro_hero. If the app is ever re-created, update the id.
 {%- endcomment -%}
 {%- liquid
   assign hero = block.settings.banner
