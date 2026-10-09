@@ -12,6 +12,7 @@ import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./hea
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
+import { toStorefrontAnnouncement, withAnnouncementDefaults, type AnnouncementDesign } from "./announcement-design";
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
@@ -222,5 +223,20 @@ export async function saveCrossSellDesign(admin: AdminClient, config: CrossSellD
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cross_sell", { config: live });
   await upsert(admin, "$app:cro_design", "cross_sell_draft", { config: live });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cross_sell_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ---------------------------------------------------------- announcement -- */
+export async function getAnnouncementDesign(admin: AdminClient): Promise<{ config: AnnouncementDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "announcement_editor");
+  return { config: withAnnouncementDefaults(raw), saved: raw !== null };
+}
+
+export async function saveAnnouncementDesign(admin: AdminClient, config: AnnouncementDesign, draftOnly = false) {
+  const clean = withAnnouncementDefaults(config);
+  const live = JSON.stringify(toStorefrontAnnouncement(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "announcement", { config: live });
+  await upsert(admin, "$app:cro_design", "announcement_draft", { config: live });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "announcement_editor", { config: JSON.stringify(clean) });
   return clean;
 }

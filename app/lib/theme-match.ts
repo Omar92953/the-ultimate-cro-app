@@ -4,6 +4,7 @@
  * theme, and each colour stays editable afterwards. Shared by client and server.
  */
 import type { AddonsConfig } from "./addons";
+import type { AnnouncementDesign } from "./announcement-design";
 import type { CollectionPillsConfig } from "./collection-pills";
 import type { CountdownBarConfig } from "./designs";
 import type { HeaderConfig } from "./header";
@@ -66,3 +67,5 @@ export const matchContact = (c: ContactConfig, s: ThemeScheme, st: ThemeStyle): 
   scheme: s.id,
   look: { ...c.look, bgType: "color", bg: mix(s.text, s.bg, 0.04), card: s.bg, text: s.text, fieldBg: s.bg, fieldBorder: line(s, 0.25), accent: s.button, accentText: s.buttonText, radius: Math.min(st.radius.input, 24) },
 });
+
+export const matchAnnouncement = (c: AnnouncementDesign, s: ThemeScheme): AnnouncementDesign => ({ ...c, scheme: s.id, look: { ...c.look, bg: s.bg, fg: s.text } });

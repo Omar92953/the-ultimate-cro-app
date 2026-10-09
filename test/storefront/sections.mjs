@@ -159,12 +159,20 @@ shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null 
 const { toStorefrontCountdownBar, withCountdownBarDefaults } = await import("../../app/lib/designs.ts");
 const { toStorefrontReviews, withReviewsDefaults } = await import("../../app/lib/reviews-design.ts");
 const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
+const { toStorefrontAnnouncement, withAnnouncementDefaults } = await import("../../app/lib/announcement-design.ts");
+const { toStorefrontShippingBar, withShippingBarDefaults } = await import("../../app/lib/shipping-bar.ts");
+const announceDesign = (raw) => mo("announcement", { config: toStorefrontAnnouncement(withAnnouncementDefaults(raw)) });
+const shipBarDesign = mo("shipping_bar", { config: toStorefrontShippingBar(withShippingBarDefaults({ goal: 1000, text: { empty: "Free shipping on orders over {goal}", progress: "Spend {left} more for free shipping", done: "You've unlocked free shipping!" } })) });
 shop.metaobjects["$app:cro_design"] = collectionOf([
   mo("reviews", { config: toStorefrontReviews(withReviewsDefaults({ which: { filter: "product", fallback: false } })) }),
   mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) }),
   mo("countdown_home", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "fixed", end: in3days } }, "home"), ) }),
   mo("countdown_product", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 2 } }, "product")) }),
+  announceDesign({ freeShipping: { on: true, bar: true } }),
+  shipBarDesign,
 ]);
+// The announcement bar with another design: slide, closable, capitals (and no free-shipping message).
+const shopSlide = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== "announcement"), announceDesign({ behaviour: { animation: "slide", dismissible: true }, look: { upper: true } })]) } };
 shop.metaobjects["$app:cro_recent"] = collectionOf([
   mo("main", {
     purchases: [
@@ -215,7 +223,7 @@ const pages = {
     label("logos (marquee, two lines)") + (await block("ucs-logos", { lines: "2" })) +
     label("reviews (carousel, all)") + (await block("ucs-reviews")) +
     label("faq (tabs + search)") + (await block("ucs-faq", { search: true })),
-    (await block("ucs-announcement", { free_shipping: true, fs_threshold: 1000 })) + (await block("ucs-countdown-bar", { position: "bottom", mode: "daily", daily_cutoff: "23:59", text: "Order in the next" }))),
+    (await block("ucs-announcement")) + (await block("ucs-countdown-bar", { position: "bottom", mode: "daily", daily_cutoff: "23:59", text: "Order in the next" }))),
   "variants.html": page("Variants",
     label("hero: no images, text box, centred, small") + (await block("ucs-hero", { text_box: true, position_desktop: "mc", height_desktop: "small", full_width: false })) +
     label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
@@ -223,7 +231,7 @@ const pages = {
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
     label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +
     label("faq: cards, chevron, 2 columns, only Shipping") + (await block("ucs-faq", { style: "cards", icon: "chevron", columns: "2", group: "shipping", accent: "#ffbd13" })),
-    (await block("ucs-countdown-bar", { position: "top", mode: "evergreen", evergreen_hours: 2 })) + (await block("ucs-announcement", { animation: "slide", dismissible: true, uppercase: true }))),
+    (await block("ucs-countdown-bar", { position: "top", mode: "evergreen", evergreen_hours: 2 })) + (await block("ucs-announcement", {}, { shop: shopSlide }))),
   "product.html": page("Product page reviews",
     label("reviews: this product (tee) — expect 2 + JSON-LD") + (await block("ucs-reviews", { filter: "product", layout: "grid" }, { page_type: "product", product: tee })) +
     label("reviews: product with none, fallback off — expect nothing") + (await block("ucs-reviews", { filter: "product", fallback: false }, { page_type: "product", product: { id: 99, title: "Lonely", url: "/products/lonely" } }))),

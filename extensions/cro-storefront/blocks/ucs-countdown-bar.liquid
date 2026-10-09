@@ -11,4 +11,4 @@ assign kp = 'countdown_product' | append: x
 <script type="application/json">{"header":{{ d[kh].config.value | default: d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d[kf].config.value | default: d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d[kd].config.value | default: d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d[kp].config.value | default: d['countdown_product'].config.value | json | default: 'null' }}}</script>
 </div>
 <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
-{% schema %}{"name":"Countdown","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.z"}]}{% endschema %}
+{% schema %}{"name":"Countdown","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.f"}]}{% endschema %}
