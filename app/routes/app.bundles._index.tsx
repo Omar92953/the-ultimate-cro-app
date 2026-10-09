@@ -20,6 +20,9 @@ export default function BundleList() {
       <Button slot="primary-action" variant="primary" href="/app/bundles/new">
         Create mix & match bundle
       </Button>
+      <Button slot="secondary-actions" href="/app/designs/bundles">
+        Design
+      </Button>
       <Button slot="secondary-actions" href={addBlock} target="_top">
         Add block to theme
       </Button>

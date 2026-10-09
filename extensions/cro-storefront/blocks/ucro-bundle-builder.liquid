@@ -1,4 +1,4 @@
-{%- assign bs = block.settings -%}{%- liquid
+{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.bundles_enabled.value == false
@@ -22,25 +22,33 @@ assign dup = false
 if bundle and bundle.allow_duplicates.value == true
 assign dup = true
 endif
+assign d = shop.metaobjects['$app:cro_design']['bundles'].config.value
+assign heading = 'Build your bundle'
+assign sub = ''
+if d
+assign heading = d.h
+assign sub = d.sub
+endif
+assign pick = d.pk | default: 'Add'
 -%}{%- if bundle and bundle.steps.value.size > 0 -%}<ucro-bundle
 class="ucro ucro-bundle"
-style="--ucro-align: {{ bs.text_align }}; --ucro-pt: {{ bs.padding_top }}px; --ucro-pb: {{ bs.padding_bottom }}px; --ucro-cols-d: {{ bs.columns_desktop }}; --ucro-cols-m: {{ bs.columns_mobile }};{% if bs.accent != blank %} --ucro-accent: {{ bs.accent }};{% endif %}"
+style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
 data-key="{{ product.id }}"
 data-variant-id="{{ bv.id }}"
 data-price="{{ bv.price }}"
 data-dup="{{ dup }}"
-data-theme-button="{{ bs.use_theme_button }}"
+data-theme-button="{% if d.tb %}true{% else %}false{% endif %}"
 data-money-format="{{ shop.money_format | escape }}"
-data-t-button="{{ bs.button_label | escape }}"
-data-t-remaining="{{ bs.remaining_label | escape }}"
-data-t-value="{{ bs.value_text | escape }}"
-data-t-save="{{ bs.save_text | escape }}"
-data-t-pick="{{ bs.pick_label | escape }}"
-data-t-picked="{{ bs.picked_label | escape }}"
+data-t-button="{{ d.btn | default: 'Add bundle to cart' | escape }}"
+data-t-remaining="{{ d.rem | default: 'Choose [remaining] more' | escape }}"
+data-t-value="{{ d.val | default: 'Worth [amount]' | escape }}"
+data-t-save="{{ d.sv | default: 'You save [amount] ([percent]%)' | escape }}"
+data-t-pick="{{ pick | escape }}"
+data-t-picked="{{ d.pd | default: 'Added' | escape }}"
 data-t-incomplete="{{ 'ucro.bundle_incomplete' | t | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if bs.heading != blank -%}<h2 class="ucro__heading ucro__heading--{{ bs.heading_size }}">{{ bs.heading | escape }}</h2>{%- endif -%}{%- if bs.subheading != blank -%}<p class="ucro__sub">{{ bs.subheading | escape }}</p>{%- endif -%}{%- for step in bundle.steps.value -%}{%- liquid
+>{%- if heading != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ heading | escape }}</h2>{%- endif -%}{%- if sub != blank -%}<p class="ucro__sub">{{ sub | escape }}</p>{%- endif -%}{%- for step in bundle.steps.value -%}{%- liquid
 assign max = step.max_picks.value | default: 1
 assign min = step.min_picks.value | default: 1
 if step.required.value == false
@@ -64,17 +72,17 @@ endif
 <span class="ucro-bundle__img">{%- if p.featured_media -%}{{ p.featured_media | image_url: width: 400 | image_tag: loading: 'lazy', widths: '200, 300, 400', sizes: '(min-width: 750px) 20vw, 45vw', alt: p.title }}{%- else -%}{{ 'product-1' | placeholder_svg_tag: 'ucro-placeholder' }}{%- endif -%}</span>
 <span class="ucro-bundle__name">{{ p.title | escape }}</span>
 <span class="ucro-bundle__price" data-ucro-price>{{ pv.price | money }}</span>{%- if p.has_only_default_variant -%}<input type="hidden" class="ucro-bundle__variant" value="{{ pv.id }}" data-cents="{{ pv.price }}" data-title="">{%- else -%}<select class="ucro-bundle__variant ucro-select" aria-label="{{ p.title | escape }}">{%- for variant in p.variants -%}{%- if hide_sold_out and variant.available == false -%}{%- continue -%}{%- endif -%}<option value="{{ variant.id }}" data-cents="{{ variant.price }}" data-price="{{ variant.price | money | escape }}" data-title="{{ variant.title | escape }}"{% if variant.id == pv.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>{{- variant.title -}}</option>{%- endfor -%}</select>{%- endif -%}{%- if p.available -%}<span class="ucro-bundle__actions">
-<button type="button" class="ucro-bundle__pick" aria-pressed="false">{{ bs.pick_label | escape }}</button>{%- if dup -%}<button type="button" class="ucro-bundle__minus" aria-label="{{ 'ucro.remove' | t }}" hidden>−</button>
+<button type="button" class="ucro-bundle__pick" aria-pressed="false">{{ pick | escape }}</button>{%- if dup -%}<button type="button" class="ucro-bundle__minus" aria-label="{{ 'ucro.remove' | t }}" hidden>−</button>
 <span class="ucro-bundle__qty" hidden>0</span>
 <button type="button" class="ucro-bundle__plus" aria-label="{{ 'ucro.add' | t }}" hidden>+</button>{%- endif -%}</span>{%- else -%}<span class="ucro-bundle__soldout">{{ 'ucro.sold_out' | t }}</span>{%- endif -%}</li>{%- endfor -%}</ul>
-</fieldset>{%- endfor -%}<div class="ucro-bundle__summary{% if bs.sticky_summary %} is-sticky{% endif %}">{%- if bs.show_summary -%}<ul class="ucro-bundle__picks" role="list" data-picks></ul>
+</fieldset>{%- endfor -%}<div class="ucro-bundle__summary{% if d.st %} is-sticky{% endif %}">{%- if d.sm != false -%}<ul class="ucro-bundle__picks" role="list" data-picks></ul>
 <p class="ucro-bundle__totals">
 <span data-value></span>
 <strong data-ucro-price data-price>{{ bv.price | money }}</strong>
 </p>
-<p class="ucro-bundle__save" data-save hidden></p>{%- endif -%}<button type="button" class="ucro-btn ucro-bundle__add" disabled>{{ bs.button_label | escape }}</button>
+<p class="ucro-bundle__save" data-save hidden></p>{%- endif -%}<button type="button" class="ucro-btn ucro-bundle__add" disabled>{{ d.btn | default: 'Add bundle to cart' | escape }}</button>
 <p class="ucro__error" role="alert" hidden></p>
 </div>
 </ucro-bundle>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-bundle.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Bundles are switched off in CRO Toolbox.{%- else -%}Bundle builder: this product is not set up as a bundle. In CRO Toolbox → Bundles, create a bundle and choose this product as the bundle product. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Bundle builder","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.0"},{"type":"header","content":"Heading"},{"type":"text","id":"heading","label":"Heading","default":"Build your bundle"},{"type":"text","id":"subheading","label":"Subheading"},{"type":"select","id":"heading_size","label":"Size","default":"medium","options":[{"value":"small","label":"Small"},{"value":"medium","label":"Medium"},{"value":"large","label":"Large"}]},{"type":"select","id":"text_align","label":"Alignment","default":"left","options":[{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}]},{"type":"header","content":"Products"},{"type":"range","id":"columns_desktop","label":"t:s.1","min":2,"max":6,"step":1,"default":4},{"type":"range","id":"columns_mobile","label":"t:s.2","min":1,"max":3,"step":1,"default":2},{"type":"text","id":"pick_label","label":"t:s.3","default":"Add"},{"type":"text","id":"picked_label","label":"t:s.4","default":"Added"},{"type":"header","content":"Summary"},{"type":"checkbox","id":"show_summary","label":"t:s.5","default":true},{"type":"text","id":"value_text","label":"Value text","default":"Worth [amount]","info":"t:s.6","visible_if":"{{ block.settings.show_summary }}"},{"type":"text","id":"save_text","label":"Saving text","default":"You save [amount] ([percent]%)","visible_if":"{{ block.settings.show_summary }}","info":"t:s.7"},{"type":"checkbox","id":"sticky_summary","label":"t:s.8","default":false,"visible_if":"{{ block.settings.show_summary }}"},{"type":"header","content":"Add to cart"},{"type":"checkbox","id":"use_theme_button","label":"t:s.9","default":false,"info":"t:s.a"},{"type":"text","id":"button_label","label":"Button text","default":"Add bundle to cart","visible_if":"{{ block.settings.use_theme_button == false }}"},{"type":"text","id":"remaining_label","label":"t:s.b","default":"Choose [remaining] more","info":"t:s.c","visible_if":"{{ block.settings.use_theme_button == false }}"},{"type":"header","content":"t:s.d"},{"type":"color","id":"accent","label":"t:s.e","info":"t:s.f"},{"type":"range","id":"padding_top","label":"Space above","min":0,"max":60,"step":4,"unit":"px","default":16},{"type":"range","id":"padding_bottom","label":"Space below","min":0,"max":60,"step":4,"unit":"px","default":16}]}{% endschema %}
+<script src="{{ 'ucro-bundle.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Bundles are switched off in CRO Toolbox.{%- else -%}Bundle builder: this product is not set up as a bundle. In CRO Toolbox → Bundles, create a bundle and choose this product as the bundle product. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Bundle builder","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.0"}]}{% endschema %}

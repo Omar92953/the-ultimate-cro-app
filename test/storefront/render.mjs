@@ -195,7 +195,16 @@ console.log("video carousel:", JSON.stringify({
 const drawer = await block("ucro-cart-offers", { page_type: "product" });
 const recs = await block("ucro-cross-sell", { product: P.frame, page_type: "product" }, { fallback: "recommendations" });
 const bundlePage = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" });
-const bundleThemeBtn = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" }, { use_theme_button: true });
+// Bundle builder designed in the app ($app:cro_design "bundles"): the theme's own button adds the bundle.
+const bundleDesign = (extra) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([metaobject("bundles", { config: { h: "Pick your set", sub: "", hc: "ucro__heading--large", pk: "Choose", pd: "Chosen", sm: true, val: "Worth [amount]", sv: "Save [amount]", st: true, tb: false, btn: "Add set", rem: "[remaining] to go", css: "--ucro-cols-d: 3; --ucro-accent: #16a34a;", ...extra } })]) } });
+const bundleThemeBtn = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" }, {}, bundleDesign({ tb: true }));
+const bundleStyled = await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" }, {}, bundleDesign({}));
+console.log("bundle builder:", JSON.stringify({
+  default: { heading: /ucro__heading--medium">Build your bundle/.test(bundlePage), pick: />Add<\/button>/.test(bundlePage), theme: bundlePage.includes('data-theme-button="false"'), summary: bundlePage.includes("data-picks") },
+  styled: { heading: /ucro__heading--large">Pick your set/.test(bundleStyled), pick: />Choose<\/button>/.test(bundleStyled), sticky: bundleStyled.includes("is-sticky"), words: bundleStyled.includes('data-t-remaining="[remaining] to go"'), css: bundleStyled.includes("--ucro-accent: #16a34a") },
+  themeButton: bundleThemeBtn.includes('data-theme-button="true"'),
+  noSummary: !(await block("ucro-bundle-builder", { product: P.bundle, page_type: "product" }, {}, bundleDesign({ sm: false }))).includes("data-picks"),
+}));
 const noteDesign = await engine.renderFile("ucro-upsell", { product: P.frame, block: { id: "x", settings: defaults("ucro-upsell"), shopify_attributes: "" } }, { globals: { shop, request: { design_mode: true }, template: { name: "product" }, cart: { items: [] } } });
 const cartPage = await block("ucro-cross-sell", { page_type: "cart", cart: { items: [{ product_id: P.batman.id, product: P.batman }, { product_id: P.cairokee.id, product: P.cairokee }] } });
 

@@ -82,6 +82,10 @@ anything.
 
 Customers pay exactly the bundle product's price. At checkout the bundle is split into the items
 they picked, so **each item's stock goes down** and the items appear on the order.
+- **Bundles → Design** sets how the builder looks (one design for all bundles), with a live preview
+  of your bundle where you can pick items: ready-made looks, heading, button and summary words,
+  columns, sticky summary, using your theme's Add to cart button, colour and corners. The theme editor
+  only places the block.
 
 ## Free shipping bar
 - Set the goal and messages in **Boosters → Free shipping bar**. Match the goal to your free shipping

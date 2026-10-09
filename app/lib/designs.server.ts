@@ -11,6 +11,7 @@ import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
+import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
@@ -170,5 +171,18 @@ export async function saveVideoCarouselDesign(admin: AdminClient, config: VideoC
   const clean = withVideoCarouselDefaults(config);
   await upsert(admin, "$app:cro_design", "videos", { config: JSON.stringify(toStorefrontVideoCarousel(clean)) });
   await upsert(admin, "$app:cro_design", "videos_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* -------------------------------------------------------- bundle builder -- */
+export async function getBundleDesign(admin: AdminClient): Promise<{ config: BundleDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "bundles_editor");
+  return { config: withBundleDesignDefaults(raw), saved: raw !== null };
+}
+
+export async function saveBundleDesign(admin: AdminClient, config: BundleDesign) {
+  const clean = withBundleDesignDefaults(config);
+  await upsert(admin, "$app:cro_design", "bundles", { config: JSON.stringify(toStorefrontBundle(clean)) });
+  await upsert(admin, "$app:cro_design", "bundles_editor", { config: JSON.stringify(clean) });
   return clean;
 }

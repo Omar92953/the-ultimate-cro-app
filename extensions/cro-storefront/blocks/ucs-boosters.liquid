@@ -31,4 +31,4 @@ assign cap = cfg.urgency.threshold | default: 10 | plus: 1
 <script src="{{ 'ucs-boosters.js' | asset_url }}" defer></script>{%- if shop.metaobjects['$app:cro_offers']['main'].data.value.deals.size > 0 %}<script src="{{ 'ucs-deals.js' | asset_url }}" defer></script>{% endif %}{%- assign fsb = shop.metaobjects['$app:cro_design']['shipping_bar'].config.value -%}{%- if fsb.on -%}{%- if fsb.s.drawer or fsb.s.cartPage -%}<div data-ucs-fsb data-cart-only data-total="{{ cart.total_price }}" data-page="{{ request.page_type }}" hidden><script type="application/json">{{ fsb | json }}</script></div>
 <link rel="stylesheet" href="{{ 'ucs-shipping-bar.css' | asset_url }}" media="print" onload="this.media='all'">
 <script src="{{ 'ucs-shipping-bar.js' | asset_url }}" defer></script>{%- endif -%}{%- endif %}
-{% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.1o"}]}{% endschema %}
+{% schema %}{"name":"Conversion boosters","target":"body","stylesheet":"ucs-boosters.css","settings":[{"type":"paragraph","content":"t:s.19"}]}{% endschema %}

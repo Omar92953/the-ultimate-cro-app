@@ -446,7 +446,7 @@ export default function Home() {
             off: !on,
             menu: [
               { label: "Manage", href: f.href },
-              ...(f.key === "upsell" ? [{ label: "Design", href: "/app/designs/upsell" }] : f.key === "videos" ? [{ label: "Design", href: "/app/designs/video-carousel" }] : []),
+              ...(f.key === "upsell" ? [{ label: "Design", href: "/app/designs/upsell" }] : f.key === "videos" ? [{ label: "Design", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Design", href: "/app/designs/bundles" }] : []),
               ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
               { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
               editor(data.links[f.key], inTheme),
