@@ -21,6 +21,7 @@ import { BundleCollectionPreview } from "../components/BundleCollectionPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { FONTS } from "../lib/designs";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
 async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
@@ -88,6 +89,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 type C = BundleDesign;
+const WEIGHTS = [300, 400, 500, 600, 700, 800].map((w) => ({ value: String(w), label: { 300: "Light", 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold", 800: "Extra bold" }[w] as string }));
+
+/** A colour that can follow the theme ("") or be set. */
+function MaybeColor({ label, value, fallback, onValue }: { label: string; value: string; fallback: string; onValue: (v: string) => void }) {
+  return (
+    <s-stack gap="small-200">
+      {value ? <ColorField label={label} value={value} onValue={onValue} /> : <s-text type="strong">{label}</s-text>}
+      <Checkbox label="From my theme" checked={!value} onValue={(on) => onValue(on ? "" : fallback)} />
+    </s-stack>
+  );
+}
 
 export default function BundleDesigner() {
   const data = useLoaderData<typeof loader>();
@@ -112,6 +124,7 @@ export default function BundleDesigner() {
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), products = part("products"), summary = part("summary"), button = part("button"), look = part("look"), tray = part("tray");
+  const card = part("card"), image = part("image"), type = part("type"), pickButton = part("pickButton"), summaryLook = part("summaryLook"), layout = part("layout");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const bundle = data.bundles[which];
   // The link opens the theme editor on the bundle's page while the unsaved changes are stored as a draft.
@@ -215,6 +228,10 @@ export default function BundleDesigner() {
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Columns on desktop" min={2} max={6} step={1} value={cfg.products.desktop} onValue={(v) => { products({ desktop: v }); setDevice("desktop"); }} />
                     <NumberField label="Columns on mobile" min={1} max={3} step={1} value={cfg.products.mobile} onValue={(v) => { products({ mobile: v }); setDevice("phone"); }} />
+                    <NumberField label="Space between cards" suffix="px" min={0} max={40} step={1} value={cfg.card.gap} onValue={(v) => card({ gap: v })} />
+                    <Select label="On phones" value={cfg.layout.mobile} onValue={(v) => { layout({ mobile: v as C["layout"]["mobile"] }); setDevice("phone"); }} options={[{ value: "grid", label: "Grid (rows of cards)" }, { value: "swipe", label: "One row you swipe" }]} />
+                    <NumberField label="Maximum width" details="0 = as wide as the page" suffix="px" min={0} max={1600} step={20} value={cfg.layout.maxWidth} onValue={(v) => layout({ maxWidth: v })} />
+                    <span />
                     <NumberField label="Space above" suffix="px" min={0} max={80} step={4} value={cfg.look.top} onValue={(v) => look({ top: v })} />
                     <NumberField label="Space below" suffix="px" min={0} max={80} step={4} value={cfg.look.bottom} onValue={(v) => look({ bottom: v })} />
                   </s-grid>
@@ -237,7 +254,93 @@ export default function BundleDesigner() {
               </Pane>
 
               <Pane show={tab === "style"}>
-                <s-section heading="Colour and corners">
+                <s-section heading="Text">
+                  <s-stack gap="base">
+                    <Select label="Font" value={cfg.type.font} onValue={(v) => type({ font: v as C["type"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <NumberField label="Product name size" suffix="px" min={11} max={28} step={1} value={cfg.type.nameSize} onValue={(v) => type({ nameSize: v })} />
+                      <Select label="Product name weight" value={String(cfg.type.nameWeight)} onValue={(v) => type({ nameWeight: Number(v) })} options={WEIGHTS} />
+                      <NumberField label="Price size" suffix="px" min={11} max={28} step={1} value={cfg.type.priceSize} onValue={(v) => type({ priceSize: v })} />
+                      <Select label="Price weight" value={String(cfg.type.priceWeight)} onValue={(v) => type({ priceWeight: Number(v) })} options={WEIGHTS} />
+                      <MaybeColor label="Product name colour" value={cfg.type.nameColor} fallback="#121212" onValue={(v) => type({ nameColor: v })} />
+                      <MaybeColor label="Price colour" value={cfg.type.priceColor} fallback="#121212" onValue={(v) => type({ priceColor: v })} />
+                      <NumberField label="Step title size" suffix="px" min={12} max={32} step={1} value={cfg.type.stepSize} onValue={(v) => type({ stepSize: v })} />
+                      <Select label="Step counter (1 / 2)" value={cfg.type.counter} onValue={(v) => type({ counter: v as C["type"]["counter"] })} options={[{ value: "text", label: "Plain text" }, { value: "pill", label: "Coloured pill" }]} />
+                    </s-grid>
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Product cards">
+                  <s-stack gap="base">
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <Select label="Card style" value={cfg.card.style} onValue={(v) => card({ style: v as C["card"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "shadow", label: "Shadow" }, { value: "plain", label: "Plain (no box)" }]} />
+                      <Select label="Text alignment" value={cfg.card.align} onValue={(v) => card({ align: v as C["card"]["align"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centre" }]} />
+                      <NumberField label="Border width" suffix="px" min={0} max={4} step={1} value={cfg.card.borderWidth} onValue={(v) => card({ borderWidth: v })} />
+                      <NumberField label="Inner spacing" suffix="px" min={0} max={24} step={1} value={cfg.card.padding} onValue={(v) => card({ padding: v })} />
+                      <MaybeColor label="Card background" value={cfg.card.bg} fallback="#ffffff" onValue={(v) => card({ bg: v })} />
+                      <MaybeColor label="Border colour" value={cfg.card.border} fallback="#dddddd" onValue={(v) => card({ border: v })} />
+                      <MaybeColor label="Picked card border" value={cfg.card.pickedBorder} fallback="#111111" onValue={(v) => card({ pickedBorder: v })} />
+                    </s-grid>
+                    <Checkbox label="Tint the picked card" checked={cfg.card.pickedTint} onValue={(v) => card({ pickedTint: v })} />
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Product images">
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <Select label="Shape" value={cfg.image.ratio} onValue={(v) => image({ ratio: v as C["image"]["ratio"] })} options={[{ value: "1 / 1", label: "Square" }, { value: "4 / 5", label: "Portrait (4:5)" }, { value: "3 / 4", label: "Tall (3:4)" }, { value: "16 / 9", label: "Wide (16:9)" }]} />
+                    <Select label="Fit" value={cfg.image.fit} onValue={(v) => image({ fit: v as C["image"]["fit"] })} options={[{ value: "cover", label: "Fill the shape" }, { value: "contain", label: "Show the whole picture" }]} />
+                    <Checkbox label="Image corners follow the card" checked={cfg.image.radius < 0} onValue={(v) => image({ radius: v ? -1 : 8 })} />
+                    {cfg.image.radius >= 0 ? <NumberField label="Image corners" suffix="px" min={0} max={40} step={1} value={cfg.image.radius} onValue={(v) => image({ radius: v })} /> : <span />}
+                  </s-grid>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Add buttons">
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <Select label="Button style" value={cfg.pickButton.style} onValue={(v) => pickButton({ style: v as C["pickButton"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "text", label: "Text link" }]} />
+                    <NumberField label="Corners" details="99 = pill" suffix="px" min={0} max={99} step={1} value={cfg.pickButton.radius} onValue={(v) => pickButton({ radius: v })} />
+                    <NumberField label="Height" suffix="px" min={28} max={56} step={1} value={cfg.pickButton.height} onValue={(v) => pickButton({ height: v })} />
+                    <NumberField label="Text size" suffix="px" min={11} max={20} step={1} value={cfg.pickButton.size} onValue={(v) => pickButton({ size: v })} />
+                    <Select label="Text weight" value={String(cfg.pickButton.weight)} onValue={(v) => pickButton({ weight: Number(v) })} options={WEIGHTS} />
+                    <Checkbox label="CAPITAL LETTERS" checked={cfg.pickButton.upper} onValue={(v) => pickButton({ upper: v })} />
+                    <MaybeColor label="Background" value={cfg.pickButton.bg} fallback="#ffffff" onValue={(v) => pickButton({ bg: v })} />
+                    <MaybeColor label="Text" value={cfg.pickButton.text} fallback="#121212" onValue={(v) => pickButton({ text: v })} />
+                    <MaybeColor label="Border" value={cfg.pickButton.border} fallback="#dddddd" onValue={(v) => pickButton({ border: v })} />
+                    <span />
+                    <MaybeColor label="Picked: background" value={cfg.pickButton.pickedBg} fallback="#111111" onValue={(v) => pickButton({ pickedBg: v })} />
+                    <MaybeColor label="Picked: text" value={cfg.pickButton.pickedText} fallback="#ffffff" onValue={(v) => pickButton({ pickedText: v })} />
+                  </s-grid>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Summary and main button">
+                  <s-stack gap="base">
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <MaybeColor label="Summary background" value={cfg.summaryLook.bg} fallback="#f5f5f5" onValue={(v) => summaryLook({ bg: v })} />
+                      <MaybeColor label="Summary text" value={cfg.summaryLook.text} fallback="#121212" onValue={(v) => summaryLook({ text: v })} />
+                      <Checkbox label="Summary corners follow the cards" checked={cfg.summaryLook.radius < 0} onValue={(v) => summaryLook({ radius: v ? -1 : 12 })} />
+                      {cfg.summaryLook.radius >= 0 ? <NumberField label="Summary corners" suffix="px" min={0} max={40} step={1} value={cfg.summaryLook.radius} onValue={(v) => summaryLook({ radius: v })} /> : <span />}
+                    </s-grid>
+                    <Switch label="My own colours for the Add bundle to cart button" details="Off: it looks like your theme's Add to cart button." checked={cfg.summaryLook.customButton} onValue={(v) => summaryLook({ customButton: v })} />
+                    {cfg.summaryLook.customButton ? (
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        <ColorField label="Button background" value={cfg.summaryLook.btnBg} onValue={(v) => summaryLook({ btnBg: v })} />
+                        <ColorField label="Button text" value={cfg.summaryLook.btnText} onValue={(v) => summaryLook({ btnText: v })} />
+                        <NumberField label="Button corners" details="99 = pill" suffix="px" min={0} max={99} step={1} value={cfg.summaryLook.btnRadius} onValue={(v) => summaryLook({ btnRadius: v })} />
+                      </s-grid>
+                    ) : null}
+                  </s-stack>
+                </s-section>
+              </Pane>
+
+              <Pane show={tab === "style"}>
+                <s-section heading="Picked colour and card corners">
                   <s-stack gap="base">
                     <Checkbox label="Picked items use my theme's button colour" checked={cfg.look.themeAccent} onValue={(v) => look({ themeAccent: v })} />
                     {!cfg.look.themeAccent ? <ColorField label="Picked item colour" value={cfg.look.accent} onValue={(v) => look({ accent: v })} /> : null}

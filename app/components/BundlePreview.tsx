@@ -4,7 +4,7 @@
  * the counts, the summary and the button text behave like on the store.
  */
 import { useState, type CSSProperties } from "react";
-import { bundleVars, type BundleDesign } from "../lib/bundle-design";
+import { bundleClass, bundleVars, type BundleDesign } from "../lib/bundle-design";
 import type { PreviewTheme } from "../lib/theme-style";
 
 export type PreviewItem = { title: string; image: string | null; cents: number };
@@ -59,7 +59,7 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
 
   return (
     <div style={{ maxWidth: phone ? 390 : undefined, margin: "0 auto", padding: "4px 16px", fontSize: 15, lineHeight: 1.5 }}>
-      <div className="ucro ucro-bundle" style={vars}>
+      <div className={`ucro ucro-bundle ${bundleClass(c)}`} style={vars}>
         {c.text.heading ? <h2 className={`ucro__heading ucro__heading--${c.text.size}`}>{c.text.heading}</h2> : null}
         {c.text.sub ? <p className="ucro__sub">{c.text.sub}</p> : null}
         {steps.map((s, si) => (
@@ -111,7 +111,7 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
           {c.button.theme ? (
             <p style={{ margin: 0, padding: "10px 12px", textAlign: "center", border: "1px dashed #8a8a8a", borderRadius: 8, opacity: 0.8 }}>Your theme&rsquo;s Add to cart button adds the bundle once it&rsquo;s complete.</p>
           ) : (
-            <button type="button" className="ucro-btn ucro-bundle__add" disabled={!ready} style={{ padding: "12px 16px", font: "inherit", fontWeight: 600, color: page.accentText, background: page.accent, border: 0, borderRadius: page.buttonRadius, opacity: ready ? 1 : 0.6 }}>
+            <button type="button" className="ucro-btn ucro-bundle__add" disabled={!ready} style={{ padding: "12px 16px", font: "inherit", fontWeight: 600, color: page.accentText, background: page.accent, border: "1px solid transparent", borderRadius: page.buttonRadius, opacity: ready ? 1 : 0.6 }}>
               {ready ? c.button.label : fill(c.button.remaining, { remaining })}
             </button>
           )}
