@@ -3,7 +3,7 @@
  * (ucs-countdown.js builds the same structure), ticking every second.
  */
 import { useEffect, useState, type CSSProperties } from "react";
-import { countdownBarVars, type CountdownBarConfig } from "../lib/designs";
+import { countdownBarClasses, countdownBarVars, type CountdownBarConfig } from "../lib/designs";
 
 function deadline(c: CountdownBarConfig, now: number) {
   const t = c.timer;
@@ -33,7 +33,7 @@ export function CountdownBarPreview({ config: c }: { config: CountdownBarConfig 
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
     <div
-      className={`ucs ucs-cd-host ucs-cdb is-ready ucs-cdb--top${c.layout.slim ? " ucs-cdb--slim" : ""}`}
+      className={`ucs ucs-cd-host ucs-cdb is-ready ucs-cdb--top${c.layout.slim ? " ucs-cdb--slim" : ""}${countdownBarClasses(c)}`}
       style={{ ...(countdownBarVars(c) as CSSProperties), position: "relative" }}
     >
       <div className="ucs-cdb__inner">

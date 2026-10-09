@@ -9,3 +9,11 @@
 .fieldHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .fieldTitle { font-weight: 600; font-size: 13px; }
 .fieldMoves { display: inline-flex; gap: 4px; }
+
+/* "Start from a look": live mini previews to click */
+.looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.look { display: flex; flex-direction: column; gap: 6px; padding: 8px; font: inherit; text-align: left; cursor: pointer; background: #fff; border: 1px solid #e3e3e3; border-radius: 10px; }
+.look:hover { border-color: #8a8a8a; }
+.look:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
+.lookBar { display: block; overflow: hidden; border-radius: 6px; pointer-events: none; zoom: 0.8; }
+.lookName { font-size: 13px; font-weight: 600; color: #303030; }

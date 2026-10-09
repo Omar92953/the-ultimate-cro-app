@@ -9,7 +9,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getCountdownBar, saveCountdownBar } from "../lib/designs.server";
-import { withCountdownBarDefaults, type CountdownBarConfig } from "../lib/designs";
+import { COUNTDOWN_BAR_PRESETS, FONTS, NUMBER_STYLES, applyCountdownBarPreset, withCountdownBarDefaults, type CountdownBarConfig } from "../lib/designs";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { CountdownBarPreview } from "../components/CountdownBarPreview";
@@ -34,6 +34,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 type C = CountdownBarConfig;
+const LOOK: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 6, padding: 8, font: "inherit", textAlign: "left", cursor: "pointer", background: "#fff", border: "1px solid #e3e3e3", borderRadius: 10, minWidth: 0, overflow: "hidden" };
 const PAGE_OPTIONS: { value: C["where"]["pages"][number]; label: string }[] = [
   { value: "home", label: "Home page" },
   { value: "product", label: "Product pages" },
@@ -88,10 +89,30 @@ export default function CountdownBarDesigner() {
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
+        <style>{data.css}</style>
+        <s-section heading="Start from a look">
+          <div className={ui.looks} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
+            {COUNTDOWN_BAR_PRESETS.map((p) => (
+              <button key={p.key} type="button" className={ui.look} style={LOOK} onClick={() => setCfg((c) => applyCountdownBarPreset(c, p.key))} aria-label={`Use the ${p.title} look`}>
+                <span className={ui.lookBar} style={{ display: "block", overflow: "hidden", borderRadius: 6, pointerEvents: "none" }} aria-hidden="true">
+                  <CountdownBarPreview config={{ ...applyCountdownBarPreset(cfg, p.key), text: { ...cfg.text, show: false }, layout: { ...cfg.layout, slim: true, dismissible: false } }} />
+                </span>
+                <span className={ui.lookName} style={{ fontSize: 13, fontWeight: 600, color: "#303030" }}>{p.title}</span>
+              </button>
+            ))}
+          </div>
+        </s-section>
+
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="Bar">
-              <Switch label="Show the countdown bar" checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
+            <s-section heading="What shows">
+              <s-stack gap="base">
+                <Switch label="Countdown bar" details="Off: the bar disappears from your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
+                <Switch label="Text" checked={cfg.text.show} onValue={(v) => text({ show: v })} />
+                <Switch label="Button (Shop now)" checked={cfg.button.show} onValue={(v) => button({ show: v })} />
+                <Switch label="Close (X) button" details="Shoppers can hide the bar for the rest of their visit." checked={cfg.layout.dismissible} onValue={(v) => layout({ dismissible: v })} />
+                <Switch label="Days / Hours / Min / Sec under the numbers" checked={cfg.timer.labels} onValue={(v) => timer({ labels: v })} />
+              </s-stack>
             </s-section>
 
             <s-section heading="Timer">
@@ -122,9 +143,7 @@ export default function CountdownBarDesigner() {
                   ]}
                 />
                 {t.ended === "message" ? <TextField label="Message" value={t.endedText} onValue={(v) => timer({ endedText: v })} /> : null}
-                <Select label="Numbers" value={t.style} onValue={(v) => timer({ style: v as C["timer"]["style"] })} options={[{ value: "boxes", label: "In boxes" }, { value: "plain", label: "Plain" }]} />
                 <Checkbox label="Show days" details="Off: hours keep counting past 24." checked={t.showDays} onValue={(v) => timer({ showDays: v })} />
-                <Checkbox label="Show Days / Hours / Min / Sec under the numbers" checked={t.labels} onValue={(v) => timer({ labels: v })} />
                 {t.labels ? (
                   <s-grid gridTemplateColumns="1fr 1fr 1fr 1fr" gap="small-200">
                     <TextField label="Days" value={t.labelText.d} onValue={(v) => timer({ labelText: { ...t.labelText, d: v } })} />
@@ -138,9 +157,7 @@ export default function CountdownBarDesigner() {
 
             <s-section heading="Text and button">
               <s-stack gap="base">
-                <Switch label="Show the text" checked={cfg.text.show} onValue={(v) => text({ show: v })} />
-                {cfg.text.show ? <TextField label="Text" value={cfg.text.value} onValue={(v) => text({ value: v })} /> : null}
-                <Switch label="Show the button" checked={cfg.button.show} onValue={(v) => button({ show: v })} />
+                {cfg.text.show ? <TextField label="Text" value={cfg.text.value} onValue={(v) => text({ value: v })} /> : <s-text color="subdued">The text is switched off above.</s-text>}
                 {cfg.button.show ? (
                   <>
                     <TextField label="Button text" value={cfg.button.text} onValue={(v) => button({ text: v })} />
@@ -165,7 +182,6 @@ export default function CountdownBarDesigner() {
               <s-stack gap="base">
                 <Select label="Position" value={cfg.layout.position} onValue={(v) => layout({ position: v as C["layout"]["position"] })} options={[{ value: "top", label: "Top of the page" }, { value: "bottom", label: "Bottom of the screen (always visible)" }]} />
                 <Checkbox label="Slim: everything on one line" details="Also on phones; long text shortens with …" checked={cfg.layout.slim} onValue={(v) => layout({ slim: v })} />
-                <Checkbox label="Customers can close it" checked={cfg.layout.dismissible} onValue={(v) => layout({ dismissible: v })} />
                 <Checkbox label="Show on all pages" checked={cfg.where.all} onValue={(v) => where({ all: v })} />
                 {!cfg.where.all ? (
                   <s-stack gap="small-200">
@@ -182,6 +198,20 @@ export default function CountdownBarDesigner() {
                 <TextField label="Only these products or collections (optional)" details="Handles from the page address, separated by commas, e.g. summer-dress, sale" value={cfg.where.handles} onValue={(v) => where({ handles: v })} />
                 <Select label="Devices" value={cfg.where.devices} onValue={(v) => where({ devices: v as C["where"]["devices"] })} options={[{ value: "all", label: "Desktop and mobile" }, { value: "desktop", label: "Desktop only" }, { value: "mobile", label: "Mobile only" }]} />
               </s-stack>
+            </s-section>
+
+            <s-section heading="Design">
+              <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                <Select label="Numbers" value={t.style} onValue={(v) => timer({ style: v as C["timer"]["style"] })} options={NUMBER_STYLES} />
+                <Select label="Font" value={cfg.look.font} onValue={(v) => look({ font: v as C["look"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
+                <Select label="Text weight" value={String(cfg.look.textWeight)} onValue={(v) => look({ textWeight: Number(v) })} options={[{ value: "400", label: "Regular" }, { value: "500", label: "Medium" }, { value: "600", label: "Semibold" }, { value: "700", label: "Bold" }, { value: "800", label: "Extra bold" }]} />
+                <Select label="Number weight" value={String(cfg.look.numberWeight)} onValue={(v) => look({ numberWeight: Number(v) })} options={[{ value: "400", label: "Regular" }, { value: "600", label: "Semibold" }, { value: "700", label: "Bold" }, { value: "800", label: "Extra bold" }, { value: "900", label: "Black" }]} />
+                <Select label="Button style" value={cfg.look.buttonStyle} onValue={(v) => look({ buttonStyle: v as C["look"]["buttonStyle"] })} options={[{ value: "filled", label: "Filled" }, { value: "outline", label: "Outline" }]} />
+                <NumberField label="Button corners" details="999 = pill" suffix="px" min={0} max={999} step={1} value={cfg.look.buttonRadius} onValue={(v) => look({ buttonRadius: v })} />
+              </s-grid>
+              <s-box paddingBlockStart="base">
+                <Checkbox label="CAPITAL LETTERS" checked={cfg.look.upper} onValue={(v) => look({ upper: v })} />
+              </s-box>
             </s-section>
 
             <s-section heading="Colours">
@@ -202,7 +232,7 @@ export default function CountdownBarDesigner() {
                 <NumberField label="Numbers" suffix="px" min={10} max={32} step={1} value={cfg.look.numberSize} onValue={(v) => look({ numberSize: v })} />
                 <NumberField label="Labels under numbers" suffix="px" min={7} max={14} step={1} value={cfg.look.labelSize} onValue={(v) => look({ labelSize: v })} />
                 <NumberField label="Button text" suffix="px" min={10} max={20} step={1} value={cfg.look.buttonSize} onValue={(v) => look({ buttonSize: v })} />
-                <NumberField label="Corners" suffix="px" min={0} max={20} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
+                <NumberField label="Number box corners" details="999 = round" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
               </s-grid>
             </s-section>
           </s-stack>
@@ -212,7 +242,6 @@ export default function CountdownBarDesigner() {
               <span>Live preview</span>
               <Segmented label="Preview size" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />
             </div>
-            <style>{data.css}</style>
             <div className={ui.frame} style={{ padding: 16 }}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 {cfg.on ? <CountdownBarPreview config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}

@@ -109,7 +109,7 @@
     if (L.dismissible && !design && session(function (st) { return st.getItem(KEY); }) === '1') off = true;
     if (off && !design) { el.remove(); return; }
 
-    el.className = 'ucs ucs-cd-host ucs-cdb ucs-cdb--' + L.position + (L.slim ? ' ucs-cdb--slim' : '') +
+    el.className = 'ucs ucs-cd-host ucs-cdb ucs-cdb--' + L.position + (L.slim ? ' ucs-cdb--slim' : '') + (c.xcls || '') +
       (W.devices === 'mobile' ? ' ucs-hide-desktop' : W.devices === 'desktop' ? ' ucs-hide-mobile' : '');
     if (c.css) el.setAttribute('style', c.css);
     var units = (T.showDays === false ? ['h', 'm', 's'] : ['d', 'h', 'm', 's']).map(function (u, i) {

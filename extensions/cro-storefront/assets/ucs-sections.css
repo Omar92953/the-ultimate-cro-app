@@ -44,6 +44,14 @@
 .ucs-cd__sep { font-size: var(--ucs-cd-size, 1em); font-weight: 700; opacity: 0.6; }
 .ucs-cd--boxes .ucs-cd__n { min-width: 1.9em; padding: 0.3em 0.25em; text-align: center; border-radius: var(--ucs-cd-radius, 8px); background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); }
 .ucs-cd--boxes .ucs-cd__sep { padding-top: 0.3em; }
+.ucs-cd .ucs-cd__n { font-weight: var(--ucs-cd-nw, 700); }
+/* number styles (bar and timer section) */
+.ucs-cd--outline .ucs-cd__n { min-width: 1.9em; padding: 0.25em 0.2em; text-align: center; border-radius: var(--ucs-cd-radius, 8px); border: 1.5px solid var(--ucs-accent, #121212); color: var(--ucs-accent, #121212); }
+.ucs-cd--circles .ucs-cd__n { display: grid; place-items: center; width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); }
+.ucs-cd--cards .ucs-cd__n { position: relative; min-width: 1.9em; padding: 0.35em 0.25em; text-align: center; border-radius: var(--ucs-cd-radius, 6px); background: var(--ucs-accent, #2f2f33); color: var(--ucs-on-accent, #fff); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.06); }
+.ucs-cd--cards .ucs-cd__n::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, 0.35); }
+.ucs-cd--pill { padding: 0.3em 0.9em; border-radius: 999px; background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); align-items: center; }
+.ucs-cd--outline .ucs-cd__sep, .ucs-cd--circles .ucs-cd__sep, .ucs-cd--cards .ucs-cd__sep { padding-top: 0.3em; }
 .ucs-cd.is-nodays [data-u="d"], .ucs-cd.is-nodays [data-sep="h"] { display: none; }
 .ucs-cd__end { margin: 0; font-weight: 600; }
 
@@ -66,6 +74,12 @@
 .ucs-cdb .ucs-cd__l { font-size: var(--ucs-cdb-ls, 9px); }
 .ucs-cdb .ucs-cd__u { gap: 3px; }
 .ucs-cdb__btn { min-height: 32px; padding: 0 14px; border: 0; background: var(--ucs-cdb-btn-bg, var(--ucs-accent)); color: var(--ucs-cdb-btn-fg, var(--ucs-on-accent)); font: inherit; font-size: var(--ucs-cdb-bs, 0.9em); font-weight: 600; cursor: pointer; }
+/* designed in the app: font, text weight, capitals, button corners and outline buttons */
+.ucs-cdb { font-family: var(--ucs-cdb-font, inherit); }
+.ucs-cdb .ucs-cdb__text { font-weight: var(--ucs-cdb-fw, 600); }
+.ucs-cdb .ucs-cdb__btn { border-radius: var(--ucs-cdb-btn-r, 999px); border: 1.5px solid transparent; }
+.ucs-cdb--btn-outline .ucs-cdb__btn { background: transparent; color: var(--ucs-cdb-btn-bg, currentColor); border-color: var(--ucs-cdb-btn-bg, currentColor); }
+.ucs-cdb--upper .ucs-cdb__text, .ucs-cdb--upper .ucs-cdb__btn, .ucs-cdb--upper .ucs-cd__l { text-transform: uppercase; letter-spacing: 0.06em; }
 /* Slim: everything on one line, also on phones (the text shortens with … if space runs out). */
 .ucs-cdb--slim .ucs-cdb__inner { flex-wrap: nowrap; gap: 10px; }
 .ucs-cdb--slim .ucs-cdb__text { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
