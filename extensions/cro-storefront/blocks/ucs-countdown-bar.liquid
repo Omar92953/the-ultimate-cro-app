@@ -1,5 +1,14 @@
-{%- assign d = shop.metaobjects['$app:cro_design'] -%}<div class="ucs ucs-cd-host ucs-cdb" data-ucs-cdb data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden {{ block.shopify_attributes }}>
-<script type="application/json">{"header":{{ d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d['countdown_product'].config.value | json | default: 'null' }}}</script>
+{%- assign d = shop.metaobjects['$app:cro_design'] -%}{%- liquid
+assign x = ''
+if request.design_mode
+assign x = '_draft'
+endif
+assign kh = 'countdown_bar' | append: x
+assign kf = 'countdown_footer' | append: x
+assign kd = 'countdown_home' | append: x
+assign kp = 'countdown_product' | append: x
+-%}<div class="ucs ucs-cd-host ucs-cdb" data-ucs-cdb data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden {{ block.shopify_attributes }}>
+<script type="application/json">{"header":{{ d[kh].config.value | default: d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d[kf].config.value | default: d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d[kd].config.value | default: d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d[kp].config.value | default: d['countdown_product'].config.value | json | default: 'null' }}}</script>
 </div>
 <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
 {% schema %}{"name":"Countdown","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.1c"}]}{% endschema %}

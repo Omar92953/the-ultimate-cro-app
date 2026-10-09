@@ -3,6 +3,7 @@
   highlighted. Set in the app (Store sections → Collection pills); ucs-collection-pills.js builds it.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['collection_pills'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- endif -%}
 {%- if c.i.size > 0 -%}
   <div class="ucs ucs-cp" data-ucs-cp data-root="{{ routes.collections_url }}" data-on="{{ collection.handle }}" {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script></div>
   <script src="{{ 'ucs-collection-pills.js' | asset_url }}" defer></script>

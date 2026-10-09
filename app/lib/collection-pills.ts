@@ -5,10 +5,13 @@
  * "collection_pills_editor" (this form). Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export type PillItem = { id: string; handle: string; title: string; label: string; image: string | null };
 
 export type CollectionPillsConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   heading: string;
   items: PillItem[];
   layout: { mode: "scroll" | "wrap"; align: "left" | "center"; arrows: boolean; images: boolean; paddingTop: number; paddingBottom: number };
@@ -30,6 +33,7 @@ export type CollectionPillsConfig = {
 };
 
 export const DEFAULT_PILLS: CollectionPillsConfig = {
+  scheme: "",
   heading: "",
   items: [],
   layout: { mode: "scroll", align: "left", arrows: false, images: false, paddingTop: 16, paddingBottom: 16 },
@@ -44,6 +48,7 @@ export function withPillsDefaults(raw: unknown): CollectionPillsConfig {
   const d = DEFAULT_PILLS;
   const l = obj(r.layout), k = obj(r.look);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     heading: str(r.heading, d.heading, 120),
     items: (Array.isArray(r.items) ? r.items : []).slice(0, 80).flatMap((x) => {
       const i = obj(x);

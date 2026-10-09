@@ -5,8 +5,11 @@
  * Stored in $app:cro_design "shipping_bar" (storefront) and "shipping_bar_editor". Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export type ShippingBarConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   on: boolean;
   goal: number; // in the store's currency (converted for other currencies on the storefront)
   text: { empty: string; progress: string; done: string };
@@ -38,6 +41,7 @@ export type ShippingBarConfig = {
 };
 
 export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
+  scheme: "",
   on: true,
   goal: 100,
   text: { empty: "Free shipping on orders over {goal}", progress: "You're {left} away from free shipping", done: "You've got free shipping!" },
@@ -67,6 +71,7 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
   const t = obj(r.text), s = obj(r.show), w = obj(r.where), k = obj(r.look);
   const goal = Number(r.goal);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     on: bool(r.on, d.on),
     goal: Number.isFinite(goal) && goal > 0 ? Math.min(1_000_000, Math.round(goal * 100) / 100) : d.goal,
     text: { empty: str(t.empty, d.text.empty, 160), progress: str(t.progress, d.text.progress, 160), done: str(t.done, d.text.done, 160) },

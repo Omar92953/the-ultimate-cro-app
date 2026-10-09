@@ -27,8 +27,9 @@ export async function getContact(admin: AdminClient): Promise<{ config: ContactC
   return { config: withContactDefaults(raw), saved: raw !== null };
 }
 
-export async function saveContact(admin: AdminClient, config: ContactConfig) {
+export async function saveContact(admin: AdminClient, config: ContactConfig, draftOnly = false) {
   const clean = withContactDefaults(config);
-  await upsert(admin, "$app:cro_page", "contact", { config: JSON.stringify(toStorefrontContact(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_page", "contact", { config: JSON.stringify(toStorefrontContact(clean)) });
+  await upsert(admin, "$app:cro_page", "contact_draft", { config: JSON.stringify(toStorefrontContact(clean)) });
   return clean;
 }

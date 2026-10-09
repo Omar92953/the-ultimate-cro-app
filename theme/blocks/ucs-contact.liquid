@@ -5,6 +5,7 @@
   plus its success/error messages are rendered here; ucs-contact.js adds the fields and layout.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_page']['contact'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_page']['contact_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_page']['contact_draft'].config.value -%}{%- endif -%}
 {%- if c == blank -%}
   {%- if request.design_mode %}<div class="ucs-ct-note" {{ block.shopify_attributes }}>Design your contact form in the app: Pages → Contact page.</div>{% endif -%}
 {%- else -%}

@@ -5,7 +5,7 @@
  * like the store.
  */
 import type { CSSProperties, ReactNode } from "react";
-import { googleFontsHref, previewTheme, type ThemeStyle } from "../lib/theme-style";
+import { googleFontsHref, previewTheme, schemeOf, type ThemeScheme, type ThemeStyle } from "../lib/theme-style";
 
 export function ThemeStylePanel({ style, scheme, onScheme, onMatch, noneLabel = "None (same as the page)" }: { style: ThemeStyle; scheme: string; onScheme: (id: string) => void; onMatch: () => void; noneLabel?: string }) {
   const f = style.fonts;
@@ -48,6 +48,27 @@ export function ThemeStylePanel({ style, scheme, onScheme, onMatch, noneLabel = 
         </s-text>
       </s-stack>
     </s-section>
+  );
+}
+
+/**
+ * The panel for sections whose colours live in their design: picking a scheme copies its colours in
+ * (None keeps the current colours); "Match" uses the picked scheme, or the theme's first one.
+ */
+export function ThemeMatch<C extends { scheme: string }>({ style, config, setConfig, match }: { style: ThemeStyle; config: C; setConfig: (fn: (c: C) => C) => void; match: (c: C, s: ThemeScheme, st: ThemeStyle) => C }) {
+  return (
+    <ThemeStylePanel
+      style={style}
+      scheme={config.scheme}
+      noneLabel="None (my own colours)"
+      onScheme={(id) =>
+        setConfig((c) => {
+          const s = schemeOf(style, id);
+          return s ? match(c, s, style) : { ...c, scheme: "" };
+        })
+      }
+      onMatch={() => setConfig((c) => match(c, schemeOf(style, c.scheme) ?? style.schemes[0], style))}
+    />
   );
 }
 

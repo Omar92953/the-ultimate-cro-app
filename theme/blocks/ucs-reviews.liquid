@@ -6,6 +6,9 @@
 {%- endcomment -%}
 {%- liquid
   assign c = shop.metaobjects['$app:cro_design']['reviews'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['reviews_draft'].config.value
+    assign c = shop.metaobjects['$app:cro_design']['reviews_draft'].config.value
+  endif
   assign items = shop.metaobjects['$app:cro_lists']['main'].reviews.value
   assign pid = 0
   if request.page_type == 'product' and product and c.w.filter == 'product'

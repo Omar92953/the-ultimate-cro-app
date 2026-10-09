@@ -4,6 +4,7 @@
   account and country/language data to ucs-header.js, which draws it and hides the theme's header bar.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['header'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['header_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['header_draft'].config.value -%}{%- endif -%}
 {%- if c.on -%}
   {%- assign menu = linklists[c.menu] | default: linklists['main-menu'] -%}
   <div id="ucs-hd" data-root="{{ routes.root_url }}" data-search="{{ routes.search_url }}" data-cart-url="{{ routes.cart_url }}" data-count="{{ cart.item_count }}" data-acc="{% if shop.customer_accounts_enabled %}{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}{% endif %}" data-home="{% if request.page_type == 'index' %}1{% endif %}" data-shop="{{ shop.name | escape }}" hidden {{ block.shopify_attributes }}>

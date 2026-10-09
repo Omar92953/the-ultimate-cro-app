@@ -47,9 +47,10 @@ export async function getCountdownBar(admin: AdminClient, place: CountdownPlace 
   return { config: withCountdownBarDefaults(raw, place), saved: raw !== null };
 }
 
-export async function saveCountdownBar(admin: AdminClient, config: CountdownBarConfig, place: CountdownPlace = "header") {
+export async function saveCountdownBar(admin: AdminClient, config: CountdownBarConfig, place: CountdownPlace = "header", draftOnly = false) {
   const clean = withCountdownBarDefaults(config, place);
-  await upsert(admin, "$app:cro_design", countdownHandle(place), { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", countdownHandle(place), { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
+  await upsert(admin, "$app:cro_design", `${countdownHandle(place)}_draft`, { config: JSON.stringify(toStorefrontCountdownBar(clean)) });
   return clean;
 }
 
@@ -78,13 +79,14 @@ async function imageFiles(admin: AdminClient, ids: string[]) {
   return out;
 }
 
-export async function saveImageCarousel(admin: AdminClient, config: ImageCarouselConfig) {
+export async function saveImageCarousel(admin: AdminClient, config: ImageCarouselConfig, draftOnly = false) {
   const clean = withImageCarouselDefaults(config);
   const images = await imageFiles(admin, [...new Set(clean.slides.flatMap((s) => (s.image ? [s.image.id] : [])))]);
   const missing = clean.slides.filter((s) => s.image && !images.has(s.image.id)).length;
   const storefront = toStorefrontImageCarousel(clean, images);
-  await upsert(admin, "$app:cro_design", "image_carousel", { config: JSON.stringify(storefront) });
-  await upsert(admin, "$app:cro_design", "image_carousel_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "image_carousel", { config: JSON.stringify(storefront) });
+  await upsert(admin, "$app:cro_design", "image_carousel_draft", { config: JSON.stringify(storefront) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "image_carousel_editor", { config: JSON.stringify(clean) });
   return { config: clean, missing };
 }
 
@@ -94,10 +96,11 @@ export async function getAddons(admin: AdminClient): Promise<{ config: AddonsCon
   return { config: withAddonsDefaults(raw), saved: raw !== null };
 }
 
-export async function saveAddons(admin: AdminClient, config: AddonsConfig) {
+export async function saveAddons(admin: AdminClient, config: AddonsConfig, draftOnly = false) {
   const clean = withAddonsDefaults(config);
-  await upsert(admin, "$app:cro_design", "addons", { config: JSON.stringify(toStorefrontAddons(clean)) });
-  await upsert(admin, "$app:cro_design", "addons_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "addons", { config: JSON.stringify(toStorefrontAddons(clean)) });
+  await upsert(admin, "$app:cro_design", "addons_draft", { config: JSON.stringify(toStorefrontAddons(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "addons_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 
@@ -107,12 +110,13 @@ export async function getHeader(admin: AdminClient): Promise<{ config: HeaderCon
   return { config: withHeaderDefaults(raw), saved: raw !== null };
 }
 
-export async function saveHeader(admin: AdminClient, config: HeaderConfig) {
+export async function saveHeader(admin: AdminClient, config: HeaderConfig, draftOnly = false) {
   const clean = withHeaderDefaults(config);
   const logo = clean.logo.image ? (await imageFiles(admin, [clean.logo.image.id])).get(clean.logo.image.id) : undefined;
   clean.logo.url = logo?.url ?? null;
-  await upsert(admin, "$app:cro_design", "header", { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
-  await upsert(admin, "$app:cro_design", "header_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "header", { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
+  await upsert(admin, "$app:cro_design", "header_draft", { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "header_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 
@@ -122,10 +126,11 @@ export async function getPills(admin: AdminClient): Promise<{ config: Collection
   return { config: withPillsDefaults(raw), saved: raw !== null };
 }
 
-export async function savePills(admin: AdminClient, config: CollectionPillsConfig) {
+export async function savePills(admin: AdminClient, config: CollectionPillsConfig, draftOnly = false) {
   const clean = withPillsDefaults(config);
-  await upsert(admin, "$app:cro_design", "collection_pills", { config: JSON.stringify(toStorefrontPills(clean)) });
-  await upsert(admin, "$app:cro_design", "collection_pills_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "collection_pills", { config: JSON.stringify(toStorefrontPills(clean)) });
+  await upsert(admin, "$app:cro_design", "collection_pills_draft", { config: JSON.stringify(toStorefrontPills(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "collection_pills_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 
@@ -135,10 +140,11 @@ export async function getShippingBar(admin: AdminClient): Promise<{ config: Ship
   return { config: withShippingBarDefaults(raw), saved: raw !== null };
 }
 
-export async function saveShippingBar(admin: AdminClient, config: ShippingBarConfig) {
+export async function saveShippingBar(admin: AdminClient, config: ShippingBarConfig, draftOnly = false) {
   const clean = withShippingBarDefaults(config);
-  await upsert(admin, "$app:cro_design", "shipping_bar", { config: JSON.stringify(toStorefrontShippingBar(clean)) });
-  await upsert(admin, "$app:cro_design", "shipping_bar_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "shipping_bar", { config: JSON.stringify(toStorefrontShippingBar(clean)) });
+  await upsert(admin, "$app:cro_design", "shipping_bar_draft", { config: JSON.stringify(toStorefrontShippingBar(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "shipping_bar_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 
@@ -148,12 +154,13 @@ export async function getReviewsDesign(admin: AdminClient): Promise<{ config: Re
   return { config: withReviewsDefaults(raw), saved: raw !== null };
 }
 
-export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesign) {
+export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesign, draftOnly = false) {
   const clean = withReviewsDefaults(config);
   const img = clean.fill.image ? (await imageFiles(admin, [clean.fill.image.id])).get(clean.fill.image.id) : undefined;
   clean.fill.imageUrl = img?.url ?? null;
-  await upsert(admin, "$app:cro_design", "reviews", { config: JSON.stringify(toStorefrontReviews(clean)) });
-  await upsert(admin, "$app:cro_design", "reviews_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "reviews", { config: JSON.stringify(toStorefrontReviews(clean)) });
+  await upsert(admin, "$app:cro_design", "reviews_draft", { config: JSON.stringify(toStorefrontReviews(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "reviews_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 

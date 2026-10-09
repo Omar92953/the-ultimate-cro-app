@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -15,6 +15,10 @@ import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { HeaderPreview } from "../components/HeaderPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeMatch } from "../components/ThemeStyle";
+import { matchHeader } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -28,6 +32,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .catch(() => session.shop.replace(".myshopify.com", "")),
   ]);
   return {
+    style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop,
     config,
     saved,
     css: storefrontCss("ucs-header.css"),
@@ -43,10 +48,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveHeader(admin, withHeaderDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const config = await saveHeader(admin, withHeaderDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -66,7 +71,8 @@ export default function HeaderDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Header saved — live on your store" : "Header saved");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Header saved — live on your store" : "Header saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
 
@@ -82,6 +88,9 @@ export default function HeaderDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
+      </Button>
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Add to header"}
       </Button>
@@ -95,6 +104,9 @@ export default function HeaderDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchHeader} />
+        </Pane>
         <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <s-grid gridTemplateColumns="repeat(auto-fill, minmax(180px, 1fr))" gap="small-200">
             {PRESETS.map((p) => (
@@ -291,5 +303,8 @@ export default function HeaderDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

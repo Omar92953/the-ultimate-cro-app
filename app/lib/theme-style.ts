@@ -91,3 +91,14 @@ export function previewTheme(s: ThemeStyle | null | undefined, schemeId = ""): P
     buttonRadius: Math.min(st.radius.button, 40),
   };
 }
+
+/** A colour part-way from b to a (pct of a), e.g. a light border from text and background. */
+export function mix(a: string, b: string, pct: number) {
+  const rgb = (h: string) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(h.trim());
+    const n = m ? parseInt(m[1], 16) : 0;
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const [x, y] = [rgb(a), rgb(b)];
+  return `#${x.map((v, i) => Math.round(v * pct + y[i] * (1 - pct)).toString(16).padStart(2, "0")).join("")}`;
+}

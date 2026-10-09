@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,6 +14,10 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { MediaPicker } from "../components/MediaPicker";
 import { ReviewsPreview, type PreviewReview } from "../components/ReviewsPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchReviews } from "../lib/theme-match";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 const fmtDate = (d: string) => {
@@ -43,17 +47,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         product: product ? { title: product.title, image: product.image } : null,
       };
     });
-  return { config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: sectionLinks(session.shop).reviews };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: sectionLinks(session.shop).reviews };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveReviewsDesign(admin, withReviewsDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const config = await saveReviewsDesign(admin, withReviewsDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -72,7 +76,8 @@ export default function ReviewsDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Reviews design saved — live on your store");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show("Reviews design saved — live on your store");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -87,6 +92,9 @@ export default function ReviewsDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href="/app/sections/reviews">
         Manage reviews
@@ -107,6 +115,9 @@ export default function ReviewsDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchReviews} />
+        </Pane>
 
         <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
@@ -250,7 +261,7 @@ export default function ReviewsDesigner() {
           </s-stack>
 
           <PreviewFrame title="Home page · your real reviews">
-            <ReviewsPreview config={cfg} reviews={data.reviews} />
+            <ThemeLook style={data.style}><ReviewsPreview config={cfg} reviews={data.reviews} /></ThemeLook>
           </PreviewFrame>
         </div>
       </s-stack>
@@ -258,5 +269,8 @@ export default function ReviewsDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,6 +14,10 @@ import { Checkbox, ColorField, NumberField, Select, Switch, TextField, Button } 
 import { ShippingBarCartPreview, ShippingBarPreview } from "../components/ShippingBarPreview";
 import { Segmented } from "../components/ui";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchShippingBar } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -26,17 +30,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .then((d) => d.shop.currencyCode as string)
       .catch(() => "USD"),
   ]);
-  return { config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveShippingBar(admin, withShippingBarDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const config = await saveShippingBar(admin, withShippingBarDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -65,7 +69,8 @@ export default function ShippingBarDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Free shipping bar saved — live on your store");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show("Free shipping bar saved — live on your store");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -80,6 +85,9 @@ export default function ShippingBarDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to header"}
@@ -98,6 +106,9 @@ export default function ShippingBarDesigner() {
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
         <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchShippingBar} />
+        </Pane>
         <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {SHIPPING_BAR_PRESETS.map((p) => (
@@ -187,12 +198,12 @@ export default function ShippingBarDesigner() {
             <div className={ui.frame} style={{ padding: view === "cart" ? 0 : 16 }}>
               {view === "cart" ? (
                 cfg.show.drawer ? (
-                  <ShippingBarCartPreview config={cfg} total={cart} currency={data.currency} />
+                  <ThemeLook style={data.style}><ShippingBarCartPreview config={cfg} total={cart} currency={data.currency} /></ThemeLook>
                 ) : (
                   <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Switch on “In the cart drawer” (Content tab) to show the bar in the cart.</p>
                 )
               ) : cfg.show.top ? (
-                <ShippingBarPreview config={cfg} total={cart} currency={data.currency} />
+                <ThemeLook style={data.style}><ShippingBarPreview config={cfg} total={cart} currency={data.currency} /></ThemeLook>
               ) : (
                 <p style={{ padding: 16, textAlign: "center", color: "#616161" }}>The bar at the top of the store is off.</p>
               )}
@@ -207,5 +218,8 @@ export default function ShippingBarDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

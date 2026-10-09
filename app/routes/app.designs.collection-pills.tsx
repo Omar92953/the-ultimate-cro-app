@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- App Bridge resource picker payloads are untyped */
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,22 +14,26 @@ import { withPillsDefaults, type CollectionPillsConfig, type PillItem } from "..
 import { Button, Checkbox, ColorField, NumberField, Select, TextField } from "../components/fields";
 import { CollectionPillsPreview } from "../components/CollectionPillsPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchPills } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getPills(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.collection_pills : null, addLink: sectionLinks(session.shop).collection_pills };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.collection_pills : null, addLink: sectionLinks(session.shop).collection_pills };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await savePills(admin, withPillsDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const config = await savePills(admin, withPillsDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -48,7 +52,8 @@ export default function CollectionPillsDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Collection pills saved — live on your store");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show("Collection pills saved — live on your store");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -91,6 +96,9 @@ export default function CollectionPillsDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
+      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to collection pages"}
       </Button>
@@ -105,7 +113,10 @@ export default function CollectionPillsDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchPills} />
+        </Pane>
             <Pane show={tab === "content"}><s-section heading={`Collections (${cfg.items.length})`}>
               <s-stack gap="base">
                 <s-text color="subdued">Each pill opens a collection. On a collection page, its own pill is highlighted.</s-text>
@@ -184,7 +195,7 @@ export default function CollectionPillsDesigner() {
             </div>
             <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
-              <CollectionPillsPreview config={cfg} />
+              <ThemeLook style={data.style}><CollectionPillsPreview config={cfg} /></ThemeLook>
             </div>
           </div>
         </div>
@@ -193,5 +204,8 @@ export default function CollectionPillsDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

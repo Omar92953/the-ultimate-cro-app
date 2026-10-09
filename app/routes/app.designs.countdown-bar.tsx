@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,6 +14,11 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { Segmented } from "../components/ui";
 import { CountdownBarPreview } from "../components/CountdownBarPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchCountdown } from "../lib/theme-match";
+import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 
@@ -28,7 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const [{ config, saved }, theme] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin).catch(() => null)]);
   const links = sectionLinks(session.shop);
   const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product }[place];
-  return { place, config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, addLink, editorLink: links.editor };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, addLink, editorLink: links.editor };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -36,10 +41,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     const place = placeFrom(request.url);
-    const config = await saveCountdownBar(admin, withCountdownBarDefaults(JSON.parse(String(form.get("config"))), place), place);
-    return { ok: true, error: null, config };
+    const config = await saveCountdownBar(admin, withCountdownBarDefaults(JSON.parse(String(form.get("config"))), place), place, form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -70,7 +75,8 @@ export default function CountdownBarDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show(`${placeInfo.title} countdown saved — live on your store`);
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show(`${placeInfo.title} countdown saved — live on your store`);
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, placeInfo.title]);
 
@@ -86,6 +92,9 @@ export default function CountdownBarDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `?place=${data.place}` })}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {addLabel}
@@ -110,6 +119,9 @@ export default function CountdownBarDesigner() {
 
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchCountdown} />
+        </Pane>
         <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <div className={ui.looks} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {COUNTDOWN_BAR_PRESETS.map((p) => (
@@ -289,7 +301,7 @@ export default function CountdownBarDesigner() {
             </div>
             <div className={ui.frame} style={{ padding: 16 }}>
               <div className={device === "phone" ? ui.phone : undefined}>
-                {cfg.on ? <CountdownBarPreview config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}
+                <ThemeLook style={data.style}>{cfg.on ? <CountdownBarPreview config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}</ThemeLook>
               </div>
             </div>
           </div>
@@ -299,5 +311,8 @@ export default function CountdownBarDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

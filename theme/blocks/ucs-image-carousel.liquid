@@ -3,6 +3,7 @@
   Image carousel), stored in $app:cro_design "image_carousel"; ucs-image-carousel.js builds it.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['image_carousel'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['image_carousel_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['image_carousel_draft'].config.value -%}{%- endif -%}
 {%- if c.s.size > 0 -%}
   <div class="ucs ucs-ic" data-ucs-ic {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script></div>
   <script src="{{ 'ucs-image-carousel.js' | asset_url }}" defer></script>

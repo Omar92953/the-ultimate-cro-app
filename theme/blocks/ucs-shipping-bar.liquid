@@ -4,6 +4,7 @@
   it and keeps it in step with the cart. Works in the Header area, on product and cart pages.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['shipping_bar'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['shipping_bar_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['shipping_bar_draft'].config.value -%}{%- endif -%}
 {%- if c.on -%}
   <div class="ucs ucs-fsb" data-ucs-fsb data-total="{{ cart.total_price }}" data-page="{{ request.page_type }}" {{ block.shopify_attributes }} hidden><script type="application/json">{{ c | json }}</script></div>
   <script src="{{ 'ucs-shipping-bar.js' | asset_url }}" defer></script>

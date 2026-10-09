@@ -5,10 +5,13 @@
  */
 import { color, num, pick, safeLink, str } from "./designs";
 import type { MediaRef } from "./sections";
+import { schemeId } from "./theme-style";
 
 export type ImageSlide = { image: MediaRef | null; alt: string; title: string; text: string; link: string; button: string };
 
 export type ImageCarouselConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   heading: { show: boolean; text: string; sub: string; align: "left" | "center"; size: number };
   slides: ImageSlide[];
   layout: {
@@ -36,6 +39,7 @@ export const RATIOS: { value: ImageCarouselConfig["layout"]["ratio"]; label: str
 ];
 
 export const DEFAULT_IMAGE_CAROUSEL: ImageCarouselConfig = {
+  scheme: "",
   heading: { show: true, text: "Shop the look", sub: "", align: "center", size: 28 },
   slides: [],
   layout: { perDesktop: 4, perMobile: 1, ratio: "4/5", gap: 16, radius: 12, captions: "below", fullWidth: false, paddingTop: 36, paddingBottom: 36 },
@@ -57,6 +61,7 @@ export function withImageCarouselDefaults(raw: unknown): ImageCarouselConfig {
   const d = DEFAULT_IMAGE_CAROUSEL;
   const h = obj(r.heading), l = obj(r.layout), n = obj(r.nav), k = obj(r.look);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     heading: {
       show: bool(h.show, d.heading.show),
       text: str(h.text, d.heading.text, 120),

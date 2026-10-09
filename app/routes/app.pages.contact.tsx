@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -13,6 +13,10 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, Te
 import { Segmented } from "../components/ui";
 import { ContactPreview } from "../components/ContactPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchContact } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 // The storefront's own stylesheet, so the preview matches the store exactly.
 
@@ -20,17 +24,17 @@ import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getContact(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, css: storefrontCss("ucs-contact.css"), inTheme: theme ? theme.installed.contact : null, themeLink: editorLinks(session.shop).contact };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-contact.css"), inTheme: theme ? theme.installed.contact : null, themeLink: editorLinks(session.shop).contact };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveContact(admin, withContactDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const config = await saveContact(admin, withContactDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -54,7 +58,8 @@ export default function ContactPage() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Contact page saved — live on your store");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show("Contact page saved — live on your store");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -81,6 +86,9 @@ export default function ContactPage() {
       <Button slot="primary-action" variant="primary" loading={busy} onClick={save}>
         Save
       </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/pages/contact")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
+      </Button>
       <Button slot="secondary-actions" href={data.themeLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to Contact page"}
       </Button>
@@ -96,7 +104,10 @@ export default function ContactPage() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchContact} />
+        </Pane>
             <Pane show={tab === "content"}><s-section heading="Text">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.heading} maxLength={160} onValue={(v) => set({ heading: v })} />
@@ -214,7 +225,7 @@ export default function ContactPage() {
             <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <div className={device === "phone" ? ui.phone : undefined}>
-                <ContactPreview config={cfg} />
+                <ThemeLook style={data.style}><ContactPreview config={cfg} /></ThemeLook>
               </div>
             </div>
           </div>
@@ -224,5 +235,8 @@ export default function ContactPage() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

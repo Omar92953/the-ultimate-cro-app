@@ -5,8 +5,11 @@
  */
 import { color, num, pick, str } from "./designs";
 import type { MediaRef } from "./sections";
+import { schemeId } from "./theme-style";
 
 export type ReviewsDesign = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string };
   summary: { show: boolean; average: boolean; stars: boolean; count: boolean };
   which: { filter: "all" | "featured" | "product"; fallback: boolean; limit: number };
@@ -30,6 +33,7 @@ export type ReviewsDesign = {
 };
 
 export const DEFAULT_REVIEWS: ReviewsDesign = {
+  scheme: "",
   text: {
     heading: "What our customers say",
     sub: "Real feedback from real customers.",
@@ -73,6 +77,7 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
   const t = obj(r.text), sm = obj(r.summary), w = obj(r.which), l = obj(r.layout), c = obj(r.card), f = obj(r.fill), k = obj(r.look), sp = obj(r.space);
   const img = obj(f.image);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     text: {
       heading: str(t.heading, d.text.heading, 120),
       sub: str(t.sub, d.text.sub, 240),

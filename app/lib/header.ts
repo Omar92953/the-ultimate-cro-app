@@ -5,8 +5,11 @@
  */
 import { color, num, pick, safeLink, str } from "./designs";
 import type { MediaRef } from "./sections";
+import { schemeId } from "./theme-style";
 
 export type HeaderConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   on: boolean;
   preset: PresetKey;
   logo: { image: MediaRef | null; url: string | null; width: number; mobileWidth: number; text: string };
@@ -45,6 +48,7 @@ export type HeaderConfig = {
 export type PresetKey = "glass_pill" | "glass_bar" | "rounded_center" | "classic" | "minimal" | "bold";
 
 export const DEFAULT_HEADER: HeaderConfig = {
+  scheme: "",
   on: true,
   preset: "glass_pill",
   logo: { image: null, url: null, width: 120, mobileWidth: 96, text: "" },
@@ -165,6 +169,7 @@ export function withHeaderDefaults(raw: unknown): HeaderConfig {
   const g = obj(r.logo), l = obj(r.layout), m = obj(r.menu), i = obj(r.icons), b = obj(r.button), k = obj(r.look), mo = obj(r.mobile);
   const img = obj(g.image);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     on: bool(r.on, d.on),
     preset: pick(r.preset, PRESETS.map((p) => p.key), d.preset),
     logo: {

@@ -5,6 +5,7 @@
  * Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export type AddonItem = {
   productId: string;
@@ -20,6 +21,8 @@ export type AddonItem = {
 type Ref = { handle: string; title: string };
 
 export type AddonsConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   heading: string;
   items: AddonItem[];
   message: { on: boolean; label: string; placeholder: string; max: number; name: string };
@@ -29,6 +32,7 @@ export type AddonsConfig = {
 };
 
 export const DEFAULT_ADDONS: AddonsConfig = {
+  scheme: "",
   heading: "Make it extra special",
   items: [],
   message: { on: false, label: "Add a gift message", placeholder: "Write your message (we'll print it on a card)", max: 200, name: "Gift message" },
@@ -50,6 +54,7 @@ export function withAddonsDefaults(raw: unknown): AddonsConfig {
   const d = DEFAULT_ADDONS;
   const m = obj(r.message), w = obj(r.where), k = obj(r.look);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     heading: str(r.heading, d.heading, 120),
     items: (Array.isArray(r.items) ? r.items : []).slice(0, 6).flatMap((x) => {
       const a = obj(x);

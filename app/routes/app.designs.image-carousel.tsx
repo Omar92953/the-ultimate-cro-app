@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -15,22 +15,26 @@ import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { ImageCarouselPreview } from "../components/ImageCarouselPreview";
 import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
+import { matchImageCarousel } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getImageCarousel(admin), getThemeStatus(admin).catch(() => null)]);
-  return { config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.image_carousel : null, addLink: sectionLinks(session.shop).image_carousel };
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.image_carousel : null, addLink: sectionLinks(session.shop).image_carousel };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const { config, missing } = await saveImageCarousel(admin, withImageCarouselDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config, missing };
+    const { config, missing } = await saveImageCarousel(admin, withImageCarouselDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    return { ok: true, draft: form.get("intent") === "draft", error: null, config, missing };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null, missing: 0 };
+    return { ok: false, draft: false, error: errorMessage(e), config: null, missing: 0 };
   }
 };
 
@@ -52,6 +56,7 @@ export default function ImageCarouselDesigner() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
     else if (fetcher.data.missing) shopify.toast.show(`Saved. ${fetcher.data.missing} image(s) are still processing — save again in a minute.`);
     else shopify.toast.show("Image carousel saved — live on your store");
   }, [fetcher.state, fetcher.data, shopify]);
@@ -77,6 +82,9 @@ export default function ImageCarouselDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
+      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to theme"}
       </Button>
@@ -91,7 +99,10 @@ export default function ImageCarouselDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <Pane show={tab === "looks"}>
+          <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchImageCarousel} />
+        </Pane>
             <Pane show={tab === "content"}><s-section heading={`Images (${cfg.slides.length})`}>
               <s-stack gap="base">
                 {cfg.slides.map((s, i) => (
@@ -210,7 +221,7 @@ export default function ImageCarouselDesigner() {
             <style dangerouslySetInnerHTML={{ __html: data.css }} />
             <div className={ui.frame}>
               <div className={device === "phone" ? ui.phone : undefined}>
-                <ImageCarouselPreview config={cfg} phone={device === "phone"} />
+                <ThemeLook style={data.style}><ImageCarouselPreview config={cfg} phone={device === "phone"} /></ThemeLook>
               </div>
             </div>
           </div>
@@ -220,5 +231,8 @@ export default function ImageCarouselDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

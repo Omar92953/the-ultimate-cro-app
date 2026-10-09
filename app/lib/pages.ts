@@ -4,6 +4,7 @@
  * (handle = page type); the storefront block reads them, plus a ready-made CSS-variable string.
  * Shared by client and server.
  */
+import { schemeId } from "./theme-style";
 
 export type PageType = "contact" | "product" | "collection" | "header";
 
@@ -35,6 +36,8 @@ export const FIELD_META: Record<ContactFieldKey, { name: string; type: string; a
 };
 
 export type ContactConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   heading: string;
   text: string;
   fields: ContactField[];
@@ -73,6 +76,7 @@ const field = (key: ContactFieldKey, on: boolean, required: boolean, half = fals
 });
 
 export const DEFAULT_CONTACT: ContactConfig = {
+  scheme: "",
   heading: "Get in touch",
   text: "Questions about an order, sizes or delivery? Send us a message and we'll reply within a day.",
   fields: [field("name", true, false, true), field("email", true, true, true), field("phone", true, false), field("subject", false, false, true), field("order", false, false), field("body", true, true)],
@@ -133,6 +137,7 @@ export function withContactDefaults(raw: unknown): ContactConfig {
   const order = saved.map((f) => f && f.key).filter((key): key is ContactFieldKey => fields.some((f) => f.key === key));
   fields.sort((a, b) => (order.indexOf(a.key) + 1 || 99) - (order.indexOf(b.key) + 1 || 99));
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     heading: str(r.heading, d.heading, 160),
     text: str(r.text, d.text, 1000),
     fields,

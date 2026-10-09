@@ -4,6 +4,7 @@
  * with a ready-made CSS-variable string the storefront applies. Shared by client and server.
  * First: the countdown bar.
  */
+import { schemeId } from "./theme-style";
 
 const HEX = /^#[0-9a-f]{3}([0-9a-f]{3})?([0-9a-f]{2})?$/i;
 export const color = (v: unknown, fallback: string) => (typeof v === "string" && HEX.test(v.trim()) ? v.trim() : fallback);
@@ -16,6 +17,8 @@ export const pick = <T extends string>(v: unknown, options: readonly T[], fallba
 const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fallback);
 
 export type CountdownBarConfig = {
+  /** The theme colour scheme its colours were matched to ("" = its own colours). */
+  scheme: string;
   on: boolean;
   /** bar = a strip (header/footer), section = big block with a heading, inline = compact box (product page) */
   kind: "bar" | "section" | "inline";
@@ -83,6 +86,7 @@ const in30days = () => {
 };
 
 export const DEFAULT_COUNTDOWN_BAR: CountdownBarConfig = {
+  scheme: "",
   on: true,
   kind: "bar",
   section: { heading: "Hurry — the sale ends soon", sub: "Up to 30% off. Don't miss out.", layout: "stack", headingSize: 30, paddingTop: 36, paddingBottom: 36 },
@@ -182,6 +186,7 @@ export function withCountdownBarDefaults(raw: unknown, place: CountdownPlace = "
   const k = (r.look ?? {}) as Partial<CountdownBarConfig["look"]>;
   const end = str(t.end, "", 16);
   return {
+    scheme: schemeId((r as { scheme?: unknown }).scheme),
     on: bool(r.on, d.on),
     kind: pick(r.kind, ["bar", "section", "inline"] as const, d.kind),
     section: {
