@@ -117,6 +117,11 @@ export default function SectionList() {
       <Button slot="secondary-actions" href={data.themeLink} target="_top" icon="theme-edit">
         {cfg.embed ? "Turn on in theme" : "Add to theme"}
       </Button>
+      {data.kind === "reviews" ? (
+        <Button slot="secondary-actions" href="/app/designs/reviews">
+          Design
+        </Button>
+      ) : null}
       <s-stack gap="base">
         <SectionTabs />
         <Explainer {...cfg.help} />

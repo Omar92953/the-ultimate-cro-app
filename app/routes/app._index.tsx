@@ -476,6 +476,7 @@ export default function Home() {
             previews: c.Previews,
             menu: [
               ...(manage ? [{ label: c.app ? "Design" : "Manage", href: manage }] : []),
+              ...(c.key === "reviews" ? [{ label: "Design", href: "/app/designs/reviews" }] : []),
               ...(c.list && counts?.total ? [{ label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }] : []),
               { ...editor(themeHref, inTheme), ...(c.embed && !inTheme ? { label: "Turn on in theme" } : {}) },
             ],

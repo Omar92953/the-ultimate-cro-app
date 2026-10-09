@@ -147,7 +147,156 @@
     restart();
   }
 
-  function scan() { document.querySelectorAll('.ucs-rv').forEach(setup); }
+  /* ---------- build the section from the app's design and the reviews passed by the block ---------- */
+  var DEF = {
+    t: { heading: 'What our customers say', sub: '', headingSize: 30, basedOn: 'Based on {count} reviews', readMore: 'Read more', readLess: 'Show less', verified: 'Verified buyer' },
+    sm: { show: true, average: true, stars: true, count: true },
+    w: { filter: 'all', fallback: true, limit: 12 },
+    l: { mode: 'carousel', perDesktop: 3, perMobile: 1, autoplay: 0, nav: 'arrows', arrowSize: 40 },
+    c: { style: 'classic', text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true },
+    sch: true, cls: 'ucs ucs-rv ucs-rv--carousel ucs-rv--fill-color ucs-rv--pat-chat ucs-rv--nav-arrows', css: ''
+  };
+  var SRC = { whatsapp: 'WhatsApp', instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', google: 'Google', x: 'X', snapchat: 'Snapchat', email: 'Email', youtube: 'YouTube', trustpilot: 'Trustpilot' };
+  var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
+  var sized = function (u, w) { return u + (u.indexOf('?') > -1 ? '&' : '?') + 'width=' + w; };
+  var stars = function (r, label) { return '<span class="ucs-rv__stars" style="--r: ' + r + '" role="img" aria-label="' + esc(label) + '">★★★★★</span>'; };
+
+  function card(r, c, t, only, shop) {
+    var md = r.m, fromProd = false;
+    if ((!md || !md.u) && !only && r.p && r.p.i) { md = { k: 'image', u: r.p.i }; fromProd = true; }
+    var showMedia = c.c.media && md && md.u;
+    var h = '<article class="ucs-rv__card ucs-rv__card--' + c.c.style + (showMedia ? ' has-media' : '') + '">';
+    if (showMedia) {
+      h += '<div class="ucs-rv__media' + (!fromProd && md.k !== 'video' ? ' ucs-rv__media--shot' : '') + '">';
+      if (md.k === 'video') {
+        h += '<video class="ucs-rv__video" muted loop playsinline preload="none" src="' + esc(md.u) + '"' + (md.po ? ' poster="' + esc(md.po) + '"' : '') + '></video>' +
+          '<button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="Turn sound on"><span class="ucs-i ucs-i--muted" aria-hidden="true"></span><span class="ucs-i ucs-i--sound" aria-hidden="true"></span></button>' +
+          '<span class="ucs-rv__play" aria-hidden="true"><span class="ucs-i ucs-i--play" aria-hidden="true"></span></span>';
+      } else {
+        h += '<img class="ucs-rv__img" src="' + esc(sized(md.u, 540)) + '" srcset="' + [360, 540, 720].map(function (w) { return esc(sized(md.u, w)) + ' ' + w + 'w'; }).join(', ') +
+          '" sizes="(min-width: 750px) 33vw, 90vw" loading="lazy" alt="' + esc(fromProd ? r.p.t : r.n) + '"' + (md.w ? ' width="' + md.w + '" height="' + md.h + '"' : '') + '>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="ucs-rv__body">';
+    var hasStars = c.c.stars && r.r > 0, src = r.s, hasSrc = c.c.source && src && src !== 'other';
+    if (hasStars || hasSrc) {
+      h += '<div class="ucs-rv__top">' + (hasStars ? stars(r.r, r.r + ' out of 5 stars') : '');
+      if (hasSrc) {
+        var name = src === 'website' ? shop : (SRC[src] || src);
+        h += r.su
+          ? '<a class="ucs-rv__src ucs-rv__src--' + esc(src) + '" href="' + esc(r.su) + '" target="_blank" rel="noopener nofollow" title="On ' + esc(name) + '" aria-label="On ' + esc(name) + '"><span class="ucs-i ucs-i--' + esc(src) + '" aria-hidden="true"></span></a>'
+          : '<span class="ucs-rv__src ucs-rv__src--' + esc(src) + '" title="' + esc(name) + '"><span class="ucs-i ucs-i--' + esc(src) + '" aria-hidden="true"></span></span>';
+      }
+      h += '</div>';
+    }
+    if (c.c.text && r.t) h += '<div class="ucs-rv__text">' + esc(r.t).replace(/\n/g, '<br>') + '</div><button type="button" class="ucs-rv__more" hidden>' + esc(t.readMore) + '</button>';
+    var meta = [c.c.location && r.l ? esc(r.l) : '', c.c.date && r.d ? esc(r.d) : ''].filter(Boolean).join(' · ');
+    h += '<footer class="ucs-rv__who"><span class="ucs-rv__name">' + esc(r.n) + '</span>' +
+      (c.c.verified && r.v ? '<span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>' + esc(t.verified) + '</span>' : '') +
+      (meta ? '<span class="ucs-rv__meta">' + meta + '</span>' : '') + '</footer>';
+    if (c.c.product && !only && r.p) {
+      h += '<a class="ucs-rv__prod" href="' + esc(r.p.u) + '">' + (r.p.i && !fromProd ? '<img src="' + esc(sized(r.p.i, 96)) + '" width="40" height="40" loading="lazy" alt="">' : '') + '<span>' + esc(r.p.t) + '</span></a>';
+    }
+    return h + '</div></article>';
+  }
+
+  function build(host) {
+    var data;
+    try { data = JSON.parse(host.querySelector('script[type="application/json"]').textContent); } catch (e) { return; }
+    var c = data.c || DEF, t = Object.assign({}, DEF.t, c.t);
+    var only = host.getAttribute('data-only') === '1';
+    var onProductPage = host.getAttribute('data-pp') && host.getAttribute('data-pp') !== '0';
+    var list = data.r || [];
+    if (c.w.filter === 'featured') list = list.filter(function (r) { return r.f; });
+    if (c.w.filter === 'product' && onProductPage && !only && !c.w.fallback) list = [];
+    var design = window.Shopify && window.Shopify.designMode;
+    if (!list.length && !design) { host.remove(); return; }
+    var rated = list.filter(function (r) { return r.r > 0; });
+    var avg = rated.length ? Math.round((rated.reduce(function (a, r) { return a + r.r; }, 0) / rated.length) * 10) / 10 : 0;
+    var shown = list.slice(0, c.w.limit);
+    var shop = host.getAttribute('data-shop') || '';
+
+    host.className = c.cls;
+    host.style.cssText = c.css;
+    host.setAttribute('data-autoplay', c.l.mode === 'carousel' && c.l.autoplay ? String(c.l.autoplay) : '');
+    host.setAttribute('data-video', c.c.videoAutoplay ? 'true' : 'false');
+    host.setAttribute('data-more', t.readMore);
+    host.setAttribute('data-less', t.readLess);
+    host.setAttribute('data-unmute', 'Turn sound on');
+    host.setAttribute('data-mute', 'Turn sound off');
+
+    var sm = c.sm, summary = '';
+    if (sm.show && rated.length && (sm.average || sm.stars || sm.count)) {
+      summary = '<div class="ucs-rv__summary">' + (sm.average ? '<span class="ucs-rv__avg">' + avg + '</span>' : '') +
+        (sm.stars ? stars(avg, avg + ' out of 5 stars') : '') +
+        (sm.count ? '<span class="ucs-rv__count">' + esc(t.basedOn.replace(/\{count\}/g, rated.length)) + '</span>' : '') + '</div>';
+    }
+    var head = t.heading || t.sub || summary ? '<div class="ucs-head ucs-rv__head">' + (t.heading ? '<h2>' + esc(t.heading) + '</h2>' : '') + (t.sub ? '<p>' + esc(t.sub) + '</p>' : '') + summary + '</div>' : '';
+    var carousel = c.l.mode === 'carousel';
+    var html = '<div class="ucs-wrap">' + head;
+    if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Store sections → Reviews.</p>';
+    else {
+      html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + '>' +
+        shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + '</div></div>';
+      if (carousel) {
+        html += '<div class="ucs-rv__nav"><button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="Previous"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>' +
+          '<span class="ucs-rv__dots"></span>' +
+          '<button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="Next"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button></div>';
+      }
+    }
+    html += '</div>';
+    host.innerHTML = html;
+
+    // Google review data on a product's own page
+    if (c.sch && only && rated.length && shown[0] && shown[0].p) {
+      var p = shown[0].p, ld = document.createElement('script');
+      ld.type = 'application/ld+json';
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'Product', name: p.t, url: location.origin + p.u, image: p.i ? (p.i.indexOf('//') === 0 ? 'https:' + p.i : p.i) : undefined,
+        aggregateRating: { '@type': 'AggregateRating', ratingValue: avg, reviewCount: rated.length, bestRating: 5 },
+        review: rated.map(function (r) {
+          var o = { '@type': 'Review', author: { '@type': 'Person', name: r.n }, reviewRating: { '@type': 'Rating', ratingValue: r.r, bestRating: 5 } };
+          if (r.t) o.reviewBody = r.t;
+          if (r.di) o.datePublished = r.di;
+          return o;
+        })
+      });
+      host.appendChild(ld);
+    }
+  }
+
+  /* dots: one per "page" of the carousel */
+  function dots(root) {
+    var box = root.querySelector('.ucs-rv__dots'), track = root.querySelector('.ucs-rv__track');
+    if (!box || !track || root.__dots) return;
+    root.__dots = true;
+    var cardW = function () { var f = track.querySelector('.ucs-rv__card'); return f ? f.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0) : track.clientWidth; };
+    var draw = function () {
+      var n = Math.max(1, Math.round((track.scrollWidth - track.clientWidth) / cardW()) + 1);
+      if (box.childElementCount !== n) {
+        box.innerHTML = '';
+        for (var i = 0; i < n; i++) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'ucs-rv__dot';
+          b.setAttribute('aria-label', 'Go to review ' + (i + 1));
+          b.addEventListener('click', (function (k) { return function () { track.scrollTo({ left: k * cardW(), behavior: reduce ? 'auto' : 'smooth' }); }; })(i));
+          box.appendChild(b);
+        }
+      }
+      var at = Math.round(Math.abs(track.scrollLeft) / cardW());
+      Array.prototype.forEach.call(box.children, function (d, i) { d.setAttribute('aria-current', i === at ? 'true' : 'false'); });
+    };
+    draw();
+    track.addEventListener('scroll', function () { window.requestAnimationFrame(draw); }, { passive: true });
+    window.addEventListener('resize', draw);
+  }
+
+  function scan() {
+    document.querySelectorAll('[data-ucs-rv]:not([data-built])').forEach(function (host) { host.setAttribute('data-built', ''); build(host); });
+    document.querySelectorAll('.ucs-rv').forEach(function (root) { setup(root); dots(root); });
+  }
   scan();
   document.addEventListener('shopify:section:load', scan);
 })();

@@ -235,9 +235,19 @@
 .ucs-rv__track:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .ucs-rv__nav { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
 .ucs-rv.is-static .ucs-rv__nav { display: none; }
-.ucs-rv__arrow { width: 42px; height: 42px; padding: 10px; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.ucs-rv__arrow { width: var(--ucs-rv-arrow, 42px); height: var(--ucs-rv-arrow, 42px); padding: calc(var(--ucs-rv-arrow, 42px) * 0.24); border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
 .ucs-rv__arrow .ucs-i { width: 100%; height: 100%; display: block; }
 .ucs-rv__arrow:disabled { opacity: 0.35; cursor: default; }
+/* how shoppers move the carousel: arrows, dots, both, or swipe only (set in the app) */
+.ucs-rv__nav { align-items: center; }
+.ucs-rv__dots { display: flex; gap: 2px; }
+.ucs-rv__dot { position: relative; width: 22px; height: 24px; padding: 0; cursor: pointer; background: none; border: 0; }
+.ucs-rv__dot::after { content: ""; position: absolute; inset: 8px 7px; background: currentColor; border-radius: 50%; opacity: 0.25; }
+.ucs-rv__dot[aria-current="true"]::after { opacity: 1; }
+.ucs-rv__dot:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; border-radius: 4px; }
+.ucs-rv--nav-arrows .ucs-rv__dots, .ucs-rv--nav-swipe .ucs-rv__dots { display: none; }
+.ucs-rv--nav-dots .ucs-rv__arrow, .ucs-rv--nav-swipe .ucs-rv__arrow { display: none; }
+.ucs-rv--nav-swipe .ucs-rv__nav { display: none; }
 
 .ucs-rv__card { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--ucs-rv-radius, 14px); background: var(--ucs-rv-card, rgba(127, 127, 127, 0.07)); color: var(--ucs-rv-fg, inherit); }
 /* Minimal: no fill, but still a card — a light outline around photo and review. */

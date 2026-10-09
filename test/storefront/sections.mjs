@@ -12,6 +12,19 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
+import { registerHooks } from "node:module";
+
+// App modules import each other without ".ts" (bundler style); let Node find them.
+registerHooks({
+  resolve(spec, ctx, next) {
+    try {
+      return next(spec, ctx);
+    } catch (e) {
+      if (spec.startsWith(".") && !/\.[a-z]+$/.test(spec)) return next(spec + ".ts", ctx);
+      throw e;
+    }
+  },
+});
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ext = path.resolve(here, "../../extensions/cro-storefront");
@@ -144,8 +157,10 @@ const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
 shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null })]);
 // Countdown bar: designed in the app — the app's defaults, saved the way the app saves them.
 const { toStorefrontCountdownBar, withCountdownBarDefaults } = await import("../../app/lib/designs.ts");
+const { toStorefrontReviews, withReviewsDefaults } = await import("../../app/lib/reviews-design.ts");
 const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
 shop.metaobjects["$app:cro_design"] = collectionOf([
+  mo("reviews", { config: toStorefrontReviews(withReviewsDefaults({ which: { filter: "product", fallback: false } })) }),
   mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) }),
   mo("countdown_home", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "fixed", end: in3days } }, "home"), ) }),
   mo("countdown_product", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 2 } }, "product")) }),
@@ -317,8 +332,12 @@ const msgs = [...idx.matchAll(/ucs-ab__msg"[^>]*>[\s\S]*?<span>([^<]*)<\/span>/g
 check(msgs[0]?.startsWith("Free delivery") && msgs[2]?.startsWith("Third"), `announcements not in "Order" order: ${msgs.join(" | ")}`);
 const rows = idx.split('class="ucs-logos__track').slice(1).map((r) => [...r.matchAll(/alt="([^"]+)"/g)].slice(0, 5).map((m) => m[1]).join());
 check(rows.length === 2 && rows[0] !== rows[1] && new Set(rows[1].split(",")).size === 5, `logo lines wrong: ${rows.join(" / ")}`);
-check((pages["product.html"].match(/class="ucs-rv__card /g) || []).length === 2, "product page should show only the tee's 2 reviews");
-check(/"reviewCount":2/.test(pages["product.html"]), "product JSON-LD should count 2 reviews");
+// Reviews are built in the browser from the passed data: the product page passes only the tee's 2.
+const productReviews = (() => {
+  const m = /data-ucs-rv data-only="1"[^>]*>\s*<script type="application\/json">([\s\S]*?)<\/script>/.exec(pages["product.html"]);
+  try { return m ? JSON.parse(m[1]).r.length : -1; } catch { return -2; }
+})();
+check(productReviews === 2, `product page should pass only the tee's 2 reviews (got ${productReviews})`);
 check((idx.match(/class="ucs-faq__item"/g) || []).length === 4, "FAQ should show the 4 shown questions");
 check(pages["deals.html"].includes("ucs-deals.js") && !pages["boosters.html"].includes("ucs-deals.js"), "deals script should load only when the shop has deals");
 check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "product collection ids should reach the deals script");

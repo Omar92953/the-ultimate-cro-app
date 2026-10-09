@@ -125,7 +125,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "Reviews and testimonials from your customers — text, photos or videos — with the icon of where they came from (WhatsApp, Instagram, TikTok…).",
-      how: "Add reviews here, then add the “Customer reviews” section in the theme editor. Choose there whether it shows all reviews, featured ones, or the product's own reviews on product pages.",
+      how: "Add reviews here, choose how the section looks in “Design”, then place the “Customer reviews” section in the theme editor.",
       example: "A WhatsApp screenshot from Mariam in Cairo, 5 stars, linked to the Basic tee — shown on the home page and on the tee's page.",
     },
     empty: "No reviews yet. Add your first one — a WhatsApp message or an Instagram comment works great.",

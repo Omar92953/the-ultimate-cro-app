@@ -5,6 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { COUNTDOWN_PLACES, toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "./designs";
+import { toStorefrontReviews, withReviewsDefaults, type ReviewsDesign } from "./reviews-design";
 import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
@@ -126,5 +127,20 @@ export async function saveShippingBar(admin: AdminClient, config: ShippingBarCon
   const clean = withShippingBarDefaults(config);
   await upsert(admin, "$app:cro_design", "shipping_bar", { config: JSON.stringify(toStorefrontShippingBar(clean)) });
   await upsert(admin, "$app:cro_design", "shipping_bar_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* -------------------------------------------------------------- reviews -- */
+export async function getReviewsDesign(admin: AdminClient): Promise<{ config: ReviewsDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "reviews_editor");
+  return { config: withReviewsDefaults(raw), saved: raw !== null };
+}
+
+export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesign) {
+  const clean = withReviewsDefaults(config);
+  const img = clean.fill.image ? (await imageFiles(admin, [clean.fill.image.id])).get(clean.fill.image.id) : undefined;
+  clean.fill.imageUrl = img?.url ?? null;
+  await upsert(admin, "$app:cro_design", "reviews", { config: JSON.stringify(toStorefrontReviews(clean)) });
+  await upsert(admin, "$app:cro_design", "reviews_editor", { config: JSON.stringify(clean) });
   return clean;
 }
