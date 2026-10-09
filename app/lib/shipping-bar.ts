@@ -10,7 +10,16 @@ export type ShippingBarConfig = {
   on: boolean;
   goal: number; // in the store's currency (converted for other currencies on the storefront)
   text: { empty: string; progress: string; done: string };
-  show: { bar: boolean; icon: "truck" | "gift" | "none"; drawer: boolean; celebrate: boolean; whenEmpty: boolean };
+  show: {
+    bar: boolean;
+    icon: "truck" | "gift" | "none";
+    top: boolean; // the bar at the top of the store (where the block is placed)
+    drawer: boolean; // inside the theme's cart drawer
+    cartPage: boolean; // inside the cart page
+    cartPos: "top" | "bottom"; // in the cart: above the items, or above the checkout button
+    celebrate: boolean;
+    whenEmpty: boolean;
+  };
   where: { all: boolean; pages: ("home" | "product" | "collection" | "cart" | "other")[]; devices: "all" | "desktop" | "mobile" };
   look: {
     style: "bar" | "card";
@@ -32,7 +41,7 @@ export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
   on: true,
   goal: 100,
   text: { empty: "Free shipping on orders over {goal}", progress: "You're {left} away from free shipping", done: "You've got free shipping!" },
-  show: { bar: true, icon: "truck", drawer: true, celebrate: true, whenEmpty: true },
+  show: { bar: true, icon: "truck", top: true, drawer: true, cartPage: true, cartPos: "top", celebrate: true, whenEmpty: true },
   where: { all: true, pages: [], devices: "all" },
   look: { style: "bar", bg: "#111111", text: "#ffffff", track: "#3a3a3a", fill: "#d7f25c", done: "#5ee07d", size: 14, weight: 600, height: 9, radius: 0, barHeight: 4, upper: false },
 };
@@ -64,7 +73,10 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
     show: {
       bar: bool(s.bar, d.show.bar),
       icon: pick(s.icon, ["truck", "gift", "none"] as const, d.show.icon),
+      top: bool(s.top, d.show.top),
       drawer: bool(s.drawer, d.show.drawer),
+      cartPage: bool(s.cartPage, d.show.cartPage),
+      cartPos: pick(s.cartPos, ["top", "bottom"] as const, d.show.cartPos),
       celebrate: bool(s.celebrate, d.show.celebrate),
       whenEmpty: bool(s.whenEmpty, d.show.whenEmpty),
     },

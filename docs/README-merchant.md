@@ -81,6 +81,14 @@ anything.
 Customers pay exactly the bundle product's price. At checkout the bundle is split into the items
 they picked, so **each item's stock goes down** and the items appear on the order.
 
+## Free shipping bar
+- Set the goal and messages in **Boosters → Free shipping bar**. Match the goal to your free shipping
+  rate in Settings → Shipping and delivery.
+- **Inside the cart:** shows in the cart drawer and on the cart page, above the products or just above
+  the checkout button. Needs the **Conversion boosters** app embed on (or the bar block in the header).
+- **Bar at the top of the store:** place the block in the Header area; switch it off to keep the bar
+  only inside the cart.
+
 ## Good to know
 - **One discount does it all.** The app creates one automatic discount called
   **"CRO Toolbox offers"** (see Discounts). You can change which other discounts it combines with

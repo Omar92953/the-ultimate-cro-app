@@ -11,7 +11,8 @@ import { sectionLinks } from "../lib/sections.server";
 import { getShippingBar, saveShippingBar } from "../lib/designs.server";
 import { SHIPPING_BAR_PRESETS, withShippingBarDefaults, type ShippingBarConfig } from "../lib/shipping-bar";
 import { Checkbox, ColorField, NumberField, Select, Switch, TextField, Button } from "../components/fields";
-import { ShippingBarPreview } from "../components/ShippingBarPreview";
+import { ShippingBarCartPreview, ShippingBarPreview } from "../components/ShippingBarPreview";
+import { Segmented } from "../components/ui";
 import ui from "../components/PageEditor.module.css";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 
@@ -25,7 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .then((d) => d.shop.currencyCode as string)
       .catch(() => "USD"),
   ]);
-  return { config, saved, currency, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
+  return { config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -54,6 +55,7 @@ export default function ShippingBarDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("content");
   const [cart, setCart] = useState(Math.round(data.config.goal * 0.6));
+  const [view, setView] = useState<"cart" | "top">("cart");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -123,16 +125,28 @@ export default function ShippingBarDesigner() {
             <Pane show={tab === "content"}><s-section heading="What shows">
               <s-stack gap="base">
                 <Switch label="Free shipping bar" details="Off: it disappears from your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
+                <Switch label="Bar at the top of the store" details="Where you placed the block (e.g. the Header area). Off: it only shows inside the cart." checked={cfg.show.top} onValue={(v) => show({ top: v })} />
                 <Switch label="Progress line" checked={cfg.show.bar} onValue={(v) => show({ bar: v })} />
-                <Switch label="Also inside the cart drawer" details="Works with Dawn and most themes made by Shopify." checked={cfg.show.drawer} onValue={(v) => show({ drawer: v })} />
                 <Switch label="Show when the cart is empty" checked={cfg.show.whenEmpty} onValue={(v) => show({ whenEmpty: v })} />
                 <Switch label="Little celebration when the goal is reached" checked={cfg.show.celebrate} onValue={(v) => show({ celebrate: v })} />
                 <Select label="Icon" value={cfg.show.icon} onValue={(v) => show({ icon: v as C["show"]["icon"] })} options={[{ value: "truck", label: "Delivery truck" }, { value: "gift", label: "Gift" }, { value: "none", label: "No icon" }]} />
               </s-stack>
             </s-section></Pane>
 
+            <Pane show={tab === "content"}><s-section heading="Inside the cart">
+              <s-stack gap="base">
+                <Switch label="In the cart drawer" details="Works with Dawn and most themes made by Shopify." checked={cfg.show.drawer} onValue={(v) => { show({ drawer: v }); setView("cart"); }} />
+                <Switch label="On the cart page" checked={cfg.show.cartPage} onValue={(v) => show({ cartPage: v })} />
+                {cfg.show.drawer || cfg.show.cartPage ? (
+                  <Select label="Position in the cart" value={cfg.show.cartPos} onValue={(v) => { show({ cartPos: v as C["show"]["cartPos"] }); setView("cart"); }} options={[{ value: "top", label: "Above the products" }, { value: "bottom", label: "Above the checkout button" }]} />
+                ) : null}
+                <s-text color="subdued">Needs the “Conversion boosters” app embed switched on in the theme editor (it is on for most stores), or the bar block placed in your header.</s-text>
+              </s-stack>
+            </s-section></Pane>
+
             <Pane show={tab === "display"}><s-section heading="Where it shows">
               <s-stack gap="base">
+                <s-text color="subdued">Pages for the bar at the top of the store. The cart copies follow “Inside the cart”.</s-text>
                 <Checkbox label="On all pages" checked={cfg.where.all} onValue={(v) => where({ all: v })} />
                 {!cfg.where.all ? (
                   <s-stack gap="small-200">
@@ -168,12 +182,23 @@ export default function ShippingBarDesigner() {
           <div className={ui.preview}>
             <div className={ui.previewBar}>
               <span>Live preview</span>
+              <Segmented label="Preview" value={view} options={[{ value: "cart", label: "In the cart" }, { value: "top", label: "Top of store" }]} onChange={(v) => setView(v as "cart" | "top")} />
             </div>
-            <div className={ui.frame} style={{ padding: 16 }}>
-              <s-stack gap="base">
+            <div className={ui.frame} style={{ padding: view === "cart" ? 0 : 16 }}>
+              {view === "cart" ? (
+                cfg.show.drawer ? (
+                  <ShippingBarCartPreview config={cfg} total={cart} currency={data.currency} />
+                ) : (
+                  <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Switch on “In the cart drawer” (Content tab) to show the bar in the cart.</p>
+                )
+              ) : cfg.show.top ? (
                 <ShippingBarPreview config={cfg} total={cart} currency={data.currency} />
-                <NumberField label="Try a cart total" suffix={data.currency} min={0} max={1000000} step={5} value={cart} onValue={setCart} />
-              </s-stack>
+              ) : (
+                <p style={{ padding: 16, textAlign: "center", color: "#616161" }}>The bar at the top of the store is off.</p>
+              )}
+            </div>
+            <div style={{ padding: "12px 16px" }}>
+              <NumberField label="Try a cart total" suffix={data.currency} min={0} max={1000000} step={5} value={cart} onValue={setCart} />
             </div>
           </div>
         </div>

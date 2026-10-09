@@ -1,0 +1,30 @@
+/* Free shipping bar (designed in the app): the bar at the top of the store and its copies inside the
+   cart drawer and the cart page. Kept apart from ucs-sections.css so the cart copies stay light. */
+.ucs-fsb { font-family: inherit; }
+@media (max-width: 749px) { .ucs-fsb.ucs-hide-mobile { display: none !important; } }
+@media (min-width: 750px) { .ucs-fsb.ucs-hide-desktop { display: none !important; } }
+.ucs-in-group > .ucs-fsb { max-width: none !important; margin: 0 !important; }
+.ucs-fsb { position: relative; overflow: hidden; color: var(--fsb-fg, #fff); background: var(--fsb-bg, #111); font-size: var(--fsb-fs, 14px); font-weight: var(--fsb-fw, 600); line-height: 1.3; }
+.ucs-fsb[hidden] { display: none; }
+.ucs-fsb__in { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: var(--page-width, 1200px); margin: 0 auto; padding: var(--fsb-pad, 9px) 16px; text-align: center; }
+.ucs-fsb__icon { display: inline-flex; flex: none; }
+.ucs-fsb__icon svg { width: 1.3em; height: 1.3em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ucs-fsb--upper .ucs-fsb__msg { text-transform: uppercase; letter-spacing: 0.06em; }
+.ucs-fsb__track { height: var(--fsb-bh, 4px); background: var(--fsb-track, #3a3a3a); }
+.ucs-fsb__fill { display: block; width: 0; height: 100%; background: var(--fsb-fill, #d7f25c); transition: width 0.5s ease, background 0.3s ease; }
+.ucs-fsb.is-done .ucs-fsb__fill { background: var(--fsb-done, #5ee07d); }
+/* card: a rounded box with the progress line inside (good on product pages and in the cart drawer) */
+.ucs-fsb--card { margin: 12px 0; border-radius: var(--fsb-r, 12px); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.ucs-fsb--card .ucs-fsb__in { padding: calc(var(--fsb-pad, 9px) + 2px) 16px 8px; }
+.ucs-fsb--card .ucs-fsb__track { margin: 0 16px calc(var(--fsb-pad, 9px) + 4px); border-radius: 99px; overflow: hidden; }
+.ucs-fsb--drawer { margin: 0 0 8px; font-size: calc(var(--fsb-fs, 14px) * 0.92); }
+.ucs-fsb--drawer.ucs-fsb--card { margin: 8px 16px 12px; }
+.ucs-fsb--drawer.ucs-fsb--bottom { margin: 0 0 12px; }
+.ucs-fsb--page { margin: 0 0 20px; border-radius: max(var(--fsb-r, 0px), 8px); }
+.ucs-fsb--page.ucs-fsb--bottom { margin: 0 0 16px; }
+/* a short celebration when the goal is reached */
+.ucs-fsb.is-party .ucs-fsb__in { animation: ucs-fsb-pop 0.6s ease; }
+.ucs-fsb.is-party::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%); transform: translateX(-100%); animation: ucs-fsb-shine 0.9s ease forwards; pointer-events: none; }
+@keyframes ucs-fsb-pop { 40% { transform: scale(1.06); } }
+@keyframes ucs-fsb-shine { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .ucs-fsb__fill { transition: none; } .ucs-fsb.is-party .ucs-fsb__in, .ucs-fsb.is-party::after { animation: none; } }

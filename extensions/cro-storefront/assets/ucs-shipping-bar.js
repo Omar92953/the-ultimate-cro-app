@@ -1,11 +1,13 @@
 /* Free shipping bar: message + progress toward the free-shipping goal, kept in step with the cart.
    The goal is set in the store's currency and converted with Shopify's rate for shoppers in other
-   currencies. Optionally shows a copy inside the theme's cart drawer (re-added when the drawer redraws). */
+   currencies. Copies inside the theme's cart drawer and on the cart page (above the items or above
+   the checkout button) are put back whenever the theme redraws the cart. The cart copies also come
+   from the Conversion boosters embed ([data-cart-only]), so they work without the top bar. */
 (function () {
   if (window.__ucsFsb) return;
   window.__ucsFsb = true;
   var bars = [];
-  var cfg = null, total = 0, goal = 0, reached = null;
+  var cfg = null, total = 0, goal = 0, reached = null, page = "other";
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (ch) {
@@ -62,8 +64,9 @@
     reached = done;
   }
 
-  function markup(el, inDrawer) {
-    el.className = cfg.cls + (inDrawer ? " ucs-fsb--drawer" : "");
+  // where: "" (the top bar), "drawer" or "page" (the cart page).
+  function markup(el, where) {
+    el.className = cfg.cls + (where ? " ucs-fsb--" + where + (cfg.s.cartPos === "bottom" ? " ucs-fsb--bottom" : "") : "");
     el.style.cssText = cfg.css;
     el.setAttribute("role", "status");
     el.innerHTML =
@@ -71,6 +74,7 @@
       (cfg.s.icon !== "none" ? '<span class="ucs-fsb__icon">' + ICON[cfg.s.icon] + "</span>" : "") +
       '<span class="ucs-fsb__msg"></span></div>' +
       (cfg.s.bar ? '<div class="ucs-fsb__track"><i class="ucs-fsb__fill"></i></div>' : "");
+    bars = bars.filter(function (b) { return b.isConnected; });
     bars.push(el);
     draw(el);
   }
@@ -83,6 +87,7 @@
         total = cart.total_price || 0;
         drawAll();
         drawer();
+        cartPage();
       })
       .catch(function () {});
   }
@@ -93,17 +98,47 @@
     if (!cfg || !cfg.s.drawer) return;
     var box = document.querySelector(DRAWER);
     if (!box || box.querySelector(".ucs-fsb--drawer")) return;
-    bars = bars.filter(function (b) { return b.isConnected; });
     var el = document.createElement("div");
-    markup(el, true);
+    markup(el, "drawer");
+    var foot = cfg.s.cartPos === "bottom" && box.querySelector(".drawer__footer, .cart-drawer__footer, .cart-drawer__ctas");
     var head = box.querySelector(".drawer__header, .cart-drawer__header");
-    if (head) head.after(el);
+    if (foot) foot.insertBefore(el, foot.firstChild);
+    else if (head) head.after(el);
     else box.insertBefore(el, box.firstChild);
   }
 
+  // A copy on the cart page: under the "Your cart" title, or just above the checkout button.
+  function cartPage() {
+    if (!cfg || !cfg.s.cartPage || page !== "cart") return;
+    var main = document.querySelector("main, #MainContent") || document.body;
+    if (main.querySelector(".ucs-fsb--page, [data-ucs-fsb]:not([hidden]):not([data-cart-only])")) return;
+    var form = main.querySelector('cart-items, #main-cart-items, form[action*="/cart"]:not([action*="/add"])');
+    var title = main.querySelector(".title-wrapper-with-link, .cart__title, .cart-title, h1");
+    var ctas = main.querySelector('.cart__ctas, .cart__checkout-wrapper, [name="checkout"]');
+    var el = document.createElement("div");
+    if (cfg.s.cartPos === "bottom" && ctas) ctas.before(el);
+    else if (title && (!form || form.contains(title) || title.compareDocumentPosition(form) & 4)) title.after(el);
+    else if (form) form.before(el);
+    else return;
+    markup(el, "page");
+  }
+  var queued = false;
+  function watch(node) {
+    if (!node || !window.MutationObserver) return;
+    new MutationObserver(function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () {
+        queued = false;
+        drawer();
+        cartPage();
+      });
+    }).observe(node, { childList: true, subtree: true });
+  }
+
   function init() {
-    var hosts = document.querySelectorAll("[data-ucs-fsb]:not([data-ready])");
-    hosts.forEach(function (host) {
+    var design = window.Shopify && Shopify.designMode;
+    document.querySelectorAll("[data-ucs-fsb]:not([data-ready])").forEach(function (host) {
       host.setAttribute("data-ready", "");
       var c;
       try {
@@ -111,26 +146,32 @@
       } catch (e) {
         return;
       }
-      var page = { index: "home", product: "product", collection: "collection", cart: "cart" }[host.getAttribute("data-page")] || "other";
-      if (!c.w.a && c.w.p.indexOf(page) < 0 && !(window.Shopify && Shopify.designMode)) {
-        host.remove();
-        return;
-      }
+      var here = { index: "home", product: "product", collection: "collection", cart: "cart" }[host.getAttribute("data-page")] || "other";
       if (!cfg) {
         cfg = c;
+        page = here;
         var rate = parseFloat(currency().rate) || 1;
         goal = Math.round(c.goal * 100 * rate);
         total = parseInt(host.getAttribute("data-total"), 10) || 0;
         reached = total >= goal;
       }
+      // The embed's copy only carries the settings for the cart; the top bar shows where it's placed.
+      var off = host.hasAttribute("data-cart-only") || (!design && (c.s.top === false || (!c.w.a && c.w.p.indexOf(here) < 0)));
+      if (off) {
+        host.remove();
+        return;
+      }
       var group = host.closest(".shopify-section");
       if (group && /header/.test(group.className)) group.classList.add("ucs-in-group");
-      markup(host, false);
+      markup(host, "");
     });
-    if (cfg) {
-      drawer();
-      var cd = document.querySelector("cart-drawer, #CartDrawer");
-      if (cd && window.MutationObserver) new MutationObserver(function () { drawer(); }).observe(cd, { childList: true, subtree: true });
+    if (!cfg) return;
+    drawer();
+    cartPage();
+    if (!window.__ucsFsbWatch) {
+      window.__ucsFsbWatch = true;
+      watch(document.querySelector("cart-drawer, #CartDrawer"));
+      if (page === "cart") watch(document.querySelector("main, #MainContent"));
     }
   }
 

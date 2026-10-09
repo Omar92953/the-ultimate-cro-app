@@ -1376,6 +1376,46 @@ export function CollectionPillsImagesShowcase() {
   );
 }
 
+/** Free shipping bar inside the cart drawer: what's left to spend, above the items. */
+export function ShippingBarCartShowcase() {
+  return (
+    <span className={s.fsbCartScene}>
+      <span className={s.fsbShade}>
+        <Lines w={[30, 80, 65, 72, 40]} />
+      </span>
+      <span className={s.fsbPanel}>
+        <span className={s.between}>
+          <b className={s.h3}>Your cart</b>
+          <span className={s.muted}>2 items</span>
+        </span>
+        <span className={s.fsbIn}>
+          <span>🚚 You&rsquo;re $28 away from free shipping</span>
+          <i className={s.fsbTrack}>
+            <i style={{ width: "86%" }} />
+          </i>
+        </span>
+        {[PRODUCTS[1], PRODUCTS[3]].map((p) => (
+          <span key={p.id} className={s.fsbItem}>
+            <Img id={p.id} w={120} h={120} />
+            <span>
+              <b>{p.name}</b>
+              <span className={s.muted}>Qty 1</span>
+            </span>
+            <b>{p.price}</b>
+          </span>
+        ))}
+        <span className={s.fsbFoot}>
+          <span className={s.between}>
+            <span>Subtotal</span>
+            <b>$174</b>
+          </span>
+          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Check out</span>
+        </span>
+      </span>
+    </span>
+  );
+}
+
 /** Free shipping bar: message and a progress line filling up. */
 export function ShippingBarShowcase() {
   return (
