@@ -1336,3 +1336,42 @@ export function FooterShowcase() {
     </Stage>
   );
 }
+
+const PILLS = ["All", "Eighties", "Anime", "Cartoon", "Colors", "Comics", "Football"];
+/** Collection pills: outline pills under a collection title, the current one filled. */
+export function CollectionPillsShowcase() {
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.center} ${s.w56}`}>
+        <b className={`${s.h3} ${s.cpTitle}`}>All single stickers</b>
+        <span className={s.cpRow}>
+          {PILLS.map((p, i) => (
+            <span key={p} className={`${s.cpPill} ${i === 0 ? s.cpOn : ""}`}>
+              {p}
+            </span>
+          ))}
+        </span>
+        <small className={s.muted}>3,992 products</small>
+      </span>
+    </Stage>
+  );
+}
+
+/** Collection pills with pictures, soft style. */
+export function CollectionPillsImagesShowcase() {
+  const pics = [PHOTO.yellow, PHOTO.pink, PHOTO.sunny, PHOTO.shopper, PRODUCTS[0].id];
+  return (
+    <Stage>
+      <span className={`${s.plain} ${s.center} ${s.w56}`}>
+        <span className={s.cpRow}>
+          {["New in", "Dresses", "Tops", "Shoes", "Bags"].map((p, i) => (
+            <span key={p} className={`${s.cpPill} ${s.cpSoft} ${i === 2 ? s.cpOn : ""}`}>
+              <Img id={pics[i]} w={60} h={60} className={s.cpImg} />
+              {p}
+            </span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}

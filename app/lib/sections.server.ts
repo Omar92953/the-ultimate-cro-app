@@ -317,5 +317,6 @@ export function sectionLinks(shop: string) {
     image_carousel: block("ucs-image-carousel"),
     addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
     header: headerBlock("ucs-header"),
+    collection_pills: block("ucs-collection-pills", "collection"),
   };
 }

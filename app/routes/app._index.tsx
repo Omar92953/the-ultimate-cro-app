@@ -53,6 +53,8 @@ import {
   VideosLargeShowcase,
   ImageCarouselShowcase,
   AddonsShowcase,
+  CollectionPillsShowcase,
+  CollectionPillsImagesShowcase,
   AddonsCardsShowcase,
   ImageCarouselOverlayShowcase,
   VideosShowcase,
@@ -79,7 +81,7 @@ import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { getContact } from "../lib/pages.server";
-import { getAddons, getHeader, getImageCarousel } from "../lib/designs.server";
+import { getAddons, getHeader, getImageCarousel, getPills } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 
@@ -99,7 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasCartTransform(admin),
   ]);
   const ruleList = settled(rules, []);
-  const [lists, boosters, saved, contact, carousel, addons, header] = await Promise.all([
+  const [lists, boosters, saved, contact, carousel, addons, header, pills] = await Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
@@ -107,6 +109,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getImageCarousel(admin).catch(() => null),
     getAddons(admin).catch(() => null),
     getHeader(admin).catch(() => null),
+    getPills(admin).catch(() => null),
   ]);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -119,6 +122,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     saved,
     contactSaved: contact.saved,
     headerSaved: !!header?.saved,
+    pillCount: pills ? pills.config.items.length : 0,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
@@ -242,7 +246,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar" | "image_carousel" | "addons";
+type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills";
 
 /** Store sections, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -255,6 +259,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "countdown", title: "Countdown timer", description: "Sale end, a timer per visitor, or a daily order cut-off.", list: null, embed: false, Previews: [CountdownShowcase, CountdownRowShowcase, CountdownDailyShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
+  { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
   { key: "countdown_bar", title: "Countdown bar", description: "A slim timer bar at the top or bottom of every page.", list: null, embed: false, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownBarDarkShowcase] },
 ];
@@ -449,12 +454,13 @@ export default function Home() {
           const themeHref = data.sectionLinks[c.key];
           const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
           let status: Status, next: Next | undefined;
-          if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
+          if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
+          else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
           else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
           else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];
           else if (inTheme === null && !c.list) status = { tone: "neutral", text: "Set up in theme editor" };
-          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : c.key === "addons" ? `Live · ${plural(data.addonCount, "add-on")}` : "Live" };
+          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : c.key === "addons" ? `Live · ${plural(data.addonCount, "add-on")}` : c.key === "collection_pills" ? `Live · ${plural(data.pillCount, "collection")}` : "Live" };
           add({
             key: c.key,
             cat: c.cat ?? "sections",

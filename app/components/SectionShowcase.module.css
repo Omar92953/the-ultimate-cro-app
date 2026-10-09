@@ -388,3 +388,11 @@
 .footCols > span { display: flex; flex-direction: column; gap: 0.6em; }
 .footNews { display: flex; gap: 0.8em; padding-top: 1.2em; border-top: 0.08em solid #eee; }
 .footInput { flex: 1; padding: 0.7em 1em; color: #8a8a8a; border-radius: 0.6em; box-shadow: inset 0 0 0 0.1em #ddd; }
+
+/* collection pills */
+.cpTitle { letter-spacing: 0.04em; text-transform: uppercase; }
+.cpRow { display: flex; gap: 0.8em; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.cpPill { display: inline-flex; flex: none; align-items: center; gap: 0.6em; padding: 1em 2.2em; font-size: 1.1em; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; background: #fff; border-radius: 999px; box-shadow: inset 0 0 0 0.1em #ddd; }
+.cpSoft { padding: 0.5em 1.4em 0.5em 0.5em; text-transform: none; letter-spacing: 0; background: #f1f1f1; box-shadow: none; }
+.cpOn { color: #fff; background: #1a1a1a; box-shadow: none; }
+.cpImg { width: 2.4em; height: 2.4em; object-fit: cover; border-radius: 50%; }

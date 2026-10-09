@@ -5,6 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig } from "./designs";
+import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
@@ -96,5 +97,18 @@ export async function saveHeader(admin: AdminClient, config: HeaderConfig) {
   clean.logo.url = logo?.url ?? null;
   await upsert(admin, "$app:cro_design", "header", { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
   await upsert(admin, "$app:cro_design", "header_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ---------------------------------------------------------- collection pills -- */
+export async function getPills(admin: AdminClient): Promise<{ config: CollectionPillsConfig; saved: boolean }> {
+  const raw = await getDesign(admin, "collection_pills_editor");
+  return { config: withPillsDefaults(raw), saved: raw !== null };
+}
+
+export async function savePills(admin: AdminClient, config: CollectionPillsConfig) {
+  const clean = withPillsDefaults(config);
+  await upsert(admin, "$app:cro_design", "collection_pills", { config: JSON.stringify(toStorefrontPills(clean)) });
+  await upsert(admin, "$app:cro_design", "collection_pills_editor", { config: JSON.stringify(clean) });
   return clean;
 }

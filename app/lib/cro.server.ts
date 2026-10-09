@@ -1120,6 +1120,7 @@ export const BLOCKS = {
   image_carousel: "ucs-image-carousel",
   addons: "ucs-addons",
   header: "ucs-header",
+  collection_pills: "ucs-collection-pills",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
