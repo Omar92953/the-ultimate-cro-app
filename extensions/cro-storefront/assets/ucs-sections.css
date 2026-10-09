@@ -317,8 +317,8 @@
 .ucs-rv__card--chat .ucs-rv__meta { flex-basis: auto; margin-left: auto; }
 @media (max-width: 749px) {
   /* phones (regular bar): the text gets its own centred line, timer + button on the line below */
-  .ucs-cdb:not(.ucs-cdb--slim) .ucs-cdb__inner { flex-wrap: wrap; gap: 4px 8px; padding: var(--ucs-cdb-pad, 6px) 36px var(--ucs-cdb-pad, 8px) 36px; }
-  .ucs-cdb:not(.ucs-cdb--slim) .ucs-cdb__text { flex-basis: 100%; min-width: 0; overflow: hidden; font-size: 0.88em; line-height: 1.25; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+  .ucs-cdb:not(.ucs-cdb--slim):not(.ucs-cdi):not(.ucs-cdk) .ucs-cdb__inner { flex-wrap: wrap; gap: 4px 8px; padding: var(--ucs-cdb-pad, 6px) 36px var(--ucs-cdb-pad, 8px) 36px; }
+  .ucs-cdb:not(.ucs-cdb--slim):not(.ucs-cdi):not(.ucs-cdk) .ucs-cdb__text { flex-basis: 100%; min-width: 0; overflow: hidden; font-size: 0.88em; line-height: 1.25; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
   .ucs-cdb__btn { flex: none; white-space: nowrap; }
   .ucs-cdb--slim .ucs-cdb__inner { gap: 6px; padding-left: 10px; padding-right: 34px; }
   .ucs-cdb__close { right: 4px; }
