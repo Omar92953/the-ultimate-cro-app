@@ -5,9 +5,10 @@
  */
 import { useState, type CSSProperties } from "react";
 import { bundleVars, type BundleDesign } from "../lib/bundle-design";
+import type { PreviewTheme } from "../lib/theme-style";
 
 export type PreviewItem = { title: string; image: string | null; cents: number };
-export type PreviewBundle = { name: string; price: number; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
+export type PreviewBundle = { name: string; handle?: string; price: number; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
 
 const TINTS = ["linear-gradient(145deg,#ffd6a5,#f4a261)", "linear-gradient(145deg,#bde0fe,#6c9bd2)", "linear-gradient(145deg,#cdb4db,#9b72b0)", "linear-gradient(145deg,#b7e4c7,#52b788)", "linear-gradient(145deg,#ffc8dd,#e07a9a)"];
 export const SAMPLE_BUNDLE: PreviewBundle = {
@@ -21,7 +22,8 @@ export const SAMPLE_BUNDLE: PreviewBundle = {
 
 const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\[(\w+)\]/g, (m, k) => (k in vars ? String(vars[k]) : m));
 
-export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", phone }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; phone?: boolean }) {
+/** page: the store's page look; block: the chosen colour scheme's look (null = none). */
+export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", phone, page, block }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; phone?: boolean; page: PreviewTheme; block: PreviewTheme | null }) {
   const [picked, setPicked] = useState<Record<string, boolean>>({ "0-0": true });
   const money = (cents: number) => {
     try {
@@ -30,7 +32,14 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
       return (cents / 100).toFixed(2);
     }
   };
-  const vars = { ...bundleVars(c), ...(phone ? { "--ucro-cols-d": String(c.products.mobile) } : {}), ...(c.look.themeAccent ? { "--ucro-accent": "#121212" } : {}), ...(c.look.themeRadius ? { "--ucro-radius": "10px" } : {}) } as CSSProperties;
+  const look = block ?? page;
+  const vars = {
+    ...(c.look.themeAccent ? { "--ucro-accent": look.accent, "--ucro-on-text": look.accentText } : {}),
+    ...(c.look.themeRadius ? { "--ucro-radius": `${look.radius}px` } : {}),
+    ...(block ? { background: block.bg, color: block.text, paddingInline: 14, paddingBlock: 12, borderRadius: c.look.themeRadius ? look.radius : c.look.radius } : {}),
+    ...bundleVars(c),
+    ...(phone ? { "--ucro-cols-d": String(c.products.mobile) } : {}),
+  } as CSSProperties;
   const steps = bundle.steps.map((s, si) => {
     const count = s.items.filter((_, i) => picked[`${si}-${i}`]).length;
     return { ...s, count, min: Math.max(0, s.min), max: Math.max(1, s.max, s.min) };
@@ -49,7 +58,7 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
     });
 
   return (
-    <div style={{ maxWidth: phone ? 390 : undefined, margin: "0 auto", padding: "4px 16px", color: "#121212", background: "#fff", fontSize: 15, lineHeight: 1.5 }}>
+    <div style={{ maxWidth: phone ? 390 : undefined, margin: "0 auto", padding: "4px 16px", fontSize: 15, lineHeight: 1.5 }}>
       <div className="ucro ucro-bundle" style={vars}>
         {c.text.heading ? <h2 className={`ucro__heading ucro__heading--${c.text.size}`}>{c.text.heading}</h2> : null}
         {c.text.sub ? <p className="ucro__sub">{c.text.sub}</p> : null}
@@ -102,7 +111,7 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
           {c.button.theme ? (
             <p style={{ margin: 0, padding: "10px 12px", textAlign: "center", border: "1px dashed #8a8a8a", borderRadius: 8, opacity: 0.8 }}>Your theme&rsquo;s Add to cart button adds the bundle once it&rsquo;s complete.</p>
           ) : (
-            <button type="button" className="ucro-btn ucro-bundle__add" disabled={!ready} style={{ padding: "12px 16px", font: "inherit", fontWeight: 600, color: "#fff", background: "#121212", border: 0, borderRadius: 8, opacity: ready ? 1 : 0.6 }}>
+            <button type="button" className="ucro-btn ucro-bundle__add" disabled={!ready} style={{ padding: "12px 16px", font: "inherit", fontWeight: 600, color: page.accentText, background: page.accent, border: 0, borderRadius: page.buttonRadius, opacity: ready ? 1 : 0.6 }}>
               {ready ? c.button.label : fill(c.button.remaining, { remaining })}
             </button>
           )}

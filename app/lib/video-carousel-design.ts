@@ -4,6 +4,7 @@
  * Stored in $app:cro_design "videos" (storefront) and "videos_editor". Shared by client and server.
  */
 import { num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export const VC_PAGES = ["home", "product", "collection", "cart", "page", "blog", "search"] as const;
 export type VcPage = (typeof VC_PAGES)[number];
@@ -30,14 +31,14 @@ const PAGE_TYPES: Record<VcPage, string[]> = {
 export type VideoCarouselDesign = {
   text: { heading: string; sub: string; size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
   videos: { autoplay: boolean; product: boolean; add: boolean; addLabel: string };
-  layout: { ratio: "9 / 16" | "3 / 4" | "4 / 5" | "1 / 1"; desktop: number; mobile: "1.2" | "2" | "2.2"; arrows: boolean; corners: "theme" | "square" | "round"; gap: number };
+  layout: { ratio: "9 / 16" | "3 / 4" | "4 / 5" | "1 / 1"; desktop: number; mobile: "1.2" | "2" | "2.2"; arrows: boolean; corners: "theme" | "square" | "round"; gap: number; scheme: string };
   display: { top: number; bottom: number; devices: "all" | "desktop" | "mobile"; showOn: "everywhere" | "only" | "except"; pages: VcPage[]; handles: string };
 };
 
 export const DEFAULT_VIDEO_CAROUSEL: VideoCarouselDesign = {
   text: { heading: "See it in action", sub: "", size: "large", align: "left" },
   videos: { autoplay: true, product: true, add: true, addLabel: "Add to cart" },
-  layout: { ratio: "9 / 16", desktop: 4, mobile: "2.2", arrows: true, corners: "theme", gap: 12 },
+  layout: { ratio: "9 / 16", desktop: 4, mobile: "2.2", arrows: true, corners: "theme", gap: 12, scheme: "" },
   display: { top: 36, bottom: 36, devices: "all", showOn: "everywhere", pages: [], handles: "" },
 };
 
@@ -56,6 +57,11 @@ export function applyVideoCarouselPreset(c: VideoCarouselDesign, key: string): V
   const p = VIDEO_CAROUSEL_PRESETS.find((x) => x.key === key);
   if (!p) return c;
   return { ...c, text: { ...c.text, ...p.patch.text }, videos: { ...c.videos, ...p.patch.videos }, layout: { ...c.layout, ...p.patch.layout } };
+}
+
+/** "Match my theme style": the theme's corners and, when picked, one of its colour schemes. */
+export function matchVideoCarouselTheme(c: VideoCarouselDesign, scheme: string): VideoCarouselDesign {
+  return { ...c, layout: { ...c.layout, corners: "theme", scheme } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -85,6 +91,7 @@ export function withVideoCarouselDefaults(raw: unknown): VideoCarouselDesign {
       arrows: bool(l.arrows, d.layout.arrows),
       corners: pick(l.corners, ["theme", "square", "round"] as const, d.layout.corners),
       gap: num(l.gap, 0, 40, d.layout.gap),
+      scheme: schemeId(l.scheme),
     },
     display: {
       top: num(s.top, 0, 120, d.display.top),
@@ -130,7 +137,7 @@ export function toStorefrontVideoCarousel(c: VideoCarouselDesign) {
     sa: c.videos.add,
     al: c.videos.addLabel,
     ar: c.layout.arrows,
-    cls: c.display.devices === "mobile" ? " ucro-hide-desktop" : c.display.devices === "desktop" ? " ucro-hide-mobile" : "",
+    cls: (c.display.devices === "mobile" ? " ucro-hide-desktop" : c.display.devices === "desktop" ? " ucro-hide-mobile" : "") + (c.layout.scheme ? ` ucro-scheme color-${c.layout.scheme}` : ""),
     so: c.display.showOn,
     pt: c.display.pages.flatMap((p) => PAGE_TYPES[p]),
     hs: handleList(c.display.handles),

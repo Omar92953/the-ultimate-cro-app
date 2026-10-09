@@ -27,6 +27,9 @@
 
   # Look and wording are designed in the app (Bundles → Design): $app:cro_design "bundles".
   assign d = shop.metaobjects['$app:cro_design']['bundles'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+  endif
   assign heading = 'Build your bundle'
   assign sub = ''
   if d
@@ -38,7 +41,7 @@
 
 {%- if bundle and bundle.steps.value.size > 0 -%}
   <ucro-bundle
-    class="ucro ucro-bundle"
+    class="ucro ucro-bundle{{ d.cls }}"
     style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
     data-key="{{ product.id }}"
     data-variant-id="{{ bv.id }}"

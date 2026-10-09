@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- GraphQL node payloads */
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -8,8 +8,11 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage, gql, type AdminClient } from "../lib/admin.server";
 import { editorLinks, getThemeStatus, listBundles } from "../lib/cro.server";
-import { getBundleDesign, saveBundleDesign } from "../lib/designs.server";
-import { applyBundlePreset, BUNDLE_PRESETS, withBundleDesignDefaults, type BundleDesign } from "../lib/bundle-design";
+import { getBundleDesign, saveBundleDesign, saveDraft } from "../lib/designs.server";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
+import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
+import { applyBundlePreset, BUNDLE_PRESETS, matchBundleTheme, toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "../lib/bundle-design";
 import type { Bundle } from "../lib/types";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
@@ -21,7 +24,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
   const ids = [...new Set(bundles.flatMap((b) => [...(b.product ? [b.product.id] : []), ...b.steps.flatMap((s) => (s.products.length ? s.products.map((p) => p.id) : s.collection ? [s.collection.id] : []))]))];
   if (!ids.length) return { list: [], currency: "USD" };
-  const PRODUCT = `id title featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
+  const PRODUCT = `id title handle featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
   const data = await gql(
     admin,
     `#graphql
@@ -46,6 +49,7 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
     .slice(0, 10)
     .map((b) => ({
       name: b.name,
+      handle: b.product ? (byId.get(b.product.id)?.handle as string | undefined) : undefined,
       price: b.product ? item(byId.get(b.product.id)).cents : 0,
       steps: b.steps.map((s) => ({
         label: s.label,
@@ -59,19 +63,24 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme, bundles] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin).catch(() => null), listBundles(admin).catch(() => [])]);
+  const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin).catch(() => FALLBACK_STYLE)]);
   const { list, currency } = await previewBundles(admin, bundles).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
-  return { config, saved, bundles: list, currency, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
+  return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveBundleDesign(admin, withBundleDesignDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const clean = withBundleDesignDefaults(JSON.parse(String(form.get("config"))));
+    if (form.get("intent") === "draft") {
+      await saveDraft(admin, "bundles", toStorefrontBundle(clean));
+      return { ok: true, draft: true, error: null, config: null };
+    }
+    const config = await saveBundleDesign(admin, clean);
+    return { ok: true, draft: false, error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -92,14 +101,20 @@ export default function BundleDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Bundle builder design saved — live on your store");
-    else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else shopify.toast.show("Bundle builder design saved — live on your store");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), products = part("products"), summary = part("summary"), button = part("button"), look = part("look");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const bundle = data.bundles[which];
+  // The link opens the theme editor on the bundle's page while the unsaved changes are stored as a draft.
+  const previewLink = `https://${data.shop}/admin/themes/current/editor?previewPath=${encodeURIComponent(bundle?.handle ? `/products/${bundle.handle}` : "/collections/all")}`;
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const pageLook = previewTheme(data.style);
+  const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
   return (
     <s-page heading="Bundle builder design" inlineSize="large">
@@ -108,6 +123,9 @@ export default function BundleDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href="/app/bundles">
         Manage bundles
@@ -129,6 +147,9 @@ export default function BundleDesigner() {
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
 
+          <Pane show={tab === "looks"}>
+            <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchBundleTheme(c, c.look.scheme))} />
+          </Pane>
           <Pane show={tab === "looks"}>
             <s-section heading="Start from a look">
               <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
@@ -226,7 +247,9 @@ export default function BundleDesigner() {
                   <Select label="Bundle to preview" value={String(which)} onValue={(v) => setWhich(Number(v))} options={data.bundles.map((b, i) => ({ value: String(i), label: b.name || `Bundle ${i + 1}` }))} />
                 </div>
               ) : null}
-              <BundlePreview key={which} config={cfg} bundle={bundle} currency={data.currency} phone={device === "phone"} />
+              <ThemeLook style={data.style}>
+                <BundlePreview key={which} config={cfg} bundle={bundle} currency={data.currency} phone={device === "phone"} page={pageLook} block={blockLook} />
+              </ThemeLook>
             </PreviewFrame>
           </div>
         </s-stack>
@@ -234,5 +257,8 @@ export default function BundleDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

@@ -5,6 +5,7 @@
  */
 import { useRef, useState, type CSSProperties } from "react";
 import { videoCarouselVars, type VideoCarouselDesign } from "../lib/video-carousel-design";
+import type { PreviewTheme } from "../lib/theme-style";
 
 export type PreviewSlide = { kind: "video" | "image"; image: string | null; caption: string; product: { title: string; price: string } | null };
 
@@ -22,11 +23,17 @@ const Chevron = ({ d }: { d: string }) => (
   </svg>
 );
 
-export function VideoCarouselPreview({ config: c, slides, phone }: { config: VideoCarouselDesign; slides: PreviewSlide[]; phone?: boolean }) {
+/** page: the store's page look; block: the chosen colour scheme's look (null = none). */
+export function VideoCarouselPreview({ config: c, slides, phone, page, block }: { config: VideoCarouselDesign; slides: PreviewSlide[]; phone?: boolean; page: PreviewTheme; block: PreviewTheme | null }) {
   const track = useRef<HTMLUListElement>(null);
   const [current, setCurrent] = useState(1);
   const list = slides.length ? slides : SAMPLE_SLIDES;
-  const vars = { ...videoCarouselVars(c), ...(phone ? { "--ucro-vc-desktop": c.layout.mobile } : {}) } as CSSProperties;
+  const vars = {
+    ...videoCarouselVars(c),
+    ...(c.layout.corners === "theme" ? { "--ucro-vc-radius": `${page.radius}px` } : {}),
+    ...(block ? { background: block.bg, color: block.text, paddingInline: 14, paddingBlock: 12, "--ucro-accent": block.accent } : { "--ucro-accent": page.accent }),
+    ...(phone ? { "--ucro-vc-desktop": c.layout.mobile } : {}),
+  } as CSSProperties;
   const go = (dir: number) => {
     const t = track.current;
     const first = t?.querySelector(".ucro-vc__slide") as HTMLElement | null;
@@ -39,7 +46,7 @@ export function VideoCarouselPreview({ config: c, slides, phone }: { config: Vid
   };
 
   return (
-    <div style={{ maxWidth: phone ? 390 : undefined, margin: "0 auto", padding: "0 16px", color: "#121212", background: "#fff", fontSize: 15, lineHeight: 1.5 }}>
+    <div style={{ maxWidth: phone ? 390 : undefined, margin: "0 auto", padding: "0 16px", fontSize: 15, lineHeight: 1.5 }}>
       <div className="ucro ucro-vc" style={vars}>
         {c.text.heading ? <h2 className={`ucro__heading ucro__heading--${c.text.size}`}>{c.text.heading}</h2> : null}
         {c.text.sub ? <p className="ucro__sub">{c.text.sub}</p> : null}
@@ -58,7 +65,7 @@ export function VideoCarouselPreview({ config: c, slides, phone }: { config: Vid
                   <span className="ucro-vc__title">{s.product.title}</span>
                   <span className="ucro-vc__price">{s.product.price}</span>
                   {c.videos.add ? (
-                    <button type="button" className="ucro-btn ucro-vc__add" style={{ font: "inherit", fontWeight: 600, color: "#fff", background: "#121212", border: 0, borderRadius: 6 }}>
+                    <button type="button" className="ucro-btn ucro-vc__add" style={{ font: "inherit", fontWeight: 600, color: (block ?? page).accentText, background: (block ?? page).accent, border: 0, borderRadius: page.buttonRadius }}>
                       {c.videos.addLabel}
                     </button>
                   ) : null}

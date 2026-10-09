@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -7,8 +7,11 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { editorLinks, getSlides, getThemeStatus } from "../lib/cro.server";
-import { getVideoCarouselDesign, saveVideoCarouselDesign } from "../lib/designs.server";
-import { applyVideoCarouselPreset, VC_PAGE_LABELS, VC_PAGES, VIDEO_CAROUSEL_PRESETS, withVideoCarouselDefaults, type VideoCarouselDesign } from "../lib/video-carousel-design";
+import { getVideoCarouselDesign, saveDraft, saveVideoCarouselDesign } from "../lib/designs.server";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
+import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
+import { applyVideoCarouselPreset, matchVideoCarouselTheme, toStorefrontVideoCarousel, VC_PAGE_LABELS, VC_PAGES, VIDEO_CAROUSEL_PRESETS, withVideoCarouselDefaults, type VideoCarouselDesign } from "../lib/video-carousel-design";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { VideoCarouselPreview, type PreviewSlide } from "../components/VideoCarouselPreview";
@@ -39,7 +42,7 @@ async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme, raw] = await Promise.all([getVideoCarouselDesign(admin), getThemeStatus(admin).catch(() => null), getSlides(admin).catch(() => [])]);
+  const [{ config, saved }, theme, raw, style] = await Promise.all([getVideoCarouselDesign(admin), getThemeStatus(admin).catch(() => null), getSlides(admin).catch(() => []), getThemeStyle(admin).catch(() => FALLBACK_STYLE)]);
   const priceOf = await prices(admin, [...new Set(raw.flatMap((s) => (s.product ? [s.product.id] : [])))]).catch(() => new Map<string, string>());
   const slides: PreviewSlide[] = raw
     .filter((s) => s.video)
@@ -49,17 +52,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       caption: s.caption,
       product: s.product ? { title: s.product.title, price: priceOf.get(s.product.id) ?? "" } : null,
     }));
-  return { config, saved, slides, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.videos : null, addLink: editorLinks(session.shop).videos };
+  return { config, saved, slides, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.videos : null, addLink: editorLinks(session.shop).videos };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveVideoCarouselDesign(admin, withVideoCarouselDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const clean = withVideoCarouselDefaults(JSON.parse(String(form.get("config"))));
+    if (form.get("intent") === "draft") {
+      await saveDraft(admin, "videos", toStorefrontVideoCarousel(clean));
+      return { ok: true, draft: true, error: null, config: null };
+    }
+    const config = await saveVideoCarouselDesign(admin, clean);
+    return { ok: true, draft: false, error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -79,13 +87,19 @@ export default function VideoCarouselDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Video carousel design saved — live on your store");
-    else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else shopify.toast.show("Video carousel design saved — live on your store");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), videos = part("videos"), layout = part("layout"), display = part("display");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  // The link opens the theme editor on the home page while the unsaved changes are stored as a draft.
+  const previewLink = `https://${data.shop}/admin/themes/current/editor?previewPath=%2F`;
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const pageLook = previewTheme(data.style);
+  const blockLook = cfg.layout.scheme ? previewTheme(data.style, cfg.layout.scheme) : null;
 
   return (
     <s-page heading="Video carousel design" inlineSize="large">
@@ -94,6 +108,9 @@ export default function VideoCarouselDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href="/app/videos">
         Manage videos
@@ -115,6 +132,9 @@ export default function VideoCarouselDesigner() {
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "layout", "display"]} value={tab} onChange={setTab} />
 
+          <Pane show={tab === "looks"}>
+            <ThemeStylePanel style={data.style} scheme={cfg.layout.scheme} onScheme={(id) => layout({ scheme: id })} onMatch={() => setCfg((c) => matchVideoCarouselTheme(c, c.layout.scheme))} />
+          </Pane>
           <Pane show={tab === "looks"}>
             <s-section heading="Start from a look">
               <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
@@ -208,7 +228,9 @@ export default function VideoCarouselDesigner() {
               tools={<Segmented label="Device" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />}
             >
               <div style={{ padding: "4px 0" }}>
-                <VideoCarouselPreview config={cfg} slides={data.slides} phone={device === "phone"} />
+                <ThemeLook style={data.style}>
+                  <VideoCarouselPreview config={cfg} slides={data.slides} phone={device === "phone"} page={pageLook} block={blockLook} />
+                </ThemeLook>
               </div>
             </PreviewFrame>
           </div>
@@ -217,5 +239,8 @@ export default function VideoCarouselDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

@@ -5,13 +5,14 @@
  * Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export type BundleDesign = {
   text: { heading: string; sub: string; size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
   products: { desktop: number; mobile: number; pick: string; picked: string };
   summary: { show: boolean; value: string; save: string; sticky: boolean };
   button: { theme: boolean; label: string; remaining: string };
-  look: { themeAccent: boolean; accent: string; themeRadius: boolean; radius: number; top: number; bottom: number };
+  look: { themeAccent: boolean; accent: string; themeRadius: boolean; radius: number; top: number; bottom: number; scheme: string };
 };
 
 export const DEFAULT_BUNDLE_DESIGN: BundleDesign = {
@@ -19,7 +20,7 @@ export const DEFAULT_BUNDLE_DESIGN: BundleDesign = {
   products: { desktop: 4, mobile: 2, pick: "Add", picked: "Added" },
   summary: { show: true, value: "Worth [amount]", save: "You save [amount] ([percent]%)", sticky: false },
   button: { theme: false, label: "Add bundle to cart", remaining: "Choose [remaining] more" },
-  look: { themeAccent: true, accent: "#111111", themeRadius: true, radius: 12, top: 16, bottom: 16 },
+  look: { themeAccent: true, accent: "#111111", themeRadius: true, radius: 12, top: 16, bottom: 16, scheme: "" },
 };
 
 type Patch = { products?: Partial<BundleDesign["products"]>; summary?: Partial<BundleDesign["summary"]>; look?: Partial<BundleDesign["look"]> };
@@ -37,6 +38,11 @@ export function applyBundlePreset(c: BundleDesign, key: string): BundleDesign {
   const p = BUNDLE_PRESETS.find((x) => x.key === key);
   if (!p) return c;
   return { ...c, products: { ...c.products, ...p.patch.products }, summary: { ...c.summary, ...p.patch.summary }, look: { ...c.look, ...p.patch.look } };
+}
+
+/** "Match my theme style": the theme's colours (a scheme, or the theme's button colour) and corners. */
+export function matchBundleTheme(c: BundleDesign, scheme: string): BundleDesign {
+  return { ...c, look: { ...c.look, themeAccent: true, themeRadius: true, scheme } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -77,6 +83,7 @@ export function withBundleDesignDefaults(raw: unknown): BundleDesign {
       radius: num(k.radius, 0, 40, d.look.radius),
       top: num(k.top, 0, 80, d.look.top),
       bottom: num(k.bottom, 0, 80, d.look.bottom),
+      scheme: schemeId(k.scheme),
     },
   };
 }
@@ -109,6 +116,7 @@ export function toStorefrontBundle(c: BundleDesign) {
     tb: c.button.theme,
     btn: c.button.label,
     rem: c.button.remaining,
+    cls: c.look.scheme ? ` ucro-scheme color-${c.look.scheme}` : "",
     css: Object.entries(bundleVars(c))
       .map(([k, v]) => `${k}: ${v};`)
       .join(" "),

@@ -7,6 +7,9 @@
 
   # Look, wording and where it shows are designed in the app (Video carousel → Design): $app:cro_design "videos".
   assign d = shop.metaobjects['$app:cro_design']['videos'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['videos_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['videos_draft'].config.value
+  endif
   assign heading = 'See it in action'
   assign sub = ''
   if d

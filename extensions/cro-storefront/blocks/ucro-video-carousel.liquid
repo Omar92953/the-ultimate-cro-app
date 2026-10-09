@@ -5,6 +5,9 @@ if cfg and cfg.videos_enabled.value == false
 assign enabled = false
 endif
 assign d = shop.metaobjects['$app:cro_design']['videos'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['videos_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['videos_draft'].config.value
+endif
 assign heading = 'See it in action'
 assign sub = ''
 if d

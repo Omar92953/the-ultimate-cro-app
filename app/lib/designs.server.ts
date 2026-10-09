@@ -180,8 +180,10 @@ export async function getVideoCarouselDesign(admin: AdminClient): Promise<{ conf
 
 export async function saveVideoCarouselDesign(admin: AdminClient, config: VideoCarouselDesign) {
   const clean = withVideoCarouselDefaults(config);
-  await upsert(admin, "$app:cro_design", "videos", { config: JSON.stringify(toStorefrontVideoCarousel(clean)) });
+  const live = JSON.stringify(toStorefrontVideoCarousel(clean));
+  await upsert(admin, "$app:cro_design", "videos", { config: live });
   await upsert(admin, "$app:cro_design", "videos_editor", { config: JSON.stringify(clean) });
+  await upsert(admin, "$app:cro_design", "videos_draft", { config: live });
   return clean;
 }
 
@@ -193,7 +195,9 @@ export async function getBundleDesign(admin: AdminClient): Promise<{ config: Bun
 
 export async function saveBundleDesign(admin: AdminClient, config: BundleDesign) {
   const clean = withBundleDesignDefaults(config);
-  await upsert(admin, "$app:cro_design", "bundles", { config: JSON.stringify(toStorefrontBundle(clean)) });
+  const live = JSON.stringify(toStorefrontBundle(clean));
+  await upsert(admin, "$app:cro_design", "bundles", { config: live });
   await upsert(admin, "$app:cro_design", "bundles_editor", { config: JSON.stringify(clean) });
+  await upsert(admin, "$app:cro_design", "bundles_draft", { config: live });
   return clean;
 }
