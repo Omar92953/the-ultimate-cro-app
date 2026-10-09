@@ -135,6 +135,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
   },
   faq: {
     type: "$app:cro_faq",
+    design: "/app/designs/faq",
     block: "ucs-faq",
     template: "index",
     title: "FAQ",
@@ -152,7 +153,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "Answers to the questions customers ask before buying, as a tidy accordion with optional search and group buttons.",
-      how: "Add questions here, then add the “FAQ” section to any page in the theme editor. It also tells Google about your questions so they can appear in search results.",
+      how: "Add questions here, choose the look in “Design”, then add the “FAQ” section to any page in the theme editor. It also tells Google about your questions so they can appear in search results.",
       example: "Shipping: “How long does delivery take?” · Payment: “Can I pay cash on delivery?” · Returns: “What is your return policy?”",
     },
     empty: "No questions yet. Start with delivery time, payment methods and returns.",

@@ -12,6 +12,7 @@ import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./hea
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
+import { toStorefrontFaq, withFaqDefaults, type FaqDesign } from "./faq-design";
 import { toStorefrontLogos, withLogosDefaults, type LogosDesign } from "./logos-design";
 import { toStorefrontAnnouncement, withAnnouncementDefaults, type AnnouncementDesign } from "./announcement-design";
 import { toStorefrontQuickAdd, withQuickAddDefaults, type QuickAddDesign } from "./quick-add-design";
@@ -270,5 +271,20 @@ export async function saveLogosDesign(admin: AdminClient, config: LogosDesign, d
   if (!draftOnly) await upsert(admin, "$app:cro_design", "logos", { config: live });
   await upsert(admin, "$app:cro_design", "logos_draft", { config: live });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "logos_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------------------------- faq -- */
+export async function getFaqDesign(admin: AdminClient): Promise<{ config: FaqDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "faq_editor");
+  return { config: withFaqDefaults(raw), saved: raw !== null };
+}
+
+export async function saveFaqDesign(admin: AdminClient, config: FaqDesign, draftOnly = false) {
+  const clean = withFaqDefaults(config);
+  const live = JSON.stringify(toStorefrontFaq(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "faq", { config: live });
+  await upsert(admin, "$app:cro_design", "faq_draft", { config: live });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "faq_editor", { config: JSON.stringify(clean) });
   return clean;
 }

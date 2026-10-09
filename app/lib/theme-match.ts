@@ -6,6 +6,7 @@
 import type { AddonsConfig } from "./addons";
 import type { AnnouncementDesign } from "./announcement-design";
 import type { LogosDesign } from "./logos-design";
+import type { FaqDesign } from "./faq-design";
 import type { QuickAddDesign } from "./quick-add-design";
 import type { CollectionPillsConfig } from "./collection-pills";
 import type { CountdownBarConfig } from "./designs";
@@ -80,3 +81,9 @@ export const matchQuickAdd = (c: QuickAddDesign, s: ThemeScheme, st: ThemeStyle)
 });
 
 export const matchLogos = (c: LogosDesign, s: ThemeScheme): LogosDesign => ({ ...c, scheme: s.id, look: { ownBg: true, bg: s.bg, ownText: true, fg: s.text } });
+
+export const matchFaq = (c: FaqDesign, s: ThemeScheme): FaqDesign => ({
+  ...c,
+  scheme: s.id,
+  look: { ...c.look, ownBg: true, bg: s.bg, ownText: true, fg: s.text, ownCard: c.look.style === "cards" || c.look.ownCard, cardBg: mix(s.text, s.bg, 0.06), accent: s.button },
+});

@@ -7,4 +7,4 @@ endif
 {"fmt":{{ shop.money_format | json }},"d":{{ d | json | default: 'null' }},"t":{"choose":{{ 'ucs.choose' | t | json }},"sold_out":{{ 'ucs.sold_out' | t | json }},"close":{{ 'ucs.close' | t | json }},"error":{{ 'ucs.error' | t | json }}}}
 </script>
 <script src="{{ 'ucs-quick-add.js' | asset_url }}" defer></script>
-{% schema %}{"name":"Quick add to cart","target":"body","stylesheet":"ucs-quick-add.css","settings":[{"type":"paragraph","content":"t:s.1y"}]}{% endschema %}
+{% schema %}{"name":"Quick add to cart","target":"body","stylesheet":"ucs-quick-add.css","settings":[{"type":"paragraph","content":"t:s.1m"}]}{% endschema %}

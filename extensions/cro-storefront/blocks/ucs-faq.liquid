@@ -1,5 +1,34 @@
 {%- liquid
 assign s = block.settings
+assign d = shop.metaobjects['$app:cro_design']['faq'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['faq_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['faq_draft'].config.value
+endif
+assign heading = 'Frequently asked questions'
+assign sub = ''
+assign tabs = true
+assign search = true
+assign one_open = true
+assign open_first = false
+assign columns = 1
+assign contact_text = 'Still have a question?'
+assign contact_label = 'Contact us'
+assign contact_link = ''
+if d
+assign heading = d.h
+assign sub = d.sub
+assign tabs = d.tb
+assign search = d.se
+assign one_open = d.oo
+assign open_first = d.of
+assign columns = d.col
+assign contact_text = d.ct
+assign contact_label = d.cl
+assign contact_link = d.cu
+endif
+if s.heading != blank
+assign heading = s.heading
+endif
 assign only_group = s.group | strip | downcase
 assign items = shop.metaobjects['$app:cro_lists']['main'].faq.value
 assign sel = ','
@@ -26,33 +55,26 @@ assign count = 1
 endif
 assign groups = groups | split: '|' | uniq
 assign show_tabs = false
-if s.group_tabs and only_group == blank and groups.size > 1
+if tabs and only_group == blank and groups.size > 1
 assign show_tabs = true
 endif
-assign on_accent = '#ffffff'
-if s.accent != blank
-assign brightness = s.accent | color_brightness
-if brightness > 150
-assign on_accent = '#121212'
-endif
-endif
 assign exclusive = ''
-if s.one_open
+if one_open
 assign exclusive = 'ucs-faq-' | append: block.id
 endif
 -%}<div
-class="ucs ucs-faq ucs-faq--{{ s.style }} ucs-faq--{{ s.icon }}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
-style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-h: {{ s.heading_size }}px; --ucs-align: {{ s.align }}; --ucs-max: {{ s.max_width }}px; --ucs-faq-q: {{ s.question_size }}px; --ucs-faq-radius: {{ s.radius }}px;{% if s.bg != blank %} background: {{ s.bg }};{% endif %}{% if s.card_bg != blank %} --ucs-faq-card: {{ s.card_bg }};{% endif %}{% if s.accent != blank %} --ucs-accent: {{ s.accent }}; --ucs-on-accent: {{ on_accent }};{% endif %}"
+class="ucs ucs-faq{% if d %}{{ d.cls }}{% else %} ucs-faq--lines ucs-faq--plus{% endif %}"
+style="{{ d.css | default: '--ucs-pt: 40px; --ucs-pb: 40px; --ucs-h: 30px; --ucs-align: center; --ucs-max: 860px; --ucs-faq-q: 16px; --ucs-faq-radius: 10px; --ucs-accent: #121212; --ucs-on-accent: #ffffff;' }}"
 {{ block.shopify_attributes }}
 >
-<div class="ucs-wrap">{%- if s.heading != blank or s.subheading != blank -%}<div class="ucs-head">{%- if s.heading != blank %}<h2>{{ s.heading | escape }}</h2>{% endif -%}{%- if s.subheading != blank %}<p>{{ s.subheading | escape }}</p>{% endif -%}</div>{%- endif -%}{%- if count > 0 -%}{%- if s.search or show_tabs -%}<div class="ucs-faq__tools">{%- if s.search -%}<label class="ucs-faq__search">
+<div class="ucs-wrap">{%- if heading != blank or sub != blank -%}<div class="ucs-head">{%- if heading != blank %}<h2>{{ heading | escape }}</h2>{% endif -%}{%- if sub != blank %}<p>{{ sub | escape }}</p>{% endif -%}</div>{%- endif -%}{%- if count > 0 -%}{%- if search or show_tabs -%}<div class="ucs-faq__tools">{%- if search -%}<label class="ucs-faq__search">
 <span class="ucs-i ucs-i--search" aria-hidden="true"></span>
 <input type="search" placeholder="{{ 'ucs.faq_search' | t | escape }}" aria-label="{{ 'ucs.faq_search' | t | escape }}" autocomplete="off">
 </label>{%- endif -%}{%- if show_tabs -%}<div class="ucs-faq__tabs" role="group">
-<button type="button" class="ucs-faq__tab" data-group="" aria-pressed="true">{{ 'ucs.faq_all' | t }}</button>{%- for g in groups -%}<button type="button" class="ucs-faq__tab" data-group="{{ g | handleize }}" aria-pressed="false">{{ g | escape }}</button>{%- endfor -%}</div>{%- endif -%}</div>{%- endif -%}<div class="ucs-faq__list ucs-faq__list--{{ s.columns }}">{%- assign n = 0 -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless sel contains key %}{% continue %}{% endunless -%}{%- assign n = n | plus: 1 -%}<details class="ucs-faq__item" data-group="{{ m.group.value | strip | handleize }}"{% if exclusive != blank %} name="{{ exclusive }}"{% endif %}{% if s.open_first and n == 1 %} open{% endif %}>
+<button type="button" class="ucs-faq__tab" data-group="" aria-pressed="true">{{ 'ucs.faq_all' | t }}</button>{%- for g in groups -%}<button type="button" class="ucs-faq__tab" data-group="{{ g | handleize }}" aria-pressed="false">{{ g | escape }}</button>{%- endfor -%}</div>{%- endif -%}</div>{%- endif -%}<div class="ucs-faq__list ucs-faq__list--{{ columns }}">{%- assign n = 0 -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless sel contains key %}{% continue %}{% endunless -%}{%- assign n = n | plus: 1 -%}<details class="ucs-faq__item" data-group="{{ m.group.value | strip | handleize }}"{% if exclusive != blank %} name="{{ exclusive }}"{% endif %}{% if open_first and n == 1 %} open{% endif %}>
 <summary class="ucs-faq__q"><span>{{ m.question.value | escape }}</span><span class="ucs-faq__icon" aria-hidden="true"></span></summary>
 <div class="ucs-faq__a">{{ m.answer.value | escape | newline_to_br }}</div>
 </details>{%- endfor -%}<p class="ucs-faq__none" hidden>{{ 'ucs.faq_none' | t }}</p>
-</div>{%- if s.schema -%}{%- capture entries -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless sel contains key %}{% continue %}{% endunless -%},{"@type":"Question","name":{{ m.question.value | json }},"acceptedAnswer":{"@type":"Answer","text":{{ m.answer.value | default: '' | json }}}}{%- endfor -%}{%- endcapture -%}<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{ entries | strip | remove_first: ',' }}]}</script>{%- endif -%}{%- elsif request.design_mode -%}<p class="ucs-note">{{ 'ucs.faq_empty' | t }}</p>{%- endif -%}{%- if s.contact_label != blank -%}<div class="ucs-faq__help">{%- if s.contact_text != blank %}<p>{{ s.contact_text | escape }}</p>{% endif -%}<a class="ucs-btn" href="{{ s.contact_link | default: '/pages/contact' }}">{{ s.contact_label | escape }}</a>
+</div>{%- if s.schema -%}{%- capture entries -%}{%- for m in items -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless sel contains key %}{% continue %}{% endunless -%},{"@type":"Question","name":{{ m.question.value | json }},"acceptedAnswer":{"@type":"Answer","text":{{ m.answer.value | default: '' | json }}}}{%- endfor -%}{%- endcapture -%}<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{ entries | strip | remove_first: ',' }}]}</script>{%- endif -%}{%- elsif request.design_mode -%}<p class="ucs-note">{{ 'ucs.faq_empty' | t }}</p>{%- endif -%}{%- if contact_label != blank -%}<div class="ucs-faq__help">{%- if contact_text != blank %}<p>{{ contact_text | escape }}</p>{% endif -%}<a class="ucs-btn" href="{{ contact_link | default: '/pages/contact' | escape }}">{{ contact_label | escape }}</a>
 </div>{%- endif -%}</div>
-</div>{%- if s.search or show_tabs or exclusive != blank -%}<script src="{{ 'ucs-faq.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"FAQ","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.g"},{"type":"header","content":"Text"},{"type":"text","id":"heading","label":"Heading","default":"Frequently asked questions"},{"type":"text","id":"subheading","label":"t:s.h"},{"type":"range","id":"heading_size","label":"t:s.i","min":18,"max":56,"step":2,"unit":"px","default":30},{"type":"select","id":"align","label":"t:s.j","default":"center","options":[{"value":"left","label":"Left"},{"value":"center","label":"Centre"}]},{"type":"header","content":"Questions"},{"type":"text","id":"group","label":"t:s.k","info":"t:s.l"},{"type":"checkbox","id":"group_tabs","label":"t:s.m","default":true},{"type":"checkbox","id":"search","label":"t:s.n","default":true},{"type":"checkbox","id":"one_open","label":"t:s.o","default":true},{"type":"checkbox","id":"open_first","label":"t:s.p","default":false},{"type":"select","id":"columns","label":"t:s.q","default":"1","options":[{"value":"1","label":"One"},{"value":"2","label":"Two"}]},{"type":"header","content":"Look"},{"type":"select","id":"style","label":"Style","default":"lines","options":[{"value":"lines","label":"t:s.r"},{"value":"cards","label":"Cards"}]},{"type":"select","id":"icon","label":"Icon","default":"plus","options":[{"value":"plus","label":"Plus"},{"value":"chevron","label":"Arrow"}]},{"type":"range","id":"question_size","label":"t:s.s","min":13,"max":24,"step":1,"unit":"px","default":16},{"type":"range","id":"max_width","label":"Width","min":560,"max":1400,"step":20,"unit":"px","default":860},{"type":"range","id":"radius","label":"t:s.t","min":0,"max":24,"step":2,"unit":"px","default":10},{"type":"color","id":"bg","label":"Background","info":"t:s.u"},{"type":"color","id":"card_bg","label":"t:s.v"},{"type":"color","id":"accent","label":"Buttons","default":"#121212"},{"type":"header","content":"Help button"},{"type":"text","id":"contact_text","label":"Text","default":"Still have a question?"},{"type":"text","id":"contact_label","label":"Button","default":"Contact us","info":"t:s.w"},{"type":"url","id":"contact_link","label":"Button link","info":"t:s.x"},{"type":"header","content":"More"},{"type":"checkbox","id":"schema","label":"t:s.y","default":true,"info":"t:s.z"},{"type":"range","id":"padding_top","label":"Top padding","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"range","id":"padding_bottom","label":"t:s.10","min":0,"max":100,"step":4,"unit":"px","default":40},{"type":"select","id":"devices","label":"Devices","default":"all","options":[{"value":"all","label":"t:s.11"},{"value":"desktop","label":"t:s.12"},{"value":"mobile","label":"Mobile only"}]}]}{% endschema %}
+</div>{%- if search or show_tabs or exclusive != blank -%}<script src="{{ 'ucs-faq.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"FAQ","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.g"},{"type":"text","id":"group","label":"t:s.h","info":"t:s.i"},{"type":"text","id":"heading","label":"t:s.j","info":"t:s.k"},{"type":"checkbox","id":"schema","label":"t:s.l","default":true,"info":"t:s.m"}]}{% endschema %}
