@@ -12,6 +12,7 @@ import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./hea
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
+import { toStorefrontLogos, withLogosDefaults, type LogosDesign } from "./logos-design";
 import { toStorefrontAnnouncement, withAnnouncementDefaults, type AnnouncementDesign } from "./announcement-design";
 import { toStorefrontQuickAdd, withQuickAddDefaults, type QuickAddDesign } from "./quick-add-design";
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
@@ -254,5 +255,20 @@ export async function saveQuickAddDesign(admin: AdminClient, config: QuickAddDes
   if (!draftOnly) await upsert(admin, "$app:cro_design", "quick_add", { config: live });
   await upsert(admin, "$app:cro_design", "quick_add_draft", { config: live });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "quick_add_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ----------------------------------------------------------------- logos -- */
+export async function getLogosDesign(admin: AdminClient): Promise<{ config: LogosDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "logos_editor");
+  return { config: withLogosDefaults(raw), saved: raw !== null };
+}
+
+export async function saveLogosDesign(admin: AdminClient, config: LogosDesign, draftOnly = false) {
+  const clean = withLogosDefaults(config);
+  const live = JSON.stringify(toStorefrontLogos(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "logos", { config: live });
+  await upsert(admin, "$app:cro_design", "logos_draft", { config: live });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "logos_editor", { config: JSON.stringify(clean) });
   return clean;
 }

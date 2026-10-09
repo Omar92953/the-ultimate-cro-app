@@ -161,6 +161,8 @@ const { toStorefrontReviews, withReviewsDefaults } = await import("../../app/lib
 const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
 const { toStorefrontAnnouncement, withAnnouncementDefaults } = await import("../../app/lib/announcement-design.ts");
 const { toStorefrontShippingBar, withShippingBarDefaults } = await import("../../app/lib/shipping-bar.ts");
+const { toStorefrontLogos, withLogosDefaults } = await import("../../app/lib/logos-design.ts");
+const logosDesign = (raw) => mo("logos", { config: toStorefrontLogos(withLogosDefaults(raw)) });
 const announceDesign = (raw) => mo("announcement", { config: toStorefrontAnnouncement(withAnnouncementDefaults(raw)) });
 const shipBarDesign = mo("shipping_bar", { config: toStorefrontShippingBar(withShippingBarDefaults({ goal: 1000, text: { empty: "Free shipping on orders over {goal}", progress: "Spend {left} more for free shipping", done: "You've unlocked free shipping!" } })) });
 shop.metaobjects["$app:cro_design"] = collectionOf([
@@ -169,8 +171,12 @@ shop.metaobjects["$app:cro_design"] = collectionOf([
   mo("countdown_home", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "fixed", end: in3days } }, "home"), ) }),
   mo("countdown_product", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 2 } }, "product")) }),
   announceDesign({ freeShipping: { on: true, bar: true } }),
+  logosDesign({ layout: { lines: 2 } }),
   shipBarDesign,
 ]);
+const withDesign = (d) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== d.system.handle), d]) } });
+// Logos with another design: a colour grid with its own heading.
+const shopLogoGrid = withDesign(logosDesign({ layout: { mode: "grid" }, logos: { grayscale: false }, text: { heading: "As seen in" } }));
 // The announcement bar with another design: slide, closable, capitals (and no free-shipping message).
 const shopSlide = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== "announcement"), announceDesign({ behaviour: { animation: "slide", dismissible: true }, look: { upper: true } })]) } };
 shop.metaobjects["$app:cro_recent"] = collectionOf([
@@ -220,14 +226,14 @@ const pages = {
   "index.html": page("All sections",
     label("hero (desktop + mobile images)") + (await block("ucs-hero", { image_desktop: photo("herod", 2400, 1000), image_mobile: photo("herom", 1000, 1250), button_2_label: "Our story" })) +
     label("countdown: home section (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar")) + "</div>" +
-    label("logos (marquee, two lines)") + (await block("ucs-logos", { lines: "2" })) +
+    label("logos (marquee, two lines)") + (await block("ucs-logos")) +
     label("reviews (carousel, all)") + (await block("ucs-reviews")) +
     label("faq (tabs + search)") + (await block("ucs-faq", { search: true })),
     (await block("ucs-announcement")) + (await block("ucs-countdown-bar", { position: "bottom", mode: "daily", daily_cutoff: "23:59", text: "Order in the next" }))),
   "variants.html": page("Variants",
     label("hero: no images, text box, centred, small") + (await block("ucs-hero", { text_box: true, position_desktop: "mc", height_desktop: "small", full_width: false })) +
     label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
-    label("logos: grid, colour") + (await block("ucs-logos", { mode: "grid", grayscale: false, heading: "As seen in" })) +
+    label("logos: grid, colour") + (await block("ucs-logos", {}, { shop: shopLogoGrid })) +
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
     label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +
     label("faq: cards, chevron, 2 columns, only Shipping") + (await block("ucs-faq", { style: "cards", icon: "chevron", columns: "2", group: "shipping", accent: "#ffbd13" })),
@@ -340,6 +346,8 @@ const msgs = [...idx.matchAll(/ucs-ab__msg"[^>]*>[\s\S]*?<span>([^<]*)<\/span>/g
 check(msgs[0]?.startsWith("Free delivery") && msgs[2]?.startsWith("Third"), `announcements not in "Order" order: ${msgs.join(" | ")}`);
 const rows = idx.split('class="ucs-logos__track').slice(1).map((r) => [...r.matchAll(/alt="([^"]+)"/g)].slice(0, 5).map((m) => m[1]).join());
 check(rows.length === 2 && rows[0] !== rows[1] && new Set(rows[1].split(",")).size === 5, `logo lines wrong: ${rows.join(" / ")}`);
+const variants = pages["variants.html"];
+check(/ucs-logos ucs-logos--grid(?![^"]*ucs-logos--gray)/.test(variants) && variants.includes("As seen in"), "logos grid design (colour, own heading) not applied");
 // Reviews are built in the browser from the passed data: the product page passes only the tee's 2.
 const productReviews = (() => {
   const m = /data-ucs-rv data-only="1"[^>]*>\s*<script type="application\/json">([\s\S]*?)<\/script>/.exec(pages["product.html"]);

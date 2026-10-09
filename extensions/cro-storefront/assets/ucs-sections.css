@@ -149,7 +149,12 @@
 /* the moving strip is its own layer: give it the section colour so the blend has something to melt into */
 .ucs-logos--blend :is(.ucs-logos__track, .ucs-logos__grid) { background: var(--ucs-logo-bg, rgb(var(--color-background, 255, 255, 255))); }
 /* an item with no image: its name, sized to the logo height */
-.ucs-logos__text { display: flex; align-items: center; font-size: calc(var(--ucs-logo-h, 40px) * 0.55); font-weight: 600; line-height: 1; letter-spacing: 0.02em; white-space: nowrap; }
+.ucs-logos__text { display: flex; align-items: center; font-size: calc(var(--ucs-logo-h, 40px) * 0.55); font-weight: var(--ucs-logo-fw, 600); line-height: 1; letter-spacing: 0.02em; white-space: nowrap; }
+.ucs-logos--upper .ucs-logos__text { text-transform: uppercase; }
+/* One-colour logos (e.g. white on a dark band): dark marks turn white/black and light boxes around them blend away. */
+.ucs-logos--white img.ucs-logos__img { filter: grayscale(1) invert(1) contrast(3) !important; mix-blend-mode: screen; }
+.ucs-logos--black img.ucs-logos__img { filter: grayscale(1) contrast(3) !important; mix-blend-mode: multiply; }
+:is(.ucs-logos--white, .ucs-logos--black) :is(.ucs-logos__track, .ucs-logos__grid) { background: var(--ucs-logo-bg, rgb(var(--color-background, 255, 255, 255))); }
 .ucs-logos__item:hover .ucs-logos__img { filter: none; opacity: 1; }
 .ucs-logos__viewport { overflow: hidden; }
 .ucs-logos--fade .ucs-logos__viewport { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }

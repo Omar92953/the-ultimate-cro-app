@@ -89,6 +89,8 @@ type SectionConfig = {
   /** which value is the row title / thumbnail / "shown" switch */
   titleKey: string;
   thumbKey?: string;
+  /** The app page where the section's look is designed. */
+  design?: string;
   activeKey?: string;
   fields: FieldDef[];
   help: { what: string; how: string; example: string };
@@ -99,6 +101,7 @@ type SectionConfig = {
 export const SECTIONS: Record<SectionKind, SectionConfig> = {
   reviews: {
     type: "$app:cro_review",
+    design: "/app/designs/reviews",
     block: "ucs-reviews",
     template: "index",
     title: "Customer reviews",
@@ -156,6 +159,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
   },
   logos: {
     type: "$app:cro_logo",
+    design: "/app/designs/logos",
     block: "ucs-logos",
     template: "index",
     title: "Scrolling logos and text",
@@ -172,13 +176,14 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "A strip of logos or short texts — press that featured you, partners, or lines like “Free delivery” — that scrolls endlessly or sits in a grid.",
-      how: "Upload logos here, then add the “Scrolling logos and text” section in the theme editor. Speed, size and grey-until-hover are set there.",
+      how: "Upload logos here, choose speed, size and grey-until-hover in “Design”, then add the “Scrolling logos and text” section in the theme editor.",
       example: "“As seen in” with five magazine logos scrolling slowly under the hero image.",
     },
     empty: "No logos yet. Upload a few — magazines, partners or brands you work with.",
   },
   announcements: {
     type: "$app:cro_announce",
+    design: "/app/designs/announcement",
     block: "ucs-announcement",
     embed: true,
     template: "index",

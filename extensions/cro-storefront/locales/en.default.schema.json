@@ -20,16 +20,7 @@
   "17": "Tall image, about 1000 × 1250 px. Empty = the desktop image.",
   "18": "Link for the whole image",
   "19": "Height on desktop",
-  "20": "Right to left",
-  "21": "Left to right",
-  "22": "Pause when the mouse is over it",
-  "23": "Fade the edges",
-  "24": "Logos per row on desktop",
-  "25": "Logos per row on mobile",
-  "26": "Space between logos",
-  "27": "Grey until the mouse is over them",
-  "28": "Logo strength",
-  "29": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add.",
+  "20": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar.",
   "a": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers → Add-ons.",
   "b": "Messages, icons, dates and the look are set in the app: Store sections → Announcements.",
   "c": "Sticky add to cart, stock urgency, trust badges, sales pop-ups and bundle deals. Edit them in the app: Boosters and Bundles.",
@@ -79,10 +70,8 @@
   "1u": "When scrolled to (lower on the page)",
   "1v": "High (first image people see)",
   "1w": "Images, texts, sizes and arrows are set in the app: Store sections → Image carousel.",
-  "1x": "Add and order the logos in the app: Store sections → Logos.",
-  "1y": "Scrolling strip",
-  "1z": "Second line moves the other way",
-  "2a": "Reviews and how they look are set in the app: Store sections → Customer reviews.",
-  "2b": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
+  "1x": "Logos, their order and the look are set in the app: Store sections → Logos.",
+  "1y": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add.",
+  "1z": "Reviews and how they look are set in the app: Store sections → Customer reviews."
  }
 }
