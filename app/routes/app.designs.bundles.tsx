@@ -107,6 +107,7 @@ export default function BundleDesigner() {
   const [tab, setTab] = useState<DesignTab>("content");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const [view, setView] = useState<"page" | "collection">("page");
+  const [group, setGroup] = useState<"text" | "cards" | "images" | "buttons" | "summary" | "colours">("cards");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -245,6 +246,22 @@ export default function BundleDesigner() {
               </Pane>
 
               <Pane show={tab === "style"}>
+                <Segmented
+                  label="Style group"
+                  value={group}
+                  onChange={setGroup}
+                  options={[
+                    { value: "cards", label: "Cards" },
+                    { value: "buttons", label: "Buttons" },
+                    { value: "text", label: "Text" },
+                    { value: "images", label: "Images" },
+                    { value: "summary", label: "Summary" },
+                    { value: "colours", label: "Colours" },
+                  ]}
+                />
+              </Pane>
+
+              <Pane show={tab === "style" && group === "text"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Size" value={cfg.text.size} onValue={(v) => text({ size: v as C["text"]["size"] })} options={[{ value: "small", label: "Small" }, { value: "medium", label: "Medium" }, { value: "large", label: "Large" }]} />
@@ -253,7 +270,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "text"}>
                 <s-section heading="Text">
                   <s-stack gap="base">
                     <Select label="Font" value={cfg.type.font} onValue={(v) => type({ font: v as C["type"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
@@ -271,7 +288,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "cards"}>
                 <s-section heading="Product cards">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -288,7 +305,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "images"}>
                 <s-section heading="Product images">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Shape" value={cfg.image.ratio} onValue={(v) => image({ ratio: v as C["image"]["ratio"] })} options={[{ value: "1 / 1", label: "Square" }, { value: "4 / 5", label: "Portrait (4:5)" }, { value: "3 / 4", label: "Tall (3:4)" }, { value: "16 / 9", label: "Wide (16:9)" }]} />
@@ -299,7 +316,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "buttons"}>
                 <s-section heading="Add buttons">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Button style" value={cfg.pickButton.style} onValue={(v) => pickButton({ style: v as C["pickButton"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "text", label: "Text link" }]} />
@@ -318,7 +335,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "summary"}>
                 <s-section heading="Summary and main button">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -339,7 +356,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "style" && group === "colours"}>
                 <s-section heading="Picked colour and card corners">
                   <s-stack gap="base">
                     <Checkbox label="Picked items use my theme's button colour" checked={cfg.look.themeAccent} onValue={(v) => look({ themeAccent: v })} />
