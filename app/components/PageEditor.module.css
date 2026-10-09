@@ -17,3 +17,12 @@
 .look:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
 .lookBar { display: block; overflow: hidden; border-radius: 6px; pointer-events: none; zoom: 0.8; }
 .lookName { font-size: 13px; font-weight: 600; color: #303030; }
+
+/* Design pages: a centred column with space on both sides; tabs stay at the top while scrolling */
+.shell { width: 100%; max-width: 1180px; margin: 0 auto; }
+.tabsBar { background: #f1f1f1; }
+@media (max-width: 1000px) {
+  /* narrow screens: the preview comes first so changes are always visible */
+  .layout > .preview { order: -1; position: relative; top: 0; }
+  .layout > .preview .frame { max-height: 45vh; }
+}

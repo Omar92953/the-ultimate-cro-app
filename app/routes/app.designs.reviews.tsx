@@ -14,6 +14,7 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { MediaPicker } from "../components/MediaPicker";
 import { ReviewsPreview, type PreviewReview } from "../components/ReviewsPreview";
 import ui from "../components/PageEditor.module.css";
+import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 const fmtDate = (d: string) => {
   const t = Date.parse(`${d}T12:00:00Z`);
@@ -61,6 +62,7 @@ type C = ReviewsDesign;
 export default function ReviewsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
+  const [tab, setTab] = useState<DesignTab>("content");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -92,6 +94,7 @@ export default function ReviewsDesigner() {
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         Add to a page
       </Button>
+      <div className={ui.shell}>
       <s-stack gap="base">
         <s-text color="subdued">
           Add, edit and order the reviews in “Manage reviews”. Here you choose how the section looks. In the theme editor you only place the “Customer reviews” section.
@@ -103,8 +106,9 @@ export default function ReviewsDesigner() {
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
+        <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
 
-        <s-section heading="Start from a look">
+        <Pane show={tab === "looks"}><s-section heading="Start from a look">
           <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
             {REVIEW_PRESETS.map((p) => (
               <s-clickable key={p.key} onClick={() => setCfg((c) => applyReviewPreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
@@ -112,11 +116,11 @@ export default function ReviewsDesigner() {
               </s-clickable>
             ))}
           </s-grid>
-        </s-section>
+        </s-section></Pane>
 
         <div className={ui.layout}>
           <s-stack gap="base">
-            <s-section heading="Heading and words">
+            <Pane show={tab === "content"}><s-section heading="Heading and words">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
                 <TextField label="Text under the heading" value={cfg.text.sub} onValue={(v) => text({ sub: v })} />
@@ -127,9 +131,9 @@ export default function ReviewsDesigner() {
                   <TextField label="“Show less” button" value={cfg.text.readLess} onValue={(v) => text({ readLess: v })} />
                 </s-grid>
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Rating summary">
+            <Pane show={tab === "content"}><s-section heading="Rating summary">
               <s-stack gap="base">
                 <Switch label="Show the rating summary" checked={cfg.summary.show} onValue={(v) => summary({ show: v })} />
                 {cfg.summary.show ? (
@@ -141,9 +145,9 @@ export default function ReviewsDesigner() {
                   </>
                 ) : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Which reviews">
+            <Pane show={tab === "content"}><s-section heading="Which reviews">
               <s-stack gap="base">
                 <Select
                   label="Show"
@@ -160,9 +164,9 @@ export default function ReviewsDesigner() {
                 ) : null}
                 <NumberField label="Most reviews shown" min={1} max={60} step={1} value={cfg.which.limit} onValue={(v) => which({ limit: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Layout and scrolling">
+            <Pane show={tab === "layout"}><s-section heading="Layout and scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={[{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }]} />
                 <NumberField label="Cards per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
@@ -185,9 +189,9 @@ export default function ReviewsDesigner() {
                   </>
                 ) : null}
               </s-grid>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Cards">
+            <Pane show={tab === "layout"}><s-section heading="Cards">
               <s-stack gap="base">
                 <Select label="Card style" value={cfg.card.style} onValue={(v) => card({ style: v as C["card"]["style"] })} options={[{ value: "classic", label: "Classic" }, { value: "chat", label: "Chat screenshot" }, { value: "minimal", label: "Minimal" }]} />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="small-200">
@@ -206,9 +210,9 @@ export default function ReviewsDesigner() {
                 </s-grid>
                 <Checkbox label="Videos play silently when on screen" checked={cfg.card.videoAutoplay} onValue={(v) => card({ videoAutoplay: v })} />
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Behind smaller pictures">
+            <Pane show={tab === "style"}><s-section heading="Behind smaller pictures">
               <s-stack gap="base">
                 <s-text color="subdued">Every picture is as tall as the tallest one; smaller ones sit on this fill.</s-text>
                 <Select label="Fill" value={cfg.fill.kind} onValue={(v) => fill({ kind: v as C["fill"]["kind"] })} options={[{ value: "color", label: "A colour" }, { value: "pattern", label: "A pattern" }, { value: "image", label: "An image" }]} />
@@ -216,9 +220,9 @@ export default function ReviewsDesigner() {
                 {cfg.fill.kind === "pattern" ? <Select label="Pattern" value={cfg.fill.pattern} onValue={(v) => fill({ pattern: v as C["fill"]["pattern"] })} options={[{ value: "chat", label: "Chat wallpaper" }, { value: "dots", label: "Dots" }, { value: "grid", label: "Grid" }, { value: "lines", label: "Lines" }]} /> : null}
                 {cfg.fill.kind === "image" ? <MediaPicker label="Fill image" accept="image" value={cfg.fill.image} onValue={(v) => fill({ image: v })} alt="Reviews background" /> : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Colours">
+            <Pane show={tab === "style"}><s-section heading="Colours">
               <s-stack gap="base">
                 <ColorField label="Stars" value={cfg.look.star} onValue={(v) => look({ star: v })} />
                 <Checkbox label="Cards use your theme's colours" checked={cfg.look.defaultCard} onValue={(v) => look({ defaultCard: v })} />
@@ -231,9 +235,9 @@ export default function ReviewsDesigner() {
                 <Checkbox label="Section background from your theme" checked={cfg.look.transparentBg} onValue={(v) => look({ transparentBg: v })} />
                 {!cfg.look.transparentBg ? <ColorField label="Section background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} /> : null}
               </s-stack>
-            </s-section>
+            </s-section></Pane>
 
-            <s-section heading="Spacing and more">
+            <Pane show={tab === "display"}><s-section heading="Spacing and more">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />
                 <NumberField label="Space below" suffix="px" min={0} max={120} step={4} value={cfg.space.bottom} onValue={(v) => space({ bottom: v })} />
@@ -242,19 +246,15 @@ export default function ReviewsDesigner() {
               <s-box paddingBlockStart="base">
                 <Checkbox label="Tell Google about a product's reviews (star ratings in search results)" checked={cfg.space.schema} onValue={(v) => space({ schema: v })} />
               </s-box>
-            </s-section>
+            </s-section></Pane>
           </s-stack>
 
-          <div className={ui.preview}>
-            <div className={ui.previewBar}>
-              <span>Live preview · your real reviews</span>
-            </div>
-            <div className={ui.frame}>
-              <ReviewsPreview config={cfg} reviews={data.reviews} />
-            </div>
-          </div>
+          <PreviewFrame title="Home page · your real reviews">
+            <ReviewsPreview config={cfg} reviews={data.reviews} />
+          </PreviewFrame>
         </div>
       </s-stack>
+      </div>
     </s-page>
   );
 }
