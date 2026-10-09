@@ -16,6 +16,7 @@ import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../com
 import { Segmented } from "../components/ui";
 import { VideoCarouselPreview, type PreviewSlide } from "../components/VideoCarouselPreview";
 import ui from "../components/PageEditor.module.css";
+import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
@@ -136,15 +137,7 @@ export default function VideoCarouselDesigner() {
             <ThemeStylePanel style={data.style} scheme={cfg.layout.scheme} onScheme={(id) => layout({ scheme: id })} onMatch={() => setCfg((c) => matchVideoCarouselTheme(c, c.layout.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <s-section heading="Start from a look">
-              <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
-                {VIDEO_CAROUSEL_PRESETS.map((p) => (
-                  <s-clickable key={p.key} onClick={() => setCfg((c) => applyVideoCarouselPreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
-                    <s-text type="strong">{p.title}</s-text>
-                  </s-clickable>
-                ))}
-              </s-grid>
-            </s-section>
+            <LookPicker presets={VIDEO_CAROUSEL_PRESETS} config={cfg} apply={applyVideoCarouselPreset} onPick={(key) => setCfg((c) => applyVideoCarouselPreset(c, key))} swatch={(c) => ({ accent: pageLook.accent, radius: c.layout.corners === "theme" ? pageLook.radius : c.layout.corners === "round" ? 14 : 0, cards: c.layout.desktop, ratio: ({ "9 / 16": 1.78, "3 / 4": 1.33, "4 / 5": 1.25, "1 / 1": 1 } as Record<string, number>)[c.layout.ratio] })} />
           </Pane>
 
           <div className={ui.layout}>

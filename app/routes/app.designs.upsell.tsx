@@ -17,6 +17,7 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { SAMPLE_OFFER, UpsellDesignPreview, type PreviewOffer } from "../components/UpsellDesignPreview";
 import type { PreviewProduct } from "../lib/preview-products.server";
 import ui from "../components/PageEditor.module.css";
+import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -136,15 +137,7 @@ export default function UpsellDesigner() {
             <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchUpsellTheme(c, c.look.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <s-section heading="Start from a look">
-              <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
-                {UPSELL_PRESETS.map((p) => (
-                  <s-clickable key={p.key} onClick={() => setCfg((c) => applyUpsellPreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
-                    <s-text type="strong">{p.title}</s-text>
-                  </s-clickable>
-                ))}
-              </s-grid>
-            </s-section>
+            <LookPicker presets={UPSELL_PRESETS} config={cfg} apply={applyUpsellPreset} onPick={(key) => setCfg((c) => applyUpsellPreset(c, key))} swatch={(c) => ({ accent: c.look.themeColors ? pageLook.accent : c.look.accent, radius: c.look.themeRadius ? pageLook.radius : c.look.radius, list: c.offers.style === "list" })} />
           </Pane>
 
           <div className={ui.layout}>

@@ -14,6 +14,7 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { MediaPicker } from "../components/MediaPicker";
 import { ReviewsPreview, type PreviewReview } from "../components/ReviewsPreview";
 import ui from "../components/PageEditor.module.css";
+import { LookPicker } from "../components/LookPicker";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
@@ -119,15 +120,7 @@ export default function ReviewsDesigner() {
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchReviews} />
         </Pane>
 
-        <Pane show={tab === "looks"}><s-section heading="Start from a look">
-          <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
-            {REVIEW_PRESETS.map((p) => (
-              <s-clickable key={p.key} onClick={() => setCfg((c) => applyReviewPreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
-                <s-text type="strong">{p.title}</s-text>
-              </s-clickable>
-            ))}
-          </s-grid>
-        </s-section></Pane>
+        <Pane show={tab === "looks"}><LookPicker presets={REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} swatch={(c) => ({ accent: c.look.star, radius: c.look.radius, bg: c.look.transparentBg ? undefined : c.look.bg, cards: c.layout.perDesktop })} /></Pane>
 
         <div className={ui.layout}>
           <s-stack gap="base">

@@ -19,6 +19,7 @@ import { Segmented } from "../components/ui";
 import { BundlePreview, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
 import { BundleCollectionPreview } from "../components/BundleCollectionPreview";
 import ui from "../components/PageEditor.module.css";
+import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
@@ -154,15 +155,7 @@ export default function BundleDesigner() {
             <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchBundleTheme(c, c.look.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <s-section heading="Start from a look">
-              <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
-                {BUNDLE_PRESETS.map((p) => (
-                  <s-clickable key={p.key} onClick={() => setCfg((c) => applyBundlePreset(c, p.key))} borderWidth="base" borderRadius="base" padding="small-200" accessibilityLabel={`Use the ${p.title} look`}>
-                    <s-text type="strong">{p.title}</s-text>
-                  </s-clickable>
-                ))}
-              </s-grid>
-            </s-section>
+            <LookPicker presets={BUNDLE_PRESETS} config={cfg} apply={applyBundlePreset} onPick={(key) => setCfg((c) => applyBundlePreset(c, key))} swatch={(c) => ({ accent: c.look.themeAccent ? pageLook.accent : c.look.accent, radius: c.look.themeRadius ? pageLook.radius : c.look.radius, cards: c.products.desktop })} />
           </Pane>
 
           <div className={ui.layout}>

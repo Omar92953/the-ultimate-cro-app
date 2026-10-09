@@ -24,7 +24,7 @@
  *     "pv": "<parent variant id>", "t": "<title>", "d": 0|1 (same item twice),
  *     "k": "f" (fixed: the bundle product's price) | "p" (percent off), "pr": <price in cents>, "pc": <percent>,
  *     "s": [{ "n": min, "x": max, "c": "<collection id>" | "p": ["<product id base36>", …] }] } } }
- * The step collections are also passed as input variables (`$app.bundle_vars`).
+ * The step collections are also passed as input variables (`$app.bundle_vars`, set with the config).
  */
 
 /**
