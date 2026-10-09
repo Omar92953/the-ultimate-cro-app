@@ -11,7 +11,11 @@
 
   var cfgEl = document.getElementById('ucs-qa-config');
   if (!cfgEl) return;
-  var cfg = JSON.parse(cfgEl.textContent);
+  // The design from the app (Boosters → Quick add) over the standard look, plus the shop's words.
+  var raw = JSON.parse(cfgEl.textContent);
+  var cfg = Object.assign({ icon: 'bag', shape: 'circle', size: 40, position: 'br', show: 'always', bg: '#ffffff', fg: '#111111', after: 'toast', autohide: 3, checkout: true, addedState: true, selector: '' }, raw.d || {});
+  cfg.fmt = raw.fmt;
+  cfg.text = Object.assign({ added: 'Added to your cart!', view_cart: 'View cart', checkout: 'Checkout', add: 'Add to cart' }, (raw.d && raw.d.text) || {}, raw.t || {});
   var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
   var R = window.routes || {};
   var url = function (key, path) { return R[key] || (root + path).replace(/\/+/g, '/'); };

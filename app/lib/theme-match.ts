@@ -5,6 +5,7 @@
  */
 import type { AddonsConfig } from "./addons";
 import type { AnnouncementDesign } from "./announcement-design";
+import type { QuickAddDesign } from "./quick-add-design";
 import type { CollectionPillsConfig } from "./collection-pills";
 import type { CountdownBarConfig } from "./designs";
 import type { HeaderConfig } from "./header";
@@ -69,3 +70,10 @@ export const matchContact = (c: ContactConfig, s: ThemeScheme, st: ThemeStyle): 
 });
 
 export const matchAnnouncement = (c: AnnouncementDesign, s: ThemeScheme): AnnouncementDesign => ({ ...c, scheme: s.id, look: { ...c.look, bg: s.bg, fg: s.text } });
+
+export const matchQuickAdd = (c: QuickAddDesign, s: ThemeScheme, st: ThemeStyle): QuickAddDesign => ({
+  ...c,
+  scheme: s.id,
+  button: { ...c.button, bg: s.bg, fg: s.text },
+  popup: { ...c.popup, vcBg: s.bg, vcText: s.text, vcBorder: s.text, coBg: s.button, coText: s.buttonText, coBorder: s.button, radius: Math.min(st.radius.button, 99) },
+});

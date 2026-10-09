@@ -1,34 +1,16 @@
 {%- comment -%}
   App embed: quick add to cart on product cards (collections, home, search, recommendations).
   Product cards can't hold app blocks, so the button is placed on each card's image by JS.
+  Designed in the app (Boosters → Quick add): $app:cro_design "quick_add".
 {%- endcomment -%}
+{%- liquid
+  assign d = shop.metaobjects['$app:cro_design']['quick_add'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['quick_add_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['quick_add_draft'].config.value
+  endif
+-%}
 <script type="application/json" id="ucs-qa-config">
-  {
-    "fmt": {{ shop.money_format | json }},
-    "icon": {{ block.settings.icon | json }},
-    "shape": {{ block.settings.shape | json }},
-    "size": {{ block.settings.size | json }},
-    "position": {{ block.settings.position | json }},
-    "show": {{ block.settings.show | json }},
-    "bg": {{ block.settings.bg | json }},
-    "fg": {{ block.settings.fg | json }},
-    "after": {{ block.settings.after | json }},
-    "autohide": {{ block.settings.autohide | json }},
-    "checkout": {{ block.settings.show_checkout | json }},
-    "addedState": {{ block.settings.added_state | json }},
-    "pop": [{{ block.settings.vc_bg | json }}, {{ block.settings.vc_text | json }}, {{ block.settings.vc_border | json }}, {{ block.settings.co_bg | json }}, {{ block.settings.co_text | json }}, {{ block.settings.co_border | json }}, {{ block.settings.btn_border }}, {{ block.settings.btn_radius }}],
-    "selector": {{ block.settings.selector | strip | json }},
-    "text": {
-      "added": {{ block.settings.added_text | json }},
-      "view_cart": {{ block.settings.view_cart_text | json }},
-      "checkout": {{ block.settings.checkout_text | json }},
-      "add": {{ block.settings.add_text | json }},
-      "choose": {{ 'ucs.choose' | t | json }},
-      "sold_out": {{ 'ucs.sold_out' | t | json }},
-      "close": {{ 'ucs.close' | t | json }},
-      "error": {{ 'ucs.error' | t | json }}
-    }
-  }
+  {"fmt":{{ shop.money_format | json }},"d":{{ d | json | default: 'null' }},"t":{"choose":{{ 'ucs.choose' | t | json }},"sold_out":{{ 'ucs.sold_out' | t | json }},"close":{{ 'ucs.close' | t | json }},"error":{{ 'ucs.error' | t | json }}}}
 </script>
 <script src="{{ 'ucs-quick-add.js' | asset_url }}" defer></script>
 
@@ -38,35 +20,7 @@
   "target": "body",
   "stylesheet": "ucs-quick-add.css",
   "settings": [
-    { "type": "paragraph", "content": "Adds a button to every product card. Products with sizes or colours open a small picker." },
-    { "type": "header", "content": "Button" },
-    { "type": "select", "id": "icon", "label": "Icon", "default": "bag", "options": [{ "value": "bag", "label": "Bag with plus" }, { "value": "plus", "label": "Plus" }, { "value": "cart", "label": "Cart" }] },
-    { "type": "select", "id": "shape", "label": "Shape", "default": "circle", "options": [{ "value": "circle", "label": "Circle" }, { "value": "square", "label": "Rounded square" }] },
-    { "type": "range", "id": "size", "label": "Size", "min": 28, "max": 60, "step": 2, "unit": "px", "default": 40 },
-    { "type": "select", "id": "position", "label": "Position on the image", "default": "br", "options": [{ "value": "br", "label": "Bottom right" }, { "value": "bl", "label": "Bottom left" }, { "value": "tr", "label": "Top right" }, { "value": "tl", "label": "Top left" }] },
-    { "type": "select", "id": "show", "label": "Show", "default": "always", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover (desktop)" }] },
-    { "type": "color", "id": "bg", "label": "Button colour", "default": "#ffffff" },
-    { "type": "color", "id": "fg", "label": "Icon colour", "default": "#111111" },
-    { "type": "checkbox", "id": "added_state", "label": "Show a tick after adding", "default": true },
-    { "type": "header", "content": "After adding" },
-    { "type": "select", "id": "after", "label": "Then", "default": "toast", "options": [{ "value": "toast", "label": "Show the “Added to cart” popup" }, { "value": "theme", "label": "Open my theme's cart (if it has one)" }, { "value": "cart", "label": "Go to the cart page" }] },
-    { "type": "range", "id": "autohide", "label": "Hide the popup after", "min": 0, "max": 10, "step": 1, "unit": "s", "default": 3, "info": "0 = stays until closed. It waits while the mouse is over it." },
-    { "type": "checkbox", "id": "show_checkout", "label": "Show a Checkout button in the popup", "default": true },
-    { "type": "text", "id": "added_text", "label": "Popup message", "default": "Added to your cart!" },
-    { "type": "text", "id": "view_cart_text", "label": "View cart button", "default": "View cart" },
-    { "type": "text", "id": "checkout_text", "label": "Checkout button", "default": "Checkout" },
-    { "type": "text", "id": "add_text", "label": "Add button (size picker)", "default": "Add to cart" },
-    { "type": "header", "content": "Popup buttons" },
-    { "type": "color", "id": "vc_bg", "label": "View cart background", "default": "#ffffff" },
-    { "type": "color", "id": "vc_text", "label": "View cart text", "default": "#121212" },
-    { "type": "color", "id": "vc_border", "label": "View cart border", "default": "#121212" },
-    { "type": "color", "id": "co_bg", "label": "Checkout background", "default": "#121212" },
-    { "type": "color", "id": "co_text", "label": "Checkout text", "default": "#ffffff" },
-    { "type": "color", "id": "co_border", "label": "Checkout border", "default": "#121212" },
-    { "type": "range", "id": "btn_border", "label": "Border width", "min": 0, "max": 4, "step": 1, "unit": "px", "default": 1 },
-    { "type": "range", "id": "btn_radius", "label": "Corner radius", "min": 0, "max": 24, "step": 1, "unit": "px", "default": 4 },
-    { "type": "header", "content": "Advanced" },
-    { "type": "text", "id": "selector", "label": "Product card selector", "info": "Only if the button doesn't appear on your theme's cards, e.g. .product-card. Leave empty for automatic." }
+    { "type": "paragraph", "content": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add." }
   ]
 }
 {% endschema %}

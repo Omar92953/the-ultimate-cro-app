@@ -1,30 +1,10 @@
-{%- assign bs = block.settings -%}<script type="application/json" id="ucs-qa-config">
-{
-"fmt": {{ shop.money_format | json }},
-"icon": {{ bs.icon | json }},
-"shape": {{ bs.shape | json }},
-"size": {{ bs.size | json }},
-"position": {{ bs.position | json }},
-"show": {{ bs.show | json }},
-"bg": {{ bs.bg | json }},
-"fg": {{ bs.fg | json }},
-"after": {{ bs.after | json }},
-"autohide": {{ bs.autohide | json }},
-"checkout": {{ bs.show_checkout | json }},
-"addedState": {{ bs.added_state | json }},
-"pop": [{{ bs.vc_bg | json }}, {{ bs.vc_text | json }}, {{ bs.vc_border | json }}, {{ bs.co_bg | json }}, {{ bs.co_text | json }}, {{ bs.co_border | json }}, {{ bs.btn_border }}, {{ bs.btn_radius }}],
-"selector": {{ bs.selector | strip | json }},
-"text": {
-"added": {{ bs.added_text | json }},
-"view_cart": {{ bs.view_cart_text | json }},
-"checkout": {{ bs.checkout_text | json }},
-"add": {{ bs.add_text | json }},
-"choose": {{ 'ucs.choose' | t | json }},
-"sold_out": {{ 'ucs.sold_out' | t | json }},
-"close": {{ 'ucs.close' | t | json }},
-"error": {{ 'ucs.error' | t | json }}
-}
-}
+{%- liquid
+assign d = shop.metaobjects['$app:cro_design']['quick_add'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['quick_add_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['quick_add_draft'].config.value
+endif
+-%}<script type="application/json" id="ucs-qa-config">
+{"fmt":{{ shop.money_format | json }},"d":{{ d | json | default: 'null' }},"t":{"choose":{{ 'ucs.choose' | t | json }},"sold_out":{{ 'ucs.sold_out' | t | json }},"close":{{ 'ucs.close' | t | json }},"error":{{ 'ucs.error' | t | json }}}}
 </script>
 <script src="{{ 'ucs-quick-add.js' | asset_url }}" defer></script>
-{% schema %}{"name":"Quick add to cart","target":"body","stylesheet":"ucs-quick-add.css","settings":[{"type":"paragraph","content":"t:s.29"},{"type":"header","content":"Button"},{"type":"select","id":"icon","label":"Icon","default":"bag","options":[{"value":"bag","label":"t:s.2a"},{"value":"plus","label":"Plus"},{"value":"cart","label":"Cart"}]},{"type":"select","id":"shape","label":"Shape","default":"circle","options":[{"value":"circle","label":"Circle"},{"value":"square","label":"t:s.2b"}]},{"type":"range","id":"size","label":"Size","min":28,"max":60,"step":2,"unit":"px","default":40},{"type":"select","id":"position","label":"t:s.2c","default":"br","options":[{"value":"br","label":"t:s.1l"},{"value":"bl","label":"Bottom left"},{"value":"tr","label":"Top right"},{"value":"tl","label":"Top left"}]},{"type":"select","id":"show","label":"Show","default":"always","options":[{"value":"always","label":"Always"},{"value":"hover","label":"t:s.2d"}]},{"type":"color","id":"bg","label":"t:s.2e","default":"#ffffff"},{"type":"color","id":"fg","label":"Icon colour","default":"#111111"},{"type":"checkbox","id":"added_state","label":"t:s.2f","default":true},{"type":"header","content":"t:s.2g"},{"type":"select","id":"after","label":"Then","default":"toast","options":[{"value":"toast","label":"t:s.2h"},{"value":"theme","label":"t:s.2i"},{"value":"cart","label":"t:s.2j"}]},{"type":"range","id":"autohide","label":"t:s.2k","min":0,"max":10,"step":1,"unit":"s","default":3,"info":"t:s.2l"},{"type":"checkbox","id":"show_checkout","label":"t:s.2m","default":true},{"type":"text","id":"added_text","label":"t:s.2n","default":"Added to your cart!"},{"type":"text","id":"view_cart_text","label":"t:s.2o","default":"View cart"},{"type":"text","id":"checkout_text","label":"t:s.2p","default":"Checkout"},{"type":"text","id":"add_text","label":"t:s.2q","default":"Add to cart"},{"type":"header","content":"t:s.2r"},{"type":"color","id":"vc_bg","label":"t:s.2s","default":"#ffffff"},{"type":"color","id":"vc_text","label":"t:s.2t","default":"#121212"},{"type":"color","id":"vc_border","label":"t:s.2u","default":"#121212"},{"type":"color","id":"co_bg","label":"t:s.2v","default":"#121212"},{"type":"color","id":"co_text","label":"t:s.2w","default":"#ffffff"},{"type":"color","id":"co_border","label":"t:s.2x","default":"#121212"},{"type":"range","id":"btn_border","label":"t:s.2y","min":0,"max":4,"step":1,"unit":"px","default":1},{"type":"range","id":"btn_radius","label":"t:s.2z","min":0,"max":24,"step":1,"unit":"px","default":4},{"type":"header","content":"Advanced"},{"type":"text","id":"selector","label":"t:s.30","info":"t:s.31"}]}{% endschema %}
+{% schema %}{"name":"Quick add to cart","target":"body","stylesheet":"ucs-quick-add.css","settings":[{"type":"paragraph","content":"t:s.29"}]}{% endschema %}

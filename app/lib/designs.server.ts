@@ -13,6 +13,7 @@ import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./add
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
 import { toStorefrontAnnouncement, withAnnouncementDefaults, type AnnouncementDesign } from "./announcement-design";
+import { toStorefrontQuickAdd, withQuickAddDefaults, type QuickAddDesign } from "./quick-add-design";
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
@@ -238,5 +239,20 @@ export async function saveAnnouncementDesign(admin: AdminClient, config: Announc
   if (!draftOnly) await upsert(admin, "$app:cro_design", "announcement", { config: live });
   await upsert(admin, "$app:cro_design", "announcement_draft", { config: live });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "announcement_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------------------- quick add -- */
+export async function getQuickAddDesign(admin: AdminClient): Promise<{ config: QuickAddDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "quick_add_editor");
+  return { config: withQuickAddDefaults(raw), saved: raw !== null };
+}
+
+export async function saveQuickAddDesign(admin: AdminClient, config: QuickAddDesign, draftOnly = false) {
+  const clean = withQuickAddDefaults(config);
+  const live = JSON.stringify(toStorefrontQuickAdd(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "quick_add", { config: live });
+  await upsert(admin, "$app:cro_design", "quick_add_draft", { config: live });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "quick_add_editor", { config: JSON.stringify(clean) });
   return clean;
 }
