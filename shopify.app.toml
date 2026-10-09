@@ -468,6 +468,52 @@ access.storefront = "public_read"
   type = "json"
 
 # Section designs edited in the app (handle = section, e.g. "countdown_bar"): settings + ready-made CSS.
+# One hero banner (Hero banners in the app). Each "Hero image" section picks one; with none picked
+# it shows the first banner. "config" is what the storefront reads, "draft" the theme-editor preview,
+# "editor" the app's full form.
+[metaobjects.app.cro_hero]
+name = "CRO hero banner"
+display_name_field = "name"
+access.admin = "merchant_read"
+access.storefront = "public_read"
+
+  [metaobjects.app.cro_hero.fields.name]
+  name = "Name"
+  type = "single_line_text_field"
+  required = true
+
+  [metaobjects.app.cro_hero.fields.image_desktop]
+  name = "Desktop image"
+  type = "file_reference"
+
+  [metaobjects.app.cro_hero.fields.image_mobile]
+  name = "Mobile image"
+  type = "file_reference"
+
+  [metaobjects.app.cro_hero.fields.position]
+  name = "Order"
+  type = "number_integer"
+
+  [metaobjects.app.cro_hero.fields.config]
+  name = "Settings"
+  type = "json"
+
+  [metaobjects.app.cro_hero.fields.draft]
+  name = "Preview settings"
+  type = "json"
+
+  [metaobjects.app.cro_hero.fields.draft_desktop]
+  name = "Preview desktop image"
+  type = "file_reference"
+
+  [metaobjects.app.cro_hero.fields.draft_mobile]
+  name = "Preview mobile image"
+  type = "file_reference"
+
+  [metaobjects.app.cro_hero.fields.editor]
+  name = "Editor settings"
+  type = "json"
+
 [metaobjects.app.cro_design]
 name = "CRO section design"
 access.admin = "merchant_read"

@@ -7,6 +7,7 @@ import type { AddonsConfig } from "./addons";
 import type { AnnouncementDesign } from "./announcement-design";
 import type { LogosDesign } from "./logos-design";
 import type { FaqDesign } from "./faq-design";
+import type { HeroDesign } from "./hero-design";
 import type { QuickAddDesign } from "./quick-add-design";
 import type { CollectionPillsConfig } from "./collection-pills";
 import type { CountdownBarConfig } from "./designs";
@@ -86,4 +87,11 @@ export const matchFaq = (c: FaqDesign, s: ThemeScheme): FaqDesign => ({
   ...c,
   scheme: s.id,
   look: { ...c.look, ownBg: true, bg: s.bg, ownText: true, fg: s.text, ownCard: c.look.style === "cards" || c.look.ownCard, cardBg: mix(s.text, s.bg, 0.06), accent: s.button },
+});
+
+/** Hero: text and buttons in the scheme's colours, the overlay / text box in its background. */
+export const matchHero = (c: HeroDesign, s: ThemeScheme): HeroDesign => ({
+  ...c,
+  scheme: s.id,
+  look: { ...c.look, fg: s.text, buttonBg: s.button, buttonFg: s.buttonText, overlay: s.bg, boxBg: s.bg },
 });

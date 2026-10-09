@@ -102,8 +102,8 @@
 .ucs-hero__overlay { background: var(--ucs-hero-ov, #000); opacity: var(--ucs-hero-op, 0.25); pointer-events: none; }
 .ucs-hero__link { z-index: 1; }
 .ucs-hero__content { position: relative; z-index: 2; display: flex; padding: clamp(20px, 5vw, 64px); pointer-events: none; }
-.ucs-hero__inner { max-width: 640px; pointer-events: auto; }
-.ucs-hero--box .ucs-hero__inner { padding: clamp(18px, 3vw, 36px); border-radius: 12px; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); }
+.ucs-hero__inner { max-width: var(--ucs-hero-tw, 640px); pointer-events: auto; }
+.ucs-hero--box .ucs-hero__inner { padding: clamp(18px, 3vw, 36px); border-radius: 12px; background: var(--ucs-hero-box, rgba(0, 0, 0, 0.45)); backdrop-filter: blur(6px); }
 .ucs-hero__title { margin: 0; color: inherit; font-size: var(--ucs-hero-hs, 48px); line-height: 1.1; letter-spacing: -0.01em; }
 .ucs-hero__text { margin-top: 12px; font-size: 1.05em; }
 .ucs-hero__text p { margin: 0; }

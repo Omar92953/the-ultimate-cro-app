@@ -1,73 +1,77 @@
 {%- comment -%}
   App block: hero banner with separate desktop and mobile images (served with <picture>, so each
   device downloads only its own image), overlay, text, up to two buttons and a whole-image link.
+  Banners are made in the app (Hero banners); this block picks one, or shows the first banner.
 {%- endcomment -%}
 {%- liquid
-  assign s = block.settings
-  assign img_d = s.image_desktop
-  assign img_m = s.image_mobile | default: s.image_desktop
-  assign heights_d = 'small:420px,medium:560px,large:720px,full:100svh' | split: ','
-  assign heights_m = 'small:360px,medium:480px,large:600px,full:100svh' | split: ','
-  assign h_d = 'auto'
-  for pair in heights_d
-    assign kv = pair | split: ':'
-    if kv[0] == s.height_desktop
-      assign h_d = kv[1]
+  assign hero = block.settings.banner
+  if hero == blank
+    assign first = shop.metaobjects['$app:cro_design']['hero_default'].config.value
+    if first.h
+      assign hero = shop.metaobjects['$app:cro_hero'][first.h]
     endif
-  endfor
-  assign h_m = 'auto'
-  for pair in heights_m
-    assign kv = pair | split: ':'
-    if kv[0] == s.height_mobile
-      assign h_m = kv[1]
-    endif
-  endfor
+  endif
+  assign c = hero.config.value
+  assign img_d = hero.image_desktop.value
+  assign img_m_own = hero.image_mobile.value
+  if request.design_mode and hero.draft.value
+    assign c = hero.draft.value
+    assign img_d = hero.draft_desktop.value
+    assign img_m_own = hero.draft_mobile.value
+  endif
+  assign img_m = img_m_own | default: img_d
   # A fixed height must not also follow the image's shape, or the banner grows wider than the page.
   assign ar_d = 'auto'
-  if h_d == 'auto'
+  if c.ad
     assign ar_d = img_d.aspect_ratio | default: 2.4
   endif
   assign ar_m = 'auto'
-  if h_m == 'auto'
+  if c.am
     assign ar_m = img_m.aspect_ratio | default: 0.8
   endif
   assign fp_d = img_d.presentation.focal_point | default: 'center'
   assign fp_m = img_m.presentation.focal_point | default: 'center'
-  assign opacity = s.overlay_opacity | divided_by: 100.0
+  assign loading = 'eager'
+  assign priority = 'high'
+  if block.settings.place == 'lower'
+    assign loading = 'lazy'
+    assign priority = 'auto'
+  endif
   assign has_buttons = false
-  if s.button_1_label != blank or s.button_2_label != blank
+  if c.b1 != blank or c.b2 != blank
     assign has_buttons = true
   endif
 -%}
+{%- if c -%}
 <div
-  class="ucs ucs-hero ucs-hero--dv-{{ s.position_desktop | slice: 0 }} ucs-hero--dh-{{ s.position_desktop | slice: 1 }} ucs-hero--mv-{{ s.position_mobile | slice: 0 }} ucs-hero--mh-{{ s.position_mobile | slice: 1 }}{% if s.full_width %} ucs-hero--full{% endif %}{% if s.zoom %} ucs-hero--zoom{% endif %}{% if s.animate %} ucs-hero--animate{% endif %}{% if s.text_box %} ucs-hero--box{% endif %}{% if s.devices == 'mobile' %} ucs-hide-desktop{% elsif s.devices == 'desktop' %} ucs-hide-mobile{% endif %}"
-  style="--ucs-pt: {{ s.padding_top }}px; --ucs-pb: {{ s.padding_bottom }}px; --ucs-hero-hd: {{ h_d }}; --ucs-hero-hm: {{ h_m }}; --ucs-hero-ard: {{ ar_d }}; --ucs-hero-arm: {{ ar_m }}; --ucs-hero-fpd: {{ fp_d }}; --ucs-hero-fpm: {{ fp_m }}; --ucs-hero-ov: {{ s.overlay }}; --ucs-hero-op: {{ opacity }}; --ucs-hero-fg: {{ s.text_color }}; --ucs-hero-hs: {{ s.heading_size }}px; --ucs-hero-radius: {{ s.radius }}px; --ucs-accent: {{ s.button_bg }}; --ucs-on-accent: {{ s.button_fg }};"
+  class="ucs ucs-hero{{ c.cls }}"
+  style="{{ c.css }} --ucs-hero-ard: {{ ar_d }}; --ucs-hero-arm: {{ ar_m }}; --ucs-hero-fpd: {{ fp_d }}; --ucs-hero-fpm: {{ fp_m }};"
   {{ block.shopify_attributes }}
 >
   <div class="ucs-hero__frame">
     <picture class="ucs-hero__media">
       {%- if img_d != blank -%}
-        {%- if s.image_mobile != blank -%}
+        {%- if img_m_own != blank -%}
           <source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 500 }} 500w, {{ img_m | image_url: width: 750 }} 750w, {{ img_m | image_url: width: 1100 }} 1100w, {{ img_m | image_url: width: 1500 }} 1500w" sizes="100vw" width="{{ img_m.width }}" height="{{ img_m.height }}">
         {%- endif -%}
-        {{ img_d | image_url: width: 3000 | image_tag: widths: '750, 1100, 1500, 2000, 2500, 3000', sizes: '100vw', loading: s.loading, fetchpriority: s.fetchpriority, class: 'ucs-hero__img', alt: img_d.alt }}
+        {{ img_d | image_url: width: 3000 | image_tag: widths: '750, 1100, 1500, 2000, 2500, 3000', sizes: '100vw', loading: loading, fetchpriority: priority, class: 'ucs-hero__img', alt: img_d.alt }}
       {%- else -%}
         {{ 'hero-apparel-1' | placeholder_svg_tag: 'ucs-hero__img ucs-hero__ph' }}
       {%- endif -%}
     </picture>
     <div class="ucs-hero__overlay" aria-hidden="true"></div>
-    {%- if s.link != blank -%}
-      <a class="ucs-hero__link" href="{{ s.link }}" aria-label="{{ s.heading | default: shop.name | escape }}"></a>
+    {%- if c.ln != blank -%}
+      <a class="ucs-hero__link" href="{{ c.ln | escape }}" aria-label="{{ c.h | default: shop.name | escape }}"></a>
     {%- endif -%}
-    {%- if s.heading != blank or s.text != blank or has_buttons -%}
+    {%- if c.h != blank or c.t != blank or has_buttons -%}
       <div class="ucs-hero__content">
         <div class="ucs-hero__inner">
-          {%- if s.heading != blank %}<h2 class="ucs-hero__title">{{ s.heading | escape }}</h2>{% endif -%}
-          {%- if s.text != blank %}<div class="ucs-hero__text">{{ s.text }}</div>{% endif -%}
+          {%- if c.h != blank %}<h2 class="ucs-hero__title">{{ c.h | escape }}</h2>{% endif -%}
+          {%- if c.t != blank %}<div class="ucs-hero__text"><p>{{ c.t | escape | newline_to_br }}</p></div>{% endif -%}
           {%- if has_buttons -%}
             <div class="ucs-hero__buttons">
-              {%- if s.button_1_label != blank %}<a class="ucs-btn" href="{{ s.button_1_link | default: routes.all_products_collection_url }}">{{ s.button_1_label | escape }}</a>{% endif -%}
-              {%- if s.button_2_label != blank %}<a class="ucs-btn ucs-btn--outline" href="{{ s.button_2_link | default: routes.root_url }}">{{ s.button_2_label | escape }}</a>{% endif -%}
+              {%- if c.b1 != blank %}<a class="ucs-btn" href="{{ c.l1 | default: routes.all_products_collection_url | escape }}">{{ c.b1 | escape }}</a>{% endif -%}
+              {%- if c.b2 != blank %}<a class="ucs-btn ucs-btn--outline" href="{{ c.l2 | default: routes.root_url | escape }}">{{ c.b2 | escape }}</a>{% endif -%}
             </div>
           {%- endif -%}
         </div>
@@ -75,6 +79,9 @@
     {%- endif -%}
   </div>
 </div>
+{%- elsif request.design_mode -%}
+  <p class="ucs-note" {{ block.shopify_attributes }}>Hero image: make a banner in CRO Toolbox → Hero banners, then pick it here. Only you see this note.</p>
+{%- endif -%}
 
 {% schema %}
 {
@@ -82,40 +89,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "header", "content": "Images" },
-    { "type": "image_picker", "id": "image_desktop", "label": "Desktop image", "info": "Wide image, about 2400 × 1000 px." },
-    { "type": "image_picker", "id": "image_mobile", "label": "Mobile image", "info": "Tall image, about 1000 × 1250 px. Empty = the desktop image." },
-    { "type": "url", "id": "link", "label": "Link for the whole image" },
-    { "type": "select", "id": "height_desktop", "label": "Height on desktop", "default": "adapt", "options": [{ "value": "adapt", "label": "Fit the image" }, { "value": "small", "label": "Small" }, { "value": "medium", "label": "Medium" }, { "value": "large", "label": "Large" }, { "value": "full", "label": "Full screen" }] },
-    { "type": "select", "id": "height_mobile", "label": "Height on mobile", "default": "adapt", "options": [{ "value": "adapt", "label": "Fit the image" }, { "value": "small", "label": "Small" }, { "value": "medium", "label": "Medium" }, { "value": "large", "label": "Large" }, { "value": "full", "label": "Full screen" }] },
-    { "type": "header", "content": "Text and buttons" },
-    { "type": "text", "id": "heading", "label": "Heading", "default": "New collection" },
-    { "type": "range", "id": "heading_size", "label": "Heading size", "min": 20, "max": 88, "step": 2, "unit": "px", "default": 48 },
-    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Made to be worn every day.</p>" },
-    { "type": "text", "id": "button_1_label", "label": "First button", "default": "Shop now" },
-    { "type": "url", "id": "button_1_link", "label": "First button link" },
-    { "type": "text", "id": "button_2_label", "label": "Second button" },
-    { "type": "url", "id": "button_2_link", "label": "Second button link" },
-    { "type": "header", "content": "Text position" },
-    { "type": "select", "id": "position_desktop", "label": "On desktop", "default": "ml", "options": [{ "value": "tl", "label": "Top left" }, { "value": "tc", "label": "Top centre" }, { "value": "tr", "label": "Top right" }, { "value": "ml", "label": "Middle left" }, { "value": "mc", "label": "Middle centre" }, { "value": "mr", "label": "Middle right" }, { "value": "bl", "label": "Bottom left" }, { "value": "bc", "label": "Bottom centre" }, { "value": "br", "label": "Bottom right" }] },
-    { "type": "select", "id": "position_mobile", "label": "On mobile", "default": "bc", "options": [{ "value": "tl", "label": "Top left" }, { "value": "tc", "label": "Top centre" }, { "value": "ml", "label": "Middle left" }, { "value": "mc", "label": "Middle centre" }, { "value": "bl", "label": "Bottom left" }, { "value": "bc", "label": "Bottom centre" }] },
-    { "type": "checkbox", "id": "text_box", "label": "Put the text on a box", "default": false },
-    { "type": "header", "content": "Look" },
-    { "type": "color", "id": "text_color", "label": "Text", "default": "#ffffff" },
-    { "type": "color", "id": "button_bg", "label": "Button", "default": "#ffffff" },
-    { "type": "color", "id": "button_fg", "label": "Button text", "default": "#121212" },
-    { "type": "color", "id": "overlay", "label": "Overlay", "default": "#000000" },
-    { "type": "range", "id": "overlay_opacity", "label": "Overlay strength", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 25 },
-    { "type": "checkbox", "id": "full_width", "label": "Full width", "default": true },
-    { "type": "range", "id": "radius", "label": "Corners (not full width)", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 16 },
-    { "type": "checkbox", "id": "zoom", "label": "Slow zoom effect", "default": false },
-    { "type": "checkbox", "id": "animate", "label": "Fade in the text", "default": true },
-    { "type": "header", "content": "Spacing and loading" },
-    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 0 },
-    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 0 },
-    { "type": "select", "id": "loading", "label": "Load the image", "default": "eager", "options": [{ "value": "eager", "label": "Right away (top of the page)" }, { "value": "lazy", "label": "When scrolled to (lower on the page)" }] },
-    { "type": "select", "id": "fetchpriority", "label": "Priority", "default": "high", "options": [{ "value": "high", "label": "High (first image people see)" }, { "value": "auto", "label": "Normal" }] },
-    { "type": "select", "id": "devices", "label": "Devices", "default": "all", "options": [{ "value": "all", "label": "Desktop and mobile" }, { "value": "desktop", "label": "Desktop only" }, { "value": "mobile", "label": "Mobile only" }] }
+    { "type": "paragraph", "content": "Images, text and look are set in the app: CRO Toolbox → Hero banners." },
+    { "type": "metaobject", "id": "banner", "label": "Banner", "metaobject_type": "app--427692097537--cro_hero", "info": "Empty = your first banner." },
+    { "type": "select", "id": "place", "label": "Where on the page", "default": "top", "options": [{ "value": "top", "label": "At the top (load right away)" }, { "value": "lower", "label": "Lower down (load when scrolled to)" }] }
   ]
 }
 {% endschema %}

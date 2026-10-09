@@ -107,6 +107,23 @@ they picked, so **each item's stock goes down** and the items appear on the orde
 - **Bar at the top of the store:** place the block in the Header area; switch it off to keep the bar
   only inside the cart.
 
+## Hero banners
+- Make banners in **Store sections → Hero banners**: a wide desktop image and a tall phone image,
+  heading, text, up to two buttons, where the text sits (separately for phones), colours and height.
+- In the theme editor add the **Hero image** section and pick a banner. With none picked it shows your
+  first banner (change the order in the list). Set **Where on the page** to "Lower down" for banners
+  that aren't at the top, so they load only when scrolled to.
+- **See it on my store** shows your unsaved changes in the theme editor only; **Save** puts them live.
+
+## Logos, FAQ and quick add
+- **Scrolling logos and text** and **FAQ**: the logos and questions are in Store sections; the look is
+  in each list's **Design**. Every copy of the section uses that design. A FAQ copy can still show only
+  one group (e.g. Shipping), have its own heading, and switch Google's FAQ data on or off.
+- **Quick add to cart**: design the card button and the "Added to your cart" popup from its card on
+  Home (**Design**); in the theme editor you only switch the embed on.
+- **Cart drawer offers**: heading, how many products and the button text are on **Cross-sell offers →
+  Design** (Content tab).
+
 ## Good to know
 - **One discount does it all.** The app creates one automatic discount called
   **"CRO Toolbox offers"** (see Discounts). You can change which other discounts it combines with

@@ -39,4 +39,4 @@ style="{{ d.css | default: '--ucs-pt: 32px; --ucs-pb: 32px; --ucs-h: 22px; --ucs
 <ul class="ucs-logos__track{% if opposite %} ucs-logos__track--rev{% endif %}" role="list">{{- logos2 -}}{%- for n in (2..reps) %}{{ ghost2 }}{% endfor -%}{%- for n in (1..reps) %}{{ ghost2 }}{% endfor -%}</ul>
 </div>{%- endif -%}{%- else -%}<ul class="ucs-logos__grid" role="list">{{ logos }}</ul>{%- endif -%}{%- elsif request.design_mode -%}<p class="ucs-note">{{ 'ucs.logos_empty' | t }}</p>{%- endif -%}</div>
 </div>
-{% schema %}{"name":"Scrolling logos and text","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.1i"}]}{% endschema %}
+{% schema %}{"name":"Scrolling logos and text","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.r"}]}{% endschema %}
