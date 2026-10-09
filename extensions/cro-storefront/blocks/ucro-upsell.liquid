@@ -37,6 +37,9 @@ endfor
 endif
 assign opt_i = opt_pos | minus: 1
 assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+endif
 assign d_pi = true
 assign d_ss = true
 if d.pi == false

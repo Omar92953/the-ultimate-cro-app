@@ -89,7 +89,9 @@
   function accent(el, scope) {
     if (!el) return;
     var page = 'rgb(255, 255, 255)';
-    for (var n = el.parentElement; n; n = n.parentElement) {
+    // A theme colour scheme picked in the app colours the block itself (ucro.css maps it).
+    var scheme = el.classList.contains('ucro-scheme');
+    for (var n = scheme ? el : el.parentElement; n; n = n.parentElement) {
       var bg = getComputedStyle(n).backgroundColor;
       if (solid(bg)) {
         page = bg;
@@ -99,7 +101,7 @@
     el.style.setProperty('--ucro-bg', page);
 
     var chosen = el.style.getPropertyValue('--ucro-accent').trim();
-    if (!chosen) {
+    if (!chosen && !scheme) {
       var source = themeButton(scope);
       if (source) {
         var cs = getComputedStyle(source);

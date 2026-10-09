@@ -44,6 +44,9 @@
 
   # Look and wording are designed in the app (Offers → Upsell → Design): $app:cro_design "upsell".
   assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+    assign d = shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+  endif
   assign d_pi = true
   assign d_ss = true
   if d.pi == false

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -7,33 +7,58 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { editorLinks, getThemeStatus, listRules } from "../lib/cro.server";
-import { getUpsellDesign, saveUpsellDesign } from "../lib/designs.server";
-import { applyUpsellPreset, UPSELL_PRESETS, withUpsellDefaults, type UpsellDesign } from "../lib/upsell-design";
+import { getUpsellDesign, saveDraft, saveUpsellDesign } from "../lib/designs.server";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { firstProduct, productForRule } from "../lib/preview-products.server";
+import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
+import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
+import { applyUpsellPreset, matchUpsellTheme, toStorefrontUpsell, UPSELL_PRESETS, withUpsellDefaults, type UpsellDesign } from "../lib/upsell-design";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { SAMPLE_OFFER, UpsellDesignPreview, type PreviewOffer } from "../components/UpsellDesignPreview";
+import type { PreviewProduct } from "../lib/preview-products.server";
 import ui from "../components/PageEditor.module.css";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme, rules] = await Promise.all([getUpsellDesign(admin), getThemeStatus(admin).catch(() => null), listRules(admin, "upsell").catch(() => [])]);
-  // The merchant's own offers, so the preview shows their real tiers and badges.
-  const offers: (PreviewOffer & { name: string })[] = rules
+  const [{ config, saved }, theme, rules, style] = await Promise.all([
+    getUpsellDesign(admin),
+    getThemeStatus(admin).catch(() => null),
+    listRules(admin, "upsell").catch(() => []),
+    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+  ]);
+  // The merchant's own offers, each on a real product it shows on, so the preview matches the store.
+  const picked = rules
     .filter((r) => r.tiers.length)
     .sort((a, b) => Number(b.active) - Number(a.active))
-    .slice(0, 10)
-    .map((r) => ({ name: r.name, headline: r.headline, subheadline: r.subheadline, variant: r.upsellType === "variant", tiers: r.tiers }));
-  return { config, saved, offers, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.upsell : null, addLink: editorLinks(session.shop).upsell };
+    .slice(0, 6);
+  const products = await Promise.all(picked.map((r) => productForRule(admin, r)));
+  const fallback = picked.length ? null : await firstProduct(admin).catch(() => null);
+  const offers: (PreviewOffer & { name: string; product: PreviewProduct | null })[] = picked.map((r, i) => ({
+    name: r.name,
+    headline: r.headline,
+    subheadline: r.subheadline,
+    variant: r.upsellType === "variant",
+    optionName: r.optionName,
+    tiers: r.tiers,
+    product: products[i],
+  }));
+  return { config, saved, offers, fallback, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.upsell : null, addLink: editorLinks(session.shop).upsell };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveUpsellDesign(admin, withUpsellDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const clean = withUpsellDefaults(JSON.parse(String(form.get("config"))));
+    if (form.get("intent") === "draft") {
+      await saveDraft(admin, "upsell", toStorefrontUpsell(clean));
+      return { ok: true, draft: true, error: null, config: null };
+    }
+    const config = await saveUpsellDesign(admin, clean);
+    return { ok: true, draft: false, error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -43,6 +68,8 @@ const DEVICES = [
   { value: "desktop", label: "Desktop only" },
   { value: "mobile", label: "Mobile only" },
 ];
+
+const editorPreviewLinkFor = (shop: string, handle?: string) => `https://${shop}/admin/themes/current/editor?previewPath=${encodeURIComponent(handle ? `/products/${handle}` : "/collections/all")}`;
 
 export default function UpsellDesigner() {
   const data = useLoaderData<typeof loader>();
@@ -58,14 +85,21 @@ export default function UpsellDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Upsell design saved — live on your store");
-    else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+    else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else shopify.toast.show("Upsell design saved — live on your store");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const offers = part("offers"), heading = part("heading"), look = part("look"), space = part("space");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const offer = data.offers[which] ?? SAMPLE_OFFER;
+  const product = data.offers[which]?.product ?? data.fallback;
+  const previewLink = editorPreviewLinkFor(data.shop, product?.handle);
+  // The link opens the theme editor in a new tab while the unsaved changes are stored as a draft.
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const pageLook = previewTheme(data.style);
+  const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
   return (
     <s-page heading="Upsell offers design" inlineSize="large">
@@ -74,6 +108,9 @@ export default function UpsellDesigner() {
       </s-link>
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
+      </Button>
+      <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
+        See it on my store
       </Button>
       <Button slot="secondary-actions" href="/app/offers/upsell">
         Manage offers
@@ -95,6 +132,9 @@ export default function UpsellDesigner() {
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
 
+          <Pane show={tab === "looks"}>
+            <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchUpsellTheme(c, c.look.scheme))} />
+          </Pane>
           <Pane show={tab === "looks"}>
             <s-section heading="Start from a look">
               <s-grid gridTemplateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap="small-200">
@@ -181,7 +221,9 @@ export default function UpsellDesigner() {
                   <Select label="Offer to preview" value={String(which)} onValue={(v) => setWhich(Number(v))} options={data.offers.map((o, i) => ({ value: String(i), label: o.name || `Offer ${i + 1}` }))} />
                 </div>
               ) : null}
-              <UpsellDesignPreview config={cfg} offer={offer} />
+              <ThemeLook style={data.style}>
+                <UpsellDesignPreview config={cfg} offer={offer} product={product} currency={product?.currency} page={pageLook} block={blockLook} />
+              </ThemeLook>
             </PreviewFrame>
           </div>
         </s-stack>
@@ -189,5 +231,8 @@ export default function UpsellDesigner() {
     </s-page>
   );
 }
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

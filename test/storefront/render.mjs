@@ -226,6 +226,13 @@ fs.writeFileSync(path.join(out, "upsell-list.html"), page("Tee — grouped list"
   sizePicker + (await block("ucro-upsell", teeCtx, {}, shopWith([quantityListRule], listDesign))) + teeScript));
 fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade", P.tee.id, teeSv.id,
   sizePicker + (await block("ucro-upsell", teeCtx, {}, shopWith([sizeRule], { ...listDesign, hc: "ucro__heading--medium" }))) + teeScript));
+// "See it on my store": the draft design shows only in the theme editor (design mode).
+{
+  const withDraft = { ...shopWith([quantityListRule]), metaobjects: { ...shopWith([quantityListRule]).metaobjects, "$app:cro_design": collectionOf([metaobject("upsell", { config: listDesign }), metaobject("upsell_draft", { config: { ...listDesign, list: false, cls: " ucro-scheme color-accent-2" } })]) } };
+  const render = (design_mode) => engine.renderFile("ucro-upsell", { ...teeCtx, block: { id: "u", settings: {}, shopify_attributes: "" } }, { globals: { shop: withDraft, request: { design_mode, page_type: "product" }, template: { name: "product" }, cart: { items: [] } } });
+  const [live, editor] = [await render(false), await render(true)];
+  console.log("upsell draft:", JSON.stringify({ liveIsList: live.includes("ucro-upsell--list"), liveNoScheme: !live.includes("ucro-scheme"), editorScheme: editor.includes("ucro-scheme color-accent-2"), editorCards: !editor.includes("ucro-upsell--list") }));
+}
 fs.writeFileSync(path.join(out, "cart-page.html"), cartPage);
 fs.writeFileSync(path.join(out, "catalog.json"), JSON.stringify(P, (k, v) => (k === "collections" ? undefined : v)));
 console.log("rendered:", fs.readdirSync(out).join(", "));

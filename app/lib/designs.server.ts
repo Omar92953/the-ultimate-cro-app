@@ -15,6 +15,15 @@ import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from 
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
+/**
+ * "See it on my store": unsaved changes stored as "<key>_draft". Blocks show the draft only inside the
+ * theme editor (request.design_mode), so shoppers keep the saved design. Saving copies the live
+ * design over the draft.
+ */
+export async function saveDraft(admin: AdminClient, key: string, storefront: unknown) {
+  await upsert(admin, "$app:cro_design", `${key}_draft`, { config: JSON.stringify(storefront) });
+}
+
 async function getDesign(admin: AdminClient, handle: string): Promise<unknown> {
   const data = await gql(
     admin,
@@ -156,8 +165,10 @@ export async function getUpsellDesign(admin: AdminClient): Promise<{ config: Ups
 
 export async function saveUpsellDesign(admin: AdminClient, config: UpsellDesign) {
   const clean = withUpsellDefaults(config);
-  await upsert(admin, "$app:cro_design", "upsell", { config: JSON.stringify(toStorefrontUpsell(clean)) });
+  const live = JSON.stringify(toStorefrontUpsell(clean));
+  await upsert(admin, "$app:cro_design", "upsell", { config: live });
   await upsert(admin, "$app:cro_design", "upsell_editor", { config: JSON.stringify(clean) });
+  await upsert(admin, "$app:cro_design", "upsell_draft", { config: live });
   return clean;
 }
 

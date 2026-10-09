@@ -4,18 +4,19 @@
  * Stored in $app:cro_design "upsell" (storefront) and "upsell_editor". Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";
+import { schemeId } from "./theme-style";
 
 export type UpsellDesign = {
   offers: { style: "cards" | "list"; label: string; showSaving: boolean; saving: string; perItem: boolean; itemLabel: string; ownButton: boolean; button: string };
   heading: { style: "heading" | "label"; size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
-  look: { themeColors: boolean; accent: string; border: string; badgeBg: string; badgeText: string; saveBg: string; saveText: string; themeRadius: boolean; radius: number };
+  look: { themeColors: boolean; accent: string; border: string; badgeBg: string; badgeText: string; saveBg: string; saveText: string; themeRadius: boolean; radius: number; scheme: string };
   space: { gap: number; top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
 };
 
 export const DEFAULT_UPSELL: UpsellDesign = {
   offers: { style: "cards", label: "Buy [quantity]", showSaving: true, saving: "Save [percent]%", perItem: true, itemLabel: "#[n]", ownButton: false, button: "Add to cart" },
   heading: { style: "heading", size: "medium", align: "left" },
-  look: { themeColors: true, accent: "#111111", border: "#d4d4d4", badgeBg: "#111111", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#111111", themeRadius: true, radius: 12 },
+  look: { themeColors: true, accent: "#111111", border: "#d4d4d4", badgeBg: "#111111", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#111111", themeRadius: true, radius: 12, scheme: "" },
   space: { gap: 12, top: 12, bottom: 12, devices: "all" },
 };
 
@@ -34,6 +35,11 @@ export function applyUpsellPreset(c: UpsellDesign, key: string): UpsellDesign {
   const p = UPSELL_PRESETS.find((x) => x.key === key);
   if (!p) return c;
   return { offers: { ...c.offers, ...p.patch.offers }, heading: { ...c.heading, ...p.patch.heading }, look: { ...c.look, ...p.patch.look }, space: { ...c.space, ...p.patch.space } };
+}
+
+/** "Match my theme style": the theme's colours (a scheme, or the theme's button colour), corners and fonts. */
+export function matchUpsellTheme(c: UpsellDesign, scheme: string): UpsellDesign {
+  return { ...c, look: { ...c.look, themeColors: true, themeRadius: true, scheme } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -69,6 +75,7 @@ export function withUpsellDefaults(raw: unknown): UpsellDesign {
       saveText: color(k.saveText, d.look.saveText),
       themeRadius: bool(k.themeRadius, d.look.themeRadius),
       radius: num(k.radius, 0, 40, d.look.radius),
+      scheme: schemeId(k.scheme),
     },
     space: {
       gap: num(s.gap, 0, 40, d.space.gap),
@@ -115,7 +122,7 @@ export function toStorefrontUpsell(c: UpsellDesign) {
     own: c.offers.ownButton,
     btn: c.offers.button,
     hc: upsellHeadingClass(c),
-    cls: c.space.devices === "mobile" ? " ucro-hide-desktop" : c.space.devices === "desktop" ? " ucro-hide-mobile" : "",
+    cls: (c.space.devices === "mobile" ? " ucro-hide-desktop" : c.space.devices === "desktop" ? " ucro-hide-mobile" : "") + (c.look.scheme ? ` ucro-scheme color-${c.look.scheme}` : ""),
     rad: c.look.themeRadius ? "theme" : "custom",
     css: Object.entries(upsellVars(c))
       .map(([k, v]) => `${k}: ${v};`)

@@ -36,6 +36,17 @@
   .ucro-hide-desktop { display: none !important; }
 }
 
+/* A theme colour scheme picked in the app: the theme's own class (color-scheme-1, color-background-1…)
+   sets its colours on the block, and these map them onto ours, so the block follows the theme. */
+.ucro-scheme {
+  --ucro-accent: rgb(var(--color-button, var(--color-primary-button-background, var(--color-foreground))));
+  --ucro-on-text: rgb(var(--color-button-text, var(--color-primary-button-text, var(--color-background))));
+  color: rgb(var(--color-foreground));
+  background-color: rgb(var(--color-background));
+  padding-inline: 14px;
+  border-radius: var(--ucro-radius);
+}
+
 .ucro__heading {
   margin: 0 0 0.5em;
   text-align: var(--ucro-align, left);
