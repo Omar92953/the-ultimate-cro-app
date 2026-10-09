@@ -97,7 +97,7 @@
     var cls = sec ? sec.className : '';
     if (/group-footer/.test(cls)) return 'footer';
     if (/group-header/.test(cls) || !sec) return 'header';
-    return el.dataset.page === 'product' ? 'product' : 'home';
+    return el.dataset.page === 'product' ? 'product' : el.dataset.page === 'cart' ? 'cart' : 'home';
   }
   function setup(el) {
     if (el.__ucs) return;

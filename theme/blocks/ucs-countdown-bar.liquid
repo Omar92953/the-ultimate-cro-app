@@ -1,6 +1,6 @@
 {%- comment -%}
-  App block: countdown, designed in the app (Countdown timers). Carries the four designs (header,
-  footer, home and other pages, product page); ucs-countdown.js shows the one for where it's placed.
+  App block: countdown, designed in the app (Countdown timers). Carries the five designs (header,
+  footer, home and other pages, product page, cart page); ucs-countdown.js shows the one for where it's placed.
 {%- endcomment -%}
 {%- assign d = shop.metaobjects['$app:cro_design'] -%}
 {%- liquid
@@ -13,9 +13,10 @@
   assign kf = 'countdown_footer' | append: x
   assign kd = 'countdown_home' | append: x
   assign kp = 'countdown_product' | append: x
+  assign kc = 'countdown_cart' | append: x
 -%}
 <div class="ucs ucs-cd-host ucs-cdb" data-ucs-cdb data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden {{ block.shopify_attributes }}>
-  <script type="application/json">{"header":{{ d[kh].config.value | default: d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d[kf].config.value | default: d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d[kd].config.value | default: d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d[kp].config.value | default: d['countdown_product'].config.value | json | default: 'null' }}}</script>
+  <script type="application/json">{"header":{{ d[kh].config.value | default: d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d[kf].config.value | default: d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d[kd].config.value | default: d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d[kp].config.value | default: d['countdown_product'].config.value | json | default: 'null' }},"cart":{{ d[kc].config.value | default: d['countdown_cart'].config.value | json | default: 'null' }}}</script>
 </div>
 <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
 
@@ -25,7 +26,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Place it in the Header or Footer area, on the home page or on product pages. Each place has its own design, set in the app: Countdown timers." }
+    { "type": "paragraph", "content": "Place it in the Header or Footer area, on the home page, on product pages or on the cart page. Each place has its own design, set in the app: Countdown timers." }
   ]
 }
 {% endschema %}

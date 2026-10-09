@@ -1200,11 +1200,14 @@ const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add",
 export type ThemeStatus = {
   themeName: string | null;
   installed: Record<keyof typeof BLOCKS, boolean>;
+  /** The theme files each block sits in (templates/index.json, sections/header-group.json…). */
+  files: Record<keyof typeof BLOCKS, string[]>;
 };
 
 /** Reads the published theme (read_themes) to see which blocks/embeds are actually in use. */
 export async function getThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
   const installed = Object.fromEntries(Object.keys(BLOCKS).map((k) => [k, false])) as ThemeStatus["installed"];
+  const files = Object.fromEntries(Object.keys(BLOCKS).map((k) => [k, []])) as unknown as ThemeStatus["files"];
   const data = await gql(
     admin,
     `#graphql
@@ -1220,19 +1223,22 @@ export async function getThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
     }`,
   );
   const theme = data.themes.nodes[0];
-  if (!theme) return { themeName: null, installed };
+  if (!theme) return { themeName: null, installed, files };
   for (const file of theme.files.nodes) {
     const content: string = file.body?.content ?? "";
     // Blocks live in templates and section groups; settings_data.json only holds app embeds.
     for (const [key, handle] of Object.entries(BLOCKS) as [keyof typeof BLOCKS, string][]) {
       if (EMBEDS.includes(key) || file.filename === "config/settings_data.json") continue;
-      if (content.includes(`/blocks/${handle}/`)) installed[key] = true;
+      if (content.includes(`/blocks/${handle}/`)) {
+        installed[key] = true;
+        files[key].push(file.filename);
+      }
     }
     if (file.filename === "config/settings_data.json") {
       for (const key of EMBEDS) installed[key] = embedEnabled(content, BLOCKS[key]);
     }
   }
-  return { themeName: theme.name, installed };
+  return { themeName: theme.name, installed, files };
 }
 
 function embedEnabled(settingsData: string, handle: string) {

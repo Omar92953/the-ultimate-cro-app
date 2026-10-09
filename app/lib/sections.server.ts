@@ -314,6 +314,7 @@ export function sectionLinks(shop: string) {
     countdown_footer: `${base}?template=index&addAppBlockId=${key}/ucs-countdown-bar&target=sectionGroup:footer`,
     countdown_home: block("ucs-countdown-bar"),
     countdown_product: `${base}?template=product&addAppBlockId=${key}/ucs-countdown-bar&target=mainSection`,
+    countdown_cart: block("ucs-countdown-bar", "cart"),
     editor: base,
     boosters: embed("ucs-boosters"),
     hero: block("ucs-hero"),

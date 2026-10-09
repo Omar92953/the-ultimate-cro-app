@@ -5,19 +5,24 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { countdownBarClasses, countdownBarVars, type CountdownBarConfig } from "../lib/designs";
 
-function deadline(c: CountdownBarConfig, now: number) {
+/** A wall-clock time in the store's zone → epoch ms (same maths as ucs-countdown.js). */
+const at = (y: number, mo: number, d: number, h: number, mi: number, off: number) => Date.UTC(y, mo, d, h, mi) - off * 60000;
+
+/** off = the shop's UTC offset in minutes: dates and cut-offs are the store's clock, not this computer's. */
+function deadline(c: CountdownBarConfig, now: number, off: number) {
   const t = c.timer;
   if (t.mode === "evergreen") return now + t.hours * 3600000 - 1000;
   if (t.mode === "daily") {
     const [h, m] = t.cutoff.split(":").map(Number);
-    const d = new Date(now);
-    d.setHours(h || 0, m || 0, 0, 0);
-    return d.getTime() <= now ? d.getTime() + 86400000 : d.getTime();
+    const shop = new Date(now + off * 60000);
+    const end = at(shop.getUTCFullYear(), shop.getUTCMonth(), shop.getUTCDate(), h || 0, m || 0, off);
+    return end <= now ? end + 86400000 : end;
   }
-  return new Date(t.end).getTime();
+  const m = /(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T]+(\d{1,2}):(\d{2}))?/.exec(t.end || "");
+  return m ? at(Number(m[1]), Number(m[2]) - 1, Number(m[3]), m[4] ? Number(m[4]) : 23, m[5] ? Number(m[5]) : 59, off) : 0;
 }
 
-export function CountdownBarPreview({ config: c }: { config: CountdownBarConfig }) {
+export function CountdownBarPreview({ config: c, offset = 0 }: { config: CountdownBarConfig; offset?: number }) {
   // The clock starts after the page has loaded, so the server and the browser draw the same first frame.
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -30,7 +35,7 @@ export function CountdownBarPreview({ config: c }: { config: CountdownBarConfig 
     };
   }, []);
   const t = c.timer;
-  const left = now === null ? 0 : Math.max(0, deadline(c, now) - now);
+  const left = now === null ? 0 : Math.max(0, deadline(c, now, offset) - now);
   const s = Math.floor(left / 1000);
   const v: Record<string, number> = { d: Math.floor(s / 86400), h: Math.floor(s / 3600) % 24, m: Math.floor(s / 60) % 60, s: s % 60 };
   const units = t.showDays ? ["d", "h", "m", "s"] : ["h", "m", "s"];

@@ -178,6 +178,7 @@ shop.metaobjects["$app:cro_design"] = collectionOf([
   mo("countdown_bar", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ timer: { mode: "daily", cutoff: "23:59" } })) }),
   mo("countdown_home", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "fixed", end: in3days } }, "home"), ) }),
   mo("countdown_product", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 2 } }, "product")) }),
+  mo("countdown_cart", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true }, "cart")) }),
   announceDesign({ freeShipping: { on: true, bar: true } }),
   logosDesign({ layout: { lines: 2 } }),
   mo("hero_default", { config: { h: "hero-main" } }),
@@ -244,6 +245,7 @@ const pages = {
   "variants.html": page("Variants",
     label("hero: no images, text box, centred, small") + (await block("ucs-hero", { banner: heroBox, place: "lower" })) +
     label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
+    label("countdown: cart page (daily cut-off)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "cart" })) + "</div>" +
     label("logos: grid, colour") + (await block("ucs-logos", {}, { shop: shopLogoGrid })) +
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
     label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +
@@ -365,6 +367,7 @@ check(idx.includes('type="search"') && !/ucs-faq__list--2/.test(idx), "FAQ defau
 check(/ucs-hero ucs-hero--dv-m ucs-hero--dh-l/.test(idx) && idx.includes("Our story") && idx.includes('media="(max-width: 749px)"') && /fetchpriority="high"/.test(idx), "hero: first banner (fallback) not shown with both images");
 check(/ucs-hero ucs-hero--dv-m ucs-hero--dh-c[^"]*ucs-hero--box/.test(variants) && !/ucs-hero--dv-m ucs-hero--dh-c[^"]*ucs-hero--full/.test(variants) && variants.includes("Boxed banner") && variants.includes("--ucs-hero-hd: 420px"), "hero: picked banner design not applied");
 check(pages["empty.html"].includes("make a banner in CRO Toolbox"), "hero: empty note missing in the theme editor");
+check(/data-page="cart"[\s\S]*?"cart":\{[^<]*"on":true/.test(variants), "countdown: the cart page design is not passed to the block");
 // Reviews are built in the browser from the passed data: the product page passes only the tee's 2.
 const productReviews = (() => {
   const m = /data-ucs-rv data-only="1"[^>]*>\s*<script type="application\/json">([\s\S]*?)<\/script>/.exec(pages["product.html"]);

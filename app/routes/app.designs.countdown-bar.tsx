@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
-import { sectionLinks } from "../lib/sections.server";
+import { sectionLinks, shopOffset } from "../lib/sections.server";
 import { getCountdownBar, saveCountdownBar } from "../lib/designs.server";
 import { COUNTDOWN_BAR_PRESETS, COUNTDOWN_PLACES, FONTS, NUMBER_STYLES, applyCountdownBarPreset, isCountdownPlace, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "../lib/designs";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
@@ -27,13 +27,17 @@ const placeFrom = (url: string): CountdownPlace => {
   return isCountdownPlace(p) ? p : "header";
 };
 
+/** Is the Countdown block already in this place (home template, header / footer group, a product template)? */
+const placedIn = (files: string[], place: CountdownPlace) =>
+  files.some((f) => ({ home: f === "templates/index.json", header: f === "sections/header-group.json", footer: f === "sections/footer-group.json", product: /^templates\/product[.\w-]*\.json$/.test(f), cart: f === "templates/cart.json" })[place]);
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const place = placeFrom(request.url);
-  const [{ config, saved }, theme] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin).catch(() => null)]);
+  const [{ config, saved }, theme, offset] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin).catch(() => null), shopOffset(admin).catch(() => ({ iso: "+00:00", minutes: 0 }))]);
   const links = sectionLinks(session.shop);
-  const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product }[place];
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.countdown_bar : null, addLink, editorLink: links.editor };
+  const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product, cart: links.countdown_cart }[place];
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), offset: offset.minutes, embedOn: theme ? theme.installed.countdown_bar : null, placed: theme ? placedIn(theme.files.countdown_bar, place) : false, addLink, editorLink: links.editor };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -67,7 +71,7 @@ export default function CountdownBarDesigner() {
   const shopify = useAppBridge();
   const navigate = useNavigate();
   const placeInfo = COUNTDOWN_PLACES.find((p) => p.key === data.place)!;
-  const addLabel = { header: "Add to header", footer: "Add to footer", home: "Add to home page", product: "Add to product page" }[data.place];
+  const addLabel = { header: "Add to header", footer: "Add to footer", home: "Add to home page", product: "Add to product page", cart: "Add to cart page" }[data.place];
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
     setLoaded(data.config);
@@ -93,11 +97,11 @@ export default function CountdownBarDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `?place=${data.place}` })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : data.place === "cart" ? "/cart" : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `?place=${data.place}` })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
-        {addLabel}
+        {data.placed ? "Open in theme editor" : addLabel}
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
@@ -108,7 +112,8 @@ export default function CountdownBarDesigner() {
           onChange={(v) => navigate(`/app/designs/countdown-bar?place=${v}`)}
         />
         <s-text color="subdued">
-          {placeInfo.hint} Each place has its own design. In your theme, add the “Countdown” block there with “{addLabel}”; the same block shows the right design wherever it is.
+          {placeInfo.hint} Each place has its own design.{" "}
+          {data.placed ? "The “Countdown” block is already there in your theme; the same block shows the right design wherever it is." : <>In your theme, add the “Countdown” block there with “{addLabel}”; the same block shows the right design wherever it is.</>}
         </s-text>
         {!data.saved ? (
           <s-banner tone="warning" heading="Not saved yet">
@@ -127,7 +132,7 @@ export default function CountdownBarDesigner() {
             {COUNTDOWN_BAR_PRESETS.map((p) => (
               <button key={p.key} type="button" className={ui.look} style={LOOK} onClick={() => setCfg((c) => applyCountdownBarPreset(c, p.key))} aria-label={`Use the ${p.title} look`}>
                 <span className={ui.lookBar} style={{ display: "block", overflow: "hidden", borderRadius: 6, pointerEvents: "none" }} aria-hidden="true">
-                  <CountdownBarPreview config={{ ...applyCountdownBarPreset(cfg, p.key), text: { ...cfg.text, show: false }, layout: { ...cfg.layout, slim: true, dismissible: false } }} />
+                  <CountdownBarPreview offset={data.offset} config={{ ...applyCountdownBarPreset(cfg, p.key), text: { ...cfg.text, show: false }, layout: { ...cfg.layout, slim: true, dismissible: false } }} />
                 </span>
                 <span className={ui.lookName} style={{ fontSize: 13, fontWeight: 600, color: "#303030" }}>{p.title}</span>
               </button>
@@ -301,7 +306,7 @@ export default function CountdownBarDesigner() {
             </div>
             <div className={ui.frame} style={{ padding: 16 }}>
               <div className={device === "phone" ? ui.phone : undefined}>
-                <ThemeLook style={data.style}>{cfg.on ? <CountdownBarPreview config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}</ThemeLook>
+                <ThemeLook style={data.style}>{cfg.on ? <CountdownBarPreview offset={data.offset} config={cfg} /> : <s-text color="subdued">The bar is switched off.</s-text>}</ThemeLook>
               </div>
             </div>
           </div>

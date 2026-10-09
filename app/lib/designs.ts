@@ -155,12 +155,13 @@ export function applyCountdownBarPreset(c: CountdownBarConfig, key: string): Cou
 const PAGES = ["home", "product", "collection", "cart", "other"] as const;
 
 /** Where a countdown can be placed; each place has its own design. */
-export type CountdownPlace = "header" | "footer" | "home" | "product";
+export type CountdownPlace = "header" | "footer" | "home" | "product" | "cart";
 export const COUNTDOWN_PLACES: { key: CountdownPlace; title: string; handle: string; hint: string }[] = [
   { key: "header", title: "Header", handle: "countdown_bar", hint: "A slim bar at the top of every page." },
   { key: "footer", title: "Footer", handle: "countdown_footer", hint: "A bar above your footer." },
   { key: "home", title: "Home and other pages", handle: "countdown_home", hint: "A big section with a heading, anywhere on a page." },
   { key: "product", title: "Product page", handle: "countdown_product", hint: "A compact timer under the price." },
+  { key: "cart", title: "Cart page", handle: "countdown_cart", hint: "A compact timer on the cart page, e.g. “Order in the next 2:15:09 for same-day dispatch”." },
 ];
 export const isCountdownPlace = (v: unknown): v is CountdownPlace => COUNTDOWN_PLACES.some((p) => p.key === v);
 
@@ -170,6 +171,8 @@ export function countdownDefaultsFor(place: CountdownPlace): CountdownBarConfig 
   if (place === "footer") return { ...d, on: false };
   if (place === "home") return { ...d, on: false, kind: "section", timer: { ...d.timer, labels: true }, look: { ...d.look, bg: "#ffffff", text: "#121212", boxBg: "#121212", boxText: "#ffffff", buttonBg: "#121212", buttonText: "#ffffff", numberSize: 34, textSize: 16, radius: 8 } };
   if (place === "product") return { ...d, on: false, kind: "inline", text: { show: true, value: "Sale ends in" }, button: { ...d.button, show: false }, layout: { ...d.layout, dismissible: false }, look: { ...d.look, bg: "#fff4f2", text: "#b42318", boxBg: "#b42318", boxText: "#ffffff", numberSize: 15, textSize: 14, radius: 6 } };
+  // Cart: an honest daily cut-off (not a fake "your cart is reserved" timer).
+  if (place === "cart") return { ...d, on: false, kind: "inline", timer: { ...d.timer, mode: "daily", cutoff: "17:00", showDays: false }, text: { show: true, value: "Order in the next" }, button: { ...d.button, show: false }, layout: { ...d.layout, dismissible: false }, look: { ...d.look, bg: "#f1faf4", text: "#14532d", boxBg: "#16a34a", boxText: "#ffffff", numberSize: 15, textSize: 14, radius: 6 } };
   return d;
 }
 
