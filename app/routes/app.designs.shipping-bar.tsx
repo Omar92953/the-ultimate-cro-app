@@ -9,6 +9,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getShippingBar, saveShippingBar } from "../lib/designs.server";
+import { FREE_SHIPPING_TITLE, getFreeShippingDiscount, syncFreeShippingDiscount } from "../lib/shipping-discount.server";
 import { SHIPPING_BAR_PRESETS, withShippingBarDefaults, type ShippingBarConfig } from "../lib/shipping-bar";
 import { Checkbox, ColorField, NumberField, Select, Switch, TextField, Button } from "../components/fields";
 import { ShippingBarCartPreview, ShippingBarPreview } from "../components/ShippingBarPreview";
@@ -30,17 +31,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .then((d) => d.shop.currencyCode as string)
       .catch(() => "USD"),
   ]);
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
+  const discount = await getFreeShippingDiscount(admin).catch(() => null);
+  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, discount, discountTitle: FREE_SHIPPING_TITLE, config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveShippingBar(admin, withShippingBarDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
-    return { ok: true, draft: form.get("intent") === "draft", error: null, config };
+    const draft = form.get("intent") === "draft";
+    const config = await saveShippingBar(admin, withShippingBarDefaults(JSON.parse(String(form.get("config")))), draft);
+    // The goal also becomes a real free shipping discount (the design is saved even if this fails).
+    let discountError: string | null = null;
+    if (!draft) await syncFreeShippingDiscount(admin, { on: config.on && config.autoDiscount, goal: config.goal }).catch((e) => (discountError = errorMessage(e)));
+    return { ok: true, draft, error: null, discountError, config };
   } catch (e) {
-    return { ok: false, draft: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), discountError: null, config: null };
   }
 };
 
@@ -99,9 +105,17 @@ export default function ShippingBarDesigner() {
             Click “Add to header” and save there. You can also add the “Free shipping bar” block to product or cart pages from the theme editor. Everything else is set here.
           </s-banner>
         ) : null}
-        <s-banner tone="warning">
-          Set the same amount as your free shipping rate in Settings → Shipping and delivery. The bar shows the goal; Shopify’s shipping rates give the free shipping.
-        </s-banner>
+        {cfg.autoDiscount ? (
+          <s-banner tone="success">
+            Free shipping is automatic: saving keeps the “{data.discountTitle}” discount (Shopify → Discounts) at your goal amount
+            {data.discount?.on && data.discount.goal ? ` — now active from ${data.discount.goal} ${data.currency}` : ""}.
+          </s-banner>
+        ) : (
+          <s-banner tone="warning">
+            The bar only shows the goal. Give free shipping yourself (a free shipping rate in Settings → Shipping and delivery, or a discount), or switch on “Give free shipping automatically”.
+          </s-banner>
+        )}
+        {fetcher.data && "discountError" in fetcher.data && fetcher.data.discountError ? <s-banner tone="critical" heading="The free shipping discount was not updated">{fetcher.data.discountError}</s-banner> : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
@@ -127,6 +141,7 @@ export default function ShippingBarDesigner() {
             <Pane show={tab === "content"}><s-section heading="Goal and messages">
               <s-stack gap="base">
                 <NumberField label="Free shipping from" suffix={data.currency} min={1} max={1000000} step={1} value={cfg.goal} onValue={(v) => setCfg((c) => ({ ...c, goal: v }))} />
+                <Switch label="Give free shipping automatically" details={`Creates and updates the “${data.discountTitle}” automatic discount in Shopify: free shipping on orders from this amount. Off: the bar only shows the goal.`} checked={cfg.autoDiscount} onValue={(v) => setCfg((c) => ({ ...c, autoDiscount: v }))} />
                 <TextField label="Empty cart" details="{goal} shows the amount." value={cfg.text.empty} onValue={(v) => text({ empty: v })} />
                 <TextField label="On the way" details="{left} shows what's still needed." value={cfg.text.progress} onValue={(v) => text({ progress: v })} />
                 <TextField label="Goal reached" value={cfg.text.done} onValue={(v) => text({ done: v })} />

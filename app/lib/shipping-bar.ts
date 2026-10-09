@@ -11,6 +11,8 @@ export type ShippingBarConfig = {
   /** The theme colour scheme its colours were matched to ("" = its own colours). */
   scheme: string;
   on: boolean;
+  /** Also give free shipping: keeps an automatic "free shipping" discount in Shopify at the goal. */
+  autoDiscount: boolean;
   goal: number; // in the store's currency (converted for other currencies on the storefront)
   text: { empty: string; progress: string; done: string };
   show: {
@@ -43,6 +45,7 @@ export type ShippingBarConfig = {
 export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
   scheme: "",
   on: true,
+  autoDiscount: true,
   goal: 100,
   text: { empty: "Free shipping on orders over {goal}", progress: "You're {left} away from free shipping", done: "You've got free shipping!" },
   show: { bar: true, icon: "truck", top: true, drawer: true, cartPage: true, cartPos: "top", celebrate: true, whenEmpty: true },
@@ -73,6 +76,7 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
   return {
     scheme: schemeId((r as { scheme?: unknown }).scheme),
     on: bool(r.on, d.on),
+    autoDiscount: bool(r.autoDiscount, d.autoDiscount),
     goal: Number.isFinite(goal) && goal > 0 ? Math.min(1_000_000, Math.round(goal * 100) / 100) : d.goal,
     text: { empty: str(t.empty, d.text.empty, 160), progress: str(t.progress, d.text.progress, 160), done: str(t.done, d.text.done, 160) },
     show: {

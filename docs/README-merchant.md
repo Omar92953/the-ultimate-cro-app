@@ -88,8 +88,11 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   only places the block.
 
 ## Free shipping bar
-- Set the goal and messages in **Boosters → Free shipping bar**. Match the goal to your free shipping
-  rate in Settings → Shipping and delivery.
+- Set the goal and messages in **Boosters → Free shipping bar**. With **Give free shipping
+  automatically** on (the default), saving creates or updates the automatic discount "CRO Toolbox free
+  shipping" (Shopify → Discounts): free shipping on orders from the goal amount. Turning the bar or the
+  option off switches the discount off. Off: the bar only shows the goal, and you give free shipping
+  yourself (a shipping rate or a discount).
 - **Inside the cart:** shows in the cart drawer and on the cart page, above the products or just above
   the checkout button. Needs the **Conversion boosters** app embed on (or the bar block in the header).
 - **Bar at the top of the store:** place the block in the Header area; switch it off to keep the bar
