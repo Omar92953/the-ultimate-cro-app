@@ -27,6 +27,9 @@
   if d.fs and fsb.goal
     assign threshold = fsb.goal | times: 100 | round
   endif
+  # Done here, not in {{ }}: a "}" inside an output tag ends it early on Shopify.
+  assign fs_empty = fsb.t.empty | replace: '{goal}', '{threshold}'
+  assign fs_left = fsb.t.progress | replace: '{left}', '{amount}' | replace: '{goal}', '{threshold}'
 -%}
 {%- capture messages -%}
   {%- if items.size > 0 -%}
@@ -57,8 +60,8 @@
       data-fs-threshold="{{ threshold }}"
       data-fs-total="{{ cart.total_price }}"
       data-fs-fmt="{{ shop.money_format | strip_html | escape }}"
-      data-fs-empty="{{ fsb.t.empty | replace: '{goal}', '{threshold}' | escape }}"
-      data-fs-left="{{ fsb.t.progress | replace: '{left}', '{amount}' | replace: '{goal}', '{threshold}' | escape }}"
+      data-fs-empty="{{ fs_empty | escape }}"
+      data-fs-left="{{ fs_left | escape }}"
       data-fs-done="{{ fsb.t.done | escape }}"
       {%- if d.fb %} data-fs-bar{% endif %}
     {%- endif %}

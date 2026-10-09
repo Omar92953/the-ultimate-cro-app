@@ -77,6 +77,9 @@ export function minify(source, file = "", strings = new Map()) {
   s = s.replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, "");
   // Inside {% liquid %} tags: drop "# …" comment lines.
   s = s.replace(/\{%-?\s*liquid\b[\s\S]*?-?%\}/g, (tag) => tag.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n"));
+  // Shopify ends an output tag at its first "}" (theme check doesn't notice), e.g. {{ x | replace: '{goal}', … }}.
+  const brace = /\{\{(?:(?!\}\})[^}])*\}(?!\})/.exec(s);
+  if (brace) throw new Error(`${file}: "}" inside {{ … }} ends the tag early on Shopify — do it in {% liquid %}: ${brace[0].slice(0, 60)}`);
   // Blocks: "block.settings" → "bs" (assigned once at the top). Saves ~12 bytes per use; the schema
   // (whose visible_if conditions must say block.settings) is left alone.
   if (file.startsWith("blocks")) {

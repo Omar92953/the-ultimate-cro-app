@@ -17,6 +17,8 @@ assign threshold = 0
 if d.fs and fsb.goal
 assign threshold = fsb.goal | times: 100 | round
 endif
+assign fs_empty = fsb.t.empty | replace: '{goal}', '{threshold}'
+assign fs_left = fsb.t.progress | replace: '{left}', '{amount}' | replace: '{goal}', '{threshold}'
 -%}{%- capture messages -%}{%- if items.size > 0 -%}{%- for m in items -%}{%- if m.message.value == blank %}{% continue %}{% endif -%}{%- assign icon = m.icon.value | default: 'none' -%}<div class="ucs-ab__msg"{% if m.starts_at.value != blank %} data-start="{{ m.starts_at.value | date: '%s' }}"{% endif %}{% if m.ends_at.value != blank %} data-end="{{ m.ends_at.value | date: '%s' }}"{% endif %}>{%- if m.link.value != blank %}<a href="{{ m.link.value | escape }}">{% endif -%}{%- if icon != 'none' %}<span class="ucs-i ucs-i--{{ icon }}" aria-hidden="true"></span>{% endif -%}<span>{{ m.message.value | escape }}</span>{%- if m.link.value != blank %}</a>{% endif -%}</div>{%- endfor -%}{%- endif -%}{%- endcapture -%}{%- if show_here -%}<ucs-announcement
 id="ucs-ab"
 class="ucs ucs-ab{{ d.cls | default: ' ucs-ab--fade' }}"
@@ -28,8 +30,8 @@ data-interval="{{ d.iv | default: 4 }}"{%- if d.dm %} data-dismiss{% endif %}{%-
 data-fs-threshold="{{ threshold }}"
 data-fs-total="{{ cart.total_price }}"
 data-fs-fmt="{{ shop.money_format | strip_html | escape }}"
-data-fs-empty="{{ fsb.t.empty | replace: '{goal}', '{threshold}' | escape }}"
-data-fs-left="{{ fsb.t.progress | replace: '{left}', '{amount}' | replace: '{goal}', '{threshold}' | escape }}"
+data-fs-empty="{{ fs_empty | escape }}"
+data-fs-left="{{ fs_left | escape }}"
 data-fs-done="{{ fsb.t.done | escape }}"{%- if d.fb %} data-fs-bar{% endif %}{%- endif %}
 >
 <div class="ucs-ab__inner">{%- if arrows -%}<button type="button" class="ucs-ab__nav" data-dir="-1" aria-label="{{ 'ucs.previous' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>{%- endif -%}<div class="ucs-ab__track" aria-live="polite">{%- if threshold > 0 -%}<div class="ucs-ab__msg ucs-ab__fs"><span class="ucs-i ucs-i--truck" aria-hidden="true"></span><span class="ucs-ab__fs-text"></span></div>{%- endif -%}{{ messages }}{%- if messages == blank and request.design_mode and threshold == 0 -%}<div class="ucs-ab__msg"><span>{{ 'ucs.announcement_empty' | t }}</span></div>{%- endif -%}</div>{%- if arrows -%}<button type="button" class="ucs-ab__nav" data-dir="1" aria-label="{{ 'ucs.next' | t | escape }}" hidden><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button>{%- endif -%}{%- if d.dm -%}<button type="button" class="ucs-ab__close" aria-label="{{ 'ucs.close' | t | escape }}"><span class="ucs-i ucs-i--close" aria-hidden="true"></span></button>{%- endif -%}</div>{%- if threshold > 0 and d.fb -%}<div class="ucs-ab__bar" aria-hidden="true"></div>{%- endif -%}</ucs-announcement>
