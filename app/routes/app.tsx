@@ -20,7 +20,10 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       {/* Same map as Home's groups and every page's breadcrumb: app/lib/catalog.ts */}
       <s-app-nav>
-        <s-link href="/app" rel="home">Home</s-link>
+        {/* rel="home": the app's name in the sidebar is Home, so no item lights up on every page (the typings lack rel). */}
+        <s-link href="/app" {...({ rel: "home" } as object)}>
+          Home
+        </s-link>
         {CATEGORIES.map((c) => (
           <s-link key={c.key} href={c.href}>
             {c.title}
