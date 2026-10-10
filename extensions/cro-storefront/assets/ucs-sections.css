@@ -641,3 +641,11 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-op__q { flex: none; opacity: 0.75; }
 .ucs-op__item input[type="checkbox"] { width: 18px; height: 18px; flex: none; }
 .ucs-op__item select { flex: none; min-height: 36px; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(127, 127, 127, 0.45); background: #fff; font: inherit; }
+/* ---- Delivery estimate ------------------------------------------------------------- */
+.ucs-dl { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: var(--ucs-dl-t, 14px); line-height: 1.45; }
+.ucs-dl--box { padding: 10px 14px; border-radius: var(--ucs-dl-r, 10px); background: var(--ucs-dl-bg, #f3f8f4); }
+.ucs-dl__icon { display: inline-flex; flex: none; color: var(--ucs-dl-accent, #1a7f37); }
+.ucs-dl__icon svg { width: var(--ucs-dl-ic, 20px); height: var(--ucs-dl-ic, 20px); }
+.ucs-dl__text { margin: 0; }
+.ucs-dl__text b { font-weight: 600; }
+.ucs-dl--bold .ucs-dl__time { color: var(--ucs-dl-accent, #1a7f37); font-weight: 700; }

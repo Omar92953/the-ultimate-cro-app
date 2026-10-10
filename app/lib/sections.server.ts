@@ -355,6 +355,7 @@ export function sectionLinks(shop: string) {
     reviews: block(SECTIONS.reviews.block),
     track: `${base}?template=page&addAppBlockId=${key}/ucs-track&target=newAppsSection`,
     returns: `${base}?template=page&addAppBlockId=${key}/ucs-returns&target=newAppsSection`,
+    delivery: `${base}?template=product&addAppBlockId=${key}/ucs-delivery&target=mainSection`,
     stock: `${base}?template=product&addAppBlockId=${key}/ucs-stock&target=mainSection`,
     product_reviews: `${base}?template=product&addAppBlockId=${key}/ucs-product-reviews&target=mainSection`,
     faq: block(SECTIONS.faq.block),

@@ -1,0 +1,35 @@
+{%- comment -%}
+  App block: delivery date estimate ("Order within 2h 15m and get it Thu, Oct 16 – Sat, Oct 18"), for the
+  product page (under the price or Add to cart) and the cart page. Designed in the app (Boosters →
+  Delivery estimate, $app:cro_design "delivery"); ucs-delivery.js works out the dates.
+{%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'delivery', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- liquid
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+  endif
+-%}
+{%- if d -%}
+  <div class="{{ d.cls }}" style="{{ d.css }}" data-ucs-delivery data-page="{{ request.page_type }}" data-tz="{{ 'now' | date: '%z' }}" data-country="{{ localization.country.iso_code }}" data-locale="{{ request.locale.iso_code }}" hidden {{ block.shopify_attributes }}>
+    <script type="application/json">{{ d | json }}</script>
+  </div>
+  <script src="{{ 'ucs-delivery.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+  <p {{ block.shopify_attributes }}>Set up the delivery estimate in the app: Boosters → Delivery estimate.</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Delivery estimate",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
+    { "type": "paragraph", "content": "Put it inside the product information (under the price or Add to cart) or on the cart page. Dates and words are set in the app: Boosters → Delivery estimate." }
+  ]
+}
+{% endschema %}

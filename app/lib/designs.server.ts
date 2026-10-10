@@ -12,6 +12,7 @@ import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./footer-design";
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
+import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
@@ -359,5 +360,20 @@ export async function saveOrderPage(admin: AdminClient, kind: OrderPageKind, con
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(key), { config: store });
   await upsert(admin, "$app:cro_design", slotted(`${key}_draft`), { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(`${key}_editor`), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ---------------------------------------------------------- delivery estimate -- */
+export async function getDeliveryDesign(admin: AdminClient): Promise<{ config: DeliveryDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "delivery_editor");
+  return { config: withDeliveryDefaults(raw), saved: raw !== null };
+}
+
+export async function saveDeliveryDesign(admin: AdminClient, config: DeliveryDesign, draftOnly = false) {
+  const clean = withDeliveryDefaults(config);
+  const store = JSON.stringify(toStorefrontDelivery(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("delivery"), { config: store });
+  await upsert(admin, "$app:cro_design", slotted("delivery_draft"), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("delivery_editor"), { config: JSON.stringify(clean) });
   return clean;
 }

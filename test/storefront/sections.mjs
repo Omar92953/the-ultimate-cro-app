@@ -384,6 +384,10 @@ const mockOrders = `<script>(function(){const f=window.fetch;const order={name:"
 pages["orders.html"] = page("Track order & Returns", mockOrders +
   label("track order page") + (await block("ucs-track", {}, { page_type: "page" })) +
   label("returns page") + (await block("ucs-returns", {}, { page_type: "page" })));
+const { toStorefrontDelivery, withDeliveryDefaults } = await import("../../app/lib/delivery-design.ts");
+const deliveryShop = withDesign(mo("delivery", { config: toStorefrontDelivery(withDeliveryDefaults({ rules: { zones: [{ countries: "SA", min: 5, max: 7 }] } })) }));
+pages["delivery.html"] = page("Delivery estimate",
+  label("product page (Egypt)") + '<div style="max-width:440px;margin:0 40px">' + (await block("ucs-delivery", {}, { page_type: "product", shop: deliveryShop })) + "</div>");
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

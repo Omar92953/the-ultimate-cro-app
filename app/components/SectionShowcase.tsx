@@ -1546,3 +1546,22 @@ export function ReturnsShowcase() {
     </Stage>
   );
 }
+
+/** Delivery estimate: the green line under Add to cart. */
+export function DeliveryShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 8, width: "70%", fontSize: 11 }}>
+        <b style={{ fontSize: 14 }}>Classic tee</b>
+        <b>EGP 450.00</b>
+        <span style={{ display: "block", padding: "7px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
+        <span style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 10px", borderRadius: 8, background: "#f3f8f4" }}>
+          <span style={{ color: "#1a7f37", fontSize: 14 }}>🚚</span>
+          <span>
+            Order within <b style={{ color: "#1a7f37" }}>2h 15m</b> and get it <b>Thu, Oct 15 – Sun, Oct 18</b>
+          </span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
