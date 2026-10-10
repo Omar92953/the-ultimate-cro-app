@@ -9,7 +9,7 @@ import { schemeId } from "./theme-style";
 
 export type FaqDesign = {
   scheme: string;
-  text: { heading: string; sub: string; headingSize: number; align: "left" | "center"; contactText: string; contactLabel: string; contactLink: string };
+  text: { heading: string; sub: string; headingSize: number; align: "left" | "center"; help: boolean; contactText: string; contactLabel: string; contactLink: string };
   questions: { tabs: boolean; search: boolean; oneOpen: boolean; openFirst: boolean; columns: 1 | 2 };
   look: {
     style: "lines" | "cards";
@@ -31,7 +31,7 @@ export type FaqDesign = {
 
 export const DEFAULT_FAQ: FaqDesign = {
   scheme: "",
-  text: { heading: "Frequently asked questions", sub: "", headingSize: 30, align: "center", contactText: "Still have a question?", contactLabel: "Contact us", contactLink: "" },
+  text: { heading: "Frequently asked questions", sub: "", headingSize: 30, align: "center", help: true, contactText: "Still have a question?", contactLabel: "Contact us", contactLink: "" },
   questions: { tabs: true, search: true, oneOpen: true, openFirst: false, columns: 1 },
   look: { style: "lines", icon: "plus", iconLeft: false, questionSize: 16, maxWidth: 860, radius: 10, accent: "#121212", ownBg: false, bg: "#ffffff", ownCard: false, cardBg: "#f4f4f4", ownText: false, fg: "#121212" },
   space: { top: 40, bottom: 40, devices: "all" },
@@ -66,6 +66,7 @@ export function withFaqDefaults(raw: unknown): FaqDesign {
       sub: str(t.sub, d.text.sub, 240),
       headingSize: num(t.headingSize, 18, 56, d.text.headingSize),
       align: pick(t.align, ["left", "center"] as const, d.text.align),
+      help: bool(t.help, d.text.help),
       contactText: str(t.contactText, d.text.contactText, 120),
       contactLabel: str(t.contactLabel, d.text.contactLabel, 40),
       contactLink: str(t.contactLink, d.text.contactLink, 300).trim().replace(/^javascript:/i, ""),
@@ -139,8 +140,9 @@ export function toStorefrontFaq(c: FaqDesign) {
     oo: c.questions.oneOpen,
     of: c.questions.openFirst,
     col: c.questions.columns,
-    ct: c.text.contactText,
-    cl: c.text.contactLabel,
+    // Help button off: no text and no button on the store (the words are kept for later).
+    ct: c.text.help ? c.text.contactText : "",
+    cl: c.text.help ? c.text.contactLabel : "",
     cu: c.text.contactLink,
   };
 }

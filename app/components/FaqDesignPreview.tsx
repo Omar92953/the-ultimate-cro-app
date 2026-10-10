@@ -65,7 +65,7 @@ export function FaqDesignPreview({ config: c, questions }: { config: FaqDesign; 
           ))}
           {!shown.length ? <p className="ucs-faq__none">No questions match.</p> : null}
         </div>
-        {c.text.contactLabel ? (
+        {c.text.help && c.text.contactLabel ? (
           <div className="ucs-faq__help">
             {c.text.contactText ? <p>{c.text.contactText}</p> : null}
             <a className="ucs-btn" href="#preview" onClick={(e) => e.preventDefault()}>
