@@ -47,7 +47,7 @@ function MiniPreview({ children }: { children: ReactNode }) {
     <span ref={box} aria-hidden="true" style={{ display: "block", position: "relative", height: 118, overflow: "hidden", borderRadius: 6, background: "#fff", boxShadow: "inset 0 0 0 1px #ececec" }}>
       <span
         className="lookMini"
-        {...({ inert: true } as object)}
+        {...({ inert: "" } as object)}
         style={{ display: "block", position: "absolute", top: 0, left: 0, width: MINI_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left", pointerEvents: "none" }}
       >
         {ready ? children : null}
