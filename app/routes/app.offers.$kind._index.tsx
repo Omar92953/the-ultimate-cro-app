@@ -7,6 +7,8 @@ import { KINDS } from "../lib/kinds";
 import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { OFFER_FEATURE } from "../lib/catalog";
 
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -19,6 +21,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
 export default function RuleList() {
   const { kindSlug, meta, rules, addBlock } = useLoaderData<typeof loader>();
+  const featureKey = OFFER_FEATURE[kindSlug] ?? "upsell";
 
   const trigger = (r: (typeof rules)[number]) =>
     r.triggerType === "all"
@@ -36,19 +39,16 @@ export default function RuleList() {
 
   return (
     <s-page heading={meta.title} inlineSize="large">
+      <CategoryCrumb feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/offers/${kindSlug}/new`}>
         Create {meta.singular}
       </Button>
-      {meta.kind === "upsell" || meta.kind === "cross_sell" ? (
-        <Button slot="secondary-actions" href={meta.kind === "upsell" ? "/app/designs/upsell" : "/app/designs/cross-sell"}>
-          Design
-        </Button>
-      ) : null}
-      <Button slot="secondary-actions" href={addBlock} target="_top">
+      <Button slot="secondary-actions" href={addBlock} target="_top" icon="theme-edit">
         Add to theme
       </Button>
 
       <s-stack gap="base">
+        <FeatureTabs feature={featureKey} />
         <Explainer {...HELP[meta.kind]} />
 
       <s-section heading={`Your offers (${rules.length})`} padding="none">

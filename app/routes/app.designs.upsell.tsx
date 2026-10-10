@@ -19,6 +19,7 @@ import type { PreviewProduct } from "../lib/preview-products.server";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -103,24 +104,20 @@ export default function UpsellDesigner() {
   const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
   return (
-    <s-page heading="Upsell offers design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/offers/upsell">
-        Upsell offers
-      </s-link>
+    <s-page heading="Upsell offers" inlineSize="large">
+      <CategoryCrumb feature="upsell" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/offers/upsell">
-        Manage offers
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="upsell" />
           <s-text color="subdued">
             The offers, prices and discounts come from your Upsell offers. Here you choose how they look on the product page. In the theme editor you only place the “Upsell offers” block.
           </s-text>

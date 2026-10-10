@@ -20,7 +20,7 @@ export function AnnouncementDesignPreview({ config: c, messages, freeShipping }:
   const list: AnnouncementMessage[] = [];
   const total = freeShipping ? Math.round(freeShipping.goal * 0.6) : 0;
   if (c.freeShipping.on && freeShipping) list.push({ text: freeShipping.progress.replace(/\{left\}/g, money(freeShipping.goal - total)).replace(/\{goal\}/g, money(freeShipping.goal)), link: false, icon: "truck" });
-  list.push(...(messages.length ? messages : [{ text: "Add messages in Store sections → Announcements", link: false, icon: "none" }]));
+  list.push(...(messages.length ? messages : [{ text: "Add messages in Boosters → Announcement bar", link: false, icon: "none" }]));
   const [at, setAt] = useState(0);
   const [closed, setClosed] = useState(false);
   useEffect(() => {

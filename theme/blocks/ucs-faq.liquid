@@ -1,6 +1,6 @@
 {%- comment -%}
   App block: FAQ accordion (native <details>, works without JavaScript) with optional search,
-  group tabs and FAQPage structured data for Google. Questions come from the app (Store sections → FAQ).
+  group tabs and FAQPage structured data for Google. Questions come from the app (Sections → FAQ).
 {%- endcomment -%}
 {%- liquid
   assign s = block.settings
@@ -149,7 +149,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Questions and the look are set in the app: Store sections → FAQ. Here you only choose what this copy shows." },
+    { "type": "paragraph", "content": "Questions and the look are set in the app: Sections → FAQ. Here you only choose what this copy shows." },
     { "type": "text", "id": "group", "label": "Only this group", "info": "Optional, e.g. Shipping. Empty = all questions." },
     { "type": "text", "id": "heading", "label": "Heading here", "info": "Optional. Empty = the heading set in the app." },
     { "type": "checkbox", "id": "schema", "label": "Help Google show these questions in search", "default": true, "info": "Adds FAQ structured data. Use it on one page only." }

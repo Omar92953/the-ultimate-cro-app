@@ -157,7 +157,7 @@ export default function HeroEditor() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["content", "looks", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchHero} />

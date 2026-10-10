@@ -1,6 +1,6 @@
 /**
  * Customer reviews section, designed in the app (moved out of the theme editor). The reviews
- * themselves are still managed in Store sections → Reviews; this is how the section shows them.
+ * themselves are still managed in Sections → Customer reviews; this is how the section shows them.
  * Stored in $app:cro_design "reviews" (storefront) and "reviews_editor". Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";

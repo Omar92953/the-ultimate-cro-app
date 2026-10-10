@@ -19,6 +19,7 @@ import { CrossSellDesignPreview, CrossSellDrawerPreview, SAMPLE_CROSS_SELL, type
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -98,24 +99,20 @@ export default function CrossSellDesigner() {
   const blockLook = cfg.scheme ? previewTheme(data.style, cfg.scheme) : null;
 
   return (
-    <s-page heading="Cross-sell offers design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/offers/cross-sell">
-        Cross-sell offers
-      </s-link>
+    <s-page heading="Cross-sell offers" inlineSize="large">
+      <CategoryCrumb feature="cross_sell" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/offers/cross-sell">
-        Manage offers
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="cross_sell" />
           <s-text color="subdued">
             Products, headline and discount come from your Cross-sell offers. Here you choose how they look. In the theme editor you only place the “Cross-sell offers” block (product or cart page).
           </s-text>

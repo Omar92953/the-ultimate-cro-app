@@ -42,7 +42,7 @@
   endif
   assign opt_i = opt_pos | minus: 1
 
-  # Look and wording are designed in the app (Offers → Upsell → Design): $app:cro_design "upsell".
+  # Look and wording are designed in the app (Offers & bundles → Upsell offers → Design): $app:cro_design "upsell".
   assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
   if request.design_mode and shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
     assign d = shop.metaobjects['$app:cro_design']['upsell_draft'].config.value

@@ -1,6 +1,6 @@
 {%- comment -%}
-  App block: customer reviews. The reviews come from the app (Store sections → Reviews) and the
-  design from the app (Store sections → Customer reviews design). This only picks the reviews for
+  App block: customer reviews. The reviews come from the app (Sections → Customer reviews) and the
+  design from the app (Sections → Customer reviews → Design). This only picks the reviews for
   the page (a product's own reviews on its page, if the design asks for that) and passes them to
   ucs-reviews.js, which builds the section.
 {%- endcomment -%}
@@ -57,7 +57,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Reviews and how they look are set in the app: Store sections → Customer reviews." }
+    { "type": "paragraph", "content": "Reviews and how they look are set in the app: Sections → Customer reviews." }
   ]
 }
 {% endschema %}

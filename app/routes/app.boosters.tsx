@@ -10,6 +10,7 @@ import { TRUST_BADGES, type BoostersConfig, type TrustBadgeKey } from "../lib/bo
 import { sectionLinks } from "../lib/sections.server";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Card, CardGrid, CardText, Explainer, Pill } from "../components/ui";
+import { CategoryCrumb } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -78,6 +79,7 @@ export default function Boosters() {
 
   return (
     <s-page heading="Conversion boosters" inlineSize="large">
+      <CategoryCrumb feature="boosters" />
       <Button slot="primary-action" variant="primary" loading={busy && fetcher.formData?.get("intent") === "save"} onClick={save}>
         Save
       </Button>

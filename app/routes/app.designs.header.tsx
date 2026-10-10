@@ -20,6 +20,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeMatch } from "../components/ThemeStyle";
 import { matchHeader } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -82,9 +83,7 @@ export default function HeaderDesigner() {
 
   return (
     <s-page heading="Header" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app?cat=layout">
-        Headers and footers
-      </s-link>
+      <CategoryCrumb feature="header" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -96,6 +95,7 @@ export default function HeaderDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="header" />
         {data.embedOn === false ? (
           <s-banner tone="info" heading="Add the header to your theme">
             Design it here and click Save, then click “Add to header”: it’s added to your theme’s Header area. Save there. Your theme’s own header is hidden while it’s on, and comes back if you switch it off.

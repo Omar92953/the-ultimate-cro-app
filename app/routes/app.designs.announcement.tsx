@@ -19,6 +19,7 @@ import { AnnouncementDesignPreview, type AnnouncementMessage } from "../componen
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -86,24 +87,20 @@ export default function AnnouncementDesigner() {
   const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
 
   return (
-    <s-page heading="Announcement bar design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/sections/announcements">
-        Announcements
-      </s-link>
+    <s-page heading="Announcement bar" inlineSize="large">
+      <CategoryCrumb feature="announcements" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/sections/announcements">
-        Manage messages
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Turn on in theme"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="announcements" />
           <s-text color="subdued">Messages, icons and dates are in “Manage messages”. Here you choose how the bar looks and behaves. In the theme editor you only switch the “Announcement bar” embed on.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

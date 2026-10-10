@@ -1,6 +1,6 @@
 /**
  * "Scrolling logos and text" section, designed in the app (moved out of the theme editor). The logos
- * themselves are still the list in Store sections → Logos. Stored in $app:cro_design "logos"
+ * themselves are still the list in Sections → Scrolling logos and text. Stored in $app:cro_design "logos"
  * (storefront: short keys read by ucs-logos.liquid) and "logos_editor". Shared by client and server.
  */
 import { color, num, pick, str } from "./designs";

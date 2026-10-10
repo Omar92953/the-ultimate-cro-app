@@ -6,7 +6,7 @@ import { editorLinks, getThemeStatus, listBundles } from "../lib/cro.server";
 import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
-import { BundleTabs } from "../components/BundleTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -24,18 +24,16 @@ export default function BundleList() {
   const storeWide = bundles.some((b) => b.active && b.storeWide);
   return (
     <s-page heading="Bundles" inlineSize="large">
+      <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href="/app/bundles/new">
         Create mix & match bundle
       </Button>
-      <Button slot="secondary-actions" href="/app/designs/bundles">
-        Design
-      </Button>
-      <Button slot="secondary-actions" href={addBlock} target="_top">
-        Add block to theme
+      <Button slot="secondary-actions" href={addBlock} target="_top" icon="theme-edit">
+        Add to theme
       </Button>
 
       <s-stack gap="base">
-        <BundleTabs />
+        <FeatureTabs feature="bundles" />
         <Explainer {...HELP.bundles} />
 
         {storeWide ? (

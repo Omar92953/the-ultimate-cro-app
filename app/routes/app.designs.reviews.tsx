@@ -20,6 +20,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchReviews } from "../lib/theme-match";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 const fmtDate = (d: string) => {
   const t = Date.parse(`${d}T12:00:00Z`);
@@ -88,23 +89,19 @@ export default function ReviewsDesigner() {
 
   return (
     <s-page heading="Customer reviews" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="reviews" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/sections/reviews">
-        Manage reviews
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         Add to a page
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="reviews" />
         <s-text color="subdued">
           Add, edit and order the reviews in “Manage reviews”. Here you choose how the section looks. In the theme editor you only place the “Customer reviews” section.
         </s-text>

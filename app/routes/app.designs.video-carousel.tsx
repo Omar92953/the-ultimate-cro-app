@@ -18,6 +18,7 @@ import { VideoCarouselPreview, type PreviewSlide } from "../components/VideoCaro
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
 async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<Map<string, string>> {
@@ -103,24 +104,20 @@ export default function VideoCarouselDesigner() {
   const blockLook = cfg.layout.scheme ? previewTheme(data.style, cfg.layout.scheme) : null;
 
   return (
-    <s-page heading="Video carousel design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/videos">
-        Video carousel
-      </s-link>
+    <s-page heading="Video carousel" inlineSize="large">
+      <CategoryCrumb feature="videos" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/videos">
-        Manage videos
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to a page"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="videos" />
           <s-text color="subdued">
             Add, order and link the videos in “Manage videos”. Here you choose how the carousel looks and where it shows. In the theme editor you only place the “Video carousel” section.
           </s-text>

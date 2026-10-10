@@ -42,7 +42,7 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
     if (t && first) t.scrollBy({ left: dir * (first.offsetWidth + 16), behavior: "smooth" });
   };
 
-  if (!reviews.length) return <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Add reviews in Store sections → Reviews to see them here.</p>;
+  if (!reviews.length) return <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Add reviews in Sections → Customer reviews to see them here.</p>;
   return (
     <div className={`${reviewsClass(c)} is-sized`} style={{ ...vars, "--ucs-rv-media-h": "260px" } as CSSProperties}>
       <div className="ucs-wrap">

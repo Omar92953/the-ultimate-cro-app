@@ -19,6 +19,7 @@ import { FaqDesignPreview, type PreviewQuestion } from "../components/FaqDesignP
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -73,24 +74,20 @@ export default function FaqDesigner() {
   const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
 
   return (
-    <s-page heading="FAQ design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/sections/faq">
-        FAQ
-      </s-link>
+    <s-page heading="FAQ" inlineSize="large">
+      <CategoryCrumb feature="faq" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/sections/faq">
-        Manage questions
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to theme"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="faq" />
           <s-text color="subdued">Questions and groups are in “Manage questions”. Here you choose how the FAQ looks and works; every copy of the section uses this design. In the theme editor each copy can still show only one group (e.g. Shipping) and have its own heading.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

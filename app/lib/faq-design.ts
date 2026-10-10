@@ -1,6 +1,6 @@
 /**
  * FAQ section, designed in the app (moved out of the theme editor). The questions are still the list
- * in Store sections → FAQ; per placement the theme editor keeps only "Only this group", an optional
+ * in Sections → FAQ; per placement the theme editor keeps only "Only this group", an optional
  * heading and the Google structured-data switch. Stored in $app:cro_design "faq" (storefront: short
  * keys read by ucs-faq.liquid) and "faq_editor". Shared by client and server.
  */

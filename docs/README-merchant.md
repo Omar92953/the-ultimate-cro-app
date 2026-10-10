@@ -12,13 +12,22 @@ Discounts are real: Shopify applies them at checkout, so the price on the offer 
 customer pays.
 
 ## Finding your way
-- **Home:** one card per feature, with its On/Off switch and the one next step it needs.
-- **Upsell offers / Cross-sell offers:** your offers. Each offer is edited in numbered steps, with a live
-  preview on the right.
-- **Video carousel**, **Bundles:** their content.
-- **Settings:** cart drawer offers and the discount method.
-- **Theme editor:** every block's settings are grouped the same way (content, heading, colors, corners
-  and spacing, visibility), and options only appear when they apply.
+The app has the same map everywhere:
+- **Menu:** Home · Offers & bundles · Sections · Boosters · Header & pages · Settings.
+  - **Offers & bundles:** upsell offers, cross-sell offers, bundles (mix & match and deals), add-ons.
+  - **Sections:** hero banners, customer reviews, FAQ, scrolling logos, video carousel, image carousel,
+    collection pills.
+  - **Boosters:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
+    conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups).
+  - **Header & pages:** header and contact page.
+- **Home** shows every feature as a card with its status and next step; each menu category shows the
+  same cards for that category only.
+- **Every feature page** looks the same: the breadcrumb goes back to its category, and tabs at the top
+  switch between its content and its look (e.g. Customer reviews: Reviews | Design).
+- **Every design page** has the same tabs in the same order (Looks · Content · Layout · Style ·
+  Display, only the ones it needs), settings on the left and a live preview on the right, and the same
+  buttons: Save, See it on my store, and Add to theme / Open in theme editor.
+- **Theme editor:** blocks only place, move or remove a section; everything else is set in the app.
 
 ## Set up in 3 steps
 
@@ -108,7 +117,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   only inside the cart.
 
 ## Hero banners
-- Make banners in **Store sections → Hero banners**: a wide desktop image and a tall phone image,
+- Make banners in **Sections → Hero banners**: a wide desktop image and a tall phone image,
   heading, text, up to two buttons, where the text sits (separately for phones), colours and height.
 - In the theme editor add the **Hero image** section and pick a banner. With none picked it shows your
   first banner (change the order in the list). Set **Where on the page** to "Lower down" for banners
@@ -116,7 +125,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
 - **See it on my store** shows your unsaved changes in the theme editor only; **Save** puts them live.
 
 ## Logos, FAQ and quick add
-- **Scrolling logos and text** and **FAQ**: the logos and questions are in Store sections; the look is
+- **Scrolling logos and text** and **FAQ**: the logos and questions are in Sections; the look is
   in each list's **Design**. Every copy of the section uses that design. A FAQ copy can still show only
   one group (e.g. Shipping), have its own heading, and switch Google's FAQ data on or off.
 - **Quick add to cart**: design the card button and the "Added to your cart" popup from its card on

@@ -235,7 +235,7 @@
     var head = t.heading || t.sub || summary ? '<div class="ucs-head ucs-rv__head">' + (t.heading ? '<h2>' + esc(t.heading) + '</h2>' : '') + (t.sub ? '<p>' + esc(t.sub) + '</p>' : '') + summary + '</div>' : '';
     var carousel = c.l.mode === 'carousel';
     var html = '<div class="ucs-wrap">' + head;
-    if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Store sections → Reviews.</p>';
+    if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Sections → Customer reviews.</p>';
     else {
       html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + '>' +
         shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + '</div></div>';

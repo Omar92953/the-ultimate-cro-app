@@ -180,7 +180,7 @@ Only possible on the dev store or the production host:
 - [ ] Install from a fresh dev store lands on OAuth, then straight into the app's Home (no error page).
 - [ ] Uninstall → reinstall: OAuth again, Home loads, no "already installed" errors.
 - [ ] Open the app in Chrome **incognito** with third-party cookies blocked: every page still works.
-- [ ] Click every nav item, tab and button once, including Bundles → each deal tab, Store sections → each list, Boosters and Settings. No 404 or 500 anywhere.
+- [ ] Click every nav item, tab and button once, including each menu item (Offers & bundles, Sections, Boosters, Header & pages), every tab at the top of each feature. No 404 or 500 anywhere.
 - [ ] Every app block shows without Liquid errors in the theme editor **and** on the storefront, on two themes (Dawn + one other), including with empty data.
 - [ ] Each theme-editor deep link in the app opens the editor with the block added or the embed switched on.
 - [ ] Compliance webhooks on the **production URL**: unsigned POST → 401, `shopify app webhook trigger` for each of the 3 topics → 200.

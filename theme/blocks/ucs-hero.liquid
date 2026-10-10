@@ -82,7 +82,7 @@
   </div>
 </div>
 {%- elsif request.design_mode -%}
-  <p class="ucs-note" {{ block.shopify_attributes }}>Hero image: make a banner in CRO Toolbox → Hero banners, then pick it here. Only you see this note.</p>
+  <p class="ucs-note" {{ block.shopify_attributes }}>Hero image: make a banner in CRO Toolbox → Sections → Hero banners, then pick it here. Only you see this note.</p>
 {%- endif -%}
 
 {% schema %}
@@ -91,7 +91,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Images, text and look are set in the app: CRO Toolbox → Hero banners." },
+    { "type": "paragraph", "content": "Images, text and look are set in the app: CRO Toolbox → Sections → Hero banners." },
     { "type": "metaobject", "id": "banner", "label": "Banner", "metaobject_type": "app--427692097537--cro_hero", "info": "Empty = your first banner." },
     { "type": "select", "id": "place", "label": "Where on the page", "default": "top", "options": [{ "value": "top", "label": "At the top (load right away)" }, { "value": "lower", "label": "Lower down (load when scrolled to)" }] }
   ]

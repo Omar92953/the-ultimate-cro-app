@@ -86,6 +86,7 @@ import { getContact } from "../lib/pages.server";
 import { getAddons, getHeader, getImageCarousel, getPills, getShippingBar } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
+import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -252,27 +253,27 @@ const FEATURES: {
 
 type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
-/** Store sections, shown in the same card format as the features above. */
+/** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
 const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers" | "boosters"; Previews: (() => JSX.Element)[] }[] = [
   { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
   { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
-  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
-  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
+  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
+  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
   { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarCartShowcase, ShippingBarShowcase, ShippingBarCardShowcase] },
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
-  { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
+  { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", cat: "boosters", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
 ];
 
 /** Pages designed in the app (Contact page now; the others are coming). */
 const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
-  { key: "page_product", title: "Product page", href: "/app/pages", Previews: [ProductPageShowcase] },
-  { key: "page_collection", title: "Collection page", href: "/app/pages", Previews: [CollectionPageShowcase] },
+  { key: "page_product", title: "Product page", href: "/app/browse/design", Previews: [ProductPageShowcase] },
+  { key: "page_collection", title: "Collection page", href: "/app/browse/design", Previews: [CollectionPageShowcase] },
 ];
 
 /** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
@@ -287,6 +288,11 @@ type Status = { tone: "success" | "warning" | "neutral"; text: string };
 type Next = { label: string; href: string; external?: boolean };
 
 export default function Home() {
+  return <HomeView />;
+}
+
+/** Home (all categories), or one category's page (`only`) — the same cards either way. */
+export function HomeView({ only }: { only?: CategoryKey }) {
   const data = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -294,7 +300,7 @@ export default function Home() {
   const saveFetcher = useFetcher<typeof action>();
   const [params, setParams] = useSearchParams();
   // Home filters (kept in the address, so going back returns to the same view)
-  const cat = params.get("cat") ?? (params.get("view") === "saved" ? "saved" : "all");
+  const cat = only ?? params.get("cat") ?? (params.get("view") === "saved" ? "saved" : "all");
   const status = params.get("status") ?? "all";
   const [query, setQuery] = useState("");
   const setFilter = (patch: { cat?: string; status?: string }) => {
@@ -353,7 +359,7 @@ export default function Home() {
     data.discount.engine === "native" ? data.discount.nativeCount > 0 : data.discount.status === "ACTIVE";
 
   return (
-    <s-page heading="CRO Toolbox" inlineSize="large">
+    <s-page heading={only ? category(only).title : "CRO Toolbox"} inlineSize="large">
       <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
         View store
       </Button>
@@ -370,7 +376,7 @@ export default function Home() {
         </s-banner>
       ) : null}
 
-      {doneCount < 3 ? (
+      {!only && doneCount < 3 ? (
         <Card title="Get set up" badge={<Pill tone="warn">{`${doneCount} of 3 done`}</Pill>}>
           <Checklist
             items={[
@@ -397,7 +403,7 @@ export default function Home() {
       ) : null}
 
       {(() => {
-        type Cat = "offers" | "sections" | "boosters" | "pages" | "layout";
+        type Cat = CategoryKey;
         /** `onStore`: it's in the theme right now (on or off), so it belongs in "On my store". */
         type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; onStore: boolean; el: ReactElement };
         const cards: Entry[] = [];
@@ -514,7 +520,7 @@ export default function Home() {
           else status = { tone: "success", text: "Live" };
           add({
             key: pg.key,
-            cat: "pages",
+            cat: "design",
             title: pg.title,
             onStore: ready && inTheme === true,
             status,
@@ -535,7 +541,7 @@ export default function Home() {
           else status = { tone: "success", text: "Live" };
           add({
             key: "header",
-            cat: "layout",
+            cat: "design",
             title: "Header",
             onStore: inTheme === true,
             status,
@@ -544,16 +550,10 @@ export default function Home() {
             previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
             menu: [{ label: "Design", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
           });
-          add({ key: "footer", cat: "layout", title: "Footer", onStore: false, status: { tone: "neutral", text: "Coming soon" }, open: { href: "/app?cat=layout" }, previews: [FooterShowcase], off: true, menu: [] });
+          add({ key: "footer", cat: "design", title: "Footer", onStore: false, status: { tone: "neutral", text: "Coming soon" }, open: { href: "/app/browse/design" }, previews: [FooterShowcase], off: true, menu: [] });
         }
 
-        const CATS: { key: Cat; title: string }[] = [
-          { key: "offers", title: "Offers and bundles" },
-          { key: "sections", title: "Store sections" },
-          { key: "boosters", title: "Boosters" },
-          { key: "layout", title: "Headers and footers" },
-          { key: "pages", title: "Pages" },
-        ];
+        const CATS = CATEGORIES;
         const onStoreCount = cards.filter((c) => c.onStore).length;
         const q = query.trim().toLowerCase();
         const match = (c: Entry) =>
@@ -567,7 +567,7 @@ export default function Home() {
           if (!groups.length) return empty(emptyText);
           return groups.map((g) => (
             <s-stack key={g.key} gap="small-200">
-              <GroupTitle>{`${g.title} (${g.list.length})`}</GroupTitle>
+              {only ? null : <GroupTitle>{`${g.title} (${g.list.length})`}</GroupTitle>}
               {g.list.length ? grid(g.list) : empty("Nothing matches these filters.")}
             </s-stack>
           ));
@@ -575,9 +575,10 @@ export default function Home() {
 
         return (
           <>
+            {only ? <s-text color="subdued">{category(only).intro}</s-text> : null}
             <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
               {/* Categories, then (set a little apart) the two personal views: what's on the store and what's saved. */}
-              <s-stack direction="inline" gap="small-100" alignItems="center">
+              {only ? <span /> : <s-stack direction="inline" gap="small-100" alignItems="center">
                 <Segmented
                   label="Category"
                   value={cat}
@@ -593,7 +594,7 @@ export default function Home() {
                   ]}
                   onChange={(v) => setFilter({ cat: v })}
                 />
-              </s-stack>
+              </s-stack>}
               <s-stack direction="inline" gap="small-200" alignItems="center">
                 <select className={`${showcase.find} ${showcase.statusSel}`} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
                   <option value="all">All statuses</option>

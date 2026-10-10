@@ -20,6 +20,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchShippingBar } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -86,9 +87,7 @@ export default function ShippingBarDesigner() {
 
   return (
     <s-page heading="Free shipping bar" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="shipping_bar" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -100,6 +99,7 @@ export default function ShippingBarDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="shipping_bar" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the bar in your theme">
             Click “Add to header” and save there. You can also add the “Free shipping bar” block to product or cart pages from the theme editor. Everything else is set here.

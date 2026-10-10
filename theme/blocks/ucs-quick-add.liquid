@@ -1,7 +1,7 @@
 {%- comment -%}
   App embed: quick add to cart on product cards (collections, home, search, recommendations).
   Product cards can't hold app blocks, so the button is placed on each card's image by JS.
-  Designed in the app (Boosters → Quick add): $app:cro_design "quick_add".
+  Designed in the app (Boosters → Quick add to cart): $app:cro_design "quick_add".
 {%- endcomment -%}
 {%- liquid
   assign d = shop.metaobjects['$app:cro_design']['quick_add'].config.value
@@ -20,7 +20,7 @@
   "target": "body",
   "stylesheet": "ucs-quick-add.css",
   "settings": [
-    { "type": "paragraph", "content": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add." }
+    { "type": "paragraph", "content": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart." }
   ]
 }
 {% endschema %}

@@ -20,6 +20,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchImageCarousel } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -76,9 +77,7 @@ export default function ImageCarouselDesigner() {
 
   return (
     <s-page heading="Image carousel" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="image_carousel" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -90,6 +89,7 @@ export default function ImageCarouselDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="image_carousel" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the carousel in your theme">
             Click “Add to theme”, drop the “Image carousel” section where you want it and save. Everything else is set here.

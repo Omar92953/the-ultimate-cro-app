@@ -9,7 +9,7 @@ import { sectionLinks } from "../lib/sections.server";
 import { deleteHero, duplicateHero, listHeroes, moveHero, type HeroItem } from "../lib/hero.server";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
-import { SectionTabs } from "../components/SectionTabs";
+import { CategoryCrumb } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -59,9 +59,7 @@ export default function HeroBanners() {
 
   return (
     <s-page heading="Hero banners" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="hero" />
       <Button slot="primary-action" variant="primary" href="/app/designs/hero/new">
         Add banner
       </Button>
@@ -69,7 +67,6 @@ export default function HeroBanners() {
         Add to theme
       </Button>
       <s-stack gap="base">
-        <SectionTabs />
         <Explainer
           what="Big banners at the top of a page, with a separate image for phones so each device gets a picture that fits."
           how="Make banners here — images, text, buttons and look. Then add the “Hero image” section in the theme editor and pick a banner; with none picked it shows your first banner."

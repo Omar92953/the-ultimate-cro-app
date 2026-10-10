@@ -19,6 +19,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchPills } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -90,9 +91,7 @@ export default function CollectionPillsDesigner() {
 
   return (
     <s-page heading="Collection pills" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="collection_pills" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -104,6 +103,7 @@ export default function CollectionPillsDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="collection_pills" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the pills on your collection pages">
             Click “Add to collection pages”, drag the “Collection pills” section under the collection title and save. You can also add it to any other page.

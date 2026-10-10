@@ -1,6 +1,6 @@
 {%- comment -%}
   App block: collection pills — a row of buttons to other collections; the one being viewed is
-  highlighted. Set in the app (Store sections → Collection pills); ucs-collection-pills.js builds it.
+  highlighted. Set in the app (Sections → Collection pills); ucs-collection-pills.js builds it.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_design']['collection_pills'].config.value -%}
 {%- if request.design_mode and shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- endif -%}
@@ -17,7 +17,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Collections, order, colours and sizes are set in the app: Store sections → Collection pills." }
+    { "type": "paragraph", "content": "Collections, order, colours and sizes are set in the app: Sections → Collection pills." }
   ]
 }
 {% endschema %}

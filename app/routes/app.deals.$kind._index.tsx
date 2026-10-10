@@ -10,7 +10,7 @@ import { getDiscountStatus } from "../lib/cro.server";
 import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
-import { BundleTabs } from "../components/BundleTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -50,11 +50,12 @@ export default function DealList() {
 
   return (
     <s-page heading="Bundles" inlineSize="large">
+      <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}
       </Button>
       <s-stack gap="base">
-        <BundleTabs />
+        <FeatureTabs feature="bundles" />
         <Explainer what={t.what} how={t.how} example={t.example} />
         {native ? (
           <s-banner tone="warning" heading="Not available with native discounts">

@@ -20,6 +20,7 @@ import { QuickAddDesignPreview, type QuickAddProduct } from "../components/Quick
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -83,10 +84,8 @@ export default function QuickAddDesigner() {
   const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
 
   return (
-    <s-page heading="Quick add to cart design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+    <s-page heading="Quick add to cart" inlineSize="large">
+      <CategoryCrumb feature="quick_add" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -98,6 +97,7 @@ export default function QuickAddDesigner() {
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="quick_add" />
           <s-text color="subdued">A button on every product card (collections, home, search, recommendations). Products with sizes or colours open a small picker. In the theme editor you only switch the “Quick add to cart” embed on.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

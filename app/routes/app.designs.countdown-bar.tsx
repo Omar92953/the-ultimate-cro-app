@@ -20,6 +20,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchCountdown } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 
 const placeFrom = (url: string): CountdownPlace => {
@@ -91,9 +92,7 @@ export default function CountdownBarDesigner() {
 
   return (
     <s-page heading="Countdown timers" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="countdown" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -105,6 +104,7 @@ export default function CountdownBarDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="countdown" />
         <Segmented
           label="Where the countdown is"
           value={data.place}

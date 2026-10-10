@@ -11,7 +11,7 @@
 
   var cfgEl = document.getElementById('ucs-qa-config');
   if (!cfgEl) return;
-  // The design from the app (Boosters → Quick add) over the standard look, plus the shop's words.
+  // The design from the app (Boosters → Quick add to cart) over the standard look, plus the shop's words.
   var raw = JSON.parse(cfgEl.textContent);
   var cfg = Object.assign({ icon: 'bag', shape: 'circle', size: 40, position: 'br', show: 'always', bg: '#ffffff', fg: '#111111', after: 'toast', autohide: 3, checkout: true, addedState: true, selector: '' }, raw.d || {});
   cfg.fmt = raw.fmt;

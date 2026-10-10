@@ -1,3 +1,4 @@
+import { CATEGORIES } from "../lib/catalog";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Outlet, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -17,15 +18,14 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
+      {/* Same map as Home's groups and every page's breadcrumb: app/lib/catalog.ts */}
       <s-app-nav>
         <s-link href="/app">Home</s-link>
-        <s-link href="/app/offers/upsell">Upsell offers</s-link>
-        <s-link href="/app/offers/cross-sell">Cross-sell offers</s-link>
-        <s-link href="/app/videos">Video carousel</s-link>
-        <s-link href="/app/bundles">Bundles</s-link>
-        <s-link href="/app/sections/reviews">Store sections</s-link>
-        <s-link href="/app/boosters">Boosters</s-link>
-        <s-link href="/app/pages">Pages</s-link>
+        {CATEGORIES.map((c) => (
+          <s-link key={c.key} href={c.href}>
+            {c.title}
+          </s-link>
+        ))}
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <Outlet />

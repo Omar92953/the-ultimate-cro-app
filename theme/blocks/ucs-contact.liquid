@@ -1,13 +1,13 @@
 {%- comment -%}
   App block: contact form for the Contact page. Everything (fields, texts, colours, sizes, contact
-  info) is designed in the app: Pages → Contact page, stored in $app:cro_page "contact".
+  info) is designed in the app: Header & pages → Contact page, stored in $app:cro_page "contact".
   Shopify's own contact form (so messages reach the store's email, with Shopify's spam checks)
   plus its success/error messages are rendered here; ucs-contact.js adds the fields and layout.
 {%- endcomment -%}
 {%- assign c = shop.metaobjects['$app:cro_page']['contact'].config.value -%}
 {%- if request.design_mode and shop.metaobjects['$app:cro_page']['contact_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_page']['contact_draft'].config.value -%}{%- endif -%}
 {%- if c == blank -%}
-  {%- if request.design_mode %}<div class="ucs-ct-note" {{ block.shopify_attributes }}>Design your contact form in the app: Pages → Contact page.</div>{% endif -%}
+  {%- if request.design_mode %}<div class="ucs-ct-note" {{ block.shopify_attributes }}>Design your contact form in the app: Header & pages → Contact page.</div>{% endif -%}
 {%- else -%}
   <div class="ucs-ct" data-ucs-ct {{ block.shopify_attributes }}>
     {%- form 'contact', class: 'ucs-ct__form' -%}
@@ -25,7 +25,7 @@
   "target": "section",
   "stylesheet": "ucs-contact.css",
   "settings": [
-    { "type": "paragraph", "content": "Fields, texts, colours and sizes are designed in the app: Pages → Contact page." }
+    { "type": "paragraph", "content": "Fields, texts, colours and sizes are designed in the app: Header & pages → Contact page." }
   ]
 }
 {% endschema %}

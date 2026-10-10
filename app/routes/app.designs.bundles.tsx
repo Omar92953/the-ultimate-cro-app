@@ -22,6 +22,7 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { FONTS } from "../lib/designs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
 async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
@@ -135,24 +136,20 @@ export default function BundleDesigner() {
   const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
   return (
-    <s-page heading="Bundle builder design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/bundles">
-        Bundles
-      </s-link>
+    <s-page heading="Bundles" inlineSize="large">
+      <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/bundles">
-        Manage bundles
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="bundles" />
           <s-text color="subdued">
             Create bundles, their steps and products in “Manage bundles”. Here you choose how the builder looks on the bundle product’s page. One design for all your bundles. In the theme editor you only place the “Bundle builder” block.
           </s-text>

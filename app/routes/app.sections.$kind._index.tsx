@@ -9,7 +9,8 @@ import { deleteItem, listItems, reorder, sectionLinks, setShown } from "../lib/s
 import { SECTIONS, SOURCES, isKind, itemStatus, type MediaRef, type ProductRef, type SectionItem, type SectionKind } from "../lib/sections";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
-import { SectionTabs } from "../components/SectionTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { LIST_FEATURE } from "../lib/catalog";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -70,6 +71,7 @@ function subtitle(kind: SectionKind, item: SectionItem): string {
 export default function SectionList() {
   const data = useLoaderData<typeof loader>();
   const cfg = SECTIONS[data.kind];
+  const featureKey = LIST_FEATURE[data.kind];
   const shopify = useAppBridge();
   const fetcher = useFetcher<typeof action>();
   const [items, setItems] = useState(data.items);
@@ -111,19 +113,15 @@ export default function SectionList() {
 
   return (
     <s-page heading={cfg.title} inlineSize="large">
+      <CategoryCrumb feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/sections/${data.kind}/new`}>
         {cfg.addLabel}
       </Button>
       <Button slot="secondary-actions" href={data.themeLink} target="_top" icon="theme-edit">
         {cfg.embed ? "Turn on in theme" : "Add to theme"}
       </Button>
-      {cfg.design ? (
-        <Button slot="secondary-actions" href={cfg.design}>
-          Design
-        </Button>
-      ) : null}
       <s-stack gap="base">
-        <SectionTabs />
+        <FeatureTabs feature={featureKey} />
         <Explainer {...cfg.help} />
         {data.error ? (
           <s-banner tone="critical" heading={`Your ${cfg.plural} could not be loaded`}>

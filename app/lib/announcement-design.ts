@@ -1,6 +1,6 @@
 /**
  * Announcement bar, designed in the app (moved out of the theme editor). The messages themselves are
- * still the list in Store sections → Announcements; the free-shipping message uses the Free shipping
+ * still the list in Boosters → Announcement bar; the free-shipping message uses the Free shipping
  * bar's goal and words, so the store has one goal. Stored in $app:cro_design "announcement"
  * (storefront) and "announcement_editor". Shared by client and server.
  */

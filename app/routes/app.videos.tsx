@@ -11,6 +11,7 @@ import type { Ref, Slide } from "../lib/types";
 import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
 import { Button, Select, TextField } from "../components/fields";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 type VideoOption = { id: string; title: string; image: string | null; duration: number | null };
 
@@ -104,16 +105,15 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
   }
 
   return (
-    <s-page heading="Video carousel">
+    <s-page heading="Video carousel" inlineSize="large">
+      <CategoryCrumb feature="videos" />
       <Button slot="primary-action" variant="primary" loading={busy} onClick={() => save.submit({ slides: JSON.stringify(slides) }, { method: "post" })}>
         Save
       </Button>
-      <Button slot="secondary-actions" href="/app/designs/video-carousel">
-        Design
+      <Button slot="secondary-actions" href={props.addBlock} target="_top" icon="theme-edit">
+        Add to theme
       </Button>
-      <Button slot="secondary-actions" href={props.addBlock} target="_top">
-        Add block to theme
-      </Button>
+      <FeatureTabs feature="videos" />
       <s-box paddingBlockEnd="base">
         <Explainer {...HELP.videos} />
       </s-box>

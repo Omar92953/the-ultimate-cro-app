@@ -18,6 +18,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchContact } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 // The storefront's own stylesheet, so the preview matches the store exactly.
 
 
@@ -80,9 +81,7 @@ export default function ContactPage() {
 
   return (
     <s-page heading="Contact page" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/pages">
-        Pages
-      </s-link>
+      <CategoryCrumb feature="contact" />
       <Button slot="primary-action" variant="primary" loading={busy} onClick={save}>
         Save
       </Button>
@@ -94,6 +93,7 @@ export default function ContactPage() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="contact" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Add the form to your Contact page">
             Click “Add to Contact page” above: it opens the theme editor on your Contact page with the form added. Then

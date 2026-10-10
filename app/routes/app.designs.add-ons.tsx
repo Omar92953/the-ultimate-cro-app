@@ -19,6 +19,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchAddons } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -92,9 +93,7 @@ export default function AddonsDesigner() {
 
   return (
     <s-page heading="Add-ons" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app">
-        Home
-      </s-link>
+      <CategoryCrumb feature="addons" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
@@ -106,6 +105,7 @@ export default function AddonsDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
+        <FeatureTabs feature="addons" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the add-ons on your product page">
             Click “Add to product page”, drag the “Add-ons” block under the Add to cart button and save. Everything else is set here.

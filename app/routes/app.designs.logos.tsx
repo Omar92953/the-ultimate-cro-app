@@ -20,6 +20,7 @@ import { LogosDesignPreview, type PreviewLogo } from "../components/LogosDesignP
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -73,24 +74,20 @@ export default function LogosDesigner() {
   const marquee = cfg.layout.mode === "marquee";
 
   return (
-    <s-page heading="Scrolling logos design" inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/sections/logos">
-        Logos
-      </s-link>
+    <s-page heading="Scrolling logos and text" inlineSize="large">
+      <CategoryCrumb feature="logos" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
-      <Button slot="secondary-actions" href="/app/sections/logos">
-        Manage logos
-      </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to theme"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
+          <FeatureTabs feature="logos" />
           <s-text color="subdued">Logos and texts are in “Manage logos”. Here you choose how the strip looks and moves. In the theme editor you only place the “Scrolling logos and text” section; every copy of it uses this design.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">
