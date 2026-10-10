@@ -25,9 +25,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, rules, style] = await Promise.all([
     getUpsellDesign(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     listRules(admin, "upsell").catch(() => []),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
   // The merchant's own offers, each on a real product it shows on, so the preview matches the store.
   const picked = rules

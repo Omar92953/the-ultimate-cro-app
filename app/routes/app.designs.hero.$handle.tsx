@@ -26,8 +26,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const isNew = params.handle === "new";
   const [item, theme, style] = await Promise.all([
     isNew ? null : getHero(admin, String(params.handle)),
-    getThemeStatus(admin).catch(() => null),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStatus(admin, session.shop).catch(() => null),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
   if (!isNew && !item) throw new Response("Banner not found", { status: 404 });
   return {

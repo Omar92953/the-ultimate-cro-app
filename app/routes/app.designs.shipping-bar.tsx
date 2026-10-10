@@ -26,14 +26,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, currency] = await Promise.all([
     getShippingBar(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     gql(admin, `#graphql
       query CroShopCurrency { shop { currencyCode } }`)
       .then((d) => d.shop.currencyCode as string)
       .catch(() => "USD"),
   ]);
   const discount = await getFreeShippingDiscount(admin).catch(() => null);
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, discount, discountTitle: FREE_SHIPPING_TITLE, config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, discount, discountTitle: FREE_SHIPPING_TITLE, config, saved, currency, css: storefrontCss("ucs-shipping-bar.css"), inTheme: theme ? theme.installed.shipping_bar : null, addLink: sectionLinks(session.shop).shipping_bar };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

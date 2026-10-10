@@ -13,6 +13,7 @@
  *  - the cart transform's $app.bundles
  */
 import { gql, numericId, AdminError, type AdminClient } from "./admin.server";
+import { remember } from "./short-cache.server";
 
 import type {
   Ref,
@@ -1205,7 +1206,12 @@ export type ThemeStatus = {
 };
 
 /** Reads the published theme (read_themes) to see which blocks/embeds are actually in use. */
-export async function getThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
+/** Which blocks/embeds the MAIN theme uses; with `shop`, remembered for 20 s (see short-cache.server.ts). */
+export function getThemeStatus(admin: AdminClient, shop?: string): Promise<ThemeStatus> {
+  return shop ? remember(`status:${shop}`, 20000, () => readThemeStatus(admin)) : readThemeStatus(admin);
+}
+
+async function readThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
   const installed = Object.fromEntries(Object.keys(BLOCKS).map((k) => [k, false])) as ThemeStatus["installed"];
   const files = Object.fromEntries(Object.keys(BLOCKS).map((k) => [k, []])) as unknown as ThemeStatus["files"];
   const data = await gql(

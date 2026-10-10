@@ -26,9 +26,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, items, style] = await Promise.all([
     getLogosDesign(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     listItems(admin, "logos").catch(() => []),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
   const logos: PreviewLogo[] = items.map((i) => ({ name: String(i.values.name || ""), url: (i.values.image as MediaRef | null)?.url ?? null }));
   return { config, saved, logos, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.logos : null, addLink: sectionLinks(session.shop).logos };

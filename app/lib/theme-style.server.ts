@@ -4,6 +4,7 @@
  */
 import { gql, type AdminClient } from "./admin.server";
 import { FALLBACK_STYLE, parseFont, type ThemeScheme, type ThemeStyle } from "./theme-style";
+import { remember } from "./short-cache.server";
 
 type Obj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any -- theme JSON
 
@@ -18,7 +19,12 @@ const parse = (text: string | undefined): Obj | null => {
 const hex = (v: unknown, fallback: string) => (typeof v === "string" && /^#[0-9a-f]{3,8}$/i.test(v.trim()) ? v.trim().slice(0, 7) : fallback);
 const humanize = (id: string) => id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export async function getThemeStyle(admin: AdminClient): Promise<ThemeStyle> {
+/** The MAIN theme's styles; with `shop`, remembered for 20 s (see short-cache.server.ts). */
+export function getThemeStyle(admin: AdminClient, shop?: string): Promise<ThemeStyle> {
+  return shop ? remember(`style:${shop}`, 20000, () => readThemeStyle(admin)) : readThemeStyle(admin);
+}
+
+async function readThemeStyle(admin: AdminClient): Promise<ThemeStyle> {
   const data = await gql(
     admin,
     `#graphql

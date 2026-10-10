@@ -99,7 +99,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     listRules(admin),
     getSlides(admin),
     listBundles(admin),
-    getThemeStatus(admin),
+    getThemeStatus(admin, session.shop),
     getDiscountStatus(admin),
     hasCartTransform(admin),
   ]);

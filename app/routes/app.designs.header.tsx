@@ -26,14 +26,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, shopName] = await Promise.all([
     getHeader(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     gql(admin, `#graphql
       query CroShopName { shop { name } }`)
       .then((d) => d.shop.name as string)
       .catch(() => session.shop.replace(".myshopify.com", "")),
   ]);
   return {
-    style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop,
+    style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop,
     config,
     saved,
     css: storefrontCss("ucs-header.css"),

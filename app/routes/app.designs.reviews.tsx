@@ -49,7 +49,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         product: product ? { title: product.title, image: product.image } : null,
       };
     });
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: sectionLinks(session.shop).reviews };
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: sectionLinks(session.shop).reviews };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

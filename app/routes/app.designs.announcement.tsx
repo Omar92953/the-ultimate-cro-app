@@ -25,13 +25,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, items, ship, currency, style] = await Promise.all([
     getAnnouncementDesign(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     listItems(admin, "announcements").catch(() => []),
     getShippingBar(admin).catch(() => null),
     gql(admin, `#graphql\n query CroShopCurrencyAb { shop { currencyCode } }`)
       .then((d) => d.shop.currencyCode as string)
       .catch(() => "USD"),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
   const messages: AnnouncementMessage[] = items
     .filter((i) => i.values.active !== false && i.values.message)

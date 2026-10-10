@@ -35,10 +35,10 @@ const placedIn = (files: string[], place: CountdownPlace) =>
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const place = placeFrom(request.url);
-  const [{ config, saved }, theme, offset] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin).catch(() => null), shopOffset(admin).catch(() => ({ iso: "+00:00", minutes: 0 }))]);
+  const [{ config, saved }, theme, offset] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin, session.shop).catch(() => null), shopOffset(admin).catch(() => ({ iso: "+00:00", minutes: 0 }))]);
   const links = sectionLinks(session.shop);
   const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product, cart: links.countdown_cart }[place];
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), offset: offset.minutes, embedOn: theme ? theme.installed.countdown_bar : null, placed: theme ? placedIn(theme.files.countdown_bar, place) : false, addLink, editorLink: links.editor };
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), offset: offset.minutes, embedOn: theme ? theme.installed.countdown_bar : null, placed: theme ? placedIn(theme.files.countdown_bar, place) : false, addLink, editorLink: links.editor };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

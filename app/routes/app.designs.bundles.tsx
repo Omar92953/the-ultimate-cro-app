@@ -68,7 +68,7 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin).catch(() => FALLBACK_STYLE)]);
+  const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin, session.shop).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const { list, currency } = await previewBundles(admin, bundles).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
   return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css") + storefrontCss("ucro-bundle-tray.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
 };

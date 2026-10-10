@@ -11,7 +11,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const links = editorLinks(session.shop);
-  const [bundles, theme] = await Promise.all([listBundles(admin), getThemeStatus(admin).catch(() => null)]);
+  const [bundles, theme] = await Promise.all([listBundles(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   return {
     bundles,
     addBlock: links.bundles,

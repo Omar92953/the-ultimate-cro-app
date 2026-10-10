@@ -51,9 +51,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, items, style] = await Promise.all([
     getFaqDesign(admin),
-    getThemeStatus(admin).catch(() => null),
+    getThemeStatus(admin, session.shop).catch(() => null),
     listItems(admin, "faq").catch(() => []),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
   const questions: PreviewQuestion[] = items
     .filter((i) => i.values.active !== false && i.values.question)

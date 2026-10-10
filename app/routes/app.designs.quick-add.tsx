@@ -26,8 +26,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, style, products] = await Promise.all([
     getQuickAddDesign(admin),
-    getThemeStatus(admin).catch(() => null),
-    getThemeStyle(admin).catch(() => FALLBACK_STYLE),
+    getThemeStatus(admin, session.shop).catch(() => null),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
     gql(admin, `#graphql\n query CroQaProducts { products(first: 3, query: "status:active") { nodes { title featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } } } } }`)
       .then((d) =>
         (d.products?.nodes ?? []).map((p: any): QuickAddProduct => {

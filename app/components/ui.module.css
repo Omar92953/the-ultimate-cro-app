@@ -43,6 +43,10 @@
 .pageTab { margin-bottom: -1px; padding: 8px 2px 9px; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 550; line-height: 20px; color: #616161; text-decoration: none; white-space: nowrap; }
 .pageTab:hover { color: #303030; border-bottom-color: #c9c9c9; }
 .pageTabActive { color: #303030; border-bottom-color: #303030; }
+.pageTabs { position: relative; }
+.pageTabsLoading::after { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: 30%; background: #303030; animation: pageTabsLoad 0.9s ease-in-out infinite; }
+@keyframes pageTabsLoad { from { left: -30%; } to { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .pageTabsLoading::after { animation: none; left: 0; width: 100%; opacity: 0.4; } }
 
 /* Segmented buttons (settings tabs, filters). */
 .tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: #ebebeb; border-radius: 9px; width: fit-content; max-width: 100%; }

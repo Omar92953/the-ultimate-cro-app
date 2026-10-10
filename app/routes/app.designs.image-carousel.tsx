@@ -24,8 +24,8 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme] = await Promise.all([getImageCarousel(admin), getThemeStatus(admin).catch(() => null)]);
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.image_carousel : null, addLink: sectionLinks(session.shop).image_carousel };
+  const [{ config, saved }, theme] = await Promise.all([getImageCarousel(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.image_carousel : null, addLink: sectionLinks(session.shop).image_carousel };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

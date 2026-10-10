@@ -12,7 +12,7 @@ import { Card, CardGrid, CardText, Explainer, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [discount, theme] = await Promise.allSettled([getDiscountStatus(admin), getThemeStatus(admin)]);
+  const [discount, theme] = await Promise.allSettled([getDiscountStatus(admin), getThemeStatus(admin, session.shop)]);
   return {
     links: editorLinks(session.shop),
     discount: discount.status === "fulfilled" ? discount.value : null,

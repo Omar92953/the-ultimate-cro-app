@@ -23,8 +23,8 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme] = await Promise.all([getAddons(admin), getThemeStatus(admin).catch(() => null)]);
-  return { style: await getThemeStyle(admin).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.addons : null, addLink: editorLinks(session.shop).addons, shop: session.shop };
+  const [{ config, saved }, theme] = await Promise.all([getAddons(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.addons : null, addLink: editorLinks(session.shop).addons, shop: session.shop };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

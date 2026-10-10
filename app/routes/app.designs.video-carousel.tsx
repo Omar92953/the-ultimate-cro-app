@@ -44,7 +44,7 @@ async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [{ config, saved }, theme, raw, style] = await Promise.all([getVideoCarouselDesign(admin), getThemeStatus(admin).catch(() => null), getSlides(admin).catch(() => []), getThemeStyle(admin).catch(() => FALLBACK_STYLE)]);
+  const [{ config, saved }, theme, raw, style] = await Promise.all([getVideoCarouselDesign(admin), getThemeStatus(admin, session.shop).catch(() => null), getSlides(admin).catch(() => []), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const priceOf = await prices(admin, [...new Set(raw.flatMap((s) => (s.product ? [s.product.id] : [])))]).catch(() => new Map<string, string>());
   const slides: PreviewSlide[] = raw
     .filter((s) => s.video)

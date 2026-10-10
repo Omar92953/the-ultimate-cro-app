@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigation } from "react-router";
 import styles from "./ui.module.css";
 
 /** Equal-height card grid. `cols` = cards per row on wide screens (2 on tablets, 1 on phones). */
@@ -48,16 +48,20 @@ export function Toolbar({ children, note }: { children: ReactNode; note?: ReactN
 
 /** Link tabs. `match` decides which is active (pathname + optional ?tab=). */
 export function Tabs({ items }: { items: { label: string; to: string }[] }) {
-  const { pathname, search } = useLocation();
+  const location = useLocation();
+  // While the next tab loads, show it as chosen straight away (with a thin loading bar).
+  const pending = useNavigation().location;
+  const { pathname, search } = pending ?? location;
+  const loading = !!pending && items.some((t) => t.to.split("?")[0] === pending.pathname);
   const here = new URLSearchParams(search).get("tab");
   return (
-    <nav className={styles.pageTabs} aria-label="Pages of this feature">
+    <nav className={`${styles.pageTabs} ${loading ? styles.pageTabsLoading : ""}`} aria-label="Pages of this feature" aria-busy={loading || undefined}>
       {items.map((t) => {
         const [path, query] = t.to.split("?");
         const tab = new URLSearchParams(query ?? "").get("tab");
         const active = pathname === path && (tab ?? null) === (here ?? null);
         return (
-          <Link key={t.to} to={t.to} className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
+          <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
             {t.label}
           </Link>
         );
