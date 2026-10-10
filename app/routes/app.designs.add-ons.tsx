@@ -139,8 +139,8 @@ export default function AddonsDesigner() {
                         <Select label="Option" value={a.variantId} onValue={(v) => item(i, { variantId: v })} options={a.variants.map((v) => ({ value: v.id, label: `${v.title}${v.price ? ` · ${v.price}` : ""}` }))} />
                       ) : null}
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                        <TextField label="Name shown (optional)" placeholder={a.title} value={a.label} onValue={(v) => item(i, { label: v })} />
-                        <TextField label="Short note (optional)" placeholder="Wrapped by hand in recycled paper" value={a.text} onValue={(v) => item(i, { text: v })} />
+                        <TextField label="Name shown" placeholder={a.title} value={a.label} onValue={(v) => item(i, { label: v })} />
+                        <TextField label="Short note" placeholder="Wrapped by hand in recycled paper" value={a.text} onValue={(v) => item(i, { text: v })} />
                       </s-grid>
                       <s-box>
                         <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setCfg((c) => ({ ...c, items: c.items.filter((_, j) => j !== i) }))}>

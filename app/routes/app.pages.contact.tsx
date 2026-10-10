@@ -138,7 +138,7 @@ export default function ContactPage() {
                       {f.on ? (
                         <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                           <TextField label="Label" value={f.label} maxLength={80} onValue={(v) => field(i, { label: v })} />
-                          <TextField label="Hint inside the field" value={f.placeholder} maxLength={120} onValue={(v) => field(i, { placeholder: v })} />
+                          <TextField label="Hint in the field" value={f.placeholder} maxLength={120} onValue={(v) => field(i, { placeholder: v })} />
                         </s-grid>
                       ) : null}
                       {isEmail ? <s-text color="subdued">Always shown: Shopify needs it to send you the message.</s-text> : null}
@@ -200,7 +200,7 @@ export default function ContactPage() {
                 <NumberField label="Field height" suffix="px" min={34} max={70} step={1} value={cfg.look.fieldHeight} onValue={(v) => look({ fieldHeight: v })} />
                 <NumberField label="Button text" suffix="px" min={12} max={22} step={1} value={cfg.look.buttonSize} onValue={(v) => look({ buttonSize: v })} />
                 <NumberField label="Corners" suffix="px" min={0} max={32} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
-                <NumberField label="Space above and below" suffix="px" min={0} max={120} step={4} value={cfg.look.padding} onValue={(v) => look({ padding: v })} />
+                <NumberField label="Space around" suffix="px" min={0} max={120} step={4} value={cfg.look.padding} onValue={(v) => look({ padding: v })} />
               </s-grid>
             </s-section></Pane>
           </s-stack>

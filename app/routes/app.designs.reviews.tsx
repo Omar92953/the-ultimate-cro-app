@@ -169,12 +169,13 @@ export default function ReviewsDesigner() {
             <Pane show={tab === "layout"}><s-section heading="Layout and scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={[{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }]} />
-                <NumberField label="Cards per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
-                <Select label="Cards per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
+                <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
+                <Select label="Per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
+                <NumberField label="Card width" details="0 = cards fill the row" suffix="px" min={0} max={600} step={10} value={cfg.layout.cardWidth} onValue={(v) => layout({ cardWidth: v > 0 ? Math.max(160, v) : 0 })} />
                 {cfg.layout.mode === "carousel" ? (
                   <>
                     <Select
-                      label="Shoppers move it with"
+                      label="Move it with"
                       value={cfg.layout.nav}
                       onValue={(v) => layout({ nav: v as C["layout"]["nav"] })}
                       options={[
@@ -185,7 +186,7 @@ export default function ReviewsDesigner() {
                       ]}
                     />
                     {cfg.layout.nav === "arrows" || cfg.layout.nav === "both" ? <NumberField label="Arrow size" suffix="px" min={24} max={64} step={2} value={cfg.layout.arrowSize} onValue={(v) => layout({ arrowSize: v })} /> : <span />}
-                    <NumberField label="Move on its own every" details="0 = off" suffix="sec" min={0} max={15} step={1} value={cfg.layout.autoplay} onValue={(v) => layout({ autoplay: v })} />
+                    <NumberField label="Auto-move every" details="0 = off" suffix="sec" min={0} max={15} step={1} value={cfg.layout.autoplay} onValue={(v) => layout({ autoplay: v })} />
                   </>
                 ) : null}
               </s-grid>
@@ -205,7 +206,7 @@ export default function ReviewsDesigner() {
                   <Checkbox label="Product" checked={cfg.card.product} onValue={(v) => card({ product: v })} />
                 </s-grid>
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                  <NumberField label="Lines before “Read more”" details="0 = always show all" min={0} max={12} step={1} value={cfg.card.clamp} onValue={(v) => card({ clamp: v })} />
+                  <NumberField label="Lines shown" details="Then “Read more”. 0 = show all." min={0} max={12} step={1} value={cfg.card.clamp} onValue={(v) => card({ clamp: v })} />
                   <NumberField label="Card corners" suffix="px" min={0} max={40} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
                 </s-grid>
                 <Checkbox label="Videos play silently when on screen" checked={cfg.card.videoAutoplay} onValue={(v) => card({ videoAutoplay: v })} />

@@ -151,7 +151,7 @@ export default function CrossSellDesigner() {
                     />
                     {cfg.products.fallback === "recommendations" ? (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                        <TextField label="Recommendations heading" value={cfg.products.recHeading} onValue={(v) => products({ recHeading: v })} />
+                        <TextField label="Fallback heading" value={cfg.products.recHeading} onValue={(v) => products({ recHeading: v })} />
                         <NumberField label="How many" min={2} max={10} step={1} value={cfg.products.recLimit} onValue={(v) => products({ recLimit: v })} />
                       </s-grid>
                     ) : null}

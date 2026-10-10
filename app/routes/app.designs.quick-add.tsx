@@ -151,7 +151,7 @@ export default function QuickAddDesigner() {
                     <Select label="Icon" value={cfg.button.icon} onValue={(v) => button({ icon: v as C["button"]["icon"] })} options={[{ value: "bag", label: "Bag" }, { value: "plus", label: "Plus" }, { value: "cart", label: "Cart" }]} />
                     <Select label="Shape" value={cfg.button.shape} onValue={(v) => button({ shape: v as C["button"]["shape"] })} options={[{ value: "circle", label: "Circle" }, { value: "square", label: "Rounded square" }]} />
                     <NumberField label="Size" suffix="px" min={28} max={60} step={1} value={cfg.button.size} onValue={(v) => button({ size: v })} />
-                    <Select label="Position on the image" value={cfg.button.position} onValue={(v) => button({ position: v as C["button"]["position"] })} options={[{ value: "br", label: "Bottom right" }, { value: "bl", label: "Bottom left" }, { value: "tr", label: "Top right" }, { value: "tl", label: "Top left" }]} />
+                    <Select label="Position on image" value={cfg.button.position} onValue={(v) => button({ position: v as C["button"]["position"] })} options={[{ value: "br", label: "Bottom right" }, { value: "bl", label: "Bottom left" }, { value: "tr", label: "Top right" }, { value: "tl", label: "Top left" }]} />
                     <ColorField label="Button colour" value={cfg.button.bg} onValue={(v) => button({ bg: v })} />
                     <ColorField label="Icon colour" value={cfg.button.fg} onValue={(v) => button({ fg: v })} />
                   </s-grid>

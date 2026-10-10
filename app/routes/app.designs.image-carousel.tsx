@@ -112,7 +112,7 @@ export default function ImageCarouselDesigner() {
                       <MediaPicker label={`Image ${i + 1}`} accept="image" value={s.image} onValue={(v) => slide(i, { image: v })} alt={s.title || "Carousel image"} />
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <TextField label="Title (optional)" value={s.title} onValue={(v) => slide(i, { title: v })} />
-                        <TextField label="Button text (optional)" value={s.button} onValue={(v) => slide(i, { button: v })} />
+                        <TextField label="Button text" value={s.button} onValue={(v) => slide(i, { button: v })} />
                       </s-grid>
                       <TextField label="Text (optional)" value={s.text} onValue={(v) => slide(i, { text: v })} />
                       <TextField label="Link (optional)" details="A page in your store (/collections/summer) or a full link. The whole picture becomes clickable." value={s.link} onValue={(v) => slide(i, { link: v })} />
@@ -153,8 +153,8 @@ export default function ImageCarouselDesigner() {
 
             <Pane show={tab === "layout"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <NumberField label="Images per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
-                <NumberField label="Images per row on phones" details="A slice of the next one always peeks in." min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
+                <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
+                <NumberField label="Per row on phones" min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
                 <Select label="Image shape" value={cfg.layout.ratio} onValue={(v) => layout({ ratio: v as C["layout"]["ratio"] })} options={RATIOS} />
                 <Select
                   label="Title and text"
@@ -171,6 +171,9 @@ export default function ImageCarouselDesigner() {
                 <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.layout.paddingTop} onValue={(v) => layout({ paddingTop: v })} />
                 <NumberField label="Space below" suffix="px" min={0} max={120} step={4} value={cfg.layout.paddingBottom} onValue={(v) => layout({ paddingBottom: v })} />
               </s-grid>
+              <s-box paddingBlockStart="small-200">
+                <s-text color="subdued">On phones a slice of the next image always peeks in, so shoppers know they can swipe.</s-text>
+              </s-box>
               <s-box paddingBlockStart="base">
                 <Checkbox label="Full width (edge to edge)" checked={cfg.layout.fullWidth} onValue={(v) => layout({ fullWidth: v })} />
               </s-box>
@@ -179,7 +182,7 @@ export default function ImageCarouselDesigner() {
             <Pane show={tab === "layout"}><s-section heading="Scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select
-                  label="Shoppers move it with"
+                  label="Move it with"
                   value={cfg.nav.mode}
                   onValue={(v) => nav({ mode: v as C["nav"]["mode"] })}
                   options={[
@@ -194,14 +197,14 @@ export default function ImageCarouselDesigner() {
                 ) : (
                   <span />
                 )}
-                <NumberField label="Move on its own every" details="0 = off. Pauses while shoppers hover or touch it." suffix="sec" min={0} max={15} step={1} value={cfg.nav.autoplay} onValue={(v) => nav({ autoplay: v })} />
+                <NumberField label="Auto-move every" details="0 = off. Pauses while shoppers hover or touch it." suffix="sec" min={0} max={15} step={1} value={cfg.nav.autoplay} onValue={(v) => nav({ autoplay: v })} />
               </s-grid>
             </s-section></Pane>
 
             <Pane show={tab === "style"}><s-section heading="Colours and text sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
-                <ColorField label="Shade behind text on pictures" value={cfg.look.overlay} onValue={(v) => look({ overlay: v })} />
+                <ColorField label="Text shade" details="Behind text on pictures." value={cfg.look.overlay} onValue={(v) => look({ overlay: v })} />
                 <ColorField label="Button" value={cfg.look.buttonBg} onValue={(v) => look({ buttonBg: v })} />
                 <ColorField label="Button text" value={cfg.look.buttonText} onValue={(v) => look({ buttonText: v })} />
                 <NumberField label="Title size" suffix="px" min={11} max={40} step={1} value={cfg.look.titleSize} onValue={(v) => look({ titleSize: v })} />

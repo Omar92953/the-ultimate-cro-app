@@ -229,6 +229,13 @@
 .ucs-rv--carousel .ucs-rv__track::-webkit-scrollbar { display: none; }
 @media (min-width: 750px) { .ucs-rv--carousel .ucs-rv__track { grid-auto-columns: calc((100% - (var(--ucs-rv-cols, 3) - 1) * var(--ucs-rv-gap)) / var(--ucs-rv-cols, 3)); } }
 .ucs-rv--carousel .ucs-rv__card { scroll-snap-align: start; }
+/* A set card width (Reviews → Design → Layout): cards keep that width, the row centres itself. */
+.ucs-rv--cw .ucs-rv__track { grid-template-columns: repeat(var(--ucs-rv-cols-m, 1), minmax(0, var(--ucs-rv-cw))); justify-content: center; }
+@media (min-width: 750px) { .ucs-rv--cw .ucs-rv__track { grid-template-columns: repeat(var(--ucs-rv-cols, 3), minmax(0, var(--ucs-rv-cw))); } }
+.ucs-rv--cw.ucs-rv--carousel .ucs-rv__track { grid-template-columns: none; grid-auto-columns: min(var(--ucs-rv-cw), 85%); justify-content: start; }
+@media (min-width: 750px) { .ucs-rv--cw.ucs-rv--carousel .ucs-rv__track { grid-auto-columns: var(--ucs-rv-cw); } }
+.ucs-rv--cw.ucs-rv--masonry .ucs-rv__track { column-width: var(--ucs-rv-cw); max-width: calc(var(--ucs-rv-cols-m, 1) * var(--ucs-rv-cw) + (var(--ucs-rv-cols-m, 1) - 1) * var(--ucs-rv-gap)); margin-inline: auto; }
+@media (min-width: 750px) { .ucs-rv--cw.ucs-rv--masonry .ucs-rv__track { max-width: calc(var(--ucs-rv-cols, 3) * var(--ucs-rv-cw) + (var(--ucs-rv-cols, 3) - 1) * var(--ucs-rv-gap)); } }
 /* Phones: wide cards with a small part of the next one showing (so shoppers know to swipe). */
 @media (max-width: 749px) {
   .ucs-rv--carousel .ucs-rv__body { gap: 8px; padding: 12px 12px 14px; }

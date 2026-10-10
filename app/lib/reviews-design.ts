@@ -13,7 +13,7 @@ export type ReviewsDesign = {
   text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string };
   summary: { show: boolean; average: boolean; stars: boolean; count: boolean };
   which: { filter: "all" | "featured" | "product"; fallback: boolean; limit: number };
-  layout: { mode: "carousel" | "grid" | "masonry"; perDesktop: number; perMobile: 1 | 2; autoplay: number; nav: "arrows" | "dots" | "both" | "swipe"; arrowSize: number };
+  layout: { mode: "carousel" | "grid" | "masonry"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "dots" | "both" | "swipe"; arrowSize: number };
   card: {
     style: "classic" | "chat" | "minimal";
     text: boolean;
@@ -45,7 +45,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   },
   summary: { show: true, average: true, stars: true, count: true },
   which: { filter: "all", fallback: true, limit: 12 },
-  layout: { mode: "carousel", perDesktop: 3, perMobile: 1, autoplay: 0, nav: "arrows", arrowSize: 40 },
+  layout: { mode: "carousel", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
   card: { style: "classic", text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true },
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
   look: { star: "#f5a623", cardBg: "#ffffff", cardText: "#121212", bg: "#ffffff", radius: 14, transparentBg: true, defaultCard: true },
@@ -93,6 +93,8 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       mode: pick(l.mode, ["carousel", "grid", "masonry"] as const, d.layout.mode),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: Number(l.perMobile) === 2 ? 2 : 1,
+      // 0 = cards fill the row
+      cardWidth: Number(l.cardWidth) > 0 ? num(l.cardWidth, 160, 600, 320) : 0,
       autoplay: num(l.autoplay, 0, 15, d.layout.autoplay),
       nav: pick(l.nav, ["arrows", "dots", "both", "swipe"] as const, d.layout.nav),
       arrowSize: num(l.arrowSize, 24, 64, d.layout.arrowSize),
@@ -148,6 +150,7 @@ export function reviewsVars(c: ReviewsDesign): Record<string, string> {
     "--ucs-rv-shot": c.fill.color,
     "--ucs-rv-arrow": `${c.layout.arrowSize}px`,
   };
+  if (c.layout.cardWidth) v["--ucs-rv-cw"] = `${c.layout.cardWidth}px`;
   if (!c.look.defaultCard) {
     v["--ucs-rv-card"] = c.look.cardBg;
     v["--ucs-rv-fg"] = c.look.cardText;
@@ -166,6 +169,7 @@ export function reviewsClass(c: ReviewsDesign) {
     `ucs-rv--pat-${c.fill.pattern}`,
     `ucs-rv--nav-${c.layout.nav}`,
     c.card.clamp === 0 ? "ucs-rv--full" : "",
+    c.layout.cardWidth ? "ucs-rv--cw" : "",
     c.space.devices === "mobile" ? "ucs-hide-desktop" : c.space.devices === "desktop" ? "ucs-hide-mobile" : "",
   ]
     .filter(Boolean)

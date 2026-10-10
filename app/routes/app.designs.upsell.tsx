@@ -182,7 +182,7 @@ export default function UpsellDesigner() {
                         <ColorField label="Offer border" value={cfg.look.border} onValue={(v) => look({ border: v })} />
                         <ColorField label="Badge background" value={cfg.look.badgeBg} onValue={(v) => look({ badgeBg: v })} />
                         <ColorField label="Badge text" value={cfg.look.badgeText} onValue={(v) => look({ badgeText: v })} />
-                        {cfg.offers.style === "cards" ? <ColorField label="Saving tag background" value={cfg.look.saveBg} onValue={(v) => look({ saveBg: v })} /> : null}
+                        {cfg.offers.style === "cards" ? <ColorField label="Saving tag colour" value={cfg.look.saveBg} onValue={(v) => look({ saveBg: v })} /> : null}
                         <ColorField label="Saving text" value={cfg.look.saveText} onValue={(v) => look({ saveText: v })} />
                       </s-grid>
                     ) : null}

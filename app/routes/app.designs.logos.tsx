@@ -133,8 +133,8 @@ export default function LogosDesigner() {
                       </>
                     ) : (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                        <NumberField label="Logos per row on desktop" min={2} max={8} step={1} value={cfg.layout.colsDesktop} onValue={(v) => layout({ colsDesktop: v })} />
-                        <NumberField label="Logos per row on mobile" min={2} max={4} step={1} value={cfg.layout.colsMobile} onValue={(v) => layout({ colsMobile: v })} />
+                        <NumberField label="Per row on desktop" min={2} max={8} step={1} value={cfg.layout.colsDesktop} onValue={(v) => layout({ colsDesktop: v })} />
+                        <NumberField label="Per row on phones" min={2} max={4} step={1} value={cfg.layout.colsMobile} onValue={(v) => layout({ colsMobile: v })} />
                       </s-grid>
                     )}
                   </s-stack>

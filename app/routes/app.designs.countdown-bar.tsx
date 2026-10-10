@@ -288,7 +288,7 @@ export default function CountdownBarDesigner() {
 
             <Pane show={tab === "style"}><s-section heading="Sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <NumberField label="Bar height (space above and below)" suffix="px" min={0} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
+                <NumberField label="Bar height" suffix="px" min={0} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
                 <NumberField label="Text" suffix="px" min={10} max={24} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />
                 <NumberField label="Numbers" suffix="px" min={10} max={32} step={1} value={cfg.look.numberSize} onValue={(v) => look({ numberSize: v })} />
                 <NumberField label="Labels under numbers" suffix="px" min={7} max={14} step={1} value={cfg.look.labelSize} onValue={(v) => look({ labelSize: v })} />

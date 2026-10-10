@@ -169,15 +169,15 @@ export default function CollectionPillsDesigner() {
                 <NumberField label="Text size" suffix="px" min={10} max={24} step={1} value={cfg.look.size} onValue={(v) => look({ size: v })} />
                 <Select label="Text weight" value={String(cfg.look.weight)} onValue={(v) => look({ weight: Number(v) })} options={[{ value: "400", label: "Regular" }, { value: "500", label: "Medium" }, { value: "600", label: "Semibold" }, { value: "700", label: "Bold" }]} />
                 <NumberField label="Inside space, sides" suffix="px" min={6} max={48} step={1} value={cfg.look.padX} onValue={(v) => look({ padX: v })} />
-                <NumberField label="Inside space, top and bottom" suffix="px" min={4} max={24} step={1} value={cfg.look.padY} onValue={(v) => look({ padY: v })} />
+                <NumberField label="Inner space" suffix="px" min={4} max={24} step={1} value={cfg.look.padY} onValue={(v) => look({ padY: v })} />
                 <NumberField label="Space between pills" suffix="px" min={0} max={32} step={1} value={cfg.look.gap} onValue={(v) => look({ gap: v })} />
                 <span />
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
                 <ColorField label="Background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                 <ColorField label="Border" value={cfg.look.border} onValue={(v) => look({ border: v })} />
                 <span />
-                <ColorField label="Current collection: text" value={cfg.look.activeText} onValue={(v) => look({ activeText: v })} />
-                <ColorField label="Current collection: background" value={cfg.look.activeBg} onValue={(v) => look({ activeBg: v })} />
+                <ColorField label="Current pill text" value={cfg.look.activeText} onValue={(v) => look({ activeText: v })} />
+                <ColorField label="Current pill colour" value={cfg.look.activeBg} onValue={(v) => look({ activeBg: v })} />
               </s-grid>
               <s-box paddingBlockStart="base">
                 <Checkbox label="CAPITAL LETTERS" checked={cfg.look.upper} onValue={(v) => look({ upper: v })} />

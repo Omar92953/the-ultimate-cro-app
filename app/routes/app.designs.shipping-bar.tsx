@@ -196,7 +196,7 @@ export default function ShippingBarDesigner() {
                 <NumberField label="Line thickness" suffix="px" min={2} max={14} step={1} value={cfg.look.barHeight} onValue={(v) => look({ barHeight: v })} />
                 <NumberField label="Text size" suffix="px" min={10} max={22} step={1} value={cfg.look.size} onValue={(v) => look({ size: v })} />
                 <Select label="Text weight" value={String(cfg.look.weight)} onValue={(v) => look({ weight: Number(v) })} options={[{ value: "400", label: "Regular" }, { value: "500", label: "Medium" }, { value: "600", label: "Semibold" }, { value: "700", label: "Bold" }]} />
-                <NumberField label="Space above and below" suffix="px" min={2} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
+                <NumberField label="Space around" suffix="px" min={2} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
               </s-grid>
               <s-box paddingBlockStart="base">
                 <Checkbox label="CAPITAL LETTERS" checked={cfg.look.upper} onValue={(v) => look({ upper: v })} />

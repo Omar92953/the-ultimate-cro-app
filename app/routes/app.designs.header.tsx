@@ -141,7 +141,7 @@ export default function HeaderDesigner() {
                 <MediaPicker label="Logo image" details="A PNG or SVG with a transparent background. Leave empty to show your store name." accept="image" value={cfg.logo.image} onValue={(v) => logo({ image: v })} alt="Logo" />
                 {!cfg.logo.image ? <TextField label="Text instead of a logo" placeholder="Your store name" value={cfg.logo.text} onValue={(v) => logo({ text: v })} /> : null}
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                  <NumberField label="Logo width on desktop" suffix="px" min={40} max={320} step={2} value={cfg.logo.width} onValue={(v) => logo({ width: v })} />
+                  <NumberField label="Logo width (desktop)" suffix="px" min={40} max={320} step={2} value={cfg.logo.width} onValue={(v) => logo({ width: v })} />
                   <NumberField label="Logo width on phones" suffix="px" min={30} max={220} step={2} value={cfg.logo.mobileWidth} onValue={(v) => logo({ mobileWidth: v })} />
                 </s-grid>
               </s-stack>
@@ -174,7 +174,7 @@ export default function HeaderDesigner() {
                   ]}
                 />
                 <Select
-                  label="Over the first section"
+                  label="Over first section"
                   details="See-through headers look best over a big image."
                   value={cfg.layout.overlay}
                   onValue={(v) => layout({ overlay: v as C["layout"]["overlay"] })}
@@ -249,7 +249,7 @@ export default function HeaderDesigner() {
                 <ColorField label="Text and icons" value={cfg.look.text} onValue={(v) => look({ text: v })} />
                 <ColorField label="Border" value={cfg.look.border} onValue={(v) => look({ border: v })} />
                 <NumberField label="Border strength" suffix="%" min={0} max={100} step={5} value={cfg.look.borderOpacity} onValue={(v) => look({ borderOpacity: v })} />
-                <ColorField label="Highlight (active link, cart number, button)" value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
+                <ColorField label="Highlight colour" details="Active link, cart number and button." value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
                 <ColorField label="Text on highlight" value={cfg.look.accentText} onValue={(v) => look({ accentText: v })} />
                 <ColorField label="Sub-menu panel" value={cfg.look.panelBg} onValue={(v) => look({ panelBg: v })} />
                 <NumberField label="Panel see-through" suffix="%" min={0} max={100} step={5} value={cfg.look.panelOpacity} onValue={(v) => look({ panelOpacity: v })} />
