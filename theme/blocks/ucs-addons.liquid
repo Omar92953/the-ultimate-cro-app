@@ -15,6 +15,7 @@
 {%- elsif request.design_mode -%}
   <p class="ucs-note">{{ 'ucs.ao_empty' | t }}</p>
 {%- endif -%}
+<script src="{{ 'ucs-cart-guard.js' | asset_url }}" defer></script>
 
 {% schema %}
 {

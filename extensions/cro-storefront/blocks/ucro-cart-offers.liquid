@@ -42,4 +42,5 @@ assign ttype = r.trigger_type.value | default: 'all'
 }
 </script>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-drawer.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Cart drawer offers","target":"body","stylesheet":"ucro.css","settings":[{"type":"paragraph","content":"t:s.4"}]}{% endschema %}
+<script src="{{ 'ucro-drawer.js' | asset_url }}" defer></script>{%- endif -%}<script src="{{ 'ucs-cart-guard.js' | asset_url }}" defer></script>
+{% schema %}{"name":"Cart drawer offers","target":"body","stylesheet":"ucro.css","settings":[{"type":"paragraph","content":"t:s.4"}]}{% endschema %}

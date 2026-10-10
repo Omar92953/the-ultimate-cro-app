@@ -134,9 +134,11 @@
     }
     return null;
   }
-  function addonLines(w) {
+  // The add-on lines are linked to the main line (_cro_parent = its _cro_pid), so ucs-cart-guard.js
+  // removes them when the main product leaves the cart.
+  function addonLines(w, pid) {
     return w.picked().map(function (a) {
-      return { id: Number(a.v), quantity: 1, properties: { _cro_addon: w.title } };
+      return { id: Number(a.v), quantity: 1, properties: { _cro_addon: w.title, _cro_parent: pid } };
     });
   }
 
@@ -165,8 +167,10 @@
           });
         }
         var w = main && widgetFor(main.id);
-        var extra = w ? addonLines(w) : [];
+        var pid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var extra = w ? addonLines(w, pid) : [];
         if (extra.length) {
+          main.properties._cro_pid = pid;
           rest.items = [main].concat(extra);
           var headers = new Headers(init.headers || {});
           headers.set("Content-Type", "application/json");
