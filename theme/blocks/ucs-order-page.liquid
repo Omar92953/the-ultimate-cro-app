@@ -1,8 +1,15 @@
 {%- comment -%}
-  App block: Track order page. The shopper's order status and tracking, from their order number and email.
+  App block: Track order or Returns page (the "Page" setting). The shopper's order status and tracking, from their order number and email.
   Words and look are designed in the app (Header & pages → Track order, $app:cro_design "track_page"); ucs-orders.js does the rest.
 {%- endcomment -%}
-{%- capture dk -%}{%- render 'ucs-dk', key: 'track_page', pick: block.settings.design -%}{%- endcapture -%}
+{%- liquid
+  assign kind = block.settings.page | default: 'track'
+  assign base = 'track_page'
+  if kind == 'returns'
+    assign base = 'returns_page'
+  endif
+-%}
+{%- capture dk -%}{%- render 'ucs-dk', key: base, pick: block.settings.design -%}{%- endcapture -%}
 {%- assign dkd = dk | append: '_draft' -%}
 {%- liquid
   assign d = shop.metaobjects['$app:cro_design'][dk].config.value
@@ -10,7 +17,7 @@
     assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
   endif
 -%}
-<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="track" data-root="{{ routes.root_url }}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
+<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="{{ kind }}" data-root="{{ routes.root_url }}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
   <script type="application/json">{{ d | json | default: 'null' }}</script>
   <noscript><p class="ucs-op__t">Please turn on JavaScript to use this page.</p></noscript>
 </div>
@@ -18,14 +25,15 @@
 
 {% schema %}
 {
-  "name": "Track order",
+  "name": "Track order & returns",
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "page", "label": "Page", "default": "track", "options": [ { "value": "track", "label": "Track order" }, { "value": "returns", "label": "Returns" } ] },
     { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
       { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
     ] },
-    { "type": "paragraph", "content": "Add it to a page (e.g. a page called Track order). Words and look are set in the app: Header & pages → Track order." }
+    { "type": "paragraph", "content": "Add it to a page (e.g. Track your order, or Returns) and choose which one it is. Words and look are set in the app: Header & pages → Track order / Returns." }
   ]
 }
 {% endschema %}

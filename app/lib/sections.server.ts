@@ -353,8 +353,8 @@ export function sectionLinks(shop: string) {
   const headerBlock = (handle: string) => `${base}?template=index&addAppBlockId=${key}/${handle}&target=sectionGroup:header`;
   return {
     reviews: block(SECTIONS.reviews.block),
-    track: `${base}?template=page&addAppBlockId=${key}/ucs-track&target=newAppsSection`,
-    returns: `${base}?template=page&addAppBlockId=${key}/ucs-returns&target=newAppsSection`,
+    track: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
+    returns: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
     cart_extras: block("ucs-cart-extras", "cart"),
     personalize: `${base}?template=product&addAppBlockId=${key}/ucs-personalize&target=mainSection`,
     delivery: `${base}?template=product&addAppBlockId=${key}/ucs-delivery&target=mainSection`,

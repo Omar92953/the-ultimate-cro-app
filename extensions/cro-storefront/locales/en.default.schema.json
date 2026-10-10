@@ -10,12 +10,11 @@
   "7": "Videos, their order and linked products, the look and the pages it shows on are all set in CRO Toolbox → Video carousel.",
   "8": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers & bundles → Add-ons.",
   "9": "Messages, icons, dates and the look are set in the app: Boosters → Announcement bar.",
-  "10": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
-  "11": "Add it to a page (e.g. a page called Returns). Words and look are set in the app: Header & pages → Returns.",
+  "10": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews.",
+  "11": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
   "12": "Reviews and how they look are set in the app: Sections → Customer reviews.",
   "13": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar.",
   "14": "Put it inside the product information, under the Add to cart button. Words and look are set in the app: Boosters → Back in stock & pre-order.",
-  "15": "Add it to a page (e.g. a page called Track order). Words and look are set in the app: Header & pages → Track order.",
   "a": "Sticky add to cart, stock urgency, trust badges, sales pop-ups and bundle deals. Edit them in the app: Boosters and Bundles.",
   "b": "Add it to the cart page. Words, dates and look are set in the app: Offers & bundles → Gift note & delivery date.",
   "c": "Collections, order, colours and sizes are set in the app: Sections → Collection pills.",
@@ -40,7 +39,7 @@
   "v": "Lower down (load when scrolled to)",
   "w": "Images, texts, sizes and arrows are set in the app: Sections → Image carousel.",
   "x": "Logos, their order and the look are set in the app: Sections → Scrolling logos and text.",
-  "y": "Put it inside the product information, above the Add to cart button. Fields, preview and fee are set in the app: Offers & bundles → Personalization.",
-  "z": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews."
+  "y": "Add it to a page (e.g. Track your order, or Returns) and choose which one it is. Words and look are set in the app: Header & pages → Track order / Returns.",
+  "z": "Put it inside the product information, above the Add to cart button. Fields, preview and fee are set in the app: Offers & bundles → Personalization."
  }
 }

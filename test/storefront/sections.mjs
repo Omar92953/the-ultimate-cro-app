@@ -382,8 +382,8 @@ pages["stock.html"] = page("Back in stock & pre-order",
 // Track order & Returns pages, with the app's answers mocked (any order number works with any email).
 const mockOrders = `<script>(function(){const f=window.fetch;const order={name:"#1001",createdAt:"2026-10-03T10:00:00Z",cancelled:false,payment:"PAID",fulfillment:"FULFILLED",items:[{key:"11",title:"Linen shirt",variant:"Medium",quantity:1,image:null},{key:"12",title:"Classic tee",variant:"Large",quantity:2,image:null}],shipments:[{status:"IN_TRANSIT",company:"Aramex",number:"EG123456789",url:"https://example.com/track",delivered:null,estimated:"2026-10-08T00:00:00Z"}]};window.fetch=async(u,o)=>{u=String(u);if(u.includes("/apps/ucro/track"))return new Response(JSON.stringify({ok:true,order}));if(u.includes("/apps/ucro/returns")){const b=JSON.parse(o.body);return new Response(JSON.stringify(b.intent==="send"?{ok:true}:{ok:true,order}))}return f(u,o)}})();</script>`;
 pages["orders.html"] = page("Track order & Returns", mockOrders +
-  label("track order page") + (await block("ucs-track", {}, { page_type: "page" })) +
-  label("returns page") + (await block("ucs-returns", {}, { page_type: "page" })));
+  label("track order page") + (await block("ucs-order-page", { page: "track" }, { page_type: "page" })) +
+  label("returns page") + (await block("ucs-order-page", { page: "returns" }, { page_type: "page" })));
 const { toStorefrontDelivery, withDeliveryDefaults } = await import("../../app/lib/delivery-design.ts");
 const deliveryShop = withDesign(mo("delivery", { config: toStorefrontDelivery(withDeliveryDefaults({ rules: { zones: [{ countries: "SA", min: 5, max: 7 }] } })) }));
 pages["delivery.html"] = page("Delivery estimate",
