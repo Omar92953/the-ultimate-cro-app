@@ -78,6 +78,7 @@ import {
   HeaderRoundedShowcase,
   FooterShowcase,
   ProductReviewsShowcase,
+  StockShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
@@ -262,7 +263,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -272,6 +273,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
   { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
   { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
+  { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },

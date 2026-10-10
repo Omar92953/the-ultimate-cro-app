@@ -50,6 +50,7 @@ export const FEATURES = {
   countdown: { title: "Countdown timers", cat: "boosters", tabs: [design("/app/designs/countdown-bar")] },
   shipping_bar: { title: "Free shipping bar", cat: "boosters", tabs: [design("/app/designs/shipping-bar")] },
   quick_add: { title: "Quick add to cart", cat: "boosters", tabs: [design("/app/designs/quick-add")] },
+  stock: { title: "Back in stock & pre-order", cat: "boosters", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
   boosters: { title: "Conversion boosters", cat: "boosters", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   // Header & pages
   header: { title: "Header", cat: "design", tabs: [design("/app/designs/header")] },

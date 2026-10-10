@@ -1193,6 +1193,7 @@ export const BLOCKS = {
   addons: "ucs-addons",
   header: "ucs-header",
   footer: "ucs-footer",
+  stock: "ucs-stock",
   collection_pills: "ucs-collection-pills",
   shipping_bar: "ucs-shipping-bar",
 } as const;

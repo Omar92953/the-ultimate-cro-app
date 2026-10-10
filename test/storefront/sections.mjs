@@ -369,6 +369,16 @@ pages["designs.html"] = page("Several designs",
   label("faq: design 3 (not made) — falls back to design 1") + (await block("ucs-faq", { design: "3" }, { shop: shopTwoFaqs })));
 if (!pages["designs.html"].includes("Design two heading")) throw new Error("design 2 not used");
 if ((pages["designs.html"].match(/Design two heading/g) || []).length !== 1) throw new Error("design 3 should fall back to design 1");
+// Back in stock & pre-order: one sold-out variant (Notify me) and one sellable at 0 stock (Pre-order).
+const stockProduct = { id: 77, title: "Linen shirt", handle: "linen-shirt", url: "/products/linen-shirt", selected_or_first_available_variant: { id: 701 }, variants: [
+  { id: 701, title: "Small", available: false, inventory_management: "shopify", inventory_quantity: 0, inventory_policy: "deny" },
+  { id: 702, title: "Medium", available: true, inventory_management: "shopify", inventory_quantity: 0, inventory_policy: "continue" },
+  { id: 703, title: "Large", available: true, inventory_management: "shopify", inventory_quantity: 5, inventory_policy: "deny" } ] };
+const { toStorefrontStock, withStockDefaults } = await import("../../app/lib/stock-design.ts");
+const stockShop = withDesign(mo("stock", { config: toStorefrontStock(withStockDefaults({})) }));
+const buyForm = (id) => `<form action="/cart/add" method="post" style="display:grid;gap:8px;max-width:420px;margin:24px 40px 0"><select name="id">${stockProduct.variants.map((v) => `<option value="${v.id}"${v.id === id ? " selected" : ""}>${v.title}</option>`).join("")}</select><button type="submit" name="add" style="min-height:44px">Add to cart</button></form>`;
+pages["stock.html"] = page("Back in stock & pre-order",
+  label("sold out (Small): Notify me — switch to Medium for pre-order, Large for normal") + '<div class="shopify-section">' + buyForm(701) + '<div style="max-width:420px;margin:0 40px">' + (await block("ucs-stock", {}, { page_type: "product", product: stockProduct, shop: stockShop })) + "</div></div>");
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

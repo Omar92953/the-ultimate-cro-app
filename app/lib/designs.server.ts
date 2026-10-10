@@ -11,6 +11,7 @@ import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfi
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./footer-design";
+import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
@@ -324,5 +325,20 @@ export async function saveFaqDesign(admin: AdminClient, config: FaqDesign, draft
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("faq"), { config: live });
   await upsert(admin, "$app:cro_design", slotted("faq_draft"), { config: live });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("faq_editor"), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------- back in stock & pre-order -- */
+export async function getStockDesign(admin: AdminClient): Promise<{ config: StockDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "stock_editor");
+  return { config: withStockDefaults(raw), saved: raw !== null };
+}
+
+export async function saveStockDesign(admin: AdminClient, config: StockDesign, draftOnly = false) {
+  const clean = withStockDefaults(config);
+  const store = JSON.stringify(toStorefrontStock(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("stock"), { config: store });
+  await upsert(admin, "$app:cro_design", slotted("stock_draft"), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("stock_editor"), { config: JSON.stringify(clean) });
   return clean;
 }

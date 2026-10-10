@@ -1486,3 +1486,26 @@ export function ProductReviewsShowcase() {
     </Stage>
   );
 }
+
+/** Back in stock & pre-order: a sold-out product with the "Notify me" box under the button. */
+export function StockShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 14, width: "86%", alignItems: "start", fontSize: 11 }}>
+        <span style={{ aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#e9e9e9,#cfcfcf)" }} />
+        <span style={{ display: "grid", gap: 6 }}>
+          <b style={{ fontSize: 14 }}>Linen shirt</b>
+          <b>EGP 650.00</b>
+          <span style={{ display: "block", padding: "7px 0", borderRadius: 999, background: "#e5e5e5", color: "#777", textAlign: "center", fontWeight: 600 }}>Sold out</span>
+          <span style={{ display: "grid", gap: 5, padding: 8, borderRadius: 10, background: "#f4f4f4" }}>
+            <b>Get an email when it's back</b>
+            <span style={{ display: "flex", gap: 5 }}>
+              <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#999" }}>Your email</span>
+              <span style={{ padding: "5px 9px", borderRadius: 6, background: "#111", color: "#fff", fontWeight: 600 }}>Notify me</span>
+            </span>
+          </span>
+        </span>
+      </span>
+    </Stage>
+  );
+}

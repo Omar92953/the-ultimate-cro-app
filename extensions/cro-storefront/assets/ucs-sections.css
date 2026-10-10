@@ -600,3 +600,19 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-rv__badge .ucs-rv__stars { font-size: var(--ucs-rv-sst, 16px); }
 .ucs-rv__badge .ucs-rv__avg { font-size: var(--ucs-rv-avg, 1em); font-weight: 700; }
 .ucs-rv__badge .ucs-rv__count { font-size: var(--ucs-rv-cnt, 0.9em); text-decoration: underline; text-underline-offset: 3px; }
+/* ---- Back in stock & pre-order (product page) ------------------------------------------ */
+.ucs-st { margin: 12px 0; }
+.ucs-st--box .ucs-st__form { padding: 16px; border-radius: var(--ucs-st-r, 12px); background: var(--ucs-st-bg, #f6f6f6); }
+.ucs-st__form { display: grid; gap: 8px; margin: 0; }
+.ucs-st__h { margin: 0; font-size: var(--ucs-st-h, 16px); font-weight: 700; }
+.ucs-st__t, .ucs-st__note { margin: 0; font-size: var(--ucs-st-t, 14px); line-height: 1.5; opacity: 0.85; }
+.ucs-st__note { font-weight: 600; opacity: 1; }
+.ucs-st__field { display: flex; flex-wrap: wrap; gap: 8px; }
+.ucs-st__field input { flex: 1 1 180px; min-width: 0; height: var(--ucs-st-in, 44px); padding: 0 14px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: var(--ucs-btn-radius, 8px); background: #fff; color: inherit; font: inherit; }
+.ucs-st__field .ucs-btn { min-height: var(--ucs-st-in, 44px); }
+.ucs-st__hp { position: absolute; left: -9999px; }
+.ucs-st__msg { margin: 0; font-size: 0.9em; }
+.ucs-st__msg:empty { display: none; }
+.ucs-st__msg.is-error { color: #b42318; }
+.ucs-st__small { margin: 0; font-size: 0.8em; opacity: 0.65; }
+.ucs-st__thanks { margin: 0; font-weight: 600; }

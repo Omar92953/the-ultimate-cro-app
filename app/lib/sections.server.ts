@@ -353,6 +353,7 @@ export function sectionLinks(shop: string) {
   const headerBlock = (handle: string) => `${base}?template=index&addAppBlockId=${key}/${handle}&target=sectionGroup:header`;
   return {
     reviews: block(SECTIONS.reviews.block),
+    stock: `${base}?template=product&addAppBlockId=${key}/ucs-stock&target=mainSection`,
     product_reviews: `${base}?template=product&addAppBlockId=${key}/ucs-product-reviews&target=mainSection`,
     faq: block(SECTIONS.faq.block),
     logos: block(SECTIONS.logos.block),

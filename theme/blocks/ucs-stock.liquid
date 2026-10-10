@@ -1,0 +1,35 @@
+{%- comment -%}
+  App block for the product page, next to Add to cart: "Notify me when available" on sold-out variants
+  and pre-order on variants that are out of stock but still sellable. Designed in the app (Boosters →
+  Back in stock & pre-order, $app:cro_design "stock"); ucs-stock.js follows the chosen variant.
+{%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'stock', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- liquid
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+  endif
+-%}
+{%- if product -%}
+  <div class="{{ d.cls | default: 'ucs ucs-st ucs-st--box' }}" style="{{ d.css }}" data-ucs-stock data-product="{{ product.id }}" data-root="{{ routes.root_url }}" hidden {{ block.shopify_attributes }}>
+    <script type="application/json">{"c":{{ d | json | default: 'null' }},"t":{{ product.title | json }},"sel":{{ product.selected_or_first_available_variant.id | json }},"v":[
+      {%- for v in product.variants -%}{"id":{{ v.id }},"t":{{ v.title | json }},"a":{{ v.available | json }},"q":{% if v.inventory_management == 'shopify' %}{{ v.inventory_quantity | default: 0 }}{% else %}null{% endif %},"p":{{ v.inventory_policy | json }}}{% unless forloop.last %},{% endunless %}{%- endfor -%}
+    ]}</script>
+  </div>
+  <script src="{{ 'ucs-stock.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Back in stock & pre-order",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
+    { "type": "paragraph", "content": "Put it inside the product information, under the Add to cart button. Words and look are set in the app: Boosters → Back in stock & pre-order." }
+  ]
+}
+{% endschema %}
