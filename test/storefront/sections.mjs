@@ -190,6 +190,9 @@ const withDesign = (d) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:
 const shopFaqCards = withDesign(faqDesign({ questions: { columns: 2, search: false }, look: { style: "cards", icon: "chevron", iconLeft: true, accent: "#ffbd13" } }));
 // "Customers are saying" template: cropped photos, centred, text first; Nour's review keeps its whole photo.
 const shopSaying = withDesign(mo("reviews", { config: toStorefrontReviews(applyReviewPreset(withReviewsDefaults({}), "saying")) }));
+// Product pages with their own design: the full reviews widget with "Write a review".
+const shopWidget = withDesign(mo("reviews_product", { config: toStorefrontReviews(applyReviewPreset(withReviewsDefaults({}, "product"), "widget")) }));
+const shopSnippet = withDesign(mo("reviews_product", { config: toStorefrontReviews(applyReviewPreset(withReviewsDefaults({}, "product"), "snippet")) }));
 const shopLogoGrid = withDesign(logosDesign({ layout: { mode: "grid" }, logos: { grayscale: false }, text: { heading: "As seen in" } }));
 // The announcement bar with another design: slide, closable, capitals (and no free-shipping message).
 const shopSlide = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== "announcement"), announceDesign({ behaviour: { animation: "slide", dismissible: true }, look: { upper: true } })]) } };
@@ -256,6 +259,8 @@ const pages = {
     (await block("ucs-countdown-bar", { position: "top", mode: "evergreen", evergreen_hours: 2 })) + (await block("ucs-announcement", {}, { shop: shopSlide }))),
   "product.html": page("Product page reviews",
     label("reviews: this product (tee) — expect 2 + JSON-LD") + (await block("ucs-reviews", { filter: "product", layout: "grid" }, { page_type: "product", product: tee })) +
+    label("reviews: product page design — full widget, list, Write a review") + (await block("ucs-reviews", {}, { page_type: "product", product: tee, shop: shopWidget })) +
+    label("reviews: product page design — compact slider") + (await block("ucs-reviews", {}, { page_type: "product", product: tee, shop: shopSnippet })) +
     label("reviews: product with none, fallback off — expect nothing") + (await block("ucs-reviews", { filter: "product", fallback: false }, { page_type: "product", product: { id: 99, title: "Lonely", url: "/products/lonely" } }))),
   "empty.html": page("Empty (theme editor)",
     label("hero empty") + (await block("ucs-hero", {}, { shop: empty, design: true })) +

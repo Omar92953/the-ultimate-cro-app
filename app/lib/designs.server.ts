@@ -5,7 +5,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { COUNTDOWN_PLACES, toStorefrontCountdownBar, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "./designs";
-import { toStorefrontReviews, withReviewsDefaults, type ReviewsDesign } from "./reviews-design";
+import { toStorefrontReviews, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "./reviews-design";
 import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
@@ -154,18 +154,22 @@ export async function saveShippingBar(admin: AdminClient, config: ShippingBarCon
 }
 
 /* -------------------------------------------------------------- reviews -- */
-export async function getReviewsDesign(admin: AdminClient): Promise<{ config: ReviewsDesign; saved: boolean }> {
-  const raw = await getDesign(admin, "reviews_editor");
-  return { config: withReviewsDefaults(raw), saved: raw !== null };
+/** Home and other pages: "reviews"; product pages have their own design: "reviews_product". */
+const reviewsKey = (place: ReviewsPlace) => (place === "product" ? "reviews_product" : "reviews");
+
+export async function getReviewsDesign(admin: AdminClient, place: ReviewsPlace = "home"): Promise<{ config: ReviewsDesign; saved: boolean }> {
+  const raw = await getDesign(admin, `${reviewsKey(place)}_editor`);
+  return { config: withReviewsDefaults(raw, place), saved: raw !== null };
 }
 
-export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesign, draftOnly = false) {
-  const clean = withReviewsDefaults(config);
+export async function saveReviewsDesign(admin: AdminClient, config: ReviewsDesign, draftOnly = false, place: ReviewsPlace = "home") {
+  const key = reviewsKey(place);
+  const clean = withReviewsDefaults(config, place);
   const img = clean.fill.image ? (await imageFiles(admin, [clean.fill.image.id])).get(clean.fill.image.id) : undefined;
   clean.fill.imageUrl = img?.url ?? null;
-  if (!draftOnly) await upsert(admin, "$app:cro_design", "reviews", { config: JSON.stringify(toStorefrontReviews(clean)) });
-  await upsert(admin, "$app:cro_design", "reviews_draft", { config: JSON.stringify(toStorefrontReviews(clean)) });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", "reviews_editor", { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", key, { config: JSON.stringify(toStorefrontReviews(clean)) });
+  await upsert(admin, "$app:cro_design", `${key}_draft`, { config: JSON.stringify(toStorefrontReviews(clean)) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", `${key}_editor`, { config: JSON.stringify(clean) });
   return clean;
 }
 

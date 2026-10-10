@@ -13,7 +13,7 @@ export type ReviewsDesign = {
   text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string };
   summary: { show: boolean; average: boolean; stars: boolean; count: boolean };
   which: { filter: "all" | "featured" | "product"; fallback: boolean; limit: number };
-  layout: { mode: "carousel" | "grid" | "masonry"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "dots" | "both" | "swipe"; arrowSize: number };
+  layout: { mode: "carousel" | "grid" | "masonry" | "list"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "dots" | "both" | "swipe"; arrowSize: number };
   card: {
     style: "classic" | "chat" | "minimal";
     text: boolean;
@@ -36,6 +36,10 @@ export type ReviewsDesign = {
     textFirst: boolean;
   };
   fill: { kind: "color" | "pattern" | "image"; color: string; pattern: "chat" | "dots" | "grid" | "lines"; image: MediaRef | null; imageUrl: string | null };
+  /** "List" layout (the full reviews widget): how many at first, sorting, the 5→1 star bars. */
+  list: { perPage: number; sort: boolean; bars: boolean; more: string; sortBy: string; newest: string; highest: string; lowest: string; photos: string };
+  /** "Write a review": shoppers send a review from the product page; it waits for your approval. */
+  write: { on: boolean; button: string; title: string; name: string; review: string; send: string; thanks: string };
   /** Text and star sizes for each part (off = the automatic sizes). */
   sizes: { own: boolean; sub: number; avg: number; summaryStars: number; count: number; text: number; stars: number; name: number; verified: number; meta: number };
   look: { star: string; cardBg: string; cardText: string; bg: string; radius: number; transparentBg: boolean; defaultCard: boolean };
@@ -64,6 +68,8 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   layout: { mode: "carousel", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
   card: { style: "classic", text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true, photoFit: "whole", photoFocus: "center", photoShape: "tallest", align: "left", textFirst: false },
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
+  list: { perPage: 5, sort: true, bars: true, more: "Show more reviews", sortBy: "Sort by", newest: "Newest", highest: "Highest rating", lowest: "Lowest rating", photos: "With photos" },
+  write: { on: false, button: "Write a review", title: "Write a review", name: "Your name", review: "Your review", send: "Send review", thanks: "Thank you! Your review will appear once it's checked." },
   sizes: { own: false, sub: 16, avg: 26, summaryStars: 20, count: 14, text: 14, stars: 14, name: 14, verified: 12, meta: 12 },
   look: { star: "#f5a623", cardBg: "#ffffff", cardText: "#121212", bg: "#ffffff", radius: 14, transparentBg: true, defaultCard: true },
   space: { top: 40, bottom: 40, devices: "all", schema: true },
@@ -71,7 +77,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   product: { style: "row", image: true, imageSize: 40, radius: 6, textSize: 13, ownColors: false, bg: "#f1f1f1", fg: "#111111" },
 };
 
-type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]>; product?: Partial<ReviewsDesign["product"]>; text?: Partial<ReviewsDesign["text"]> };
+type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]>; product?: Partial<ReviewsDesign["product"]>; text?: Partial<ReviewsDesign["text"]>; list?: Partial<ReviewsDesign["list"]>; write?: Partial<ReviewsDesign["write"]>; summary?: Partial<ReviewsDesign["summary"]>; which?: Partial<ReviewsDesign["which"]> };
 /** Ready-made looks; everything stays editable. */
 export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   { key: "classic", title: "Classic cards", patch: { card: { style: "classic" }, look: { star: "#f5a623", radius: 14, defaultCard: true, transparentBg: true }, fill: { kind: "color", color: "#111111" } } },
@@ -90,20 +96,59 @@ export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
       product: { style: "caption" },
     },
   },
+  {
+    key: "widget",
+    title: "Product page: full reviews",
+    patch: {
+      text: { heading: "Customer reviews", sub: "" },
+      which: { filter: "product", fallback: false },
+      summary: { show: true, average: true, stars: true, count: true },
+      layout: { mode: "list" },
+      list: { bars: true, sort: true, perPage: 5 },
+      write: { on: true },
+      card: { style: "minimal", align: "left", textFirst: false, photoFit: "crop", photoFocus: "center", photoShape: "square", product: false, source: false, location: true, date: true },
+      look: { star: "#f5a623", defaultCard: true, transparentBg: true },
+    },
+  },
+  {
+    key: "snippet",
+    title: "Product page: compact slider",
+    patch: {
+      text: { heading: "", sub: "" },
+      which: { filter: "product", fallback: true },
+      summary: { show: false },
+      write: { on: false },
+      layout: { mode: "carousel", perDesktop: 2, nav: "arrows" },
+      card: { style: "classic", align: "left", textFirst: false, photoFit: "crop", photoFocus: "center", photoShape: "square", product: true, source: false, location: false, date: false, clamp: 3 },
+      product: { style: "caption" },
+      look: { star: "#111111", cardBg: "#f6f6f6", cardText: "#111111", defaultCard: false, transparentBg: true, radius: 10 },
+    },
+  },
 ];
 
 export function applyReviewPreset(c: ReviewsDesign, key: string): ReviewsDesign {
   const p = REVIEW_PRESETS.find((x) => x.key === key);
   if (!p) return c;
-  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text } };
+  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text }, list: { ...c.list, ...p.patch.list }, write: { ...c.write, ...p.patch.write }, summary: { ...c.summary, ...p.patch.summary }, which: { ...c.which, ...p.patch.which } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fallback);
 
-export function withReviewsDefaults(raw: unknown): ReviewsDesign {
+export type ReviewsPlace = "home" | "product";
+/** Product pages start from the full widget: this product's reviews in a list, with "Write a review". */
+export const DEFAULT_PRODUCT_REVIEWS: ReviewsDesign = {
+  ...DEFAULT_REVIEWS,
+  text: { ...DEFAULT_REVIEWS.text, heading: "Customer reviews", sub: "" },
+  which: { ...DEFAULT_REVIEWS.which, filter: "product", fallback: false, limit: 60 },
+  layout: { ...DEFAULT_REVIEWS.layout, mode: "list" },
+  card: { ...DEFAULT_REVIEWS.card, photoFit: "crop", photoShape: "square", product: false },
+  write: { ...DEFAULT_REVIEWS.write, on: true },
+};
+
+export function withReviewsDefaults(raw: unknown, place: ReviewsPlace = "home"): ReviewsDesign {
   const r = obj(raw);
-  const d = DEFAULT_REVIEWS;
+  const d = place === "product" ? DEFAULT_PRODUCT_REVIEWS : DEFAULT_REVIEWS;
   const t = obj(r.text), sm = obj(r.summary), w = obj(r.which), l = obj(r.layout), c = obj(r.card), f = obj(r.fill), k = obj(r.look), sp = obj(r.space), ic = obj(r.icon), pr = obj(r.product);
   const customIn = obj(ic.custom);
   const custom: Record<string, MediaRef> = {};
@@ -126,7 +171,7 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
     summary: { show: bool(sm.show, d.summary.show), average: bool(sm.average, d.summary.average), stars: bool(sm.stars, d.summary.stars), count: bool(sm.count, d.summary.count) },
     which: { filter: pick(w.filter, ["all", "featured", "product"] as const, d.which.filter), fallback: bool(w.fallback, d.which.fallback), limit: num(w.limit, 1, 60, d.which.limit) },
     layout: {
-      mode: pick(l.mode, ["carousel", "grid", "masonry"] as const, d.layout.mode),
+      mode: pick(l.mode, ["carousel", "grid", "masonry", "list"] as const, d.layout.mode),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: Number(l.perMobile) === 2 ? 2 : 1,
       // 0 = cards fill the row
@@ -160,6 +205,14 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       image: typeof img.id === "string" ? { id: img.id, url: typeof img.url === "string" ? img.url : null, kind: "image", title: str(img.title, "Fill", 200) } : null,
       imageUrl: typeof f.imageUrl === "string" ? f.imageUrl : null,
     },
+    list: (() => {
+      const x = obj(r.list), dx = d.list;
+      return { perPage: num(x.perPage, 1, 30, dx.perPage), sort: bool(x.sort, dx.sort), bars: bool(x.bars, dx.bars), more: str(x.more, dx.more, 40), sortBy: str(x.sortBy, dx.sortBy, 30), newest: str(x.newest, dx.newest, 30), highest: str(x.highest, dx.highest, 30), lowest: str(x.lowest, dx.lowest, 30), photos: str(x.photos, dx.photos, 30) };
+    })(),
+    write: (() => {
+      const x = obj(r.write), dx = d.write;
+      return { on: bool(x.on, dx.on), button: str(x.button, dx.button, 40), title: str(x.title, dx.title, 60), name: str(x.name, dx.name, 40), review: str(x.review, dx.review, 40), send: str(x.send, dx.send, 40), thanks: str(x.thanks, dx.thanks, 160) };
+    })(),
     sizes: (() => {
       const z = obj(r.sizes), dz = d.sizes;
       return { own: bool(z.own, dz.own), sub: num(z.sub, 10, 40, dz.sub), avg: num(z.avg, 12, 64, dz.avg), summaryStars: num(z.summaryStars, 10, 48, dz.summaryStars), count: num(z.count, 10, 32, dz.count), text: num(z.text, 10, 32, dz.text), stars: num(z.stars, 8, 40, dz.stars), name: num(z.name, 10, 32, dz.name), verified: num(z.verified, 8, 24, dz.verified), meta: num(z.meta, 8, 24, dz.meta) };
@@ -270,6 +323,8 @@ export function toStorefrontReviews(c: ReviewsDesign) {
     l: c.layout,
     c: c.card,
     sch: c.space.schema,
+    ls: c.list,
+    wr: c.write.on ? c.write : null,
     // Your own source icons: source → picture URL
     ic: Object.fromEntries(Object.entries(c.icon.custom).map(([k, m]) => [k, m.url])),
     cls: reviewsClass(c),

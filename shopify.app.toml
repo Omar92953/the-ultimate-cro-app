@@ -8,6 +8,12 @@ embedded = true
 [build]
 automatically_update_urls_on_dev = true
 
+[app_proxy]
+# Reviews written on the store ("Write a review") are sent to /apps/ucro/review.
+url = "https://example.com/proxy"
+subpath = "ucro"
+prefix = "apps"
+
 [access_scopes]
 # Every scope and why it is needed is listed in docs/scopes.md.
 scopes = "read_files,write_files,read_orders,read_products,read_themes,write_cart_transforms,write_discounts,write_metaobject_definitions,write_metaobjects"
@@ -344,6 +350,10 @@ access.storefront = "public_read"
 
   [metaobjects.app.cro_review.fields.featured]
   name = "Featured"
+  type = "boolean"
+
+  [metaobjects.app.cro_review.fields.pending]
+  name = "Waiting for approval"
   type = "boolean"
 
   [metaobjects.app.cro_review.fields.active]

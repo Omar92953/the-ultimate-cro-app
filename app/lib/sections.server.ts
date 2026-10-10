@@ -176,6 +176,8 @@ export function serialize(kind: SectionKind, item: SectionItem, offsetIso: strin
   if (out.starts_at && out.ends_at && Date.parse(out.ends_at) < Date.parse(out.starts_at)) {
     throw new AdminError("“Show until” must be after “Show from”.");
   }
+  // Shown on the store = approved.
+  if ("pending" in out && out.active === "true") out.pending = "false";
   out.position = String(Math.max(0, Math.round(item.position || 0)));
   return out;
 }
@@ -248,7 +250,8 @@ export async function reorder(admin: AdminClient, kind: SectionKind, ids: string
 export async function setShown(admin: AdminClient, kind: SectionKind, id: string, shown: boolean) {
   const key = SECTIONS[kind].activeKey;
   if (!key) throw new AdminError("This list has no show/hide switch.");
-  await updateFields(admin, [{ id, fields: { [key]: shown ? "true" : "false" } }]);
+  const approve = shown && SECTIONS[kind].fields.some((f) => f.key === "pending");
+  await updateFields(admin, [{ id, fields: { [key]: shown ? "true" : "false", ...(approve ? { pending: "false" } : {}) } }]);
   await syncList(admin, kind);
 }
 

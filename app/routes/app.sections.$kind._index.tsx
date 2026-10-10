@@ -104,7 +104,7 @@ export default function SectionList() {
   const toggle = (item: SectionItem) => {
     const key = cfg.activeKey!;
     const shown = item.values[key] === false;
-    setItems((all) => all.map((x) => (x.id === item.id ? { ...x, values: { ...x.values, [key]: shown } } : x)));
+    setItems((all) => all.map((x) => (x.id === item.id ? { ...x, values: { ...x.values, [key]: shown, ...(shown ? { pending: false } : {}) } } : x)));
     fetcher.submit({ intent: "shown", id: item.id!, shown: String(shown) }, { method: "post" });
   };
   const remove = (item: SectionItem) => {
@@ -113,6 +113,7 @@ export default function SectionList() {
     fetcher.submit({ intent: "delete", id: item.id! }, { method: "post" });
   };
 
+  const waiting = items.filter((i) => i.values.pending === true && i.values[cfg.activeKey ?? "active"] === false).length;
   const shownCount = items.filter((i) => itemStatus(data.kind, i).tone === "ok").length;
   // Several at once (lists that can be linked to products, e.g. reviews): tick, then choose products.
   const canLink = cfg.fields.some((f) => f.type === "products");
@@ -143,6 +144,11 @@ export default function SectionList() {
           </s-banner>
         ) : null}
 
+        {waiting ? (
+          <s-banner tone="warning" heading={`${waiting} new ${waiting === 1 ? cfg.singular : cfg.plural} from your store ${waiting === 1 ? "is" : "are"} waiting for approval`}>
+            Shoppers wrote {waiting === 1 ? "it" : "them"} with “Write a review”. Approve to show on your store, or reject to delete.
+          </s-banner>
+        ) : null}
         <s-section heading={items.length ? `${items.length} ${items.length === 1 ? cfg.singular : cfg.plural} · ${shownCount} shown` : `No ${cfg.plural} yet`}>
           {canLink && items.length ? (
             <s-box paddingBlockEnd="small-300">
@@ -177,6 +183,7 @@ export default function SectionList() {
                 const status = itemStatus(data.kind, item);
                 const thumb = cfg.thumbKey ? (item.values[cfg.thumbKey] as MediaRef | null) : null;
                 const title = String(item.values[cfg.titleKey] || "Untitled");
+                const pending = item.values.pending === true && !!cfg.activeKey && item.values[cfg.activeKey] === false;
                 return (
                   <s-box padding="small-300" borderWidth="base" borderRadius="base">
                     <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
@@ -194,7 +201,11 @@ export default function SectionList() {
                         </s-stack>
                       </s-stack>
                       <s-stack direction="inline" gap="small-200" alignItems="center">
-                        {cfg.activeKey ? (
+                        {cfg.activeKey && pending ? (
+                          <Button variant="primary" icon="check" onClick={() => toggle(item)}>
+                            Approve
+                          </Button>
+                        ) : cfg.activeKey ? (
                           <Button variant="tertiary" icon={item.values[cfg.activeKey] === false ? "view" : "hide"} onClick={() => toggle(item)}>
                             {item.values[cfg.activeKey] === false ? "Show" : "Hide"}
                           </Button>
@@ -212,8 +223,8 @@ export default function SectionList() {
                             </Button>
                           </>
                         ) : (
-                          <Button tone="critical" variant="tertiary" icon="delete" accessibilityLabel={`Delete ${title}`} onClick={() => setConfirming(item.id)}>
-                            Delete
+                          <Button tone="critical" variant="tertiary" icon="delete" accessibilityLabel={`${pending ? "Reject" : "Delete"} ${title}`} onClick={() => setConfirming(item.id)}>
+                            {pending ? "Reject" : "Delete"}
                           </Button>
                         )}
                       </s-stack>

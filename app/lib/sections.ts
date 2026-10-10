@@ -40,6 +40,8 @@ export type FieldDef = {
   /** datetime only: the start or the end of the chosen day */
   edge?: "start" | "end";
   default?: Value;
+  /** Kept on the item but not shown in its editor (set by the app, e.g. "waiting for approval"). */
+  hidden?: boolean;
 };
 
 export type SectionItem = {
@@ -136,6 +138,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "verified", label: "Verified buyer", type: "bool", default: true },
       { key: "featured", label: "Featured", type: "bool", default: false, details: "Sections set to “Featured reviews only” show just these." },
       { key: "active", label: "Shown on the store", type: "bool", default: true },
+      { key: "pending", label: "Waiting for approval", type: "bool", default: false, hidden: true },
     ],
     help: {
       what: "Reviews and testimonials from your customers — text, photos or videos — with the icon of where they came from (WhatsApp, Instagram, TikTok…).",
@@ -236,7 +239,7 @@ export function blankItem(kind: SectionKind): SectionItem {
 /** "Live", "Scheduled", "Ended" or "Hidden" for the list. */
 export function itemStatus(kind: SectionKind, item: SectionItem, now = Date.now()): { tone: "ok" | "warn" | "muted"; text: string } {
   const cfg = SECTIONS[kind];
-  if (cfg.activeKey && item.values[cfg.activeKey] === false) return { tone: "muted", text: "Hidden" };
+  if (cfg.activeKey && item.values[cfg.activeKey] === false) return item.values.pending === true ? { tone: "warn", text: "Waiting for approval" } : { tone: "muted", text: "Hidden" };
   const from = item.values.starts_at ? Date.parse(String(item.values.starts_at)) : NaN;
   const until = item.values.ends_at ? Date.parse(String(item.values.ends_at)) : NaN;
   if (Number.isFinite(from) && from > now) return { tone: "warn", text: `Starts ${new Date(from).toLocaleDateString()}` };

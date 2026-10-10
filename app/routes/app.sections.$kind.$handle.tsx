@@ -110,7 +110,7 @@ export default function SectionItemEditor() {
 
       <s-section>
         <s-stack gap="base">
-          {cfg.fields.map((f) => (
+          {cfg.fields.filter((f) => !f.hidden).map((f) => (
             <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />
           ))}
         </s-stack>

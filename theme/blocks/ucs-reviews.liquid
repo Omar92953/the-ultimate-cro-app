@@ -5,9 +5,17 @@
   ucs-reviews.js, which builds the section.
 {%- endcomment -%}
 {%- liquid
-  assign c = shop.metaobjects['$app:cro_design']['reviews'].config.value
-  if request.design_mode and shop.metaobjects['$app:cro_design']['reviews_draft'].config.value
-    assign c = shop.metaobjects['$app:cro_design']['reviews_draft'].config.value
+  # Product pages use their own design (Customer reviews → Design → Product pages) once it's saved.
+  assign key = 'reviews'
+  if block.settings.design == 'product'
+    assign key = 'reviews_product'
+  elsif block.settings.design != 'home' and request.page_type == 'product' and shop.metaobjects['$app:cro_design']['reviews_product'].config.value
+    assign key = 'reviews_product'
+  endif
+  assign draft = key | append: '_draft'
+  assign c = shop.metaobjects['$app:cro_design'][key].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][draft].config.value
+    assign c = shop.metaobjects['$app:cro_design'][draft].config.value
   endif
   assign items = shop.metaobjects['$app:cro_lists']['main'].reviews.value
   assign pid = 0
@@ -37,7 +45,7 @@
     endfor
   endif
 -%}
-<div class="ucs ucs-rv" data-ucs-rv data-only="{% if mine > 0 %}1{% endif %}" data-pp="{{ pid }}" data-shop="{{ shop.name | escape }}" {{ block.shopify_attributes }}>
+<div class="ucs ucs-rv" data-ucs-rv data-only="{% if mine > 0 %}1{% endif %}" data-pp="{{ pid }}" data-shop="{{ shop.name | escape }}"{% if request.page_type == 'product' and product %} data-product="{{ product.id }}"{% endif %} data-root="{{ routes.root_url }}" {{ block.shopify_attributes }}>
   <script type="application/json">{"c":{{ c | json | default: 'null' }},"r":[
     {%- assign n = 0 -%}
     {%- for m in items -%}
@@ -74,7 +82,12 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Reviews and how they look are set in the app: Sections → Customer reviews." }
+    { "type": "paragraph", "content": "Reviews and how they look are set in the app: Sections → Customer reviews." },
+    { "type": "select", "id": "design", "label": "Design", "default": "auto", "options": [
+      { "value": "auto", "label": "Automatic (product pages use the product design)" },
+      { "value": "home", "label": "Home and other pages" },
+      { "value": "product", "label": "Product pages" }
+    ] }
   ]
 }
 {% endschema %}

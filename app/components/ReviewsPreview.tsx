@@ -34,7 +34,8 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
   if (c.which.filter === "featured") list = list.filter((r) => r.featured);
   const rated = list.filter((r) => r.rating > 0);
   const avg = rated.length ? Math.round((rated.reduce((a, r) => a + r.rating, 0) / rated.length) * 10) / 10 : 0;
-  const shown = list.slice(0, c.which.limit);
+  const isList = c.layout.mode === "list";
+  const shown = list.slice(0, isList ? Math.min(c.which.limit, c.list.perPage) : c.which.limit);
   const sm = c.summary;
   const showSummary = sm.show && rated.length > 0 && (sm.average || sm.stars || sm.count);
   const vars = reviewsVars(c) as CSSProperties;
@@ -44,21 +45,69 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
     if (t && first) t.scrollBy({ left: dir * (first.offsetWidth + 16), behavior: "smooth" });
   };
 
+  const summaryEl = showSummary ? (
+    <div className="ucs-rv__summary">
+      {sm.average ? <span className="ucs-rv__avg">{avg}</span> : null}
+      {sm.stars ? <Stars r={avg} /> : null}
+      {sm.count ? <span className="ucs-rv__count">{c.text.basedOn.replace(/\{count\}/g, String(rated.length))}</span> : null}
+    </div>
+  ) : null;
+  // On the store the button shows on product pages only.
+  const writeEl = c.write.on ? (
+    <div className="ucs-rv__write-at">
+      <button type="button" className="ucs-btn">
+        {c.write.button}
+      </button>
+    </div>
+  ) : null;
+
   if (!reviews.length) return <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Add reviews in Sections → Customer reviews to see them here.</p>;
   return (
     <div className={`${reviewsClass(c)} is-sized`} style={{ ...vars, "--ucs-rv-media-h": "260px" } as CSSProperties}>
       <div className="ucs-wrap">
-        {c.text.heading || c.text.sub || showSummary ? (
+        {c.text.heading || c.text.sub || showSummary || c.write.on ? (
           <div className="ucs-head ucs-rv__head">
             {c.text.heading ? <h2>{c.text.heading}</h2> : null}
             {c.text.sub ? <p>{c.text.sub}</p> : null}
-            {showSummary ? (
-              <div className="ucs-rv__summary">
-                {sm.average ? <span className="ucs-rv__avg">{avg}</span> : null}
-                {sm.stars ? <Stars r={avg} /> : null}
-                {sm.count ? <span className="ucs-rv__count">{c.text.basedOn.replace(/\{count\}/g, String(rated.length))}</span> : null}
+            {isList ? (
+              <div className="ucs-rv__overview">
+                {summaryEl}
+                {c.list.bars && rated.length ? (
+                  <div className="ucs-rv__bars">
+                    {[5, 4, 3, 2, 1].map((n) => {
+                      const k = rated.filter((r) => Math.round(r.rating) === n).length;
+                      return (
+                        <div key={n} className="ucs-rv__bar">
+                          <span>{n} ★</span>
+                          <span className="ucs-rv__bar-track">
+                            <span style={{ width: `${Math.round((k / rated.length) * 100)}%` }} />
+                          </span>
+                          <span>{k}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                {writeEl}
               </div>
-            ) : null}
+            ) : (
+              <>
+                {summaryEl}
+                {writeEl}
+              </>
+            )}
+          </div>
+        ) : null}
+        {isList && c.list.sort && list.length > 1 ? (
+          <div className="ucs-rv__tools">
+            <label>
+              {c.list.sortBy}{" "}
+              <select className="ucs-rv__sort" defaultValue="newest">
+                {[c.list.newest, c.list.highest, c.list.lowest, c.list.photos].map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </label>
           </div>
         ) : null}
         <div className="ucs-rv__viewport">
@@ -113,6 +162,13 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
             })}
           </div>
         </div>
+        {isList && list.length > shown.length ? (
+          <div className="ucs-rv__more-at">
+            <button type="button" className="ucs-btn ucs-btn--outline">
+              {c.list.more}
+            </button>
+          </div>
+        ) : null}
         {c.layout.mode === "carousel" && c.layout.nav !== "swipe" ? (
           <div className="ucs-rv__nav">
             {c.layout.nav !== "dots" ? (

@@ -44,6 +44,7 @@
        fill), and the name/badge/date and product rows equally tall in every card */
     var level = function () {
       root.classList.remove('is-sized');
+      if (root.classList.contains('ucs-rv--list')) return; // one review per row: nothing to line up
       var tallest = 0, fixed = /ucs-rv--shape-/.test(root.className);
       root.querySelectorAll('.ucs-rv__media').forEach(function (m) {
         var w = m.clientWidth, img = m.querySelector('img');
@@ -168,7 +169,7 @@
     var md = r.m, fromProd = false;
     if ((!md || !md.u) && !only && r.p && r.p.i) { md = { k: 'image', u: r.p.i }; fromProd = true; }
     var showMedia = c.c.media && md && md.u;
-    var h = '<article class="ucs-rv__card ucs-rv__card--' + c.c.style + (showMedia ? ' has-media' : '') + '">';
+    var h = '<article class="ucs-rv__card ucs-rv__card--' + c.c.style + (showMedia ? ' has-media' : '') + '" data-r="' + (r.r || 0) + '" data-d="' + esc(r.di || '') + '" data-m="' + (r.m && r.m.u ? 1 : 0) + '">';
     if (showMedia) {
       // Photo fit: this review's own choice, else the section's (whole on the fill, or cropped to fill).
       var pf = r.pf || (c.c.photoFit === 'crop' ? c.c.photoFocus || 'center' : 'whole');
@@ -213,7 +214,9 @@
     return h + '</div></article>';
   }
 
+  var seq = 0;
   function build(host) {
+    var uid = 'ucs-rv-' + (++seq);
     var data;
     try { data = JSON.parse(host.querySelector('script[type="application/json"]').textContent); } catch (e) { return; }
     var c = data.c || DEF, t = Object.assign({}, DEF.t, c.t);
@@ -244,9 +247,43 @@
         (sm.stars ? stars(avg, avg + ' out of 5 stars') : '') +
         (sm.count ? '<span class="ucs-rv__count">' + esc(t.basedOn.replace(/\{count\}/g, rated.length)) + '</span>' : '') + '</div>';
     }
-    var head = t.heading || t.sub || summary ? '<div class="ucs-head ucs-rv__head">' + (t.heading ? '<h2>' + esc(t.heading) + '</h2>' : '') + (t.sub ? '<p>' + esc(t.sub) + '</p>' : '') + summary + '</div>' : '';
+    var ls = c.ls || { perPage: 5, sort: true, bars: true, more: 'Show more reviews', sortBy: 'Sort by', newest: 'Newest', highest: 'Highest rating', lowest: 'Lowest rating', photos: 'With photos' };
+    var isList = c.l.mode === 'list';
+    // "Write a review": only on a product's page (the review is about that product).
+    var wr = c.wr && host.getAttribute('data-product') ? c.wr : null;
+    var writeBtn = wr ? '<button type="button" class="ucs-btn ucs-rv__write-open" aria-expanded="false">' + esc(wr.button) + '</button>' : '';
+    if (isList) {
+      // The full widget: average and count, the 5→1 star bars, and the button, side by side.
+      var bars = '';
+      if (ls.bars && rated.length) {
+        bars = '<div class="ucs-rv__bars">' + [5, 4, 3, 2, 1].map(function (n) {
+          var k = rated.filter(function (r) { return Math.round(r.r) === n; }).length;
+          return '<div class="ucs-rv__bar"><span>' + n + ' ★</span><span class="ucs-rv__bar-track"><span style="width: ' + Math.round((k / rated.length) * 100) + '%"></span></span><span>' + k + '</span></div>';
+        }).join('') + '</div>';
+      }
+      summary = (summary || bars || writeBtn) ? '<div class="ucs-rv__overview">' + summary + bars + (writeBtn ? '<div class="ucs-rv__write-at">' + writeBtn + '</div>' : '') + '</div>' : '';
+      writeBtn = '';
+    }
+    var head = t.heading || t.sub || summary || writeBtn ? '<div class="ucs-head ucs-rv__head">' + (t.heading ? '<h2>' + esc(t.heading) + '</h2>' : '') + (t.sub ? '<p>' + esc(t.sub) + '</p>' : '') + summary + (writeBtn ? '<div class="ucs-rv__write-at">' + writeBtn + '</div>' : '') + '</div>' : '';
+    if (wr) {
+      head += '<form class="ucs-rv__form" hidden novalidate>' +
+        '<h3>' + esc(wr.title) + '</h3>' +
+        '<fieldset class="ucs-rv__rate"><legend class="ucs-rv__sr">Rating</legend>' + [5, 4, 3, 2, 1].map(function (n) {
+          return '<input type="radio" name="rating" value="' + n + '" id="' + uid + '-r' + n + '"><label for="' + uid + '-r' + n + '" title="' + n + ' / 5">★</label>';
+        }).join('') + '</fieldset>' +
+        '<label class="ucs-rv__field"><span>' + esc(wr.name) + '</span><input name="name" maxlength="60" autocomplete="name" required></label>' +
+        '<label class="ucs-rv__field"><span>' + esc(wr.review) + '</span><textarea name="text" rows="4" maxlength="2000" required></textarea></label>' +
+        '<label class="ucs-rv__hp" aria-hidden="true">Company<input name="company" tabindex="-1" autocomplete="off"></label>' +
+        '<p class="ucs-rv__msg" role="status"></p>' +
+        '<button type="submit" class="ucs-btn">' + esc(wr.send) + '</button></form>';
+    }
     var carousel = c.l.mode === 'carousel';
     var html = '<div class="ucs-wrap">' + head;
+    if (isList && shown.length > 1 && ls.sort) {
+      html += '<div class="ucs-rv__tools"><label>' + esc(ls.sortBy) + ' <select class="ucs-rv__sort">' +
+        [['newest', ls.newest], ['highest', ls.highest], ['lowest', ls.lowest], ['photos', ls.photos]].map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + '</option>'; }).join('') +
+        '</select></label></div>';
+    }
     if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Sections → Customer reviews.</p>';
     else {
       html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + '>' +
@@ -257,8 +294,11 @@
           '<button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="Next"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button></div>';
       }
     }
+    if (isList && shown.length > ls.perPage) html += '<div class="ucs-rv__more-at"><button type="button" class="ucs-btn ucs-btn--outline ucs-rv__page">' + esc(ls.more) + '</button></div>';
     html += '</div>';
     host.innerHTML = html;
+    if (isList) listing(host, ls);
+    if (wr) writing(host, wr);
 
     // Google review data on a product's own page
     if (c.sch && only && rated.length && shown[0] && shown[0].p) {
@@ -303,6 +343,67 @@
     draw();
     track.addEventListener('scroll', function () { window.requestAnimationFrame(draw); }, { passive: true });
     window.addEventListener('resize', draw);
+  }
+
+  /* ---------- "List" layout: sorting and "Show more" ---------- */
+  function listing(host, ls) {
+    var track = host.querySelector('.ucs-rv__track'), more = host.querySelector('.ucs-rv__page'), sort = host.querySelector('.ucs-rv__sort');
+    if (!track) return;
+    var limit = ls.perPage;
+    var page = function () {
+      Array.prototype.forEach.call(track.children, function (card, i) { card.hidden = i >= limit; });
+      if (more) more.parentNode.hidden = limit >= track.children.length;
+    };
+    var order = function (how) {
+      var cards = Array.prototype.slice.call(track.children);
+      var by = {
+        newest: function (a, b) { return (b.getAttribute('data-d') || '').localeCompare(a.getAttribute('data-d') || ''); },
+        highest: function (a, b) { return b.getAttribute('data-r') - a.getAttribute('data-r'); },
+        lowest: function (a, b) { return a.getAttribute('data-r') - b.getAttribute('data-r'); },
+        photos: function (a, b) { return b.getAttribute('data-m') - a.getAttribute('data-m'); }
+      }[how];
+      if (by) cards.sort(by).forEach(function (c) { track.appendChild(c); });
+      page();
+    };
+    if (sort) sort.addEventListener('change', function () { order(sort.value); });
+    if (more) more.addEventListener('click', function () { limit += ls.perPage; page(); });
+    page();
+  }
+
+  /* ---------- "Write a review": sent to the app, shown after the merchant approves it ---------- */
+  function writing(host, wr) {
+    var open = host.querySelector('.ucs-rv__write-open'), form = host.querySelector('.ucs-rv__form');
+    if (!open || !form) return;
+    var msg = form.querySelector('.ucs-rv__msg'), send = form.querySelector('[type="submit"]');
+    open.addEventListener('click', function () {
+      form.hidden = !form.hidden;
+      open.setAttribute('aria-expanded', String(!form.hidden));
+      if (!form.hidden) form.querySelector('input[name="rating"]').focus();
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = new FormData(form);
+      var say = function (text, bad) { msg.textContent = text; msg.classList.toggle('is-error', !!bad); };
+      if (!f.get('rating')) return say('Please choose 1 to 5 stars.', true);
+      if (!String(f.get('name') || '').trim()) return say('Please add your name.', true);
+      if (String(f.get('text') || '').trim().length < 3) return say('Please write a few words.', true);
+      var root = host.getAttribute('data-root') || '/';
+      send.disabled = true;
+      say('');
+      fetch(root.replace(/\/$/, '') + '/apps/ucro/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ product: host.getAttribute('data-product'), rating: Number(f.get('rating')), name: f.get('name'), text: f.get('text'), company: f.get('company') })
+      }).then(function (r) { return r.json().catch(function () { return { ok: false }; }); }).then(function (d) {
+        if (d && d.ok) {
+          form.innerHTML = '<p class="ucs-rv__thanks" role="status">' + esc(wr.thanks) + '</p>';
+          open.hidden = true;
+        } else {
+          say((d && d.error) || 'Your review could not be sent. Please try again.', true);
+          send.disabled = false;
+        }
+      }).catch(function () { say('Your review could not be sent. Please try again.', true); send.disabled = false; });
+    });
   }
 
   function scan() {

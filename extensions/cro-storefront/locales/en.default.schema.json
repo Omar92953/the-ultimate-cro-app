@@ -30,6 +30,9 @@
   "r": "Logos, their order and the look are set in the app: Sections → Scrolling logos and text.",
   "s": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
   "t": "Reviews and how they look are set in the app: Sections → Customer reviews.",
-  "u": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
+  "u": "Automatic (product pages use the product design)",
+  "v": "Home and other pages",
+  "w": "Product pages",
+  "x": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
  }
 }
