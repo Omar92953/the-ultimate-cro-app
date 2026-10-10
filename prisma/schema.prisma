@@ -32,3 +32,19 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+/// "Notify me when available": a shopper asked to hear when a sold-out variant is back.
+model StockAlert {
+  id           Int       @id @default(autoincrement())
+  shop         String
+  productId    String
+  variantId    String
+  productTitle String
+  variantTitle String    @default("")
+  email        String
+  createdAt    DateTime  @default(now())
+  notifiedAt   DateTime?
+
+  @@unique([shop, variantId, email])
+  @@index([shop, notifiedAt])
+}
