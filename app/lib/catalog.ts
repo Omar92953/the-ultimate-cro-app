@@ -52,6 +52,7 @@ export const FEATURES = {
   boosters: { title: "Conversion boosters", cat: "boosters", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   // Header & pages
   header: { title: "Header", cat: "design", tabs: [design("/app/designs/header")] },
+  footer: { title: "Footer", cat: "design", tabs: [design("/app/designs/footer")] },
   contact: { title: "Contact page", cat: "design", tabs: [design("/app/pages/contact")] },
 } satisfies Record<string, Feature>;
 

@@ -83,7 +83,7 @@ import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getBoosters } from "../lib/boosters.server";
 import { getContact } from "../lib/pages.server";
-import { getAddons, getHeader, getImageCarousel, getPills, getShippingBar } from "../lib/designs.server";
+import { getAddons, getFooter, getHeader, getImageCarousel, getPills, getShippingBar } from "../lib/designs.server";
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
@@ -120,8 +120,9 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
     getHeader(admin).catch(() => null),
     getPills(admin).catch(() => null),
     getShippingBar(admin).catch(() => null),
+    getFooter(admin).catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -134,6 +135,7 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
     saved,
     contactSaved: contact.saved,
     headerSaved: !!header?.saved,
+    footerSaved: !!footer?.saved,
     pillCount: pills ? pills.config.items.length : 0,
     shipBarSaved: !!shipBar?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
@@ -558,7 +560,22 @@ export function HomeView({ only }: { only?: CategoryKey }) {
             previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
             menu: [{ label: "Design", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
           });
-          add({ key: "footer", cat: "design", title: "Footer", onStore: false, status: { tone: "neutral", text: "Coming soon" }, open: { href: "/app/browse/design" }, previews: [FooterShowcase], off: true, menu: [] });
+          const footerIn = installed ? (installed.footer ?? false) : null;
+          let fStatus: Status, fNext: Next | undefined;
+          if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/footer" }];
+          else if (footerIn === false) [fStatus, fNext] = [{ tone: "warning", text: "Not on store" }, { label: "Add to footer", href: data.sectionLinks.footer, external: true }];
+          else fStatus = { tone: "success", text: "Live" };
+          add({
+            key: "footer",
+            cat: "design",
+            title: "Footer",
+            onStore: footerIn === true,
+            status: fStatus,
+            next: fNext,
+            open: { href: "/app/designs/footer" },
+            previews: [FooterShowcase],
+            menu: [{ label: "Design", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
+          });
         }
 
         const CATS = CATEGORIES;

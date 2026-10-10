@@ -228,6 +228,7 @@ async function block(name, overrides = {}, ctx = {}) {
     routes: { root_url: "/", all_products_collection_url: "/collections/all" },
     cart: { total_price: ctx.cartTotal ?? 45000, items: [] },
     product: ctx.product,
+    linklists: ctx.linklists ?? {},
   };
   return engine.renderFile(name, { block: { id: `${name}-${Math.random().toString(36).slice(2, 7)}`, settings, shopify_attributes: "" } }, { globals });
 }
@@ -349,6 +350,16 @@ pages["quick-add.html"] = page("Quick add", qaPage, (await block("ucs-quick-add"
 const { DEFAULT_CONTACT, toStorefrontContact, withContactDefaults } = await import("../../app/lib/pages.ts");
 const contactCfg = toStorefrontContact(withContactDefaults({ ...DEFAULT_CONTACT, info: { ...DEFAULT_CONTACT.info, show: true, email: "hello@example.com", phone: "+20 100 123 4567", whatsapp: "+20 100 123 4567", address: "12 Nile St, Cairo", hours: "Sat–Thu, 10am–8pm" } }));
 const contactShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_page": collectionOf([mo("contact", { config: contactCfg })]) } };
+// Footer designed in the app, with two menus from Navigation, the newsletter form and social links.
+const { toStorefrontFooter, withFooterDefaults, applyFooterPreset } = await import("../../app/lib/footer-design.ts");
+const menuOf = (titles) => ({ links: titles.map((t) => ({ title: t, url: `/pages/${t.toLowerCase().replace(/ /g, "-")}` })) });
+const linklists = { "main-menu": menuOf(["Home", "Catalog", "Contact"]), footer: menuOf(["Search", "Shipping", "Returns", "Privacy"]) };
+const footerShop = (raw) => ({ ...withDesign(mo("footer", { config: toStorefrontFooter(withFooterDefaults(raw)) })), enabled_payment_types: ["visa", "master", "apple_pay", "paypal"], policies: [{ title: "Refund policy", url: "/policies/refund-policy" }], name: "Harness shop" });
+const social = { instagram: "https://instagram.com/x", tiktok: "https://tiktok.com/@x", whatsapp: "https://wa.me/201000000000" };
+pages["footer.html"] = page("Footer",
+  label("footer: dark columns (default)") + (await block("ucs-footer", {}, { shop: footerShop({ social }), linklists })) +
+  label("footer: centred and simple") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "centered"), social }), linklists })) +
+  label("footer: newsletter first, own sizes") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "newsletter"), social, sizes: { own: true, v: { heading: 20, links: 16, social: 28 } } }), linklists })));
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

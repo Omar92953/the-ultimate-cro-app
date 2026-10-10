@@ -1191,6 +1191,7 @@ export const BLOCKS = {
   image_carousel: "ucs-image-carousel",
   addons: "ucs-addons",
   header: "ucs-header",
+  footer: "ucs-footer",
   collection_pills: "ucs-collection-pills",
   shipping_bar: "ucs-shipping-bar",
 } as const;
