@@ -22,7 +22,7 @@ export const CROSS_SELL_SIZES: SizeSpec[] = [
 
 export type CrossSellDesign = {
   scheme: string;
-  products: { fallback: "none" | "recommendations"; recHeading: string; recLimit: number; button: string };
+  products: { fallback: "none" | "recommendations" | "bought"; recHeading: string; recLimit: number; button: string };
   heading: { size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
   look: { themeColors: boolean; accent: string; border: string; panel: boolean; panelColor: string; themeRadius: boolean; radius: number; edge: boolean };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
@@ -73,7 +73,7 @@ export function withCrossSellDefaults(raw: unknown): CrossSellDesign {
     sizes: withSizes(r.sizes, CROSS_SELL_SIZES),
     scheme: schemeId(r.scheme),
     products: {
-      fallback: pick(p.fallback, ["none", "recommendations"] as const, d.products.fallback),
+      fallback: pick(p.fallback, ["none", "recommendations", "bought"] as const, d.products.fallback),
       recHeading: str(p.recHeading, d.products.recHeading, 80),
       recLimit: num(p.recLimit, 2, 10, d.products.recLimit),
       button: str(p.button, d.products.button, 40) || d.products.button,

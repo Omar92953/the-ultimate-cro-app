@@ -24,6 +24,7 @@ import { SizesSection } from "../components/SizesSection";
 import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { computeBoughtTogether, refreshIfOld } from "../lib/bought-together.server";
 
 export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -33,6 +34,7 @@ export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFun
     listRules(admin, "cross_sell").catch(() => []),
     getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
+  const bought = config.products.fallback === "bought" ? await refreshIfOld(admin).catch(() => null) : null;
   // The merchant's own offers with real product pictures and prices.
   const picked = rules
     .filter((r) => r.offeredProducts.length)
@@ -56,7 +58,7 @@ export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFun
     })),
   );
   const sample = offers.length ? null : await firstProduct(admin).catch(() => null);
-  return { config, saved, offers, sampleHandle: sample?.handle ?? null, currency: sample?.currency ?? "USD", style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.cross_sell : null, addLink: editorLinks(session.shop).cross_sell };
+  return { bought: bought ? { at: bought.at, orders: bought.orders, pairs: bought.pairs } : null, config, saved, offers, sampleHandle: sample?.handle ?? null, currency: sample?.currency ?? "USD", style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.cross_sell : null, addLink: editorLinks(session.shop).cross_sell };
 });
 
 export const action = slottedRoute(["cross_sell"], async ({ request }: ActionFunctionArgs) => {
@@ -65,6 +67,8 @@ export const action = slottedRoute(["cross_sell"], async ({ request }: ActionFun
   try {
     const draft = form.get("intent") === "draft";
     const config = await saveCrossSellDesign(admin, withCrossSellDefaults(JSON.parse(String(form.get("config")))), draft);
+    // Learn "bought together" from the orders now (the design is saved even if this fails).
+    if (!draft && config.products.fallback === "bought") await computeBoughtTogether(admin).catch(() => null);
     return { ok: true, draft, error: null, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
@@ -153,9 +157,16 @@ export default function CrossSellDesigner() {
                       label="When no offer matches the page"
                       value={cfg.products.fallback}
                       onValue={(v) => products({ fallback: v as C["products"]["fallback"] })}
-                      options={[{ value: "none", label: "Show nothing" }, { value: "recommendations", label: "Show Shopify's product recommendations" }]}
+                      options={[{ value: "none", label: "Show nothing" }, { value: "bought", label: "Bought together in your orders (then Shopify's recommendations)" }, { value: "recommendations", label: "Show Shopify's product recommendations" }]}
                     />
-                    {cfg.products.fallback === "recommendations" ? (
+                    {cfg.products.fallback === "bought" ? (
+                      <s-text color="subdued">
+                        {data.bought
+                          ? `Learned from your last ${data.bought.orders} orders: ${data.bought.pairs} products have “bought together” partners (updated ${new Date(data.bought.at).toLocaleDateString()}; refreshed weekly and when you save).`
+                          : "Learned from your recent orders when you save; products without enough shared orders show Shopify's recommendations."}
+                      </s-text>
+                    ) : null}
+                    {cfg.products.fallback !== "none" ? (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <TextField label="Fallback heading" value={cfg.products.recHeading} onValue={(v) => products({ recHeading: v })} />
                         <NumberField label="How many" min={2} max={10} step={1} value={cfg.products.recLimit} onValue={(v) => products({ recLimit: v })} />

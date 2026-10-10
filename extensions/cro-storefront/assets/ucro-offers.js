@@ -55,7 +55,14 @@
         var id = this.dataset.productId;
         var limit = Number(this.dataset.limit) || 4;
         this.hidden = true;
-        U.recommendations(id, 'complementary', limit)
+        // Bought together in the store's orders first (handles from the app), then Shopify's recommendations.
+        var bought = (this.dataset.bought || '').split(',').filter(Boolean).slice(0, limit);
+        var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+        var fromOrders = bought.length
+          ? Promise.all(bought.map((h) => fetch(root + 'products/' + encodeURIComponent(h) + '.js').then((r) => (r.ok ? r.json() : null)).catch(() => null))).then((l) => l.filter(Boolean))
+          : Promise.resolve([]);
+        fromOrders
+          .then((list) => (list.length ? list : U.recommendations(id, 'complementary', limit)))
           .then((list) => (list.length ? list : U.recommendations(id, 'related', limit)))
           .then((list) => {
             var fmt = this.dataset.moneyFormat;

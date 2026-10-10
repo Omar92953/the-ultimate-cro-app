@@ -55,6 +55,10 @@ if shown > 0
 assign mode = 'rule'
 elsif enabled and d.fb == 'recommendations' and product != blank
 assign mode = 'recommend'
+elsif enabled and d.fb == 'bought' and product != blank
+assign mode = 'recommend'
+assign pid = product.id | append: ''
+assign bought = shop.metaobjects['$app:cro_design']['bought_together'].config.value.map[pid] | join: ','
 endif
 assign pct = 0
 if rule
@@ -71,7 +75,7 @@ class="ucro ucro-cross{% if d %}{{ d.cls }}{% else %} ucro-cross--panel{% endif 
 style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
 data-radius="{{ d.rad | default: 'theme' }}"
 data-mode="{{ mode }}"
-data-product-id="{{ product.id }}"
+data-product-id="{{ product.id }}"{% if bought != blank %} data-bought="{{ bought | escape }}"{% endif %}
 data-limit="{{ d.rl | default: 4 }}"
 data-checked="false"
 data-label="{{ button_label | escape }}"
