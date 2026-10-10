@@ -72,13 +72,11 @@ export async function deleteHero(admin: AdminClient, handle: string) {
   await syncDefault(admin);
 }
 
-/** Moves a banner one place up or down; the first banner is the default. */
-export async function moveHero(admin: AdminClient, handle: string, dir: -1 | 1) {
+/** Saves a new order (banner handles, first to last); the first banner is the default. */
+export async function reorderHeroes(admin: AdminClient, handles: string[]) {
   const items = await listHeroes(admin);
-  const at = items.findIndex((i) => i.handle === handle);
-  const to = at + dir;
-  if (at < 0 || to < 0 || to >= items.length) return;
-  [items[at], items[to]] = [items[to], items[at]];
-  await Promise.all(items.map((it, i) => (it.position === i + 1 ? null : upsert(admin, TYPE, it.handle, { position: String(i + 1) }))));
-  await syncDefault(admin, items);
+  const byHandle = new Map(items.map((it) => [it.handle, it]));
+  const ordered = [...handles.flatMap((h) => byHandle.get(h) ?? []), ...items.filter((it) => !handles.includes(it.handle))];
+  await Promise.all(ordered.map((it, i) => (it.position === i + 1 ? null : upsert(admin, TYPE, it.handle, { position: String(i + 1) }))));
+  await syncDefault(admin, ordered);
 }

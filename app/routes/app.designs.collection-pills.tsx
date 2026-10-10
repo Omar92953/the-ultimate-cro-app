@@ -20,6 +20,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchPills } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -59,14 +60,7 @@ export default function CollectionPillsDesigner() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   const item = (i: number, patch: Partial<PillItem>) => setCfg((c) => ({ ...c, items: c.items.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
-  const move = (i: number, dir: -1 | 1) =>
-    setCfg((c) => {
-      const j = i + dir;
-      if (j < 0 || j >= c.items.length) return c;
-      const items = [...c.items];
-      [items[i], items[j]] = [items[j], items[i]];
-      return { ...c, items };
-    });
+  const move = (from: number, to: number) => setCfg((c) => ({ ...c, items: arrayMove(c.items, from, to) }));
   const layout = (patch: Partial<C["layout"]>) => setCfg((c) => ({ ...c, layout: { ...c.layout, ...patch } }));
   const look = (patch: Partial<C["look"]>) => setCfg((c) => ({ ...c, look: { ...c.look, ...patch } }));
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
@@ -120,25 +114,27 @@ export default function CollectionPillsDesigner() {
             <Pane show={tab === "content"}><s-section heading={`Collections (${cfg.items.length})`}>
               <s-stack gap="base">
                 <s-text color="subdued">Each pill opens a collection. On a collection page, its own pill is highlighted.</s-text>
-                {cfg.items.map((x, i) => (
-                  <s-box key={x.id || x.handle} padding="small-200" borderWidth="base" borderRadius="base">
+                <SortableList
+                  items={cfg.items}
+                  keyOf={(x) => x.id || x.handle}
+                  labelOf={(x) => x.title}
+                  onMove={move}
+                  gap={6}
+                  render={(x, i, handle) => (
+                  <s-box padding="small-200" borderWidth="base" borderRadius="base">
                     <s-stack direction="inline" gap="small-200" alignItems="center">
+                      {handle}
                       <s-thumbnail src={x.image ?? undefined} alt={x.title} size="small" />
                       <s-box inlineSize="40%">
                         <TextField label={x.title} placeholder="Name on the pill" value={x.label} onValue={(v) => item(i, { label: v })} />
                       </s-box>
-                      <Button icon="arrow-up" accessibilityLabel={`Move ${x.title} up`} disabled={i === 0} onClick={() => move(i, -1)}>
-                        Up
-                      </Button>
-                      <Button icon="arrow-down" accessibilityLabel={`Move ${x.title} down`} disabled={i === cfg.items.length - 1} onClick={() => move(i, 1)}>
-                        Down
-                      </Button>
                       <Button icon="delete" tone="critical" variant="tertiary" accessibilityLabel={`Remove ${x.title}`} onClick={() => setCfg((c) => ({ ...c, items: c.items.filter((_, j) => j !== i) }))}>
                         Remove
                       </Button>
                     </s-stack>
                   </s-box>
-                ))}
+                  )}
+                />
                 <s-box>
                   <Button icon="collection" onClick={pick}>
                     {cfg.items.length ? "Add or remove collections" : "Choose collections"}

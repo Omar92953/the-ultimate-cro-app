@@ -21,6 +21,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchImageCarousel } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -65,14 +66,7 @@ export default function ImageCarouselDesigner() {
   const part = <K extends "heading" | "layout" | "nav" | "look">(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...c[k], ...patch } }));
   const heading = part("heading"), layout = part("layout"), nav = part("nav"), look = part("look");
   const slide = (i: number, patch: Partial<ImageSlide>) => setCfg((c) => ({ ...c, slides: c.slides.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
-  const move = (i: number, dir: -1 | 1) =>
-    setCfg((c) => {
-      const j = i + dir;
-      if (j < 0 || j >= c.slides.length) return c;
-      const slides = [...c.slides];
-      [slides[i], slides[j]] = [slides[j], slides[i]];
-      return { ...c, slides };
-    });
+  const move = (from: number, to: number) => setCfg((c) => ({ ...c, slides: arrayMove(c.slides, from, to) }));
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
   return (
@@ -105,9 +99,16 @@ export default function ImageCarouselDesigner() {
         </Pane>
             <Pane show={tab === "content"}><s-section heading={`Images (${cfg.slides.length})`}>
               <s-stack gap="base">
-                {cfg.slides.map((s, i) => (
-                  <s-box key={i} padding="base" borderWidth="base" borderRadius="base">
-                    <s-stack gap="base">
+                <SortableList
+                  items={cfg.slides}
+                  keyOf={(s, i) => `${s.image?.id ?? "img"}-${i}`}
+                  labelOf={(s) => s.title || "Image"}
+                  onMove={move}
+                  render={(s, i, handle) => (
+                  <s-box padding="base" borderWidth="base" borderRadius="base">
+                    <s-stack direction="inline" gap="small-200" alignItems="start">
+                    {handle}
+                    <s-stack gap="base" inlineSize="100%">
                       <MediaPicker label={`Image ${i + 1}`} accept="image" value={s.image} onValue={(v) => slide(i, { image: v })} alt={s.title || "Carousel image"} />
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <TextField label="Title (optional)" value={s.title} onValue={(v) => slide(i, { title: v })} />
@@ -117,19 +118,15 @@ export default function ImageCarouselDesigner() {
                       <TextField label="Link (optional)" details="A page in your store (/collections/summer) or a full link. The whole picture becomes clickable." value={s.link} onValue={(v) => slide(i, { link: v })} />
                       <TextField label="Image description for screen readers" details="Leave empty to use the title." value={s.alt} onValue={(v) => slide(i, { alt: v })} />
                       <s-stack direction="inline" gap="small-200">
-                        <Button icon="arrow-up" disabled={i === 0} onClick={() => move(i, -1)}>
-                          Up
-                        </Button>
-                        <Button icon="arrow-down" disabled={i === cfg.slides.length - 1} onClick={() => move(i, 1)}>
-                          Down
-                        </Button>
                         <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setCfg((c) => ({ ...c, slides: c.slides.filter((_, j) => j !== i) }))}>
                           Remove
                         </Button>
                       </s-stack>
                     </s-stack>
+                    </s-stack>
                   </s-box>
-                ))}
+                  )}
+                />
                 <s-box>
                   <Button icon="plus" disabled={cfg.slides.length >= 30} onClick={() => setCfg((c) => ({ ...c, slides: [...c.slides, { ...BLANK }] }))}>
                     Add image

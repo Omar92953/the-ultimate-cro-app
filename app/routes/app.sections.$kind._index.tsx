@@ -11,6 +11,7 @@ import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { LIST_FEATURE } from "../lib/catalog";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -89,11 +90,8 @@ export default function SectionList() {
     else shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
-  const move = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= items.length) return;
-    const next = [...items];
-    [next[i], next[j]] = [next[j], next[i]];
+  const move = (from: number, to: number) => {
+    const next = arrayMove(items, from, to);
     setItems(next);
     fetcher.submit({ intent: "reorder", ids: JSON.stringify(next.map((x) => x.id)) }, { method: "post" });
   };
@@ -131,15 +129,20 @@ export default function SectionList() {
 
         <s-section heading={items.length ? `${items.length} ${items.length === 1 ? cfg.singular : cfg.plural} · ${shownCount} shown` : `No ${cfg.plural} yet`}>
           {items.length ? (
-            <s-stack gap="small-200">
-              {items.map((item, i) => {
+            <SortableList
+              items={items}
+              keyOf={(item, i) => item.id ?? item.handle ?? String(i)}
+              labelOf={(item) => String(item.values[cfg.titleKey] || "Untitled")}
+              onMove={move}
+              render={(item, i, handle) => {
                 const status = itemStatus(data.kind, item);
                 const thumb = cfg.thumbKey ? (item.values[cfg.thumbKey] as MediaRef | null) : null;
                 const title = String(item.values[cfg.titleKey] || "Untitled");
                 return (
-                  <s-box key={item.id ?? item.handle ?? i} padding="small-300" borderWidth="base" borderRadius="base">
+                  <s-box padding="small-300" borderWidth="base" borderRadius="base">
                     <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                      <s-stack direction="inline" gap="base" alignItems="center">
+                      <s-stack direction="inline" gap="small-300" alignItems="center">
+                        {handle}
                         {cfg.thumbKey ? <s-thumbnail src={thumb?.url ?? undefined} alt={thumb ? thumb.title : "No image"} size="small" /> : null}
                         <s-stack gap="small-100">
                           <s-stack direction="inline" gap="small-200" alignItems="center">
@@ -151,12 +154,6 @@ export default function SectionList() {
                         </s-stack>
                       </s-stack>
                       <s-stack direction="inline" gap="small-200" alignItems="center">
-                        <Button icon="arrow-up" variant="tertiary" accessibilityLabel={`Move ${title} up`} disabled={i === 0} onClick={() => move(i, -1)}>
-                          Up
-                        </Button>
-                        <Button icon="arrow-down" variant="tertiary" accessibilityLabel={`Move ${title} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)}>
-                          Down
-                        </Button>
                         {cfg.activeKey ? (
                           <Button variant="tertiary" icon={item.values[cfg.activeKey] === false ? "view" : "hide"} onClick={() => toggle(item)}>
                             {item.values[cfg.activeKey] === false ? "Show" : "Hide"}
@@ -183,8 +180,8 @@ export default function SectionList() {
                     </s-stack>
                   </s-box>
                 );
-              })}
-            </s-stack>
+              }}
+            />
           ) : (
             <s-stack gap="base" alignItems="start">
               <s-paragraph>{cfg.empty}</s-paragraph>

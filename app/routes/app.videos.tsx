@@ -12,6 +12,7 @@ import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
 import { Button, Select, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 type VideoOption = { id: string; title: string; image: string | null; duration: number | null };
 
@@ -77,14 +78,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
     source === "files" ? props.files : productVideos.data?.mode === "product" ? productVideos.data.videos : [];
 
   const update = (i: number, patch: Partial<Slide>) => setSlides((all) => all.map((s, j) => (j === i ? { ...s, ...patch } : s)));
-  const move = (i: number, dir: -1 | 1) =>
-    setSlides((all) => {
-      const next = [...all];
-      const j = i + dir;
-      if (j < 0 || j >= next.length) return all;
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    });
+  const move = (from: number, to: number) => setSlides((all) => arrayMove(all, from, to));
   const add = (v: VideoOption) =>
     setSlides((all) => [
       ...all,
@@ -127,9 +121,15 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
       <s-section heading={`In the carousel (${slides.length})`}>
         {slides.length ? (
           <s-stack gap="base">
-            {slides.map((s, i) => (
-              <s-box key={`${s.video?.id}-${i}`} padding="base" borderWidth="base" borderRadius="base">
+            <SortableList
+              items={slides}
+              keyOf={(s, i) => `${s.video?.id}-${i}`}
+              labelOf={(s) => s.video?.title ?? "Video"}
+              onMove={move}
+              render={(s, i, handle) => (
+              <s-box padding="base" borderWidth="base" borderRadius="base">
                 <s-stack direction="inline" gap="base" alignItems="start">
+                  {handle}
                   <s-thumbnail src={s.video?.image ?? undefined} alt={s.video?.title ?? "Video"} size="large" />
                   <s-stack gap="small-200">
                     <s-text type="strong">
@@ -146,12 +146,6 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
                           Unlink
                         </Button>
                       ) : null}
-                      <Button icon="arrow-up" accessibilityLabel="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
-                        Up
-                      </Button>
-                      <Button icon="arrow-down" accessibilityLabel="Move down" disabled={i === slides.length - 1} onClick={() => move(i, 1)}>
-                        Down
-                      </Button>
                       <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setSlides((all) => all.filter((_, j) => j !== i))}>
                         Remove
                       </Button>
@@ -159,7 +153,8 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
                   </s-stack>
                 </s-stack>
               </s-box>
-            ))}
+              )}
+            />
           </s-stack>
         ) : (
           <s-paragraph>No videos yet. Add some from the list below, then click Save.</s-paragraph>

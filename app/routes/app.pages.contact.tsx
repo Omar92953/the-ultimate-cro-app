@@ -19,6 +19,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchContact } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SortableList, arrayMove } from "../components/Sortable";
 // The storefront's own stylesheet, so the preview matches the store exactly.
 
 
@@ -69,14 +70,7 @@ export default function ContactPage() {
   const info = (patch: Partial<Info>) => setCfg((c) => ({ ...c, info: { ...c.info, ...patch } }));
   const layout = (patch: Partial<Layout>) => setCfg((c) => ({ ...c, layout: { ...c.layout, ...patch } }));
   const field = (i: number, patch: Partial<ContactField>) => setCfg((c) => ({ ...c, fields: c.fields.map((f, j) => (j === i ? { ...f, ...patch } : f)) }));
-  const move = (i: number, dir: -1 | 1) =>
-    setCfg((c) => {
-      const fields = [...c.fields];
-      const j = i + dir;
-      if (j < 0 || j >= fields.length) return c;
-      [fields[i], fields[j]] = [fields[j], fields[i]];
-      return { ...c, fields };
-    });
+  const move = (from: number, to: number) => setCfg((c) => ({ ...c, fields: arrayMove(c.fields, from, to) }));
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
   return (
@@ -120,19 +114,20 @@ export default function ContactPage() {
 
             <Pane show={tab === "content"}><s-section heading="Fields">
               <s-stack gap="small-200">
-                {cfg.fields.map((f, i) => {
+                <SortableList
+                  items={cfg.fields}
+                  keyOf={(f) => f.key}
+                  labelOf={(f) => FIELD_META[f.key].title}
+                  onMove={move}
+                  gap={6}
+                  render={(f, i, handle) => {
                   const isEmail = f.key === "email";
                   return (
-                    <div key={f.key} className={ui.fieldRow}>
+                    <div className={ui.fieldRow}>
                       <div className={ui.fieldHead}>
-                        <span className={ui.fieldTitle}>{FIELD_META[f.key].title}</span>
-                        <span className={ui.fieldMoves}>
-                          <Button variant="tertiary" icon="arrow-up" accessibilityLabel={`Move ${f.label} up`} disabled={i === 0} onClick={() => move(i, -1)}>
-                            Up
-                          </Button>
-                          <Button variant="tertiary" icon="arrow-down" accessibilityLabel={`Move ${f.label} down`} disabled={i === cfg.fields.length - 1} onClick={() => move(i, 1)}>
-                            Down
-                          </Button>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          {handle}
+                          <span className={ui.fieldTitle}>{FIELD_META[f.key].title}</span>
                         </span>
                       </div>
                       <s-stack direction="inline" gap="base">
@@ -149,7 +144,8 @@ export default function ContactPage() {
                       {isEmail ? <s-text color="subdued">Always shown: Shopify needs it to send you the message.</s-text> : null}
                     </div>
                   );
-                })}
+                }}
+                />
               </s-stack>
             </s-section></Pane>
 

@@ -6,10 +6,11 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { sectionLinks } from "../lib/sections.server";
-import { deleteHero, duplicateHero, listHeroes, moveHero, type HeroItem } from "../lib/hero.server";
+import { deleteHero, duplicateHero, listHeroes, reorderHeroes, type HeroItem } from "../lib/hero.server";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb } from "../components/FeatureNav";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -31,7 +32,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     if (intent === "delete") await deleteHero(admin, handle);
     else if (intent === "duplicate") return { ok: true, error: null, intent, handle: (await duplicateHero(admin, handle)).handle };
-    else if (intent === "up" || intent === "down") await moveHero(admin, handle, intent === "up" ? -1 : 1);
+    else if (intent === "reorder") await reorderHeroes(admin, JSON.parse(String(form.get("handles"))) as string[]);
     else return { ok: false, error: "Unknown action.", intent, handle: null };
     return { ok: true, error: null, intent, handle: null };
   } catch (e) {
@@ -51,11 +52,22 @@ export default function HeroBanners() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
     else if (fetcher.data.intent === "duplicate" && fetcher.data.handle) navigate(`/app/designs/hero/${fetcher.data.handle}`);
-    else shopify.toast.show(fetcher.data.intent === "delete" ? "Banner deleted" : "Order saved");
+    else shopify.toast.show(fetcher.data.intent === "delete" ? "Banner deleted" : "Order saved — the first banner shows when none is picked");
   }, [fetcher.state, fetcher.data, shopify, navigate]);
 
   const act = (intent: string, handle: string) => fetcher.submit({ intent, handle }, { method: "post" });
-  const items = data.items;
+  // The new order shows at once; the server catches up in the background.
+  const [items, setItems] = useState(data.items);
+  const [loaded, setLoaded] = useState(data.items);
+  if (loaded !== data.items) {
+    setLoaded(data.items);
+    setItems(data.items);
+  }
+  const move = (from: number, to: number) => {
+    const next = arrayMove(items, from, to);
+    setItems(next);
+    fetcher.submit({ intent: "reorder", handle: "", handles: JSON.stringify(next.map((x) => x.handle)) }, { method: "post" });
+  };
 
   return (
     <s-page heading="Hero banners" inlineSize="large">
@@ -79,14 +91,19 @@ export default function HeroBanners() {
         ) : null}
         <s-section heading={items.length ? `${items.length} ${items.length === 1 ? "banner" : "banners"}` : "No banners yet"}>
           {items.length ? (
-            <s-stack gap="small-200">
-              {items.map((item, i) => {
+            <SortableList
+              items={items}
+              keyOf={(item) => item.handle}
+              labelOf={(item) => item.config.name || "Untitled"}
+              onMove={move}
+              render={(item, i, handle) => {
                 const c = item.config;
                 const title = c.name || "Untitled";
                 return (
-                  <s-box key={item.handle} padding="small-300" borderWidth="base" borderRadius="base">
+                  <s-box padding="small-300" borderWidth="base" borderRadius="base">
                     <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                      <s-stack direction="inline" gap="base" alignItems="center">
+                      <s-stack direction="inline" gap="small-300" alignItems="center">
+                        {handle}
                         <s-thumbnail src={c.images.desktop?.url ?? undefined} alt={c.images.desktop ? c.images.desktop.title : "No image"} size="small" />
                         <s-stack gap="small-100">
                           <s-stack direction="inline" gap="small-200" alignItems="center">
@@ -99,12 +116,6 @@ export default function HeroBanners() {
                         </s-stack>
                       </s-stack>
                       <s-stack direction="inline" gap="small-200" alignItems="center">
-                        <Button icon="arrow-up" variant="tertiary" accessibilityLabel={`Move ${title} up`} disabled={i === 0 || busy} onClick={() => act("up", item.handle)}>
-                          Up
-                        </Button>
-                        <Button icon="arrow-down" variant="tertiary" accessibilityLabel={`Move ${title} down`} disabled={i === items.length - 1 || busy} onClick={() => act("down", item.handle)}>
-                          Down
-                        </Button>
                         <Button href={`/app/designs/hero/${item.handle}`} icon="edit">
                           Edit
                         </Button>
@@ -129,8 +140,8 @@ export default function HeroBanners() {
                     </s-stack>
                   </s-box>
                 );
-              })}
-            </s-stack>
+              }}
+            />
           ) : (
             <s-stack gap="base" alignItems="start">
               <s-paragraph>No banners yet. Start with your main one — a wide image for desktop and a tall one for phones.</s-paragraph>

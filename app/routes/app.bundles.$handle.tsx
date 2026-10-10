@@ -11,6 +11,7 @@ import { errorMessage } from "../lib/admin.server";
 import type { Bundle, BundleStep } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
+import { SortableList, arrayMove } from "../components/Sortable";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
 
@@ -79,13 +80,7 @@ export default function BundleEditor() {
   const set = <K extends keyof Bundle>(key: K, value: Bundle[K]) => setBundle((b) => ({ ...b, [key]: value }));
   const setStep = (i: number, patch: Partial<BundleStep>) =>
     set("steps", bundle.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
-  const moveStep = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= bundle.steps.length) return;
-    const next = [...bundle.steps];
-    [next[i], next[j]] = [next[j], next[i]];
-    set("steps", next);
-  };
+  const moveStep = (from: number, to: number) => set("steps", arrayMove(bundle.steps, from, to));
 
   const problems = validateBundle(bundle, others);
   const save = () => {
@@ -166,9 +161,19 @@ export default function BundleEditor() {
         </s-stack>
       </s-section>
 
-      {bundle.steps.map((step, i) => (
-        <s-section key={i} heading={`Step ${i + 1}${step.label ? ` — ${step.label}` : ""}`}>
+      <SortableList
+        items={bundle.steps}
+        keyOf={(_step, i) => String(i)}
+        labelOf={(step) => step.label || "Step"}
+        onMove={moveStep}
+        gap={16}
+        render={(step, i, handle) => (
+        <s-section heading={`Step ${i + 1}${step.label ? ` — ${step.label}` : ""}`}>
           <s-stack gap="base">
+            <s-stack direction="inline" gap="small-100" alignItems="center">
+              {handle}
+              <s-text color="subdued">Drag to change the order of the steps</s-text>
+            </s-stack>
             <TextField label="Label" placeholder="Choose 3 posters" value={step.label} onValue={(v) => setStep(i, { label: v })} />
             <Checkbox
               label="Required"
@@ -228,12 +233,6 @@ export default function BundleEditor() {
               </>
             )}
             <s-stack direction="inline" gap="small-200">
-              <Button icon="arrow-up" disabled={i === 0} onClick={() => moveStep(i, -1)}>
-                Move up
-              </Button>
-              <Button icon="arrow-down" disabled={i === bundle.steps.length - 1} onClick={() => moveStep(i, 1)}>
-                Move down
-              </Button>
               <Button
                 tone="critical"
                 variant="tertiary"
@@ -246,7 +245,8 @@ export default function BundleEditor() {
             </s-stack>
           </s-stack>
         </s-section>
-      ))}
+        )}
+      />
 
       <s-section>
         <Button icon="plus" disabled={bundle.steps.length >= 6} onClick={() => set("steps", [...bundle.steps, blankStep()])}>
