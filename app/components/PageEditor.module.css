@@ -1,6 +1,7 @@
 /* Page designers: settings on the left, sticky live preview on the right (stacked on small screens). */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; align-items: start; }
-@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+/* Settings on the left, the live preview on the right (stacked only on very narrow screens). */
+.layout { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 640px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 .preview { position: sticky; top: 12px; overflow: hidden; background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08), 0 1px 0 rgba(26, 26, 26, 0.07); }
 .previewBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #ebebeb; font-size: 12px; font-weight: 600; color: #616161; }
 .frame { max-height: calc(100vh - 120px); overflow: auto; background: #f1f1f1; }
@@ -19,11 +20,11 @@
 .lookName { font-size: 13px; font-weight: 600; color: #303030; }
 
 /* Design pages: a centred column with space on both sides; tabs stay at the top while scrolling */
-.shell { width: 100%; max-width: 1180px; margin: 0 auto; }
+.shell { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(12px, 7vw, 110px); box-sizing: border-box; }
 /* Only the rounded tabs themselves: no band behind them (they still stick to the top when scrolling). */
 .tabsBar { width: fit-content; max-width: 100%; background: transparent; }
-@media (max-width: 1000px) {
-  /* narrow screens: the preview comes first so changes are always visible */
+@media (max-width: 640px) {
+  /* very narrow screens: the preview comes first so changes are always visible */
   .layout > .preview { order: -1; position: relative; top: 0; }
   .layout > .preview .frame { max-height: 45vh; }
 }

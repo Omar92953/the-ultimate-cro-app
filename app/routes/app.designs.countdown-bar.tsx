@@ -124,6 +124,8 @@ export default function CountdownBarDesigner() {
 
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <div className={ui.layout}>
+          <s-stack gap="base">
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchCountdown} />
         </Pane>
@@ -139,9 +141,6 @@ export default function CountdownBarDesigner() {
             ))}
           </div>
         </s-section></Pane>
-
-        <div className={ui.layout}>
-          <s-stack gap="base">
             <Pane show={tab === "content"}><s-section heading="What shows">
               <s-stack gap="base">
                 <Switch label={`${placeInfo.title} countdown`} details="Off: it disappears from this place on your store." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />

@@ -129,16 +129,15 @@ export default function UpsellDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchUpsellTheme(c, c.look.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={UPSELL_PRESETS} config={cfg} apply={applyUpsellPreset} onPick={(key) => setCfg((c) => applyUpsellPreset(c, key))} swatch={(c) => ({ accent: c.look.themeColors ? pageLook.accent : c.look.accent, radius: c.look.themeRadius ? pageLook.radius : c.look.radius, list: c.offers.style === "list" })} />
+            <LookPicker presets={UPSELL_PRESETS} config={cfg} apply={applyUpsellPreset} onPick={(key) => setCfg((c) => applyUpsellPreset(c, key))} render={(c) => <ThemeLook style={data.style}><UpsellDesignPreview config={c} offer={offer} product={product} currency={product?.currency} page={pageLook} block={c.look.scheme ? previewTheme(data.style, c.look.scheme) : null} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Offers">
                   <s-stack gap="base">

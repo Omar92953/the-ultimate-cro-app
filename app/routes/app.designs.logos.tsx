@@ -97,16 +97,15 @@ export default function LogosDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchLogos} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={LOGOS_PRESETS} config={cfg} apply={applyLogosPreset} onPick={(key) => setCfg((c) => applyLogosPreset(c, key))} swatch={(c) => ({ accent: c.look.ownText ? c.look.fg : "#8a8a8a", radius: 0, bg: c.look.ownBg ? c.look.bg : "#ffffff", list: c.layout.mode === "marquee" })} />
+            <LookPicker presets={LOGOS_PRESETS} config={cfg} apply={applyLogosPreset} onPick={(key) => setCfg((c) => applyLogosPreset(c, key))} render={(c) => <ThemeLook style={data.style}><LogosDesignPreview config={c} logos={data.logos} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="2fr 1fr" gap="base">

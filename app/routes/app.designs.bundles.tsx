@@ -161,16 +161,15 @@ export default function BundleDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeStylePanel style={data.style} scheme={cfg.look.scheme} onScheme={(id) => look({ scheme: id })} onMatch={() => setCfg((c) => matchBundleTheme(c, c.look.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={BUNDLE_PRESETS} config={cfg} apply={applyBundlePreset} onPick={(key) => setCfg((c) => applyBundlePreset(c, key))} swatch={(c) => ({ accent: c.look.themeAccent ? pageLook.accent : c.look.accent, radius: c.look.themeRadius ? pageLook.radius : c.look.radius, cards: c.products.desktop })} />
+            <LookPicker presets={BUNDLE_PRESETS} config={cfg} apply={applyBundlePreset} onPick={(key) => setCfg((c) => applyBundlePreset(c, key))} render={(c) => <ThemeLook style={data.style}><BundlePreview config={c} bundle={bundle} currency={data.currency} phone={false} page={pageLook} block={c.look.scheme ? previewTheme(data.style, c.look.scheme) : null} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-stack gap="base">

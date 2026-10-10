@@ -120,6 +120,8 @@ export default function ShippingBarDesigner() {
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
         <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+        <div className={ui.layout}>
+          <s-stack gap="base">
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchShippingBar} />
         </Pane>
@@ -135,9 +137,6 @@ export default function ShippingBarDesigner() {
             ))}
           </div>
         </s-section></Pane>
-
-        <div className={ui.layout}>
-          <s-stack gap="base">
             <Pane show={tab === "content"}><s-section heading="Goal and messages">
               <s-stack gap="base">
                 <NumberField label="Free shipping from" suffix={data.currency} min={1} max={1000000} step={1} value={cfg.goal} onValue={(v) => setCfg((c) => ({ ...c, goal: v }))} />

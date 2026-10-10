@@ -113,14 +113,13 @@ export default function ReviewsDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <div className={ui.layout}>
+          <s-stack gap="base">
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchReviews} />
         </Pane>
 
-        <Pane show={tab === "looks"}><LookPicker presets={REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} swatch={(c) => ({ accent: c.look.star, radius: c.look.radius, bg: c.look.transparentBg ? undefined : c.look.bg, cards: c.layout.perDesktop })} /></Pane>
-
-        <div className={ui.layout}>
-          <s-stack gap="base">
+        <Pane show={tab === "looks"}><LookPicker presets={REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} render={(c) => <ThemeLook style={data.style}><ReviewsPreview config={c} reviews={data.reviews} /></ThemeLook>} /></Pane>
             <Pane show={tab === "content"}><s-section heading="Heading and words">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />

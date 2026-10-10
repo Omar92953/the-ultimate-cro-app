@@ -124,6 +124,8 @@ export default function CrossSellDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeStylePanel style={data.style} scheme={cfg.scheme} onScheme={(id) => setCfg((c) => ({ ...c, scheme: id }))} onMatch={() => setCfg((c) => matchCrossSellTheme(c, c.scheme))} />
@@ -134,12 +136,9 @@ export default function CrossSellDesigner() {
               config={cfg}
               apply={applyCrossSellPreset}
               onPick={(key) => setCfg((c) => applyCrossSellPreset(c, key))}
-              swatch={(c) => ({ accent: c.look.themeColors ? pageLook.accent : c.look.accent, radius: c.look.themeRadius ? pageLook.radius : c.look.radius, bg: c.look.panel ? (c.look.themeColors ? "#f1f1f1" : c.look.panelColor) : "#ffffff", list: true })}
+              render={(c) => <ThemeLook style={data.style}><CrossSellDesignPreview config={c} offer={offer} currency={data.currency} page={pageLook} block={c.scheme ? previewTheme(data.style, c.scheme) : null} /></ThemeLook>}
             />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Products and button">
                   <s-stack gap="base">

@@ -1,8 +1,60 @@
 /**
- * "Start from a look" for design pages: each ready-made look as a small drawn sample (its accent
- * colour, corners and layout), with the look currently in use highlighted. A look is "in use" when
- * applying it would change nothing.
+ * "Start from a look" for design pages, with the look currently in use highlighted (a look is "in
+ * use" when applying it would change nothing). With `render`, each look is the page's own live
+ * preview with that look applied, scaled down, and its words drawn as bars (the design without the
+ * text). Without it, a small drawn sample (accent colour, corners, layout).
  */
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
+/** Draws text as rounded bars in the text's own colour (Google's "Flow Rounded" placeholder font). */
+const BARS_FONT = "https://fonts.googleapis.com/css2?family=Flow+Rounded&display=block";
+const MINI_WIDTH = 760;
+
+/** Adds the bars font and the mini-preview rules to the page head once. */
+function useMiniStyles() {
+  useEffect(() => {
+    if (document.getElementById("look-mini-styles")) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = BARS_FONT;
+    const style = document.createElement("style");
+    style.id = "look-mini-styles";
+    style.textContent = `.lookMini, .lookMini * { font-family: "Flow Rounded", sans-serif !important; letter-spacing: 0 !important; } .lookMini *, .lookMini *::before, .lookMini *::after { animation: none !important; transition: none !important; }`;
+    document.head.append(link, style);
+  }, []);
+}
+
+/** A full-size preview shrunk to fit its box; not clickable or focusable. */
+function MiniPreview({ children }: { children: ReactNode }) {
+  useMiniStyles();
+  const box = useRef<HTMLSpanElement>(null);
+  const [scale, setScale] = useState(0.2);
+  // Drawn only in the browser: live previews (timers, measured sizes) never match the server's HTML,
+  // and a mismatch makes React redraw the whole page, which drops the app's styles in development.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    // Fires once straight away when observing starts, then on every resize.
+    const ro = new ResizeObserver(() => {
+      setScale(el.clientWidth / MINI_WIDTH || 0.2);
+      setReady(true);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <span ref={box} aria-hidden="true" style={{ display: "block", position: "relative", height: 118, overflow: "hidden", borderRadius: 6, background: "#fff", boxShadow: "inset 0 0 0 1px #ececec" }}>
+      <span
+        className="lookMini"
+        {...({ inert: true } as object)}
+        style={{ display: "block", position: "absolute", top: 0, left: 0, width: MINI_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left", pointerEvents: "none" }}
+      >
+        {ready ? children : null}
+      </span>
+    </span>
+  );
+}
 export type LookSwatch = {
   accent: string; // selected item / buttons
   radius: number; // card corners, px
@@ -13,15 +65,15 @@ export type LookSwatch = {
   list?: boolean; // one box with rows instead of cards
 };
 
-export function LookPicker<C>({ presets, config, apply, swatch, onPick }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch: (c: C) => LookSwatch; onPick: (key: string) => void }) {
+export function LookPicker<C>({ presets, config, apply, swatch, render, onPick }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch?: (c: C) => LookSwatch; render?: (c: C) => ReactNode; onPick: (key: string) => void }) {
   const now = JSON.stringify(config);
   return (
     <s-section heading="Start from a look">
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }} role="radiogroup" aria-label="Looks">
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${render ? 160 : 130}px, 1fr))`, gap: 10 }} role="radiogroup" aria-label="Looks">
         {presets.map((p) => {
           const next = apply(config, p.key);
           const on = JSON.stringify(next) === now;
-          const s = swatch(next);
+          const s = swatch ? swatch(next) : { accent: "#303030", radius: 8 };
           const n = Math.max(2, Math.min(4, s.cards ?? 3));
           const r = Math.min(s.radius, 14);
           return (
@@ -34,7 +86,7 @@ export function LookPicker<C>({ presets, config, apply, swatch, onPick }: { pres
               onClick={() => onPick(p.key)}
               style={{ display: "flex", flexDirection: "column", gap: 6, padding: 6, font: "inherit", textAlign: "left", cursor: "pointer", background: "#fff", border: on ? "2px solid #303030" : "1px solid #d4d4d4", borderRadius: 10, minWidth: 0 }}
             >
-              <span aria-hidden="true" style={{ display: "flex", flexDirection: s.list ? "column" : "row", gap: s.list ? 0 : 5, height: 64, padding: 6, background: s.bg ?? "#f6f6f7", borderRadius: 6, overflow: "hidden" }}>
+              {render ? <MiniPreview>{render(next)}</MiniPreview> : <span aria-hidden="true" style={{ display: "flex", flexDirection: s.list ? "column" : "row", gap: s.list ? 0 : 5, height: 64, padding: 6, background: s.bg ?? "#f6f6f7", borderRadius: 6, overflow: "hidden" }}>
                 {Array.from({ length: s.list ? 3 : n }, (_, i) => {
                   const sel = i === 0;
                   if (s.list) {
@@ -52,7 +104,7 @@ export function LookPicker<C>({ presets, config, apply, swatch, onPick }: { pres
                     </span>
                   );
                 })}
-              </span>
+              </span>}
               <span style={{ fontSize: 13, fontWeight: 600, color: "#303030" }}>
                 {p.title}
                 {on ? <span style={{ fontWeight: 400, color: "#616161" }}> · in use</span> : null}

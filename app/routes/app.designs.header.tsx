@@ -104,6 +104,8 @@ export default function HeaderDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <div className={ui.layout}>
+          <s-stack gap="base">
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchHeader} />
         </Pane>
@@ -130,9 +132,6 @@ export default function HeaderDesigner() {
             ))}
           </s-grid>
         </s-section></Pane>
-
-        <div className={ui.layout}>
-          <s-stack gap="base">
             <Pane show={tab === "content"}><s-section heading="Header">
               <Switch label="Use this header on my store" details="Off: your theme's own header comes back." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
             </s-section></Pane>

@@ -129,16 +129,15 @@ export default function VideoCarouselDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "layout", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeStylePanel style={data.style} scheme={cfg.layout.scheme} onScheme={(id) => layout({ scheme: id })} onMatch={() => setCfg((c) => matchVideoCarouselTheme(c, c.layout.scheme))} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={VIDEO_CAROUSEL_PRESETS} config={cfg} apply={applyVideoCarouselPreset} onPick={(key) => setCfg((c) => applyVideoCarouselPreset(c, key))} swatch={(c) => ({ accent: pageLook.accent, radius: c.layout.corners === "theme" ? pageLook.radius : c.layout.corners === "round" ? 14 : 0, cards: c.layout.desktop, ratio: ({ "9 / 16": 1.78, "3 / 4": 1.33, "4 / 5": 1.25, "1 / 1": 1 } as Record<string, number>)[c.layout.ratio] })} />
+            <LookPicker presets={VIDEO_CAROUSEL_PRESETS} config={cfg} apply={applyVideoCarouselPreset} onPick={(key) => setCfg((c) => applyVideoCarouselPreset(c, key))} render={(c) => <ThemeLook style={data.style}><VideoCarouselPreview config={c} slides={data.slides} phone={false} page={pageLook} block={c.layout.scheme ? previewTheme(data.style, c.layout.scheme) : null} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-stack gap="base">

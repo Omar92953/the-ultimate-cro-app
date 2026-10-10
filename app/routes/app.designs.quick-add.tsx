@@ -107,16 +107,15 @@ export default function QuickAddDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchQuickAdd} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={QUICK_ADD_PRESETS} config={cfg} apply={applyQuickAddPreset} onPick={(key) => setCfg((c) => applyQuickAddPreset(c, key))} swatch={(c) => ({ accent: c.popup.coBg, radius: c.popup.radius, bg: c.button.bg === "#ffffff" ? "#f1f1f1" : c.button.bg })} />
+            <LookPicker presets={QUICK_ADD_PRESETS} config={cfg} apply={applyQuickAddPreset} onPick={(key) => setCfg((c) => applyQuickAddPreset(c, key))} render={(c) => <ThemeLook style={data.style}><QuickAddDesignPreview config={c} products={data.products} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="After adding">
                   <s-stack gap="base">

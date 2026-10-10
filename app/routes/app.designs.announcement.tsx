@@ -110,16 +110,15 @@ export default function AnnouncementDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchAnnouncement} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={ANNOUNCEMENT_PRESETS} config={cfg} apply={applyAnnouncementPreset} onPick={(key) => setCfg((c) => applyAnnouncementPreset(c, key))} swatch={(c) => ({ accent: c.look.fg, radius: 0, bg: c.look.bg, list: true })} />
+            <LookPicker presets={ANNOUNCEMENT_PRESETS} config={cfg} apply={applyAnnouncementPreset} onPick={(key) => setCfg((c) => applyAnnouncementPreset(c, key))} render={(c) => <ThemeLook style={data.style}><AnnouncementDesignPreview config={c} messages={data.messages} freeShipping={data.freeShipping} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Free-shipping message">
                   <s-stack gap="base">

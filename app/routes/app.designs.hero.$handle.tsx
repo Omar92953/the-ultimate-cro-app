@@ -158,16 +158,15 @@ export default function HeroEditor() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchHero} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={HERO_PRESETS} config={cfg} apply={applyHeroPreset} onPick={(key) => setCfg((c) => applyHeroPreset(c, key))} swatch={(c) => ({ accent: c.look.buttonBg, radius: c.layout.radius, bg: c.layout.box ? c.look.boxBg : c.look.overlay })} />
+            <LookPicker presets={HERO_PRESETS} config={cfg} apply={applyHeroPreset} onPick={(key) => setCfg((c) => applyHeroPreset(c, key))} render={(c) => <ThemeLook style={data.style}><HeroDesignPreview config={c} device="desktop" /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Banner">
                   <s-stack gap="base">

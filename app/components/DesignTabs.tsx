@@ -22,16 +22,12 @@ export function Pane({ show, children }: { show: boolean; children: ReactNode })
   return show ? <>{children}</> : null;
 }
 
-/** Browser-style frame around a preview ("Product page", "Home page"…). */
+/** Frame around a preview, with its title ("Product page", "Home page"…) and optional tools. */
 export function PreviewFrame({ title, children, tools }: { title: string; children: ReactNode; tools?: ReactNode }) {
   return (
     <div className={ui.preview}>
       <div className={ui.previewBar}>
-        <span aria-hidden="true" style={{ display: "inline-flex", gap: 5 }}>
-          {[0, 1, 2].map((i) => (
-            <i key={i} style={{ width: 9, height: 9, borderRadius: "50%", background: "#d4d4d4", display: "block" }} />
-          ))}
-        </span>
+        <span />
         <span>{title}</span>
         <span>{tools}</span>
       </div>

@@ -97,16 +97,15 @@ export default function FaqDesigner() {
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <div className={ui.layout}>
+            <s-stack gap="base">
 
           <Pane show={tab === "looks"}>
             <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchFaq} />
           </Pane>
           <Pane show={tab === "looks"}>
-            <LookPicker presets={FAQ_PRESETS} config={cfg} apply={applyFaqPreset} onPick={(key) => setCfg((c) => applyFaqPreset(c, key))} swatch={(c) => ({ accent: c.look.accent, radius: c.look.style === "cards" ? c.look.radius : 0, bg: c.look.ownBg ? c.look.bg : "#ffffff", list: true })} />
+            <LookPicker presets={FAQ_PRESETS} config={cfg} apply={applyFaqPreset} onPick={(key) => setCfg((c) => applyFaqPreset(c, key))} render={(c) => <ThemeLook style={data.style}><FaqDesignPreview config={c} questions={data.questions} /></ThemeLook>} />
           </Pane>
-
-          <div className={ui.layout}>
-            <s-stack gap="base">
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-stack gap="base">
