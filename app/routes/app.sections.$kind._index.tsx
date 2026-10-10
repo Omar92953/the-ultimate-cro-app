@@ -5,9 +5,9 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
-import { deleteItem, listItems, reorder, sectionLinks, setShown } from "../lib/sections.server";
+import { addProducts, deleteItem, listItems, reorder, sectionLinks, setShown } from "../lib/sections.server";
 import { SECTIONS, SOURCES, isKind, itemStatus, type MediaRef, type ProductRef, type SectionItem, type SectionKind } from "../lib/sections";
-import { Button } from "../components/fields";
+import { Button, Checkbox } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { LIST_FEATURE } from "../lib/catalog";
@@ -37,6 +37,10 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     if (intent === "reorder") await reorder(admin, kind, JSON.parse(String(form.get("ids"))) as string[]);
     else if (intent === "shown") await setShown(admin, kind, String(form.get("id")), form.get("shown") === "true");
     else if (intent === "delete") await deleteItem(admin, kind, String(form.get("id")));
+    else if (intent === "products") {
+      const n = await addProducts(admin, kind, JSON.parse(String(form.get("ids"))) as string[], JSON.parse(String(form.get("products"))) as string[]);
+      return { ok: true, error: null, intent, message: `${n} ${n === 1 ? SECTIONS[kind].singular : SECTIONS[kind].plural} now show on ${form.get("count")} product page${form.get("count") === "1" ? "" : "s"}` };
+    }
     else return { ok: false, error: "Unknown action." };
     return { ok: true, error: null, intent };
   } catch (e) {
@@ -54,6 +58,8 @@ function subtitle(kind: SectionKind, item: SectionItem): string {
     const src = SOURCES.find((s) => s.value === v.source && s.value);
     if (src) parts.push(src.label);
     if (v.product) parts.push((v.product as ProductRef).title);
+    const extra = (v.products as ProductRef[] | null) ?? [];
+    if (extra.length) parts.push(`Also on ${extra.length === 1 ? extra[0].title : `${extra.length} products`}`);
     if (v.featured) parts.push("Featured");
     if (v.text) parts.push(`“${String(v.text).slice(0, 70)}${String(v.text).length > 70 ? "…" : ""}”`);
   } else if (kind === "faq") {
@@ -86,7 +92,7 @@ export default function SectionList() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show(fetcher.data.intent === "delete" ? "Deleted" : "Saved");
+    if (fetcher.data.ok) shopify.toast.show("message" in fetcher.data && fetcher.data.message ? String(fetcher.data.message) : fetcher.data.intent === "delete" ? "Deleted" : "Saved");
     else shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -108,6 +114,16 @@ export default function SectionList() {
   };
 
   const shownCount = items.filter((i) => itemStatus(data.kind, i).tone === "ok").length;
+  // Several at once (lists that can be linked to products, e.g. reviews): tick, then choose products.
+  const canLink = cfg.fields.some((f) => f.type === "products");
+  const [picked, setPicked] = useState<string[]>([]);
+  const togglePick = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const linkProducts = async () => {
+    const selected = (await shopify.resourcePicker({ type: "product", multiple: true, action: "select" })) as { id: string }[] | undefined;
+    if (!selected?.length) return;
+    fetcher.submit({ intent: "products", ids: JSON.stringify(picked), products: JSON.stringify(selected.map((p) => p.id)), count: String(selected.length) }, { method: "post" });
+    setPicked([]);
+  };
 
   return (
     <s-page heading={cfg.title} inlineSize="large">
@@ -128,6 +144,29 @@ export default function SectionList() {
         ) : null}
 
         <s-section heading={items.length ? `${items.length} ${items.length === 1 ? cfg.singular : cfg.plural} · ${shownCount} shown` : `No ${cfg.plural} yet`}>
+          {canLink && items.length ? (
+            <s-box paddingBlockEnd="small-300">
+              <s-stack direction="inline" gap="small-200" alignItems="center">
+                <Checkbox
+                  label={picked.length ? `${picked.length} selected` : `Select ${cfg.plural}`}
+                  checked={picked.length > 0 && picked.length === items.length}
+                  onValue={(v) => setPicked(v ? items.flatMap((x) => (x.id ? [x.id] : [])) : [])}
+                />
+                {picked.length ? (
+                  <>
+                    <Button icon="product" onClick={linkProducts}>
+                      Show on product pages…
+                    </Button>
+                    <Button variant="tertiary" onClick={() => setPicked([])}>
+                      Clear
+                    </Button>
+                  </>
+                ) : (
+                  <s-text color="subdued">Tick {cfg.plural} to show them on chosen product pages.</s-text>
+                )}
+              </s-stack>
+            </s-box>
+          ) : null}
           {items.length ? (
             <SortableList
               items={items}
@@ -143,6 +182,7 @@ export default function SectionList() {
                     <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
                       <s-stack direction="inline" gap="small-300" alignItems="center">
                         {handle}
+                        {canLink && item.id ? <Checkbox label={`Select ${title}`} labelHidden checked={picked.includes(item.id)} onValue={() => togglePick(item.id!)} /> : null}
                         {cfg.thumbKey ? <s-thumbnail src={thumb?.url ?? undefined} alt={thumb ? thumb.title : "No image"} size="small" /> : null}
                         <s-stack gap="small-100">
                           <s-stack direction="inline" gap="small-200" alignItems="center">

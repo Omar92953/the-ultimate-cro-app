@@ -172,7 +172,8 @@ export function Select(
   );
 }
 
-export function Checkbox(props: Common & { checked: boolean; onValue: (v: boolean) => void }) {
+/** `labelHidden`: no visible text (e.g. a row's select box); the label is still read out. */
+export function Checkbox(props: Common & { checked: boolean; onValue: (v: boolean) => void; labelHidden?: boolean }) {
   const ref = useRef<any>(null);
   useProp(ref, "defaultChecked", props.checked);
   useProp(ref, "checked", props.checked);
@@ -182,7 +183,8 @@ export function Checkbox(props: Common & { checked: boolean; onValue: (v: boolea
   return (
     <s-checkbox
       ref={ref}
-      label={props.label}
+      label={props.labelHidden ? undefined : props.label}
+      accessibilityLabel={props.labelHidden ? props.label : undefined}
       details={props.details}
       error={props.error}
       {...(props.checked ? { checked: true } : {})}

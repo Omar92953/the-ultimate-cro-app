@@ -14,11 +14,25 @@
   if request.page_type == 'product' and product and c.w.filter == 'product'
     assign pid = product.id
   endif
+  # This product's reviews: about it, or also shown on it ("Also show on these product pages").
   assign mine = 0
+  assign keys = ','
   if pid != 0
     for m in items
+      assign hit = false
       if m.product.value.id == pid
+        assign hit = true
+      else
+        for p in m.products.value
+          if p.id == pid
+            assign hit = true
+            break
+          endif
+        endfor
+      endif
+      if hit
         assign mine = mine | plus: 1
+        assign keys = keys | append: m.system.handle | append: ','
       endif
     endfor
   endif
@@ -27,7 +41,10 @@
   <script type="application/json">{"c":{{ c | json | default: 'null' }},"r":[
     {%- assign n = 0 -%}
     {%- for m in items -%}
-      {%- if mine > 0 and m.product.value.id != pid %}{% continue %}{% endif -%}
+      {%- if mine > 0 -%}
+        {%- assign key = ',' | append: m.system.handle | append: ',' -%}
+        {%- unless keys contains key %}{% continue %}{% endunless -%}
+      {%- endif -%}
       {%- if n > 99 %}{% break %}{% endif -%}
       {%- assign md = m.media.value -%}
       {%- assign p = m.product.value -%}

@@ -223,6 +223,22 @@ async function updateFields(admin: AdminClient, updates: { id: string; fields: R
   }
 }
 
+/** Adds products to several items' "products" list at once (keeps what's there; at most 25 each). */
+export async function addProducts(admin: AdminClient, kind: SectionKind, ids: string[], productIds: string[]) {
+  const key = SECTIONS[kind].fields.find((f) => f.type === "products")?.key;
+  if (!key) throw new AdminError("This list can't be linked to products.");
+  const items = await listItems(admin, kind);
+  const updates = items
+    .filter((it) => it.id && ids.includes(it.id))
+    .map((it) => {
+      const now = ((it.values[key] as ProductRef[] | null) ?? []).map((p) => p.id);
+      return { id: it.id!, fields: { [key]: JSON.stringify([...new Set([...now, ...productIds])].slice(0, 25)) } };
+    });
+  await updateFields(admin, updates);
+  await syncList(admin, kind);
+  return updates.length;
+}
+
 /** Saves the order shown in the list (1, 2, 3…). */
 export async function reorder(admin: AdminClient, kind: SectionKind, ids: string[]) {
   await updateFields(admin, ids.map((id, i) => ({ id, fields: { position: String(i + 1) } })));

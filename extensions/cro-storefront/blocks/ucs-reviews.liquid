@@ -9,15 +9,28 @@ if request.page_type == 'product' and product and c.w.filter == 'product'
 assign pid = product.id
 endif
 assign mine = 0
+assign keys = ','
 if pid != 0
 for m in items
+assign hit = false
 if m.product.value.id == pid
+assign hit = true
+else
+for p in m.products.value
+if p.id == pid
+assign hit = true
+break
+endif
+endfor
+endif
+if hit
 assign mine = mine | plus: 1
+assign keys = keys | append: m.system.handle | append: ','
 endif
 endfor
 endif
 -%}<div class="ucs ucs-rv" data-ucs-rv data-only="{% if mine > 0 %}1{% endif %}" data-pp="{{ pid }}" data-shop="{{ shop.name | escape }}" {{ block.shopify_attributes }}>
-<script type="application/json">{"c":{{ c | json | default: 'null' }},"r":[{%- assign n = 0 -%}{%- for m in items -%}{%- if mine > 0 and m.product.value.id != pid %}{% continue %}{% endif -%}{%- if n > 99 %}{% break %}{% endif -%}{%- assign md = m.media.value -%}{%- assign p = m.product.value -%}{%- if n > 0 %},{% endif -%}{%- assign n = n | plus: 1 -%}
+<script type="application/json">{"c":{{ c | json | default: 'null' }},"r":[{%- assign n = 0 -%}{%- for m in items -%}{%- if mine > 0 -%}{%- assign key = ',' | append: m.system.handle | append: ',' -%}{%- unless keys contains key %}{% continue %}{% endunless -%}{%- endif -%}{%- if n > 99 %}{% break %}{% endif -%}{%- assign md = m.media.value -%}{%- assign p = m.product.value -%}{%- if n > 0 %},{% endif -%}{%- assign n = n | plus: 1 -%}
 {"n":{{ m.name.value | default: '' | json }},"t":{{ m.text.value | default: '' | json }},"r":{{ m.rating.value | default: 0 }},"s":{{ m.source.value | default: '' | json }},"su":{{ m.source_url.value | default: '' | json }},"l":{{ m.location.value | default: '' | json }},"d":{{ m.date.value | date: '%b %-d, %Y' | default: '' | json }},"di":{{ m.date.value | date: '%Y-%m-%d' | default: '' | json }},"v":{% if m.verified.value == false %}0{% else %}1{% endif %},"f":{% if m.featured.value %}1{% else %}0{% endif %}{%- if md -%},"m":{"k":{{ md.media_type | json }}{%- if md.media_type == 'video' -%}{%- assign mp4 = md.sources | where: 'mime_type', 'video/mp4' | first -%},"u":{{ mp4.url | default: '' | json }}{% if md.preview_image %},"po":{{ md.preview_image | image_url: width: 720 | json }}{% endif %}{%- else -%},"u":{{ md | image_url: width: 720 | json }},"w":{{ md.preview_image.width | default: 0 }},"h":{{ md.preview_image.height | default: 0 }}{%- endif -%}}{%- endif -%}{%- if p -%},"p":{"id":{{ p.id }},"t":{{ p.title | json }},"u":{{ p.url | json }}{% if p.featured_image %},"i":{{ p.featured_image | image_url: width: 720 | json }}{% endif %}}{%- endif -%}}{%- endfor -%}]}</script>
 </div>
 <script src="{{ 'ucs-reviews.js' | asset_url }}" defer></script>
