@@ -13,18 +13,18 @@ customer pays.
 
 ## Finding your way
 The app has the same map everywhere:
-- **Menu:** Home · Offers & bundles · Sections · Boosters · Header & pages · Settings.
+- **Menu:** Home · Offers & bundles · Store-wide tools · Sections · Header & pages · Settings.
   - **Offers & bundles:** upsell offers, cross-sell offers, bundles (mix & match and deals), add-ons.
+  - **Store-wide tools:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
+    conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups).
   - **Sections:** hero banners, customer reviews, FAQ, scrolling logos, video carousel, image carousel,
     collection pills.
-  - **Boosters:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
-    conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups).
   - **Header & pages:** header and contact page.
 - **Home** shows every feature as a card with its status and next step; each menu category shows the
   same cards for that category only.
 - **Every feature page** looks the same: the breadcrumb goes back to its category, and tabs at the top
   switch between its content and its look (e.g. Customer reviews: Reviews | Design).
-- **Every design page** has the same tabs in the same order (Looks · Content · Layout · Style ·
+- **Every design page** has the same tabs in the same order (Templates · Content · Layout · Style ·
   Display, only the ones it needs), settings on the left and a live preview on the right, and the same
   buttons: Save, See it on my store, and Add to theme / Open in theme editor.
 - **Theme editor:** blocks only place, move or remove a section; everything else is set in the app.
@@ -106,7 +106,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   links). Words, tray position and colours: **Bundles → Design** (preview: Bundle page / Collection page).
 
 ## Free shipping bar
-- Set the goal and messages in **Boosters → Free shipping bar**. With **Give free shipping
+- Set the goal and messages in **Store-wide tools → Free shipping bar**. With **Give free shipping
   automatically** on (the default), saving creates or updates the automatic discount "CRO Toolbox free
   shipping" (Shopify → Discounts): free shipping on orders from the goal amount. Turning the bar or the
   option off switches the discount off. Off: the bar only shows the goal, and you give free shipping

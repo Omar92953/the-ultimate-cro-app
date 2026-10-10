@@ -2,7 +2,7 @@
  * The map of the app, in one place. The side menu, Home's groups, every page's breadcrumb and the
  * tabs at the top of each feature all come from here, so they always agree:
  *
- *   Menu:     Home · Offers & bundles · Sections · Boosters · Header & pages · Settings
+ *   Menu:     Home · Offers & bundles · Store-wide tools · Sections · Header & pages · Settings
  *   A page:   breadcrumb = its category · heading = the feature · tabs = the feature's pages
  *             (e.g. Customer reviews: Reviews | Design)
  *
@@ -14,8 +14,8 @@ export type CategoryKey = "offers" | "sections" | "boosters" | "design";
 
 export const CATEGORIES: { key: CategoryKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers & bundles", href: "/app/browse/offers", intro: "Ways to raise the order value: upsells, cross-sells, bundles, deals and add-ons." },
+  { key: "boosters", title: "Store-wide tools", href: "/app/browse/boosters", intro: "Work across your whole store once switched on: bars, timers, quick add, pop-ups." },
   { key: "sections", title: "Sections", href: "/app/browse/sections", intro: "Sections you place on your store pages: banners, reviews, FAQ, logos, carousels." },
-  { key: "boosters", title: "Boosters", href: "/app/browse/boosters", intro: "Small touches across the whole store that nudge shoppers to buy: bars, timers, quick add, pop-ups." },
   { key: "design", title: "Header & pages", href: "/app/browse/design", intro: "Your store's header and pages designed in the app." },
 ];
 export const isCategory = (v: unknown): v is CategoryKey => CATEGORIES.some((c) => c.key === v);
@@ -44,7 +44,7 @@ export const FEATURES = {
   videos: { title: "Video carousel", cat: "sections", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
   image_carousel: { title: "Image carousel", cat: "sections", tabs: [design("/app/designs/image-carousel")] },
   collection_pills: { title: "Collection pills", cat: "sections", tabs: [design("/app/designs/collection-pills")] },
-  // Boosters
+  // Store-wide tools
   announcements: { title: "Announcement bar", cat: "boosters", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },
   countdown: { title: "Countdown timers", cat: "boosters", tabs: [design("/app/designs/countdown-bar")] },
   shipping_bar: { title: "Free shipping bar", cat: "boosters", tabs: [design("/app/designs/shipping-bar")] },

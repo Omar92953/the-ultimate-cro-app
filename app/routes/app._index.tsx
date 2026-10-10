@@ -284,7 +284,7 @@ const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => J
   { key: "page_collection", title: "Collection page", href: "/app/browse/design", Previews: [CollectionPageShowcase] },
 ];
 
-/** The four boosters live in one app embed; each is switched on and edited on the Boosters page. */
+/** The four boosters live in one app embed; each is switched on and edited on the Conversion boosters page. */
 const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "sticky", title: "Sticky add to cart", Previews: [StickyShowcase, StickyMobileShowcase] },
   { key: "urgency", title: "Stock urgency", Previews: [UrgencyShowcase, UrgencyLastShowcase] },
