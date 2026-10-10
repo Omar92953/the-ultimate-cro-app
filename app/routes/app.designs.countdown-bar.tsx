@@ -129,10 +129,11 @@ export default function CountdownBarDesigner() {
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchCountdown} />
         </Pane>
-        <Pane show={tab === "looks"}><s-section heading="Start from a look">
+        <Pane show={tab === "looks"}><s-section heading="Start from a template">
+          <p style={{ margin: "0 0 10px", color: "#616161", fontSize: 13 }}>An easy start: pick one, then change anything in the other tabs.</p>
           <div className={ui.looks} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {COUNTDOWN_BAR_PRESETS.map((p) => (
-              <button key={p.key} type="button" className={ui.look} style={LOOK} onClick={() => setCfg((c) => applyCountdownBarPreset(c, p.key))} aria-label={`Use the ${p.title} look`}>
+              <button key={p.key} type="button" className={ui.look} style={LOOK} onClick={() => setCfg((c) => applyCountdownBarPreset(c, p.key))} aria-label={`Use the ${p.title} template`}>
                 <span className={ui.lookBar} style={{ display: "block", overflow: "hidden", borderRadius: 6, pointerEvents: "none" }} aria-hidden="true">
                   <CountdownBarPreview offset={data.offset} config={{ ...applyCountdownBarPreset(cfg, p.key), text: { ...cfg.text, show: false }, layout: { ...cfg.layout, slim: true, dismissible: false } }} />
                 </span>

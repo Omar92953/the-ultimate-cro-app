@@ -1,5 +1,5 @@
 /**
- * "Start from a look" for design pages, with the look currently in use highlighted (a look is "in
+ * "Start from a template" for design pages, with the template currently in use highlighted (one is "in
  * use" when applying it would change nothing). With `render`, each look is the page's own live
  * preview with that look applied, scaled down, and its words drawn as bars (the design without the
  * text). Without it, a small drawn sample (accent colour, corners, layout).
@@ -68,8 +68,9 @@ export type LookSwatch = {
 export function LookPicker<C>({ presets, config, apply, swatch, render, onPick }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch?: (c: C) => LookSwatch; render?: (c: C) => ReactNode; onPick: (key: string) => void }) {
   const now = JSON.stringify(config);
   return (
-    <s-section heading="Start from a look">
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${render ? 160 : 130}px, 1fr))`, gap: 10 }} role="radiogroup" aria-label="Looks">
+    <s-section heading="Start from a template">
+      <p style={{ margin: "0 0 10px", color: "#616161", fontSize: 13 }}>An easy start: pick one, then change anything in the other tabs.</p>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${render ? 160 : 130}px, 1fr))`, gap: 10 }} role="radiogroup" aria-label="Templates">
         {presets.map((p) => {
           const next = apply(config, p.key);
           const on = JSON.stringify(next) === now;
@@ -82,7 +83,7 @@ export function LookPicker<C>({ presets, config, apply, swatch, render, onPick }
               type="button"
               role="radio"
               aria-checked={on}
-              aria-label={`Use the ${p.title} look`}
+              aria-label={`Use the ${p.title} template`}
               onClick={() => onPick(p.key)}
               style={{ display: "flex", flexDirection: "column", gap: 6, padding: 6, font: "inherit", textAlign: "left", cursor: "pointer", background: "#fff", border: on ? "2px solid #303030" : "1px solid #d4d4d4", borderRadius: 10, minWidth: 0 }}
             >

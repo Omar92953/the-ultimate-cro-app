@@ -125,10 +125,11 @@ export default function ShippingBarDesigner() {
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchShippingBar} />
         </Pane>
-        <Pane show={tab === "looks"}><s-section heading="Start from a look">
+        <Pane show={tab === "looks"}><s-section heading="Start from a template">
+          <p style={{ margin: "0 0 10px", color: "#616161", fontSize: 13 }}>An easy start: pick one, then change anything in the other tabs.</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 10 }}>
             {SHIPPING_BAR_PRESETS.map((p) => (
-              <button key={p.key} type="button" style={LOOK} aria-label={`Use the ${p.title} look`} onClick={() => setCfg((c) => ({ ...c, look: { ...c.look, ...p.look } }))}>
+              <button key={p.key} type="button" style={LOOK} aria-label={`Use the ${p.title} template`} onClick={() => setCfg((c) => ({ ...c, look: { ...c.look, ...p.look } }))}>
                 <span style={{ display: "block", overflow: "hidden", borderRadius: 6, pointerEvents: "none" }} aria-hidden="true">
                   <ShippingBarPreview config={{ ...cfg, look: { ...cfg.look, ...p.look, size: 12 } }} total={cart} currency={data.currency} />
                 </span>

@@ -12,7 +12,7 @@ export const SECTION_KINDS: SectionKind[] = ["reviews", "faq", "logos", "announc
 
 export type MediaRef = { id: string; url: string | null; kind: "image" | "video"; title: string };
 export type ProductRef = { id: string; title: string; image: string | null };
-export type Value = string | number | boolean | MediaRef | ProductRef | null;
+export type Value = string | number | boolean | MediaRef | ProductRef | ProductRef[] | null;
 
 export type FieldType =
   | "text" // single line
@@ -26,7 +26,8 @@ export type FieldType =
   | "bool"
   | "media" // image or video from Files
   | "image" // image from Files
-  | "product";
+  | "product"
+  | "products"; // several products
 
 export type FieldDef = {
   key: string;
@@ -120,6 +121,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "source", label: "Where it came from", type: "select", options: SOURCES, default: "", details: "Shows the WhatsApp, Instagram… icon on the card." },
       { key: "source_url", label: "Link to the original post", type: "url", placeholder: "https://www.instagram.com/p/…", details: "Optional. The icon links to it." },
       { key: "product", label: "Product", type: "product", details: "Optional. Shows the product on the card, and the review on that product's page." },
+      { key: "products", label: "Also show on these product pages", type: "products", details: "Optional. The review also appears in the reviews on these products' pages." },
       { key: "location", label: "Location", type: "text", placeholder: "Cairo" },
       { key: "date", label: "Date", type: "date" },
       { key: "verified", label: "Verified buyer", type: "bool", default: true },
@@ -218,7 +220,7 @@ export function isKind(v: string | undefined): v is SectionKind {
 
 export function blankItem(kind: SectionKind): SectionItem {
   const values: Record<string, Value> = {};
-  for (const f of SECTIONS[kind].fields) values[f.key] = f.default ?? (f.type === "bool" ? false : f.type === "rating" ? 0 : ["media", "image", "product"].includes(f.type) ? null : "");
+  for (const f of SECTIONS[kind].fields) values[f.key] = f.default ?? (f.type === "bool" ? false : f.type === "rating" ? 0 : ["media", "image", "product"].includes(f.type) ? null : f.type === "products" ? [] : "");
   return { id: null, handle: null, position: 0, values };
 }
 

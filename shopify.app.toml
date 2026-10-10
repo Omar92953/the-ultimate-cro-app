@@ -319,6 +319,12 @@ access.storefront = "public_read"
   name = "Product"
   type = "product_reference"
 
+  # Extra product pages this review also shows on ("Product page reviews" block and the
+  # reviews section's "this product" filter), besides the product it's about.
+  [metaobjects.app.cro_review.fields.products]
+  name = "Also shown on"
+  type = "list.product_reference"
+
   [metaobjects.app.cro_review.fields.location]
   name = "Location"
   type = "single_line_text_field"

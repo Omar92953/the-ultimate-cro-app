@@ -7,7 +7,7 @@ import { Segmented } from "./ui";
 import ui from "./PageEditor.module.css";
 
 export type DesignTab = "looks" | "content" | "layout" | "style" | "display";
-const LABELS: Record<DesignTab, string> = { looks: "Looks", content: "Content", layout: "Layout", style: "Style", display: "Display" };
+const LABELS: Record<DesignTab, string> = { looks: "Templates", content: "Content", layout: "Layout", style: "Style", display: "Display" };
 
 export function DesignTabs({ tabs, value, onChange }: { tabs: DesignTab[]; value: DesignTab; onChange: (t: DesignTab) => void }) {
   return (

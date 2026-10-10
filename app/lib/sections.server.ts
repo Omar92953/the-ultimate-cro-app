@@ -60,6 +60,16 @@ function toValue(type: string, field: { value: string | null; reference?: any } 
     case "product":
       if (!ref?.id) return null;
       return { id: ref.id, title: ref.title ?? "", image: ref.featuredMedia?.preview?.image?.url ?? null } satisfies ProductRef;
+    case "products": {
+      // Only the IDs here; listItems fills in titles and pictures with one request for all items.
+      let ids: unknown = [];
+      try {
+        ids = JSON.parse(raw ?? "[]");
+      } catch {
+        ids = [];
+      }
+      return (Array.isArray(ids) ? ids : []).filter((id): id is string => typeof id === "string").map((id) => ({ id, title: "", image: null }) satisfies ProductRef);
+    }
     default:
       return raw ?? "";
   }
@@ -77,7 +87,22 @@ export async function listItems(admin: AdminClient, kind: SectionKind): Promise<
     }
     return { id: node.id, handle: node.handle, position: Number(byKey.position?.value) || 0, values };
   });
+  await fillProductLists(admin, items, cfg.fields.filter((f) => f.type === "products").map((f) => f.key));
   return items.sort((a, b) => a.position - b.position || String(a.handle).localeCompare(String(b.handle)));
+}
+
+/** Titles and pictures for "products" lists, fetched once for all items (keeps the list query cheap). */
+async function fillProductLists(admin: AdminClient, items: SectionItem[], keys: string[]) {
+  if (!keys.length) return;
+  const ids = [...new Set(items.flatMap((it) => keys.flatMap((k) => ((it.values[k] as ProductRef[] | null) ?? []).map((p) => p.id))))];
+  if (!ids.length) return;
+  const found = new Map<string, ProductRef>();
+  for (let i = 0; i < ids.length; i += 250) {
+    const data = await gql(admin, `#graphql
+      query CroProductRefs($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id title featuredMedia { preview { image { url } } } } } }`, { ids: ids.slice(i, i + 250) });
+    for (const p of data.nodes ?? []) if (p?.id) found.set(p.id, { id: p.id, title: p.title ?? "", image: p.featuredMedia?.preview?.image?.url ?? null });
+  }
+  for (const it of items) for (const k of keys) it.values[k] = ((it.values[k] as ProductRef[] | null) ?? []).flatMap((p) => found.get(p.id) ?? []);
 }
 
 export async function getItem(admin: AdminClient, kind: SectionKind, id: string) {
@@ -125,6 +150,9 @@ export function serialize(kind: SectionKind, item: SectionItem, offsetIso: strin
       case "image":
       case "product":
         s = v && typeof v === "object" && "id" in v ? v.id : "";
+        break;
+      case "products":
+        s = JSON.stringify(Array.isArray(v) ? v.map((p) => p.id).filter(Boolean) : []);
         break;
       case "url":
         s = normalizeUrl(String(v ?? ""));

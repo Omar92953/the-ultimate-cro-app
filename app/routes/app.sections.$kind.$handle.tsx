@@ -162,6 +162,8 @@ function FieldInput(props: { field: FieldDef; value: Value; onValue: (v: Value) 
       return <MediaField field={f} value={(value as MediaRef) ?? null} onValue={onValue} alt={props.alt} error={error} />;
     case "product":
       return <ProductField field={f} value={(value as ProductRef) ?? null} onValue={onValue} />;
+    case "products":
+      return <ProductsField field={f} value={Array.isArray(value) ? value : []} onValue={onValue} />;
     default:
       return <TextField label={f.label} details={f.details} placeholder={f.placeholder} value={text} onValue={onValue} error={error} />;
   }
@@ -195,6 +197,36 @@ function ProductField(props: { field: FieldDef; value: ProductRef | null; onValu
           </Button>
         </s-box>
       )}
+      {props.field.details ? <s-text color="subdued">{props.field.details}</s-text> : null}
+    </s-stack>
+  );
+}
+
+/** Several products: pick, add more, remove one at a time. */
+function ProductsField(props: { field: FieldDef; value: ProductRef[]; onValue: (v: Value) => void }) {
+  const shopify = useAppBridge();
+  const pick = async () => {
+    const selected: any = await shopify.resourcePicker({ type: "product", multiple: true, action: "select", selectionIds: props.value.map((p) => ({ id: p.id })) } as any);
+    if (!selected) return;
+    props.onValue(selected.map((p: any) => ({ id: p.id, title: p.title, image: p.images?.[0]?.originalSrc ?? null })));
+  };
+  return (
+    <s-stack gap="small-200">
+      <s-text type="strong">{props.field.label}</s-text>
+      {props.value.map((p) => (
+        <s-stack key={p.id} direction="inline" gap="base" alignItems="center">
+          <s-thumbnail src={p.image ?? undefined} alt={p.title} size="small" />
+          <s-text>{p.title || "Product"}</s-text>
+          <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove ${p.title}`} onClick={() => props.onValue(props.value.filter((x) => x.id !== p.id))}>
+            Remove
+          </Button>
+        </s-stack>
+      ))}
+      <s-box>
+        <Button icon="product" onClick={pick}>
+          {props.value.length ? "Add or remove products" : "Choose products"}
+        </Button>
+      </s-box>
       {props.field.details ? <s-text color="subdued">{props.field.details}</s-text> : null}
     </s-stack>
   );

@@ -109,7 +109,8 @@ export default function HeaderDesigner() {
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchHeader} />
         </Pane>
-        <Pane show={tab === "looks"}><s-section heading="Start from a look">
+        <Pane show={tab === "looks"}><s-section heading="Start from a template">
+          <p style={{ margin: "0 0 10px", color: "#616161", fontSize: 13 }}>An easy start: pick one, then change anything in the other tabs.</p>
           <s-grid gridTemplateColumns="repeat(auto-fill, minmax(180px, 1fr))" gap="small-200">
             {PRESETS.map((p) => (
               <s-clickable
@@ -119,7 +120,7 @@ export default function HeaderDesigner() {
                 borderRadius="base"
                 padding="small-200"
                 background={cfg.preset === p.key ? "subdued" : undefined}
-                accessibilityLabel={`Use the ${p.title} look`}
+                accessibilityLabel={`Use the ${p.title} template`}
               >
                 <s-stack gap="small-100">
                   <s-text type="strong">
