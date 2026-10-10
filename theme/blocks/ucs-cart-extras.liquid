@@ -1,0 +1,24 @@
+{%- comment -%}
+  App block for the cart page: gift note and delivery date (Offers & bundles → Gift note & delivery date,
+  $app:cro_design "cart_extras"). ucs-cart-extras.js saves them on the cart; the cart drawer copy comes
+  from the Conversion boosters embed.
+{%- endcomment -%}
+{%- assign d = shop.metaobjects['$app:cro_design']['cart_extras'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['cart_extras_draft'].config.value -%}{%- assign d = shop.metaobjects['$app:cro_design']['cart_extras_draft'].config.value -%}{%- endif -%}
+{%- if d -%}
+  <div data-ucs-ce hidden {{ block.shopify_attributes }}><script type="application/json">{{ d | json }}</script></div>
+  <script src="{{ 'ucs-cart-extras.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+  <p {{ block.shopify_attributes }}>Set up the gift note and delivery date in the app: Offers &amp; bundles → Gift note &amp; delivery date.</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Gift note & delivery date",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "Add it to the cart page. Words, dates and look are set in the app: Offers & bundles → Gift note & delivery date." }
+  ]
+}
+{% endschema %}

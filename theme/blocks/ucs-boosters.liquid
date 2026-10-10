@@ -54,6 +54,9 @@
   <script src="{{ 'ucs-shipping-bar.js' | asset_url }}" defer></script>
 {%- endif -%}{%- endif %}
 <script src="{{ 'ucs-cart-guard.js' | asset_url }}" defer></script>
+{%- comment -%} Gift note & delivery date inside the cart drawer (designed in the app). {%- endcomment -%}
+{%- assign ce = shop.metaobjects['$app:cro_design']['cart_extras'].config.value -%}
+{%- if ce.drawer -%}<script type="application/json" id="ucs-ce-data">{{ ce | json }}</script><script src="{{ 'ucs-cart-extras.js' | asset_url }}" defer></script>{%- endif -%}
 
 {% schema %}
 {

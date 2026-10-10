@@ -1582,3 +1582,22 @@ export function PersonalizeShowcase() {
     </Stage>
   );
 }
+
+/** Gift note & delivery date: the cart box with the gift tick, message and date. */
+export function CartExtrasShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 6, width: "62%", padding: 10, borderRadius: 10, background: "#f4f4f4", fontSize: 11 }}>
+        <b>Gift and delivery</b>
+        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ width: 11, height: 11, borderRadius: 3, background: "#111" }} /> This is a gift
+        </span>
+        <span style={{ padding: "6px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#777" }}>Happy birthday, Nour!</span>
+        <span style={{ display: "flex", gap: 6 }}>
+          <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Thu, Oct 15 ▾</span>
+          <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>2–6 pm ▾</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}

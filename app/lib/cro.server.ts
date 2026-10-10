@@ -1196,6 +1196,7 @@ export const BLOCKS = {
   stock: "ucs-stock",
   delivery: "ucs-delivery",
   personalize: "ucs-personalize",
+  cart_extras: "ucs-cart-extras",
   track: "ucs-track",
   returns: "ucs-returns",
   collection_pills: "ucs-collection-pills",

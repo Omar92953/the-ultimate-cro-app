@@ -668,3 +668,15 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-pz__plabel { position: absolute; top: 8px; left: 8px; z-index: 1; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: #121212; font-size: 11px; font-weight: 600; }
 .ucs-pz__text { position: absolute; left: var(--ucs-pz-x, 50%); top: var(--ucs-pz-y, 60%); max-width: 90%; transform: translate(-50%, -50%); color: var(--ucs-pz-c, #fff); font-family: var(--ucs-pz-font, serif); font-size: var(--ucs-pz-fs, 28px); text-transform: var(--ucs-pz-tt, none); text-align: center; line-height: 1.15; white-space: pre-line; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); pointer-events: none; }
 .ucs-pz__note { margin: 0; font-size: 0.85em; opacity: 0.75; }
+/* ---- Gift note & delivery date (cart) ---------------------------------------------------- */
+.ucs-ce { display: grid; gap: 10px; margin: 12px 0; font-size: var(--ucs-ce-t, 14px); text-align: left; }
+.ucs-ce--box { padding: 14px; border-radius: var(--ucs-ce-r, 10px); background: var(--ucs-ce-bg, #f6f6f6); }
+.ucs-ce--drawer { margin: 0 0 12px; }
+.ucs-ce__h { margin: 0; font-size: var(--ucs-ce-h, 15px); font-weight: 700; }
+.ucs-ce__check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.ucs-ce__check input { width: 18px; height: 18px; accent-color: var(--ucs-ce-accent, #121212); }
+.ucs-ce__field { display: grid; gap: 4px; }
+.ucs-ce__field[hidden] { display: none; }
+.ucs-ce__field select, .ucs-ce__field textarea { min-height: var(--ucs-ce-in, 40px); padding: 6px 10px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-ce-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
+.ucs-ce__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.ucs-ce__msg { margin: 0; color: #b42318; font-size: 0.9em; }

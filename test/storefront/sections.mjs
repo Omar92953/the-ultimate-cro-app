@@ -398,6 +398,11 @@ pages["personalize.html"] = page("Personalization",
   '<script>window.__adds=[];const pf=window.fetch;window.fetch=async(u,o)=>{if(String(u).includes("/cart/add")){window.__adds.push(o.body instanceof FormData?"form":o.body);return new Response(JSON.stringify({items:[{key:"k",variant_id:1}]}))}return pf(u,o)};</script>' +
   '<div class="shopify-section" style="max-width:440px;margin:24px 40px"><form action="/cart/add" method="post"><input type="hidden" name="id" value="501"><button type="submit">Add to cart</button></form>' +
   (await block("ucs-personalize", {}, { page_type: "product", product: pzProduct, shop: pzShop })) + "</div>");
+const { toStorefrontCartExtras, withCartExtrasDefaults } = await import("../../app/lib/cart-extras-design.ts");
+const ceShop = withDesign(mo("cart_extras", { config: toStorefrontCartExtras(withCartExtrasDefaults({ date: { required: true, slots: "10–2 pm\n2–6 pm" } })) }));
+pages["cart-extras.html"] = page("Gift note & delivery date",
+  '<script>window.__upd=[];const cf=window.fetch;window.fetch=async(u,o)=>{u=String(u);if(u.endsWith("cart.js"))return new Response(JSON.stringify({attributes:{},note:""}));if(u.includes("cart/update")){window.__upd.push(o.body);return new Response("{}")}return cf(u,o)};</script>' +
+  '<div style="max-width:420px;margin:24px 40px">' + (await block("ucs-cart-extras", {}, { page_type: "cart", shop: ceShop })) + '<button name="checkout" type="button">Check out</button></div>');
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

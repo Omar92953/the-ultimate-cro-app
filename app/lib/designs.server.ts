@@ -14,6 +14,7 @@ import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./foo
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
+import { toStorefrontCartExtras, withCartExtrasDefaults, type CartExtrasDesign } from "./cart-extras-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
@@ -391,5 +392,20 @@ export async function savePersonalizeDesign(admin: AdminClient, config: Personal
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("personalize"), { config: store });
   await upsert(admin, "$app:cro_design", slotted("personalize_draft"), { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("personalize_editor"), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------- gift note & delivery date -- */
+export async function getCartExtras(admin: AdminClient): Promise<{ config: CartExtrasDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "cart_extras_editor");
+  return { config: withCartExtrasDefaults(raw), saved: raw !== null };
+}
+
+export async function saveCartExtras(admin: AdminClient, config: CartExtrasDesign, draftOnly = false) {
+  const clean = withCartExtrasDefaults(config);
+  const store = JSON.stringify(toStorefrontCartExtras(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_extras", { config: store });
+  await upsert(admin, "$app:cro_design", "cart_extras_draft", { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_extras_editor", { config: JSON.stringify(clean) });
   return clean;
 }

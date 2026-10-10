@@ -36,6 +36,7 @@ export const FEATURES = {
     tabs: [{ label: "Mix & match", href: "/app/bundles" }, ...DEAL_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })), design("/app/designs/bundles")],
   },
   addons: { title: "Add-ons", cat: "offers", tabs: [design("/app/designs/add-ons")] },
+  cart_extras: { title: "Gift note & delivery date", cat: "offers", tabs: [design("/app/designs/cart-extras")] },
   personalize: { title: "Personalization", cat: "offers", tabs: [design("/app/designs/personalize")] },
   // Sections
   hero: { title: "Hero banners", cat: "sections", tabs: [{ label: "Banners", href: "/app/designs/hero" }] },
