@@ -6,8 +6,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Segmented } from "./ui";
 import ui from "./PageEditor.module.css";
 
-export type DesignTab = "looks" | "content" | "layout" | "style" | "display";
-const LABELS: Record<DesignTab, string> = { looks: "Templates", content: "Content", layout: "Layout", style: "Style", display: "Display" };
+/** The same three tabs on every design page: start from a template, the words and items, then how it looks (layout, colours, spacing, devices). */
+export type DesignTab = "looks" | "content" | "design";
+const LABELS: Record<DesignTab, string> = { looks: "Templates", content: "Content", design: "Style" };
 
 export function DesignTabs({ tabs, value, onChange }: { tabs: DesignTab[]; value: DesignTab; onChange: (t: DesignTab) => void }) {
   return (
@@ -39,7 +40,8 @@ export function PreviewFrame({ title, children, tools }: { title: string; childr
     const o = outer.current, i = inner.current;
     if (!o || !i || typeof ResizeObserver === "undefined") return;
     const measure = () => {
-      const scale = Math.min(1, o.clientWidth / PREVIEW_WIDTH);
+      // Rounded, so a 1px change in the column (e.g. a scrollbar) can't start a resize loop.
+      const scale = Math.min(1, Math.floor((o.clientWidth / PREVIEW_WIDTH) * 100) / 100);
       setFit((f) => (f.scale === scale && f.height === i.offsetHeight ? f : { scale, height: i.offsetHeight }));
     };
     const ro = new ResizeObserver(measure);

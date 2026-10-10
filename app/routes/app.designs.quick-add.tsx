@@ -106,7 +106,7 @@ export default function QuickAddDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -145,7 +145,7 @@ export default function QuickAddDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Button on the card">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Icon" value={cfg.button.icon} onValue={(v) => button({ icon: v as C["button"]["icon"] })} options={[{ value: "bag", label: "Bag" }, { value: "plus", label: "Plus" }, { value: "cart", label: "Cart" }]} />
@@ -161,7 +161,7 @@ export default function QuickAddDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Popup buttons">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <ColorField label="View cart background" value={cfg.popup.vcBg} onValue={(v) => popup({ vcBg: v })} />
@@ -176,7 +176,7 @@ export default function QuickAddDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Where it shows">
                   <s-stack gap="base">
                     <Select label="Show the button" value={cfg.button.show} onValue={(v) => button({ show: v as C["button"]["show"] })} options={[{ value: "always", label: "Always" }, { value: "hover", label: "When the mouse is over the card (desktop)" }]} />

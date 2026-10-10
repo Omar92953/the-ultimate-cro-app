@@ -177,7 +177,7 @@ export default function FaqDesigner() {
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs
-            tabs={["looks", "content", "style", "display"]}
+            tabs={["looks", "content", "design"]}
             value={tab}
             onChange={setTab}
           />
@@ -318,7 +318,7 @@ export default function FaqDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Questions">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select
@@ -379,7 +379,7 @@ export default function FaqDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Colours">
                   <s-stack gap="base">
                     <ColorField
@@ -434,7 +434,7 @@ export default function FaqDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField
@@ -470,7 +470,7 @@ export default function FaqDesigner() {
                   </s-grid>
                 </s-section>
               </Pane>
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Per page (theme editor)">
                   <s-text color="subdued">
                     Each copy of the FAQ section in the theme editor can show

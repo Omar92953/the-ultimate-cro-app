@@ -108,7 +108,7 @@ function SpotPicker({ label, value, onValue, cols }: { label: string; value: str
 export default function HeroEditor() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -157,7 +157,7 @@ export default function HeroEditor() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -193,7 +193,7 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Text position and size">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -213,7 +213,7 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Colours">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <ColorField label="Text" value={cfg.look.fg} onValue={(v) => look({ fg: v })} />
@@ -231,7 +231,7 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Effects">
                   <s-stack gap="base">
                     <Switch label="Fade in the text" checked={cfg.look.animate} onValue={(v) => look({ animate: v })} />
@@ -241,7 +241,7 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Size">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -254,7 +254,7 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Top padding" suffix="px" min={0} max={80} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

@@ -44,7 +44,7 @@ type C = CollectionPillsConfig;
 export default function CollectionPillsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -107,7 +107,7 @@ export default function CollectionPillsDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchPills} />
         </Pane>
@@ -144,7 +144,7 @@ export default function CollectionPillsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout">
+            <Pane show={tab === "design"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="When there are many" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={[{ value: "scroll", label: "One line that scrolls" }, { value: "wrap", label: "Several lines" }]} />
                 <Select label="Alignment" value={cfg.layout.align} onValue={(v) => layout({ align: v as C["layout"]["align"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centre" }]} />
@@ -162,7 +162,7 @@ export default function CollectionPillsDesigner() {
               </s-box>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Look">
+            <Pane show={tab === "design"}><s-section heading="Look">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Style" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "soft", label: "Soft" }]} />
                 <NumberField label="Corners" details="999 = pill" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />

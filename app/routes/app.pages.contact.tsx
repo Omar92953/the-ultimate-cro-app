@@ -47,7 +47,7 @@ type Layout = ContactConfig["layout"];
 export default function ContactPage() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<ContactConfig>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -98,7 +98,7 @@ export default function ContactPage() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchContact} />
         </Pane>
@@ -149,7 +149,7 @@ export default function ContactPage() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout">
+            <Pane show={tab === "design"}><s-section heading="Layout">
               <s-stack gap="base">
                 <Select label="Width" value={cfg.layout.width} onValue={(v) => layout({ width: v as Layout["width"] })} options={[{ value: "narrow", label: "Narrow" }, { value: "medium", label: "Medium" }, { value: "wide", label: "Wide" }]} />
                 <Select label="Heading alignment" value={cfg.layout.align} onValue={(v) => layout({ align: v as Layout["align"] })} options={[{ value: "center", label: "Centre" }, { value: "left", label: "Left" }]} />
@@ -177,7 +177,7 @@ export default function ContactPage() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Colours">
+            <Pane show={tab === "design"}><s-section heading="Colours">
               <s-stack gap="base">
                 <Select label="Page background" value={cfg.look.bgType} onValue={(v) => look({ bgType: v as Look["bgType"] })} options={[{ value: "color", label: "One colour" }, { value: "gradient", label: "Gradient (two colours)" }]} />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -193,7 +193,7 @@ export default function ContactPage() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Sizes">
+            <Pane show={tab === "design"}><s-section heading="Sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Heading" suffix="px" min={16} max={64} step={1} value={cfg.look.headingSize} onValue={(v) => look({ headingSize: v })} />
                 <NumberField label="Text" suffix="px" min={12} max={22} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />

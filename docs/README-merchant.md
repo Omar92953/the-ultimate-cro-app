@@ -24,8 +24,7 @@ The app has the same map everywhere:
   same cards for that category only.
 - **Every feature page** looks the same: the breadcrumb goes back to its category, and tabs at the top
   switch between its content and its look (e.g. Customer reviews: Reviews | Design).
-- **Every design page** has the same tabs in the same order (Templates · Content · Layout · Style ·
-  Display, only the ones it needs), settings on the left and a live preview on the right, and the same
+- **Every design page** has the same tabs in the same order (Templates · Content · Style), settings on the left and a live preview on the right, and the same
   buttons: Save, See it on my store, and Add to theme / Open in theme editor.
 - **Theme editor:** blocks only place, move or remove a section; everything else is set in the app.
 

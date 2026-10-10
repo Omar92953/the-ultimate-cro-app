@@ -96,7 +96,7 @@ export default function LogosDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -141,7 +141,7 @@ export default function LogosDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Logos">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -165,7 +165,7 @@ export default function LogosDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Text instead of a logo">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Weight" value={String(cfg.logos.textWeight)} onValue={(v) => logos({ textWeight: Number(v) as C["logos"]["textWeight"] })} options={[{ value: "400", label: "Regular" }, { value: "600", label: "Semi-bold" }, { value: "800", label: "Extra bold" }]} />
@@ -174,7 +174,7 @@ export default function LogosDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Colours">
                   <s-stack gap="base">
                     <Switch label="Own background" details="Off: the page's background shows through." checked={cfg.look.ownBg} onValue={(v) => look({ ownBg: v })} />
@@ -185,7 +185,7 @@ export default function LogosDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Top padding" suffix="px" min={0} max={100} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

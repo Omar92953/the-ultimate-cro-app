@@ -44,7 +44,7 @@ const numericId = (gid: string) => gid.split("/").pop() ?? "";
 export default function AddonsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -115,7 +115,7 @@ export default function AddonsDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchAddons} />
         </Pane>
@@ -174,7 +174,7 @@ export default function AddonsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "display"}><s-section heading="Where it shows">
+            <Pane show={tab === "design"}><s-section heading="Where it shows">
               <s-stack gap="base">
                 <Select
                   label="Show on"
@@ -199,7 +199,7 @@ export default function AddonsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Look">
+            <Pane show={tab === "design"}><s-section heading="Look">
               <s-stack gap="base">
                 <TextField label="Heading (optional)" value={cfg.heading} onValue={(v) => setCfg((c) => ({ ...c, heading: v }))} />
                 <Select label="Layout" value={cfg.style} onValue={(v) => setCfg((c) => ({ ...c, style: v as C["style"] }))} options={[{ value: "list", label: "List" }, { value: "cards", label: "Cards side by side" }]} />

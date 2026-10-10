@@ -72,7 +72,7 @@ type C = CrossSellDesign;
 export default function CrossSellDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -123,7 +123,7 @@ export default function CrossSellDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -174,7 +174,7 @@ export default function CrossSellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Size" value={cfg.heading.size} onValue={(v) => heading({ size: v as C["heading"]["size"] })} options={[{ value: "small", label: "Small" }, { value: "medium", label: "Medium" }, { value: "large", label: "Large" }]} />
@@ -183,7 +183,7 @@ export default function CrossSellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Panel, colours and corners">
                   <s-stack gap="base">
                     <Switch label="Background panel" checked={cfg.look.panel} onValue={(v) => look({ panel: v })} />
@@ -202,7 +202,7 @@ export default function CrossSellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Space above" suffix="px" min={0} max={80} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

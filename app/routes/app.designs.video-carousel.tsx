@@ -78,7 +78,7 @@ type C = VideoCarouselDesign;
 export default function VideoCarouselDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -128,7 +128,7 @@ export default function VideoCarouselDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "layout", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -162,7 +162,7 @@ export default function VideoCarouselDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "layout"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Slides">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Shape" value={cfg.layout.ratio} onValue={(v) => layout({ ratio: v as C["layout"]["ratio"] })} options={[{ value: "9 / 16", label: "Tall (9:16)" }, { value: "3 / 4", label: "Portrait (3:4)" }, { value: "4 / 5", label: "Portrait (4:5)" }, { value: "1 / 1", label: "Square" }]} />
@@ -177,7 +177,7 @@ export default function VideoCarouselDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Where it shows">
                   <s-stack gap="base">
                     <Select
@@ -201,7 +201,7 @@ export default function VideoCarouselDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.display.top} onValue={(v) => display({ top: v })} />

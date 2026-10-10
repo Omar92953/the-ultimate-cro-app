@@ -70,7 +70,7 @@ type C = ReviewsDesign;
 export default function ReviewsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -115,7 +115,7 @@ export default function ReviewsDesigner() {
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
-        <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <div className={ui.layout}>
           <s-stack gap="base">
         <Pane show={tab === "looks"}>
@@ -169,7 +169,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout and scrolling">
+            <Pane show={tab === "design"}><s-section heading="Layout and scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={[{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }]} />
                 <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
@@ -195,7 +195,7 @@ export default function ReviewsDesigner() {
               </s-grid>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Cards">
+            <Pane show={tab === "design"}><s-section heading="Cards">
               <s-stack gap="base">
                 <Select label="Card style" value={cfg.card.style} onValue={(v) => card({ style: v as C["card"]["style"] })} options={[{ value: "classic", label: "Classic" }, { value: "chat", label: "Chat screenshot" }, { value: "minimal", label: "Minimal" }]} />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="small-200">
@@ -228,11 +228,11 @@ export default function ReviewsDesigner() {
                   ) : <span />}
                 </s-grid>
                 <Select label="Photo shape" value={cfg.card.photoShape} onValue={(v) => card({ photoShape: v as C["card"]["photoShape"] })} options={[{ value: "tallest", label: "Match the tallest photo" }, { value: "square", label: "Square" }, { value: "landscape", label: "Wide (4:3)" }, { value: "portrait", label: "Tall (4:5)" }]} />
-                {cfg.card.photoFit === "whole" ? <s-text color="subdued">Whole photos sit on the fill chosen in Style.</s-text> : null}
+                {cfg.card.photoFit === "whole" ? <s-text color="subdued">Whole photos sit on the fill chosen below in “Behind smaller pictures”.</s-text> : null}
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Behind smaller pictures">
+            <Pane show={tab === "design"}><s-section heading="Behind smaller pictures">
               <s-stack gap="base">
                 <s-text color="subdued">Every picture is as tall as the tallest one; smaller ones sit on this fill.</s-text>
                 <Select label="Fill" value={cfg.fill.kind} onValue={(v) => fill({ kind: v as C["fill"]["kind"] })} options={[{ value: "color", label: "A colour" }, { value: "pattern", label: "A pattern" }, { value: "image", label: "An image" }]} />
@@ -242,7 +242,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Colours">
+            <Pane show={tab === "design"}><s-section heading="Colours">
               <s-stack gap="base">
                 <ColorField label="Stars" value={cfg.look.star} onValue={(v) => look({ star: v })} />
                 <Checkbox label="Cards use your theme's colours" checked={cfg.look.defaultCard} onValue={(v) => look({ defaultCard: v })} />
@@ -257,7 +257,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Source icon (WhatsApp, Instagram…)">
+            <Pane show={tab === "design"}><s-section heading="Source icon (WhatsApp, Instagram…)">
               <s-stack gap="base">
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                   <NumberField label="Size" suffix="px" min={18} max={48} step={1} value={cfg.icon.size} onValue={(v) => icon({ size: v })} />
@@ -316,7 +316,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Product on the card">
+            <Pane show={tab === "design"}><s-section heading="Product on the card">
               <s-stack gap="base">
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                   <Select
@@ -349,7 +349,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "display"}><s-section heading="Spacing and more">
+            <Pane show={tab === "design"}><s-section heading="Spacing and more">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />
                 <NumberField label="Space below" suffix="px" min={0} max={120} step={4} value={cfg.space.bottom} onValue={(v) => space({ bottom: v })} />

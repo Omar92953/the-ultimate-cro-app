@@ -109,7 +109,7 @@ export default function AnnouncementDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -148,7 +148,7 @@ export default function AnnouncementDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Look">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <ColorField label="Background" value={cfg.look.bg} onValue={(v) => setCfg((c) => ({ ...c, scheme: "", look: { ...c.look, bg: v } }))} />
@@ -160,7 +160,7 @@ export default function AnnouncementDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Where it shows">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Pages" value={cfg.display.pages} onValue={(v) => display({ pages: v as C["display"]["pages"] })} options={[{ value: "all", label: "All pages" }, { value: "home", label: "Home page only" }]} />

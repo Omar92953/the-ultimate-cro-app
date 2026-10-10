@@ -105,7 +105,7 @@ function MaybeColor({ label, value, fallback, onValue }: { label: string; value:
 export default function BundleDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const [view, setView] = useState<"page" | "collection">("page");
   const [group, setGroup] = useState<"text" | "cards" | "images" | "buttons" | "summary" | "colours">("cards");
@@ -160,7 +160,7 @@ export default function BundleDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -220,7 +220,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "layout"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Products and summary">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Columns on desktop" min={2} max={6} step={1} value={cfg.products.desktop} onValue={(v) => { products({ desktop: v }); setDevice("desktop"); }} />
@@ -241,7 +241,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <Segmented
                   label="Style group"
                   value={group}
@@ -257,7 +257,7 @@ export default function BundleDesigner() {
                 />
               </Pane>
 
-              <Pane show={tab === "style" && group === "text"}>
+              <Pane show={tab === "design" && group === "text"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Size" value={cfg.text.size} onValue={(v) => text({ size: v as C["text"]["size"] })} options={[{ value: "small", label: "Small" }, { value: "medium", label: "Medium" }, { value: "large", label: "Large" }]} />
@@ -266,7 +266,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "text"}>
+              <Pane show={tab === "design" && group === "text"}>
                 <s-section heading="Text">
                   <s-stack gap="base">
                     <Select label="Font" value={cfg.type.font} onValue={(v) => type({ font: v as C["type"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
@@ -284,7 +284,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "cards"}>
+              <Pane show={tab === "design" && group === "cards"}>
                 <s-section heading="Product cards">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -301,7 +301,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "images"}>
+              <Pane show={tab === "design" && group === "images"}>
                 <s-section heading="Product images">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Shape" value={cfg.image.ratio} onValue={(v) => image({ ratio: v as C["image"]["ratio"] })} options={[{ value: "1 / 1", label: "Square" }, { value: "4 / 5", label: "Portrait (4:5)" }, { value: "3 / 4", label: "Tall (3:4)" }, { value: "16 / 9", label: "Wide (16:9)" }]} />
@@ -312,7 +312,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "buttons"}>
+              <Pane show={tab === "design" && group === "buttons"}>
                 <s-section heading="Add buttons">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Button style" value={cfg.pickButton.style} onValue={(v) => pickButton({ style: v as C["pickButton"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "text", label: "Text link" }]} />
@@ -331,7 +331,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "summary"}>
+              <Pane show={tab === "design" && group === "summary"}>
                 <s-section heading="Summary and main button">
                   <s-stack gap="base">
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -352,7 +352,7 @@ export default function BundleDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style" && group === "colours"}>
+              <Pane show={tab === "design" && group === "colours"}>
                 <s-section heading="Picked colour and card corners">
                   <s-stack gap="base">
                     <Checkbox label="Picked items use my theme's button colour" checked={cfg.look.themeAccent} onValue={(v) => look({ themeAccent: v })} />

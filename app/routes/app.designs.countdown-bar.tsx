@@ -66,7 +66,7 @@ const PAGE_OPTIONS: { value: C["where"]["pages"][number]; label: string }[] = [
 export default function CountdownBarDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -123,7 +123,7 @@ export default function CountdownBarDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
-        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <div className={ui.layout}>
           <s-stack gap="base">
         <Pane show={tab === "looks"}>
@@ -240,7 +240,7 @@ export default function CountdownBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout and pages">
+            <Pane show={tab === "design"}><s-section heading="Layout and pages">
               <s-stack gap="base">
                 {cfg.kind === "bar" && data.place === "header" ? <Select label="Position" value={cfg.layout.position} onValue={(v) => layout({ position: v as C["layout"]["position"] })} options={[{ value: "top", label: "Top of the page" }, { value: "bottom", label: "Bottom of the screen (always visible)" }]} /> : null}
                 {cfg.kind === "bar" ? <Checkbox label="Slim: everything on one line" details="Also on phones; long text shortens with …" checked={cfg.layout.slim} onValue={(v) => layout({ slim: v })} /> : null}
@@ -262,7 +262,7 @@ export default function CountdownBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Design">
+            <Pane show={tab === "design"}><s-section heading="Design">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Numbers" value={t.style} onValue={(v) => timer({ style: v as C["timer"]["style"] })} options={NUMBER_STYLES} />
                 <Select label="Font" value={cfg.look.font} onValue={(v) => look({ font: v as C["look"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />
@@ -276,7 +276,7 @@ export default function CountdownBarDesigner() {
               </s-box>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Colours">
+            <Pane show={tab === "design"}><s-section heading="Colours">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
@@ -287,7 +287,7 @@ export default function CountdownBarDesigner() {
               </s-grid>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Sizes">
+            <Pane show={tab === "design"}><s-section heading="Sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Bar height" suffix="px" min={0} max={30} step={1} value={cfg.look.height} onValue={(v) => look({ height: v })} />
                 <NumberField label="Text" suffix="px" min={10} max={24} step={1} value={cfg.look.textSize} onValue={(v) => look({ textSize: v })} />

@@ -76,7 +76,7 @@ const editorPreviewLinkFor = (shop: string, handle?: string) => `https://${shop}
 export default function UpsellDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -128,7 +128,7 @@ export default function UpsellDesigner() {
           ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
 
@@ -160,7 +160,7 @@ export default function UpsellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Style" value={cfg.heading.style} onValue={(v) => heading({ style: v as C["heading"]["style"] })} options={[{ value: "heading", label: "Heading" }, { value: "label", label: "Small caps label" }]} />
@@ -172,7 +172,7 @@ export default function UpsellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "style"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Colours and corners">
                   <s-stack gap="base">
                     <Checkbox label="Use my theme's colours" checked={cfg.look.themeColors} onValue={(v) => look({ themeColors: v })} />
@@ -192,7 +192,7 @@ export default function UpsellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "display"}>
+              <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     {cfg.offers.style === "cards" ? <NumberField label="Space between offers" suffix="px" min={0} max={40} step={2} value={cfg.space.gap} onValue={(v) => space({ gap: v })} /> : null}

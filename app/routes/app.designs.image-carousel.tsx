@@ -46,7 +46,7 @@ const BLANK: ImageSlide = { image: null, alt: "", title: "", text: "", link: "",
 export default function ImageCarouselDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -93,7 +93,7 @@ export default function ImageCarouselDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["looks", "content", "layout", "style"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <Pane show={tab === "looks"}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchImageCarousel} />
         </Pane>
@@ -151,7 +151,7 @@ export default function ImageCarouselDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout">
+            <Pane show={tab === "design"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
                 <NumberField label="Per row on phones" min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
@@ -179,7 +179,7 @@ export default function ImageCarouselDesigner() {
               </s-box>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Scrolling">
+            <Pane show={tab === "design"}><s-section heading="Scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select
                   label="Move it with"
@@ -201,7 +201,7 @@ export default function ImageCarouselDesigner() {
               </s-grid>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Colours and text sizes">
+            <Pane show={tab === "design"}><s-section heading="Colours and text sizes">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Text" value={cfg.look.text} onValue={(v) => look({ text: v })} />
                 <ColorField label="Text shade" details="Behind text on pictures." value={cfg.look.overlay} onValue={(v) => look({ overlay: v })} />

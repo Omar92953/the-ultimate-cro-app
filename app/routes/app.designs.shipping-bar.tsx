@@ -64,7 +64,7 @@ const PAGES: { value: C["where"]["pages"][number]; label: string }[] = [
 export default function ShippingBarDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [cart, setCart] = useState(Math.round(data.config.goal * 0.6));
   const [view, setView] = useState<"cart" | "top">("cart");
   const fetcher = useFetcher<typeof action>();
@@ -119,7 +119,7 @@ export default function ShippingBarDesigner() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
 
-        <DesignTabs tabs={["looks", "content", "style", "display"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <div className={ui.layout}>
           <s-stack gap="base">
         <Pane show={tab === "looks"}>
@@ -170,7 +170,7 @@ export default function ShippingBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "display"}><s-section heading="Where it shows">
+            <Pane show={tab === "design"}><s-section heading="Where it shows">
               <s-stack gap="base">
                 <s-text color="subdued">Pages for the bar at the top of the store. The cart copies follow “Inside the cart”.</s-text>
                 <Checkbox label="On all pages" checked={cfg.where.all} onValue={(v) => where({ all: v })} />
@@ -185,7 +185,7 @@ export default function ShippingBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Look">
+            <Pane show={tab === "design"}><s-section heading="Look">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Shape" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "bar", label: "Full-width bar" }, { value: "card", label: "Rounded card" }]} />
                 <NumberField label="Corners (card)" details="999 = pill" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />

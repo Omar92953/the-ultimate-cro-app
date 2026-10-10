@@ -1,2 +1,4 @@
 /* Every app page: one centred column with the same space on the left and right. */
 .page { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(12px, 7vw, 110px); box-sizing: border-box; }
+/* Keep room for the scrollbar, so a page that grows past the window doesn't get narrower (that made the scaled previews jump). */
+:global(html) { scrollbar-gutter: stable; }

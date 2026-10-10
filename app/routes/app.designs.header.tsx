@@ -61,7 +61,7 @@ type C = HeaderConfig;
 export default function HeaderDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("content");
+  const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -103,7 +103,7 @@ export default function HeaderDesigner() {
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
-        <DesignTabs tabs={["looks", "content", "layout", "style", "display"]} value={tab} onChange={setTab} />
+        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
         <div className={ui.layout}>
           <s-stack gap="base">
         <Pane show={tab === "looks"}>
@@ -148,7 +148,7 @@ export default function HeaderDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Layout">
+            <Pane show={tab === "design"}><s-section heading="Layout">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Logo" value={cfg.layout.logo} onValue={(v) => layout({ logo: v as C["layout"]["logo"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centre" }]} />
                 <Select
@@ -242,7 +242,7 @@ export default function HeaderDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "style"}><s-section heading="Colours and glass">
+            <Pane show={tab === "design"}><s-section heading="Colours and glass">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <ColorField label="Bar" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                 <NumberField label="Bar see-through" details="100 = solid" suffix="%" min={0} max={100} step={5} value={cfg.look.opacity} onValue={(v) => look({ opacity: v })} />
@@ -261,7 +261,7 @@ export default function HeaderDesigner() {
               </s-box>
             </s-section></Pane>
 
-            <Pane show={tab === "layout"}><s-section heading="Phones">
+            <Pane show={tab === "design"}><s-section heading="Phones">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select
                   label="Menu on phones"
@@ -278,7 +278,7 @@ export default function HeaderDesigner() {
               </s-grid>
             </s-section></Pane>
 
-            <Pane show={tab === "display"}><s-section heading="Advanced">
+            <Pane show={tab === "design"}><s-section heading="Advanced">
               <TextField
                 label="Your theme's header (CSS selector)"
                 details="Only if your theme's own header still shows: the selector of its header bar, e.g. .site-header. Most themes are found automatically."
