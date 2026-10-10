@@ -19,6 +19,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { VIDEO_SIZES } from "../lib/video-carousel-design";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
 async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<Map<string, string>> {
@@ -201,7 +203,8 @@ export default function VideoCarouselDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={VIDEO_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Space above" suffix="px" min={0} max={120} step={4} value={cfg.display.top} onValue={(v) => display({ top: v })} />

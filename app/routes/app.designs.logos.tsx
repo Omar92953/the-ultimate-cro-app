@@ -21,6 +21,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { LOGOS_SIZES } from "../lib/logos-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -185,7 +187,8 @@ export default function LogosDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={LOGOS_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="Picture logos follow “Logo height”; the heading size is under Heading." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Top padding" suffix="px" min={0} max={100} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

@@ -6,6 +6,19 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const CROSS_SELL_SIZES: SizeSpec[] = [
+  { key: "heading", label: "Heading", cssVar: "--ucro-h-fs", min: 12, max: 48, def: 20 },
+  { key: "sub", label: "Text under heading", cssVar: "--ucro-sub-fs", min: 10, max: 32, def: 15 },
+  { key: "title", label: "Product name", cssVar: "--ucro-ti-fs", min: 10, max: 32, def: 15 },
+  { key: "price", label: "Price", cssVar: "--ucro-pr-fs", min: 10, max: 32, def: 15 },
+  { key: "was", label: "Old price", cssVar: "--ucro-was-fs", min: 8, max: 24, def: 13 },
+  { key: "image", label: "Product picture", cssVar: "--ucro-img", min: 32, max: 160, def: 64 },
+  { key: "buttonText", label: "Button text", cssVar: "--ucro-btn-fs", min: 10, max: 28, def: 15 },
+  { key: "buttonHeight", label: "Button height", cssVar: "--ucro-btn-h", min: 28, max: 72, def: 44 },
+];
 
 export type CrossSellDesign = {
   scheme: string;
@@ -15,6 +28,7 @@ export type CrossSellDesign = {
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
   /** The "Cart drawer offers" embed (rules with "Cart drawer" ticked). */
   drawer: { heading: string; max: number; add: string; matchLook: boolean };
+  sizes: Sizes;
 };
 
 export const DEFAULT_CROSS_SELL: CrossSellDesign = {
@@ -24,6 +38,7 @@ export const DEFAULT_CROSS_SELL: CrossSellDesign = {
   look: { themeColors: true, accent: "#111111", border: "#dddddd", panel: true, panelColor: "#f5f5f5", themeRadius: true, radius: 12, edge: false },
   space: { top: 16, bottom: 16, devices: "all" },
   drawer: { heading: "You may also like", max: 2, add: "Add", matchLook: true },
+  sizes: defaultSizes(CROSS_SELL_SIZES),
 };
 
 type Patch = { look?: Partial<CrossSellDesign["look"]>; heading?: Partial<CrossSellDesign["heading"]> };
@@ -55,6 +70,7 @@ export function withCrossSellDefaults(raw: unknown): CrossSellDesign {
   const d = DEFAULT_CROSS_SELL;
   const p = obj(r.products), h = obj(r.heading), k = obj(r.look), s = obj(r.space), w = obj(r.drawer);
   return {
+    sizes: withSizes(r.sizes, CROSS_SELL_SIZES),
     scheme: schemeId(r.scheme),
     products: {
       fallback: pick(p.fallback, ["none", "recommendations"] as const, d.products.fallback),
@@ -94,6 +110,7 @@ export function crossSellVars(c: CrossSellDesign): Record<string, string> {
   const v: Record<string, string> = { "--ucro-align": c.heading.align, "--ucro-pt": `${c.space.top}px`, "--ucro-pb": `${c.space.bottom}px` };
   if (!c.look.themeColors) Object.assign(v, { "--ucro-accent": c.look.accent, "--ucro-border": c.look.border, "--ucro-panel": c.look.panelColor });
   if (!c.look.themeRadius) v["--ucro-radius"] = `${c.look.radius}px`;
+  Object.assign(v, sizeVars(c.sizes, CROSS_SELL_SIZES));
   return v;
 }
 

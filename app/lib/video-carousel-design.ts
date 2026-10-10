@@ -5,6 +5,18 @@
  */
 import { num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const VIDEO_SIZES: SizeSpec[] = [
+  { key: "heading", label: "Heading", cssVar: "--ucro-h-fs", min: 12, max: 48, def: 20 },
+  { key: "sub", label: "Text under heading", cssVar: "--ucro-sub-fs", min: 10, max: 32, def: 15 },
+  { key: "title", label: "Product name / caption", cssVar: "--ucro-vc-tt", min: 10, max: 28, def: 15 },
+  { key: "price", label: "Price", cssVar: "--ucro-pr-fs", min: 10, max: 28, def: 14 },
+  { key: "arrow", label: "Arrows", cssVar: "--ucro-vc-arrow", min: 24, max: 72, def: 40 },
+  { key: "buttonText", label: "Button text", cssVar: "--ucro-btn-fs", min: 10, max: 28, def: 15 },
+  { key: "buttonHeight", label: "Button height", cssVar: "--ucro-btn-h", min: 28, max: 72, def: 44 },
+];
 
 export const VC_PAGES = ["home", "product", "collection", "cart", "page", "blog", "search"] as const;
 export type VcPage = (typeof VC_PAGES)[number];
@@ -33,6 +45,7 @@ export type VideoCarouselDesign = {
   videos: { autoplay: boolean; product: boolean; add: boolean; addLabel: string };
   layout: { ratio: "9 / 16" | "3 / 4" | "4 / 5" | "1 / 1"; desktop: number; mobile: "1.2" | "2" | "2.2"; arrows: boolean; corners: "theme" | "square" | "round"; gap: number; scheme: string };
   display: { top: number; bottom: number; devices: "all" | "desktop" | "mobile"; showOn: "everywhere" | "only" | "except"; pages: VcPage[]; handles: string };
+  sizes: Sizes;
 };
 
 export const DEFAULT_VIDEO_CAROUSEL: VideoCarouselDesign = {
@@ -40,6 +53,7 @@ export const DEFAULT_VIDEO_CAROUSEL: VideoCarouselDesign = {
   videos: { autoplay: true, product: true, add: true, addLabel: "Add to cart" },
   layout: { ratio: "9 / 16", desktop: 4, mobile: "2.2", arrows: true, corners: "theme", gap: 12, scheme: "" },
   display: { top: 36, bottom: 36, devices: "all", showOn: "everywhere", pages: [], handles: "" },
+  sizes: defaultSizes(VIDEO_SIZES),
 };
 
 type Patch = { text?: Partial<VideoCarouselDesign["text"]>; videos?: Partial<VideoCarouselDesign["videos"]>; layout?: Partial<VideoCarouselDesign["layout"]> };
@@ -72,6 +86,7 @@ export function withVideoCarouselDefaults(raw: unknown): VideoCarouselDesign {
   const d = DEFAULT_VIDEO_CAROUSEL;
   const t = obj(r.text), v = obj(r.videos), l = obj(r.layout), s = obj(r.display);
   return {
+    sizes: withSizes(r.sizes, VIDEO_SIZES),
     text: {
       heading: str(t.heading, d.text.heading, 120),
       sub: str(t.sub, d.text.sub, 240),
@@ -107,7 +122,7 @@ export function withVideoCarouselDefaults(raw: unknown): VideoCarouselDesign {
 const RADIUS = { theme: "var(--product-card-corner-radius, var(--media-radius, 12px))", square: "0px", round: "28px" };
 
 export function videoCarouselVars(c: VideoCarouselDesign): Record<string, string> {
-  return {
+  const v: Record<string, string> = {
     "--ucro-align": c.text.align,
     "--ucro-pt": `${c.display.top}px`,
     "--ucro-pb": `${c.display.bottom}px`,
@@ -117,6 +132,8 @@ export function videoCarouselVars(c: VideoCarouselDesign): Record<string, string
     "--ucro-vc-ratio": c.layout.ratio,
     "--ucro-vc-radius": RADIUS[c.layout.corners],
   };
+  Object.assign(v, sizeVars(c.sizes, VIDEO_SIZES));
+  return v;
 }
 
 export const handleList = (s: string) =>

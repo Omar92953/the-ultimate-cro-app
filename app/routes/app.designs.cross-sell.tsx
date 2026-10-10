@@ -20,6 +20,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -202,7 +204,8 @@ export default function CrossSellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={CROSS_SELL_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Space above" suffix="px" min={0} max={80} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

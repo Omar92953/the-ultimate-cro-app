@@ -5,12 +5,26 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const UPSELL_SIZES: SizeSpec[] = [
+  { key: "heading", label: "Heading", cssVar: "--ucro-h-fs", min: 12, max: 48, def: 20 },
+  { key: "label", label: "Offer name (Buy 2…)", cssVar: "--ucro-ti-fs", min: 10, max: 32, def: 16 },
+  { key: "price", label: "Price", cssVar: "--ucro-pr-fs", min: 10, max: 32, def: 16 },
+  { key: "was", label: "Old price", cssVar: "--ucro-was-fs", min: 8, max: 24, def: 13 },
+  { key: "badge", label: "Badge and saving", cssVar: "--ucro-badge-fs", min: 8, max: 20, def: 11 },
+  { key: "items", label: "Size / colour pickers", cssVar: "--ucro-item-fs", min: 10, max: 24, def: 14 },
+  { key: "buttonText", label: "Button text", cssVar: "--ucro-btn-fs", min: 10, max: 28, def: 15 },
+  { key: "buttonHeight", label: "Button height", cssVar: "--ucro-btn-h", min: 28, max: 72, def: 44 },
+];
 
 export type UpsellDesign = {
   offers: { style: "cards" | "list"; label: string; showSaving: boolean; saving: string; perItem: boolean; itemLabel: string; ownButton: boolean; button: string };
   heading: { style: "heading" | "label"; size: "small" | "medium" | "large"; align: "left" | "center" | "right" };
   look: { themeColors: boolean; accent: string; border: string; badgeBg: string; badgeText: string; saveBg: string; saveText: string; themeRadius: boolean; radius: number; scheme: string };
   space: { gap: number; top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
+  sizes: Sizes;
 };
 
 export const DEFAULT_UPSELL: UpsellDesign = {
@@ -18,6 +32,7 @@ export const DEFAULT_UPSELL: UpsellDesign = {
   heading: { style: "heading", size: "medium", align: "left" },
   look: { themeColors: true, accent: "#111111", border: "#d4d4d4", badgeBg: "#111111", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#111111", themeRadius: true, radius: 12, scheme: "" },
   space: { gap: 12, top: 12, bottom: 12, devices: "all" },
+  sizes: defaultSizes(UPSELL_SIZES),
 };
 
 type Patch = { offers?: Partial<UpsellDesign["offers"]>; heading?: Partial<UpsellDesign["heading"]>; look?: Partial<UpsellDesign["look"]>; space?: Partial<UpsellDesign["space"]> };
@@ -34,7 +49,7 @@ export const UPSELL_PRESETS: { key: string; title: string; patch: Patch }[] = [
 export function applyUpsellPreset(c: UpsellDesign, key: string): UpsellDesign {
   const p = UPSELL_PRESETS.find((x) => x.key === key);
   if (!p) return c;
-  return { offers: { ...c.offers, ...p.patch.offers }, heading: { ...c.heading, ...p.patch.heading }, look: { ...c.look, ...p.patch.look }, space: { ...c.space, ...p.patch.space } };
+  return { ...c, offers: { ...c.offers, ...p.patch.offers }, heading: { ...c.heading, ...p.patch.heading }, look: { ...c.look, ...p.patch.look }, space: { ...c.space, ...p.patch.space } };
 }
 
 /** "Match my theme style": the theme's colours (a scheme, or the theme's button colour), corners and fonts. */
@@ -50,6 +65,7 @@ export function withUpsellDefaults(raw: unknown): UpsellDesign {
   const d = DEFAULT_UPSELL;
   const o = obj(r.offers), h = obj(r.heading), k = obj(r.look), s = obj(r.space);
   return {
+    sizes: withSizes(r.sizes, UPSELL_SIZES),
     offers: {
       style: pick(o.style, ["cards", "list"] as const, d.offers.style),
       label: str(o.label, d.offers.label, 60) || d.offers.label,
@@ -105,6 +121,7 @@ export function upsellVars(c: UpsellDesign): Record<string, string> {
     });
   }
   if (!c.look.themeRadius) v["--ucro-radius"] = `${c.look.radius}px`;
+  Object.assign(v, sizeVars(c.sizes, UPSELL_SIZES));
   return v;
 }
 

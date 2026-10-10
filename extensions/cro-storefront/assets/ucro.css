@@ -747,3 +747,17 @@
 /* ---- Add to bundle (product page) ---------------------------------------------------- */
 .ucro-atb { margin: 10px 0; }
 .ucro-atb.ucro-scheme { padding-block: 10px; }
+
+/* ---- Own sizes (app: Style → Sizes). Only when the section sets the size. -------------- */
+[style*="--ucro-h-fs"] .ucro__heading { font-size: var(--ucro-h-fs); }
+[style*="--ucro-sub-fs"] .ucro__sub { font-size: var(--ucro-sub-fs); }
+[style*="--ucro-btn-fs"] .ucro-btn { font-size: var(--ucro-btn-fs); }
+[style*="--ucro-btn-h"] .ucro-btn { min-height: var(--ucro-btn-h); }
+[style*="--ucro-ti-fs"] .ucro-offer__title, [style*="--ucro-ti-fs"] .ucro-tier__label { font-size: var(--ucro-ti-fs); }
+[style*="--ucro-pr-fs"] .ucro-offer__prices, [style*="--ucro-pr-fs"] .ucro-tier__price, [style*="--ucro-pr-fs"] .ucro-vc__price { font-size: var(--ucro-pr-fs); }
+[style*="--ucro-was-fs"] .ucro-was { font-size: var(--ucro-was-fs); }
+[style*="--ucro-badge-fs"] .ucro-tier__save, [style*="--ucro-badge-fs"] .ucro-tier__badge, [style*="--ucro-badge-fs"] .ucro-tier__save-text { font-size: var(--ucro-badge-fs); }
+[style*="--ucro-item-fs"] .ucro-item { font-size: var(--ucro-item-fs); }
+[style*="--ucro-img"] .ucro-offer__img { width: var(--ucro-img); height: var(--ucro-img); }
+[style*="--ucro-vc-tt"] .ucro-vc__title, [style*="--ucro-vc-tt"] .ucro-vc__caption { font-size: var(--ucro-vc-tt); }
+[style*="--ucro-vc-arrow"] .ucro-vc__arrow { width: var(--ucro-vc-arrow); height: var(--ucro-vc-arrow); }

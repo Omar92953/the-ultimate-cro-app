@@ -5,6 +5,12 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const LOGOS_SIZES: SizeSpec[] = [
+  { key: "text", label: "Text logos", cssVar: "--ucs-logo-ts", min: 10, max: 64, def: 22 },
+];
 
 export type LogosDesign = {
   scheme: string;
@@ -13,6 +19,7 @@ export type LogosDesign = {
   logos: { height: number; gap: number; grayscale: boolean; tint: "none" | "white" | "black"; opacity: number; textWeight: 400 | 600 | 800; textUpper: boolean };
   look: { ownBg: boolean; bg: string; ownText: boolean; fg: string };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
+  sizes: Sizes;
 };
 
 export const DEFAULT_LOGOS: LogosDesign = {
@@ -22,6 +29,7 @@ export const DEFAULT_LOGOS: LogosDesign = {
   logos: { height: 40, gap: 56, grayscale: true, tint: "none", opacity: 80, textWeight: 600, textUpper: false },
   look: { ownBg: false, bg: "#f5f5f5", ownText: false, fg: "#121212" },
   space: { top: 32, bottom: 32, devices: "all" },
+  sizes: defaultSizes(LOGOS_SIZES),
 };
 
 type Patch = { layout?: Partial<LogosDesign["layout"]>; logos?: Partial<LogosDesign["logos"]>; look?: Partial<LogosDesign["look"]> };
@@ -48,6 +56,7 @@ export function withLogosDefaults(raw: unknown): LogosDesign {
   const t = obj(r.text), l = obj(r.layout), g = obj(r.logos), k = obj(r.look), s = obj(r.space);
   const weight = Number(g.textWeight);
   return {
+    sizes: withSizes(r.sizes, LOGOS_SIZES),
     scheme: schemeId(r.scheme),
     text: { heading: str(t.heading, d.text.heading, 120), headingSize: num(t.headingSize, 14, 48, d.text.headingSize) },
     layout: {
@@ -113,6 +122,7 @@ export function logosVars(c: LogosDesign): Record<string, string> {
   };
   if (c.look.ownBg) Object.assign(v, { background: c.look.bg, "--ucs-logo-bg": c.look.bg });
   if (c.look.ownText) v.color = c.look.fg;
+  Object.assign(v, sizeVars(c.sizes, LOGOS_SIZES));
   return v;
 }
 

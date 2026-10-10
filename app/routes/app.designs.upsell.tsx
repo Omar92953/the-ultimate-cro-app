@@ -20,6 +20,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { UPSELL_SIZES } from "../lib/upsell-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -192,7 +194,8 @@ export default function UpsellDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={UPSELL_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="Heading on: an exact size instead of small / medium / large." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     {cfg.offers.style === "cards" ? <NumberField label="Space between offers" suffix="px" min={0} max={40} step={2} value={cfg.space.gap} onValue={(v) => space({ gap: v })} /> : null}
