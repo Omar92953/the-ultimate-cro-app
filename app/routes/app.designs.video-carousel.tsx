@@ -119,7 +119,7 @@ export default function VideoCarouselDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="videos" />
           <s-text color="subdued">
-            Add, order and link the videos in “Manage videos”. Here you choose how the carousel looks and where it shows. In the theme editor you only place the “Video carousel” section.
+            Add, order and link the videos in the Videos tab. Here you choose how the carousel looks and where it shows. In the theme editor you only place the “Video carousel” section.
           </s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

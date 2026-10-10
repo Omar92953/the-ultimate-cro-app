@@ -88,7 +88,7 @@ export default function FaqDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="faq" />
-          <s-text color="subdued">Questions and groups are in “Manage questions”. Here you choose how the FAQ looks and works; every copy of the section uses this design. In the theme editor each copy can still show only one group (e.g. Shipping) and have its own heading.</s-text>
+          <s-text color="subdued">Questions and groups are in the Questions tab. Here you choose how the FAQ looks and works; every copy of the section uses this design. In the theme editor each copy can still show only one group (e.g. Shipping) and have its own heading.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">
               Your store uses the standard look until you save here.

@@ -37,7 +37,14 @@
 
 .groupTitle { margin: 4px 0 6px; font-size: 12px; font-weight: 600; color: #616161; text-transform: capitalize; }
 
-/* Tabs as links (keeps each tab's URL shareable). */
+/* A feature's pages (Reviews | Design): underlined, like Shopify's page tabs, so they never look like
+   the grey settings tabs (Looks · Content · …) inside a page. */
+.pageTabs { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 2px; border-bottom: 1px solid #e3e3e3; }
+.pageTab { margin-bottom: -1px; padding: 8px 2px 9px; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 550; line-height: 20px; color: #616161; text-decoration: none; white-space: nowrap; }
+.pageTab:hover { color: #303030; border-bottom-color: #c9c9c9; }
+.pageTabActive { color: #303030; border-bottom-color: #303030; }
+
+/* Segmented buttons (settings tabs, filters). */
 .tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: #ebebeb; border-radius: 9px; width: fit-content; max-width: 100%; }
 .tab { padding: 3px 11px; border-radius: 7px; font-size: 13px; font-weight: 550; line-height: 20px; color: #303030; text-decoration: none; white-space: nowrap; }
 .tab:hover { background: rgba(255, 255, 255, 0.6); }

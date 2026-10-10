@@ -101,7 +101,7 @@ export default function AnnouncementDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="announcements" />
-          <s-text color="subdued">Messages, icons and dates are in “Manage messages”. Here you choose how the bar looks and behaves. In the theme editor you only switch the “Announcement bar” embed on.</s-text>
+          <s-text color="subdued">Messages, icons and dates are in the Messages tab. Here you choose how the bar looks and behaves. In the theme editor you only switch the “Announcement bar” embed on.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">
               Your store uses the standard look until you save here.

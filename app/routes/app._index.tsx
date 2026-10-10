@@ -507,7 +507,7 @@ export function HomeView({ only }: { only?: CategoryKey }) {
             open: { href: "/app/boosters" },
             previews: b.Previews,
             off: !enabled,
-            menu: [{ label: "Manage boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
+            menu: [{ label: "Open boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
           });
         });
         PAGE_CARDS.forEach((pg) => {

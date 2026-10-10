@@ -51,13 +51,13 @@ export function Tabs({ items }: { items: { label: string; to: string }[] }) {
   const { pathname, search } = useLocation();
   const here = new URLSearchParams(search).get("tab");
   return (
-    <nav className={styles.tabs} aria-label="Sections">
+    <nav className={styles.pageTabs} aria-label="Pages of this feature">
       {items.map((t) => {
         const [path, query] = t.to.split("?");
         const tab = new URLSearchParams(query ?? "").get("tab");
         const active = pathname === path && (tab ?? null) === (here ?? null);
         return (
-          <Link key={t.to} to={t.to} className={`${styles.tab} ${active ? styles.tabActive : ""}`} aria-current={active ? "page" : undefined}>
+          <Link key={t.to} to={t.to} className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
             {t.label}
           </Link>
         );

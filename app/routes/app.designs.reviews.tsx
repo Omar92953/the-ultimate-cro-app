@@ -103,7 +103,7 @@ export default function ReviewsDesigner() {
       <s-stack gap="base">
         <FeatureTabs feature="reviews" />
         <s-text color="subdued">
-          Add, edit and order the reviews in “Manage reviews”. Here you choose how the section looks. In the theme editor you only place the “Customer reviews” section.
+          Add, edit and order the reviews in the Reviews tab. Here you choose how the section looks. In the theme editor you only place the “Customer reviews” section.
         </s-text>
         {!data.saved ? (
           <s-banner tone="info" heading="Not saved yet">

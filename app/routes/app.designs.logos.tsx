@@ -88,7 +88,7 @@ export default function LogosDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="logos" />
-          <s-text color="subdued">Logos and texts are in “Manage logos”. Here you choose how the strip looks and moves. In the theme editor you only place the “Scrolling logos and text” section; every copy of it uses this design.</s-text>
+          <s-text color="subdued">Logos and texts are in the Logos tab. Here you choose how the strip looks and moves. In the theme editor you only place the “Scrolling logos and text” section; every copy of it uses this design.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">
               Your store uses the standard look until you save here.

@@ -151,7 +151,7 @@ export default function BundleDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="bundles" />
           <s-text color="subdued">
-            Create bundles, their steps and products in “Manage bundles”. Here you choose how the builder looks on the bundle product’s page. One design for all your bundles. In the theme editor you only place the “Bundle builder” block.
+            Create bundles, their steps and products in the Mix & match tab. Here you choose how the builder looks on the bundle product’s page. One design for all your bundles. In the theme editor you only place the “Bundle builder” block.
           </s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

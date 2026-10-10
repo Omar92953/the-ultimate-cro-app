@@ -20,7 +20,8 @@
 
 /* Design pages: a centred column with space on both sides; tabs stay at the top while scrolling */
 .shell { width: 100%; max-width: 1180px; margin: 0 auto; }
-.tabsBar { background: #f1f1f1; }
+/* Only the rounded tabs themselves: no band behind them (they still stick to the top when scrolling). */
+.tabsBar { width: fit-content; max-width: 100%; background: transparent; }
 @media (max-width: 1000px) {
   /* narrow screens: the preview comes first so changes are always visible */
   .layout > .preview { order: -1; position: relative; top: 0; }
