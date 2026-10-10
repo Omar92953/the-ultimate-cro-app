@@ -32,7 +32,7 @@ const PREVIEW_WIDTH = 1000;
  * preview is drawn at PREVIEW_WIDTH and scaled to fit the column, so it keeps the same proportions on
  * any screen (only its size changes). It stays clickable.
  */
-export function PreviewFrame({ title, children, tools }: { title: string; children: ReactNode; tools?: ReactNode }) {
+export function PreviewFrame({ title, children, tools, width = PREVIEW_WIDTH }: { title: string; children: ReactNode; tools?: ReactNode; /** The store width it is drawn at (default: a full page). */ width?: number }) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState({ scale: 1, height: 0 });
@@ -41,14 +41,14 @@ export function PreviewFrame({ title, children, tools }: { title: string; childr
     if (!o || !i || typeof ResizeObserver === "undefined") return;
     const measure = () => {
       // Rounded, so a 1px change in the column (e.g. a scrollbar) can't start a resize loop.
-      const scale = Math.min(1, Math.floor((o.clientWidth / PREVIEW_WIDTH) * 100) / 100);
+      const scale = Math.min(1, Math.floor((o.clientWidth / width) * 100) / 100);
       setFit((f) => (f.scale === scale && f.height === i.offsetHeight ? f : { scale, height: i.offsetHeight }));
     };
     const ro = new ResizeObserver(measure);
     ro.observe(o);
     ro.observe(i);
     return () => ro.disconnect();
-  }, []);
+  }, [width]);
   // Before the first measure (server render) it is drawn unscaled at the same width.
   const scaled = fit.height > 0;
   return (
@@ -60,7 +60,7 @@ export function PreviewFrame({ title, children, tools }: { title: string; childr
       </div>
       <div className={ui.frame} ref={outer}>
         <div style={{ height: scaled ? fit.height * fit.scale : undefined, overflow: "hidden" }}>
-          <div ref={inner} style={{ width: PREVIEW_WIDTH, transform: `scale(${fit.scale})`, transformOrigin: "top left" }}>
+          <div ref={inner} style={{ width, transform: `scale(${fit.scale})`, transformOrigin: "top left" }}>
             {children}
           </div>
         </div>

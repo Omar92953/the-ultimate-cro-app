@@ -135,7 +135,7 @@ export default function ReviewsDesigner() {
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchReviews} />
         </Pane>
 
-        <Pane show={tab === "looks"}><LookPicker presets={isProduct ? PRODUCT_REVIEW_PRESETS : REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} render={(c) => <ThemeLook style={data.style}><ReviewsPreview config={c} reviews={data.reviews} /></ThemeLook>} /></Pane>
+        <Pane show={tab === "looks"}><LookPicker width={isProduct ? 480 : undefined} presets={isProduct ? PRODUCT_REVIEW_PRESETS : REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} render={(c) => <ThemeLook style={data.style}><ReviewsPreview config={c} reviews={data.reviews} /></ThemeLook>} /></Pane>
             <Pane show={tab === "content"}><s-section heading="Heading and words">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
@@ -453,7 +453,7 @@ export default function ReviewsDesigner() {
             </s-section></Pane>
           </s-stack>
 
-          <PreviewFrame title={isProduct ? "Product page · next to the price" : "Your store · your real reviews"}>
+          <PreviewFrame width={isProduct ? 480 : undefined} title={isProduct ? "Product page · next to the price" : "Your store · your real reviews"}>
             <ThemeLook style={data.style}><ReviewsPreview config={cfg} reviews={data.reviews} /></ThemeLook>
           </PreviewFrame>
         </div>

@@ -25,7 +25,7 @@ function useMiniStyles() {
 }
 
 /** A full-size preview shrunk to fit its box; not clickable or focusable. */
-function MiniPreview({ children }: { children: ReactNode }) {
+function MiniPreview({ children, width = MINI_WIDTH }: { children: ReactNode; width?: number }) {
   useMiniStyles();
   const box = useRef<HTMLSpanElement>(null);
   const [scale, setScale] = useState(0.2);
@@ -37,18 +37,18 @@ function MiniPreview({ children }: { children: ReactNode }) {
     if (!el || typeof ResizeObserver === "undefined") return;
     // Fires once straight away when observing starts, then on every resize.
     const ro = new ResizeObserver(() => {
-      setScale(el.clientWidth / MINI_WIDTH || 0.2);
+      setScale(el.clientWidth / width || 0.2);
       setReady(true);
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [width]);
   return (
     <span ref={box} aria-hidden="true" style={{ display: "block", position: "relative", height: 118, overflow: "hidden", borderRadius: 6, background: "#fff", boxShadow: "inset 0 0 0 1px #ececec" }}>
       <span
         className="lookMini"
         {...({ inert: "" } as object)}
-        style={{ display: "block", position: "absolute", top: 0, left: 0, width: MINI_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left", pointerEvents: "none" }}
+        style={{ display: "block", position: "absolute", top: 0, left: 0, width, transform: `scale(${scale})`, transformOrigin: "top left", pointerEvents: "none" }}
       >
         {ready ? children : null}
       </span>
@@ -65,7 +65,7 @@ export type LookSwatch = {
   list?: boolean; // one box with rows instead of cards
 };
 
-export function LookPicker<C>({ presets, config, apply, swatch, render, onPick }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch?: (c: C) => LookSwatch; render?: (c: C) => ReactNode; onPick: (key: string) => void }) {
+export function LookPicker<C>({ presets, config, apply, swatch, render, onPick, width }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch?: (c: C) => LookSwatch; render?: (c: C) => ReactNode; onPick: (key: string) => void; /** The page width each template is drawn at (default 760). */ width?: number }) {
   const now = JSON.stringify(config);
   return (
     <s-section heading="Start from a template">
@@ -87,7 +87,7 @@ export function LookPicker<C>({ presets, config, apply, swatch, render, onPick }
               onClick={() => onPick(p.key)}
               style={{ display: "flex", flexDirection: "column", gap: 6, padding: 6, font: "inherit", textAlign: "left", cursor: "pointer", background: "#fff", border: on ? "2px solid #303030" : "1px solid #d4d4d4", borderRadius: 10, minWidth: 0 }}
             >
-              {render ? <MiniPreview>{render(next)}</MiniPreview> : <span aria-hidden="true" style={{ display: "flex", flexDirection: s.list ? "column" : "row", gap: s.list ? 0 : 5, height: 64, padding: 6, background: s.bg ?? "#f6f6f7", borderRadius: 6, overflow: "hidden" }}>
+              {render ? <MiniPreview width={width}>{render(next)}</MiniPreview> : <span aria-hidden="true" style={{ display: "flex", flexDirection: s.list ? "column" : "row", gap: s.list ? 0 : 5, height: 64, padding: 6, background: s.bg ?? "#f6f6f7", borderRadius: 6, overflow: "hidden" }}>
                 {Array.from({ length: s.list ? 3 : n }, (_, i) => {
                   const sel = i === 0;
                   if (s.list) {
