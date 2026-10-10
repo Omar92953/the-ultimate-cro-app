@@ -26,6 +26,14 @@ export type ReviewsDesign = {
     product: boolean;
     clamp: number; // lines before "Read more" (0 = never cut)
     videoAutoplay: boolean;
+    /** Review photos: shown whole on the fill, or cropped to fill (each review can override). */
+    photoFit: "whole" | "crop";
+    photoFocus: "center" | "top" | "bottom";
+    /** Picture shape: as tall as the tallest one, or a set shape for all. */
+    photoShape: "tallest" | "square" | "landscape" | "portrait";
+    align: "left" | "center";
+    /** The review text above the stars and name. */
+    textFirst: boolean;
   };
   fill: { kind: "color" | "pattern" | "image"; color: string; pattern: "chat" | "dots" | "grid" | "lines"; image: MediaRef | null; imageUrl: string | null };
   look: { star: string; cardBg: string; cardText: string; bg: string; radius: number; transparentBg: boolean; defaultCard: boolean };
@@ -33,7 +41,7 @@ export type ReviewsDesign = {
   /** The source badge (WhatsApp, Instagram…). `custom`: your own picture per source. */
   icon: { size: number; position: "auto" | "tr" | "tl" | "br" | "bl"; style: "brand" | "mono" | "plain"; shape: "circle" | "rounded" | "square"; bg: string; fg: string; custom: Record<string, MediaRef> };
   /** The product shown on a card. */
-  product: { style: "row" | "chip" | "text"; image: boolean; imageSize: number; radius: number; textSize: number; ownColors: boolean; bg: string; fg: string };
+  product: { style: "row" | "chip" | "text" | "caption"; image: boolean; imageSize: number; radius: number; textSize: number; ownColors: boolean; bg: string; fg: string };
 };
 
 export const ICON_SOURCES = ["whatsapp", "instagram", "tiktok", "facebook", "google", "x", "snapchat", "youtube", "email", "website"] as const;
@@ -52,7 +60,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   summary: { show: true, average: true, stars: true, count: true },
   which: { filter: "all", fallback: true, limit: 12 },
   layout: { mode: "carousel", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
-  card: { style: "classic", text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true },
+  card: { style: "classic", text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true, photoFit: "whole", photoFocus: "center", photoShape: "tallest", align: "left", textFirst: false },
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
   look: { star: "#f5a623", cardBg: "#ffffff", cardText: "#121212", bg: "#ffffff", radius: 14, transparentBg: true, defaultCard: true },
   space: { top: 40, bottom: 40, devices: "all", schema: true },
@@ -60,7 +68,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   product: { style: "row", image: true, imageSize: 40, radius: 6, textSize: 13, ownColors: false, bg: "#f1f1f1", fg: "#111111" },
 };
 
-type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]> };
+type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]>; product?: Partial<ReviewsDesign["product"]>; text?: Partial<ReviewsDesign["text"]> };
 /** Ready-made looks; everything stays editable. */
 export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   { key: "classic", title: "Classic cards", patch: { card: { style: "classic" }, look: { star: "#f5a623", radius: 14, defaultCard: true, transparentBg: true }, fill: { kind: "color", color: "#111111" } } },
@@ -68,12 +76,23 @@ export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   { key: "minimal", title: "Minimal", patch: { card: { style: "minimal" }, look: { star: "#111111", radius: 6, defaultCard: true, transparentBg: true }, fill: { kind: "color", color: "#f4f4f4" } } },
   { key: "dark", title: "Dark", patch: { card: { style: "classic" }, look: { star: "#ffd166", cardBg: "#1c1c1e", cardText: "#ffffff", bg: "#111111", radius: 16, defaultCard: false, transparentBg: false }, fill: { kind: "color", color: "#2a2a2c" } } },
   { key: "warm", title: "Warm", patch: { card: { style: "classic" }, look: { star: "#c2410c", cardBg: "#fffaf3", cardText: "#3b2a1a", bg: "#f6efe6", radius: 20, defaultCard: false, transparentBg: false }, fill: { kind: "pattern", pattern: "dots", color: "#eadfce" } } },
+  {
+    key: "saying",
+    title: "Customers are saying",
+    patch: {
+      text: { heading: "Customers are saying", sub: "" },
+      card: { style: "classic", align: "center", textFirst: true, photoFit: "crop", photoFocus: "center", photoShape: "landscape", location: false, date: false, source: false },
+      look: { star: "#d4af37", cardBg: "#f0f2f6", cardText: "#111111", radius: 8, defaultCard: false, transparentBg: true },
+      layout: { mode: "carousel", perDesktop: 3 },
+      product: { style: "caption" },
+    },
+  },
 ];
 
 export function applyReviewPreset(c: ReviewsDesign, key: string): ReviewsDesign {
   const p = REVIEW_PRESETS.find((x) => x.key === key);
   if (!p) return c;
-  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill } };
+  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -125,6 +144,11 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       product: bool(c.product, d.card.product),
       clamp: num(c.clamp, 0, 12, d.card.clamp),
       videoAutoplay: bool(c.videoAutoplay, d.card.videoAutoplay),
+      photoFit: pick(c.photoFit, ["whole", "crop"] as const, d.card.photoFit),
+      photoFocus: pick(c.photoFocus, ["center", "top", "bottom"] as const, d.card.photoFocus),
+      photoShape: pick(c.photoShape, ["tallest", "square", "landscape", "portrait"] as const, d.card.photoShape),
+      align: pick(c.align, ["left", "center"] as const, d.card.align),
+      textFirst: bool(c.textFirst, d.card.textFirst),
     },
     fill: {
       kind: pick(f.kind, ["color", "pattern", "image"] as const, d.fill.kind),
@@ -158,7 +182,7 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       custom,
     },
     product: {
-      style: pick(pr.style, ["row", "chip", "text"] as const, d.product.style),
+      style: pick(pr.style, ["row", "chip", "text", "caption"] as const, d.product.style),
       image: bool(pr.image, d.product.image),
       imageSize: num(pr.imageSize, 24, 80, d.product.imageSize),
       radius: num(pr.radius, 0, 40, d.product.radius),
@@ -214,6 +238,9 @@ export function reviewsClass(c: ReviewsDesign) {
     c.card.clamp === 0 ? "ucs-rv--full" : "",
     c.layout.cardWidth ? "ucs-rv--cw" : "",
     c.icon.position !== "auto" ? `ucs-rv--ic-${c.icon.position}` : "",
+    c.card.photoShape !== "tallest" ? `ucs-rv--shape-${c.card.photoShape}` : "",
+    c.card.align === "center" ? "ucs-rv--center" : "",
+    c.card.textFirst ? "ucs-rv--text-first" : "",
     c.icon.style !== "brand" ? `ucs-rv--ic-${c.icon.style}` : "",
     `ucs-rv--pr-${c.product.style}`,
     c.product.image ? "" : "ucs-rv--pr-noimg",

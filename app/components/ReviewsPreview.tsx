@@ -15,6 +15,8 @@ export type PreviewReview = {
   verified: boolean;
   featured: boolean;
   media: { kind: "image" | "video"; url: string } | null;
+  /** This review's own photo fit ("" = the design's): whole, or crop keeping center / top / bottom. */
+  photoFit: string;
   product: { title: string; image: string | null } | null;
 };
 
@@ -65,15 +67,19 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
               const fromProd = !r.media && !!r.product?.image;
               const media = r.media ?? (fromProd ? { kind: "image" as const, url: r.product!.image! } : null);
               const showMedia = c.card.media && media;
+              const pf = r.photoFit || (c.card.photoFit === "crop" ? c.card.photoFocus : "whole");
+              const whole = !fromProd && media?.kind !== "video" && pf === "whole";
+              const textEl = c.card.text && r.text ? <div className="ucs-rv__text">{r.text}</div> : null;
               const meta = [c.card.location ? r.location : "", c.card.date ? r.date : ""].filter(Boolean).join(" · ");
               return (
                 <article key={i} className={`ucs-rv__card ucs-rv__card--${c.card.style}${showMedia ? " has-media" : ""}`}>
                   {showMedia ? (
-                    <div className={`ucs-rv__media${!fromProd && media.kind !== "video" ? " ucs-rv__media--shot" : ""}`}>
+                    <div className={`ucs-rv__media${whole ? " ucs-rv__media--shot" : ""}`} style={!whole && (pf === "top" || pf === "bottom") ? ({ "--ucs-rv-focus": `center ${pf}` } as CSSProperties) : undefined}>
                       {media.kind === "video" ? <video className="ucs-rv__video" src={media.url} muted playsInline /> : <img className="ucs-rv__img" src={sized(media.url, 540)} alt={r.name} />}
                     </div>
                   ) : null}
                   <div className="ucs-rv__body">
+                    {c.card.textFirst ? textEl : null}
                     {(c.card.stars && r.rating > 0) || (c.card.source && r.source && r.source !== "other") ? (
                       <div className="ucs-rv__top">
                         {c.card.stars && r.rating > 0 ? <Stars r={r.rating} /> : null}
@@ -84,7 +90,7 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
                         ) : null}
                       </div>
                     ) : null}
-                    {c.card.text && r.text ? <div className="ucs-rv__text">{r.text}</div> : null}
+                    {c.card.textFirst ? null : textEl}
                     <footer className="ucs-rv__who">
                       <span className="ucs-rv__name">{r.name}</span>
                       {c.card.verified && r.verified ? (

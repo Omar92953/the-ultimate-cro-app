@@ -50,7 +50,7 @@
       {%- assign p = m.product.value -%}
       {%- if n > 0 %},{% endif -%}
       {%- assign n = n | plus: 1 -%}
-      {"n":{{ m.name.value | default: '' | json }},"t":{{ m.text.value | default: '' | json }},"r":{{ m.rating.value | default: 0 }},"s":{{ m.source.value | default: '' | json }},"su":{{ m.source_url.value | default: '' | json }},"l":{{ m.location.value | default: '' | json }},"d":{{ m.date.value | date: '%b %-d, %Y' | default: '' | json }},"di":{{ m.date.value | date: '%Y-%m-%d' | default: '' | json }},"v":{% if m.verified.value == false %}0{% else %}1{% endif %},"f":{% if m.featured.value %}1{% else %}0{% endif %}
+      {"n":{{ m.name.value | default: '' | json }},"t":{{ m.text.value | default: '' | json }},"r":{{ m.rating.value | default: 0 }},"s":{{ m.source.value | default: '' | json }},"su":{{ m.source_url.value | default: '' | json }},"l":{{ m.location.value | default: '' | json }},"d":{{ m.date.value | date: '%b %-d, %Y' | default: '' | json }},"di":{{ m.date.value | date: '%Y-%m-%d' | default: '' | json }},"v":{% if m.verified.value == false %}0{% else %}1{% endif %},"f":{% if m.featured.value %}1{% else %}0{% endif %},"pf":{{ m.photo_fit.value | default: '' | json }}
       {%- if md -%}
         ,"m":{"k":{{ md.media_type | json }}
         {%- if md.media_type == 'video' -%}

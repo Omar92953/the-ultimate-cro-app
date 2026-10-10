@@ -47,6 +47,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         verified: v.verified !== false,
         featured: v.featured === true,
         media: media?.url ? { kind: media.kind === "video" ? "video" : "image", url: media.url } : null,
+        photoFit: String(v.photo_fit ?? ""),
         product: product ? { title: product.title, image: product.image } : null,
       };
     });
@@ -212,6 +213,22 @@ export default function ReviewsDesigner() {
                   <NumberField label="Card corners" suffix="px" min={0} max={40} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
                 </s-grid>
                 <Checkbox label="Videos play silently when on screen" checked={cfg.card.videoAutoplay} onValue={(v) => card({ videoAutoplay: v })} />
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <Select label="Text" value={cfg.card.align} onValue={(v) => card({ align: v as C["card"]["align"] })} options={[{ value: "left", label: "Left" }, { value: "center", label: "Centred" }]} />
+                  <Select label="Order" value={cfg.card.textFirst ? "text" : "stars"} onValue={(v) => card({ textFirst: v === "text" })} options={[{ value: "stars", label: "Stars, then review" }, { value: "text", label: "Review, then stars" }]} />
+                </s-grid>
+              </s-stack>
+            </s-section>
+            <s-section heading="Photos">
+              <s-stack gap="base">
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <Select label="Photo fit" details="Each review can choose its own in its editor." value={cfg.card.photoFit} onValue={(v) => card({ photoFit: v as C["card"]["photoFit"] })} options={[{ value: "whole", label: "Show the whole photo" }, { value: "crop", label: "Crop to fill" }]} />
+                  {cfg.card.photoFit === "crop" ? (
+                    <Select label="Keep in view" value={cfg.card.photoFocus} onValue={(v) => card({ photoFocus: v as C["card"]["photoFocus"] })} options={[{ value: "center", label: "Middle" }, { value: "top", label: "Top" }, { value: "bottom", label: "Bottom" }]} />
+                  ) : <span />}
+                </s-grid>
+                <Select label="Photo shape" value={cfg.card.photoShape} onValue={(v) => card({ photoShape: v as C["card"]["photoShape"] })} options={[{ value: "tallest", label: "Match the tallest photo" }, { value: "square", label: "Square" }, { value: "landscape", label: "Wide (4:3)" }, { value: "portrait", label: "Tall (4:5)" }]} />
+                {cfg.card.photoFit === "whole" ? <s-text color="subdued">Whole photos sit on the fill chosen in Style.</s-text> : null}
               </s-stack>
             </s-section></Pane>
 
@@ -310,10 +327,11 @@ export default function ReviewsDesigner() {
                       { value: "row", label: "Row with a line above" },
                       { value: "chip", label: "Pill" },
                       { value: "text", label: "Name only (link)" },
+                      { value: "caption", label: "Small caption" },
                     ]}
                   />
                   <NumberField label="Text size" suffix="px" min={11} max={18} step={1} value={cfg.product.textSize} onValue={(v) => product({ textSize: v })} />
-                  {cfg.product.style !== "text" && cfg.product.image ? (
+                  {cfg.product.style !== "text" && cfg.product.style !== "caption" && cfg.product.image ? (
                     <>
                       <NumberField label="Picture size" suffix="px" min={24} max={80} step={2} value={cfg.product.imageSize} onValue={(v) => product({ imageSize: v })} />
                       {cfg.product.style === "row" ? <NumberField label="Picture corners" suffix="px" min={0} max={40} step={1} value={cfg.product.radius} onValue={(v) => product({ radius: v })} /> : null}

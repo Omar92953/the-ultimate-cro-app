@@ -130,7 +130,7 @@ const long = "I ordered on Sunday and it arrived on Tuesday, perfectly packed. T
 const reviews = [
   mo("r1", { name: "Mariam A.", text: "", rating: 5, media: shot("review-chat-1.jpg?v=1791333868", 1023, 336), source: "whatsapp", product: tee, location: "Cairo", date: "2026-09-12", verified: true, featured: true, active: true, position: 1 }),
   mo("r2", { name: "Youssef K.", text: "Great sound and the battery lasts all week.", rating: 5, source: "tiktok", source_url: "https://www.tiktok.com/", product: tee, location: "Alexandria", date: "2026-09-20", verified: true, featured: true, active: true, position: 4 }),
-  mo("r3", { name: "Nour H.", text: "", rating: 5, media: shot("review-chat-3.jpg?v=1791333868", 1284, 506), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3 }),
+  mo("r3", { name: "Nour H.", text: "", rating: 5, media: shot("review-chat-3.jpg?v=1791333868", 1284, 506), source: "instagram", source_url: "https://www.instagram.com/", product: mug, location: "Giza", date: "2026-08-30", verified: false, featured: true, active: true, position: 3, photo_fit: "whole" }),
   mo("r4", { name: "Omar S.", text: "Quick delivery, good quality.", rating: 4, source: "google", product: camera, location: "Mansoura", date: "2026-09-25", active: true, position: 2 }),
   mo("r5", { name: "Salma R.", text: "Got it as a gift and my friend loved it.", rating: 5, source: "facebook", product: mug, date: "2026-10-01", active: true, position: 5 }),
   mo("r6", { name: "Hidden H.", text: "HIDDEN — must not show", rating: 1, active: false, position: 0 }),
@@ -157,7 +157,7 @@ const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
 shop.metaobjects["$app:cro_boosters"] = collectionOf([mo("main", { config: null })]);
 // Countdown bar: designed in the app — the app's defaults, saved the way the app saves them.
 const { toStorefrontCountdownBar, withCountdownBarDefaults } = await import("../../app/lib/designs.ts");
-const { toStorefrontReviews, withReviewsDefaults } = await import("../../app/lib/reviews-design.ts");
+const { toStorefrontReviews, withReviewsDefaults, applyReviewPreset } = await import("../../app/lib/reviews-design.ts");
 const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
 const { toStorefrontAnnouncement, withAnnouncementDefaults } = await import("../../app/lib/announcement-design.ts");
 const { toStorefrontShippingBar, withShippingBarDefaults } = await import("../../app/lib/shipping-bar.ts");
@@ -188,6 +188,8 @@ const withDesign = (d) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:
 // Logos with another design: a colour grid with its own heading.
 // FAQ with another design: cards, arrow on the left, 2 columns, yellow buttons, no search.
 const shopFaqCards = withDesign(faqDesign({ questions: { columns: 2, search: false }, look: { style: "cards", icon: "chevron", iconLeft: true, accent: "#ffbd13" } }));
+// "Customers are saying" template: cropped photos, centred, text first; Nour's review keeps its whole photo.
+const shopSaying = withDesign(mo("reviews", { config: toStorefrontReviews(applyReviewPreset(withReviewsDefaults({}), "saying")) }));
 const shopLogoGrid = withDesign(logosDesign({ layout: { mode: "grid" }, logos: { grayscale: false }, text: { heading: "As seen in" } }));
 // The announcement bar with another design: slide, closable, capitals (and no free-shipping message).
 const shopSlide = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== "announcement"), announceDesign({ behaviour: { animation: "slide", dismissible: true }, look: { upper: true } })]) } };
@@ -247,6 +249,7 @@ const pages = {
     label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
     label("countdown: cart page (daily cut-off)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "cart" })) + "</div>" +
     label("logos: grid, colour") + (await block("ucs-logos", {}, { shop: shopLogoGrid })) +
+    label("reviews: Customers are saying template (one card keeps its whole photo)") + (await block("ucs-reviews", {}, { shop: shopSaying })) +
     label("reviews: chat style, masonry, featured only") + (await block("ucs-reviews", { layout: "masonry", card_style: "chat", filter: "featured" })) +
     label("reviews: carousel, minimal, 4 per row") + (await block("ucs-reviews", { layout: "carousel", card_style: "minimal", columns_desktop: 4 })) +
     label("faq: cards, chevron, 2 columns, only Shipping") + (await block("ucs-faq", { group: "shipping", heading: "Shipping questions" }, { shop: shopFaqCards })),

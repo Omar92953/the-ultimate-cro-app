@@ -44,12 +44,15 @@
        fill), and the name/badge/date and product rows equally tall in every card */
     var level = function () {
       root.classList.remove('is-sized');
-      var tallest = 0;
+      var tallest = 0, fixed = /ucs-rv--shape-/.test(root.className);
       root.querySelectorAll('.ucs-rv__media').forEach(function (m) {
         var w = m.clientWidth, img = m.querySelector('img');
         // Lazy images aren't loaded yet off-screen: their width/height attributes give the shape.
         var iw = img && (img.naturalWidth || Number(img.getAttribute('width'))), ih = img && (img.naturalHeight || Number(img.getAttribute('height')));
-        var h = m.classList.contains('ucs-rv__media--shot') ? (iw && ih ? Math.min(460, (w * ih) / iw) : 0) : w * 1.25;
+        // A set photo shape (Design) sizes every picture by itself.
+        if (fixed) return;
+        var shot = m.classList.contains('ucs-rv__media--shot');
+        var h = shot ? (iw && ih ? Math.min(460, (w * ih) / iw) : 0) : w * 1.25;
         tallest = Math.max(tallest, h);
       });
       if (tallest > 0) {
@@ -167,7 +170,10 @@
     var showMedia = c.c.media && md && md.u;
     var h = '<article class="ucs-rv__card ucs-rv__card--' + c.c.style + (showMedia ? ' has-media' : '') + '">';
     if (showMedia) {
-      h += '<div class="ucs-rv__media' + (!fromProd && md.k !== 'video' ? ' ucs-rv__media--shot' : '') + '">';
+      // Photo fit: this review's own choice, else the section's (whole on the fill, or cropped to fill).
+      var pf = r.pf || (c.c.photoFit === 'crop' ? c.c.photoFocus || 'center' : 'whole');
+      var whole = !fromProd && md.k !== 'video' && pf === 'whole';
+      h += '<div class="ucs-rv__media' + (whole ? ' ucs-rv__media--shot' : '') + '"' + (!whole && pf !== 'center' && pf !== 'whole' ? ' style="--ucs-rv-focus: center ' + pf + '"' : '') + '>';
       if (md.k === 'video') {
         h += '<video class="ucs-rv__video" muted loop playsinline preload="none" src="' + esc(md.u) + '"' + (md.po ? ' poster="' + esc(md.po) + '"' : '') + '></video>' +
           '<button type="button" class="ucs-rv__sound" aria-pressed="false" aria-label="Turn sound on"><span class="ucs-i ucs-i--muted" aria-hidden="true"></span><span class="ucs-i ucs-i--sound" aria-hidden="true"></span></button>' +
@@ -179,6 +185,8 @@
       h += '</div>';
     }
     h += '<div class="ucs-rv__body">';
+    var text = c.c.text && r.t ? '<div class="ucs-rv__text">' + esc(r.t).replace(/\n/g, '<br>') + '</div><button type="button" class="ucs-rv__more" hidden>' + esc(t.readMore) + '</button>' : '';
+    if (c.c.textFirst) h += text;
     var hasStars = c.c.stars && r.r > 0, src = r.s, hasSrc = c.c.source && src && src !== 'other';
     if (hasStars || hasSrc) {
       h += '<div class="ucs-rv__top">' + (hasStars ? stars(r.r, r.r + ' out of 5 stars') : '');
@@ -194,7 +202,7 @@
       }
       h += '</div>';
     }
-    if (c.c.text && r.t) h += '<div class="ucs-rv__text">' + esc(r.t).replace(/\n/g, '<br>') + '</div><button type="button" class="ucs-rv__more" hidden>' + esc(t.readMore) + '</button>';
+    if (!c.c.textFirst) h += text;
     var meta = [c.c.location && r.l ? esc(r.l) : '', c.c.date && r.d ? esc(r.d) : ''].filter(Boolean).join(' · ');
     h += '<footer class="ucs-rv__who"><span class="ucs-rv__name">' + esc(r.n) + '</span>' +
       (c.c.verified && r.v ? '<span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>' + esc(t.verified) + '</span>' : '') +

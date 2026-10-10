@@ -306,6 +306,11 @@ access.storefront = "public_read"
   name = "Photo or video"
   type = "file_reference"
 
+  [metaobjects.app.cro_review.fields.photo_fit]
+  name = "Photo fit"
+  type = "single_line_text_field"
+  validations.choices = [ "whole", "center", "top", "bottom" ]
+
   [metaobjects.app.cro_review.fields.source]
   name = "Source"
   type = "single_line_text_field"

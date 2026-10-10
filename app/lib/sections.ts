@@ -49,6 +49,14 @@ export type SectionItem = {
   values: Record<string, Value>;
 };
 
+export const PHOTO_FITS = [
+  { value: "", label: "Like the section design" },
+  { value: "whole", label: "Show the whole photo" },
+  { value: "center", label: "Crop to fill — keep the middle" },
+  { value: "top", label: "Crop to fill — keep the top" },
+  { value: "bottom", label: "Crop to fill — keep the bottom" },
+];
+
 export const SOURCES = [
   { value: "", label: "Not shown" },
   { value: "whatsapp", label: "WhatsApp" },
@@ -118,6 +126,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "text", label: "What they said", type: "textarea", details: "Paste the message as they wrote it." },
       { key: "rating", label: "Stars", type: "rating", default: 5 },
       { key: "media", label: "Photo or video", type: "media", details: "A photo of the product in use, a screenshot of the chat, or a short video." },
+      { key: "photo_fit", label: "How the photo fits", type: "select", options: PHOTO_FITS, default: "", details: "Only for this review. Crop fills the picture area; whole shows all of it on the section's fill." },
       { key: "source", label: "Where it came from", type: "select", options: SOURCES, default: "", details: "Shows the WhatsApp, Instagram… icon on the card." },
       { key: "source_url", label: "Link to the original post", type: "url", placeholder: "https://www.instagram.com/p/…", details: "Optional. The icon links to it." },
       { key: "product", label: "Product", type: "product", details: "Optional. Shows the product on the card, and the review on that product's page." },

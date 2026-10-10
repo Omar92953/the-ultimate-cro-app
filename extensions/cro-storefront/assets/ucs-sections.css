@@ -280,6 +280,16 @@
 /* Every picture in the section gets the height of the tallest one (measured by ucs-reviews.js). */
 .ucs-rv.is-sized .ucs-rv__media { height: var(--ucs-rv-media-h); aspect-ratio: auto; flex: none; }
 .ucs-rv.is-sized .ucs-rv__media--shot img { max-height: 100%; }
+/* Cropped photos: which part stays in view (per review). A set photo shape: every picture that shape. */
+.ucs-rv__media img { object-position: var(--ucs-rv-focus, center); }
+.ucs-rv.ucs-rv--shape-square .ucs-rv__media { aspect-ratio: 1 / 1; height: auto; min-height: 0; }
+.ucs-rv.ucs-rv--shape-landscape .ucs-rv__media { aspect-ratio: 4 / 3; height: auto; min-height: 0; }
+.ucs-rv.ucs-rv--shape-portrait .ucs-rv__media { aspect-ratio: 4 / 5; height: auto; min-height: 0; }
+.ucs-rv[class*="ucs-rv--shape-"] .ucs-rv__media--shot img { position: absolute; inset: 0; height: 100%; max-height: none; object-fit: contain; }
+/* Centred cards */
+.ucs-rv--center .ucs-rv__body { text-align: center; }
+.ucs-rv--center .ucs-rv__top, .ucs-rv--center .ucs-rv__who, .ucs-rv--center .ucs-rv__prod { justify-content: center; }
+.ucs-rv--center.ucs-rv--pr-chip .ucs-rv__prod { align-self: center; }
 /* Name/badge/date and product take the same room in every card (also set by the script),
    so all cards line up. */
 .ucs-rv__prod span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
@@ -328,7 +338,8 @@
 .ucs-rv--pr-chip .ucs-rv__prod img { border-radius: 999px; }
 .ucs-rv--pr-chip.ucs-rv--pr-noimg .ucs-rv__prod { padding: 6px 14px; }
 .ucs-rv--pr-text .ucs-rv__prod { padding-top: 0; border-top: 0; text-decoration: underline; text-underline-offset: 3px; }
-.ucs-rv--pr-text .ucs-rv__prod img, .ucs-rv--pr-noimg .ucs-rv__prod img { display: none; }
+.ucs-rv--pr-caption .ucs-rv__prod { padding-top: 0; border-top: 0; font-weight: 400; opacity: 0.75; }
+.ucs-rv--pr-text .ucs-rv__prod img, .ucs-rv--pr-caption .ucs-rv__prod img, .ucs-rv--pr-noimg .ucs-rv__prod img { display: none; }
 
 /* "Chat message" cards: a speech bubble like a WhatsApp screenshot */
 .ucs-rv__card--chat { overflow: visible; background: transparent; }
