@@ -1,4 +1,4 @@
-{%- liquid
+{%- capture dk -%}{%- render 'ucs-dk', key: 'upsell', pick: block.settings.design -%}{%- endcapture -%}{%- assign dkd = dk | append: '_draft' -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.upsell_enabled.value == false
@@ -36,9 +36,9 @@ endif
 endfor
 endif
 assign opt_i = opt_pos | minus: 1
-assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
-if request.design_mode and shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
-assign d = shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
 endif
 assign d_pi = true
 assign d_ss = true
@@ -189,4 +189,4 @@ assign v_total = v_was | times: v_keep | divided_by: 100.0 | round
 </script>
 </ucro-upsell>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif product.available == false -%}Upsell is hidden because this product is sold out.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.5"}]}{% endschema %}
+<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif product.available == false -%}Upsell is hidden because this product is sold out.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"select","id":"design","label":"Design","default":"1","info":"t:s.1","options":[{"value":"1","label":"Design 1"},{"value":"2","label":"Design 2"},{"value":"3","label":"Design 3"},{"value":"4","label":"Design 4"},{"value":"5","label":"Design 5"}]},{"type":"paragraph","content":"t:s.6"}]}{% endschema %}

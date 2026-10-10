@@ -23,6 +23,8 @@ import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { FONTS } from "../lib/designs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
 async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
@@ -66,14 +68,14 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
   return { list, currency };
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["bundles"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin, session.shop).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const { list, currency } = await previewBundles(admin, bundles).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
   return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css") + storefrontCss("ucro-bundle-tray.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["bundles"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -87,7 +89,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = BundleDesign;
 const WEIGHTS = [300, 400, 500, 600, 700, 800].map((w) => ({ value: String(w), label: { 300: "Light", 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold", 800: "Extra bold" }[w] as string }));
@@ -111,6 +113,7 @@ export default function BundleDesigner() {
   const [group, setGroup] = useState<"text" | "cards" | "images" | "buttons" | "summary" | "colours">("cards");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -127,11 +130,11 @@ export default function BundleDesigner() {
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), products = part("products"), summary = part("summary"), button = part("button"), look = part("look"), tray = part("tray");
   const card = part("card"), image = part("image"), type = part("type"), pickButton = part("pickButton"), summaryLook = part("summaryLook"), layout = part("layout");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const bundle = data.bundles[which];
   // The link opens the theme editor on the bundle's page while the unsaved changes are stored as a draft.
   const previewLink = `https://${data.shop}/admin/themes/current/editor?previewPath=${encodeURIComponent(bundle?.handle ? `/products/${bundle.handle}` : "/collections/all")}`;
-  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const pageLook = previewTheme(data.style);
   const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
@@ -150,6 +153,7 @@ export default function BundleDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="bundles" />
+          <DesignSlots base="bundles" blockName="Bundle builder" />
           <s-text color="subdued">
             Create bundles, their steps and products in the Mix & match tab. Here you choose how the builder looks on the bundle product’s page. One design for all your bundles. In the theme editor you only place the “Bundle builder” block.
           </s-text>

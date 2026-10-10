@@ -1,4 +1,4 @@
-{%- liquid
+{%- capture dk -%}{%- render 'ucs-dk', key: 'cross_sell', pick: block.settings.design -%}{%- endcapture -%}{%- assign dkd = dk | append: '_draft' -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.cross_sell_enabled.value == false
@@ -8,9 +8,9 @@ assign placement = 'product'
 if template.name == 'cart'
 assign placement = 'cart'
 endif
-assign d = shop.metaobjects['$app:cro_design']['cross_sell'].config.value
-if request.design_mode and shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
-assign d = shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
 endif
 assign rec_heading = 'Pairs well with'
 if d
@@ -86,4 +86,4 @@ data-error="{{ 'ucro.error' | t | escape }}"
 </ucro-cross-sell>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
 <script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Cross-sell is switched off in CRO Toolbox.{%- elsif rule -%}Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% elsif p.available != true %} {{ p.title | escape }} (sold out or not on the Online Store){% else %} {{ p.title | escape }} (already in the cart){% endif -%}{%- unless forloop.last -%};{%- endunless -%}{%- else %} its product list is empty or its products aren’t published to the Online Store.{%- endfor %}
-Only you see this note.{%- else -%}{%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on Shopify recommendations in CRO Toolbox → Cross-sell → Design. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"paragraph","content":"t:s.4"}]}{% endschema %}
+Only you see this note.{%- else -%}{%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on Shopify recommendations in CRO Toolbox → Cross-sell → Design. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Design","default":"1","info":"t:s.1","options":[{"value":"1","label":"Design 1"},{"value":"2","label":"Design 2"},{"value":"3","label":"Design 3"},{"value":"4","label":"Design 4"},{"value":"5","label":"Design 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}

@@ -22,8 +22,10 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { UPSELL_SIZES } from "../lib/upsell-design";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["upsell"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, rules, style] = await Promise.all([
     getUpsellDesign(admin),
@@ -48,9 +50,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     product: products[i],
   }));
   return { config, saved, offers, fallback, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.upsell : null, addLink: editorLinks(session.shop).upsell };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["upsell"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -64,7 +66,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = UpsellDesign;
 const DEVICES = [
@@ -81,6 +83,7 @@ export default function UpsellDesigner() {
   const [tab, setTab] = useState<DesignTab>("looks");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -96,12 +99,12 @@ export default function UpsellDesigner() {
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const offers = part("offers"), heading = part("heading"), look = part("look"), space = part("space");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const offer = data.offers[which] ?? SAMPLE_OFFER;
   const product = data.offers[which]?.product ?? data.fallback;
   const previewLink = editorPreviewLinkFor(data.shop, product?.handle);
   // The link opens the theme editor in a new tab while the unsaved changes are stored as a draft.
-  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const pageLook = previewTheme(data.style);
   const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
@@ -120,6 +123,7 @@ export default function UpsellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="upsell" />
+          <DesignSlots base="upsell" blockName="Upsell offers" />
           <s-text color="subdued">
             The offers, prices and discounts come from your Upsell offers. Here you choose how they look on the product page. In the theme editor you only place the “Upsell offers” block.
           </s-text>

@@ -23,8 +23,10 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { LOGOS_SIZES } from "../lib/logos-design";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["logos"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, items, style] = await Promise.all([
     getLogosDesign(admin),
@@ -34,9 +36,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   ]);
   const logos: PreviewLogo[] = items.map((i) => ({ name: String(i.values.name || ""), url: (i.values.image as MediaRef | null)?.url ?? null }));
   return { config, saved, logos, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.logos : null, addLink: sectionLinks(session.shop).logos };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["logos"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -46,7 +48,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = LogosDesign;
 
@@ -55,6 +57,7 @@ export default function LogosDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -71,8 +74,8 @@ export default function LogosDesigner() {
   const part = <K extends Exclude<keyof C, "scheme">>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), layout = part("layout"), logos = part("logos"), space = part("space");
   const look = (patch: Partial<C["look"]>) => setCfg((c) => ({ ...c, scheme: "", look: { ...c.look, ...patch } }));
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
-  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const marquee = cfg.layout.mode === "marquee";
 
   return (
@@ -90,6 +93,7 @@ export default function LogosDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="logos" />
+          <DesignSlots base="logos" blockName="Scrolling logos and text" />
           <s-text color="subdued">Logos and texts are in the Logos tab. Here you choose how the strip looks and moves. In the theme editor you only place the “Scrolling logos and text” section; every copy of it uses this design.</s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

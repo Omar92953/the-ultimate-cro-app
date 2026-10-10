@@ -48,8 +48,10 @@ import {
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { FAQ_SIZES } from "../lib/faq-design";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["faq"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, items, style] = await Promise.all([
     getFaqDesign(admin),
@@ -74,9 +76,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     inTheme: theme ? theme.installed.faq : null,
     addLink: sectionLinks(session.shop).faq,
   };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["faq"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -90,7 +92,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = FaqDesign;
 
@@ -99,6 +101,7 @@ export default function FaqDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -126,11 +129,11 @@ export default function FaqDesigner() {
   const look = (patch: Partial<C["look"]>) =>
     setCfg((c) => ({ ...c, scheme: "", look: { ...c.look, ...patch } }));
   const save = () =>
-    fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+    fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const seeOnStore = () =>
     fetcher.submit(
       { config: JSON.stringify(cfg), intent: "draft" },
-      { method: "post" },
+      { method: "post", action: designAction },
     );
 
   return (
@@ -163,6 +166,7 @@ export default function FaqDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="faq" />
+          <DesignSlots base="faq" blockName="FAQ" />
           <s-text color="subdued">
             Questions and groups are in the Questions tab. Here you choose how
             the FAQ looks and works; every copy of the section uses this design.

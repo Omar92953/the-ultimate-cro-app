@@ -3,7 +3,8 @@
   reviews with its own design, e.g. a compact slider next to Add to cart or the full reviews list
   with "Write a review". Can sit inside the product information or as its own section.
 {%- endcomment -%}
-{%- render 'ucs-reviews-body', key: 'reviews_product', attrs: block.shopify_attributes, product: product -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'reviews_product', pick: block.settings.design -%}{%- endcapture -%}
+{%- render 'ucs-reviews-body', key: dk, attrs: block.shopify_attributes, product: product -%}
 
 {% schema %}
 {
@@ -11,6 +12,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews." }
   ]
 }

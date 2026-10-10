@@ -3,8 +3,10 @@
   (Offers & bundles → Add-ons), stored in $app:cro_design "addons"; ucs-addons.js builds it and adds ticked
   add-ons to the cart together with the product.
 {%- endcomment -%}
-{%- assign c = shop.metaobjects['$app:cro_design']['addons'].config.value -%}
-{%- if request.design_mode and shop.metaobjects['$app:cro_design']['addons_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['addons_draft'].config.value -%}{%- endif -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'addons', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
 {%- if product and c.a.size > 0 or product and c.m -%}
   <div class="ucs ucs-ao" data-ucs-ao data-handle="{{ product.handle }}" data-title="{{ product.title | escape }}" data-cols="{{ product.collections | map: 'handle' | join: ',' }}" hidden {{ block.shopify_attributes }}>
     <script type="application/json">{{ c | json }}</script>
@@ -20,6 +22,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers & bundles → Add-ons." }
   ]
 }

@@ -20,14 +20,16 @@ import { matchAddons } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["addons"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getAddons(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.addons : null, addLink: editorLinks(session.shop).addons, shop: session.shop };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["addons"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -36,7 +38,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = AddonsConfig;
 const numericId = (gid: string) => gid.split("/").pop() ?? "";
@@ -46,6 +48,7 @@ export default function AddonsDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -63,7 +66,7 @@ export default function AddonsDesigner() {
   const message = (patch: Partial<C["message"]>) => setCfg((c) => ({ ...c, message: { ...c.message, ...patch } }));
   const look = (patch: Partial<C["look"]>) => setCfg((c) => ({ ...c, look: { ...c.look, ...patch } }));
   const where = (patch: Partial<C["where"]>) => setCfg((c) => ({ ...c, where: { ...c.where, ...patch } }));
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
 
   async function addProducts() {
     const selected: any = await shopify.resourcePicker({ type: "product", multiple: 6 - cfg.items.length, action: "add" } as any);
@@ -97,7 +100,7 @@ export default function AddonsDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.sample ? `/products/${data.sample.handle}` : "/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.sample ? `/products/${data.sample.handle}` : "/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -106,6 +109,7 @@ export default function AddonsDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="addons" />
+        <DesignSlots base="addons" blockName="Add-ons" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the add-ons on your product page">
             Click “Add to product page”, drag the “Add-ons” block under the Add to cart button and save. Everything else is set here.

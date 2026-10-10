@@ -1,3 +1,5 @@
+{%- capture dk -%}{%- render 'ucs-dk', key: 'upsell', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
 {%- liquid
   assign cfg = shop.metaobjects['$app:cro_settings']['settings']
   assign enabled = true
@@ -43,9 +45,9 @@
   assign opt_i = opt_pos | minus: 1
 
   # Look and wording are designed in the app (Offers & bundles → Upsell offers → Design): $app:cro_design "upsell".
-  assign d = shop.metaobjects['$app:cro_design']['upsell'].config.value
-  if request.design_mode and shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
-    assign d = shop.metaobjects['$app:cro_design']['upsell_draft'].config.value
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
   endif
   assign d_pi = true
   assign d_ss = true
@@ -299,6 +301,9 @@
   "stylesheet": "ucro.css",
   "enabled_on": { "templates": ["product"] },
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Offers come from your Upsell rules in CRO Toolbox; their look and wording are set in the app: Upsell offers → Design." }
   ]
 }

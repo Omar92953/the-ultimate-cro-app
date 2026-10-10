@@ -2,8 +2,10 @@
   App block: collection pills — a row of buttons to other collections; the one being viewed is
   highlighted. Set in the app (Sections → Collection pills); ucs-collection-pills.js builds it.
 {%- endcomment -%}
-{%- assign c = shop.metaobjects['$app:cro_design']['collection_pills'].config.value -%}
-{%- if request.design_mode and shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['collection_pills_draft'].config.value -%}{%- endif -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'collection_pills', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
 {%- if c.i.size > 0 -%}
   <div class="ucs ucs-cp" data-ucs-cp data-root="{{ routes.collections_url }}" data-on="{{ collection.handle }}" {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script></div>
   <script src="{{ 'ucs-collection-pills.js' | asset_url }}" defer></script>
@@ -17,6 +19,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Collections, order, colours and sizes are set in the app: Sections → Collection pills." }
   ]
 }

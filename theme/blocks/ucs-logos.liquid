@@ -2,11 +2,13 @@
   App block: "Trusted by" logos — an endless scrolling strip (CSS only) or a grid.
   Logos come from the app (Sections → Scrolling logos and text).
 {%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'logos', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
 {%- liquid
   # Look and layout are designed in the app (Logos → Design): $app:cro_design "logos".
-  assign d = shop.metaobjects['$app:cro_design']['logos'].config.value
-  if request.design_mode and shop.metaobjects['$app:cro_design']['logos_draft'].config.value
-    assign d = shop.metaobjects['$app:cro_design']['logos_draft'].config.value
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
   endif
   assign mode = d.m | default: 'marquee'
   assign speed = d.sp | default: 5
@@ -107,6 +109,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Logos, their order and the look are set in the app: Sections → Scrolling logos and text." }
   ]
 }

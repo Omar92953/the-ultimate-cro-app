@@ -1,0 +1,15 @@
+{%- comment -%}
+  Outputs the design handle a block should read: "<key>_<pick>" when design <pick> is made in the app
+  (or, in the theme editor, has an unsaved draft), else "<key>" (design 1). Used with capture.
+{%- endcomment -%}
+{%- liquid
+  assign out = key
+  if pick != blank and pick != '1'
+    assign alt = key | append: '_' | append: pick
+    assign altd = alt | append: '_draft'
+    if shop.metaobjects['$app:cro_design'][alt].config.value or request.design_mode and shop.metaobjects['$app:cro_design'][altd].config.value
+      assign out = alt
+    endif
+  endif
+  echo out
+-%}

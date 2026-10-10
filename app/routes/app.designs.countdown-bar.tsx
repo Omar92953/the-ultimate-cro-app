@@ -21,6 +21,8 @@ import { matchCountdown } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
 
 const placeFrom = (url: string): CountdownPlace => {
@@ -32,16 +34,16 @@ const placeFrom = (url: string): CountdownPlace => {
 const placedIn = (files: string[], place: CountdownPlace) =>
   files.some((f) => ({ home: f === "templates/index.json", header: f === "sections/header-group.json", footer: f === "sections/footer-group.json", product: /^templates\/product[.\w-]*\.json$/.test(f), cart: f === "templates/cart.json" })[place]);
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["countdown_bar", "countdown_footer", "countdown_home", "countdown_product", "countdown_cart"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const place = placeFrom(request.url);
   const [{ config, saved }, theme, offset] = await Promise.all([getCountdownBar(admin, place), getThemeStatus(admin, session.shop).catch(() => null), shopOffset(admin).catch(() => ({ iso: "+00:00", minutes: 0 }))]);
   const links = sectionLinks(session.shop);
   const addLink = { header: links.countdown_bar, footer: links.countdown_footer, home: links.countdown_home, product: links.countdown_product, cart: links.countdown_cart }[place];
   return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin).catch(() => null), place, config, saved, css: storefrontCss("ucs-sections.css"), offset: offset.minutes, embedOn: theme ? theme.installed.countdown_bar : null, placed: theme ? placedIn(theme.files.countdown_bar, place) : false, addLink, editorLink: links.editor };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["countdown_bar", "countdown_footer", "countdown_home", "countdown_product", "countdown_cart"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -51,7 +53,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = CountdownBarConfig;
 const LOOK: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 6, padding: 8, font: "inherit", textAlign: "left", cursor: "pointer", background: "#fff", border: "1px solid #e3e3e3", borderRadius: 10, minWidth: 0, overflow: "hidden" };
@@ -69,6 +71,7 @@ export default function CountdownBarDesigner() {
   const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const navigate = useNavigate();
   const placeInfo = COUNTDOWN_PLACES.find((p) => p.key === data.place)!;
@@ -87,7 +90,7 @@ export default function CountdownBarDesigner() {
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const timer = part("timer"), text = part("text"), button = part("button"), layout = part("layout"), where = part("where"), look = part("look");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: `?place=${data.place}` });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: `${designAction}&place=${data.place}` });
   const t = cfg.timer;
 
   return (
@@ -96,7 +99,7 @@ export default function CountdownBarDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : data.place === "cart" ? "/cart" : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `?place=${data.place}` })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : data.place === "cart" ? "/cart" : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `${designAction}&place=${data.place}` })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -105,6 +108,7 @@ export default function CountdownBarDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="countdown" />
+        <DesignSlots base={COUNTDOWN_PLACES.find((p) => p.key === data.place)!.handle} blockName="Countdown" />
         <Segmented
           label="Where the countdown is"
           value={data.place}

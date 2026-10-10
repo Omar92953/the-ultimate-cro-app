@@ -2,8 +2,10 @@
   App block: image carousel. Images, texts, sizes and arrows are set in the app (Sections →
   Image carousel), stored in $app:cro_design "image_carousel"; ucs-image-carousel.js builds it.
 {%- endcomment -%}
-{%- assign c = shop.metaobjects['$app:cro_design']['image_carousel'].config.value -%}
-{%- if request.design_mode and shop.metaobjects['$app:cro_design']['image_carousel_draft'].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design']['image_carousel_draft'].config.value -%}{%- endif -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'image_carousel', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
 {%- if c.s.size > 0 -%}
   <div class="ucs ucs-ic" data-ucs-ic {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script></div>
   <script src="{{ 'ucs-image-carousel.js' | asset_url }}" defer></script>
@@ -17,6 +19,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Images, texts, sizes and arrows are set in the app: Sections → Image carousel." }
   ]
 }

@@ -23,6 +23,8 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchReviews } from "../lib/theme-match";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
 const fmtDate = (d: string) => {
   const t = Date.parse(`${d}T12:00:00Z`);
@@ -32,7 +34,7 @@ const fmtDate = (d: string) => {
 /** This page serves both designs: Customer reviews (/app/designs/reviews) and Product page reviews (/app/designs/product-reviews). */
 const placeOf = (request: Request): ReviewsPlace => (new URL(request.url).pathname.endsWith("/product-reviews") ? "product" : "home");
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["reviews", "reviews_product"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const place = placeOf(request);
   const [{ config, saved }, items, sample] = await Promise.all([getReviewsDesign(admin, place), listItems(admin, "reviews").catch(() => []), place === "product" ? firstProduct(admin).catch(() => null) : Promise.resolve(null)]);
@@ -57,9 +59,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       };
     });
   return { place, sample, style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: place === "product" ? sectionLinks(session.shop).product_reviews : sectionLinks(session.shop).reviews };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["reviews", "reviews_product"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -69,7 +71,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = ReviewsDesign;
 
@@ -78,6 +80,7 @@ export default function ReviewsDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -97,7 +100,7 @@ export default function ReviewsDesigner() {
   const [ownFor, setOwnFor] = useState<Record<string, boolean>>({});
   const isProduct = data.place === "product";
   const feature = isProduct ? "product_reviews" : "reviews";
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const write = part("write"), list = part("list");
   const previewPath = data.place === "product" && data.sample ? `/products/${data.sample.handle}` : "/";
 
@@ -107,7 +110,7 @@ export default function ReviewsDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -116,6 +119,7 @@ export default function ReviewsDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature={feature} />
+        <DesignSlots base={isProduct ? "reviews_product" : "reviews"} blockName={isProduct ? "Product page reviews" : "Customer reviews"} />
         <s-text color="subdued">
           {isProduct
             ? "A small reviews widget for the product page, next to the price and Add to cart: this product’s reviews in a card, or its star rating. In the theme editor, add the “Product page reviews” block inside the product information."

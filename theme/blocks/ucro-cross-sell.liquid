@@ -1,3 +1,5 @@
+{%- capture dk -%}{%- render 'ucs-dk', key: 'cross_sell', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
 {%- liquid
   assign cfg = shop.metaobjects['$app:cro_settings']['settings']
   assign enabled = true
@@ -11,9 +13,9 @@
   endif
 
   # Look and wording are designed in the app (Cross-sell → Design): $app:cro_design "cross_sell".
-  assign d = shop.metaobjects['$app:cro_design']['cross_sell'].config.value
-  if request.design_mode and shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
-    assign d = shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
   endif
   assign rec_heading = 'Pairs well with'
   if d
@@ -149,6 +151,9 @@
   "stylesheet": "ucro.css",
   "enabled_on": { "templates": ["product", "cart"] },
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Products, headline and discount come from your Cross-sell rules; the look is set in CRO Toolbox → Cross-sell offers → Design." }
   ]
 }

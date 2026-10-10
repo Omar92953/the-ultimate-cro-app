@@ -1,4 +1,4 @@
-{%- liquid
+{%- capture dk -%}{%- render 'ucs-dk', key: 'bundles', pick: block.settings.design -%}{%- endcapture -%}{%- assign dkd = dk | append: '_draft' -%}{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.bundles_enabled.value == false
@@ -22,9 +22,9 @@ assign dup = false
 if bundle and bundle.allow_duplicates.value == true
 assign dup = true
 endif
-assign d = shop.metaobjects['$app:cro_design']['bundles'].config.value
-if request.design_mode and shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
-assign d = shop.metaobjects['$app:cro_design']['bundles_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
 endif
 assign heading = 'Build your bundle'
 assign sub = ''
@@ -90,4 +90,4 @@ endif
 </div>
 </ucro-bundle>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-bundle.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Bundles are switched off in CRO Toolbox.{%- else -%}Bundle builder: this product is not set up as a bundle. In CRO Toolbox → Bundles, create a bundle and choose this product as the bundle product. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Bundle builder","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"paragraph","content":"t:s.1"}]}{% endschema %}
+<script src="{{ 'ucro-bundle.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Bundles are switched off in CRO Toolbox.{%- else -%}Bundle builder: this product is not set up as a bundle. In CRO Toolbox → Bundles, create a bundle and choose this product as the bundle product. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Bundle builder","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"select","id":"design","label":"Design","default":"1","info":"t:s.1","options":[{"value":"1","label":"Design 1"},{"value":"2","label":"Design 2"},{"value":"3","label":"Design 3"},{"value":"4","label":"Design 4"},{"value":"5","label":"Design 5"}]},{"type":"paragraph","content":"t:s.2"}]}{% endschema %}

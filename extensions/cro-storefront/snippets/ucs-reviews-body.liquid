@@ -7,7 +7,7 @@ endif
 assign items = shop.metaobjects['$app:cro_lists']['main'].reviews.value
 assign pid = 0
 if request.page_type == 'product' and product
-if c.w.filter == 'product' or key == 'reviews_product'
+if c.w.filter == 'product' or key contains 'reviews_product'
 assign pid = product.id
 endif
 endif

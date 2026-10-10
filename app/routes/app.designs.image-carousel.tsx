@@ -22,14 +22,16 @@ import { matchImageCarousel } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["image_carousel"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getImageCarousel(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.image_carousel : null, addLink: sectionLinks(session.shop).image_carousel };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["image_carousel"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -38,7 +40,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null, missing: 0 };
   }
-};
+});
 
 type C = ImageCarouselConfig;
 const BLANK: ImageSlide = { image: null, alt: "", title: "", text: "", link: "", button: "" };
@@ -49,6 +51,7 @@ export default function ImageCarouselDesigner() {
   const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -67,7 +70,7 @@ export default function ImageCarouselDesigner() {
   const heading = part("heading"), layout = part("layout"), nav = part("nav"), look = part("look");
   const slide = (i: number, patch: Partial<ImageSlide>) => setCfg((c) => ({ ...c, slides: c.slides.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
   const move = (from: number, to: number) => setCfg((c) => ({ ...c, slides: arrayMove(c.slides, from, to) }));
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
 
   return (
     <s-page heading="Image carousel" inlineSize="large">
@@ -75,7 +78,7 @@ export default function ImageCarouselDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -84,6 +87,7 @@ export default function ImageCarouselDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="image_carousel" />
+        <DesignSlots base="image_carousel" blockName="Image carousel" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the carousel in your theme">
             Click “Add to theme”, drop the “Image carousel” section where you want it and save. Everything else is set here.

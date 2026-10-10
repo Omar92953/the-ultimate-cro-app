@@ -1,0 +1,11 @@
+{%- liquid
+assign out = key
+if pick != blank and pick != '1'
+assign alt = key | append: '_' | append: pick
+assign altd = alt | append: '_draft'
+if shop.metaobjects['$app:cro_design'][alt].config.value or request.design_mode and shop.metaobjects['$app:cro_design'][altd].config.value
+assign out = alt
+endif
+endif
+echo out
+-%}

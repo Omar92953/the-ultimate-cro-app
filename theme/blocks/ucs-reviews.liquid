@@ -4,7 +4,8 @@
   the page (a product's own reviews on its page, if the design asks for that) and passes them to
   ucs-reviews.js, which builds the section.
 {%- endcomment -%}
-{%- render 'ucs-reviews-body', key: 'reviews', attrs: block.shopify_attributes, product: product -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'reviews', pick: block.settings.design -%}{%- endcapture -%}
+{%- render 'ucs-reviews-body', key: dk, attrs: block.shopify_attributes, product: product -%}
 
 {% schema %}
 {
@@ -12,6 +13,9 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
     { "type": "paragraph", "content": "Reviews and how they look are set in the app: Sections → Customer reviews." }
   ]
 }

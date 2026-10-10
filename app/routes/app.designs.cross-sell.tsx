@@ -22,8 +22,10 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, rules, style] = await Promise.all([
     getCrossSellDesign(admin),
@@ -55,9 +57,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   );
   const sample = offers.length ? null : await firstProduct(admin).catch(() => null);
   return { config, saved, offers, sampleHandle: sample?.handle ?? null, currency: sample?.currency ?? "USD", style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.cross_sell : null, addLink: editorLinks(session.shop).cross_sell };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["cross_sell"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -67,7 +69,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = CrossSellDesign;
 
@@ -77,6 +79,7 @@ export default function CrossSellDesigner() {
   const [tab, setTab] = useState<DesignTab>("looks");
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -92,11 +95,11 @@ export default function CrossSellDesigner() {
 
   const part = <K extends Exclude<keyof C, "scheme">>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const products = part("products"), heading = part("heading"), look = part("look"), space = part("space"), drawer = part("drawer");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const offer = data.offers[which] ?? SAMPLE_CROSS_SELL;
   const handle = data.offers[which]?.handle ?? data.sampleHandle;
   const previewLink = `https://${data.shop}/admin/themes/current/editor?previewPath=${encodeURIComponent(handle ? `/products/${handle}` : "/collections/all")}`;
-  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const pageLook = previewTheme(data.style);
   const blockLook = cfg.scheme ? previewTheme(data.style, cfg.scheme) : null;
 
@@ -115,6 +118,7 @@ export default function CrossSellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="cross_sell" />
+          <DesignSlots base="cross_sell" blockName="Cross-sell offers" />
           <s-text color="subdued">
             Products, headline and discount come from your Cross-sell offers. Here you choose how they look. In the theme editor you only place the “Cross-sell offers” block (product or cart page).
           </s-text>

@@ -1,15 +1,42 @@
 {%- assign d = shop.metaobjects['$app:cro_design'] -%}{%- liquid
-assign x = ''
-if request.design_mode
-assign x = '_draft'
+assign pick = block.settings.design | default: '1'
+assign suf = ''
+if pick != '1'
+assign suf = '_' | append: pick
 endif
-assign kh = 'countdown_bar' | append: x
-assign kf = 'countdown_footer' | append: x
-assign kd = 'countdown_home' | append: x
-assign kp = 'countdown_product' | append: x
-assign kc = 'countdown_cart' | append: x
+assign places = 'bar,footer,home,product,cart' | split: ','
+capture json
+echo '{'
+for p in places
+assign base = 'countdown_' | append: p
+assign own = base | append: suf
+assign v = d[own].config.value
+if request.design_mode
+assign ownd = own | append: '_draft'
+assign v = d[ownd].config.value | default: v
+endif
+if v == blank
+assign v = d[base].config.value
+if request.design_mode
+assign based = base | append: '_draft'
+assign v = d[based].config.value | default: v
+endif
+endif
+assign name = p
+if p == 'bar'
+assign name = 'header'
+endif
+unless forloop.first
+echo ','
+endunless
+echo name | json
+echo ':'
+echo v | json | default: 'null'
+endfor
+echo '}'
+endcapture
 -%}<div class="ucs ucs-cd-host ucs-cdb" data-ucs-cdb data-page="{{ request.page_type }}" data-handle="{{ product.handle | default: collection.handle }}" data-tz="{{ 'now' | date: '%z' }}" hidden {{ block.shopify_attributes }}>
-<script type="application/json">{"header":{{ d[kh].config.value | default: d['countdown_bar'].config.value | json | default: 'null' }},"footer":{{ d[kf].config.value | default: d['countdown_footer'].config.value | json | default: 'null' }},"home":{{ d[kd].config.value | default: d['countdown_home'].config.value | json | default: 'null' }},"product":{{ d[kp].config.value | default: d['countdown_product'].config.value | json | default: 'null' }},"cart":{{ d[kc].config.value | default: d['countdown_cart'].config.value | json | default: 'null' }}}</script>
+<script type="application/json">{{ json }}</script>
 </div>
 <script src="{{ 'ucs-countdown.js' | asset_url }}" defer></script>
-{% schema %}{"name":"Countdown","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"paragraph","content":"t:s.c"}]}{% endschema %}
+{% schema %}{"name":"Countdown","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"select","id":"design","label":"Design","default":"1","info":"t:s.d","options":[{"value":"1","label":"Design 1"},{"value":"2","label":"Design 2"},{"value":"3","label":"Design 3"},{"value":"4","label":"Design 4"},{"value":"5","label":"Design 5"}]},{"type":"paragraph","content":"t:s.e"}]}{% endschema %}

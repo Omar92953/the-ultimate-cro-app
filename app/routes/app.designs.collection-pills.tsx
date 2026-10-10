@@ -23,14 +23,16 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { SizesSection } from "../components/SizesSection";
 import { PILLS_SIZES } from "../lib/collection-pills";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["collection_pills"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getPills(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.collection_pills : null, addLink: sectionLinks(session.shop).collection_pills };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["collection_pills"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -39,7 +41,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = CollectionPillsConfig;
 
@@ -48,6 +50,7 @@ export default function CollectionPillsDesigner() {
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -65,7 +68,7 @@ export default function CollectionPillsDesigner() {
   const move = (from: number, to: number) => setCfg((c) => ({ ...c, items: arrayMove(c.items, from, to) }));
   const layout = (patch: Partial<C["layout"]>) => setCfg((c) => ({ ...c, layout: { ...c.layout, ...patch } }));
   const look = (patch: Partial<C["look"]>) => setCfg((c) => ({ ...c, look: { ...c.look, ...patch } }));
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
 
   async function pick() {
     const selected: any = await shopify.resourcePicker({
@@ -91,7 +94,7 @@ export default function CollectionPillsDesigner() {
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -100,6 +103,7 @@ export default function CollectionPillsDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="collection_pills" />
+        <DesignSlots base="collection_pills" blockName="Collection pills" />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the pills on your collection pages">
             Click “Add to collection pages”, drag the “Collection pills” section under the collection title and save. You can also add it to any other page.

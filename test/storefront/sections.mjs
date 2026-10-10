@@ -362,6 +362,13 @@ pages["footer.html"] = page("Footer",
   label("footer: dark columns (default)") + (await block("ucs-footer", {}, { shop: footerShop({ social }), linklists })) +
   label("footer: centred and simple") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "centered"), social }), linklists })) +
   label("footer: newsletter first, own sizes") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "newsletter"), social, sizes: { own: true, v: { heading: 20, links: 16, social: 28 } } }), linklists })));
+// Several designs per section: a block set to Design 2 reads "faq_2"; Design 3 isn't made, so it shows design 1.
+const shopTwoFaqs = withDesign(mo("faq_2", { config: toStorefrontFaq(withFaqDefaults({ text: { heading: "Design two heading" }, look: { style: "cards" } })) }));
+pages["designs.html"] = page("Several designs",
+  label("faq: design 2") + (await block("ucs-faq", { design: "2" }, { shop: shopTwoFaqs })) +
+  label("faq: design 3 (not made) — falls back to design 1") + (await block("ucs-faq", { design: "3" }, { shop: shopTwoFaqs })));
+if (!pages["designs.html"].includes("Design two heading")) throw new Error("design 2 not used");
+if ((pages["designs.html"].match(/Design two heading/g) || []).length !== 1) throw new Error("design 3 should fall back to design 1");
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

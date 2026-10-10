@@ -21,6 +21,8 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { VIDEO_SIZES } from "../lib/video-carousel-design";
+import { slottedRoute } from "../lib/design-slot.server";
+import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
 async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<Map<string, string>> {
@@ -44,7 +46,7 @@ async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<
   return out;
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = slottedRoute(["videos"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, raw, style] = await Promise.all([getVideoCarouselDesign(admin), getThemeStatus(admin, session.shop).catch(() => null), getSlides(admin).catch(() => []), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const priceOf = await prices(admin, [...new Set(raw.flatMap((s) => (s.product ? [s.product.id] : [])))]).catch(() => new Map<string, string>());
@@ -57,9 +59,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       product: s.product ? { title: s.product.title, price: priceOf.get(s.product.id) ?? "" } : null,
     }));
   return { config, saved, slides, style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.videos : null, addLink: editorLinks(session.shop).videos };
-};
+});
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = slottedRoute(["videos"], async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
@@ -73,7 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
-};
+});
 
 type C = VideoCarouselDesign;
 
@@ -83,6 +85,7 @@ export default function VideoCarouselDesigner() {
   const [tab, setTab] = useState<DesignTab>("looks");
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const fetcher = useFetcher<typeof action>();
+  const designAction = useDesignAction();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -98,10 +101,10 @@ export default function VideoCarouselDesigner() {
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), videos = part("videos"), layout = part("layout"), display = part("display");
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   // The link opens the theme editor on the home page while the unsaved changes are stored as a draft.
   const previewLink = `https://${data.shop}/admin/themes/current/editor?previewPath=%2F`;
-  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const pageLook = previewTheme(data.style);
   const blockLook = cfg.layout.scheme ? previewTheme(data.style, cfg.layout.scheme) : null;
 
@@ -120,6 +123,7 @@ export default function VideoCarouselDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="videos" />
+          <DesignSlots base="videos" blockName="Video carousel" />
           <s-text color="subdued">
             Add, order and link the videos in the Videos tab. Here you choose how the carousel looks and where it shows. In the theme editor you only place the “Video carousel” section.
           </s-text>
