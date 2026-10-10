@@ -73,6 +73,18 @@
     return m ? decodeURIComponent(m[1]) : null;
   }
 
+  // The theme already marks sold-out cards (a "Sold out" badge or a sold-out class): no button there.
+  var SOLD = String(T.sold_out || 'Sold out').trim().toLowerCase();
+  function soldOut(card) {
+    if (card.querySelector('[class*="sold-out"], [class*="soldout"], [class*="sold_out"]')) return true;
+    var badges = card.querySelectorAll('.badge, [class*="badge"]');
+    for (var b = 0; b < badges.length; b++) {
+      var t = badges[b].textContent.trim().toLowerCase();
+      if (t === SOLD || t === 'sold out') return true;
+    }
+    return false;
+  }
+
   function scan(scope) {
     var links = (scope || document).querySelectorAll('a[href*="/products/"]');
     for (var i = 0; i < links.length; i++) {
@@ -84,6 +96,7 @@
       var handle = handleOf(link.getAttribute('href'));
       if (!image || !handle) continue;
       card.__ucs = true;
+      if (soldOut(card)) continue;
       // The outer media box, like the Backrooms theme: Dawn's inner ".media" stretches every child
       // to fill it, which would turn the button into a giant oval.
       var host = null;
@@ -298,8 +311,11 @@
       .then(function (p) {
         var available = p.variants.filter(function (v) { return v.available; });
         if (!available.length) {
+          // Sold out since the page was drawn: say so, then take the button away.
           btn.disabled = true;
           btn.setAttribute('aria-label', T.sold_out);
+          btn.title = T.sold_out;
+          setTimeout(function () { btn.remove(); }, 1500);
           return;
         }
         if (p.variants.length === 1) return add(p.variants[0], p).then(function () { mark(btn); });

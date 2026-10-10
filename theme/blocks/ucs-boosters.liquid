@@ -22,7 +22,7 @@
     "recent": {{ recent | json }},
     "fmt": {{ shop.money_format | json }},
     "page": {{ request.page_type | json }},
-    "offers": {{ shop.metaobjects['$app:cro_offers']['main'].data.value | json }},
+    "offers": {{ shop.metaobjects['$app:cro_offers']['main'].data.value | json | default: 'null' }},
     "t": { "close": {{ 'ucs.close' | t | json }}, "in": {{ 'ucs.pop_in' | t | json }} }
     {%- if product -%}
       ,"product": {

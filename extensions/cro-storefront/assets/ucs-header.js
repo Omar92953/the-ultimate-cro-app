@@ -220,12 +220,12 @@
   // Over the page, the header must be the last thing in the Header area: other bars there
   // (countdown, announcements) stay above it instead of sliding under it.
   if (over && section) {
-    var last = section, next = section.nextElementSibling;
+    var tail = section, next = section.nextElementSibling;
     while (next && /shopify-section-group-header/.test(next.className)) {
-      last = next;
+      tail = next;
       next = next.nextElementSibling;
     }
-    if (last !== section) last.after(section);
+    if (tail !== section) tail.after(section);
   }
   if (over) {
     el.classList.add("uh--over");

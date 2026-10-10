@@ -12,7 +12,7 @@
     });
   }
   function money(cents) {
-    var f = window.Shopify && Shopify.currency && Shopify.currency.active;
+    var f = window.Shopify && window.Shopify.currency && window.Shopify.currency.active;
     try {
       return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: "currency", currency: f || "USD" }).format(cents / 100);
     } catch (e) {
@@ -20,7 +20,7 @@
     }
   }
   function root() {
-    return (window.Shopify && Shopify.routes && Shopify.routes.root) || "/";
+    return (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || "/";
   }
 
   function findForm(el) {

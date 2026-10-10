@@ -9,13 +9,8 @@
   var bars = [];
   var cfg = null, total = 0, goal = 0, reached = null, page = "other";
 
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (ch) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
-    });
-  }
   function currency() {
-    return (window.Shopify && Shopify.currency) || {};
+    return (window.Shopify && window.Shopify.currency) || {};
   }
   function money(cents) {
     var v = cents / 100;
@@ -80,7 +75,7 @@
   }
 
   function refresh() {
-    var root = (window.Shopify && Shopify.routes && Shopify.routes.root) || "/";
+    var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || "/";
     fetch(root + "cart.js", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (cart) {
@@ -137,7 +132,7 @@
   }
 
   function init() {
-    var design = window.Shopify && Shopify.designMode;
+    var design = window.Shopify && window.Shopify.designMode;
     document.querySelectorAll("[data-ucs-fsb]:not([data-ready])").forEach(function (host) {
       host.setAttribute("data-ready", "");
       var c;

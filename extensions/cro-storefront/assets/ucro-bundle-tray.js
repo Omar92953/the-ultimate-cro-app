@@ -24,7 +24,7 @@
     return;
   }
   var KEY = 'ucro-bundle-tray';
-  var root = (window.Shopify && Shopify.routes && Shopify.routes.root) || '/';
+  var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
   var state = load();
   var tray, toastTimer;
 
