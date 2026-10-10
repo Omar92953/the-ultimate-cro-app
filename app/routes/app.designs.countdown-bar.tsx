@@ -152,7 +152,7 @@ export default function CountdownBarDesigner() {
                   options={[
                     { value: "bar", label: "Slim bar (header and footer)" },
                     { value: "section", label: "Big section with a heading" },
-                    { value: "inline", label: "Compact box (under the price)" },
+                    { value: "inline", label: "Compact box (product or cart page)" },
                   ]}
                 />
                 <Switch label="Text" checked={cfg.text.show} onValue={(v) => text({ show: v })} />
