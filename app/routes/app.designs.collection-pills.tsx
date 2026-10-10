@@ -21,6 +21,8 @@ import { matchPills } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { SizesSection } from "../components/SizesSection";
+import { PILLS_SIZES } from "../lib/collection-pills";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -162,6 +164,7 @@ export default function CollectionPillsDesigner() {
               </s-box>
             </s-section></Pane>
 
+            <Pane show={tab === "design"}><SizesSection specs={PILLS_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="Pill text size and padding are under Look." /></Pane>
             <Pane show={tab === "design"}><s-section heading="Look">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Style" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "outline", label: "Outline" }, { value: "filled", label: "Filled" }, { value: "soft", label: "Soft" }]} />

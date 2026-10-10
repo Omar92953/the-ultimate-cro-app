@@ -21,6 +21,8 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchShippingBar } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { SHIPPING_BAR_SIZES } from "../lib/shipping-bar";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -185,6 +187,7 @@ export default function ShippingBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
+            <Pane show={tab === "design"}><SizesSection specs={SHIPPING_BAR_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="Text size, bar thickness and height are under Look." /></Pane>
             <Pane show={tab === "design"}><s-section heading="Look">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Shape" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "bar", label: "Full-width bar" }, { value: "card", label: "Rounded card" }]} />

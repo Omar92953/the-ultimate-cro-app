@@ -60,6 +60,9 @@
     // The size picker's buttons use the Checkout colours.
     el.style.setProperty('--ucs-accent', POP[3] || '#121212');
     el.style.setProperty('--ucs-on-accent', POP[4] || '#ffffff');
+    // Own sizes (app: Quick add → Style → Sizes)
+    var sz = cfg.sz || {};
+    Object.keys(sz).forEach(function (k) { el.style.setProperty(k, sz[k]); });
   }
 
   /* ---------- find product cards and add the button ---------- */

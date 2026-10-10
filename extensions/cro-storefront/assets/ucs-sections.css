@@ -28,10 +28,10 @@
 .ucs-ab--slide .ucs-ab__msg { transform: translateY(70%); }
 .ucs-ab--slide .ucs-ab__msg.is-on { transform: none; }
 .ucs-ab--slide .ucs-ab__msg.is-out { transform: translateY(-70%); }
-.ucs-ab__nav, .ucs-ab__close { flex: none; width: 28px; height: 28px; padding: 5px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.8; }
+.ucs-ab__nav, .ucs-ab__close { flex: none; width: var(--ucs-ab-nav, 28px); height: var(--ucs-ab-nav, 28px); padding: 5px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: 0.8; }
 .ucs-ab__nav:hover, .ucs-ab__close:hover { opacity: 1; background: rgba(127, 127, 127, 0.18); }
 .ucs-ab__nav .ucs-i, .ucs-ab__close .ucs-i { width: 100%; height: 100%; display: block; }
-.ucs-ab__bar { position: absolute; left: 0; bottom: 0; height: 3px; width: var(--ucs-ab-p, 0%); background: currentColor; opacity: 0.55; transition: width 0.5s ease; }
+.ucs-ab__bar { position: absolute; left: 0; bottom: 0; height: var(--ucs-ab-line, 3px); width: var(--ucs-ab-p, 0%); background: currentColor; opacity: 0.55; transition: width 0.5s ease; }
 .ucs-ab.is-free .ucs-ab__bar { opacity: 0.9; }
 @media (prefers-reduced-motion: reduce) { .ucs-ab__msg, .ucs-ab__bar { transition: none; } }
 
@@ -465,7 +465,7 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-cp__pill:hover { border-color: var(--cp-fg, #1a1a1a); }
 .ucs-cp__pill.is-on { color: var(--cp-on-fg, #fff); background: var(--cp-on-bg, #1a1a1a); border-color: var(--cp-on-bg, #1a1a1a); }
 .ucs-cp__pill:focus-visible { outline: 2px solid var(--cp-fg, #1a1a1a); outline-offset: 2px; }
-.ucs-cp__pill img { width: calc(var(--cp-fs, 14px) * 2); height: calc(var(--cp-fs, 14px) * 2); margin: calc(var(--cp-py, 12px) * -0.5) 0 calc(var(--cp-py, 12px) * -0.5) calc(var(--cp-px, 26px) * -0.55); object-fit: cover; border-radius: 50%; }
+.ucs-cp__pill img { width: var(--cp-img, calc(var(--cp-fs, 14px) * 2)); height: var(--cp-img, calc(var(--cp-fs, 14px) * 2)); margin: calc(var(--cp-py, 12px) * -0.5) 0 calc(var(--cp-py, 12px) * -0.5) calc(var(--cp-px, 26px) * -0.55); object-fit: cover; border-radius: 50%; }
 .ucs-cp__arrow { display: none; }
 @media (hover: hover) {
   .ucs-cp--arrows.ucs-cp--scroll .ucs-cp__arrow { position: absolute; top: 50%; z-index: 1; display: grid; place-items: center; width: 36px; height: 36px; margin-top: -18px; padding: 0; color: #1a1a1a; cursor: pointer; background: #fff; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); }

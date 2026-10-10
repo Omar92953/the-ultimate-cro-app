@@ -20,6 +20,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { ANNOUNCEMENT_SIZES } from "../lib/announcement-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -160,7 +162,8 @@ export default function AnnouncementDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={ANNOUNCEMENT_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="Text size and bar height are under Look." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Where it shows">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Pages" value={cfg.display.pages} onValue={(v) => display({ pages: v as C["display"]["pages"] })} options={[{ value: "all", label: "All pages" }, { value: "home", label: "Home page only" }]} />

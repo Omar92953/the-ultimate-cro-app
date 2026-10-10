@@ -21,6 +21,8 @@ import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { QUICK_ADD_SIZES } from "../lib/quick-add-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -176,7 +178,8 @@ export default function QuickAddDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={QUICK_ADD_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="The button on the product card has its own size under Button on the card." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Where it shows">
                   <s-stack gap="base">
                     <Select label="Show the button" value={cfg.button.show} onValue={(v) => button({ show: v as C["button"]["show"] })} options={[{ value: "always", label: "Always" }, { value: "hover", label: "When the mouse is over the card (desktop)" }]} />

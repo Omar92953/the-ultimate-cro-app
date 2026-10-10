@@ -6,6 +6,13 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const PILLS_SIZES: SizeSpec[] = [
+  { key: "heading", label: "Heading", cssVar: "--ucs-h", min: 12, max: 48, def: 22 },
+  { key: "image", label: "Collection pictures", cssVar: "--cp-img", min: 16, max: 80, def: 28 },
+];
 
 export type PillItem = { id: string; handle: string; title: string; label: string; image: string | null };
 
@@ -30,6 +37,7 @@ export type CollectionPillsConfig = {
     activeText: string;
     activeBg: string;
   };
+  sizes: Sizes;
 };
 
 export const DEFAULT_PILLS: CollectionPillsConfig = {
@@ -38,6 +46,7 @@ export const DEFAULT_PILLS: CollectionPillsConfig = {
   items: [],
   layout: { mode: "scroll", align: "left", arrows: false, images: false, paddingTop: 16, paddingBottom: 16 },
   look: { style: "outline", radius: 999, size: 14, weight: 500, upper: true, padX: 26, padY: 12, gap: 8, text: "#1a1a1a", bg: "#ffffff", border: "#dddddd", activeText: "#ffffff", activeBg: "#1a1a1a" },
+  sizes: defaultSizes(PILLS_SIZES),
 };
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -48,6 +57,7 @@ export function withPillsDefaults(raw: unknown): CollectionPillsConfig {
   const d = DEFAULT_PILLS;
   const l = obj(r.layout), k = obj(r.look);
   return {
+    sizes: withSizes(r.sizes, PILLS_SIZES),
     scheme: schemeId((r as { scheme?: unknown }).scheme),
     heading: str(r.heading, d.heading, 120),
     items: (Array.isArray(r.items) ? r.items : []).slice(0, 80).flatMap((x) => {
@@ -83,7 +93,7 @@ export function withPillsDefaults(raw: unknown): CollectionPillsConfig {
 
 export function pillsVars(c: CollectionPillsConfig): Record<string, string> {
   const k = c.look;
-  return {
+  const v: Record<string, string> = {
     "--ucs-pt": `${c.layout.paddingTop}px`,
     "--ucs-pb": `${c.layout.paddingBottom}px`,
     "--cp-r": `${k.radius}px`,
@@ -98,6 +108,8 @@ export function pillsVars(c: CollectionPillsConfig): Record<string, string> {
     "--cp-on-fg": k.activeText,
     "--cp-on-bg": k.activeBg,
   };
+  Object.assign(v, sizeVars(c.sizes, PILLS_SIZES));
+  return v;
 }
 
 export function pillsClass(c: CollectionPillsConfig) {

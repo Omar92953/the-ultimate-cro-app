@@ -5,6 +5,18 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes): the size picker popup and the "Added" message. */
+export const QUICK_ADD_SIZES: SizeSpec[] = [
+  { key: "popTitle", label: "Popup: product name", cssVar: "--ucs-qa-pt", min: 10, max: 28, def: 15 },
+  { key: "popImage", label: "Popup: picture", cssVar: "--ucs-qa-pi", min: 40, max: 140, def: 72 },
+  { key: "option", label: "Popup: size / colour buttons", cssVar: "--ucs-qa-ov", min: 10, max: 22, def: 14 },
+  { key: "toastName", label: "Message: product name", cssVar: "--ucs-qa-tn", min: 10, max: 24, def: 15 },
+  { key: "toastImage", label: "Message: picture", cssVar: "--ucs-qa-ti", min: 40, max: 140, def: 70 },
+  { key: "buttonText", label: "Button text", cssVar: "--ucs-qa-bt", min: 10, max: 22, def: 14 },
+  { key: "buttonHeight", label: "Button height", cssVar: "--ucs-qa-bh", min: 32, max: 64, def: 46 },
+];
 
 export type QuickAddDesign = {
   scheme: string;
@@ -12,6 +24,7 @@ export type QuickAddDesign = {
   after: { mode: "toast" | "theme" | "cart"; autohide: number; checkout: boolean; added: string; viewCart: string; checkoutText: string; add: string };
   popup: { vcBg: string; vcText: string; vcBorder: string; coBg: string; coText: string; coBorder: string; border: number; radius: number };
   advanced: { selector: string };
+  sizes: Sizes;
 };
 
 export const DEFAULT_QUICK_ADD: QuickAddDesign = {
@@ -20,6 +33,7 @@ export const DEFAULT_QUICK_ADD: QuickAddDesign = {
   after: { mode: "toast", autohide: 3, checkout: true, added: "Added to your cart!", viewCart: "View cart", checkoutText: "Checkout", add: "Add to cart" },
   popup: { vcBg: "#ffffff", vcText: "#121212", vcBorder: "#121212", coBg: "#121212", coText: "#ffffff", coBorder: "#121212", border: 1, radius: 4 },
   advanced: { selector: "" },
+  sizes: defaultSizes(QUICK_ADD_SIZES),
 };
 
 type Patch = { button?: Partial<QuickAddDesign["button"]>; popup?: Partial<QuickAddDesign["popup"]> };
@@ -44,6 +58,7 @@ export function withQuickAddDefaults(raw: unknown): QuickAddDesign {
   const d = DEFAULT_QUICK_ADD;
   const b = obj(r.button), a = obj(r.after), p = obj(r.popup), x = obj(r.advanced);
   return {
+    sizes: withSizes(r.sizes, QUICK_ADD_SIZES),
     scheme: schemeId(r.scheme),
     button: {
       icon: pick(b.icon, ["bag", "plus", "cart"] as const, d.button.icon),
@@ -95,6 +110,10 @@ export function toStorefrontQuickAdd(c: QuickAddDesign) {
     checkout: c.after.checkout,
     pop: [p.vcBg, p.vcText, p.vcBorder, p.coBg, p.coText, p.coBorder, p.border, p.radius],
     selector: c.advanced.selector,
+    sz: quickAddVars(c),
     text: { added: c.after.added, view_cart: c.after.viewCart, checkout: c.after.checkoutText, add: c.after.add },
   };
 }
+
+/** Own sizes as CSS variables (popup and message); empty when off. */
+export const quickAddVars = (c: QuickAddDesign) => sizeVars(c.sizes, QUICK_ADD_SIZES);

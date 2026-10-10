@@ -6,6 +6,13 @@
  */
 import { color, num, pick } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const ANNOUNCEMENT_SIZES: SizeSpec[] = [
+  { key: "nav", label: "Arrows and close button", cssVar: "--ucs-ab-nav", min: 18, max: 48, def: 28 },
+  { key: "bar", label: "Progress line", cssVar: "--ucs-ab-line", min: 1, max: 10, def: 3 },
+];
 
 export type AnnouncementDesign = {
   scheme: string;
@@ -13,6 +20,7 @@ export type AnnouncementDesign = {
   behaviour: { animation: "fade" | "slide"; interval: number; arrows: boolean; dismissible: boolean; sticky: boolean };
   freeShipping: { on: boolean; bar: boolean };
   display: { pages: "all" | "home"; devices: "all" | "desktop" | "mobile" };
+  sizes: Sizes;
 };
 
 export const DEFAULT_ANNOUNCEMENT: AnnouncementDesign = {
@@ -21,6 +29,7 @@ export const DEFAULT_ANNOUNCEMENT: AnnouncementDesign = {
   behaviour: { animation: "fade", interval: 4, arrows: true, dismissible: false, sticky: false },
   freeShipping: { on: false, bar: true },
   display: { pages: "all", devices: "all" },
+  sizes: defaultSizes(ANNOUNCEMENT_SIZES),
 };
 
 type Look = AnnouncementDesign["look"];
@@ -46,6 +55,7 @@ export function withAnnouncementDefaults(raw: unknown): AnnouncementDesign {
   const d = DEFAULT_ANNOUNCEMENT;
   const k = obj(r.look), b = obj(r.behaviour), f = obj(r.freeShipping), s = obj(r.display);
   return {
+    sizes: withSizes(r.sizes, ANNOUNCEMENT_SIZES),
     scheme: schemeId(r.scheme),
     look: {
       bg: color(k.bg, d.look.bg),
@@ -79,12 +89,16 @@ export const announcementClass = (c: AnnouncementDesign) =>
     .filter(Boolean)
     .join(" ");
 
-export const announcementVars = (c: AnnouncementDesign): Record<string, string> => ({
-  "--ucs-ab-bg": c.look.bg,
-  "--ucs-ab-fg": c.look.fg,
-  "--ucs-ab-fs": `${c.look.size}px`,
-  "--ucs-ab-py": `${c.look.padding}px`,
-});
+export function announcementVars(c: AnnouncementDesign): Record<string, string> {
+  const v: Record<string, string> = {
+    "--ucs-ab-bg": c.look.bg,
+    "--ucs-ab-fg": c.look.fg,
+    "--ucs-ab-fs": `${c.look.size}px`,
+    "--ucs-ab-py": `${c.look.padding}px`,
+  };
+  Object.assign(v, sizeVars(c.sizes, ANNOUNCEMENT_SIZES));
+  return v;
+}
 
 /** The storefront copy: short keys, read by ucs-announcement.liquid. */
 export function toStorefrontAnnouncement(c: AnnouncementDesign) {

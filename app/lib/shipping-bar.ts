@@ -6,6 +6,12 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const SHIPPING_BAR_SIZES: SizeSpec[] = [
+  { key: "icon", label: "Truck / gift icon", cssVar: "--fsb-ic", min: 12, max: 40, def: 18 },
+];
 
 export type ShippingBarConfig = {
   /** The theme colour scheme its colours were matched to ("" = its own colours). */
@@ -40,6 +46,7 @@ export type ShippingBarConfig = {
     barHeight: number;
     upper: boolean;
   };
+  sizes: Sizes;
 };
 
 export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
@@ -51,6 +58,7 @@ export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
   show: { bar: true, icon: "truck", top: true, drawer: true, cartPage: true, cartPos: "top", celebrate: true, whenEmpty: true },
   where: { all: true, pages: [], devices: "all" },
   look: { style: "bar", bg: "#111111", text: "#ffffff", track: "#3a3a3a", fill: "#d7f25c", done: "#5ee07d", size: 14, weight: 600, height: 9, radius: 0, barHeight: 4, upper: false },
+  sizes: defaultSizes(SHIPPING_BAR_SIZES),
 };
 
 type Look = ShippingBarConfig["look"];
@@ -74,6 +82,7 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
   const t = obj(r.text), s = obj(r.show), w = obj(r.where), k = obj(r.look);
   const goal = Number(r.goal);
   return {
+    sizes: withSizes(r.sizes, SHIPPING_BAR_SIZES),
     scheme: schemeId((r as { scheme?: unknown }).scheme),
     on: bool(r.on, d.on),
     autoDiscount: bool(r.autoDiscount, d.autoDiscount),
@@ -113,7 +122,7 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
 
 export function shippingBarVars(c: ShippingBarConfig): Record<string, string> {
   const k = c.look;
-  return {
+  const v: Record<string, string> = {
     "--fsb-bg": k.bg,
     "--fsb-fg": k.text,
     "--fsb-track": k.track,
@@ -125,6 +134,8 @@ export function shippingBarVars(c: ShippingBarConfig): Record<string, string> {
     "--fsb-r": `${k.radius}px`,
     "--fsb-bh": `${k.barHeight}px`,
   };
+  Object.assign(v, sizeVars(c.sizes, SHIPPING_BAR_SIZES));
+  return v;
 }
 
 export function shippingBarClass(c: ShippingBarConfig) {

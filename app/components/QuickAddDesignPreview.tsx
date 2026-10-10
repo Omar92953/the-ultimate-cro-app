@@ -4,7 +4,7 @@
  * button shows the popup for that product, like on the store.
  */
 import { useState, type CSSProperties } from "react";
-import type { QuickAddDesign } from "../lib/quick-add-design";
+import { quickAddVars, type QuickAddDesign } from "../lib/quick-add-design";
 
 export type QuickAddProduct = { title: string; image: string | null; price: string };
 
@@ -38,6 +38,7 @@ export function QuickAddDesignPreview({ config: c, products }: { config: QuickAd
     "--ucs-co-border": p.coBorder,
     "--ucs-btn-bw": `${p.border}px`,
     "--ucs-btn-radius": `${p.radius}px`,
+    ...quickAddVars(c),
     position: "relative",
     right: "auto",
     bottom: "auto",

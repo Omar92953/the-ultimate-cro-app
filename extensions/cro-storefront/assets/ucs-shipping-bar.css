@@ -8,7 +8,7 @@
 .ucs-fsb[hidden] { display: none; }
 .ucs-fsb__in { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: var(--page-width, 1200px); margin: 0 auto; padding: var(--fsb-pad, 9px) 16px; text-align: center; }
 .ucs-fsb__icon { display: inline-flex; flex: none; }
-.ucs-fsb__icon svg { width: 1.3em; height: 1.3em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ucs-fsb__icon svg { width: var(--fsb-ic, 1.3em); height: var(--fsb-ic, 1.3em); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .ucs-fsb--upper .ucs-fsb__msg { text-transform: uppercase; letter-spacing: 0.06em; }
 .ucs-fsb__track { height: var(--fsb-bh, 4px); background: var(--fsb-track, #3a3a3a); }
 .ucs-fsb__fill { display: block; width: 0; height: 100%; background: var(--fsb-fill, #d7f25c); transition: width 0.5s ease, background 0.3s ease; }
