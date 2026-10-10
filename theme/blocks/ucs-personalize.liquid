@@ -1,0 +1,53 @@
+{%- comment -%}
+  App block: personalization fields under the product's options (Offers & bundles → Personalization in
+  the app, $app:cro_design "personalize"). The fields belong to the product form, so what the shopper
+  types is saved on the order line; ucs-personalize.js draws the live preview and adds the fee line.
+{%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'personalize', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- liquid
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+  endif
+  assign show = false
+  if d and product
+    if d.wm == 'products'
+      if d.wp contains product.handle
+        assign show = true
+      endif
+    elsif d.wm == 'collections'
+      for c in product.collections
+        if d.wc contains c.handle
+          assign show = true
+          break
+        endif
+      endfor
+    else
+      assign show = true
+    endif
+  endif
+-%}
+{%- if show -%}
+  <div class="{{ d.cls }}" style="{{ d.css }}" data-ucs-personalize data-product="{{ product.id }}" {{ block.shopify_attributes }}>
+    <script type="application/json">{"c":{{ d | json }},"img":{{ product.featured_image | image_url: width: 900 | json }}}</script>
+  </div>
+  <script src="{{ 'ucs-personalize.js' | asset_url }}" defer></script>
+  <script src="{{ 'ucs-cart-guard.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode and d == blank -%}
+  <p {{ block.shopify_attributes }}>Set up personalization in the app: Offers &amp; bundles → Personalization.</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Personalization",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
+      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    ] },
+    { "type": "paragraph", "content": "Put it inside the product information, above the Add to cart button. Fields, preview and fee are set in the app: Offers & bundles → Personalization." }
+  ]
+}
+{% endschema %}

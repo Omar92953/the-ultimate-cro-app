@@ -13,6 +13,7 @@ import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./hea
 import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./footer-design";
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
+import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
@@ -375,5 +376,20 @@ export async function saveDeliveryDesign(admin: AdminClient, config: DeliveryDes
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("delivery"), { config: store });
   await upsert(admin, "$app:cro_design", slotted("delivery_draft"), { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("delivery_editor"), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------------------- personalization -- */
+export async function getPersonalizeDesign(admin: AdminClient): Promise<{ config: PersonalizeDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "personalize_editor");
+  return { config: withPersonalizeDefaults(raw), saved: raw !== null };
+}
+
+export async function savePersonalizeDesign(admin: AdminClient, config: PersonalizeDesign, draftOnly = false) {
+  const clean = withPersonalizeDefaults(config);
+  const store = JSON.stringify(toStorefrontPersonalize(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("personalize"), { config: store });
+  await upsert(admin, "$app:cro_design", slotted("personalize_draft"), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("personalize_editor"), { config: JSON.stringify(clean) });
   return clean;
 }

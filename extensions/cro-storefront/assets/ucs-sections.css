@@ -649,3 +649,22 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-dl__text { margin: 0; }
 .ucs-dl__text b { font-weight: 600; }
 .ucs-dl--bold .ucs-dl__time { color: var(--ucs-dl-accent, #1a7f37); font-weight: 700; }
+/* ---- Personalization ------------------------------------------------------------------- */
+.ucs-pz { display: grid; gap: 10px; margin: 12px 0; }
+.ucs-pz--box { padding: 14px; border-radius: var(--ucs-pz-r, 10px); background: var(--ucs-pz-bg, #f6f6f6); }
+.ucs-pz__h { margin: 0; font-size: var(--ucs-pz-h, 16px); font-weight: 700; }
+.ucs-pz__fields { display: grid; gap: 10px; }
+.ucs-pz__field { display: grid; gap: 4px; font-size: var(--ucs-pz-l, 14px); }
+.ucs-pz__field input[type="text"], .ucs-pz__field select, .ucs-pz__field textarea { min-height: var(--ucs-pz-in, 42px); padding: 8px 12px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-pz-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
+.ucs-pz__count { justify-self: end; opacity: 0.6; font-size: 0.8em; }
+.ucs-pz__colors { display: flex; flex-wrap: wrap; gap: 8px; }
+.ucs-pz__swatch { position: relative; display: inline-flex; cursor: pointer; }
+.ucs-pz__swatch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ucs-pz__swatch span { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.2); box-shadow: inset 0 0 0 2px #fff; }
+.ucs-pz__swatch input:checked + span { outline: 2px solid #121212; outline-offset: 2px; }
+.ucs-pz__swatch input:focus-visible + span { outline: 2px solid #005bd3; outline-offset: 2px; }
+.ucs-pz__preview { position: relative; overflow: hidden; border-radius: min(var(--ucs-pz-r, 10px), 12px); background: #eee; }
+.ucs-pz__preview img { display: block; width: 100%; height: auto; }
+.ucs-pz__plabel { position: absolute; top: 8px; left: 8px; z-index: 1; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: #121212; font-size: 11px; font-weight: 600; }
+.ucs-pz__text { position: absolute; left: var(--ucs-pz-x, 50%); top: var(--ucs-pz-y, 60%); max-width: 90%; transform: translate(-50%, -50%); color: var(--ucs-pz-c, #fff); font-family: var(--ucs-pz-font, serif); font-size: var(--ucs-pz-fs, 28px); text-transform: var(--ucs-pz-tt, none); text-align: center; line-height: 1.15; white-space: pre-line; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); pointer-events: none; }
+.ucs-pz__note { margin: 0; font-size: 0.85em; opacity: 0.75; }

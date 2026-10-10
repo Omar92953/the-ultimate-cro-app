@@ -391,6 +391,13 @@ pages["delivery.html"] = page("Delivery estimate",
 // Tiered rewards bar: free shipping 300, free gift 600, 10% off 900; cart at 450.
 const rewardsShop = withDesign(mo("shipping_bar", { config: toStorefrontShippingBar(withShippingBarDefaults({ goal: 300, tiers: [{ goal: 600, reward: "gift", label: "Free gift", progress: "Spend {left} more for a free gift", done: "Free gift unlocked!" }, { goal: 900, reward: "percent", percent: 10, label: "10% off", progress: "Spend {left} more for 10% off", done: "You've unlocked 10% off!" }] })) }));
 pages["rewards.html"] = page("Tiered rewards bar", label("free shipping 300 → free gift 600 → 10% off 900 (cart 450)") + (await block("ucs-shipping-bar", {}, { shop: rewardsShop, cartTotal: 45000 })), '<link rel="stylesheet" href="assets/ucs-shipping-bar.css">');
+const { toStorefrontPersonalize, withPersonalizeDefaults } = await import("../../app/lib/personalize-design.ts");
+const pzShop = withDesign(mo("personalize", { config: toStorefrontPersonalize(withPersonalizeDefaults({ fields: [{ label: "Name to engrave", type: "text", max: 12, required: true, preview: true }, { label: "Colour", type: "color", options: "#d4af37\n#c0c0c0" }], fee: { on: true, variantId: "999", note: "Engraving adds EGP 50." } })) }));
+const pzProduct = { id: 88, title: "Bottle", handle: "bottle", featured_image: "https://cdn.shopify.com/s/files/1/0000/0001/files/bottle.jpg", collections: [] };
+pages["personalize.html"] = page("Personalization",
+  '<script>window.__adds=[];const pf=window.fetch;window.fetch=async(u,o)=>{if(String(u).includes("/cart/add")){window.__adds.push(o.body instanceof FormData?"form":o.body);return new Response(JSON.stringify({items:[{key:"k",variant_id:1}]}))}return pf(u,o)};</script>' +
+  '<div class="shopify-section" style="max-width:440px;margin:24px 40px"><form action="/cart/add" method="post"><input type="hidden" name="id" value="501"><button type="submit">Add to cart</button></form>' +
+  (await block("ucs-personalize", {}, { page_type: "product", product: pzProduct, shop: pzShop })) + "</div>");
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

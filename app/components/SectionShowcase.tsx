@@ -1565,3 +1565,20 @@ export function DeliveryShowcase() {
     </Stage>
   );
 }
+
+/** Personalization: a name field with the text drawn on the product picture. */
+export function PersonalizeShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 12, width: "86%", alignItems: "center", fontSize: 11 }}>
+        <span style={{ position: "relative", aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#3b3b3b,#111)", display: "grid", placeItems: "center", color: "#fff", fontFamily: "Georgia, serif", fontSize: 16, letterSpacing: 1 }}>MARIAM</span>
+        <span style={{ display: "grid", gap: 6, padding: 8, borderRadius: 8, background: "#f4f4f4" }}>
+          <b>Make it yours</b>
+          <span>Name to engrave</span>
+          <span style={{ padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Mariam</span>
+          <span style={{ display: "block", padding: "6px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
