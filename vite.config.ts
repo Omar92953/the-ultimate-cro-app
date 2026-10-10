@@ -47,6 +47,12 @@ export default defineConfig({
       // See https://vitejs.dev/config/server-options.html#server-fs-allow for more information
       allow: ["app", "node_modules"],
     },
+    // Development only: build every page's code when the server starts, so the first click on
+    // a page doesn't wait for it to be compiled.
+    warmup: {
+      clientFiles: ["./app/routes/app*.tsx", "./app/components/*.tsx"],
+      ssrFiles: ["./app/routes/app*.tsx", "./app/lib/*.ts"],
+    },
   },
   plugins: [
     reactRouter(),

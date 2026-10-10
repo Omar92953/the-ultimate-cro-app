@@ -87,6 +87,7 @@ import { getAddons, getHeader, getImageCarousel, getPills, getShippingBar } from
 import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
+import { remember } from "../lib/short-cache.server";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -94,7 +95,13 @@ function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [settings, rules, slides, bundles, theme, discount, transform] = await Promise.allSettled([
+  // Remembered for 30 s; any save in the app clears it (short-cache.server.ts).
+  return remember(session.shop, "home", 30000, () => loadHome(admin, session));
+};
+
+async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["admin"], session: { shop: string }) {
+  // Everything at once: none of these reads depends on another.
+  const firstWave = Promise.allSettled([
     getSettings(admin),
     listRules(admin),
     getSlides(admin),
@@ -103,8 +110,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getDiscountStatus(admin),
     hasCartTransform(admin),
   ]);
-  const ruleList = settled(rules, []);
-  const [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar] = await Promise.all([
+  const secondWave = Promise.all([
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
@@ -115,6 +121,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getPills(admin).catch(() => null),
     getShippingBar(admin).catch(() => null),
   ]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar]] = await Promise.all([firstWave, secondWave]);
+  const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
       const items = settled(lists[i], []);
@@ -156,7 +164,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     cartTransform: settled(transform, false),
     loadError: [settings, rules].find((r) => r.status === "rejected") ? "Some data could not be loaded. Refresh to try again." : null,
   };
-};
+}
 
 /** Changing the Home filters only changes the address: no need to reload everything. */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl, formMethod, defaultShouldRevalidate }) =>

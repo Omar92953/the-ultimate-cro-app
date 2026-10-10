@@ -21,7 +21,7 @@ const humanize = (id: string) => id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) =
 
 /** The MAIN theme's styles; with `shop`, remembered for 20 s (see short-cache.server.ts). */
 export function getThemeStyle(admin: AdminClient, shop?: string): Promise<ThemeStyle> {
-  return shop ? remember(`style:${shop}`, 20000, () => readThemeStyle(admin)) : readThemeStyle(admin);
+  return shop ? remember(shop, "style", 20000, () => readThemeStyle(admin)) : readThemeStyle(admin);
 }
 
 async function readThemeStyle(admin: AdminClient): Promise<ThemeStyle> {

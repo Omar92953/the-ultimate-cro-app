@@ -6,6 +6,7 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { forgetShop } from "./lib/short-cache.server";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -27,7 +28,13 @@ const shopify = shopifyApp({
 export default shopify;
 export const apiVersion = ApiVersion.October25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
-export const authenticate = shopify.authenticate;
+/** Admin requests; any save (non-GET) clears that shop's short-lived read cache (short-cache.server.ts). */
+const admin: typeof shopify.authenticate.admin = async (request) => {
+  const result = await shopify.authenticate.admin(request);
+  if (request.method !== "GET" && request.method !== "HEAD") forgetShop(result.session.shop);
+  return result;
+};
+export const authenticate = { ...shopify.authenticate, admin };
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;

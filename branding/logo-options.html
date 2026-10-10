@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRO Toolbox logo options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0a0a0a; --paper: #ffffff; --line: #e6e6e6; --muted: #6b6b6b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #f4f4f4; color: var(--ink); }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 32px; }
+  .option { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .option h2 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+  .option p { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: stretch; }
+  .tile { display: grid; place-items: center; gap: 10px; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); }
+  .tile.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tile.wide { grid-column: span 2; aspect-ratio: auto; padding: 22px; }
+  .tile svg.mark { width: 46%; height: auto; }
+  .tile small { font-size: 11px; color: var(--muted); }
+  .tile.dark small { color: #9a9a9a; }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .lockup svg { width: 44px; height: 44px; }
+  .lockup span { font-weight: 800; font-size: 26px; letter-spacing: -0.03em; white-space: nowrap; }
+  .lockup span b { font-weight: 500; }
+  .tiny { display: flex; align-items: center; gap: 10px; }
+  .tiny svg { width: 16px; height: 16px; }
+  .tiny svg.m { width: 32px; height: 32px; }
+  @media (max-width: 640px) { .tile.wide { grid-column: span 1; } .lockup span { font-size: 20px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>CRO Toolbox — black &amp; white logo options</h1>
+  <p class="lead">Two directions. Each shown on white, on black, as an app icon, at favicon size, and with the wordmark.</p>
+
+  <!-- A: Rising bars -->
+  <section class="option">
+    <h2>A · Rising bars</h2>
+    <p>Three bars climbing, the last one becomes an arrow — results going up. Reads clearly even at 16 px.</p>
+    <div class="row">
+      <div class="tile"><svg class="mark" viewBox="0 0 100 100"><use href="#a"/></svg><small>On white</small></div>
+      <div class="tile dark"><svg class="mark" viewBox="0 0 100 100" style="color:#fff"><use href="#a"/></svg><small>On black</small></div>
+      <div class="tile"><svg class="mark" style="width:62%" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#0a0a0a"/><g transform="translate(18 18) scale(.64)" style="color:#fff"><use href="#a"/></g></svg><small>App icon</small></div>
+      <div class="tile"><div class="tiny"><svg viewBox="0 0 100 100"><use href="#a"/></svg><svg class="m" viewBox="0 0 100 100"><use href="#a"/></svg></div><small>16 / 32 px</small></div>
+      <div class="tile wide"><div class="lockup"><svg viewBox="0 0 100 100"><use href="#a"/></svg><span>CRO <b>Toolbox</b></span></div></div>
+    </div>
+  </section>
+
+  <!-- B: Toolbox arrow -->
+  <section class="option">
+    <h2>B · Toolbox</h2>
+    <p>A toolbox with an arrow cut out of it — tools that lift sales. The most literal of the three.</p>
+    <div class="row">
+      <div class="tile"><svg class="mark" viewBox="0 0 100 100"><use href="#b"/></svg><small>On white</small></div>
+      <div class="tile dark"><svg class="mark" viewBox="0 0 100 100" style="color:#fff"><use href="#b-inv"/></svg><small>On black</small></div>
+      <div class="tile"><svg class="mark" style="width:62%" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#0a0a0a"/><g transform="translate(16 16) scale(.68)"><use href="#b-inv"/></g></svg><small>App icon</small></div>
+      <div class="tile"><div class="tiny"><svg viewBox="0 0 100 100"><use href="#b"/></svg><svg class="m" viewBox="0 0 100 100"><use href="#b"/></svg></div><small>16 / 32 px</small></div>
+      <div class="tile wide"><div class="lockup"><svg viewBox="0 0 100 100"><use href="#b"/></svg><span>CRO <b>Toolbox</b></span></div></div>
+    </div>
+  </section>
+
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- A: three bars, the tallest ends in an arrow head -->
+    <g id="a" fill="currentColor">
+      <rect x="10" y="60" width="20" height="30" rx="5"/>
+      <rect x="40" y="42" width="20" height="48" rx="5"/>
+      <path d="M70 34 H64 L80 10 L96 34 H90 V85 Q90 90 85 90 H75 Q70 90 70 85 Z"/>
+    </g>
+    <!-- B: toolbox (handle + body) with an up arrow cut out -->
+    <g id="b">
+      <path d="M36 34 V26 Q36 18 44 18 H56 Q64 18 64 26 V34" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      <rect x="10" y="34" width="80" height="52" rx="12" fill="currentColor"/>
+      <path d="M50 76 V52 M39 61 L50 50 L61 61" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="b-inv">
+      <path d="M36 34 V26 Q36 18 44 18 H56 Q64 18 64 26 V34" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+      <rect x="10" y="34" width="80" height="52" rx="12" fill="#fff"/>
+      <path d="M50 76 V52 M39 61 L50 50 L61 61" fill="none" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <!-- C: open ring whose end becomes an arrow pointing up-right -->
+    <g id="c" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+      <!-- open ring (centre 48,54, radius 30) with an arrow leaving through the gap -->
+      <path d="M76.2 43.7 A30 30 0 1 1 58.3 25.8"/>
+      <path d="M50 52 L80 22"/>
+      <path d="M66 21 H81 V36"/>
+    </g>
+  </defs>
+</svg>
+</body>
+</html>
