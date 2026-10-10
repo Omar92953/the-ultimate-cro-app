@@ -122,7 +122,7 @@ export default function AnnouncementDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Free-shipping message">
                   <s-stack gap="base">
-                    <Switch label="Show how much more to spend for free shipping" details="Uses the goal and words from Store-wide tools → Free shipping bar, so your store has one goal." checked={cfg.freeShipping.on} onValue={(v) => freeShipping({ on: v })} />
+                    <Switch label="Show how much more to spend for free shipping" details="Uses the goal and words from Boosters → Free shipping bar, so your store has one goal." checked={cfg.freeShipping.on} onValue={(v) => freeShipping({ on: v })} />
                     {cfg.freeShipping.on && !data.freeShipping ? (
                       <s-banner tone="warning">
                         Set the goal first in{" "}

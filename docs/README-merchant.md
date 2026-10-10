@@ -13,9 +13,9 @@ customer pays.
 
 ## Finding your way
 The app has the same map everywhere:
-- **Menu:** Home · Offers & bundles · Store-wide tools · Sections · Header & pages · Settings.
+- **Menu:** Home · Offers & bundles · Boosters · Sections · Header & pages · Settings.
   - **Offers & bundles:** upsell offers, cross-sell offers, bundles (mix & match and deals), add-ons.
-  - **Store-wide tools:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
+  - **Boosters:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
     conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups).
   - **Sections:** hero banners, customer reviews, FAQ, scrolling logos, video carousel, image carousel,
     collection pills.
@@ -106,7 +106,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   links). Words, tray position and colours: **Bundles → Design** (preview: Bundle page / Collection page).
 
 ## Free shipping bar
-- Set the goal and messages in **Store-wide tools → Free shipping bar**. With **Give free shipping
+- Set the goal and messages in **Boosters → Free shipping bar**. With **Give free shipping
   automatically** on (the default), saving creates or updates the automatic discount "CRO Toolbox free
   shipping" (Shopify → Discounts): free shipping on orders from the goal amount. Turning the bar or the
   option off switches the discount off. Off: the bar only shows the goal, and you give free shipping

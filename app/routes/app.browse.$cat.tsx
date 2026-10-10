@@ -1,5 +1,5 @@
 /**
- * A category of the app (Offers & bundles, Store-wide tools, Sections, Header & pages): the same cards as
+ * A category of the app (Offers & bundles, Boosters, Sections, Header & pages): the same cards as
  * Home, for that category only. The side menu links here.
  */
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
