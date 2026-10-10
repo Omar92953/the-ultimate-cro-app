@@ -79,6 +79,8 @@ import {
   FooterShowcase,
   ProductReviewsShowcase,
   StockShowcase,
+  TrackShowcase,
+  ReturnsShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
@@ -569,6 +571,23 @@ export function HomeView({ only }: { only?: CategoryKey }) {
           if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/footer" }];
           else if (footerIn === false) [fStatus, fNext] = [{ tone: "warning", text: "Not on store" }, { label: "Add to footer", href: data.sectionLinks.footer, external: true }];
           else fStatus = { tone: "success", text: "Live" };
+          for (const page of [
+            { key: "track" as const, title: "Track order page", href: "/app/pages/track", Preview: TrackShowcase },
+            { key: "returns" as const, title: "Returns page", href: "/app/returns", Preview: ReturnsShowcase },
+          ]) {
+            const on = installed ? (installed[page.key] ?? false) : null;
+            add({
+              key: page.key,
+              cat: "design",
+              title: page.title,
+              onStore: on === true,
+              status: on === false ? { tone: "warning", text: "Not on store" } : on ? { tone: "success", text: "Live" } : { tone: "neutral", text: "Set up in theme editor" },
+              next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
+              open: { href: page.href },
+              previews: [page.Preview],
+              menu: [{ label: page.key === "returns" ? "Requests" : "Design", href: page.href }, ...(page.key === "returns" ? [{ label: "Design", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
+            });
+          }
           add({
             key: "footer",
             cat: "design",

@@ -50,3 +50,19 @@ model StockAlert {
   @@unique([shop, variantId, email])
   @@index([shop, notifiedAt])
 }
+
+/// "Request a return" from the store: waits for the merchant in the app (Returns).
+model ReturnRequest {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  orderId   String
+  orderName String
+  email     String
+  items     String
+  reason    String
+  note      String   @default("")
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  @@index([shop, status])
+}

@@ -55,6 +55,8 @@ export const FEATURES = {
   // Header & pages
   header: { title: "Header", cat: "design", tabs: [design("/app/designs/header")] },
   footer: { title: "Footer", cat: "design", tabs: [design("/app/designs/footer")] },
+  track: { title: "Track order page", cat: "design", tabs: [design("/app/pages/track")] },
+  returns: { title: "Returns page", cat: "design", tabs: [{ label: "Requests", href: "/app/returns" }, design("/app/pages/returns")] },
   contact: { title: "Contact page", cat: "design", tabs: [design("/app/pages/contact")] },
 } satisfies Record<string, Feature>;
 

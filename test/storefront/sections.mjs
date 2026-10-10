@@ -379,6 +379,11 @@ const stockShop = withDesign(mo("stock", { config: toStorefrontStock(withStockDe
 const buyForm = (id) => `<form action="/cart/add" method="post" style="display:grid;gap:8px;max-width:420px;margin:24px 40px 0"><select name="id">${stockProduct.variants.map((v) => `<option value="${v.id}"${v.id === id ? " selected" : ""}>${v.title}</option>`).join("")}</select><button type="submit" name="add" style="min-height:44px">Add to cart</button></form>`;
 pages["stock.html"] = page("Back in stock & pre-order",
   label("sold out (Small): Notify me — switch to Medium for pre-order, Large for normal") + '<div class="shopify-section">' + buyForm(701) + '<div style="max-width:420px;margin:0 40px">' + (await block("ucs-stock", {}, { page_type: "product", product: stockProduct, shop: stockShop })) + "</div></div>");
+// Track order & Returns pages, with the app's answers mocked (any order number works with any email).
+const mockOrders = `<script>(function(){const f=window.fetch;const order={name:"#1001",createdAt:"2026-10-03T10:00:00Z",cancelled:false,payment:"PAID",fulfillment:"FULFILLED",items:[{key:"11",title:"Linen shirt",variant:"Medium",quantity:1,image:null},{key:"12",title:"Classic tee",variant:"Large",quantity:2,image:null}],shipments:[{status:"IN_TRANSIT",company:"Aramex",number:"EG123456789",url:"https://example.com/track",delivered:null,estimated:"2026-10-08T00:00:00Z"}]};window.fetch=async(u,o)=>{u=String(u);if(u.includes("/apps/ucro/track"))return new Response(JSON.stringify({ok:true,order}));if(u.includes("/apps/ucro/returns")){const b=JSON.parse(o.body);return new Response(JSON.stringify(b.intent==="send"?{ok:true}:{ok:true,order}))}return f(u,o)}})();</script>`;
+pages["orders.html"] = page("Track order & Returns", mockOrders +
+  label("track order page") + (await block("ucs-track", {}, { page_type: "page" })) +
+  label("returns page") + (await block("ucs-returns", {}, { page_type: "page" })));
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

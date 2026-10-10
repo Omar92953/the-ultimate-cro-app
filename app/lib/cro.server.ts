@@ -1194,6 +1194,8 @@ export const BLOCKS = {
   header: "ucs-header",
   footer: "ucs-footer",
   stock: "ucs-stock",
+  track: "ucs-track",
+  returns: "ucs-returns",
   collection_pills: "ucs-collection-pills",
   shipping_bar: "ucs-shipping-bar",
 } as const;

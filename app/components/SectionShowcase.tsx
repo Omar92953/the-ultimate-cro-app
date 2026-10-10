@@ -1498,13 +1498,50 @@ export function StockShowcase() {
           <b>EGP 650.00</b>
           <span style={{ display: "block", padding: "7px 0", borderRadius: 999, background: "#e5e5e5", color: "#777", textAlign: "center", fontWeight: 600 }}>Sold out</span>
           <span style={{ display: "grid", gap: 5, padding: 8, borderRadius: 10, background: "#f4f4f4" }}>
-            <b>Get an email when it's back</b>
+            <b>Get an email when it’s back</b>
             <span style={{ display: "flex", gap: 5 }}>
               <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#999" }}>Your email</span>
               <span style={{ padding: "5px 9px", borderRadius: 6, background: "#111", color: "#fff", fontWeight: 600 }}>Notify me</span>
             </span>
           </span>
         </span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Track order page: the lookup card with a found order's status and tracking. */
+export function TrackShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 6, width: "62%", padding: 12, borderRadius: 12, background: "#f4f4f4", fontSize: 11, textAlign: "center" }}>
+        <b style={{ fontSize: 15 }}>#1001</b>
+        <span style={{ display: "flex", gap: 5, justifyContent: "center" }}>
+          <span style={{ padding: "2px 8px", borderRadius: 999, background: "#111", color: "#fff", fontWeight: 600 }}>Shipped</span>
+          <span style={{ padding: "2px 8px", borderRadius: 999, background: "#ddd" }}>Paid</span>
+        </span>
+        <span>Tracking number: <b>EG123456789</b></span>
+        <span style={{ padding: "5px 0", borderRadius: 999, border: "1px solid #111", fontWeight: 600 }}>Track the parcel</span>
+      </span>
+    </Stage>
+  );
+}
+
+/** Returns page: choosing items and a reason. */
+export function ReturnsShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 6, width: "62%", padding: 12, borderRadius: 12, background: "#f4f4f4", fontSize: 11 }}>
+        <b style={{ fontSize: 14 }}>Request a return</b>
+        {["Linen shirt · M", "Classic tee · L"].map((t, i) => (
+          <span key={t} style={{ display: "flex", gap: 6, alignItems: "center", padding: 5, borderRadius: 8, background: "#fff" }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, border: "1.5px solid #111", background: i === 0 ? "#111" : "transparent" }} />
+            <span style={{ width: 20, height: 20, borderRadius: 5, background: "#ddd" }} />
+            {t}
+          </span>
+        ))}
+        <span style={{ padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Wrong size ▾</span>
+        <span style={{ padding: "5px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Send return request</span>
       </span>
     </Stage>
   );

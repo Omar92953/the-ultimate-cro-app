@@ -10,7 +10,9 @@
   "7": "Videos, their order and linked products, the look and the pages it shows on are all set in CRO Toolbox → Video carousel.",
   "8": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers & bundles → Add-ons.",
   "9": "Messages, icons, dates and the look are set in the app: Boosters → Announcement bar.",
-  "10": "Put it inside the product information, under the Add to cart button. Words and look are set in the app: Boosters → Back in stock & pre-order.",
+  "10": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar.",
+  "11": "Put it inside the product information, under the Add to cart button. Words and look are set in the app: Boosters → Back in stock & pre-order.",
+  "12": "Add it to a page (e.g. a page called Track order). Words and look are set in the app: Header & pages → Track order.",
   "a": "Sticky add to cart, stock urgency, trust badges, sales pop-ups and bundle deals. Edit them in the app: Boosters and Bundles.",
   "b": "Collections, order, colours and sizes are set in the app: Sections → Collection pills.",
   "c": "Fields, texts, colours and sizes are designed in the app: Header & pages → Contact page.",
@@ -35,7 +37,7 @@
   "v": "Which of the designs made in the app to show.",
   "w": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews.",
   "x": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
-  "y": "Reviews and how they look are set in the app: Sections → Customer reviews.",
-  "z": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
+  "y": "Add it to a page (e.g. a page called Returns). Words and look are set in the app: Header & pages → Returns.",
+  "z": "Reviews and how they look are set in the app: Sections → Customer reviews."
  }
 }

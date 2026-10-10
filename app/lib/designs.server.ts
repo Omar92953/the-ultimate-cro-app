@@ -12,6 +12,7 @@ import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from
 import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./footer-design";
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
+import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
 import { toStorefrontCrossSell, withCrossSellDefaults, type CrossSellDesign } from "./cross-sell-design";
@@ -340,5 +341,23 @@ export async function saveStockDesign(admin: AdminClient, config: StockDesign, d
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("stock"), { config: store });
   await upsert(admin, "$app:cro_design", slotted("stock_draft"), { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("stock_editor"), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------- track order & returns pages -- */
+const orderPageKey = (kind: OrderPageKind) => (kind === "track" ? "track_page" : "returns_page");
+
+export async function getOrderPage(admin: AdminClient, kind: OrderPageKind): Promise<{ config: OrderPageDesign; saved: boolean }> {
+  const raw = await getDesign(admin, `${orderPageKey(kind)}_editor`);
+  return { config: withOrderPageDefaults(raw, kind), saved: raw !== null };
+}
+
+export async function saveOrderPage(admin: AdminClient, kind: OrderPageKind, config: OrderPageDesign, draftOnly = false) {
+  const clean = withOrderPageDefaults(config, kind);
+  const key = orderPageKey(kind);
+  const store = JSON.stringify(toStorefrontOrderPage(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(key), { config: store });
+  await upsert(admin, "$app:cro_design", slotted(`${key}_draft`), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(`${key}_editor`), { config: JSON.stringify(clean) });
   return clean;
 }
