@@ -20,6 +20,8 @@ import { HeroDesignPreview } from "../components/HeroDesignPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { SizesSection } from "../components/SizesSection";
+import { HERO_SIZES } from "../lib/hero-design";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -254,7 +256,8 @@ export default function HeroEditor() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={HERO_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="The heading size is in Text position and size." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Spacing and devices">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Top padding" suffix="px" min={0} max={80} step={4} value={cfg.space.top} onValue={(v) => space({ top: v })} />

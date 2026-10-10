@@ -7,6 +7,15 @@
 import { color, num, pick, str } from "./designs";
 import type { MediaRef } from "./sections";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes, BUTTON_TEXT, BUTTON_HEIGHT } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const HERO_SIZES: SizeSpec[] = [
+  { key: "text", label: "Text under heading", cssVar: "--ucs-hero-ts", min: 10, max: 40, def: 17 },
+  BUTTON_TEXT,
+  BUTTON_HEIGHT,
+  { key: "buttonGap", label: "Space between buttons", cssVar: "--ucs-hero-bg", min: 0, max: 40, def: 10 },
+];
 
 export type HeroHeight = "adapt" | "small" | "medium" | "large" | "full";
 export type HeroSpot = "tl" | "tc" | "tr" | "ml" | "mc" | "mr" | "bl" | "bc" | "br";
@@ -20,6 +29,7 @@ export type HeroDesign = {
   layout: { heightDesktop: HeroHeight; heightMobile: HeroHeight; spotDesktop: HeroSpot; spotMobile: HeroMobileSpot; box: boolean; fullWidth: boolean; radius: number; textWidth: number };
   look: { fg: string; buttonBg: string; buttonFg: string; buttonRadius: number; themeButtons: boolean; overlay: string; overlayOpacity: number; boxBg: string; boxOpacity: number; zoom: boolean; animate: boolean };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
+  sizes: Sizes;
 };
 
 export const DEFAULT_HERO: HeroDesign = {
@@ -30,6 +40,7 @@ export const DEFAULT_HERO: HeroDesign = {
   layout: { heightDesktop: "adapt", heightMobile: "adapt", spotDesktop: "ml", spotMobile: "bc", box: false, fullWidth: true, radius: 16, textWidth: 640 },
   look: { fg: "#ffffff", buttonBg: "#ffffff", buttonFg: "#121212", buttonRadius: 999, themeButtons: true, overlay: "#000000", overlayOpacity: 25, boxBg: "#000000", boxOpacity: 45, zoom: false, animate: true },
   space: { top: 0, bottom: 0, devices: "all" },
+  sizes: defaultSizes(HERO_SIZES),
 };
 
 export const HEIGHTS: Record<Exclude<HeroHeight, "adapt">, { desktop: string; mobile: string }> = {
@@ -71,6 +82,7 @@ export function withHeroDefaults(raw: unknown): HeroDesign {
   const d = DEFAULT_HERO;
   const i = obj(r.images), t = obj(r.text), l = obj(r.layout), k = obj(r.look), s = obj(r.space);
   return {
+    sizes: withSizes(r.sizes, HERO_SIZES),
     scheme: schemeId(r.scheme),
     name: str(r.name, d.name, 80).trim() || d.name,
     images: { desktop: media(i.desktop), mobile: media(i.mobile), link: cleanLink(i.link) },
@@ -151,6 +163,7 @@ export function heroVars(c: HeroDesign): Record<string, string> {
     "--ucs-on-accent": c.look.buttonFg,
   };
   if (!c.look.themeButtons) v["--ucs-btn-radius"] = `${c.look.buttonRadius}px`;
+  Object.assign(v, sizeVars(c.sizes, HERO_SIZES));
   return v;
 }
 

@@ -6,7 +6,7 @@
 .ucs-head { margin: 0 0 20px; text-align: var(--ucs-align, center); }
 .ucs-head h2 { margin: 0; font-size: var(--ucs-h, 28px); line-height: 1.2; }
 .ucs-head p { margin: 8px 0 0; opacity: 0.75; font-size: var(--ucs-sub, inherit); }
-.ucs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 22px; border-radius: var(--ucs-btn-radius, var(--buttons-radius, 999px)); background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+.ucs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--ucs-btn-h, 44px); padding: 0 22px; border-radius: var(--ucs-btn-radius, var(--buttons-radius, 999px)); background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); font: inherit; font-size: var(--ucs-btn-fs, inherit); font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
 .ucs-btn--outline { background: transparent; color: inherit; border-color: currentColor; }
 .ucs-note { padding: 16px; border: 1px dashed rgba(0, 0, 0, 0.3); border-radius: 8px; text-align: center; font-size: 14px; opacity: 0.8; }
 @media (max-width: 749px) { .ucs-hide-mobile { display: none !important; } }
@@ -105,9 +105,9 @@
 .ucs-hero__inner { max-width: var(--ucs-hero-tw, 640px); pointer-events: auto; }
 .ucs-hero--box .ucs-hero__inner { padding: clamp(18px, 3vw, 36px); border-radius: 12px; background: var(--ucs-hero-box, rgba(0, 0, 0, 0.45)); backdrop-filter: blur(6px); }
 .ucs-hero__title { margin: 0; color: inherit; font-size: var(--ucs-hero-hs, 48px); line-height: 1.1; letter-spacing: -0.01em; }
-.ucs-hero__text { margin-top: 12px; font-size: 1.05em; }
+.ucs-hero__text { margin-top: 12px; font-size: var(--ucs-hero-ts, 1.05em); }
 .ucs-hero__text p { margin: 0; }
-.ucs-hero__buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.ucs-hero__buttons { display: flex; flex-wrap: wrap; gap: var(--ucs-hero-bg, 10px); margin-top: 22px; }
 .ucs-hero__buttons .ucs-btn--outline { color: var(--ucs-hero-fg, #fff); }
 .ucs-hero--dv-t .ucs-hero__content { align-items: flex-start; }
 .ucs-hero--dv-m .ucs-hero__content { align-items: center; }
@@ -180,10 +180,10 @@
 .ucs-faq__tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
 .ucs-faq__search { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; max-width: 420px; padding: 0 14px; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 999px; }
 .ucs-faq__search .ucs-i { width: 18px; height: 18px; opacity: 0.6; }
-.ucs-faq__search input { flex: 1; min-width: 0; height: 42px; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
+.ucs-faq__search input { flex: 1; min-width: 0; height: var(--ucs-faq-sh, 42px); border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: var(--ucs-faq-se, inherit); }
 .ucs-faq__search:focus-within { border-color: currentColor; }
 .ucs-faq__tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.ucs-faq__tab { padding: 8px 16px; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 14px; cursor: pointer; }
+.ucs-faq__tab { padding: 8px 16px; border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: var(--ucs-faq-tab, 14px); cursor: pointer; }
 .ucs-faq__tab[aria-pressed="true"] { background: var(--ucs-accent, #121212); border-color: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); }
 .ucs-faq__list { display: grid; gap: 0 32px; }
 @media (min-width: 750px) { .ucs-faq__list--2 { grid-template-columns: 1fr 1fr; align-items: start; } }
@@ -195,19 +195,19 @@
 .ucs-faq__q::-webkit-details-marker { display: none; }
 .ucs-faq--icon-left .ucs-faq__q { flex-direction: row-reverse; justify-content: flex-end; }
 .ucs-faq__q:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.ucs-faq__icon { position: relative; flex: none; width: 16px; height: 16px; transition: transform 0.25s ease; }
-.ucs-faq--plus .ucs-faq__icon::before, .ucs-faq--plus .ucs-faq__icon::after { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px; border-radius: 2px; background: currentColor; transition: transform 0.25s ease; }
+.ucs-faq__icon { position: relative; flex: none; width: var(--ucs-faq-ic, 16px); height: var(--ucs-faq-ic, 16px); transition: transform 0.25s ease; }
+.ucs-faq--plus .ucs-faq__icon::before, .ucs-faq--plus .ucs-faq__icon::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; border-radius: 2px; background: currentColor; transition: transform 0.25s ease; }
 .ucs-faq--plus .ucs-faq__icon::after { transform: rotate(90deg); }
 .ucs-faq--plus .ucs-faq__item[open] .ucs-faq__icon::after { transform: rotate(0deg); }
-.ucs-faq--chevron .ucs-faq__icon::before { content: ""; position: absolute; left: 3px; top: 2px; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.ucs-faq--chevron .ucs-faq__icon::before { content: ""; position: absolute; left: 20%; top: 12%; width: 50%; height: 50%; box-sizing: border-box; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
 .ucs-faq--chevron .ucs-faq__item[open] .ucs-faq__icon { transform: rotate(180deg); }
-.ucs-faq__a { padding: 0 4px 18px; line-height: 1.65; opacity: 0.85; }
+.ucs-faq__a { padding: 0 4px 18px; font-size: var(--ucs-faq-a, inherit); line-height: 1.65; opacity: 0.85; }
 .ucs-faq--cards .ucs-faq__a { padding: 0 18px 16px; }
 .ucs-faq__item[open] .ucs-faq__a { animation: ucs-rise 0.3s ease both; }
 .ucs-faq__none { grid-column: 1 / -1; margin: 24px 0; text-align: center; opacity: 0.7; }
 .ucs-faq__list { align-content: start; }
 .ucs-faq__help { margin-top: 28px; text-align: center; }
-.ucs-faq__help p { margin: 0 0 12px; font-weight: 600; }
+.ucs-faq__help p { margin: 0 0 12px; font-size: var(--ucs-faq-ht, inherit); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .ucs-faq__item[open] .ucs-faq__a, .ucs-faq__icon, .ucs-faq__icon::after { animation: none; transition: none; } }
 
 /* ---------- Reviews ---------- */

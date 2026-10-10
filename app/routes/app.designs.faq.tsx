@@ -46,6 +46,8 @@ import {
   type DesignTab,
 } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { SizesSection } from "../components/SizesSection";
+import { FAQ_SIZES } from "../lib/faq-design";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -470,7 +472,8 @@ export default function FaqDesigner() {
                   </s-grid>
                 </s-section>
               </Pane>
-              <Pane show={tab === "design"}>
+              <Pane show={tab === "design"}><SizesSection specs={FAQ_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} note="The heading and question sizes are in Heading and Look." /></Pane>
+            <Pane show={tab === "design"}>
                 <s-section heading="Per page (theme editor)">
                   <s-text color="subdued">
                     Each copy of the FAQ section in the theme editor can show

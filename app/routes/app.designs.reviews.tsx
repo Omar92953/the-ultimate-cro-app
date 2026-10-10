@@ -88,6 +88,7 @@ export default function ReviewsDesigner() {
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
   const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space"), icon = part("icon"), product = part("product"), sizes = part("sizes");
   const [iconFor, setIconFor] = useState<(typeof ICON_SOURCES)[number]>("whatsapp");
+  const [ownFor, setOwnFor] = useState<Record<string, boolean>>({});
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
   return (
@@ -317,22 +318,41 @@ export default function ReviewsDesigner() {
                   {cfg.icon.style !== "brand" ? <ColorField label="Icon colour" value={cfg.icon.fg} onValue={(v) => icon({ fg: v })} /> : null}
                 </s-grid>
                 <s-text color="subdued">“Automatic”: in the top-right corner on cards with a picture, next to the stars on the others.</s-text>
-                <Select label="Use your own icon for" value={iconFor} onValue={(v) => setIconFor(v as (typeof ICON_SOURCES)[number])} options={ICON_SOURCES.map((k) => ({ value: k, label: SOURCES.find((x) => x.value === k)?.label ?? k }))} />
-                <MediaPicker
-                  label={`Your ${SOURCES.find((x) => x.value === iconFor)?.label ?? iconFor} icon`}
-                  details="A square PNG or SVG. Empty = the built-in icon."
-                  accept="image"
-                  value={cfg.icon.custom[iconFor] ?? null}
-                  onValue={(m) =>
-                    setCfg((c) => {
-                      const custom = { ...c.icon.custom };
-                      if (m) custom[iconFor] = m;
-                      else delete custom[iconFor];
-                      return { ...c, icon: { ...c.icon, custom } };
-                    })
-                  }
-                  alt={`${iconFor} icon`}
-                />
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <Select label="Icon for" value={iconFor} onValue={(v) => setIconFor(v as (typeof ICON_SOURCES)[number])} options={ICON_SOURCES.map((k) => ({ value: k, label: `${SOURCES.find((x) => x.value === k)?.label ?? k}${cfg.icon.custom[k] ? " · own picture" : ""}` }))} />
+                  <Select
+                    label="Use"
+                    value={cfg.icon.custom[iconFor] || ownFor[iconFor] ? "own" : "built"}
+                    onValue={(v) => {
+                      setOwnFor((o) => ({ ...o, [iconFor]: v === "own" }));
+                      // Back to the built-in icon: forget the uploaded picture for this source.
+                      if (v === "built")
+                        setCfg((c) => {
+                          const custom = { ...c.icon.custom };
+                          delete custom[iconFor];
+                          return { ...c, icon: { ...c.icon, custom } };
+                        });
+                    }}
+                    options={[{ value: "built", label: "The built-in icon" }, { value: "own", label: "My own picture" }]}
+                  />
+                </s-grid>
+                {cfg.icon.custom[iconFor] || ownFor[iconFor] ? (
+                  <MediaPicker
+                    label={`Your ${SOURCES.find((x) => x.value === iconFor)?.label ?? iconFor} picture`}
+                    details="A square PNG or SVG. Until you add one, the built-in icon shows."
+                    accept="image"
+                    value={cfg.icon.custom[iconFor] ?? null}
+                    onValue={(m) =>
+                      setCfg((c) => {
+                        const custom = { ...c.icon.custom };
+                        if (m) custom[iconFor] = m;
+                        else delete custom[iconFor];
+                        return { ...c, icon: { ...c.icon, custom } };
+                      })
+                    }
+                    alt={`${iconFor} icon`}
+                  />
+                ) : null}
               </s-stack>
             </s-section></Pane>
 

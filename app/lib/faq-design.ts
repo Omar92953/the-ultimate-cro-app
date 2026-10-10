@@ -6,6 +6,20 @@
  */
 import { color, num, pick, str } from "./designs";
 import { schemeId } from "./theme-style";
+import { defaultSizes, sizeVars, withSizes, type SizeSpec, type Sizes, SUB, BUTTON_TEXT, BUTTON_HEIGHT } from "./sizes";
+
+/** The parts whose size can be set (Style → Sizes). */
+export const FAQ_SIZES: SizeSpec[] = [
+  SUB,
+  { key: "answer", label: "Answers", cssVar: "--ucs-faq-a", min: 10, max: 28, def: 15 },
+  { key: "icon", label: "Plus / arrow icon", cssVar: "--ucs-faq-ic", min: 10, max: 32, def: 16 },
+  { key: "tabs", label: "Group buttons", cssVar: "--ucs-faq-tab", min: 10, max: 24, def: 14 },
+  { key: "search", label: "Search box text", cssVar: "--ucs-faq-se", min: 10, max: 24, def: 15 },
+  { key: "searchHeight", label: "Search box height", cssVar: "--ucs-faq-sh", min: 30, max: 64, def: 42 },
+  { key: "help", label: "Help text", cssVar: "--ucs-faq-ht", min: 10, max: 32, def: 16 },
+  BUTTON_TEXT,
+  BUTTON_HEIGHT,
+];
 
 export type FaqDesign = {
   scheme: string;
@@ -27,6 +41,7 @@ export type FaqDesign = {
     fg: string;
   };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile" };
+  sizes: Sizes;
 };
 
 export const DEFAULT_FAQ: FaqDesign = {
@@ -35,6 +50,7 @@ export const DEFAULT_FAQ: FaqDesign = {
   questions: { tabs: true, search: true, oneOpen: true, openFirst: false, columns: 1 },
   look: { style: "lines", icon: "plus", iconLeft: false, questionSize: 16, maxWidth: 860, radius: 10, accent: "#121212", ownBg: false, bg: "#ffffff", ownCard: false, cardBg: "#f4f4f4", ownText: false, fg: "#121212" },
   space: { top: 40, bottom: 40, devices: "all" },
+  sizes: defaultSizes(FAQ_SIZES),
 };
 
 type Look = FaqDesign["look"];
@@ -60,6 +76,7 @@ export function withFaqDefaults(raw: unknown): FaqDesign {
   const d = DEFAULT_FAQ;
   const t = obj(r.text), q = obj(r.questions), k = obj(r.look), s = obj(r.space);
   return {
+    sizes: withSizes(r.sizes, FAQ_SIZES),
     scheme: schemeId(r.scheme),
     text: {
       heading: str(t.heading, d.text.heading, 120),
@@ -123,6 +140,7 @@ export function faqVars(c: FaqDesign): Record<string, string> {
   if (c.look.ownBg) v.background = c.look.bg;
   if (c.look.ownCard) v["--ucs-faq-card"] = c.look.cardBg;
   if (c.look.ownText) v.color = c.look.fg;
+  Object.assign(v, sizeVars(c.sizes, FAQ_SIZES));
   return v;
 }
 
