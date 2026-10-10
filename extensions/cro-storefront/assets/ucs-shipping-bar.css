@@ -28,3 +28,12 @@
 @keyframes ucs-fsb-pop { 40% { transform: scale(1.06); } }
 @keyframes ucs-fsb-shine { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .ucs-fsb__fill { transition: none; } .ucs-fsb.is-party .ucs-fsb__in, .ucs-fsb.is-party::after { animation: none; } }
+/* Reward steps (tiered rewards bar): a dot on the track and a label under it for each step. */
+.ucs-fsb__track { position: relative; overflow: visible; }
+.ucs-fsb__step { position: absolute; top: 50%; width: calc(var(--fsb-bh, 4px) + 6px); height: calc(var(--fsb-bh, 4px) + 6px); border-radius: 50%; background: var(--fsb-track, #3a3a3a); border: 2px solid var(--fsb-bg, #111); transform: translate(-50%, -50%); box-sizing: border-box; }
+.ucs-fsb__step:last-child { transform: translate(-100%, -50%); }
+.ucs-fsb__step.is-on { background: var(--fsb-done, #5ee07d); }
+.ucs-fsb__labels { position: relative; height: 1.4em; margin-top: 4px; font-size: 0.75em; opacity: 0.85; }
+.ucs-fsb__labels span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.ucs-fsb__labels span:last-child { transform: translateX(-100%); }
+.ucs-fsb__labels span.is-on { font-weight: 700; opacity: 1; }

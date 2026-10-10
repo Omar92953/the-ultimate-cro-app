@@ -9,6 +9,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getShippingBar, saveShippingBar } from "../lib/designs.server";
+import { syncRewardDiscounts } from "../lib/reward-discount.server";
 import { FREE_SHIPPING_TITLE, getFreeShippingDiscount, syncFreeShippingDiscount } from "../lib/shipping-discount.server";
 import { SHIPPING_BAR_PRESETS, withShippingBarDefaults, type ShippingBarConfig } from "../lib/shipping-bar";
 import { Checkbox, ColorField, NumberField, Select, Switch, TextField, Button } from "../components/fields";
@@ -47,6 +48,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // The goal also becomes a real free shipping discount (the design is saved even if this fails).
     let discountError: string | null = null;
     if (!draft) await syncFreeShippingDiscount(admin, { on: config.on && config.autoDiscount, goal: config.goal }).catch((e) => (discountError = errorMessage(e)));
+    // "% off" reward steps become automatic discounts too.
+    if (!draft) await syncRewardDiscounts(admin, config.tiers, config.on).catch((e) => (discountError = errorMessage(e)));
     return { ok: true, draft, error: null, discountError, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), discountError: null, config: null };
@@ -85,6 +88,7 @@ export default function ShippingBarDesigner() {
 
   const part = <K extends "text" | "show" | "where" | "look">(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...c[k], ...patch } }));
   const text = part("text"), show = part("show"), where = part("where"), look = part("look");
+  const setTier = (id: string, patch: Partial<C["tiers"][number]>) => setCfg((c) => ({ ...c, tiers: c.tiers.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
   return (
@@ -147,6 +151,49 @@ export default function ShippingBarDesigner() {
                 <TextField label="Empty cart" details="{goal} shows the amount." value={cfg.text.empty} onValue={(v) => text({ empty: v })} />
                 <TextField label="On the way" details="{left} shows what's still needed." value={cfg.text.progress} onValue={(v) => text({ progress: v })} />
                 <TextField label="Goal reached" value={cfg.text.done} onValue={(v) => text({ done: v })} />
+              </s-stack>
+            </s-section></Pane>
+
+            <Pane show={tab === "content"}><s-section heading="Reward steps">
+              <s-stack gap="base">
+                <s-text color="subdued">Optional: more rewards after free shipping — a free gift, a % off, or just a message. The bar shows each step; the message always points to the next one.</s-text>
+                {cfg.tiers.length ? <TextField label="Free shipping step's label" value={cfg.freeLabel} onValue={(v) => setCfg((c) => ({ ...c, freeLabel: v }))} /> : null}
+                {cfg.tiers.map((t) => (
+                  <s-box key={t.id} padding="small-300" borderWidth="base" borderRadius="base">
+                    <s-stack gap="small-300">
+                      <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="small-300">
+                        <NumberField label="From" suffix={data.currency} min={1} max={1000000} step={1} value={t.goal} onValue={(v) => setTier(t.id, { goal: v })} />
+                        <Select label="Reward" value={t.reward} onValue={(v) => setTier(t.id, { reward: v as typeof t.reward })} options={[{ value: "gift", label: "Free gift" }, { value: "percent", label: "% off the order" }, { value: "note", label: "Message only" }]} />
+                        {t.reward === "percent" ? <NumberField label="Off" suffix="%" min={1} max={90} step={1} value={t.percent} onValue={(v) => setTier(t.id, { percent: v })} /> : <TextField label="Label on the bar" value={t.label} onValue={(v) => setTier(t.id, { label: v })} />}
+                      </s-grid>
+                      {t.reward === "percent" ? <TextField label="Label on the bar" value={t.label} onValue={(v) => setTier(t.id, { label: v })} /> : null}
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="small-300">
+                        <TextField label="On the way" details="{left} = amount still to spend" value={t.progress} onValue={(v) => setTier(t.id, { progress: v })} />
+                        <TextField label="Reached" value={t.done} onValue={(v) => setTier(t.id, { done: v })} />
+                      </s-grid>
+                      <s-text color="subdued">
+                        {t.reward === "percent" ? "Saving creates an automatic discount in Shopify for orders from this amount." : t.reward === "gift" ? "Set up the gift itself in Bundles → Gift with purchase, with the same amount." : "Shows the message only."}
+                      </s-text>
+                      <Button variant="tertiary" tone="critical" icon="delete" onClick={() => setCfg((c) => ({ ...c, tiers: c.tiers.filter((x) => x.id !== t.id) }))}>
+                        Remove step
+                      </Button>
+                    </s-stack>
+                  </s-box>
+                ))}
+                {cfg.tiers.length < 4 ? (
+                  <Button
+                    icon="plus"
+                    onClick={() =>
+                      setCfg((c) => {
+                        const last = Math.max(c.goal, ...c.tiers.map((x) => x.goal));
+                        const gift = !c.tiers.some((x) => x.reward === "gift");
+                        return { ...c, tiers: [...c.tiers, { id: `t${Date.now().toString(36)}`, goal: Math.round(last * 1.5), reward: gift ? "gift" : "percent", percent: 10, label: gift ? "Free gift" : "10% off", progress: gift ? "Spend {left} more for a free gift" : "Spend {left} more for 10% off", done: gift ? "You've unlocked a free gift!" : "You've unlocked 10% off!" }] };
+                      })
+                    }
+                  >
+                    Add a reward step
+                  </Button>
+                ) : null}
               </s-stack>
             </s-section></Pane>
 

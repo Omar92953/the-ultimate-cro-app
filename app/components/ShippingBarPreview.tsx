@@ -1,6 +1,6 @@
 /** Live preview of the free shipping bar: same markup and stylesheet as ucs-shipping-bar.js. */
 import type { CSSProperties } from "react";
-import { shippingBarClass, shippingBarVars, shippingMessage, type ShippingBarConfig } from "../lib/shipping-bar";
+import { shippingBarClass, shippingBarVars, shippingMessage, steps, type ShippingBarConfig } from "../lib/shipping-bar";
 
 const ICON = {
   truck: (
@@ -26,16 +26,30 @@ export function ShippingBarPreview({ config: c, total, currency = "USD", where }
       return n.toFixed(2);
     }
   };
+  const all = steps(c);
+  const max = all[all.length - 1].goal;
   if (total <= 0 && !c.show.whenEmpty) return <p style={{ padding: 16, textAlign: "center", color: "#616161" }}>Hidden while the cart is empty.</p>;
   return (
-    <div className={`${shippingBarClass(c)}${where ? ` ucs-fsb--${where}${c.show.cartPos === "bottom" ? " ucs-fsb--bottom" : ""}` : ""}${total >= c.goal ? " is-done" : ""}`} style={shippingBarVars(c) as CSSProperties} role="status">
+    <div className={`${shippingBarClass(c)}${where ? ` ucs-fsb--${where}${c.show.cartPos === "bottom" ? " ucs-fsb--bottom" : ""}` : ""}${total >= max ? " is-done" : ""}`} style={shippingBarVars(c) as CSSProperties} role="status">
       <div className="ucs-fsb__in">
         {c.show.icon !== "none" ? <span className="ucs-fsb__icon">{ICON[c.show.icon]}</span> : null}
         <span className="ucs-fsb__msg">{shippingMessage(c, total, c.goal, fmt)}</span>
       </div>
       {c.show.bar ? (
         <div className="ucs-fsb__track">
-          <i className="ucs-fsb__fill" style={{ width: `${Math.min(100, (total / c.goal) * 100)}%` }} />
+          <i className="ucs-fsb__fill" style={{ width: `${Math.min(100, (total / max) * 100)}%` }} />
+          {all.length > 1
+            ? all.map((x) => <span key={x.goal} className={`ucs-fsb__step${total >= x.goal ? " is-on" : ""}`} style={{ left: `${(x.goal / max) * 100}%` }} />)
+            : null}
+        </div>
+      ) : null}
+      {c.show.bar && all.length > 1 ? (
+        <div className="ucs-fsb__labels">
+          {all.map((x) => (
+            <span key={x.goal} className={total >= x.goal ? "is-on" : undefined} style={{ left: `${(x.goal / max) * 100}%` }}>
+              {x.label}
+            </span>
+          ))}
         </div>
       ) : null}
     </div>

@@ -13,6 +13,9 @@ export const SHIPPING_BAR_SIZES: SizeSpec[] = [
   { key: "icon", label: "Truck / gift icon", cssVar: "--fsb-ic", min: 12, max: 40, def: 18 },
 ];
 
+/** Extra rewards after free shipping (tiered rewards bar): a free gift, a % off, or just a message. */
+export type RewardTier = { id: string; goal: number; reward: "gift" | "percent" | "note"; percent: number; label: string; progress: string; done: string };
+
 export type ShippingBarConfig = {
   /** The theme colour scheme its colours were matched to ("" = its own colours). */
   scheme: string;
@@ -21,6 +24,9 @@ export type ShippingBarConfig = {
   autoDiscount: boolean;
   goal: number; // in the store's currency (converted for other currencies on the storefront)
   text: { empty: string; progress: string; done: string };
+  tiers: RewardTier[];
+  /** The free-shipping step's short label on the bar (when there are reward steps). */
+  freeLabel: string;
   show: {
     bar: boolean;
     icon: "truck" | "gift" | "none";
@@ -55,6 +61,8 @@ export const DEFAULT_SHIPPING_BAR: ShippingBarConfig = {
   autoDiscount: true,
   goal: 100,
   text: { empty: "Free shipping on orders over {goal}", progress: "You're {left} away from free shipping", done: "You've got free shipping!" },
+  tiers: [],
+  freeLabel: "Free shipping",
   show: { bar: true, icon: "truck", top: true, drawer: true, cartPage: true, cartPos: "top", celebrate: true, whenEmpty: true },
   where: { all: true, pages: [], devices: "all" },
   look: { style: "bar", bg: "#111111", text: "#ffffff", track: "#3a3a3a", fill: "#d7f25c", done: "#5ee07d", size: 14, weight: 600, height: 9, radius: 0, barHeight: 4, upper: false },
@@ -87,6 +95,22 @@ export function withShippingBarDefaults(raw: unknown): ShippingBarConfig {
     on: bool(r.on, d.on),
     autoDiscount: bool(r.autoDiscount, d.autoDiscount),
     goal: Number.isFinite(goal) && goal > 0 ? Math.min(1_000_000, Math.round(goal * 100) / 100) : d.goal,
+    freeLabel: str(r.freeLabel, "Free shipping", 40),
+    tiers: Array.isArray(r.tiers)
+      ? (r.tiers as unknown[]).slice(0, 4).map((x, i) => {
+          const o = obj(x);
+          const g = Number(o.goal);
+          return {
+            id: str(o.id, `t${i}`, 20) || `t${i}`,
+            goal: Number.isFinite(g) && g > 0 ? Math.min(1_000_000, Math.round(g * 100) / 100) : 0,
+            reward: pick(o.reward, ["gift", "percent", "note"] as const, "gift"),
+            percent: num(o.percent, 1, 90, 10),
+            label: str(o.label, "Free gift", 40),
+            progress: str(o.progress, "Spend {left} more for a free gift", 160),
+            done: str(o.done, "You've unlocked a free gift!", 160),
+          };
+        }).filter((t) => t.goal > 0).sort((a, b) => a.goal - b.goal)
+      : [],
     text: { empty: str(t.empty, d.text.empty, 160), progress: str(t.progress, d.text.progress, 160), done: str(t.done, d.text.done, 160) },
     show: {
       bar: bool(s.bar, d.show.bar),
@@ -143,10 +167,17 @@ export function shippingBarClass(c: ShippingBarConfig) {
 }
 
 /** The message for a cart total (both in the same currency units). Shared with the preview. */
+/** The steps in order: free shipping, then the reward steps. */
+export function steps(c: ShippingBarConfig) {
+  return [{ goal: c.goal, label: c.freeLabel, progress: c.text.progress, done: c.text.done }, ...c.tiers.map((t) => ({ goal: t.goal, label: t.label, progress: t.progress, done: t.done }))].sort((a, b) => a.goal - b.goal);
+}
+
 export function shippingMessage(c: ShippingBarConfig, total: number, goal: number, fmt: (n: number) => string) {
   if (total <= 0) return c.text.empty.replace(/\{goal\}/g, fmt(goal));
-  if (total >= goal) return c.text.done;
-  return c.text.progress.replace(/\{left\}/g, fmt(goal - total)).replace(/\{goal\}/g, fmt(goal));
+  const all = steps(c);
+  const next = all.find((x) => total < x.goal);
+  if (!next) return all[all.length - 1].done;
+  return next.progress.replace(/\{left\}/g, fmt(next.goal - total)).replace(/\{goal\}/g, fmt(next.goal));
 }
 
 export function toStorefrontShippingBar(c: ShippingBarConfig) {
@@ -154,6 +185,9 @@ export function toStorefrontShippingBar(c: ShippingBarConfig) {
     on: c.on,
     goal: c.goal,
     t: c.text,
+    // Reward steps after free shipping: goal, short label, progress and done texts.
+    tr: c.tiers.map((x) => ({ g: x.goal, l: x.label, p: x.progress, d: x.done })),
+    fl: c.freeLabel,
     s: c.show,
     w: { a: c.where.all, p: c.where.pages },
     cls: shippingBarClass(c),

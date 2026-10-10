@@ -388,6 +388,9 @@ const { toStorefrontDelivery, withDeliveryDefaults } = await import("../../app/l
 const deliveryShop = withDesign(mo("delivery", { config: toStorefrontDelivery(withDeliveryDefaults({ rules: { zones: [{ countries: "SA", min: 5, max: 7 }] } })) }));
 pages["delivery.html"] = page("Delivery estimate",
   label("product page (Egypt)") + '<div style="max-width:440px;margin:0 40px">' + (await block("ucs-delivery", {}, { page_type: "product", shop: deliveryShop })) + "</div>");
+// Tiered rewards bar: free shipping 300, free gift 600, 10% off 900; cart at 450.
+const rewardsShop = withDesign(mo("shipping_bar", { config: toStorefrontShippingBar(withShippingBarDefaults({ goal: 300, tiers: [{ goal: 600, reward: "gift", label: "Free gift", progress: "Spend {left} more for a free gift", done: "Free gift unlocked!" }, { goal: 900, reward: "percent", percent: 10, label: "10% off", progress: "Spend {left} more for 10% off", done: "You've unlocked 10% off!" }] })) }));
+pages["rewards.html"] = page("Tiered rewards bar", label("free shipping 300 → free gift 600 → 10% off 900 (cart 450)") + (await block("ucs-shipping-bar", {}, { shop: rewardsShop, cartTotal: 45000 })), '<link rel="stylesheet" href="assets/ucs-shipping-bar.css">');
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

@@ -29,24 +29,29 @@
     gift: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9h17v3.5h-17zM5 12.5h14V20H5zM12 9v11M12 9c-1.5-3.5-5.5-3.5-5.5-1S10 9 12 9c1.5-3.5 5.5-3.5 5.5-1S14 9 12 9"/></svg>',
   };
 
+  // Steps: free shipping, then the reward steps (tiered rewards bar), in the shopper's currency.
+  var steps = [];
   function message() {
     var t = cfg.t;
     if (total <= 0) return t.empty.replace(/\{goal\}/g, money(goal));
-    if (total >= goal) return t.done;
-    return t.progress.replace(/\{left\}/g, money(goal - total)).replace(/\{goal\}/g, money(goal));
+    var next = steps.filter(function (s) { return total < s.g; })[0];
+    if (!next) return steps[steps.length - 1].d;
+    return next.p.replace(/\{left\}/g, money(next.g - total)).replace(/\{goal\}/g, money(next.g));
   }
+  var top = function () { return steps.length ? steps[steps.length - 1].g : goal; };
 
   function draw(el) {
-    var done = total >= goal;
+    var done = total >= top();
     el.classList.toggle("is-done", done);
     el.hidden = total <= 0 && !cfg.s.whenEmpty;
     var msg = el.querySelector(".ucs-fsb__msg");
     if (msg) msg.textContent = message();
     var fill = el.querySelector(".ucs-fsb__fill");
-    if (fill) fill.style.width = Math.min(100, goal ? (total / goal) * 100 : 0) + "%";
+    if (fill) fill.style.width = Math.min(100, top() ? (total / top()) * 100 : 0) + "%";
+    el.querySelectorAll("[data-g]").forEach(function (m) { m.classList.toggle("is-on", total >= Number(m.getAttribute("data-g"))); });
   }
   function drawAll() {
-    var done = total >= goal;
+    var done = total >= top();
     var celebrate = cfg.s.celebrate && reached === false && done;
     bars.forEach(function (el) {
       draw(el);
@@ -68,7 +73,9 @@
       '<div class="ucs-fsb__in">' +
       (cfg.s.icon !== "none" ? '<span class="ucs-fsb__icon">' + ICON[cfg.s.icon] + "</span>" : "") +
       '<span class="ucs-fsb__msg"></span></div>' +
-      (cfg.s.bar ? '<div class="ucs-fsb__track"><i class="ucs-fsb__fill"></i></div>' : "");
+      (cfg.s.bar ? '<div class="ucs-fsb__track"><i class="ucs-fsb__fill"></i>' + (steps.length > 1 ? steps.map(function (s) { return '<span class="ucs-fsb__step" data-g="' + s.g + '" style="left:' + (s.g / top()) * 100 + '%"></span>'; }).join("") : "") + "</div>" : "") +
+      (cfg.s.bar && steps.length > 1 ? '<div class="ucs-fsb__labels">' + steps.map(function (s) { return '<span data-g="' + s.g + '" style="left:' + (s.g / top()) * 100 + '%"></span>'; }).join("") + "</div>" : "");
+    el.querySelectorAll(".ucs-fsb__labels [data-g]").forEach(function (m, i) { m.textContent = steps[i].l; });
     bars = bars.filter(function (b) { return b.isConnected; });
     bars.push(el);
     draw(el);
@@ -147,8 +154,10 @@
         page = here;
         var rate = parseFloat(currency().rate) || 1;
         goal = Math.round(c.goal * 100 * rate);
+        steps = [{ g: goal, l: c.fl || "Free shipping", p: c.t.progress, d: c.t.done }].concat((c.tr || []).map(function (x) { return { g: Math.round(x.g * 100 * rate), l: x.l, p: x.p, d: x.d }; }))
+          .sort(function (a, b) { return a.g - b.g; });
         total = parseInt(host.getAttribute("data-total"), 10) || 0;
-        reached = total >= goal;
+        reached = total >= top();
       }
       // The embed's copy only carries the settings for the cart; the top bar shows where it's placed.
       var off = host.hasAttribute("data-cart-only") || (!design && (c.s.top === false || (!c.w.a && c.w.p.indexOf(here) < 0)));
