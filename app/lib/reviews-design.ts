@@ -36,6 +36,8 @@ export type ReviewsDesign = {
     textFirst: boolean;
   };
   fill: { kind: "color" | "pattern" | "image"; color: string; pattern: "chat" | "dots" | "grid" | "lines"; image: MediaRef | null; imageUrl: string | null };
+  /** Text and star sizes for each part (off = the automatic sizes). */
+  sizes: { own: boolean; sub: number; avg: number; summaryStars: number; count: number; text: number; stars: number; name: number; verified: number; meta: number };
   look: { star: string; cardBg: string; cardText: string; bg: string; radius: number; transparentBg: boolean; defaultCard: boolean };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile"; schema: boolean };
   /** The source badge (WhatsApp, Instagram…). `custom`: your own picture per source. */
@@ -62,6 +64,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   layout: { mode: "carousel", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
   card: { style: "classic", text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true, photoFit: "whole", photoFocus: "center", photoShape: "tallest", align: "left", textFirst: false },
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
+  sizes: { own: false, sub: 16, avg: 26, summaryStars: 20, count: 14, text: 14, stars: 14, name: 14, verified: 12, meta: 12 },
   look: { star: "#f5a623", cardBg: "#ffffff", cardText: "#121212", bg: "#ffffff", radius: 14, transparentBg: true, defaultCard: true },
   space: { top: 40, bottom: 40, devices: "all", schema: true },
   icon: { size: 28, position: "auto", style: "brand", shape: "circle", bg: "#111111", fg: "#ffffff", custom: {} },
@@ -157,6 +160,10 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       image: typeof img.id === "string" ? { id: img.id, url: typeof img.url === "string" ? img.url : null, kind: "image", title: str(img.title, "Fill", 200) } : null,
       imageUrl: typeof f.imageUrl === "string" ? f.imageUrl : null,
     },
+    sizes: (() => {
+      const z = obj(r.sizes), dz = d.sizes;
+      return { own: bool(z.own, dz.own), sub: num(z.sub, 10, 40, dz.sub), avg: num(z.avg, 12, 64, dz.avg), summaryStars: num(z.summaryStars, 10, 48, dz.summaryStars), count: num(z.count, 10, 32, dz.count), text: num(z.text, 10, 32, dz.text), stars: num(z.stars, 8, 40, dz.stars), name: num(z.name, 10, 32, dz.name), verified: num(z.verified, 8, 24, dz.verified), meta: num(z.meta, 8, 24, dz.meta) };
+    })(),
     look: {
       star: color(k.star, d.look.star),
       cardBg: color(k.cardBg, d.look.cardBg),
@@ -207,6 +214,10 @@ export function reviewsVars(c: ReviewsDesign): Record<string, string> {
     "--ucs-rv-shot": c.fill.color,
     "--ucs-rv-arrow": `${c.layout.arrowSize}px`,
   };
+  if (c.sizes.own) {
+    const z = c.sizes;
+    Object.assign(v, { "--ucs-sub": `${z.sub}px`, "--ucs-rv-avg": `${z.avg}px`, "--ucs-rv-sst": `${z.summaryStars}px`, "--ucs-rv-cnt": `${z.count}px`, "--ucs-rv-tx": `${z.text}px`, "--ucs-rv-st": `${z.stars}px`, "--ucs-rv-nm": `${z.name}px`, "--ucs-rv-vf": `${z.verified}px`, "--ucs-rv-mt": `${z.meta}px` });
+  }
   if (c.layout.cardWidth) v["--ucs-rv-cw"] = `${c.layout.cardWidth}px`;
   Object.assign(v, {
     "--ucs-rv-ic": `${c.icon.size}px`,

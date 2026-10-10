@@ -86,7 +86,7 @@ export default function ReviewsDesigner() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
-  const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space"), icon = part("icon"), product = part("product");
+  const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space"), icon = part("icon"), product = part("product"), sizes = part("sizes");
   const [iconFor, setIconFor] = useState<(typeof ICON_SOURCES)[number]>("whatsapp");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
@@ -239,6 +239,26 @@ export default function ReviewsDesigner() {
                 <ColorField label={cfg.fill.kind === "pattern" ? "Pattern colour" : "Colour"} value={cfg.fill.color} onValue={(v) => fill({ color: v })} />
                 {cfg.fill.kind === "pattern" ? <Select label="Pattern" value={cfg.fill.pattern} onValue={(v) => fill({ pattern: v as C["fill"]["pattern"] })} options={[{ value: "chat", label: "Chat wallpaper" }, { value: "dots", label: "Dots" }, { value: "grid", label: "Grid" }, { value: "lines", label: "Lines" }]} /> : null}
                 {cfg.fill.kind === "image" ? <MediaPicker label="Fill image" accept="image" value={cfg.fill.image} onValue={(v) => fill({ image: v })} alt="Reviews background" /> : null}
+              </s-stack>
+            </s-section></Pane>
+
+            <Pane show={tab === "design"}><s-section heading="Sizes">
+              <s-stack gap="base">
+                <Switch label="Choose my own sizes" details="Off: sizes that suit the layout and your theme." checked={cfg.sizes.own} onValue={(v) => sizes({ own: v })} />
+                {cfg.sizes.own ? (
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <NumberField label="Text under heading" suffix="px" min={10} max={40} step={1} value={cfg.sizes.sub} onValue={(v) => sizes({ sub: v })} />
+                    <NumberField label="Average (4.8)" suffix="px" min={12} max={64} step={1} value={cfg.sizes.avg} onValue={(v) => sizes({ avg: v })} />
+                    <NumberField label="Stars by the average" suffix="px" min={10} max={48} step={1} value={cfg.sizes.summaryStars} onValue={(v) => sizes({ summaryStars: v })} />
+                    <NumberField label="Number of reviews" suffix="px" min={10} max={32} step={1} value={cfg.sizes.count} onValue={(v) => sizes({ count: v })} />
+                    <NumberField label="Review text" suffix="px" min={10} max={32} step={1} value={cfg.sizes.text} onValue={(v) => sizes({ text: v })} />
+                    <NumberField label="Stars on cards" suffix="px" min={8} max={40} step={1} value={cfg.sizes.stars} onValue={(v) => sizes({ stars: v })} />
+                    <NumberField label="Name" suffix="px" min={10} max={32} step={1} value={cfg.sizes.name} onValue={(v) => sizes({ name: v })} />
+                    <NumberField label="Verified label" suffix="px" min={8} max={24} step={1} value={cfg.sizes.verified} onValue={(v) => sizes({ verified: v })} />
+                    <NumberField label="Location and date" suffix="px" min={8} max={24} step={1} value={cfg.sizes.meta} onValue={(v) => sizes({ meta: v })} />
+                  </s-grid>
+                ) : null}
+                <s-text color="subdued">The heading, product, icon and arrow sizes are in their own parts of this tab.</s-text>
               </s-stack>
             </s-section></Pane>
 
