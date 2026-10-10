@@ -78,8 +78,8 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
                       <div className="ucs-rv__top">
                         {c.card.stars && r.rating > 0 ? <Stars r={r.rating} /> : null}
                         {c.card.source && r.source && r.source !== "other" ? (
-                          <span className={`ucs-rv__src ucs-rv__src--${r.source}`} title={SRC[r.source] ?? r.source}>
-                            <span className={`ucs-i ucs-i--${r.source}`} aria-hidden="true" />
+                          <span className={`ucs-rv__src ucs-rv__src--${r.source}${c.icon.custom[r.source] ? " has-img" : ""}`} title={SRC[r.source] ?? r.source}>
+                            {c.icon.custom[r.source]?.url ? <img src={sized(c.icon.custom[r.source].url!, 96)} alt="" /> : <span className={`ucs-i ucs-i--${r.source}`} aria-hidden="true" />}
                           </span>
                         ) : null}
                       </div>

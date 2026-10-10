@@ -30,7 +30,13 @@ export type ReviewsDesign = {
   fill: { kind: "color" | "pattern" | "image"; color: string; pattern: "chat" | "dots" | "grid" | "lines"; image: MediaRef | null; imageUrl: string | null };
   look: { star: string; cardBg: string; cardText: string; bg: string; radius: number; transparentBg: boolean; defaultCard: boolean };
   space: { top: number; bottom: number; devices: "all" | "desktop" | "mobile"; schema: boolean };
+  /** The source badge (WhatsApp, Instagram…). `custom`: your own picture per source. */
+  icon: { size: number; position: "auto" | "tr" | "tl" | "br" | "bl"; style: "brand" | "mono" | "plain"; shape: "circle" | "rounded" | "square"; bg: string; fg: string; custom: Record<string, MediaRef> };
+  /** The product shown on a card. */
+  product: { style: "row" | "chip" | "text"; image: boolean; imageSize: number; radius: number; textSize: number; ownColors: boolean; bg: string; fg: string };
 };
+
+export const ICON_SOURCES = ["whatsapp", "instagram", "tiktok", "facebook", "google", "x", "snapchat", "youtube", "email", "website"] as const;
 
 export const DEFAULT_REVIEWS: ReviewsDesign = {
   scheme: "",
@@ -50,6 +56,8 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
   look: { star: "#f5a623", cardBg: "#ffffff", cardText: "#121212", bg: "#ffffff", radius: 14, transparentBg: true, defaultCard: true },
   space: { top: 40, bottom: 40, devices: "all", schema: true },
+  icon: { size: 28, position: "auto", style: "brand", shape: "circle", bg: "#111111", fg: "#ffffff", custom: {} },
+  product: { style: "row", image: true, imageSize: 40, radius: 6, textSize: 13, ownColors: false, bg: "#f1f1f1", fg: "#111111" },
 };
 
 type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]> };
@@ -74,7 +82,13 @@ const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fa
 export function withReviewsDefaults(raw: unknown): ReviewsDesign {
   const r = obj(raw);
   const d = DEFAULT_REVIEWS;
-  const t = obj(r.text), sm = obj(r.summary), w = obj(r.which), l = obj(r.layout), c = obj(r.card), f = obj(r.fill), k = obj(r.look), sp = obj(r.space);
+  const t = obj(r.text), sm = obj(r.summary), w = obj(r.which), l = obj(r.layout), c = obj(r.card), f = obj(r.fill), k = obj(r.look), sp = obj(r.space), ic = obj(r.icon), pr = obj(r.product);
+  const customIn = obj(ic.custom);
+  const custom: Record<string, MediaRef> = {};
+  for (const key of ICON_SOURCES) {
+    const m = obj(customIn[key]);
+    if (typeof m.id === "string" && typeof m.url === "string") custom[key] = { id: m.id, url: m.url, kind: "image", title: str(m.title, key, 200) };
+  }
   const img = obj(f.image);
   return {
     scheme: schemeId((r as { scheme?: unknown }).scheme),
@@ -134,6 +148,25 @@ export function withReviewsDefaults(raw: unknown): ReviewsDesign {
       devices: pick(sp.devices, ["all", "desktop", "mobile"] as const, d.space.devices),
       schema: bool(sp.schema, d.space.schema),
     },
+    icon: {
+      size: num(ic.size, 18, 48, d.icon.size),
+      position: pick(ic.position, ["auto", "tr", "tl", "br", "bl"] as const, d.icon.position),
+      style: pick(ic.style, ["brand", "mono", "plain"] as const, d.icon.style),
+      shape: pick(ic.shape, ["circle", "rounded", "square"] as const, d.icon.shape),
+      bg: color(ic.bg, d.icon.bg),
+      fg: color(ic.fg, d.icon.fg),
+      custom,
+    },
+    product: {
+      style: pick(pr.style, ["row", "chip", "text"] as const, d.product.style),
+      image: bool(pr.image, d.product.image),
+      imageSize: num(pr.imageSize, 24, 80, d.product.imageSize),
+      radius: num(pr.radius, 0, 40, d.product.radius),
+      textSize: num(pr.textSize, 11, 18, d.product.textSize),
+      ownColors: bool(pr.ownColors, d.product.ownColors),
+      bg: color(pr.bg, d.product.bg),
+      fg: color(pr.fg, d.product.fg),
+    },
   };
 }
 
@@ -151,6 +184,16 @@ export function reviewsVars(c: ReviewsDesign): Record<string, string> {
     "--ucs-rv-arrow": `${c.layout.arrowSize}px`,
   };
   if (c.layout.cardWidth) v["--ucs-rv-cw"] = `${c.layout.cardWidth}px`;
+  Object.assign(v, {
+    "--ucs-rv-ic": `${c.icon.size}px`,
+    "--ucs-rv-ic-r": c.icon.shape === "circle" ? "50%" : c.icon.shape === "rounded" ? `${Math.round(c.icon.size / 4)}px` : "0px",
+    "--ucs-rv-ic-bg": c.icon.bg,
+    "--ucs-rv-ic-fg": c.icon.fg,
+    "--ucs-rv-pi": `${c.product.imageSize}px`,
+    "--ucs-rv-pr": `${c.product.radius}px`,
+    "--ucs-rv-pfs": `${c.product.textSize}px`,
+  });
+  if (c.product.ownColors) Object.assign(v, { "--ucs-rv-pbg": c.product.bg, "--ucs-rv-pfg": c.product.fg });
   if (!c.look.defaultCard) {
     v["--ucs-rv-card"] = c.look.cardBg;
     v["--ucs-rv-fg"] = c.look.cardText;
@@ -170,6 +213,10 @@ export function reviewsClass(c: ReviewsDesign) {
     `ucs-rv--nav-${c.layout.nav}`,
     c.card.clamp === 0 ? "ucs-rv--full" : "",
     c.layout.cardWidth ? "ucs-rv--cw" : "",
+    c.icon.position !== "auto" ? `ucs-rv--ic-${c.icon.position}` : "",
+    c.icon.style !== "brand" ? `ucs-rv--ic-${c.icon.style}` : "",
+    `ucs-rv--pr-${c.product.style}`,
+    c.product.image ? "" : "ucs-rv--pr-noimg",
     c.space.devices === "mobile" ? "ucs-hide-desktop" : c.space.devices === "desktop" ? "ucs-hide-mobile" : "",
   ]
     .filter(Boolean)
@@ -185,6 +232,8 @@ export function toStorefrontReviews(c: ReviewsDesign) {
     l: c.layout,
     c: c.card,
     sch: c.space.schema,
+    // Your own source icons: source → picture URL
+    ic: Object.fromEntries(Object.entries(c.icon.custom).map(([k, m]) => [k, m.url])),
     cls: reviewsClass(c),
     css: Object.entries(reviewsVars(c))
       .map(([k, v]) => `${k}: ${v}`)

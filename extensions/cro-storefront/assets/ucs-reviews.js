@@ -184,9 +184,13 @@
       h += '<div class="ucs-rv__top">' + (hasStars ? stars(r.r, r.r + ' out of 5 stars') : '');
       if (hasSrc) {
         var name = src === 'website' ? shop : (SRC[src] || src);
+        // Your own picture for this source (Reviews → Design), or the built-in icon.
+        var own = c.ic && c.ic[src];
+        var icon = own ? '<img src="' + esc(sized(own, 96)) + '" alt="" loading="lazy">' : '<span class="ucs-i ucs-i--' + esc(src) + '" aria-hidden="true"></span>';
+        var cls = 'ucs-rv__src ucs-rv__src--' + esc(src) + (own ? ' has-img' : '');
         h += r.su
-          ? '<a class="ucs-rv__src ucs-rv__src--' + esc(src) + '" href="' + esc(r.su) + '" target="_blank" rel="noopener nofollow" title="On ' + esc(name) + '" aria-label="On ' + esc(name) + '"><span class="ucs-i ucs-i--' + esc(src) + '" aria-hidden="true"></span></a>'
-          : '<span class="ucs-rv__src ucs-rv__src--' + esc(src) + '" title="' + esc(name) + '"><span class="ucs-i ucs-i--' + esc(src) + '" aria-hidden="true"></span></span>';
+          ? '<a class="' + cls + '" href="' + esc(r.su) + '" target="_blank" rel="noopener nofollow" title="On ' + esc(name) + '" aria-label="On ' + esc(name) + '">' + icon + '</a>'
+          : '<span class="' + cls + '" title="' + esc(name) + '">' + icon + '</span>';
       }
       h += '</div>';
     }

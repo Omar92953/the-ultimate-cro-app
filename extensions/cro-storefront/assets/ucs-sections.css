@@ -293,8 +293,9 @@
 .ucs-rv__card.is-playing .ucs-rv__play { opacity: 0; }
 .ucs-rv__body { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 18px; flex: 1; }
 .ucs-rv__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ucs-rv__src { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; margin-left: auto; border-radius: 50%; color: #fff; font-size: 15px; text-decoration: none; }
-.ucs-rv__src .ucs-i { width: 15px; height: 15px; }
+.ucs-rv__src { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--ucs-rv-ic, 28px); height: var(--ucs-rv-ic, 28px); margin-left: auto; overflow: hidden; border-radius: var(--ucs-rv-ic-r, 50%); color: #fff; font-size: 15px; text-decoration: none; }
+.ucs-rv__src .ucs-i { width: 54%; height: 54%; }
+.ucs-rv__src img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .ucs-rv__src--whatsapp { background: #25d366; }
 .ucs-rv__src--instagram { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
 .ucs-rv__src--tiktok, .ucs-rv__src--x { background: #000; }
@@ -303,6 +304,15 @@
 .ucs-rv__src--snapchat { background: #fffc00; color: #000; }
 .ucs-rv__src--youtube { background: #ff0000; }
 .ucs-rv__src--email, .ucs-rv__src--website { background: #555; }
+/* Source badge style and position (Reviews → Design → Style) */
+.ucs-rv--ic-mono .ucs-rv__src { background: var(--ucs-rv-ic-bg, #111) !important; color: var(--ucs-rv-ic-fg, #fff) !important; box-shadow: none !important; }
+.ucs-rv--ic-plain .ucs-rv__src { background: transparent !important; color: var(--ucs-rv-ic-fg, currentColor) !important; box-shadow: none !important; }
+.ucs-rv__src.has-img { background: transparent !important; }
+:is(.ucs-rv--ic-tr, .ucs-rv--ic-tl, .ucs-rv--ic-br, .ucs-rv--ic-bl) .ucs-rv__src { position: absolute; z-index: 2; margin: 0; }
+.ucs-rv--ic-tr .ucs-rv__src { top: 10px; right: 10px; left: auto; bottom: auto; }
+.ucs-rv--ic-tl .ucs-rv__src { top: 10px; left: 10px; right: auto; bottom: auto; }
+.ucs-rv--ic-br .ucs-rv__src { bottom: 10px; right: 10px; top: auto; left: auto; }
+.ucs-rv--ic-bl .ucs-rv__src { bottom: 10px; left: 10px; top: auto; right: auto; }
 .ucs-rv__text { line-height: 1.6; }
 .ucs-rv:not(.ucs-rv--full) .ucs-rv__text:not(.is-open) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--ucs-rv-clamp, 5); overflow: hidden; }
 .ucs-rv__more { align-self: flex-start; margin-top: -4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 0.9em; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -311,8 +321,14 @@
 .ucs-rv__ver { display: inline-flex; align-items: center; gap: 4px; color: #1a7f37; font-size: 0.9em; }
 .ucs-rv__ver .ucs-i { width: 14px; height: 14px; }
 .ucs-rv__meta { flex-basis: 100%; opacity: 0.65; font-size: 0.9em; }
-.ucs-rv__prod { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(127, 127, 127, 0.2); color: inherit; font-size: 0.88em; font-weight: 600; text-decoration: none; }
-.ucs-rv__prod img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex: none; }
+.ucs-rv__prod { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(127, 127, 127, 0.2); color: var(--ucs-rv-pfg, inherit); font-size: var(--ucs-rv-pfs, 0.88em); font-weight: 600; text-decoration: none; }
+.ucs-rv__prod img { width: var(--ucs-rv-pi, 40px); height: var(--ucs-rv-pi, 40px); object-fit: cover; border-radius: var(--ucs-rv-pr, 6px); flex: none; }
+/* Product on the card: a pill, or just the name */
+.ucs-rv--pr-chip .ucs-rv__prod { align-self: flex-start; padding: 5px 14px 5px 5px; border-top: 0; border-radius: 999px; background: var(--ucs-rv-pbg, rgba(127, 127, 127, 0.12)); }
+.ucs-rv--pr-chip .ucs-rv__prod img { border-radius: 999px; }
+.ucs-rv--pr-chip.ucs-rv--pr-noimg .ucs-rv__prod { padding: 6px 14px; }
+.ucs-rv--pr-text .ucs-rv__prod { padding-top: 0; border-top: 0; text-decoration: underline; text-underline-offset: 3px; }
+.ucs-rv--pr-text .ucs-rv__prod img, .ucs-rv--pr-noimg .ucs-rv__prod img { display: none; }
 
 /* "Chat message" cards: a speech bubble like a WhatsApp screenshot */
 .ucs-rv__card--chat { overflow: visible; background: transparent; }

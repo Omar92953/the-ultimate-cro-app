@@ -8,7 +8,8 @@ import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { getReviewsDesign, saveReviewsDesign } from "../lib/designs.server";
-import { REVIEW_PRESETS, applyReviewPreset, withReviewsDefaults, type ReviewsDesign } from "../lib/reviews-design";
+import { ICON_SOURCES, REVIEW_PRESETS, applyReviewPreset, withReviewsDefaults, type ReviewsDesign } from "../lib/reviews-design";
+import { SOURCES } from "../lib/sections";
 import type { MediaRef, ProductRef } from "../lib/sections";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
@@ -84,7 +85,8 @@ export default function ReviewsDesigner() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
-  const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space");
+  const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space"), icon = part("icon"), product = part("product");
+  const [iconFor, setIconFor] = useState<(typeof ICON_SOURCES)[number]>("whatsapp");
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
 
   return (
@@ -235,6 +237,97 @@ export default function ReviewsDesigner() {
                 ) : null}
                 <Checkbox label="Section background from your theme" checked={cfg.look.transparentBg} onValue={(v) => look({ transparentBg: v })} />
                 {!cfg.look.transparentBg ? <ColorField label="Section background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} /> : null}
+              </s-stack>
+            </s-section></Pane>
+
+            <Pane show={tab === "style"}><s-section heading="Source icon (WhatsApp, Instagram…)">
+              <s-stack gap="base">
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <NumberField label="Size" suffix="px" min={18} max={48} step={1} value={cfg.icon.size} onValue={(v) => icon({ size: v })} />
+                  <Select
+                    label="Position"
+                    value={cfg.icon.position}
+                    onValue={(v) => icon({ position: v as C["icon"]["position"] })}
+                    options={[
+                      { value: "auto", label: "Automatic" },
+                      { value: "tr", label: "Top right" },
+                      { value: "tl", label: "Top left" },
+                      { value: "br", label: "Bottom right" },
+                      { value: "bl", label: "Bottom left" },
+                    ]}
+                  />
+                  <Select
+                    label="Colours"
+                    value={cfg.icon.style}
+                    onValue={(v) => icon({ style: v as C["icon"]["style"] })}
+                    options={[
+                      { value: "brand", label: "Brand colours" },
+                      { value: "mono", label: "One colour" },
+                      { value: "plain", label: "Icon only" },
+                    ]}
+                  />
+                  <Select
+                    label="Shape"
+                    value={cfg.icon.shape}
+                    onValue={(v) => icon({ shape: v as C["icon"]["shape"] })}
+                    options={[
+                      { value: "circle", label: "Circle" },
+                      { value: "rounded", label: "Rounded square" },
+                      { value: "square", label: "Square" },
+                    ]}
+                  />
+                  {cfg.icon.style === "mono" ? <ColorField label="Background" value={cfg.icon.bg} onValue={(v) => icon({ bg: v })} /> : null}
+                  {cfg.icon.style !== "brand" ? <ColorField label="Icon colour" value={cfg.icon.fg} onValue={(v) => icon({ fg: v })} /> : null}
+                </s-grid>
+                <s-text color="subdued">“Automatic”: in the top-right corner on cards with a picture, next to the stars on the others.</s-text>
+                <Select label="Use your own icon for" value={iconFor} onValue={(v) => setIconFor(v as (typeof ICON_SOURCES)[number])} options={ICON_SOURCES.map((k) => ({ value: k, label: SOURCES.find((x) => x.value === k)?.label ?? k }))} />
+                <MediaPicker
+                  label={`Your ${SOURCES.find((x) => x.value === iconFor)?.label ?? iconFor} icon`}
+                  details="A square PNG or SVG. Empty = the built-in icon."
+                  accept="image"
+                  value={cfg.icon.custom[iconFor] ?? null}
+                  onValue={(m) =>
+                    setCfg((c) => {
+                      const custom = { ...c.icon.custom };
+                      if (m) custom[iconFor] = m;
+                      else delete custom[iconFor];
+                      return { ...c, icon: { ...c.icon, custom } };
+                    })
+                  }
+                  alt={`${iconFor} icon`}
+                />
+              </s-stack>
+            </s-section></Pane>
+
+            <Pane show={tab === "style"}><s-section heading="Product on the card">
+              <s-stack gap="base">
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <Select
+                    label="Style"
+                    value={cfg.product.style}
+                    onValue={(v) => product({ style: v as C["product"]["style"] })}
+                    options={[
+                      { value: "row", label: "Row with a line above" },
+                      { value: "chip", label: "Pill" },
+                      { value: "text", label: "Name only (link)" },
+                    ]}
+                  />
+                  <NumberField label="Text size" suffix="px" min={11} max={18} step={1} value={cfg.product.textSize} onValue={(v) => product({ textSize: v })} />
+                  {cfg.product.style !== "text" && cfg.product.image ? (
+                    <>
+                      <NumberField label="Picture size" suffix="px" min={24} max={80} step={2} value={cfg.product.imageSize} onValue={(v) => product({ imageSize: v })} />
+                      {cfg.product.style === "row" ? <NumberField label="Picture corners" suffix="px" min={0} max={40} step={1} value={cfg.product.radius} onValue={(v) => product({ radius: v })} /> : null}
+                    </>
+                  ) : null}
+                </s-grid>
+                {cfg.product.style !== "text" ? <Checkbox label="Show the product picture" checked={cfg.product.image} onValue={(v) => product({ image: v })} /> : null}
+                <Switch label="Own colours" details="Off: the card's text colour." checked={cfg.product.ownColors} onValue={(v) => product({ ownColors: v })} />
+                {cfg.product.ownColors ? (
+                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                    <ColorField label="Text" value={cfg.product.fg} onValue={(v) => product({ fg: v })} />
+                    {cfg.product.style === "chip" ? <ColorField label="Pill" value={cfg.product.bg} onValue={(v) => product({ bg: v })} /> : null}
+                  </s-grid>
+                ) : null}
               </s-stack>
             </s-section></Pane>
 
