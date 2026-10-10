@@ -94,7 +94,7 @@ export default function BundleEditor() {
   };
 
   return (
-    <s-page heading={isNew ? "New bundle" : bundle.name}>
+    <s-page heading={isNew ? "New bundle" : bundle.name} inlineSize="large">
       <s-link slot="breadcrumb-actions" href="/app/bundles">
         Bundles
       </s-link>

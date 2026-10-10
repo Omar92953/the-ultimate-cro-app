@@ -80,7 +80,7 @@ export default function SectionItemEditor() {
   const title = isNew ? `New ${cfg.singular}` : String(item.values[cfg.titleKey] || cfg.singular);
 
   return (
-    <s-page heading={title} inlineSize="base">
+    <s-page heading={title} inlineSize="large">
       <s-link slot="breadcrumb-actions" href={`/app/sections/${kind}`}>
         {cfg.title}
       </s-link>

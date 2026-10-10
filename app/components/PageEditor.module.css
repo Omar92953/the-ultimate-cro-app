@@ -19,8 +19,8 @@
 .lookBar { display: block; overflow: hidden; border-radius: 6px; pointer-events: none; zoom: 0.8; }
 .lookName { font-size: 13px; font-weight: 600; color: #303030; }
 
-/* Design pages: a centred column with space on both sides; tabs stay at the top while scrolling */
-.shell { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(12px, 7vw, 110px); box-sizing: border-box; }
+/* Design pages: the side space now comes from the app frame (AppFrame.module.css), the same on every page. */
+.shell { width: 100%; }
 /* Only the rounded tabs themselves: no band behind them (they still stick to the top when scrolling). */
 .tabsBar { width: fit-content; max-width: 100%; background: transparent; }
 @media (max-width: 640px) {

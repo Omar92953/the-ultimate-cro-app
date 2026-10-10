@@ -1,0 +1,2 @@
+/* Every app page: one centred column with the same space on the left and right. */
+.page { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(12px, 7vw, 110px); box-sizing: border-box; }
