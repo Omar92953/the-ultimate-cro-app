@@ -1456,3 +1456,33 @@ export function ShippingBarCardShowcase() {
     </Stage>
   );
 }
+
+/** Product page reviews: a product page with the star rating line and the snippet card next to Add to cart. */
+export function ProductReviewsShowcase() {
+  const gold = "#f5a623";
+  return (
+    <Stage>
+      <span style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 14, width: "86%", alignItems: "start", fontSize: 11 }}>
+        <span style={{ aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#e9e9e9,#cfcfcf)" }} />
+        <span style={{ display: "grid", gap: 6 }}>
+          <b style={{ fontSize: 14 }}>Classic tee</b>
+          <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <span style={{ color: gold, letterSpacing: 1 }}>★★★★★</span>
+            <b>4.8</b>
+            <span style={{ textDecoration: "underline", opacity: 0.7 }}>12 reviews</span>
+          </span>
+          <b>EGP 450.00</b>
+          <span style={{ display: "flex", gap: 8, alignItems: "center", padding: 7, borderRadius: 10, background: "#f4f4f4" }}>
+            <span style={{ width: 34, height: 34, flex: "none", borderRadius: 6, background: "linear-gradient(145deg,#3b3b3b,#111)" }} />
+            <span style={{ display: "grid", gap: 2, minWidth: 0 }}>
+              <span style={{ color: gold, fontSize: 9, letterSpacing: 1 }}>★★★★★</span>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Soft fabric, perfect fit.</span>
+              <b style={{ fontSize: 9 }}>Mariam A. <span style={{ color: "#1a7f37" }}>✔</span></b>
+            </span>
+          </span>
+          <span style={{ display: "block", padding: "7px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}

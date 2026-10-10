@@ -1180,6 +1180,7 @@ export const BLOCKS = {
   bundle_tray: "ucro-bundle-tray",
   drawer: "ucro-cart-offers",
   reviews: "ucs-reviews",
+  product_reviews: "ucs-product-reviews",
   faq: "ucs-faq",
   logos: "ucs-logos",
   announcements: "ucs-announcement",

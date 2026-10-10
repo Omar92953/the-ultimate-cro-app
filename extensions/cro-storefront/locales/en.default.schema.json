@@ -29,11 +29,9 @@
   "q": "Lower down (load when scrolled to)",
   "r": "Images, texts, sizes and arrows are set in the app: Sections → Image carousel.",
   "s": "Logos, their order and the look are set in the app: Sections → Scrolling logos and text.",
-  "t": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
-  "u": "Reviews and how they look are set in the app: Sections → Customer reviews.",
-  "v": "Automatic (product pages use the product design)",
-  "w": "Home and other pages",
-  "x": "Product pages",
-  "y": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
+  "t": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews.",
+  "u": "Adds a button to every product card; products with sizes or colours open a small picker. The look is set in the app: Boosters → Quick add to cart.",
+  "v": "Reviews and how they look are set in the app: Sections → Customer reviews.",
+  "w": "Goal, messages, colours and where it shows are set in the app: Boosters → Free shipping bar."
  }
 }

@@ -61,6 +61,44 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
     </div>
   ) : null;
 
+  const sides = c.layout.mode === "carousel" && c.layout.nav === "sides";
+  const navEl =
+    c.layout.mode === "carousel" && c.layout.nav !== "swipe" ? (
+          <div className="ucs-rv__nav">
+            {c.layout.nav !== "dots" ? (
+              <button type="button" className="ucs-rv__arrow" aria-label="Previous" onClick={() => go(-1)}>
+                <span className="ucs-i ucs-i--chev-l" aria-hidden="true" />
+              </button>
+            ) : null}
+            {c.layout.nav === "dots" || c.layout.nav === "both" ? (
+              <span className="ucs-rv__dots">
+                {shown.slice(0, Math.max(1, shown.length - c.layout.perDesktop + 1)).map((_, i) => (
+                  <button key={i} type="button" className="ucs-rv__dot" aria-label={`Go to review ${i + 1}`} aria-current={i === 0} />
+                ))}
+              </span>
+            ) : null}
+            {c.layout.nav !== "dots" ? (
+              <button type="button" className="ucs-rv__arrow" aria-label="Next" onClick={() => go(1)}>
+                <span className="ucs-i ucs-i--chev-r" aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
+    ) : null;
+
+  if (c.layout.mode === "badge")
+    return (
+      <div className={reviewsClass(c)} style={vars}>
+        {rated.length ? (
+          <span className="ucs-rv__badge">
+            {sm.stars ? <Stars r={avg} /> : null}
+            {sm.average ? <span className="ucs-rv__avg">{avg}</span> : null}
+            {sm.count ? <span className="ucs-rv__count">{c.text.basedOn.replace(/\{count\}/g, String(rated.length))}</span> : null}
+          </span>
+        ) : (
+          <span style={{ color: "#616161" }}>Shows when this product has reviews with stars.</span>
+        )}
+      </div>
+    );
   if (!reviews.length) return <p style={{ padding: 24, textAlign: "center", color: "#616161" }}>Add reviews in Sections → Customer reviews to see them here.</p>;
   return (
     <div className={`${reviewsClass(c)} is-sized`} style={{ ...vars, "--ucs-rv-media-h": "260px" } as CSSProperties}>
@@ -127,6 +165,32 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
                       {media.kind === "video" ? <video className="ucs-rv__video" src={media.url} muted playsInline /> : <img className="ucs-rv__img" src={sized(media.url, 540)} alt={r.name} />}
                     </div>
                   ) : null}
+                  {c.card.style === "snippet" ? (
+                    <div className="ucs-rv__body">
+                      {c.card.stars && r.rating > 0 ? (
+                        <div className="ucs-rv__top">
+                          <Stars r={r.rating} />
+                        </div>
+                      ) : null}
+                      {textEl}
+                      <div className="ucs-rv__who">
+                        <span className="ucs-rv__name">{r.name}</span>
+                        {c.card.verified && r.verified ? (
+                          <span className="ucs-rv__tick" title={c.text.verified}>
+                            <span className="ucs-i ucs-i--verified" aria-hidden="true" />
+                          </span>
+                        ) : null}
+                      </div>
+                      {c.card.product && r.product ? (
+                        <span className="ucs-rv__prod">
+                          <span>
+                            <span className="ucs-rv__for">{c.text.reviewFor} </span>
+                            {r.product.title}
+                          </span>
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : (
                   <div className="ucs-rv__body">
                     {c.card.textFirst ? textEl : null}
                     {(c.card.stars && r.rating > 0) || (c.card.source && r.source && r.source !== "other") ? (
@@ -153,14 +217,19 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
                     {c.card.product && r.product ? (
                       <span className="ucs-rv__prod">
                         {r.product.image && !fromProd ? <img src={sized(r.product.image, 96)} width={40} height={40} alt="" /> : null}
-                        <span>{r.product.title}</span>
+                        <span>
+                          <span className="ucs-rv__for">{c.text.reviewFor} </span>
+                          {r.product.title}
+                        </span>
                       </span>
                     ) : null}
                   </div>
+                  )}
                 </article>
               );
             })}
           </div>
+          {sides ? navEl : null}
         </div>
         {isList && list.length > shown.length ? (
           <div className="ucs-rv__more-at">
@@ -169,27 +238,7 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
             </button>
           </div>
         ) : null}
-        {c.layout.mode === "carousel" && c.layout.nav !== "swipe" ? (
-          <div className="ucs-rv__nav">
-            {c.layout.nav !== "dots" ? (
-              <button type="button" className="ucs-rv__arrow" aria-label="Previous" onClick={() => go(-1)}>
-                <span className="ucs-i ucs-i--chev-l" aria-hidden="true" />
-              </button>
-            ) : null}
-            {c.layout.nav === "dots" || c.layout.nav === "both" ? (
-              <span className="ucs-rv__dots">
-                {shown.slice(0, Math.max(1, shown.length - c.layout.perDesktop + 1)).map((_, i) => (
-                  <button key={i} type="button" className="ucs-rv__dot" aria-label={`Go to review ${i + 1}`} aria-current={i === 0} />
-                ))}
-              </span>
-            ) : null}
-            {c.layout.nav !== "dots" ? (
-              <button type="button" className="ucs-rv__arrow" aria-label="Next" onClick={() => go(1)}>
-                <span className="ucs-i ucs-i--chev-r" aria-hidden="true" />
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        {sides ? null : navEl}
       </div>
     </div>
   );

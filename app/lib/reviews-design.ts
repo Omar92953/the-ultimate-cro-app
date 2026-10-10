@@ -10,12 +10,12 @@ import { schemeId } from "./theme-style";
 export type ReviewsDesign = {
   /** The theme colour scheme its colours were matched to ("" = its own colours). */
   scheme: string;
-  text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string };
+  text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string; reviewFor: string };
   summary: { show: boolean; average: boolean; stars: boolean; count: boolean };
   which: { filter: "all" | "featured" | "product"; fallback: boolean; limit: number };
-  layout: { mode: "carousel" | "grid" | "masonry" | "list"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "dots" | "both" | "swipe"; arrowSize: number };
+  layout: { mode: "carousel" | "grid" | "masonry" | "list" | "badge"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "sides" | "dots" | "both" | "swipe"; arrowSize: number };
   card: {
-    style: "classic" | "chat" | "minimal";
+    style: "classic" | "chat" | "minimal" | "snippet";
     text: boolean;
     media: boolean;
     stars: boolean;
@@ -62,6 +62,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
     readMore: "Read more",
     readLess: "Show less",
     verified: "Verified buyer",
+    reviewFor: "Review for:",
   },
   summary: { show: true, average: true, stars: true, count: true },
   which: { filter: "all", fallback: true, limit: 12 },
@@ -77,7 +78,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   product: { style: "row", image: true, imageSize: 40, radius: 6, textSize: 13, ownColors: false, bg: "#f1f1f1", fg: "#111111" },
 };
 
-type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]>; product?: Partial<ReviewsDesign["product"]>; text?: Partial<ReviewsDesign["text"]>; list?: Partial<ReviewsDesign["list"]>; write?: Partial<ReviewsDesign["write"]>; summary?: Partial<ReviewsDesign["summary"]>; which?: Partial<ReviewsDesign["which"]> };
+type Patch = { card?: Partial<ReviewsDesign["card"]>; look?: Partial<ReviewsDesign["look"]>; layout?: Partial<ReviewsDesign["layout"]>; fill?: Partial<ReviewsDesign["fill"]>; product?: Partial<ReviewsDesign["product"]>; text?: Partial<ReviewsDesign["text"]>; list?: Partial<ReviewsDesign["list"]>; write?: Partial<ReviewsDesign["write"]>; summary?: Partial<ReviewsDesign["summary"]>; which?: Partial<ReviewsDesign["which"]>; space?: Partial<ReviewsDesign["space"]> };
 /** Ready-made looks; everything stays editable. */
 export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   { key: "classic", title: "Classic cards", patch: { card: { style: "classic" }, look: { star: "#f5a623", radius: 14, defaultCard: true, transparentBg: true }, fill: { kind: "color", color: "#111111" } } },
@@ -98,7 +99,7 @@ export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   },
   {
     key: "widget",
-    title: "Product page: full reviews",
+    title: "Full reviews list",
     patch: {
       text: { heading: "Customer reviews", sub: "" },
       which: { filter: "product", fallback: false },
@@ -110,41 +111,67 @@ export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
       look: { star: "#f5a623", defaultCard: true, transparentBg: true },
     },
   },
+
+];
+
+/** Templates for "Product page reviews": small widgets that sit near the price and Add to cart. */
+export const PRODUCT_REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   {
     key: "snippet",
-    title: "Product page: compact slider",
+    title: "Snippet card",
     patch: {
       text: { heading: "", sub: "" },
       which: { filter: "product", fallback: true },
       summary: { show: false },
       write: { on: false },
-      layout: { mode: "carousel", perDesktop: 2, nav: "arrows" },
-      card: { style: "classic", align: "left", textFirst: false, photoFit: "crop", photoFocus: "center", photoShape: "square", product: true, source: false, location: false, date: false, clamp: 3 },
+      space: { top: 12, bottom: 12, schema: true },
+      layout: { mode: "carousel", perDesktop: 1, perMobile: 1, nav: "sides", arrowSize: 36, autoplay: 0 },
+      card: { style: "snippet", align: "left", textFirst: false, photoFit: "crop", photoFocus: "center", photoShape: "square", product: true, source: false, location: false, date: false, verified: true, clamp: 2 },
       product: { style: "caption" },
-      look: { star: "#111111", cardBg: "#f6f6f6", cardText: "#111111", defaultCard: false, transparentBg: true, radius: 10 },
+      look: { star: "#f5a623", cardBg: "#f4f4f4", cardText: "#121212", defaultCard: false, transparentBg: true, radius: 14 },
+    },
+  },
+  {
+    key: "snippet-text",
+    title: "Snippet card, no photo",
+    patch: {
+      text: { heading: "", sub: "" },
+      which: { filter: "product", fallback: true },
+      summary: { show: false },
+      write: { on: false },
+      space: { top: 12, bottom: 12, schema: true },
+      layout: { mode: "carousel", perDesktop: 1, perMobile: 1, nav: "sides", arrowSize: 32, autoplay: 0 },
+      card: { style: "snippet", media: false, align: "left", product: false, source: false, location: false, date: false, verified: true, clamp: 2 },
+      look: { star: "#f5a623", cardBg: "#f4f4f4", cardText: "#121212", defaultCard: false, transparentBg: true, radius: 14 },
+    },
+  },
+  {
+    key: "badge",
+    title: "Star rating line",
+    patch: {
+      text: { heading: "", sub: "", basedOn: "{count} reviews" },
+      which: { filter: "product", fallback: false },
+      summary: { show: true, average: true, stars: true, count: true },
+      write: { on: false },
+      space: { top: 12, bottom: 12, schema: true },
+      layout: { mode: "badge" },
+      look: { star: "#f5a623", defaultCard: true, transparentBg: true },
     },
   },
 ];
 
 export function applyReviewPreset(c: ReviewsDesign, key: string): ReviewsDesign {
-  const p = REVIEW_PRESETS.find((x) => x.key === key);
+  const p = [...REVIEW_PRESETS, ...PRODUCT_REVIEW_PRESETS].find((x) => x.key === key);
   if (!p) return c;
-  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text }, list: { ...c.list, ...p.patch.list }, write: { ...c.write, ...p.patch.write }, summary: { ...c.summary, ...p.patch.summary }, which: { ...c.which, ...p.patch.which } };
+  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text }, list: { ...c.list, ...p.patch.list }, write: { ...c.write, ...p.patch.write }, summary: { ...c.summary, ...p.patch.summary }, which: { ...c.which, ...p.patch.which }, space: { ...c.space, ...p.patch.space } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fallback);
 
 export type ReviewsPlace = "home" | "product";
-/** Product pages start from the full widget: this product's reviews in a list, with "Write a review". */
-export const DEFAULT_PRODUCT_REVIEWS: ReviewsDesign = {
-  ...DEFAULT_REVIEWS,
-  text: { ...DEFAULT_REVIEWS.text, heading: "Customer reviews", sub: "" },
-  which: { ...DEFAULT_REVIEWS.which, filter: "product", fallback: false, limit: 60 },
-  layout: { ...DEFAULT_REVIEWS.layout, mode: "list" },
-  card: { ...DEFAULT_REVIEWS.card, photoFit: "crop", photoShape: "square", product: false },
-  write: { ...DEFAULT_REVIEWS.write, on: true },
-};
+/** Product page reviews start as the snippet card near the price (this product's reviews, one at a time). */
+export const DEFAULT_PRODUCT_REVIEWS: ReviewsDesign = applyReviewPreset({ ...DEFAULT_REVIEWS, which: { ...DEFAULT_REVIEWS.which, limit: 20 } }, "snippet");
 
 export function withReviewsDefaults(raw: unknown, place: ReviewsPlace = "home"): ReviewsDesign {
   const r = obj(raw);
@@ -167,21 +194,22 @@ export function withReviewsDefaults(raw: unknown, place: ReviewsPlace = "home"):
       readMore: str(t.readMore, d.text.readMore, 30) || d.text.readMore,
       readLess: str(t.readLess, d.text.readLess, 30) || d.text.readLess,
       verified: str(t.verified, d.text.verified, 40) || d.text.verified,
+      reviewFor: str(t.reviewFor, d.text.reviewFor, 40),
     },
     summary: { show: bool(sm.show, d.summary.show), average: bool(sm.average, d.summary.average), stars: bool(sm.stars, d.summary.stars), count: bool(sm.count, d.summary.count) },
     which: { filter: pick(w.filter, ["all", "featured", "product"] as const, d.which.filter), fallback: bool(w.fallback, d.which.fallback), limit: num(w.limit, 1, 60, d.which.limit) },
     layout: {
-      mode: pick(l.mode, ["carousel", "grid", "masonry", "list"] as const, d.layout.mode),
+      mode: pick(l.mode, ["carousel", "grid", "masonry", "list", "badge"] as const, d.layout.mode),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: Number(l.perMobile) === 2 ? 2 : 1,
       // 0 = cards fill the row
       cardWidth: Number(l.cardWidth) > 0 ? num(l.cardWidth, 160, 600, 320) : 0,
       autoplay: num(l.autoplay, 0, 15, d.layout.autoplay),
-      nav: pick(l.nav, ["arrows", "dots", "both", "swipe"] as const, d.layout.nav),
+      nav: pick(l.nav, ["arrows", "sides", "dots", "both", "swipe"] as const, d.layout.nav),
       arrowSize: num(l.arrowSize, 24, 64, d.layout.arrowSize),
     },
     card: {
-      style: pick(c.style, ["classic", "chat", "minimal"] as const, d.card.style),
+      style: pick(c.style, ["classic", "chat", "minimal", "snippet"] as const, d.card.style),
       text: bool(c.text, d.card.text),
       media: bool(c.media, d.card.media),
       stars: bool(c.stars, d.card.stars),

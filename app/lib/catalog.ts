@@ -39,6 +39,7 @@ export const FEATURES = {
   // Sections
   hero: { title: "Hero banners", cat: "sections", tabs: [{ label: "Banners", href: "/app/designs/hero" }] },
   reviews: { title: "Customer reviews", cat: "sections", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
+  product_reviews: { title: "Product page reviews", cat: "sections", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
   faq: { title: "FAQ", cat: "sections", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },
   logos: { title: "Scrolling logos and text", cat: "sections", tabs: [{ label: "Logos", href: "/app/sections/logos" }, design("/app/designs/logos")] },
   videos: { title: "Video carousel", cat: "sections", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },

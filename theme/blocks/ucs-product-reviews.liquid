@@ -1,0 +1,17 @@
+{%- comment -%}
+  App block: product page reviews (Sections → Product page reviews in the app). Shows this product's
+  reviews with its own design, e.g. a compact slider next to Add to cart or the full reviews list
+  with "Write a review". Can sit inside the product information or as its own section.
+{%- endcomment -%}
+{%- render 'ucs-reviews-body', key: 'reviews_product', attrs: block.shopify_attributes, product: product -%}
+
+{% schema %}
+{
+  "name": "Product page reviews",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "This product's reviews. Reviews and how they look are set in the app: Sections → Product page reviews." }
+  ]
+}
+{% endschema %}

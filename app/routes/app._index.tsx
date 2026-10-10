@@ -77,6 +77,7 @@ import {
   HeaderGlassShowcase,
   HeaderRoundedShowcase,
   FooterShowcase,
+  ProductReviewsShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
@@ -261,12 +262,13 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
+type SectionCardKey = SectionKind | "product_reviews" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
 const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers" | "boosters"; Previews: (() => JSX.Element)[] }[] = [
   { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
+  { key: "product_reviews", title: "Product page reviews", description: "A review card or the star rating next to the price and Add to cart.", list: null, embed: false, app: "/app/designs/product-reviews", Previews: [ProductReviewsShowcase] },
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
   { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
   { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },

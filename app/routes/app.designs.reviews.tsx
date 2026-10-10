@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData, useNavigate } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -8,9 +8,8 @@ import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { listItems, sectionLinks } from "../lib/sections.server";
 import { firstProduct } from "../lib/preview-products.server";
-import { Segmented } from "../components/ui";
 import { getReviewsDesign, saveReviewsDesign } from "../lib/designs.server";
-import { ICON_SOURCES, REVIEW_PRESETS, applyReviewPreset, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "../lib/reviews-design";
+import { ICON_SOURCES, PRODUCT_REVIEW_PRESETS, REVIEW_PRESETS, applyReviewPreset, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "../lib/reviews-design";
 import { SOURCES } from "../lib/sections";
 import type { MediaRef, ProductRef } from "../lib/sections";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
@@ -30,9 +29,12 @@ const fmtDate = (d: string) => {
   return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "";
 };
 
+/** This page serves both designs: Customer reviews (/app/designs/reviews) and Product page reviews (/app/designs/product-reviews). */
+const placeOf = (request: Request): ReviewsPlace => (new URL(request.url).pathname.endsWith("/product-reviews") ? "product" : "home");
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const place: ReviewsPlace = new URL(request.url).searchParams.get("place") === "product" ? "product" : "home";
+  const place = placeOf(request);
   const [{ config, saved }, items, sample] = await Promise.all([getReviewsDesign(admin, place), listItems(admin, "reviews").catch(() => []), place === "product" ? firstProduct(admin).catch(() => null) : Promise.resolve(null)]);
   const reviews: PreviewReview[] = items
     .filter((i) => i.values.active !== false)
@@ -54,14 +56,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         product: product ? { title: product.title, image: product.image } : null,
       };
     });
-  return { place, sample, style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: sectionLinks(session.shop).reviews };
+  return { place, sample, style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, config, saved, reviews, css: storefrontCss("ucs-sections.css"), addLink: place === "product" ? sectionLinks(session.shop).product_reviews : sectionLinks(session.shop).reviews };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const place: ReviewsPlace = new URL(request.url).searchParams.get("place") === "product" ? "product" : "home";
+    const place = placeOf(request);
     const config = await saveReviewsDesign(admin, withReviewsDefaults(JSON.parse(String(form.get("config"))), place), form.get("intent") === "draft", place);
     return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
@@ -93,19 +95,19 @@ export default function ReviewsDesigner() {
   const text = part("text"), summary = part("summary"), which = part("which"), layout = part("layout"), card = part("card"), fill = part("fill"), look = part("look"), space = part("space"), icon = part("icon"), product = part("product"), sizes = part("sizes");
   const [iconFor, setIconFor] = useState<(typeof ICON_SOURCES)[number]>("whatsapp");
   const [ownFor, setOwnFor] = useState<Record<string, boolean>>({});
-  const navigate = useNavigate();
-  const at = `?place=${data.place}`;
-  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: at });
+  const isProduct = data.place === "product";
+  const feature = isProduct ? "product_reviews" : "reviews";
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
   const write = part("write"), list = part("list");
   const previewPath = data.place === "product" && data.sample ? `/products/${data.sample.handle}` : "/";
 
   return (
-    <s-page heading="Customer reviews" inlineSize="large">
-      <CategoryCrumb feature="reviews" />
+    <s-page heading={isProduct ? "Product page reviews" : "Customer reviews"} inlineSize="large">
+      <CategoryCrumb feature={feature} />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save
       </Button>
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: at })}>
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
@@ -113,15 +115,11 @@ export default function ReviewsDesigner() {
       </Button>
       <div className={ui.shell}>
       <s-stack gap="base">
-        <FeatureTabs feature="reviews" />
-        <Segmented
-          label="Where the reviews show"
-          value={data.place}
-          options={[{ value: "home", label: "Home and other pages" }, { value: "product", label: "Product pages" }]}
-          onChange={(v) => navigate(`/app/designs/reviews?place=${v}`)}
-        />
+        <FeatureTabs feature={feature} />
         <s-text color="subdued">
-          Add, edit and order the reviews in the Reviews tab. Here you choose how the section looks. In the theme editor you only place the “Customer reviews” section.
+          {isProduct
+            ? "A small reviews widget for the product page, next to the price and Add to cart: this product’s reviews in a card, or its star rating. In the theme editor, add the “Product page reviews” block inside the product information."
+            : "Add, edit and order the reviews in the Reviews tab. Here you choose how the section looks. Place the “Customer reviews” section on any page (home, product, collection…), usually further down."}
         </s-text>
         {!data.saved ? (
           <s-banner tone="info" heading="Not saved yet">
@@ -137,7 +135,7 @@ export default function ReviewsDesigner() {
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchReviews} />
         </Pane>
 
-        <Pane show={tab === "looks"}><LookPicker presets={REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} render={(c) => <ThemeLook style={data.style}><ReviewsPreview config={c} reviews={data.reviews} /></ThemeLook>} /></Pane>
+        <Pane show={tab === "looks"}><LookPicker presets={isProduct ? PRODUCT_REVIEW_PRESETS : REVIEW_PRESETS} config={cfg} apply={applyReviewPreset} onPick={(key) => setCfg((c) => applyReviewPreset(c, key))} render={(c) => <ThemeLook style={data.style}><ReviewsPreview config={c} reviews={data.reviews} /></ThemeLook>} /></Pane>
             <Pane show={tab === "content"}><s-section heading="Heading and words">
               <s-stack gap="base">
                 <TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
@@ -145,6 +143,7 @@ export default function ReviewsDesigner() {
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                   <NumberField label="Heading size" suffix="px" min={16} max={60} step={1} value={cfg.text.headingSize} onValue={(v) => text({ headingSize: v })} />
                   <TextField label="Verified label" value={cfg.text.verified} onValue={(v) => text({ verified: v })} />
+                  <TextField label="“Review for:” label" details="Before the product name (snippet and caption styles)." value={cfg.text.reviewFor} onValue={(v) => text({ reviewFor: v })} />
                   <TextField label="“Read more” button" value={cfg.text.readMore} onValue={(v) => text({ readMore: v })} />
                   <TextField label="“Show less” button" value={cfg.text.readLess} onValue={(v) => text({ readLess: v })} />
                 </s-grid>
@@ -165,7 +164,7 @@ export default function ReviewsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "content"}><s-section heading="Write a review">
+            {isProduct ? null : <Pane show={tab === "content"}><s-section heading="Write a review">
               <s-stack gap="base">
                 <Switch label="Let shoppers write a review" details="On product pages. New reviews wait in Reviews until you approve them." checked={cfg.write.on} onValue={(v) => write({ on: v })} />
                 {cfg.write.on ? (
@@ -179,9 +178,9 @@ export default function ReviewsDesigner() {
                   </s-grid>
                 ) : null}
               </s-stack>
-            </s-section></Pane>
+            </s-section></Pane>}
 
-            {cfg.layout.mode === "list" ? (
+            {!isProduct && cfg.layout.mode === "list" ? (
               <Pane show={tab === "content"}><s-section heading="List: sorting and more">
                 <s-stack gap="base">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
@@ -224,7 +223,7 @@ export default function ReviewsDesigner() {
 
             <Pane show={tab === "design"}><s-section heading="Layout and scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={[{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }, { value: "list", label: "List (full reviews, with sorting)" }]} />
+                <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={isProduct ? [{ value: "carousel", label: "Cards, one at a time" }, { value: "badge", label: "Star rating line" }] : [{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }, { value: "list", label: "List (full reviews, with sorting)" }]} />
                 <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
                 <Select label="Per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
                 <NumberField label="Card width" details="0 = cards fill the row" suffix="px" min={0} max={600} step={10} value={cfg.layout.cardWidth} onValue={(v) => layout({ cardWidth: v > 0 ? Math.max(160, v) : 0 })} />
@@ -235,13 +234,14 @@ export default function ReviewsDesigner() {
                       value={cfg.layout.nav}
                       onValue={(v) => layout({ nav: v as C["layout"]["nav"] })}
                       options={[
-                        { value: "arrows", label: "Arrows" },
+                        { value: "arrows", label: "Arrows below" },
+                        { value: "sides", label: "Arrows on the sides" },
                         { value: "dots", label: "Dots" },
                         { value: "both", label: "Arrows and dots" },
                         { value: "swipe", label: "Swipe or scroll only" },
                       ]}
                     />
-                    {cfg.layout.nav === "arrows" || cfg.layout.nav === "both" ? <NumberField label="Arrow size" suffix="px" min={24} max={64} step={2} value={cfg.layout.arrowSize} onValue={(v) => layout({ arrowSize: v })} /> : <span />}
+                    {cfg.layout.nav === "arrows" || cfg.layout.nav === "sides" || cfg.layout.nav === "both" ? <NumberField label="Arrow size" suffix="px" min={24} max={64} step={2} value={cfg.layout.arrowSize} onValue={(v) => layout({ arrowSize: v })} /> : <span />}
                     <NumberField label="Auto-move every" details="0 = off" suffix="sec" min={0} max={15} step={1} value={cfg.layout.autoplay} onValue={(v) => layout({ autoplay: v })} />
                   </>
                 ) : null}
@@ -250,7 +250,7 @@ export default function ReviewsDesigner() {
 
             <Pane show={tab === "design"}><s-section heading="Cards">
               <s-stack gap="base">
-                <Select label="Card style" value={cfg.card.style} onValue={(v) => card({ style: v as C["card"]["style"] })} options={[{ value: "classic", label: "Classic" }, { value: "chat", label: "Chat screenshot" }, { value: "minimal", label: "Minimal" }]} />
+                <Select label="Card style" value={cfg.card.style} onValue={(v) => card({ style: v as C["card"]["style"] })} options={[{ value: "classic", label: "Classic" }, { value: "chat", label: "Chat screenshot" }, { value: "minimal", label: "Minimal" }, { value: "snippet", label: "Snippet (photo beside the text)" }]} />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="small-200">
                   <Checkbox label="Review text" checked={cfg.card.text} onValue={(v) => card({ text: v })} />
                   <Checkbox label="Photo or video" checked={cfg.card.media} onValue={(v) => card({ media: v })} />
@@ -453,7 +453,7 @@ export default function ReviewsDesigner() {
             </s-section></Pane>
           </s-stack>
 
-          <PreviewFrame title={data.place === "product" ? "Product page · your real reviews" : "Home page · your real reviews"}>
+          <PreviewFrame title={isProduct ? "Product page · next to the price" : "Your store · your real reviews"}>
             <ThemeLook style={data.style}><ReviewsPreview config={cfg} reviews={data.reviews} /></ThemeLook>
           </PreviewFrame>
         </div>

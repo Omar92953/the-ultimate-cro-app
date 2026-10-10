@@ -187,6 +187,14 @@
     }
     h += '<div class="ucs-rv__body">';
     var text = c.c.text && r.t ? '<div class="ucs-rv__text">' + esc(r.t).replace(/\n/g, '<br>') + '</div><button type="button" class="ucs-rv__more" hidden>' + esc(t.readMore) + '</button>' : '';
+    var prod = c.c.product && !only && r.p ? '<a class="ucs-rv__prod" href="' + esc(r.p.u) + '">' + (r.p.i && !fromProd ? '<img src="' + esc(sized(r.p.i, 96)) + '" width="40" height="40" loading="lazy" alt="">' : '') + '<span><span class="ucs-rv__for">' + esc(t.reviewFor || '') + ' </span>' + esc(r.p.t) + '</span></a>' : '';
+    if (c.c.style === 'snippet') {
+      // Snippet card (next to the price): stars, the review, the name with a tick, then "Review for: …"
+      var who = '<div class="ucs-rv__who"><span class="ucs-rv__name">' + esc(r.n) + '</span>' +
+        (c.c.verified && r.v ? '<span class="ucs-rv__tick" title="' + esc(t.verified) + '"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span><span class="ucs-rv__sr">' + esc(t.verified) + '</span></span>' : '') + '</div>';
+      h += c.c.stars && r.r > 0 ? '<div class="ucs-rv__top">' + stars(r.r, r.r + ' out of 5 stars') + '</div>' : '';
+      return h + text + who + (c.c.product && r.p ? '<a class="ucs-rv__prod" href="' + esc(r.p.u) + '"><span><span class="ucs-rv__for">' + esc(t.reviewFor || '') + ' </span>' + esc(r.p.t) + '</span></a>' : '') + '</div></article>';
+    }
     if (c.c.textFirst) h += text;
     var hasStars = c.c.stars && r.r > 0, src = r.s, hasSrc = c.c.source && src && src !== 'other';
     if (hasStars || hasSrc) {
@@ -208,9 +216,7 @@
     h += '<footer class="ucs-rv__who"><span class="ucs-rv__name">' + esc(r.n) + '</span>' +
       (c.c.verified && r.v ? '<span class="ucs-rv__ver"><span class="ucs-i ucs-i--verified" aria-hidden="true"></span>' + esc(t.verified) + '</span>' : '') +
       (meta ? '<span class="ucs-rv__meta">' + meta + '</span>' : '') + '</footer>';
-    if (c.c.product && !only && r.p) {
-      h += '<a class="ucs-rv__prod" href="' + esc(r.p.u) + '">' + (r.p.i && !fromProd ? '<img src="' + esc(sized(r.p.i, 96)) + '" width="40" height="40" loading="lazy" alt="">' : '') + '<span>' + esc(r.p.t) + '</span></a>';
-    }
+    h += prod;
     return h + '</div></article>';
   }
 
@@ -246,6 +252,19 @@
       summary = '<div class="ucs-rv__summary">' + (sm.average ? '<span class="ucs-rv__avg">' + avg + '</span>' : '') +
         (sm.stars ? stars(avg, avg + ' out of 5 stars') : '') +
         (sm.count ? '<span class="ucs-rv__count">' + esc(t.basedOn.replace(/\{count\}/g, rated.length)) + '</span>' : '') + '</div>';
+    }
+    if (c.l.mode === 'badge') {
+      // Star rating line near the price: average, stars and count; tapping it goes to the reviews section below.
+      if (!rated.length) { if (!design) host.remove(); return; }
+      host.className = c.cls;
+      host.style.cssText = c.css;
+      host.innerHTML = '<a class="ucs-rv__badge" href="#reviews">' + (c.sm.stars ? stars(avg, avg + ' out of 5 stars') : '') + (c.sm.average ? '<span class="ucs-rv__avg">' + avg + '</span>' : '') +
+        (c.sm.count ? '<span class="ucs-rv__count">' + esc(t.basedOn.replace(/\{count\}/g, rated.length)) + '</span>' : '') + '</a>';
+      host.querySelector('a').addEventListener('click', function (e) {
+        var target = Array.prototype.find.call(document.querySelectorAll('.ucs-rv'), function (x) { return x !== host && !x.classList.contains('ucs-rv--badge'); });
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+      return;
     }
     var ls = c.ls || { perPage: 5, sort: true, bars: true, more: 'Show more reviews', sortBy: 'Sort by', newest: 'Newest', highest: 'Highest rating', lowest: 'Lowest rating', photos: 'With photos' };
     var isList = c.l.mode === 'list';
@@ -286,13 +305,14 @@
     }
     if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Sections → Customer reviews.</p>';
     else {
+      var nav = carousel ? '<div class="ucs-rv__nav"><button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="Previous"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>' +
+        '<span class="ucs-rv__dots"></span>' +
+        '<button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="Next"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button></div>' : '';
+      // Arrows on the sides sit over the cards; otherwise below them.
+      var sides = carousel && c.l.nav === 'sides';
       html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + '>' +
-        shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + '</div></div>';
-      if (carousel) {
-        html += '<div class="ucs-rv__nav"><button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="Previous"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>' +
-          '<span class="ucs-rv__dots"></span>' +
-          '<button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="Next"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button></div>';
-      }
+        shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + '</div>' + (sides ? nav : '') + '</div>';
+      if (carousel && !sides) html += nav;
     }
     if (isList && shown.length > ls.perPage) html += '<div class="ucs-rv__more-at"><button type="button" class="ucs-btn ucs-btn--outline ucs-rv__page">' + esc(ls.more) + '</button></div>';
     html += '</div>';
