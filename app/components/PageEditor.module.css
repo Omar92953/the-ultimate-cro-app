@@ -1,6 +1,6 @@
 /* Page designers: settings on the left, sticky live preview on the right (stacked on small screens). */
 /* Settings on the left, the live preview on the right (stacked only on very narrow screens). */
-.layout { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(270px, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 640px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 .preview { position: sticky; top: 12px; overflow: hidden; background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08), 0 1px 0 rgba(26, 26, 26, 0.07); }
 .previewBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #ebebeb; font-size: 12px; font-weight: 600; color: #616161; }

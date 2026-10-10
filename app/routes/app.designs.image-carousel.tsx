@@ -19,7 +19,7 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchImageCarousel } from "../lib/theme-match";
-import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -213,18 +213,12 @@ export default function ImageCarouselDesigner() {
             </s-section></Pane>
           </s-stack>
 
-          <div className={ui.preview}>
-            <div className={ui.previewBar}>
-              <span>Live preview</span>
-              <Segmented label="Preview size" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />
-            </div>
-            <style dangerouslySetInnerHTML={{ __html: data.css }} />
-            <div className={ui.frame}>
+          <style dangerouslySetInnerHTML={{ __html: data.css }} />
+          <PreviewFrame title="Your store" tools={<Segmented label="Preview size" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />}>
               <div className={device === "phone" ? ui.phone : undefined}>
                 <ThemeLook style={data.style}><ImageCarouselPreview config={cfg} phone={device === "phone"} /></ThemeLook>
               </div>
-            </div>
-          </div>
+          </PreviewFrame>
         </div>
       </s-stack>
       </div>

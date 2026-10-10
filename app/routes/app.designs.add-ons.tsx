@@ -18,7 +18,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchAddons } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
-import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
+import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -215,15 +215,10 @@ export default function AddonsDesigner() {
             </s-section></Pane>
           </s-stack>
 
-          <div className={ui.preview}>
-            <div className={ui.previewBar}>
-              <span>Live preview</span>
-            </div>
-            <style dangerouslySetInnerHTML={{ __html: data.css }} />
-            <div className={ui.frame}>
+          <style dangerouslySetInnerHTML={{ __html: data.css }} />
+          <PreviewFrame title="Product page">
               <ThemeLook style={data.style}><AddonsPreview config={cfg} /></ThemeLook>
-            </div>
-          </div>
+          </PreviewFrame>
         </div>
       </s-stack>
       </div>
