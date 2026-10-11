@@ -74,13 +74,14 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 0,
     limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: null },
     highlights: [
-      "3 offer slots: any mix of upsells, cross-sells, bundles and deals",
+      "3 offer slots and unlimited orders",
+      "Any mix of upsells, cross-sells, bundles and deals",
       "Cart drawer, free-shipping and announcement bars, 1 countdown",
       "Unlimited reviews, FAQ, logos, hero, wishlist, back in stock",
       "Sticky add to cart, quick add, trust badges, sales pop-ups",
       "3 checkout rules and a thank-you page with 2 modules",
       "Try 1 Starter feature of your choice",
-      "No order cap",
+      "Email support",
     ],
   },
   starter: {
@@ -93,14 +94,15 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
     highlights: [
-      "Unlimited offers and all 7 bundle types, price tiers and option pricing",
+      "Unlimited offers and 500 monthly orders",
+      "All bundle types, price tiers and option pricing",
       "Add-ons, personalization, gift note and delivery date",
       "Full cart drawer: express checkout, best discount, share cart",
       "Quiz, image and video carousels, collection pills, delivery estimate",
       "Header, footer, contact, track order and returns pages",
       "5 styles per section, unlimited countdowns and thank-you modules",
       "6 checkout rules and results for your top 3 offers",
-      "Up to 500 orders a month",
+      "Email support",
     ],
   },
   growth: {
@@ -113,12 +115,12 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 2000 },
     highlights: [
-      "Everything in Starter",
+      "Everything in Starter, and 2,000 monthly orders",
       "Unlimited payment rules, delivery rules and order limits",
       "Results for every offer and every bundle",
       "Holdout test: measure what the app really adds",
       "Request any feature — we build it for you",
-      "Up to 2,000 orders a month",
+      "Email support",
     ],
   },
   pro: {
@@ -130,7 +132,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 499,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
-    highlights: ["Everything in Growth", "Unlimited orders", "Priority support", "Your feature requests built first"],
+    highlights: ["Everything in Growth, and unlimited orders", "Your feature requests built first", "Priority support"],
   },
 };
 

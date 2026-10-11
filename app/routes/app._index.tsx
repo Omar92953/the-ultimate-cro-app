@@ -21,6 +21,7 @@ import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial
 import { Button } from "../components/fields";
 import { Card, CardGrid, CardText, Pill } from "../components/ui";
 import { UpgradeButton, planPriceText } from "../components/Upgrade";
+import { PlanFeatures } from "../components/PlanCard";
 import { loadHub } from "../lib/hub.server";
 import styles from "../components/Home.module.css";
 
@@ -298,11 +299,11 @@ export default function Home() {
         <CardGrid cols={3}>
           {/* Plan */}
           <Card title="Your plan" badge={<Pill tone="ok">{current.name}</Pill>} actions={<><Button href="/app/plans" variant={data.plan.key === "pro" ? "tertiary" : "primary"}>Compare plans</Button><UpgradeButton variant="tertiary">Change plan</UpgradeButton></>}>
-            <CardText>{current.job}</CardText>
             <CardText>
               {planPriceText(data.plan.key)}
               {data.plan.trialEndsAt ? ` · free trial until ${new Date(data.plan.trialEndsAt).toLocaleDateString()}` : ""}
             </CardText>
+            <PlanFeatures plan={data.plan.key} limit={3} />
           </Card>
 
           {/* Request a feature (Growth and up) */}

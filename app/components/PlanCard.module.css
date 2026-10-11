@@ -1,0 +1,14 @@
+/* Plan card (PlanCard.tsx): name and price, then "Features" with a check mark on every line. */
+.card { display: flex; flex-direction: column; gap: 8px; padding: 20px; background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; }
+.current { border: 2px solid #303030; padding: 19px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.name { font-size: 16px; font-weight: 650; color: #303030; }
+.price { margin: 0; font-size: 28px; font-weight: 700; color: #303030; }
+.per { font-size: 14px; font-weight: 500; color: #616161; }
+.sub { margin: 0; font-size: 13px; color: #616161; }
+.featuresTitle { margin: 8px 0 0; font-size: 18px; font-weight: 700; color: #000; }
+.list { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
+.item { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.35; color: #4a4a4a; }
+.check { flex: none; width: 16px; height: 16px; margin-top: 2px; color: #000; }
+.guarantee { margin: 4px 0 0; font-size: 13px; color: #616161; }
+.action { margin-top: auto; padding-top: 12px; }

@@ -162,3 +162,10 @@ test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () 
   assert.equal(limitError("starter", "countdownPlaces", 9), null);
   assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
 });
+
+test("plan cards: each plan leads with its main limit, then its features", () => {
+  for (const k of PLAN_KEYS) {
+    assert.ok(PLANS[k].highlights.length >= 3, k);
+    assert.match(PLANS[k].highlights[0], /orders/, k);
+  }
+});

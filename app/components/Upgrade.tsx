@@ -7,6 +7,7 @@ import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "./fields";
 import { Card, CardText, Pill } from "./ui";
 import { CategoryCrumb } from "./FeatureNav";
+import { PlanFeatures } from "./PlanCard";
 import { feature, type FeatureKey } from "../lib/catalog";
 import { GUARANTEE, PLANS, price, type PlanKey } from "../lib/plans";
 import { canTry, type PageLock } from "../lib/plan-gate";
@@ -39,7 +40,9 @@ export function UpgradeCard({ needs, title, text }: { needs: PlanKey; title: str
   return (
     <Card title={title} badge={<Pill tone="warn">{`${PLANS[needs].name} plan`}</Pill>} actions={<><UpgradeButton to={needs} /><Button href="/app/plans" variant="tertiary">Compare plans</Button></>}>
       <CardText>{text}</CardText>
-      <CardText>{`${PLANS[needs].name}: ${planPriceText(needs)}. ${GUARANTEE}`}</CardText>
+      <CardText>{`${PLANS[needs].name}: ${planPriceText(needs)}`}</CardText>
+      <PlanFeatures plan={needs} limit={4} />
+      <CardText>{GUARANTEE}</CardText>
     </Card>
   );
 }

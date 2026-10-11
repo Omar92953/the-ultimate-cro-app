@@ -15,6 +15,7 @@ import { AREAS, feature, featuresIn } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, price, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
 import { Pill } from "../components/ui";
+import { PlanCard } from "../components/PlanCard";
 import styles from "../components/Home.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -111,40 +112,23 @@ export default function Plans() {
         </s-stack>
 
         <div className={styles.plans}>
-          {PLAN_KEYS.map((k) => {
-            const p = PLANS[k];
-            const isCurrent = k === plan;
-            const amount = yearly ? p.yearly : p.monthly;
-            return (
-              <div key={k} className={`${styles.plan} ${isCurrent ? styles.planCurrent : ""}`}>
-                <div className={styles.planHead}>
-                  <span className={styles.planName}>{p.name}</span>
-                  {isCurrent ? <Pill tone="ok">Current plan</Pill> : null}
-                </div>
-                <p className={styles.planPrice}>
-                  {price(amount)}
-                  {amount ? <span className={styles.per}>{yearly ? "/year" : "/month"}</span> : null}
-                </p>
-                <p className={styles.planSub}>{p.job}</p>
-                {p.trialDays ? <p className={styles.planSub}>{`${p.trialDays}-day free trial`}</p> : null}
-                <ul className={styles.planList}>
-                  {p.highlights.map((h) => (
-                    <li key={h}>{h}</li>
-                  ))}
-                </ul>
-                {p.monthly ? <p className={styles.planSub}>{GUARANTEE}</p> : null}
-                <div className={styles.planAction}>
-                  {isCurrent ? (
-                    <s-text color="subdued">Your plan</s-text>
-                  ) : (
-                    <Button href={planUrl} target="_top" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
-                      {planRank(k) > planRank(plan) ? `Choose ${p.name}` : `Switch to ${p.name}`}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {PLAN_KEYS.map((k) => (
+            <PlanCard
+              key={k}
+              plan={k}
+              current={k === plan}
+              yearly={yearly}
+              action={
+                k === plan ? (
+                  <s-text color="subdued">Your plan</s-text>
+                ) : (
+                  <Button href={planUrl} target="_top" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
+                    {planRank(k) > planRank(plan) ? `Choose ${PLANS[k].name}` : `Switch to ${PLANS[k].name}`}
+                  </Button>
+                )
+              }
+            />
+          ))}
         </div>
 
         <s-section heading="Compare plans" padding="none">
