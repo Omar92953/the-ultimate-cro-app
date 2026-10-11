@@ -279,7 +279,7 @@ export default function Home() {
         </CardGrid>
 
         <CardGrid cols={3}>
-          {/* Request a feature (Starter and up: we build it for them) */}
+          {/* Request a feature (Growth and up: we build it for them) */}
           <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
 
           {/* Shortcuts */}

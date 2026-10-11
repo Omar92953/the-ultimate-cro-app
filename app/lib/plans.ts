@@ -76,7 +76,6 @@ export const PLANS: Record<PlanKey, Plan> = {
       "Every section and booster, 5 designs per section",
       "Cart drawer, wishlist, back in stock, quiz, delivery estimate",
       "Personalization, gift note, track order and returns pages",
-      "Request any feature — we build it for you",
       "Up to 500 orders a month",
     ],
   },
@@ -93,6 +92,7 @@ export const PLANS: Record<PlanKey, Plan> = {
       "Payment and delivery rules, order limits",
       "Thank-you page modules and the after-purchase offer",
       "Results holdout test",
+      "Request any feature — we build it for you",
       "Up to 2,000 orders a month",
     ],
   },
@@ -157,7 +157,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
 /** Things inside a page that need a plan (the page itself stays open). */
 export const EXTRA_PLAN = {
   /** "Request a feature" on Home: the merchant asks, we build it for them. */
-  featureRequests: "starter",
+  featureRequests: "growth",
   holdoutTest: "growth",
   prioritySupport: "pro",
 } satisfies Record<string, PlanKey>;

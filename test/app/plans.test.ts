@@ -70,8 +70,8 @@ test("features unlock from their plan up", () => {
   assert.ok(!canUse("starter", "post_purchase"));
   assert.ok(canUse("pro", "post_purchase"));
   assert.ok(atLeast("growth", "starter") && !atLeast("starter", "growth"));
-  // Feature requests ("we build it for you") start on Starter.
-  assert.ok(!atLeast("free", EXTRA_PLAN.featureRequests) && atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
+  // Feature requests ("we build it for you") start on Growth.
+  assert.ok(!atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("growth", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
 });
 
 test("pages map to features, and locked pages say which plan they need", () => {
