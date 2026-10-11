@@ -30,6 +30,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       hideSoldOut: true,
       pricing: "fixed",
       percentOff: 10,
+      tiers: [],
+      extras: [],
       storeWide: true,
     };
     return { bundle, others: all, isNew: true, shop: session.shop };
@@ -146,14 +148,57 @@ export default function BundleEditor() {
           <Select
             label="Bundle price"
             value={bundle.pricing}
-            onValue={(v) => set("pricing", v === "percent" ? "percent" : "fixed")}
+            onValue={(v) => {
+              const pricing = v === "percent" || v === "tiers" ? v : "fixed";
+              setBundle((b) => ({ ...b, pricing, tiers: pricing === "tiers" && !b.tiers.length ? [{ qty: 3, price: 30 }, { qty: 6, price: 55 }] : b.tiers }));
+            }}
             options={[
               { value: "fixed", label: "One price: the bundle product's price" },
               { value: "percent", label: "A percentage off the items shoppers pick" },
+              { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
             ]}
           />
           {bundle.pricing === "percent" ? (
             <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
+          ) : null}
+          {bundle.pricing === "tiers" ? (
+            <s-stack gap="small-200">
+              <s-text color="subdued">Shoppers pick exactly one of these numbers of items, and the bundle costs that tier&apos;s price. Make the steps&apos; maximum high enough for the biggest tier.</s-text>
+              {bundle.tiers.map((t, i) => (
+                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                  <NumberField label="Items" min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
+                  <NumberField label="Price" min={0} step={0.01} value={t.price} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))} />
+                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
+                    Remove
+                  </Button>
+                </s-grid>
+              ))}
+              <s-stack direction="inline">
+                <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + 3, price: 0 }])}>
+                  Add tier
+                </Button>
+              </s-stack>
+            </s-stack>
+          ) : null}
+          {bundle.pricing !== "percent" ? (
+            <s-stack gap="small-200">
+              <s-text type="strong">Extra charge for pricier options (optional)</s-text>
+              <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>
+              {bundle.extras.map((x, i) => (
+                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                  <TextField label="Option value" placeholder="XL" value={x.value} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, value: v } : y)))} />
+                  <NumberField label="Extra per item" min={0} step={0.01} value={x.amount} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
+                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove extra charge ${i + 1}`} onClick={() => set("extras", bundle.extras.filter((_, j) => j !== i))}>
+                    Remove
+                  </Button>
+                </s-grid>
+              ))}
+              <s-stack direction="inline">
+                <Button variant="tertiary" icon="plus" onClick={() => set("extras", [...bundle.extras, { value: "", amount: 0 }])}>
+                  Add extra charge
+                </Button>
+              </s-stack>
+            </s-stack>
           ) : null}
           <Switch
             label="Let shoppers build it anywhere in the store"

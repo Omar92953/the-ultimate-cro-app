@@ -36,7 +36,7 @@ export const FEATURES = {
     title: "Bundles",
     cat: "offers",
     about: "Mix-and-match bundles at one price, plus fixed bundles, buy X get Y, volume, gift and upgrade deals.",
-    tabs: [{ label: "Mix & match", href: "/app/bundles" }, ...DEAL_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })), design("/app/designs/bundles")],
+    tabs: [{ label: "Mix & match", href: "/app/bundles" }, { label: "Bundle products", href: "/app/kits" }, ...DEAL_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })), design("/app/designs/bundles")],
   },
   addons: { title: "Add-ons", cat: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [design("/app/designs/add-ons")] },
   cart_extras: { title: "Gift note & delivery date", cat: "offers", about: "“This is a gift”, a gift message and a delivery date picked in the cart — all on the order.", tabs: [design("/app/designs/cart-extras")] },

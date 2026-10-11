@@ -110,6 +110,35 @@ export default function Results() {
           </s-section>
         ) : null}
 
+        {r ? (
+          <s-section heading="Bundles" padding={r.byBundle.length ? "none" : undefined}>
+            {r.byBundle.length ? (
+              <s-table>
+                <s-table-header-row>
+                  <s-table-header listSlot="primary">Bundle</s-table-header>
+                  <s-table-header format="numeric">Bundles sold</s-table-header>
+                  <s-table-header format="numeric">Orders</s-table-header>
+                  <s-table-header format="numeric">Revenue</s-table-header>
+                  <s-table-header format="numeric">Average order</s-table-header>
+                </s-table-header-row>
+                <s-table-body>
+                  {r.byBundle.map((b) => (
+                    <s-table-row key={b.key}>
+                      <s-table-cell>{b.name}</s-table-cell>
+                      <s-table-cell>{b.units}</s-table-cell>
+                      <s-table-cell>{b.orders}</s-table-cell>
+                      <s-table-cell>{fmt(b.revenue)}</s-table-cell>
+                      <s-table-cell>{fmt(b.aov)}</s-table-cell>
+                    </s-table-row>
+                  ))}
+                </s-table-body>
+              </s-table>
+            ) : (
+              <s-paragraph>No bundles sold in the last 60 days. Mix & match bundles and bundle products show here with their sales, orders and average order value.</s-paragraph>
+            )}
+          </s-section>
+        ) : null}
+
         <s-section heading="Holdout test">
           <s-stack gap="base">
             <s-text color="subdued">A share of shoppers (picked at random, kept for their visits) see your store without the app’s widgets. Orders from each group are compared — the honest way to know what the app adds.</s-text>

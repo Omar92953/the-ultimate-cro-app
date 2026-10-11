@@ -19,7 +19,7 @@
   {%- for b in shop.metaobjects['$app:cro_bundle'].values -%}
     {%- if b.active.value != true or b.store_wide.value == false or b.product.value == blank -%}{%- continue -%}{%- endif -%}
     {%- assign bp = b.product.value -%}
-    {"id":{{ bp.id }},"v":{{ bp.selected_or_first_available_variant.id }},"n":{{ b.name.value | default: "" | json }},"u":{{ bp.url | json }},"pr":{{ bp.price }},"k":{{ b.pricing.value | default: 'fixed' | json }},"pc":{{ b.percent_off.value | default: 0 }},"d":{% if b.allow_duplicates.value %}1{% else %}0{% endif %},"s":[
+    {"id":{{ bp.id }},"v":{{ bp.selected_or_first_available_variant.id }},"n":{{ b.name.value | default: "" | json }},"u":{{ bp.url | json }},"pr":{{ bp.price }},"k":{{ b.pricing.value | default: 'fixed' | json }},"pc":{{ b.percent_off.value | default: 0 }},"r":{{ b.price_rules.value | json | default: 'null' }},"d":{% if b.allow_duplicates.value %}1{% else %}0{% endif %},"s":[
       {%- for st in b.steps.value -%}
         {%- liquid
           assign mn = st.min_picks.value | default: 1

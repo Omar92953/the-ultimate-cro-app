@@ -18,6 +18,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { listBundles, listDeals, listRules, syncBundles, syncDiscounts, upsert } from "./cro.server";
 import { forgetShop, remember } from "./short-cache.server";
+import { listKitIds } from "./kits.server";
 import { DEFAULT_APP_HANDLE, PLAN_KEYS, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
 
 export type PlanInfo = {
@@ -221,8 +222,9 @@ export async function checkLimit(admin: AdminClient, shop: string, key: "upsellO
   if (limitOf(info.plan, key) === null) return null;
   let othersOn: number;
   if (key === "bundlesAndDeals") {
-    const [bundles, deals] = await Promise.all([listBundles(admin), listDeals(admin)]);
-    othersOn = [...bundles, ...deals].filter((x) => x.active && x.handle !== self.handle).length;
+    // Bundle products (kits) count too; `handle` is the kit's product id when saving one.
+    const [bundles, deals, kits] = await Promise.all([listBundles(admin), listDeals(admin), listKitIds(admin)]);
+    othersOn = [...bundles, ...deals].filter((x) => x.active && x.handle !== self.handle).length + kits.filter((id) => id !== self.handle).length;
   } else {
     const kind = key === "upsellOffers" ? "upsell" : "cross_sell";
     othersOn = (await listRules(admin, kind)).filter((r) => r.active && r.handle !== self.handle).length;

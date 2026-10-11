@@ -933,6 +933,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
           hide_sold_out: field(key: "hide_sold_out") { key value }
           pricing: field(key: "pricing") { key value }
           percent_off: field(key: "percent_off") { key value }
+          price_rules: field(key: "price_rules") { key value }
           store_wide: field(key: "store_wide") { key value }
           steps: field(key: "steps") {
             key
@@ -963,7 +964,8 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
   }
   const products = await refsByIds(admin, [...productIds]);
   return data.metaobjects.nodes.map((node: any) => {
-    const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "store_wide", "steps"]));
+    const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "price_rules", "store_wide", "steps"]));
+    const rules = fromPriceRules(json<any>(f.price_rules, null));
     return {
       id: node.id,
       handle: node.handle,
@@ -972,8 +974,10 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       product: toRef(f.product?.reference),
       allowDuplicates: bool(f.allow_duplicates),
       hideSoldOut: bool(f.hide_sold_out, true),
-      pricing: f.pricing?.value === "percent" ? "percent" : "fixed",
+      pricing: f.pricing?.value === "percent" ? "percent" : f.pricing?.value === "tiers" ? "tiers" : "fixed",
       percentOff: Math.min(90, Math.max(0, Number(f.percent_off?.value) || 0)),
+      tiers: rules.tiers,
+      extras: rules.extras,
       storeWide: bool(f.store_wide, true),
       steps: (f.steps?.references?.nodes ?? []).map((s: any) => {
         const sf = fieldsOf(aliased(s, ["label", "required", "min_picks", "max_picks", "collection", "products"]));
@@ -1021,8 +1025,9 @@ export async function saveBundle(admin: AdminClient, bundle: Bundle) {
     steps: JSON.stringify(stepIdsNew),
     allow_duplicates: String(bundle.allowDuplicates),
     hide_sold_out: String(bundle.hideSoldOut),
-    pricing: bundle.pricing === "percent" ? "percent" : "fixed",
+    pricing: bundle.pricing === "percent" || bundle.pricing === "tiers" ? bundle.pricing : "fixed",
     percent_off: String(Math.min(90, Math.max(0, Number(bundle.percentOff) || 0))),
+    price_rules: JSON.stringify(toPriceRules(bundle)),
     store_wide: String(bundle.storeWide !== false),
   });
   for (const id of oldSteps) await remove(admin, id);
@@ -1052,6 +1057,25 @@ export async function deleteBundle(admin: AdminClient, handle: string) {
   await remove(admin, bundle.id);
   for (const id of steps) await remove(admin, id);
   await syncBundles(admin);
+}
+
+/**
+ * Tiers and option extras in cents, in the compact form both the storefront (price_rules field,
+ * read by Liquid) and the Cart Transform use: { tr: [[qty, cents]…] sorted by qty, ex: { "xl": cents } }.
+ */
+export function toPriceRules(bundle: Pick<Bundle, "pricing" | "tiers" | "extras">) {
+  const tr = bundle.pricing === "tiers"
+    ? [...(bundle.tiers ?? [])].filter((t) => t.qty >= 1 && t.price > 0).sort((a, b) => a.qty - b.qty).map((t) => [Math.round(t.qty), Math.round(t.price * 100)])
+    : [];
+  const ex: Record<string, number> = {};
+  if (bundle.pricing !== "percent") for (const x of bundle.extras ?? []) if (x.value.trim() && x.amount > 0) ex[x.value.trim().toLowerCase()] = Math.round(x.amount * 100);
+  return { tr, ex };
+}
+
+function fromPriceRules(v: any): Pick<Bundle, "tiers" | "extras"> {
+  const tiers = Array.isArray(v?.tr) ? v.tr.filter((t: unknown) => Array.isArray(t)).map(([qty, cents]: number[]) => ({ qty: Number(qty) || 1, price: (Number(cents) || 0) / 100 })) : [];
+  const extras = v?.ex && typeof v.ex === "object" ? Object.entries(v.ex).map(([value, cents]) => ({ value, amount: (Number(cents) || 0) / 100 })) : [];
+  return { tiers, extras };
 }
 
 /** Each bundle product's first variant (the merged line's parent) and its price in cents. */
@@ -1089,9 +1113,10 @@ export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[]) {
     b[numericId(bundle.product!.id)] = {
       pv: parent.variant,
       d: bundle.allowDuplicates ? 1 : 0,
-      k: bundle.pricing === "percent" ? "p" : "f",
+      k: bundle.pricing === "percent" ? "p" : bundle.pricing === "tiers" ? "t" : "f",
       pr: parent.cents,
       pc: bundle.pricing === "percent" ? bundle.percentOff : 0,
+      ...toPriceRules(bundle),
       s: bundle.steps.map((s) => {
         const n = s.required ? Math.max(1, Math.round(s.min)) : 0;
         const x = Math.max(n, Math.round(s.max), 1);

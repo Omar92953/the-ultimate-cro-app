@@ -56,6 +56,9 @@ export type BundleStep = {
   collection: Ref | null;
 };
 
+export type BundleTier = { qty: number; price: number };
+export type BundleExtra = { value: string; amount: number };
+
 export type Bundle = {
   id?: string;
   handle?: string;
@@ -65,9 +68,16 @@ export type Bundle = {
   steps: BundleStep[];
   allowDuplicates: boolean;
   hideSoldOut: boolean;
-  /** "fixed": shoppers pay the bundle product's price; "percent": percentOff off the picked items. */
-  pricing: "fixed" | "percent";
+  /**
+   * "fixed": shoppers pay the bundle product's price; "percent": percentOff off the picked items;
+   * "tiers": the price depends on how many items they pick (tiers, e.g. 3 for $30, 6 for $55).
+   */
+  pricing: "fixed" | "percent" | "tiers";
   percentOff: number;
+  /** "tiers" pricing: box sizes and their prices (store currency). */
+  tiers: BundleTier[];
+  /** Extra charge when a picked item has this option value (e.g. "XL" +5), for fixed and tier prices. */
+  extras: BundleExtra[];
   /** Shoppers can also build it from product and collection pages (Add to bundle + bundle tray). */
   storeWide: boolean;
 };

@@ -53,5 +53,20 @@ export function validateBundle(bundle: Bundle, others: Bundle[]): string[] {
     }
   });
   if (bundle.steps.every((s) => !s.required)) errors.push("At least one step must be required.");
+  if (bundle.pricing === "tiers") {
+    const tiers = bundle.tiers ?? [];
+    if (!tiers.length) errors.push("Add at least one price tier (how many items, and the price).");
+    tiers.forEach((t, i) => {
+      if (!(Number.isInteger(t.qty) && t.qty >= 1)) errors.push(`Tier ${i + 1}: the number of items must be 1 or more.`);
+      if (!(t.price > 0)) errors.push(`Tier ${i + 1}: enter a price above 0.`);
+    });
+    if (new Set(tiers.map((t) => t.qty)).size !== tiers.length) errors.push("Two tiers have the same number of items.");
+    const most = bundle.steps.reduce((n, s) => n + Math.max(1, s.max), 0);
+    if (tiers.some((t) => t.qty > most)) errors.push(`A tier needs more items than the steps allow (${most} at most). Raise the steps' maximum.`);
+  }
+  (bundle.extras ?? []).forEach((x, i) => {
+    if (!x.value.trim()) errors.push(`Extra charge ${i + 1}: enter the option value (e.g. XL).`);
+    if (!(x.amount > 0)) errors.push(`Extra charge ${i + 1}: enter an amount above 0.`);
+  });
   return [...new Set(errors)];
 }
