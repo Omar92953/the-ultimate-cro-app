@@ -14,7 +14,7 @@
   <div class="{{ d.cls }}" style="{{ d.css }}" data-ucs-quiz data-root="{{ routes.root_url }}" {{ block.shopify_attributes }}><script type="application/json">{{ d | json }}</script></div>
   <script src="{{ 'ucs-quiz.js' | asset_url }}" defer></script>
 {%- elsif request.design_mode -%}
-  <p {{ block.shopify_attributes }}>Set up the quiz in the app: Sections → Product quiz.</p>
+  <p {{ block.shopify_attributes }}>Set up the quiz in the app: Storefront → Product quiz.</p>
 {%- endif -%}
 
 {% schema %}
@@ -23,10 +23,10 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the designs made in the app to show.", "options": [
-      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
+      { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }
     ] },
-    { "type": "paragraph", "content": "Questions, answers and the products they lead to are set in the app: Sections → Product quiz." }
+    { "type": "paragraph", "content": "Questions, answers and the products they lead to are set in the app: Storefront → Product quiz." }
   ]
 }
 {% endschema %}

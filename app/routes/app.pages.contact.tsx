@@ -20,6 +20,7 @@ import { matchContact } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { SaveControls, changed } from "../components/SaveControls";
 // The storefront's own stylesheet, so the preview matches the store exactly.
 
 
@@ -61,7 +62,7 @@ export default function ContactPage() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else if (fetcher.data.ok) shopify.toast.show("Contact page saved — live on your store");
+    else if (fetcher.data.ok) shopify.toast.show("Saved and live");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -76,9 +77,7 @@ export default function ContactPage() {
   return (
     <s-page heading="Contact page" inlineSize="large">
       <CategoryCrumb feature="contact" />
-      <Button slot="primary-action" variant="primary" loading={busy} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={busy && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/pages/contact")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store
       </Button>

@@ -1,6 +1,6 @@
 /**
- * "Design 1 · Design 2 · + New design" on a design page: a section can have several designs, each
- * placed separately in the theme editor (the block's "Design" setting). See lib/design-slot.server.ts.
+ * "Style 1 · Style 2 · + New style" on a design page: a section can have several styles (designs), each
+ * placed separately in the theme editor (the block's "Style" setting, id `design`). See lib/design-slot.server.ts.
  */
 import { useEffect, useState } from "react";
 import { useFetcher, useNavigate, useSearchParams } from "react-router";
@@ -36,7 +36,7 @@ export function DesignSlots({ base, blockName }: { base: string; blockName: stri
   const slots = list.data?.slots ?? [1];
   const all = slots.includes(slot) ? slots : [...slots, slot].sort((a, b) => a - b);
   const names = list.data?.names ?? {};
-  const label = (n: number) => names[String(n)] || `Design ${n}`;
+  const label = (n: number) => names[String(n)] || `Style ${n}`;
   // The plan decides how many designs a section can have (lib/plans.ts); older ones above it stay on the store.
   const { plan } = usePlan();
   const allowed = limitOf(plan, "designsPerSection") ?? MAX;
@@ -61,18 +61,18 @@ export function DesignSlots({ base, blockName }: { base: string; blockName: stri
           ))}
           {next && !upgradeTo ? (
             <Button variant="tertiary" icon="plus" onClick={() => go(next, true)}>
-              New design
+              New style
             </Button>
           ) : null}
           {upgradeTo ? (
-            <UpgradeButton variant="tertiary">{`More designs on ${PLANS[upgradeTo].name}`}</UpgradeButton>
+            <UpgradeButton variant="tertiary">{`More styles on ${PLANS[upgradeTo].name}`}</UpgradeButton>
           ) : null}
         </s-stack>
         <s-grid gridTemplateColumns="minmax(0, 1fr) auto" gap="small-300" alignItems="end">
           <TextField
-            label="Name of this design"
-            details={`To use it, set the “${blockName}” block's Design to ${slot} in the theme editor.${slot > 1 ? " A new design starts as a copy of design 1." : ""}`}
-            placeholder={`Design ${slot}`}
+            label="Name of this style"
+            details={`To use it, set the “${blockName}” block's Style to ${slot} in the theme editor.${slot > 1 ? " A new style starts as a copy of style 1." : ""}`}
+            placeholder={`Style ${slot}`}
             value={name}
             onValue={setName}
           />
@@ -91,7 +91,7 @@ export function DesignSlots({ base, blockName }: { base: string; blockName: stri
                     go(1);
                   }}
                 >
-                  Delete design {slot}
+                  Delete style {slot}
                 </Button>
               ) : (
                 <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(true)}>

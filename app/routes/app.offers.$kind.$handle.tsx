@@ -14,6 +14,7 @@ import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { CrossSellPreview, UpsellPreview } from "../components/FeaturePreview";
+import { SaveControls, changed } from "../components/SaveControls";
 
 function blankRule(kind: RuleKind): Rule {
   return {
@@ -66,7 +67,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
     // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
-    const over = await checkLimit(admin, session.shop, rule.kind === "upsell" ? "upsellOffers" : "crossSellOffers", rule);
+    const over = await checkLimit(admin, session.shop, "offerSlots", rule);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveRule(admin, rule);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
@@ -94,7 +95,7 @@ export default function RuleEditor() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok) {
-      shopify.toast.show("Offer saved");
+      shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/offers/${kindSlug}/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
       shopify.toast.show("Could not save — see the message at the top", { isError: true });
@@ -126,9 +127,7 @@ export default function RuleEditor() {
       <s-link slot="breadcrumb-actions" href={`/app/offers/${kindSlug}`}>
         {meta.title}
       </s-link>
-      <Button slot="primary-action" variant="primary" onClick={save} loading={busy}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(rule, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setRule(initial); setTouched(false); }} />
       {!isNew ? (
         <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
           Delete

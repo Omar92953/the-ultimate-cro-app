@@ -22,6 +22,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -104,9 +105,7 @@ export default function FooterDesigner() {
   return (
     <s-page heading="Footer" inlineSize="large">
       <CategoryCrumb feature="footer" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

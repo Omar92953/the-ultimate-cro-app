@@ -49,16 +49,28 @@ export async function saveExperiment(admin: AdminClient, e: Experiment) {
   return clean;
 }
 
-type Line = { customAttributes: { key: string; value: string | null }[]; discountedTotalSet: { shopMoney: { amount: string } } };
+type Line = {
+  customAttributes: { key: string; value: string | null }[];
+  discountedTotalSet: { shopMoney: { amount: string } };
+  /** Set on the items of a bundle (mix & match or bundle product): which bundle, how many sold. */
+  lineItemGroup: { id: string; title: string; productId: string | null; quantity: number } | null;
+};
 type Order = { id: string; createdAt: string; cancelledAt: string | null; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
+
+export type Period = { appRevenue: number; appOrders: number; appOrdersTotal: number; orders: number; revenue: number };
+const emptyPeriod = (): Period => ({ appRevenue: 0, appOrders: 0, appOrdersTotal: 0, orders: 0, revenue: 0 });
 
 export type Results = {
   currency: string;
   orders: number;
   revenue: number;
   bySource: { key: string; label: string; revenue: number; lines: number; orders: number }[];
+  /** Each bundle (mix & match and bundle products): orders, bundles sold, revenue, average order value. */
+  byBundle: { key: string; name: string; orders: number; units: number; revenue: number; aov: number }[];
   groups: { app: { orders: number; revenue: number }; holdout: { orders: number; revenue: number } } | null;
   lift: number | null; // e.g. 0.12 = the app's group buys 12% more often
+  /** Last 30 days and the 30 before: sales from the app's items, orders with them, all orders. */
+  periods: { current: Period; previous: Period };
   from: string | null;
 };
 
@@ -85,7 +97,7 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
             id createdAt cancelledAt
             totalPriceSet { shopMoney { amount currencyCode } }
             customAttributes { key value }
-            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } } }
+            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } } }
           }
         }
       }`,
@@ -96,19 +108,54 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
     after = data.orders.pageInfo.endCursor;
   }
   const by = new Map<string, { revenue: number; lines: number; orders: Set<string> }>();
+  const bundles = new Map<string, { name: string; revenue: number; units: number; orders: Set<string>; orderTotals: number; groups: Set<string> }>();
   let revenue = 0;
   const groups = { app: { orders: 0, revenue: 0 }, holdout: { orders: 0, revenue: 0 } };
+  const periods = { current: emptyPeriod(), previous: emptyPeriod() };
+  const day = 864e5;
+  const now = Date.now();
   for (const o of orders) {
     const total = Number(o.totalPriceSet.shopMoney.amount) || 0;
     revenue += total;
+    const age = now - Date.parse(o.createdAt);
+    const period = age < 30 * day ? periods.current : age < 60 * day ? periods.previous : null;
+    let appHere = 0;
+    const bundlesHere = new Set<string>();
     for (const l of o.lineItems.nodes) {
+      const grp = l.lineItemGroup;
+      if (grp) {
+        const key = grp.productId ?? grp.title;
+        const row = bundles.get(key) ?? { name: grp.title, revenue: 0, units: 0, orders: new Set<string>(), orderTotals: 0, groups: new Set<string>() };
+        row.revenue += Number(l.discountedTotalSet.shopMoney.amount) || 0;
+        // A bundle's items share one group: count the bundles sold once per group.
+        if (!row.groups.has(grp.id)) {
+          row.groups.add(grp.id);
+          row.units += grp.quantity;
+        }
+        if (!bundlesHere.has(key)) {
+          bundlesHere.add(key);
+          row.orders.add(o.id);
+          row.orderTotals += total;
+        }
+        bundles.set(key, row);
+      }
       const s = sourceOf(l);
       if (!s) continue;
+      appHere += Number(l.discountedTotalSet.shopMoney.amount) || 0;
       const row = by.get(s) ?? { revenue: 0, lines: 0, orders: new Set<string>() };
       row.revenue += Number(l.discountedTotalSet.shopMoney.amount) || 0;
       row.lines += 1;
       row.orders.add(o.id);
       by.set(s, row);
+    }
+    if (period) {
+      period.orders += 1;
+      period.revenue += total;
+      if (appHere > 0) {
+        period.appOrders += 1;
+        period.appRevenue += appHere;
+        period.appOrdersTotal += total;
+      }
     }
     const g = o.customAttributes.find((x) => x.key === "_cro_group")?.value;
     if (xp.since && o.createdAt >= xp.since && (g === "app" || g === "holdout")) {
@@ -123,7 +170,11 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
     orders: orders.length,
     revenue,
     bySource: [...by.entries()].map(([key, r]) => ({ key, label: SOURCE_LABELS[key] ?? key, revenue: r.revenue, lines: r.lines, orders: r.orders.size })).sort((a, b) => b.revenue - a.revenue),
+    byBundle: [...bundles.entries()]
+      .map(([key, r]) => ({ key, name: r.name, orders: r.orders.size, units: r.units, revenue: r.revenue, aov: r.orders.size ? r.orderTotals / r.orders.size : 0 }))
+      .sort((a, b) => b.revenue - a.revenue),
     groups: xp.since ? groups : null,
+    periods,
     lift,
     from: orders.length ? orders[orders.length - 1].createdAt : null,
   };

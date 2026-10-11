@@ -1,23 +1,16 @@
-/**
- * A category of the app (Offers & bundles, Boosters, Sections, Header & pages): the same cards as
- * All features, for that category only. The side menu links here.
- */
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useParams } from "react-router";
-import { boundary } from "@shopify/shopify-app-react-router/server";
-import { HomeView, action, loader as homeLoader } from "./app.features";
-import { isCategory } from "../lib/catalog";
+/** Old category pages (Offers & bundles, Boosters, Sections, Header & pages, Checkout) → the new hubs. */
+import type { LoaderFunctionArgs } from "react-router";
+import { authenticate } from "../shopify.server";
 
-export const loader = async (args: LoaderFunctionArgs) => {
-  if (!isCategory(args.params.cat)) throw new Response("Not found", { status: 404 });
-  return homeLoader(args);
+const HUB: Record<string, string> = {
+  offers: "/app/offers",
+  boosters: "/app/storefront?cat=bars",
+  sections: "/app/storefront?cat=content",
+  design: "/app/storefront?cat=pages",
+  checkout: "/app/checkout",
 };
 
-export { action };
-
-export default function CategoryPage() {
-  const { cat } = useParams();
-  return <HomeView key={cat} only={isCategory(cat) ? cat : "offers"} />;
-}
-
-export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  const { redirect } = await authenticate.admin(request);
+  return redirect(HUB[params.cat ?? ""] ?? "/app/storefront");
+};

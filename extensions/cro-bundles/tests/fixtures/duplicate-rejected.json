@@ -20,6 +20,7 @@
             "merchandise": {
               "__typename": "ProductVariant",
               "id": "gid://shopify/ProductVariant/101",
+              "title": "Default Title",
               "product": {
                 "id": "gid://shopify/Product/10"
               },

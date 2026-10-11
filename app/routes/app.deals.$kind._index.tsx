@@ -33,7 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (form.get("intent") === "delete") await deleteDeal(admin, deal.id!);
     else {
       const active = form.get("active") === "true";
-      const over = await checkLimit(admin, session.shop, "bundlesAndDeals", { ...deal, active });
+      const over = await checkLimit(admin, session.shop, "offerSlots", { ...deal, active });
       if (over) return { ok: false, error: over.error, intent: "active", upgrade: true };
       await setDealActive(admin, deal, active);
     }
@@ -56,7 +56,7 @@ export default function DealList() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   return (
-    <s-page heading="Bundles" inlineSize="large">
+    <s-page heading={t.title} inlineSize="large">
       <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}

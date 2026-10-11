@@ -260,8 +260,43 @@
     return u + (u.indexOf('?') > -1 ? '&' : '?') + 'width=' + width;
   }
 
+  /*
+   * Mix & match bundle price, the same way the cro-bundles Cart Transform charges it (keep in sync):
+   * b = { k: 'fixed'|'percent'|'tiers', pr: bundle product price (cents, shopper's currency),
+   *       pc: percent, tr: [[count, cents]], ex: { 'xl': cents } } (tr and ex in the store's currency)
+   * picks = [{ cents, vt: 'XL / Red' }]. Returns { value, price, next } — price is null when the number
+   * of items doesn't match a tier; next = the item count of the next tier (tiers only).
+   */
+  function bundlePrice(b, picks) {
+    var rate = (window.Shopify && window.Shopify.currency && Number(window.Shopify.currency.rate)) || 1;
+    var value = picks.reduce(function (t, p) { return t + (Number(p.cents) || 0); }, 0);
+    var tiers = Array.isArray(b.tr) ? b.tr : [];
+    var n = picks.length;
+    var nextTier = tiers.filter(function (t) { return t[0] >= n; })[0];
+    var next = nextTier ? nextTier[0] : null;
+    if (b.k === 'percent') return { value: value, price: Math.round(value * (1 - (Number(b.pc) || 0) / 100)), next: next };
+    var extra = 0;
+    var ex = b.ex || {};
+    picks.forEach(function (p) {
+      String(p.vt || '').toLowerCase().split(' / ').forEach(function (part) {
+        part = part.trim();
+        if (Object.prototype.hasOwnProperty.call(ex, part)) extra += Number(ex[part]) || 0;
+      });
+    });
+    var base;
+    if (b.k === 'tiers') {
+      var hit = tiers.filter(function (t) { return t[0] === n; })[0];
+      if (!hit) return { value: value, price: null, next: next };
+      base = hit[1] * rate;
+    } else {
+      base = Number(b.pr) || 0;
+    }
+    var price = Math.round(base + extra * rate);
+    return { value: value, price: value ? Math.min(price, value) : price, next: next };
+  }
+
   window.UCRO = {
     money: money, add: add, cart: cart, recommendations: recommendations, img: img,
-    decorate: decorate, styleButton: styleButton, productForm: productForm, route: route
+    decorate: decorate, styleButton: styleButton, productForm: productForm, route: route, bundlePrice: bundlePrice
   };
 })();

@@ -57,7 +57,16 @@
   }
   function remaining(b) {
     var c = counts(b);
-    return b.s.reduce(function (n, s, i) { return n + Math.max(0, s.n - c[i]); }, 0);
+    var steps = b.s.reduce(function (n, s, i) { return n + Math.max(0, s.n - c[i]); }, 0);
+    if (b.k !== 'tiers') return steps;
+    // Price tiers: complete at a tier's exact number of items.
+    var n = state ? state.picks.length : 0;
+    var tier = rulesOf(b).tr.filter(function (t) { return t[0] >= n + steps; })[0];
+    return tier ? Math.max(steps, tier[0] - n) : Math.max(steps, 1);
+  }
+  function rulesOf(b) {
+    var r = b.r || {};
+    return { k: b.k, pr: b.pr, pc: b.pc, tr: r.tr || [], ex: r.ex || {} };
   }
   function money(cents) {
     return U.money(cents, D.fmt);
@@ -70,9 +79,10 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
     });
   }
-  function bundlePrice(b, value) {
-    if (b.k === 'percent') return Math.round(value * (1 - (Number(b.pc) || 0) / 100));
-    return Math.min(b.pr, value || b.pr);
+  /** Priced like the Cart Transform (UCRO.bundlePrice in ucro-core.js). */
+  function bundlePrice(b) {
+    var calc = U.bundlePrice(rulesOf(b), (state ? state.picks : []).map(function (p) { return { cents: p.c, vt: p.o }; }));
+    return calc.price === null ? calc.value : calc.price;
   }
 
   /** Adds one variant to a bundle step; returns false (with a message) when it can't. */
@@ -93,7 +103,7 @@
       open(true);
       return false;
     }
-    state.picks.push({ v: item.v, s: stepIndex, t: item.t, i: item.i, c: item.c, h: item.h });
+    state.picks.push({ v: item.v, s: stepIndex, t: item.t, i: item.i, c: item.c, h: item.h, o: item.o });
     save();
     render();
     open(true);
@@ -116,7 +126,7 @@
   function itemOf(p, variant) {
     var img = (variant.featured_image && variant.featured_image.src) || p.featured_image || '';
     var title = p.title + (p.variants.length > 1 && variant.title ? ' · ' + variant.title : '');
-    return { v: variant.id, t: title, i: img ? U.img(img, 160) : '', c: variant.price, h: p.handle };
+    return { v: variant.id, t: title, i: img ? U.img(img, 160) : '', c: variant.price, h: p.handle, o: variant.title || '' };
   }
 
   /* ---- the bundle tray ----------------------------------------------------------- */
@@ -139,7 +149,7 @@
     var c = counts(b);
     var left = remaining(b);
     var value = state.picks.reduce(function (n, p) { return n + (Number(p.c) || 0); }, 0);
-    var price = bundlePrice(b, value);
+    var price = bundlePrice(b);
     var total = b.s.reduce(function (n, s) { return n + maxOf(s); }, 0);
     var thumbs = state.picks.slice(0, 5).map(function (p) { return p.i ? '<img src="' + esc(p.i) + '" alt="" width="36" height="36">' : '<span class="ucro-bt__ph"></span>'; }).join('');
 

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { percentOff, validGroup } from "../src/cart_transform_run.js";
+import { extraCents, percentOff, tierPrice, validGroup } from "../src/cart_transform_run.js";
 
 const COL = "gid://shopify/Collection/900";
-const pick = (variant, step, { qty = 1, member = true, product = 10 } = {}) => ({
+const pick = (variant, step, { qty = 1, member = true, product = 10, title = "Default Title" } = {}) => ({
   step,
-  line: { quantity: qty, merchandise: { __typename: "ProductVariant", id: `v${variant}`, product: { id: `gid://shopify/Product/${product}` }, inCollections: [{ collectionId: COL, isMember: member }] } },
+  line: { quantity: qty, merchandise: { __typename: "ProductVariant", id: `v${variant}`, title, product: { id: `gid://shopify/Product/${product}` }, inCollections: [{ collectionId: COL, isMember: member }] } },
 });
 const bundle = { pv: "1", d: 0, s: [{ n: 2, x: 3, c: "900" }, { n: 0, x: 1, p: [(7).toString(36)] }] };
 
@@ -35,5 +35,35 @@ describe("bundle price", () => {
   test("percent off is used as is, capped at 100", () => {
     expect(percentOff({ k: "p", pc: 15 }, 80, 1)).toBe(15);
     expect(percentOff({ k: "p", pc: 150 }, 80, 1)).toBe(100);
+  });
+});
+
+describe("price tiers (price by number of items)", () => {
+  const tiered = { pv: "1", d: 1, k: "t", tr: [[3, 3000], [6, 5500]], s: [{ n: 1, x: 6, c: "900" }] };
+  const picks = (n) => Array.from({ length: n }, (_, i) => pick(i + 1, 0));
+  test("complete only at a tier's exact count", () => {
+    expect(validGroup(picks(3), tiered)).toBe(true);
+    expect(validGroup(picks(6), tiered)).toBe(true);
+    expect(validGroup(picks(4), tiered)).toBe(false);
+    expect(validGroup(picks(2), tiered)).toBe(false);
+  });
+  test("the tier's price becomes the discount", () => {
+    expect(tierPrice(tiered, 6)).toBe(5500);
+    expect(tierPrice(tiered, 5)).toBe(null);
+    expect(percentOff(tiered, 40, 1, 0, 3)).toBe(25); // 40 → 30
+    expect(percentOff(tiered, 80, 1, 0, 6)).toBe(31.25); // 80 → 55
+    expect(percentOff(tiered, 80, 1, 0, 5)).toBe(0); // no tier: no discount
+  });
+});
+
+describe("option extras (a pricier option costs more inside the bundle)", () => {
+  const b = { k: "f", pr: 6000, ex: { xl: 500 } };
+  test("adds the extra for every matching item", () => {
+    expect(extraCents([pick(1, 0, { title: "XL / Red" }), pick(2, 0, { title: "M / Red" }), pick(3, 0, { title: "XL", qty: 2 })], b)).toBe(1500);
+    expect(extraCents([pick(1, 0, { title: "S" })], b)).toBe(0);
+    expect(extraCents([pick(1, 0, { title: "XL" })], { k: "f" })).toBe(0);
+  });
+  test("the bundle price includes the extras", () => {
+    expect(percentOff(b, 80, 1, 1000)).toBe(12.5); // 60 + 10 = 70 of 80
   });
 });

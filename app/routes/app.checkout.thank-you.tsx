@@ -11,10 +11,12 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { createNextOrderCode, getThankYou, saveThankYou } from "../lib/thank-you.server";
+import { checkCount } from "../lib/billing.server";
 import { MODULE_TYPES, newModule, type ModuleType, type ThankYouModule } from "../lib/thank-you";
 import { CategoryCrumb } from "../components/FeatureNav";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
+import { SaveControls } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -23,7 +25,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     if (form.get("intent") === "code") {
@@ -31,7 +33,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return { ok: true as const, error: null, code, intent: "code" as const };
     }
     const { shopId } = await getThankYou(admin);
-    await saveThankYou(admin, shopId, JSON.parse(String(form.get("config") ?? "{}")));
+    const config = JSON.parse(String(form.get("config") ?? "{}"));
+    // Free: 2 modules on (plans.ts thankYouModules).
+    const on = Array.isArray(config?.modules) ? config.modules.filter((m: { on?: boolean }) => m?.on !== false).length : 0;
+    const limit = await checkCount(admin, session.shop, "thankYouModules", 0, on);
+    if (limit) return { ok: false as const, error: limit.error, code: null, intent: "save" as const };
+    await saveThankYou(admin, shopId, config);
     return { ok: true as const, error: null, code: null, intent: "save" as const };
   } catch (e) {
     return { ok: false as const, error: errorMessage(e), code: null, intent: String(form.get("intent") ?? "save") };
@@ -70,9 +77,7 @@ export default function ThankYouPage() {
   return (
     <s-page heading="Thank-you page" inlineSize="large">
       <CategoryCrumb feature="thank_you" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} disabled={!dirty} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={dirty} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "code"} saved={data.saved} onSave={save} onDiscard={() => setModules(JSON.parse(fetcher.data?.ok && fetcher.data.intent === "save" ? sent : JSON.stringify(data.config.modules)))} />
       <Button slot="secondary-actions" href={data.editor} target="_blank">
         Open checkout editor
       </Button>

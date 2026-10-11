@@ -20,6 +20,14 @@
     connectedCallback() {
       this.fmt = this.dataset.moneyFormat;
       this.dup = this.dataset.dup === 'true';
+      var rules = {};
+      try {
+        rules = JSON.parse(this.dataset.rules || 'null') || {};
+      } catch (e) {
+        rules = {};
+      }
+      // Price rules, priced the same way as the Cart Transform (UCRO.bundlePrice).
+      this.rules = { k: this.dataset.k || 'fixed', pr: Number(this.dataset.price) || 0, pc: Number(this.dataset.pc) || 0, tr: rules.tr || [], ex: rules.ex || {} };
       this.steps = Array.prototype.slice.call(this.querySelectorAll('.ucro-bundle__step')).map((el) => ({
         el: el,
         min: Number(el.dataset.min) || 0,
@@ -91,7 +99,7 @@
       var opt = v && v.tagName === 'SELECT' ? v.options[v.selectedIndex] : v;
       if (!opt || opt.disabled) return null;
       var vt = opt.dataset.title;
-      return { id: String(v.value), cents: Number(opt.dataset.cents) || 0, title: card.dataset.title + (vt ? ' (' + vt + ')' : '') };
+      return { id: String(v.value), cents: Number(opt.dataset.cents) || 0, vt: vt || '', title: card.dataset.title + (vt ? ' (' + vt + ')' : '') };
     }
 
     pick(step, card, adding) {
@@ -101,7 +109,7 @@
         if (step.max === 1 && !adding) step.picks = [];
         else return this.flash(step);
       }
-      step.picks.push({ card: card, id: v.id, cents: v.cents, title: v.title });
+      step.picks.push({ card: card, id: v.id, cents: v.cents, vt: v.vt, title: v.title });
       this.render();
     }
 
@@ -124,7 +132,16 @@
     }
 
     remaining() {
-      return this.steps.reduce((sum, s) => sum + Math.max(0, s.min - s.picks.length), 0);
+      var steps = this.steps.reduce((sum, s) => sum + Math.max(0, s.min - s.picks.length), 0);
+      if (this.rules.k !== 'tiers') return steps;
+      // Price tiers: the bundle is complete at a tier's exact number of items.
+      var n = this.total();
+      var tier = this.rules.tr.filter((t) => t[0] >= n + steps)[0];
+      return tier ? Math.max(steps, tier[0] - n) : steps;
+    }
+
+    allPicks() {
+      return this.steps.reduce((all, s) => all.concat(s.picks), []);
     }
 
     total() {
@@ -132,7 +149,8 @@
     }
 
     complete() {
-      return this.remaining() === 0 && this.total() > 0;
+      if (this.remaining() !== 0 || this.total() === 0) return false;
+      return this.rules.k !== 'tiers' || U.bundlePrice(this.rules, this.allPicks()).price !== null;
     }
 
     render() {
@@ -175,8 +193,11 @@
           list.appendChild(li);
         }));
       }
-      var value = this.steps.reduce((sum, s) => sum + s.picks.reduce((t, p) => t + p.cents, 0), 0);
-      var price = Number(this.dataset.price) || 0;
+      var calc = U.bundlePrice(this.rules, this.allPicks());
+      var value = calc.value;
+      var price = calc.price === null ? 0 : calc.price;
+      var priceEl = this.querySelector('[data-price]');
+      if (priceEl && calc.price !== null && (this.total() || this.rules.k !== 'percent')) priceEl.textContent = U.money(price, this.fmt);
       var valueEl = this.querySelector('[data-value]');
       var saveEl = this.querySelector('[data-save]');
       var saving = value - price;
@@ -329,7 +350,7 @@
           });
           if (card && step.picks.length < step.max) {
             var v = this.variantOf(card);
-            if (v && (this.dup || !this.countOf(step, card))) step.picks.push({ card: card, id: v.id, cents: v.cents, title: v.title });
+            if (v && (this.dup || !this.countOf(step, card))) step.picks.push({ card: card, id: v.id, cents: v.cents, vt: v.vt, title: v.title });
           }
         });
       });

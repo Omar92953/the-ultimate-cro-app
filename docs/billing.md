@@ -2,7 +2,7 @@
 
 Everything about prices and limits lives in **`app/lib/plans.ts`** — change a number there and the
 whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values there now are the
-**proposal** (Free / Starter $9.99 / Growth $24.99 / Pro $49.99, 14-day trial) and still need
+**proposal** (Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial) and still need
 Omar's decision.
 
 ## How it works
@@ -24,10 +24,23 @@ Omar's decision.
   the plan doesn't include (no 404s or errors), and `shopify.server.ts` refuses saves on those
   pages. Settings a store made before a downgrade **keep working on the store** — they just can't
   be edited until the store upgrades (decision for Omar: keep this, or switch them off).
-- **Counted limits** (Free: 1 upsell, 1 cross-sell, 1 bundle or deal — counted when switched on):
-  saving one more shows a message with an upgrade button. An offer can always be saved switched off.
-- **Downgrade**: nothing is deleted. Per list, the first N items (in the order the app lists them —
-  priority for offers, list order for bundles, then deals) stay on; the rest are switched off and
+- **Counted limits** (`limits` in plans.ts; counted when switched on, an item can always be saved
+  switched off; going over shows a message with an upgrade button):
+  - **Offer slots** — Free 3, shared by every offer type (upsell, cross-sell, mix & match, bundle
+    product, fixed bundle, deals, after-purchase). The Offers hub shows "x of 3 offer slots used".
+  - **Checkout rules** — Free 3, Starter 6, Growth+ unlimited (payment + delivery + order limits together).
+  - **Countdown places** — Free 1. **Thank-you modules** — Free 2. **Styles per section** — Free 1, paid 5.
+  - **Offer results** on Analytics — Free 1, Starter 3 (top by revenue), Growth+ all; the rest are
+    summed in one row with an upgrade button.
+- **Taste of the next plan**: a Free store can use **1 Starter feature of its choice** for free
+  ("Try it free" card on the locked page → `/app/plan-trial`, stored as `trial` in plan_state).
+  Picking another moves the trial; the old one keeps working on the store but can't be edited.
+- **Cancel anytime**: every paid plan card and upgrade card shows `GUARANTEE` from plans.ts.
+- **Plans page** `/app/plans`: each plan's job, highlights, monthly/yearly prices, full comparison
+  table (built from plans.ts), and the store's measured app sales of the last 30 days.
+- **Downgrade**: nothing is deleted. The first N offers (in the Offers hub order: upsells,
+  cross-sells, bundles, deals; bundle products and the after-purchase offer fill slots but are never
+  switched off) and the first N checkout rules stay on; the rest are switched off and
   remembered (`$app:cro_design` "plan_state"). Home shows a banner naming them. After an upgrade
   they're switched back on automatically, up to the new limit. Switching off only happens when
   the plan is confirmed (Partner API, or a subscription found by the Admin API, or the override):
@@ -35,7 +48,7 @@ Omar's decision.
   stay on the store; the editor for them shows an upgrade card.
 - **Orders a month** is a soft limit: Home shows a banner when this month's orders pass it. It
   needs `read_orders` (pending Shopify's approval); until then nothing is shown.
-- Results' **holdout test** needs Growth to start; a running test can always be stopped.
+- Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
 - **Request a feature** (Growth and up): a card on Home opens an email to `SUPPORT_EMAIL` with the shop's name; we build the requested feature for them. Free and Starter stores see the card with an upgrade button.
 
 ## Partner Dashboard steps (Omar)
@@ -47,9 +60,9 @@ Omar's decision.
    | Plan handle | Display name | Monthly | Yearly | Trial |
    |---|---|---|---|---|
    | `free` | Free | $0 | — | — |
-   | `starter` | Starter | $9.99 | $99 | 14 days |
-   | `growth` | Growth | $24.99 | $249 | 14 days |
-   | `pro` | Pro | $49.99 | $499 | 14 days |
+   | `starter` | Starter | $5.99 | $59 | 14 days |
+   | `growth` | Growth | $14.99 | $149 | 14 days |
+   | `pro` | Pro | $24.99 | $249 | 14 days |
 
    Use the `highlights` lines from `plans.ts` as each plan's "Top features". If a handle has to be
    different, change `handle` in `plans.ts` to match.

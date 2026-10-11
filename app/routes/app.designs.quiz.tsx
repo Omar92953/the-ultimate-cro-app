@@ -23,6 +23,7 @@ import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["quiz"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -60,7 +61,7 @@ export default function QuizDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Quiz saved");
+    else shopify.toast.show("Saved");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part =
@@ -75,9 +76,7 @@ export default function QuizDesigner() {
   return (
     <s-page heading="Product quiz" inlineSize="large">
       <CategoryCrumb feature="quiz" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

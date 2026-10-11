@@ -11,7 +11,7 @@ import { SAMPLE_BUNDLE, type PreviewBundle, type PreviewItem } from "./BundlePre
 const TINTS = ["linear-gradient(145deg,#ffd6a5,#f4a261)", "linear-gradient(145deg,#bde0fe,#6c9bd2)", "linear-gradient(145deg,#cdb4db,#9b72b0)", "linear-gradient(145deg,#b7e4c7,#52b788)", "linear-gradient(145deg,#ffc8dd,#e07a9a)"];
 const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\[(\w+)\]/g, (m, k) => (k in vars ? String(vars[k]) : m));
 
-export function BundleCollectionPreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", page, block, pricing }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; page: PreviewTheme; block: PreviewTheme | null; pricing?: { kind: "fixed" | "percent"; percent: number } }) {
+export function BundleCollectionPreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", page, block, pricing }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; page: PreviewTheme; block: PreviewTheme | null; pricing?: { kind: "fixed" | "percent" | "tiers"; percent: number } }) {
   // The collection shown: the first step that lists products (a collection step on the store).
   const stepIndex = Math.max(0, bundle.steps.findIndex((s) => s.items.length > 0));
   const step = bundle.steps[stepIndex];

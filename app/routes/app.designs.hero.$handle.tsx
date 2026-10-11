@@ -22,6 +22,7 @@ import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { SizesSection } from "../components/SizesSection";
 import { HERO_SIZES } from "../lib/hero-design";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -125,7 +126,7 @@ export default function HeroEditor() {
     const r = fetcher.data;
     if (!r.ok) shopify.toast.show(r.error || "Not saved", { isError: true });
     else if (r.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Pick this banner in a “Hero image” section, then Save here to put it live.");
-    else shopify.toast.show("Banner saved — live on your store");
+    else shopify.toast.show("Saved and live");
     // A new banner now has its own address: keep editing it there.
     if (r.ok && r.created && r.handle) navigate(`/app/designs/hero/${r.handle}`, { replace: true });
   }, [fetcher.state, fetcher.data, shopify, navigate]);
@@ -141,9 +142,7 @@ export default function HeroEditor() {
       <s-link slot="breadcrumb-actions" href="/app/designs/hero">
         Hero banners
       </s-link>
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config) && !(fetcher.data?.ok && fetcher.data.created)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={!!data.handle} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

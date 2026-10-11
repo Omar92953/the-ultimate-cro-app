@@ -11,6 +11,7 @@ import { sectionLinks } from "../lib/sections.server";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Card, CardGrid, CardText, Explainer, Pill } from "../components/ui";
 import { CategoryCrumb } from "../components/FeatureNav";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -79,10 +80,8 @@ export default function Boosters() {
 
   return (
     <s-page heading="Conversion boosters" inlineSize="large">
-      <CategoryCrumb feature="boosters" />
-      <Button slot="primary-action" variant="primary" loading={busy && fetcher.formData?.get("intent") === "save"} onClick={save}>
-        Save
-      </Button>
+      <CategoryCrumb feature="sticky_atc" />
+      <SaveControls dirty={changed(cfg, data.config)} saving={busy && fetcher.formData?.get("intent") === "save"} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         Turn on in theme
       </Button>

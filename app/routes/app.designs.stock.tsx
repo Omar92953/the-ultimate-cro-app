@@ -23,6 +23,7 @@ import { SizesSection } from "../components/SizesSection";
 import { Segmented } from "../components/ui";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["stock"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -60,7 +61,7 @@ export default function StockDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Saved — live on your store");
+    else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part =
@@ -74,9 +75,7 @@ export default function StockDesigner() {
   return (
     <s-page heading="Back in stock & pre-order" inlineSize="large">
       <CategoryCrumb feature="stock" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

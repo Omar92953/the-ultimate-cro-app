@@ -23,7 +23,7 @@ export default function BundleList() {
   const { bundles, addBlock, anywhere } = useLoaderData<typeof loader>();
   const storeWide = bundles.some((b) => b.active && b.storeWide);
   return (
-    <s-page heading="Bundles" inlineSize="large">
+    <s-page heading="Mix & match bundles" inlineSize="large">
       <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href="/app/bundles/new">
         Create mix & match bundle

@@ -3,9 +3,11 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FEATURES, featuresForPath, type FeatureKey } from "../../app/lib/catalog";
+import { AREAS, FEATURES, areaForPath, featuresForPath, featuresIn, type FeatureKey } from "../../app/lib/catalog";
 import {
   EXTRA_PLAN,
+  GUARANTEE,
+  limitOf,
   FEATURE_PLAN,
   PLANS,
   PLAN_KEYS,
@@ -19,7 +21,7 @@ import {
   planFromSubscription,
   planPageUrl,
 } from "../../app/lib/plans";
-import { pageLock } from "../../app/lib/plan-gate";
+import { canTry, pageLock } from "../../app/lib/plan-gate";
 
 test("every feature has a plan, and prices only go up", () => {
   for (const k of Object.keys(FEATURES)) assert.ok(FEATURE_PLAN[k as FeatureKey], `no plan for ${k}`);
@@ -28,15 +30,28 @@ test("every feature has a plan, and prices only go up", () => {
   }
 });
 
-test("Free includes one active upsell, cross-sell and bundle-or-deal", () => {
-  assert.equal(limitError("free", "upsellOffers", 0), null);
-  assert.match(limitError("free", "upsellOffers", 1)!, /Free plan includes 1 active upsell offer\. Upgrade to Starter/);
-  assert.match(limitError("free", "bundlesAndDeals", 3)!, /1 active bundle or deal/);
-  assert.equal(limitError("starter", "upsellOffers", 500), null);
+test("Free has 3 offer slots shared by every offer type", () => {
+  assert.equal(limitError("free", "offerSlots", 2), null);
+  assert.match(limitError("free", "offerSlots", 3)!, /Free plan includes 3 offer slots\. Upgrade to Starter/);
+  assert.equal(limitError("starter", "offerSlots", 500), null);
+});
+
+test("each plan tastes the next: checkout rules 3 → 6 → unlimited, offer results 1 → 3 → all", () => {
+  assert.equal(limitOf("free", "checkoutRules"), 3);
+  assert.equal(limitOf("starter", "checkoutRules"), 6);
+  assert.equal(limitOf("growth", "checkoutRules"), null);
+  assert.deepEqual(PLAN_KEYS.map((p) => limitOf(p, "offerStats")), [1, 3, null, null]);
+  assert.equal(PLANS.free.limits.trialFeatures, 1);
+  assert.match(limitError("starter", "checkoutRules", 6)!, /Upgrade to Growth/);
+});
+
+test("every paid plan carries the cancel-anytime guarantee and a job", () => {
+  assert.match(GUARANTEE, /Cancel/);
+  for (const p of PLAN_KEYS) assert.ok(PLANS[p].job.length > 10);
 });
 
 test("the next plan up is the cheapest one with room", () => {
-  assert.equal(planAbove("upsellOffers", 1), "starter");
+  assert.equal(planAbove("offerSlots", 3), "starter");
   assert.equal(planAbove("designsPerSection", 1), "starter");
   assert.equal(planAbove("designsPerSection", 5), null);
   assert.equal(planAbove("monthlyOrders", 800, "starter"), "growth");
@@ -65,10 +80,10 @@ test("upgrade: paused items come back without going over the new limit", () => {
 
 test("features unlock from their plan up", () => {
   assert.ok(canUse("free", "upsell"));
-  assert.ok(!canUse("free", "wishlist"));
-  assert.ok(canUse("starter", "wishlist"));
-  assert.ok(!canUse("starter", "post_purchase"));
-  assert.ok(canUse("pro", "post_purchase"));
+  // Free matches the competitors' free tiers: checkout rules, wishlist, back in stock…
+  assert.ok(canUse("free", "wishlist") && canUse("free", "payment_rules") && canUse("free", "post_purchase"));
+  assert.ok(!canUse("free", "quiz"));
+  assert.ok(canUse("starter", "quiz"));
   assert.ok(atLeast("growth", "starter") && !atLeast("starter", "growth"));
   // Feature requests ("we build it for you") start on Growth.
   assert.ok(!atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("growth", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
@@ -78,11 +93,20 @@ test("pages map to features, and locked pages say which plan they need", () => {
   assert.deepEqual(featuresForPath("/app/offers/upsell/new"), ["upsell"]);
   assert.deepEqual(featuresForPath("/app/offers/upsell.data"), ["upsell"]);
   assert.deepEqual(featuresForPath("/app/settings"), []);
+  // Every feature belongs to a hub, and its pages lead back there.
+  assert.equal(areaForPath("/app/offers/upsell/new"), "offers");
+  assert.equal(areaForPath("/app/designs/quiz"), "storefront");
+  assert.equal(areaForPath("/app/checkout/limits"), "checkout");
+  assert.equal(areaForPath("/app/cart"), "cart");
   assert.deepEqual(featuresForPath("/app/sections/reviews").sort(), ["product_reviews", "reviews"]);
   assert.equal(pageLock("free", "/app/offers/upsell/new"), null);
-  assert.deepEqual(pageLock("free", "/app/designs/wishlist"), { kind: "feature", feature: "wishlist", needs: "starter" });
-  assert.deepEqual(pageLock("starter", "/app/checkout/payment"), { kind: "feature", feature: "checkout_rules", needs: "growth" });
-  assert.equal(pageLock("growth", "/app/checkout/payment"), null);
+  assert.deepEqual(pageLock("free", "/app/designs/quiz"), { kind: "feature", feature: "quiz", needs: "starter" });
+  assert.equal(pageLock("starter", "/app/designs/quiz"), null);
+  assert.equal(pageLock("free", "/app/checkout/payment"), null);
+  // Hubs and the offer picker are never locked.
+  assert.equal(pageLock("free", "/app/offers"), null);
+  assert.equal(pageLock("free", "/app/offers/new"), null);
+  assert.equal(pageLock("free", "/app/storefront"), null);
   // Not features: never locked.
   assert.equal(pageLock("free", "/app"), null);
   assert.equal(pageLock("free", "/app/results"), null);
@@ -112,4 +136,36 @@ test("subscription names and handles map to plans", () => {
 
 test("plan selection page URL", () => {
   assert.equal(planPageUrl("my-shop.myshopify.com", "cro-toolbox"), "https://admin.shopify.com/store/my-shop/charges/cro-toolbox/pricing_plans");
+});
+
+test("every feature is listed on its hub", () => {
+  for (const k of Object.keys(FEATURES) as FeatureKey[]) {
+    assert.ok(AREAS.some((a) => featuresIn(a.key).includes(k)), `${k} is on no hub`);
+  }
+});
+
+test("Free tries 1 Starter feature: its pages open, others stay locked", () => {
+  assert.equal(canTry("free", "addons"), true);
+  assert.equal(canTry("free", "upsell"), false); // already free
+  assert.equal(canTry("starter", "addons"), false); // already included
+  assert.equal(canTry("starter", "payment_rules"), false); // Starter has no trial slot
+  assert.equal(pageLock("free", "/app/designs/add-ons")?.kind, "feature");
+  assert.equal(pageLock("free", "/app/designs/add-ons", "", "addons"), null);
+  assert.equal(pageLock("free", "/app/designs/personalize", "", "addons")?.kind, "feature");
+});
+
+test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () => {
+  assert.equal(limitError("free", "countdownPlaces", 0), null);
+  assert.match(limitError("free", "countdownPlaces", 1) ?? "", /Starter/);
+  assert.equal(limitError("free", "thankYouModules", 1), null);
+  assert.match(limitError("free", "thankYouModules", 2) ?? "", /Starter/);
+  assert.equal(limitError("starter", "countdownPlaces", 9), null);
+  assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
+});
+
+test("plan cards: each plan leads with its main limit, then its features", () => {
+  for (const k of PLAN_KEYS) {
+    assert.ok(PLANS[k].highlights.length >= 3, k);
+    assert.match(PLANS[k].highlights[0], /orders/, k);
+  }
 });

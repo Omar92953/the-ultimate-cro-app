@@ -27,6 +27,7 @@ import {
 import type { Ref } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -54,7 +55,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
     const deal = JSON.parse(String(form.get("deal"))) as Deal;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a deal can always be saved off.
-    const over = await checkLimit(admin, session.shop, "bundlesAndDeals", deal);
+    const over = await checkLimit(admin, session.shop, "offerSlots", deal);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveDeal(admin, deal);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
@@ -118,7 +119,7 @@ export default function DealEditor() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok) {
-      shopify.toast.show("Bundle saved");
+      shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/deals/${kind}/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
       shopify.toast.show("Could not save — see the message at the top", { isError: true });
@@ -169,9 +170,7 @@ export default function DealEditor() {
       <s-link slot="breadcrumb-actions" href={`/app/deals/${kind}`}>
         {t.title}
       </s-link>
-      <Button slot="primary-action" variant="primary" onClick={save} loading={busy}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(deal, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setTouched(false); }} />
       {!isNew ? (
         <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
           Delete

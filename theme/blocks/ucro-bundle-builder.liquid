@@ -50,6 +50,9 @@
     data-mode="{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' }}"
     data-variant-id="{{ bv.id }}"
     data-price="{{ bv.price }}"
+    data-k="{{ bundle.pricing.value | default: 'fixed' }}"
+    data-pc="{{ bundle.percent_off.value | default: 0 }}"
+    data-rules="{{ bundle.price_rules.value | json | escape }}"
     data-dup="{{ dup }}"
     data-theme-button="{% if d.tb %}true{% else %}false{% endif %}"
     data-money-format="{{ shop.money_format | escape }}"
@@ -168,8 +171,8 @@
   "stylesheet": "ucro.css",
   "enabled_on": { "templates": ["product"] },
   "settings": [
-    { "type": "select", "id": "design", "label": "Design", "default": "1", "info": "Which of the section's designs made in the app to show.", "options": [
-      { "value": "1", "label": "Design 1" }, { "value": "2", "label": "Design 2" }, { "value": "3", "label": "Design 3" }, { "value": "4", "label": "Design 4" }, { "value": "5", "label": "Design 5" }
+    { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
+      { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }
     ] },
     { "type": "paragraph", "content": "Steps, products and the look are set in CRO Toolbox → Bundles. Shoppers pay the bundle product's price, and each picked item's stock goes down." }
   ]

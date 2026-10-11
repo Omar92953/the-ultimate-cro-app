@@ -22,7 +22,10 @@
  * Config, from the dashboard, in this cart transform's `$app.bundles` metafield:
  * { "b": { "<bundle product id>": {
  *     "pv": "<parent variant id>", "t": "<title>", "d": 0|1 (same item twice),
- *     "k": "f" (fixed: the bundle product's price) | "p" (percent off), "pr": <price in cents>, "pc": <percent>,
+ *     "k": "f" (fixed: the bundle product's price) | "p" (percent off) | "t" (tiers: price by item count),
+ *     "pr": <price in cents>, "pc": <percent>,
+ *     "tr": [[<item count>, <price in cents>], …] (tiers; the bundle is complete at exactly one of these counts),
+ *     "ex": { "<option value, lower case>": <extra cents per item> } (fixed and tier prices),
  *     "s": [{ "n": min, "x": max, "c": "<collection id>" | "p": ["<product id base36>", …] }] } } }
  * The step collections are also passed as input variables (`$app.bundle_vars`, set with the config).
  */
@@ -64,7 +67,8 @@ export function cartTransformRun(input) {
     const bundle = bundles[key.split(":")[0]];
     if (!bundle || !validGroup(picks, bundle)) continue;
     const total = picks.reduce((sum, p) => sum + Number(p.line.cost?.amountPerQuantity?.amount || 0) * p.line.quantity, 0);
-    const off = percentOff(bundle, total, rate);
+    const count = picks.reduce((n, p) => n + (Number(p.line.quantity) || 0), 0);
+    const off = percentOff(bundle, total, rate, extraCents(picks, bundle), count);
     /** @type {any} */
     const merge = {
       cartLines: picks.map((p) => ({ cartLineId: p.line.id, quantity: p.line.quantity })),
@@ -100,7 +104,37 @@ export function validGroup(picks, bundle) {
     perVariant.set(merch.id, (perVariant.get(merch.id) || 0) + qty);
   }
   if (!bundle.d && [...perVariant.values()].some((n) => n > 1)) return false;
-  return steps.every((/** @type {any} */ s, /** @type {number} */ i) => counts[i] >= (Number(s.n) || 0) && counts[i] <= Math.max(Number(s.x) || 0, Number(s.n) || 0, 1));
+  const stepsOk = steps.every((/** @type {any} */ s, /** @type {number} */ i) => counts[i] >= (Number(s.n) || 0) && counts[i] <= Math.max(Number(s.x) || 0, Number(s.n) || 0, 1));
+  if (!stepsOk) return false;
+  return bundle.k !== "t" || tierPrice(bundle, counts.reduce((a, b) => a + b, 0)) !== null;
+}
+
+/**
+ * Tier pricing: the price (cents, store currency) for exactly `count` items, or null.
+ * @param {any} bundle
+ * @param {number} count
+ */
+export function tierPrice(bundle, count) {
+  const tiers = Array.isArray(bundle.tr) ? bundle.tr : [];
+  const hit = tiers.find((/** @type {any} */ t) => Array.isArray(t) && Number(t[0]) === count);
+  return hit ? Number(hit[1]) || 0 : null;
+}
+
+/**
+ * Option extras: e.g. { "xl": 500 } adds 5.00 for every picked item whose variant is "XL" (or
+ * "XL / Red"). Cents, store currency.
+ * @param {{ line: any }[]} picks
+ * @param {any} bundle
+ */
+export function extraCents(picks, bundle) {
+  const ex = bundle.ex && typeof bundle.ex === "object" ? bundle.ex : null;
+  if (!ex) return 0;
+  let cents = 0;
+  for (const { line } of picks) {
+    const parts = String(line.merchandise?.title || "").toLowerCase().split(" / ").map((p) => p.trim());
+    for (const part of parts) if (Object.prototype.hasOwnProperty.call(ex, part)) cents += (Number(ex[part]) || 0) * (Number(line.quantity) || 0);
+  }
+  return cents;
 }
 
 /**
@@ -118,15 +152,20 @@ function inStep(merch, step) {
 }
 
 /**
- * The discount to reach the bundle price: a fixed price (the bundle product's, converted to the
- * shopper's currency) or a percentage. Never a price increase.
+ * The discount to reach the bundle price: a fixed price (the bundle product's, or the tier's for
+ * the number of items, plus option extras, converted to the shopper's currency) or a percentage.
+ * Never a price increase.
  * @param {any} bundle
  * @param {number} total the picks' total in the shopper's currency
  * @param {number} rate shop currency → shopper's currency
+ * @param {number} [extras] option extras in cents, store currency
+ * @param {number} [count] number of items picked (tier pricing)
  */
-export function percentOff(bundle, total, rate) {
+export function percentOff(bundle, total, rate, extras = 0, count) {
   if (bundle.k === "p") return clamp(Number(bundle.pc) || 0);
-  const price = ((Number(bundle.pr) || 0) / 100) * rate;
+  const base = bundle.k === "t" ? tierPrice(bundle, count ?? 0) : Number(bundle.pr) || 0;
+  if (base === null) return 0;
+  const price = ((base + (Number(extras) || 0)) / 100) * rate;
   if (!(total > 0) || !(price > 0) || price >= total) return 0;
   return clamp((1 - price / total) * 100);
 }
