@@ -26,6 +26,8 @@ services:
         sync: false        # https://<this service>.onrender.com
       - key: SCOPES
         value: read_files,write_files,read_online_store_navigation,read_orders,read_products,read_themes,write_cart_transforms,write_delivery_customizations,write_discounts,write_metaobject_definitions,write_metaobjects,write_payment_customizations,write_validations   # must match shopify.app.toml
+      - key: SUPPORT_EMAIL
+        sync: false        # shown on /privacy as the contact address (the listing's privacy policy URL)
       - key: DATABASE_URL
         sync: false        # Supabase → Connect → Session pooler (…pooler.supabase.com:5432/postgres) — Render is a long-running server
       - key: DIRECT_URL

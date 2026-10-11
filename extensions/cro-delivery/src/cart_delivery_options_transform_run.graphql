@@ -4,7 +4,7 @@ query CartDeliveryOptionsTransformRunInput {
     lines { merchandise { __typename ... on ProductVariant { product { id } } } }
     deliveryGroups {
       deliveryAddress { countryCode }
-      deliveryOptions { handle title }
+      deliveryOptions { handle title cost { amount } }
     }
     buyerIdentity { customer { numberOfOrders } }
   }

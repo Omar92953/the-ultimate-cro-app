@@ -54,10 +54,10 @@ export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFun
       button: r.buttonLabel,
       pct: r.discountPercent,
       items: r.offeredProducts.slice(0, 6).map((p) => ({ title: p.title, image: p.image ?? null, cents: prices.get(p.id) ?? 0 })),
-      handle: (await productForRule(admin, r))?.handle ?? null,
+      handle: (await productForRule(admin, r, session.shop))?.handle ?? null,
     })),
   );
-  const sample = offers.length ? null : await firstProduct(admin).catch(() => null);
+  const sample = offers.length ? null : await firstProduct(admin, session.shop).catch(() => null);
   return { bought: bought ? { at: bought.at, orders: bought.orders, pairs: bought.pairs } : null, config, saved, offers, sampleHandle: sample?.handle ?? null, currency: sample?.currency ?? "USD", style, shop: session.shop, css: storefrontCss("ucro.css"), inTheme: theme ? theme.installed.cross_sell : null, addLink: editorLinks(session.shop).cross_sell };
 });
 

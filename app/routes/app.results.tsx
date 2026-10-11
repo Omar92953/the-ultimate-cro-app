@@ -58,7 +58,17 @@ export default function Results() {
           how="Revenue below comes from your orders of the last 60 days. The holdout test hides the widgets from a small share of shoppers; comparing how often each group orders shows the real lift — not just what passed through the widgets."
           example="Upsell offers: EGP 12,400 from 31 orders. Holdout test: shoppers who see the app order 9% more often."
         />
-        {"error" in data.results ? <s-banner tone="critical" heading="Orders could not be read">{data.results.error}</s-banner> : null}
+        {"error" in data.results ? (
+          /not approved to access/i.test(data.results.error) ? (
+            <s-banner tone="warning" heading="Results need access to your orders">
+              Shopify hasn’t yet approved this app to read order data, so sales from the app’s widgets can’t be counted. The widgets themselves work as usual.
+            </s-banner>
+          ) : (
+            <s-banner tone="critical" heading="Orders could not be read">
+              {data.results.error}
+            </s-banner>
+          )
+        ) : null}
         {r ? (
           <s-section heading={`Last 60 days · ${r.orders} orders · ${fmt(r.revenue)}`}>
             <s-stack gap="base">

@@ -24,6 +24,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { FONTS } from "../lib/designs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { slottedRoute } from "../lib/design-slot.server";
+import { remember } from "../lib/short-cache.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
@@ -71,7 +72,9 @@ async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ 
 export const loader = slottedRoute(["bundles"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, bundles, style] = await Promise.all([getBundleDesign(admin), getThemeStatus(admin, session.shop).catch(() => null), listBundles(admin).catch(() => []), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
-  const { list, currency } = await previewBundles(admin, bundles).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
+  // Product pictures and prices for the preview: answered from memory while refreshing (see short-cache.server.ts).
+  const key = bundles.map((b) => `${b.id}:${b.steps.length}`).join(",");
+  const { list, currency } = await remember(session.shop, `bundlepreview|${key}`, 60000, () => previewBundles(admin, bundles), 1800000).catch(() => ({ list: [] as PreviewBundle[], currency: "USD" }));
   return { config, saved, bundles: list, currency, style, shop: session.shop, css: storefrontCss("ucro.css") + storefrontCss("ucro-bundle-tray.css"), inTheme: theme ? theme.installed.bundles : null, addLink: editorLinks(session.shop).bundles };
 });
 

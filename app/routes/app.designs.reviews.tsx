@@ -37,7 +37,7 @@ const placeOf = (request: Request): ReviewsPlace => (new URL(request.url).pathna
 export const loader = slottedRoute(["reviews", "reviews_product"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const place = placeOf(request);
-  const [{ config, saved }, items, sample] = await Promise.all([getReviewsDesign(admin, place), listItems(admin, "reviews").catch(() => []), place === "product" ? firstProduct(admin).catch(() => null) : Promise.resolve(null)]);
+  const [{ config, saved }, items, sample] = await Promise.all([getReviewsDesign(admin, place), listItems(admin, "reviews").catch(() => []), place === "product" ? firstProduct(admin, session.shop).catch(() => null) : Promise.resolve(null)]);
   const reviews: PreviewReview[] = items
     .filter((i) => i.values.active !== false)
     .map((i) => {

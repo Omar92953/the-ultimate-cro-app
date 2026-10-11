@@ -38,8 +38,8 @@ export const loader = slottedRoute(["upsell"], async ({ request }: LoaderFunctio
     .filter((r) => r.tiers.length)
     .sort((a, b) => Number(b.active) - Number(a.active))
     .slice(0, 6);
-  const products = await Promise.all(picked.map((r) => productForRule(admin, r)));
-  const fallback = picked.length ? null : await firstProduct(admin).catch(() => null);
+  const products = await Promise.all(picked.map((r) => productForRule(admin, r, session.shop)));
+  const fallback = picked.length ? null : await firstProduct(admin, session.shop).catch(() => null);
   const offers: (PreviewOffer & { name: string; product: PreviewProduct | null })[] = picked.map((r, i) => ({
     name: r.name,
     headline: r.headline,

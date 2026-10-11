@@ -59,7 +59,7 @@ const TEXT = {
   delivery: {
     heading: "Delivery rules",
     what: "Hide, rename or reorder the delivery options shoppers see at checkout, depending on the order.",
-    how: "Each rule picks the delivery options whose name contains your text, and changes them when every condition you set is met. The last option is never hidden, so shoppers can always check out.",
+    how: "Each rule picks the delivery options whose name contains your text, and changes them when every condition you set is met. The cheapest option stays first and selected, as Shopify requires.",
     example: "Hide “Express” when the cart has a fragile product, or rename “Standard” to “Free delivery in 2–3 days” over EGP 1,500.",
     what1: "delivery option" as const,
     match: "Delivery option name contains",
@@ -149,7 +149,7 @@ export default function CheckoutRules() {
               {page === "payment"
                 ? "Shopify decides which payment changes a plan allows; some, like renaming, may not apply on every plan or country."
                 : page === "delivery"
-                  ? "The cheapest option always stays selected first, as Shopify requires."
+                  ? "Shopify requires the cheapest option to stay selected first, so rules never hide the cheapest option or move another one above it. The last option is never hidden either."
                   : "Limits are checked at checkout. Use {limit} for the number and {product} for the product's name in a message."}
             </s-text>
           </s-stack>

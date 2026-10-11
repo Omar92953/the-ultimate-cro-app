@@ -31,7 +31,7 @@ export const loader = slottedRoute(["personalize"], async ({ request }: LoaderFu
     getPersonalizeDesign(admin),
     getThemeStatus(admin, session.shop).catch(() => null),
     getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
-    firstProduct(admin).catch(() => null),
+    firstProduct(admin, session.shop).catch(() => null),
   ]);
   return { config, saved, style, image: (sample as { image?: string | null } | null)?.image ?? null, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.personalize : false, addLink: sectionLinks(session.shop).personalize };
 });

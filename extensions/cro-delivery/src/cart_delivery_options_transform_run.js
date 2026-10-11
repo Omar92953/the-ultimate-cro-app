@@ -9,7 +9,11 @@
  * When = { "min": 0, "max": 0, "countries": ["EG"], "products": [gid], "customer": "any" | "guest" | "new" | "returning" }
  * (0 / empty = no limit). A rule applies to every delivery option whose title contains `match`
  * (case-insensitive) when all of its conditions are met. Rules run in order.
- * Shopify keeps the carrier name in front of a renamed option, and the cheapest option stays selected.
+ * Shopify keeps the carrier name in front of a renamed option.
+ *
+ * App Store rule 1.1.10: the cheapest shipping option must stay selected by default, so rules never
+ * hide the cheapest option still shown in a group, never move a pricier option to the top and never
+ * move the cheapest option down. The last option of a group is never hidden either.
  */
 
 /**
@@ -53,6 +57,7 @@ export function cartDeliveryOptionsTransformRun(input) {
   /** @type {RunResult["operations"]} */
   const operations = [];
   const hidden = new Set();
+  const cost = (o) => Number(o.cost?.amount ?? 0) || 0;
   for (const rule of rules) {
     const match = String(rule?.match || "").trim().toLowerCase();
     if (!match || !matches(rule.when, input.cart)) continue;
@@ -60,15 +65,22 @@ export function cartDeliveryOptionsTransformRun(input) {
       const visible = group.deliveryOptions.filter((o) => !hidden.has(o.handle));
       for (const option of visible) {
         if (!(option.title || "").toLowerCase().includes(match)) continue;
+        const shown = group.deliveryOptions.filter((o) => !hidden.has(o.handle));
+        const cheapest = Math.min(...shown.map(cost));
+        const isCheapest = cost(option) <= cheapest;
         if (rule.action === "hide") {
-          // Never hide the last option of a group: the shopper couldn't check out at all.
-          if (group.deliveryOptions.filter((o) => !hidden.has(o.handle)).length <= 1) continue;
+          // Never the last option (no way to check out) nor the cheapest one (rule 1.1.10).
+          if (shown.length <= 1 || isCheapest) continue;
           hidden.add(option.handle);
           operations.push({ deliveryOptionHide: { deliveryOptionHandle: option.handle } });
         } else if (rule.action === "rename" && rule.name) {
           operations.push({ deliveryOptionRename: { deliveryOptionHandle: option.handle, title: String(rule.name).slice(0, 100) } });
         } else if (rule.action === "move") {
-          operations.push({ deliveryOptionMove: { deliveryOptionHandle: option.handle, index: Math.max(0, Math.floor(Number(rule.index) || 0)) } });
+          let index = Math.max(0, Math.floor(Number(rule.index) || 0));
+          // The top stays the cheapest option (rule 1.1.10).
+          if (index === 0 && !isCheapest) index = 1;
+          if (isCheapest && index > 0 && shown.filter((o) => cost(o) <= cheapest).length === 1) continue;
+          operations.push({ deliveryOptionMove: { deliveryOptionHandle: option.handle, index } });
         }
       }
     }
