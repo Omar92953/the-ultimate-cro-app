@@ -57,6 +57,9 @@
 {%- comment -%} Gift note & delivery date inside the cart drawer (designed in the app). {%- endcomment -%}
 {%- assign ce = shop.metaobjects['$app:cro_design']['cart_extras'].config.value -%}
 {%- if ce.drawer -%}<script type="application/json" id="ucs-ce-data">{{ ce | json }}</script><script src="{{ 'ucs-cart-extras.js' | asset_url }}" defer></script>{%- endif -%}
+{%- comment -%} Wishlist hearts, floating button and page (designed in the app). {%- endcomment -%}
+{%- assign wl = shop.metaobjects['$app:cro_design']['wishlist'].config.value -%}
+{%- if wl -%}<script type="application/json" id="ucs-wl-data">{"c":{{ wl | json }}{% if request.page_type == 'product' and product %},"ph":{{ product.handle | json }},"pp":{{ product.price | default: 0 }}{% endif %}}</script><script src="{{ 'ucs-wishlist.js' | asset_url }}" defer></script>{%- endif -%}
 
 {% schema %}
 {

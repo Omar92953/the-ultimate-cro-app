@@ -1627,3 +1627,24 @@ export function CartToolsShowcase() {
     </Stage>
   );
 }
+
+/** Wishlist: product cards with hearts and the floating count. */
+export function WishlistShowcase() {
+  return (
+    <Stage>
+      <span style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, width: "84%", fontSize: 10 }}>
+        {["Linen shirt", "Classic tee", "Canvas tote"].map((t, i) => (
+          <span key={t} style={{ display: "grid", gap: 3 }}>
+            <span style={{ position: "relative", aspectRatio: "1", borderRadius: 6, background: ["#e5e5e5", "#d8dee8", "#efe7da"][i] }}>
+              <span style={{ position: "absolute", top: 4, right: 4, width: 18, height: 18, borderRadius: 9, background: "#fff", display: "grid", placeItems: "center", color: "#e11d48", fontSize: 11 }}>{i !== 1 ? "♥" : "♡"}</span>
+            </span>
+            <b>{t}</b>
+          </span>
+        ))}
+        <span style={{ position: "absolute", left: -6, bottom: -14, padding: "3px 8px", borderRadius: 999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,.15)", color: "#e11d48" }}>
+          ♥ <b style={{ color: "#111" }}>2</b>
+        </span>
+      </span>
+    </Stage>
+  );
+}

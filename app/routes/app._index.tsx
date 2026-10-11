@@ -83,6 +83,7 @@ import {
   PersonalizeShowcase,
   CartExtrasShowcase,
   CartToolsShowcase,
+  WishlistShowcase,
   TrackShowcase,
   ReturnsShowcase,
 } from "../components/SectionShowcase";
@@ -269,7 +270,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "personalize" | "cart_extras" | "cart_tools" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "personalize" | "cart_extras" | "cart_tools" | "wishlist" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -281,6 +282,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
   { key: "cart_extras", title: "Gift note & delivery date", description: "“This is a gift”, a gift message and a delivery date picked in the cart — all on the order.", list: null, embed: false, app: "/app/designs/cart-extras", cat: "offers", Previews: [CartExtrasShowcase] },
   { key: "personalize", title: "Personalization", description: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", list: null, embed: false, app: "/app/designs/personalize", cat: "offers", Previews: [PersonalizeShowcase] },
+  { key: "wishlist", title: "Wishlist", description: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", list: null, embed: true, app: "/app/designs/wishlist", cat: "boosters", Previews: [WishlistShowcase] },
   { key: "cart_tools", title: "Cart drawer & checkout", description: "A slide-out cart with Shop Pay / Apple Pay buttons, the best discount applied, and a shareable cart link.", list: null, embed: true, app: "/app/designs/cart-tools", cat: "boosters", Previews: [CartToolsShowcase] },
   { key: "delivery", title: "Delivery estimate", description: "“Order within 2h 15m and get it Thu – Sat” on product pages and the cart.", list: null, embed: false, app: "/app/designs/delivery", cat: "boosters", Previews: [DeliveryShowcase] },
   { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },

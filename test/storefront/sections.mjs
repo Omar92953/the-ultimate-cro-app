@@ -443,6 +443,18 @@ const ctFake = `<script>
   })();
 </script>`;
 pages["cart-drawer.html"] = page("Cart drawer & checkout", ctFake + '<p style="margin:24px 40px"><a href="/cart" id="cart-icon-bubble">Cart (1)</a></p>', await block("ucs-cart", {}, { shop: ctShop }));
+const { toStorefrontWishlist, withWishlistDefaults } = await import("../../app/lib/wishlist-design.ts");
+const wlShop = withDesign(mo("wishlist", { config: toStorefrontWishlist(withWishlistDefaults({})) }));
+const wlFake = `<script>
+  try { localStorage.setItem("ucs-wishlist", JSON.stringify([{ h: "classic-tee", p: 50000, t: 1 }])); } catch (e) {}
+  const wf = window.fetch;
+  window.fetch = (u, o) => { u = String(u); if (u.includes("/products/")) return Promise.resolve(new Response(JSON.stringify({ title: u.includes("classic-tee") ? "Classic tee" : "Classic watch", url: "/products/x", price: 45000, featured_image: null, variants: [{ id: 1, available: true }] }))); return wf(u, o); };
+</script>`;
+pages["wishlist.html"] = page("Wishlist", wlFake +
+  '<div class="shopify-section" style="margin:24px 40px"><form action="/cart/add"><input type="hidden" name="id" value="7701"><button type="submit" name="add">Add to cart</button></form>' +
+  '<div class="card-wrapper" style="width:200px"><div class="card__media" style="height:120px;background:#eee"></div><a href="/products/classic-tee">Classic tee</a></div></div>' +
+  (await block("ucs-order-page", { page: "wishlist" }, { page_type: "page" })),
+  await block("ucs-boosters", {}, { page_type: "product", product: { ...watch, handle: "classic-watch", price: 12900 }, shop: wlShop }));
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

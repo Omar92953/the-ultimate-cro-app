@@ -94,11 +94,11 @@ export default function OrderPageDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature={feature} />
-          <DesignSlots base={isTrack ? "track_page" : "returns_page"} blockName="Track order & returns" />
+          <DesignSlots base={isTrack ? "track_page" : "returns_page"} blockName="Order & wishlist pages" />
           <s-text color="subdued">
             {isTrack
-              ? "Shoppers enter their order number and email and see the order's status, items and tracking. Create a page (Online Store → Pages, e.g. “Track your order”) and add the “Track order & returns” block to it (Page: Track order)."
-              : "Shoppers find their order with its number and email, choose the items and a reason, and the request arrives in Returns here. Create a page (e.g. “Returns”) and add the “Track order & returns” block to it (Page: Returns)."}
+              ? "Shoppers enter their order number and email and see the order's status, items and tracking. Create a page (Online Store → Pages, e.g. “Track your order”) and add the “Order & wishlist pages” block to it (Page: Track order)."
+              : "Shoppers find their order with its number and email, choose the items and a reason, and the request arrives in Returns here. Create a page (e.g. “Returns”) and add the “Order & wishlist pages” block to it (Page: Returns)."}
           </s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

@@ -113,7 +113,7 @@
     lookupForm();
   }
 
-  function scan() { document.querySelectorAll('[data-ucs-orders]').forEach(setup); }
+  function scan() { document.querySelectorAll('[data-ucs-orders="track"], [data-ucs-orders="returns"]').forEach(setup); }
   scan();
   document.addEventListener('shopify:section:load', scan);
 })();

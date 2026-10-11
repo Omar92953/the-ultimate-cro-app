@@ -16,6 +16,7 @@ import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from 
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
 import { toStorefrontCartExtras, withCartExtrasDefaults, type CartExtrasDesign } from "./cart-extras-design";
 import { toStorefrontCartTools, withCartToolsDefaults, type CartToolsDesign } from "./cart-tools-design";
+import { toStorefrontWishlist, withWishlistDefaults, type WishlistDesign } from "./wishlist-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
@@ -423,5 +424,18 @@ export async function saveCartTools(admin: AdminClient, config: CartToolsDesign,
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_tools", { config: store });
   await upsert(admin, "$app:cro_design", "cart_tools_draft", { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_tools_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ------------------------------------------------------------------ wishlist -- */
+export async function getWishlist(admin: AdminClient): Promise<{ config: WishlistDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "wishlist_editor");
+  return { config: withWishlistDefaults(raw), saved: raw !== null };
+}
+
+export async function saveWishlist(admin: AdminClient, config: WishlistDesign) {
+  const clean = withWishlistDefaults(config);
+  await upsert(admin, "$app:cro_design", "wishlist", { config: JSON.stringify(toStorefrontWishlist(clean)) });
+  await upsert(admin, "$app:cro_design", "wishlist_editor", { config: JSON.stringify(clean) });
   return clean;
 }
