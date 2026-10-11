@@ -13,6 +13,7 @@ import { HELP } from "../lib/help";
 import { Button, Select, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { SaveControls, changed } from "../components/SaveControls";
 
 type VideoOption = { id: string; title: string; image: string | null; duration: number | null };
 
@@ -69,7 +70,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
   }
   useEffect(() => {
     if (save.state !== "idle" || !save.data) return;
-    if (save.data.ok) shopify.toast.show("Carousel saved");
+    if (save.data.ok) shopify.toast.show("Saved");
     else shopify.toast.show("Could not save — see the message at the top", { isError: true });
   }, [save.state, save.data, shopify]);
 
@@ -101,9 +102,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
   return (
     <s-page heading="Video carousel" inlineSize="large">
       <CategoryCrumb feature="videos" />
-      <Button slot="primary-action" variant="primary" loading={busy} onClick={() => save.submit({ slides: JSON.stringify(slides) }, { method: "post" })}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(slides, props.slides)} saving={busy} onSave={() => save.submit({ slides: JSON.stringify(slides) }, { method: "post" })} onDiscard={() => setSlides(props.slides)} />
       <Button slot="secondary-actions" href={props.addBlock} target="_top" icon="theme-edit">
         Add to theme
       </Button>

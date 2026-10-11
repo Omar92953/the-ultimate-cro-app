@@ -26,6 +26,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { slottedRoute } from "../lib/design-slot.server";
 import { remember } from "../lib/short-cache.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
 async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
@@ -127,7 +128,7 @@ export default function BundleDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Bundle builder design saved — live on your store");
+    else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
@@ -144,9 +145,7 @@ export default function BundleDesigner() {
   return (
     <s-page heading="Bundle design" inlineSize="large">
       <CategoryCrumb feature="bundles" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

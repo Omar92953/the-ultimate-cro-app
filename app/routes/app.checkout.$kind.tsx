@@ -17,6 +17,7 @@ import { CUSTOMERS, LIMIT_KINDS, describeChange, newChangeRule, newLimitRule, ty
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
+import { SaveControls } from "../components/SaveControls";
 
 type PageKind = "payment" | "delivery" | "limits";
 const KIND: Record<PageKind, CheckoutKind> = { payment: "payment", delivery: "delivery", limits: "validation" };
@@ -87,7 +88,7 @@ export default function CheckoutRules() {
 
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show("Saved — checkout uses these rules now");
+    if (fetcher.data.ok) shopify.toast.show("Saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -121,9 +122,7 @@ export default function CheckoutRules() {
   return (
     <s-page heading={heading} inlineSize="large">
       <CategoryCrumb feature={feature} />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} disabled={!dirty} onClick={() => save()}>
-        Save
-      </Button>
+      <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setRules(JSON.parse(saved))} />
       <s-stack gap="base">
         <FeatureTabs feature={feature} />
         {page === "limits" ? (

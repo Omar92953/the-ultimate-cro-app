@@ -16,16 +16,6 @@ export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
   );
 }
 
-/** Breadcrumb to the feature's first page (for pages that edit one item: an offer, a review…). */
-export function FeatureCrumb({ feature: key }: { feature: FeatureKey }) {
-  const f = feature(key);
-  return (
-    <s-link slot="breadcrumb-actions" href={f.tabs[0].href}>
-      {f.title}
-    </s-link>
-  );
-}
-
 /** The feature's pages as tabs; nothing when it has only one page. */
 export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
   const tabs = feature(key).tabs;

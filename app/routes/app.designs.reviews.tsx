@@ -25,6 +25,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 const fmtDate = (d: string) => {
   const t = Date.parse(`${d}T12:00:00Z`);
@@ -90,7 +91,7 @@ export default function ReviewsDesigner() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else if (fetcher.data.ok) shopify.toast.show("Reviews design saved — live on your store");
+    else if (fetcher.data.ok) shopify.toast.show("Saved and live");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -107,9 +108,7 @@ export default function ReviewsDesigner() {
   return (
     <s-page heading={isProduct ? "Product page reviews" : "Customer reviews"} inlineSize="large">
       <CategoryCrumb feature={feature} />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>

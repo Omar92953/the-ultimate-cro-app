@@ -23,6 +23,7 @@ import { SizesSection } from "../components/SizesSection";
 import { VIDEO_SIZES } from "../lib/video-carousel-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
 async function prices(admin: Parameters<typeof gql>[0], ids: string[]): Promise<Map<string, string>> {
@@ -96,7 +97,7 @@ export default function VideoCarouselDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Video carousel design saved — live on your store");
+    else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends keyof C>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
@@ -111,9 +112,7 @@ export default function VideoCarouselDesigner() {
   return (
     <s-page heading="Video carousel" inlineSize="large">
       <CategoryCrumb feature="videos" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

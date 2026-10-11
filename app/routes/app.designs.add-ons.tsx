@@ -22,6 +22,7 @@ import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["addons"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -58,7 +59,7 @@ export default function AddonsDesigner() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else if (fetcher.data.ok) shopify.toast.show("Add-ons saved — live on your store");
+    else if (fetcher.data.ok) shopify.toast.show("Saved and live");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
@@ -97,9 +98,7 @@ export default function AddonsDesigner() {
   return (
     <s-page heading="Add-ons" inlineSize="large">
       <CategoryCrumb feature="addons" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.sample ? `/products/${data.sample.handle}` : "/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store
       </Button>

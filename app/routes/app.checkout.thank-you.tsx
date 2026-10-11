@@ -16,6 +16,7 @@ import { MODULE_TYPES, newModule, type ModuleType, type ThankYouModule } from ".
 import { CategoryCrumb } from "../components/FeatureNav";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
+import { SaveControls } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -76,9 +77,7 @@ export default function ThankYouPage() {
   return (
     <s-page heading="Thank-you page" inlineSize="large">
       <CategoryCrumb feature="thank_you" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} disabled={!dirty} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={dirty} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "code"} saved={data.saved} onSave={save} onDiscard={() => setModules(JSON.parse(fetcher.data?.ok && fetcher.data.intent === "save" ? sent : JSON.stringify(data.config.modules)))} />
       <Button slot="secondary-actions" href={data.editor} target="_blank">
         Open checkout editor
       </Button>

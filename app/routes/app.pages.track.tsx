@@ -23,6 +23,7 @@ import { SizesSection } from "../components/SizesSection";
 import { Segmented } from "../components/ui";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SaveControls, changed } from "../components/SaveControls";
 
 /** This page serves both: Track order (/app/pages/track) and Returns (/app/pages/returns). */
 const kindOf = (request: Request): OrderPageKind => (new URL(request.url).pathname.endsWith("/returns") ? "returns" : "track");
@@ -69,7 +70,7 @@ export default function OrderPageDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Saved — live on your store");
+    else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const look = (patch: Partial<C["look"]>) => setCfg((c) => ({ ...c, scheme: "", look: { ...c.look, ...patch } }));
@@ -82,9 +83,7 @@ export default function OrderPageDesigner() {
   return (
     <s-page heading={title} inlineSize="large">
       <CategoryCrumb feature={feature} />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=page`} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

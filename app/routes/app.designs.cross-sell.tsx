@@ -25,6 +25,7 @@ import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { computeBoughtTogether, refreshIfOld } from "../lib/bought-together.server";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -94,7 +95,7 @@ export default function CrossSellDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show("Cross-sell design saved — live on your store");
+    else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 
   const part = <K extends Exclude<keyof C, "scheme">>(k: K) => (patch: Partial<C[K]>) => setCfg((c) => ({ ...c, [k]: { ...(c[k] as object), ...patch } }));
@@ -110,9 +111,7 @@ export default function CrossSellDesigner() {
   return (
     <s-page heading="Cross-sell offers" inlineSize="large">
       <CategoryCrumb feature="cross_sell" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>

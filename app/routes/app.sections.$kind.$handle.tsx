@@ -10,6 +10,7 @@ import { deleteItem, listItems, saveItem, shopOffset, toForm } from "../lib/sect
 import { SECTIONS, SOURCES, blankItem, isKind, type FieldDef, type MediaRef, type ProductRef, type SectionItem, type SectionKind, type Value } from "../lib/sections";
 import { Button, Checkbox, DateField, Select, TextArea, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -58,7 +59,7 @@ export default function SectionItemEditor() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok) {
-      shopify.toast.show(`${cfg.singular[0].toUpperCase()}${cfg.singular.slice(1)} saved`);
+      shopify.toast.show("Saved");
       // A fresh "new" URL reloads a blank form for the next one.
       navigate(fetcher.data.next === "another" ? `/app/sections/${kind}/new?n=${Date.now()}` : `/app/sections/${kind}`);
     } else if (fetcher.data.error) {
@@ -84,9 +85,7 @@ export default function SectionItemEditor() {
       <s-link slot="breadcrumb-actions" href={`/app/sections/${kind}`}>
         {cfg.title}
       </s-link>
-      <Button slot="primary-action" variant="primary" onClick={() => save("list")} loading={busy}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(item, initial)} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setTouched(false); }} />
       {isNew ? (
         <Button slot="secondary-actions" onClick={() => save("another")} disabled={busy}>
           Save and add another

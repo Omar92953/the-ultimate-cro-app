@@ -29,8 +29,9 @@ customer pays.
   yet) and what to try next.
 - **Every feature page** has a breadcrumb back to its menu item, and tabs for its content and its look.
 - **Every design page** has the same tabs (Templates · Content · Style), settings on the left and a
-  live preview on the right, and the same buttons: Save, See it on my store, Add to theme / Open in
-  theme editor. A section can have up to 5 **styles**; pick one per placement in the theme editor
+  live preview on the right, and the same buttons: See it on my store, Add to theme / Open in
+  theme editor. Changes show Shopify's save bar (Save / Discard) at the top; leaving the page with
+  unsaved changes asks first. A section can have up to 5 **styles**; pick one per placement in the theme editor
   (the block's **Style** setting).
 - **Theme editor:** blocks only place, move or remove a section; everything else is set in the app.
 

@@ -17,6 +17,7 @@ import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SizesSection } from "../components/SizesSection";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -64,9 +65,7 @@ export default function WishlistDesigner() {
   return (
     <s-page heading="Wishlist" inlineSize="large">
       <CategoryCrumb feature="wishlist" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Turn on in theme"}
       </Button>

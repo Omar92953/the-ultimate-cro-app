@@ -14,6 +14,7 @@ import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
 import { CategoryCrumb } from "../components/FeatureNav";
 import { Button, NumberField, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
+import { SaveControls } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -85,9 +86,7 @@ export default function AfterPurchase() {
   return (
     <s-page heading="After-purchase offer" inlineSize="large">
       <CategoryCrumb feature="post_purchase" />
-      <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} disabled={!dirty} onClick={() => save()}>
-        Save
-      </Button>
+      <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setC(JSON.parse(fetcher.data?.ok ? sent : JSON.stringify(data.config)))} />
       <s-stack gap="base">
         <Explainer
           what="Right after paying, the shopper sees one more product at a discount and adds it to the order with one click — no card details again."

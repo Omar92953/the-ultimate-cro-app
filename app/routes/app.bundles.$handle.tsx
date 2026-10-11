@@ -14,6 +14,7 @@ import type { Bundle, BundleStep } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { SaveControls, changed } from "../components/SaveControls";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
 
@@ -78,7 +79,7 @@ export default function BundleEditor() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok) {
-      shopify.toast.show("Bundle saved");
+      shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/bundles/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
       shopify.toast.show("Could not save — see the message at the top", { isError: true });
@@ -106,9 +107,7 @@ export default function BundleEditor() {
       <s-link slot="breadcrumb-actions" href="/app/bundles">
         Bundles
       </s-link>
-      <Button slot="primary-action" variant="primary" onClick={save} loading={busy}>
-        Save
-      </Button>
+      <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
       {!isNew ? (
         <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
           Delete

@@ -15,6 +15,7 @@ import { checkLimit } from "../lib/billing.server";
 import { Button, Checkbox, NumberField, Select, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { LimitUpgrade } from "../components/Upgrade";
+import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -65,7 +66,7 @@ export default function KitEditor() {
       shopify.toast.show("Bundle product deleted");
       navigate("/app/kits");
     } else if (fetcher.data.ok) {
-      shopify.toast.show("Bundle product saved");
+      shopify.toast.show("Saved");
       if (isNew && fetcher.data.id) navigate(`/app/kits/${fetcher.data.id}`, { replace: true });
     } else if (fetcher.data.error) {
       shopify.toast.show("Could not save — see the message at the top", { isError: true });
@@ -89,9 +90,7 @@ export default function KitEditor() {
       <s-link slot="breadcrumb-actions" href="/app/kits">
         Bundle products
       </s-link>
-      <Button slot="primary-action" variant="primary" onClick={save} loading={busy}>
-        {isNew ? "Create in Shopify" : "Save"}
-      </Button>
+      <SaveControls dirty={changed(kit, initial)} saving={busy} saved={!isNew} label={isNew ? "Create in Shopify" : "Save"} allowLeave={busy || !!fetcher.data?.deleted || (isNew && !!fetcher.data?.id)} onSave={save} onDiscard={() => { setKit(initial); setTouched(false); }} />
       {!isNew ? (
         <Button slot="secondary-actions" href={`shopify://admin/products/${productNumber(kit.productId ?? "")}`} target="_top">
           Photos, description and publishing
