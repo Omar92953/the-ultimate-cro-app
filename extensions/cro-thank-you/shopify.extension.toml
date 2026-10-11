@@ -1,0 +1,22 @@
+# Thank-you page modules (app: Checkout → Thank-you page). Merchants add the block in the
+# checkout editor's Thank you page; what it shows is set in the app and read from the shop
+# metafield $app:thank_you (see app/lib/thank-you.ts).
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "cro-thank-you"
+type = "ui_extension"
+uid = "78664deb-68d5-72b5-23f9-6085111f0ad1507af642"
+
+[[extensions.targeting]]
+module = "./src/ThankYou.jsx"
+target = "purchase.thank-you.block.render"
+
+[extensions.capabilities]
+# Reads the products for "You may also like" with the Storefront API.
+api_access = true
+
+[[extensions.metafields]]
+namespace = "$app"
+key = "thank_you"

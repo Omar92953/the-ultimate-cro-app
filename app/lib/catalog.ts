@@ -17,7 +17,7 @@ export const CATEGORIES: { key: CategoryKey; title: string; href: string; intro:
   { key: "boosters", title: "Boosters", href: "/app/browse/boosters", intro: "Work across your whole store once switched on: bars, timers, quick add, pop-ups." },
   { key: "sections", title: "Sections", href: "/app/browse/sections", intro: "Sections you place on your store pages: banners, reviews, FAQ, logos, carousels." },
   { key: "design", title: "Header & pages", href: "/app/browse/design", intro: "Your store's header and pages designed in the app." },
-  { key: "checkout", title: "Checkout", href: "/app/browse/checkout", intro: "Rules that run inside Shopify checkout: payment and delivery options, and order limits." },
+  { key: "checkout", title: "Checkout", href: "/app/browse/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits and the thank-you page." },
 ];
 export const isCategory = (v: unknown): v is CategoryKey => CATEGORIES.some((c) => c.key === v);
 export const category = (key: CategoryKey) => CATEGORIES.find((c) => c.key === key)!;
@@ -68,6 +68,7 @@ export const FEATURES = {
   // Checkout
   checkout_rules: { title: "Payment & delivery rules", cat: "checkout", tabs: [{ label: "Payment", href: "/app/checkout/payment" }, { label: "Delivery", href: "/app/checkout/delivery" }] },
   order_limits: { title: "Order limits", cat: "checkout", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
+  thank_you: { title: "Thank-you page", cat: "checkout", tabs: [{ label: "Modules", href: "/app/checkout/thank-you" }] },
 } satisfies Record<string, Feature>;
 
 export type FeatureKey = keyof typeof FEATURES;

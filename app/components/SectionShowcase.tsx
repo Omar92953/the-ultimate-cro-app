@@ -1714,3 +1714,29 @@ export function OrderLimitsShowcase() {
     </Stage>
   );
 }
+
+/** Thank-you page: the confirmation with a next-order code and products. */
+export function ThankYouShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 7, width: "76%", fontSize: 11 }}>
+        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ width: 18, height: 18, borderRadius: 999, border: "1.5px solid #1a7f37", color: "#1a7f37", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 700 }}>✓</span>
+          <b style={{ fontSize: 13 }}>Thank you, Mariam!</b>
+        </span>
+        <span style={{ display: "grid", gap: 5, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", background: "#fff" }}>
+          <b>A thank-you gift: 10% off your next order</b>
+          <span style={{ display: "flex", gap: 6 }}>
+            <span style={{ padding: "3px 8px", border: "1px dashed #999", borderRadius: 5, fontWeight: 700, letterSpacing: 1 }}>THANKS10</span>
+            <span style={{ padding: "3px 8px", border: "1px solid #ccc", borderRadius: 5, fontWeight: 600 }}>Copy code</span>
+          </span>
+        </span>
+        <span style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+          {["#e9e2d8", "#dfe7ef", "#e7e0ee"].map((c) => (
+            <span key={c} style={{ aspectRatio: "1", borderRadius: 6, background: c }} />
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}

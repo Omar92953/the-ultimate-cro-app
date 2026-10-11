@@ -90,6 +90,7 @@ import {
   PaymentRulesShowcase,
   DeliveryRulesShowcase,
   OrderLimitsShowcase,
+  ThankYouShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
@@ -102,6 +103,7 @@ import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/se
 import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
 import { remember } from "../lib/short-cache.server";
 import { getCheckoutRules } from "../lib/checkout-rules.server";
+import { getThankYou } from "../lib/thank-you.server";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -136,8 +138,9 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
     getShippingBar(admin).catch(() => null),
     getFooter(admin).catch(() => null),
     getCheckoutRules(admin).catch(() => null),
+    getThankYou(admin).catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer, checkout]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer, checkout, thankYou]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -159,6 +162,7 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
           limits: checkout.validation.id ? (checkout.validation.enabled ? checkout.validation.rules.filter((r) => r.on).length : -1) : 0,
         }
       : null,
+    thankYou: thankYou ? thankYou.config.modules.filter((m) => m.on).length : 0,
     pillCount: pills ? pills.config.items.length : 0,
     shipBarSaved: !!shipBar?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
@@ -647,6 +651,18 @@ export function HomeView({ only }: { only?: CategoryKey }) {
             menu: [{ label: "Rules", href: c.href }],
           });
         }
+
+        add({
+          key: "checkout_thank_you",
+          cat: "checkout",
+          title: "Thank-you page",
+          onStore: data.thankYou > 0,
+          status: data.thankYou ? { tone: "success", text: `${plural(data.thankYou, "module")} · add the block in checkout` } : { tone: "warning", text: "Needs setup" },
+          next: data.thankYou ? undefined : { label: "Add modules", href: "/app/checkout/thank-you" },
+          open: { href: "/app/checkout/thank-you" },
+          previews: [ThankYouShowcase],
+          menu: [{ label: "Modules", href: "/app/checkout/thank-you" }],
+        });
 
         const CATS = CATEGORIES;
         const onStoreCount = cards.filter((c) => c.onStore).length;
