@@ -207,6 +207,33 @@ const Stage = ({ children, wide }: { children: ReactNode; wide?: boolean }) => (
   <span className={`${s.desk} ${wide ? s.deskWide : ""}`}>{children}</span>
 );
 
+/**
+ * For previews drawn in pixels: laid out on a fixed 300 × 190 px canvas (the shape of the card's
+ * picture), then scaled as one piece to fill the card — so they keep their look at any card size.
+ */
+const FIT_W = 300;
+const FIT_H = 190;
+const Fit = ({ children }: { children: ReactNode }) => {
+  const outer = useRef<HTMLSpanElement>(null);
+  const [k, setK] = useState<number | null>(null);
+  useEffect(() => {
+    const el = outer.current;
+    if (!el) return;
+    const measure = () => setK(Math.min(el.clientWidth / FIT_W, el.clientHeight / FIT_H));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <span ref={outer} className={s.fit}>
+      <span className={s.fitCanvas} style={{ width: FIT_W, height: FIT_H, transform: `scale(${k ?? 1})`, opacity: k === null ? 0 : 1 }}>
+        {children}
+      </span>
+    </span>
+  );
+};
+
 /* ------------------------------------------------------------------ previews -- */
 export function UpsellShowcase() {
   return (
@@ -1461,8 +1488,8 @@ export function ShippingBarCardShowcase() {
 export function ProductReviewsShowcase() {
   const gold = "#f5a623";
   return (
-    <Stage>
-      <span style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 14, width: "86%", alignItems: "start", fontSize: 11 }}>
+    <Fit>
+      <span style={{ display: "grid", gridTemplateColumns: "0.8fr 1.2fr", gap: 14, width: "100%", alignItems: "center", fontSize: 11 }}>
         <span style={{ aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#e9e9e9,#cfcfcf)" }} />
         <span style={{ display: "grid", gap: 6 }}>
           <b style={{ fontSize: 14 }}>Classic tee</b>
@@ -1476,22 +1503,22 @@ export function ProductReviewsShowcase() {
             <span style={{ width: 34, height: 34, flex: "none", borderRadius: 6, background: "linear-gradient(145deg,#3b3b3b,#111)" }} />
             <span style={{ display: "grid", gap: 2, minWidth: 0 }}>
               <span style={{ color: gold, fontSize: 9, letterSpacing: 1 }}>★★★★★</span>
-              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Soft fabric, perfect fit.</span>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Perfect fit!</span>
               <b style={{ fontSize: 9 }}>Mariam A. <span style={{ color: "#1a7f37" }}>✔</span></b>
             </span>
           </span>
           <span style={{ display: "block", padding: "7px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Back in stock & pre-order: a sold-out product with the "Notify me" box under the button. */
 export function StockShowcase() {
   return (
-    <Stage>
-      <span style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 14, width: "86%", alignItems: "start", fontSize: 11 }}>
+    <Fit>
+      <span style={{ display: "grid", gridTemplateColumns: "0.8fr 1.2fr", gap: 14, width: "100%", alignItems: "center", fontSize: 11 }}>
         <span style={{ aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#e9e9e9,#cfcfcf)" }} />
         <span style={{ display: "grid", gap: 6 }}>
           <b style={{ fontSize: 14 }}>Linen shirt</b>
@@ -1500,20 +1527,20 @@ export function StockShowcase() {
           <span style={{ display: "grid", gap: 5, padding: 8, borderRadius: 10, background: "#f4f4f4" }}>
             <b>Get an email when it’s back</b>
             <span style={{ display: "flex", gap: 5 }}>
-              <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#999" }}>Your email</span>
-              <span style={{ padding: "5px 9px", borderRadius: 6, background: "#111", color: "#fff", fontWeight: 600 }}>Notify me</span>
+              <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#999" }}>Email</span>
+              <span style={{ flex: "none", whiteSpace: "nowrap", padding: "5px 9px", borderRadius: 6, background: "#111", color: "#fff", fontWeight: 600 }}>Notify me</span>
             </span>
           </span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Track order page: the lookup card with a found order's status and tracking. */
 export function TrackShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 6, width: "62%", padding: 12, borderRadius: 12, background: "#f4f4f4", fontSize: 11, textAlign: "center" }}>
         <b style={{ fontSize: 15 }}>#1001</b>
         <span style={{ display: "flex", gap: 5, justifyContent: "center" }}>
@@ -1523,14 +1550,14 @@ export function TrackShowcase() {
         <span>Tracking number: <b>EG123456789</b></span>
         <span style={{ padding: "5px 0", borderRadius: 999, border: "1px solid #111", fontWeight: 600 }}>Track the parcel</span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Returns page: choosing items and a reason. */
 export function ReturnsShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 6, width: "62%", padding: 12, borderRadius: 12, background: "#f4f4f4", fontSize: 11 }}>
         <b style={{ fontSize: 14 }}>Request a return</b>
         {["Linen shirt · M", "Classic tee · L"].map((t, i) => (
@@ -1543,14 +1570,14 @@ export function ReturnsShowcase() {
         <span style={{ padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Wrong size ▾</span>
         <span style={{ padding: "5px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Send return request</span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Delivery estimate: the green line under Add to cart. */
 export function DeliveryShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 8, width: "70%", fontSize: 11 }}>
         <b style={{ fontSize: 14 }}>Classic tee</b>
         <b>EGP 450.00</b>
@@ -1562,14 +1589,14 @@ export function DeliveryShowcase() {
           </span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Personalization: a name field with the text drawn on the product picture. */
 export function PersonalizeShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 12, width: "86%", alignItems: "center", fontSize: 11 }}>
         <span style={{ position: "relative", aspectRatio: "1", borderRadius: 8, background: "linear-gradient(145deg,#3b3b3b,#111)", display: "grid", placeItems: "center", color: "#fff", fontFamily: "Georgia, serif", fontSize: 16, letterSpacing: 1 }}>MARIAM</span>
         <span style={{ display: "grid", gap: 6, padding: 8, borderRadius: 8, background: "#f4f4f4" }}>
@@ -1579,34 +1606,34 @@ export function PersonalizeShowcase() {
           <span style={{ display: "block", padding: "6px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Gift note & delivery date: the cart box with the gift tick, message and date. */
 export function CartExtrasShowcase() {
   return (
-    <Stage>
-      <span style={{ display: "grid", gap: 6, width: "62%", padding: 10, borderRadius: 10, background: "#f4f4f4", fontSize: 11 }}>
+    <Fit>
+      <span style={{ display: "grid", gap: 6, width: "72%", padding: 10, borderRadius: 10, background: "#f4f4f4", fontSize: 11 }}>
         <b>Gift and delivery</b>
         <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <span style={{ width: 11, height: 11, borderRadius: 3, background: "#111" }} /> This is a gift
         </span>
         <span style={{ padding: "6px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#777" }}>Happy birthday, Nour!</span>
         <span style={{ display: "flex", gap: 6 }}>
-          <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Thu, Oct 15 ▾</span>
-          <span style={{ flex: 1, padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>2–6 pm ▾</span>
+          <span style={{ flex: 1, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Thu, Oct 15 ▾</span>
+          <span style={{ flex: 1, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>2–6 pm ▾</span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Cart drawer & checkout: the slide-out cart with express buttons. */
 export function CartToolsShowcase() {
   return (
-    <Stage>
-      <span style={{ position: "relative", display: "block", width: "88%", height: "100%", minHeight: 130, borderRadius: 8, background: "#e9e9e9", overflow: "hidden", fontSize: 10 }}>
+    <Fit>
+      <span style={{ position: "relative", display: "block", width: "100%", height: 150, borderRadius: 8, background: "#e9e9e9", overflow: "hidden", fontSize: 10 }}>
         <span style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "58%", display: "grid", alignContent: "start", gap: 6, padding: 8, background: "#fff", boxShadow: "-4px 0 12px rgba(0,0,0,.12)" }}>
           <b style={{ fontSize: 12 }}>Your cart</b>
           {["Linen shirt", "Classic tee"].map((t) => (
@@ -1624,15 +1651,15 @@ export function CartToolsShowcase() {
           <span style={{ padding: "5px 0", borderRadius: 999, background: "#5a31f4", color: "#fff", textAlign: "center", fontWeight: 700 }}>Shop Pay</span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Wishlist: product cards with hearts and the floating count. */
 export function WishlistShowcase() {
   return (
-    <Stage>
-      <span style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, width: "84%", fontSize: 10 }}>
+    <Fit>
+      <span style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, width: "88%", marginBottom: 24, fontSize: 10 }}>
         {["Linen shirt", "Classic tee", "Canvas tote"].map((t, i) => (
           <span key={t} style={{ display: "grid", gap: 3 }}>
             <span style={{ position: "relative", aspectRatio: "1", borderRadius: 6, background: ["#e5e5e5", "#d8dee8", "#efe7da"][i] }}>
@@ -1641,18 +1668,18 @@ export function WishlistShowcase() {
             <b>{t}</b>
           </span>
         ))}
-        <span style={{ position: "absolute", left: -6, bottom: -14, padding: "3px 8px", borderRadius: 999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,.15)", color: "#e11d48" }}>
+        <span style={{ position: "absolute", left: 0, bottom: -30, padding: "3px 8px", borderRadius: 999, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,.15)", color: "#e11d48" }}>
           ♥ <b style={{ color: "#111" }}>2</b>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Product quiz: a question with answer cards and progress. */
 export function QuizShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 7, justifyItems: "center", width: "76%", fontSize: 11, textAlign: "center" }}>
         <span style={{ opacity: 0.7 }}>Question 2 of 3</span>
         <span style={{ width: "60%", height: 4, borderRadius: 4, background: "#ddd" }}>
@@ -1665,14 +1692,14 @@ export function QuizShowcase() {
           ))}
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** A checkout list (payment methods or delivery options) with one row changed by a rule. */
 const CheckoutList = ({ title, rows }: { title: string; rows: { label: string; note?: string; hidden?: boolean; on?: boolean }[] }) => (
-  <Stage>
-    <span style={{ display: "grid", gap: 6, width: "76%", fontSize: 11 }}>
+  <Fit>
+    <span style={{ display: "grid", gap: 6, width: "100%", fontSize: 11 }}>
       <b style={{ fontSize: 13 }}>{title}</b>
       {rows.map((r) => (
         <span
@@ -1680,28 +1707,28 @@ const CheckoutList = ({ title, rows }: { title: string; rows: { label: string; n
           style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, border: `1px solid ${r.on ? "#111" : "#ddd"}`, background: "#fff", opacity: r.hidden ? 0.35 : 1, textDecoration: r.hidden ? "line-through" : "none" }}
         >
           <span style={{ width: 10, height: 10, borderRadius: 999, border: "1.5px solid #111", background: r.on ? "#111" : "transparent", flex: "none" }} />
-          <span style={{ flex: 1 }}>{r.label}</span>
-          {r.note ? <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 999, background: r.hidden ? "#fde8e8" : "#e8f5ec", color: r.hidden ? "#b42318" : "#1a7f37", textDecoration: "none" }}>{r.note}</span> : null}
+          <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+          {r.note ? <span style={{ flex: "none", whiteSpace: "nowrap", fontSize: 9, padding: "2px 6px", borderRadius: 999, background: r.hidden ? "#fde8e8" : "#e8f5ec", color: r.hidden ? "#b42318" : "#1a7f37", textDecoration: "none" }}>{r.note}</span> : null}
         </span>
       ))}
     </span>
-  </Stage>
+  </Fit>
 );
 
 /** Payment rules: Cash on Delivery hidden on a large order. */
 export function PaymentRulesShowcase() {
-  return <CheckoutList title="Payment" rows={[{ label: "Credit card", on: true }, { label: "Cash on Delivery", hidden: true, note: "Hidden over EGP 5,000" }, { label: "Bank transfer" }]} />;
+  return <CheckoutList title="Payment" rows={[{ label: "Credit card", on: true }, { label: "Cash on Delivery", hidden: true, note: "Hidden over 5,000" }, { label: "Bank transfer" }]} />;
 }
 
 /** Delivery rules: an option renamed, another hidden. */
 export function DeliveryRulesShowcase() {
-  return <CheckoutList title="Shipping method" rows={[{ label: "Free delivery in 2–3 days", on: true, note: "Renamed" }, { label: "Express", hidden: true, note: "Hidden for fragile items" }]} />;
+  return <CheckoutList title="Shipping method" rows={[{ label: "Free delivery, 2–3 days", on: true, note: "Renamed" }, { label: "Express", hidden: true, note: "Hidden: fragile item" }, { label: "Local pickup" }]} />;
 }
 
 /** Order limits: checkout blocked with the merchant's message. */
 export function OrderLimitsShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 8, width: "76%", fontSize: 11 }}>
         <b style={{ fontSize: 13 }}>Checkout</b>
         <span style={{ padding: "8px 10px", borderRadius: 8, background: "#fdecea", color: "#8a1c12", border: "1px solid #f5c2bd" }}>The minimum order is EGP 300. Add EGP 75 more to continue.</span>
@@ -1711,14 +1738,14 @@ export function OrderLimitsShowcase() {
         </span>
         <span style={{ display: "block", padding: "8px 0", borderRadius: 8, background: "#9ca3af", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now</span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** Thank-you page: the confirmation with a next-order code and products. */
 export function ThankYouShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 7, width: "76%", fontSize: 11 }}>
         <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <span style={{ width: 18, height: 18, borderRadius: 999, border: "1.5px solid #1a7f37", color: "#1a7f37", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 700 }}>✓</span>
@@ -1737,14 +1764,14 @@ export function ThankYouShowcase() {
           ))}
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }
 
 /** After-purchase offer: one product at a discount, added to the paid order in one click. */
 export function PostPurchaseShowcase() {
   return (
-    <Stage>
+    <Fit>
       <span style={{ display: "grid", gap: 7, width: "80%", fontSize: 11 }}>
         <span style={{ padding: "6px 8px", borderRadius: 6, background: "#f1f6fe", border: "1px solid #c7dbf7", textAlign: "center" }}>
           <b>Wait — add this to your order</b>
@@ -1761,6 +1788,6 @@ export function PostPurchaseShowcase() {
           </span>
         </span>
       </span>
-    </Stage>
+    </Fit>
   );
 }

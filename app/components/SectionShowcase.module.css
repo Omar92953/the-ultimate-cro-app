@@ -65,6 +65,9 @@
 .desk > .w46 { font-size: 1.12em; }
 .desk > .w50 { font-size: 1.07em; }
 .desk > .w52 { font-size: 1.04em; }
+/* Fit: a pixel-drawn preview on a fixed canvas, scaled to the card (see Fit in SectionShowcase.tsx). */
+.fit { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.fitCanvas { flex: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 14px 18px 18px; font-size: 11px; line-height: 1.3; transform-origin: center; transition: opacity 0.15s; }
 .deskWide { padding-left: 0; padding-right: 0; }
 .box { display: flex; flex-direction: column; gap: 1em; padding: 1.8em; background: #fff; border-radius: 1.2em; box-shadow: 0 0.3em 1.2em rgba(0, 0, 0, 0.08); }
 .plain { position: relative; display: flex; flex-direction: column; gap: 1em; }
