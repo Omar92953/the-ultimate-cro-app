@@ -142,7 +142,7 @@ export default function BundleDesigner() {
   const blockLook = cfg.look.scheme ? previewTheme(data.style, cfg.look.scheme) : null;
 
   return (
-    <s-page heading="Bundles" inlineSize="large">
+    <s-page heading="Bundle design" inlineSize="large">
       <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" loading={fetcher.state !== "idle"} onClick={save}>
         Save

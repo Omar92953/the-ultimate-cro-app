@@ -22,7 +22,7 @@ export const TUTORIALS: Tutorial[] = [
   { title: "Add sections to your theme", length: "3:00", feature: "reviews", youtubeId: null },
   { title: "Announcement and free-shipping bars", length: "2:30", feature: "announcements", youtubeId: null },
   { title: "Cart drawer and checkout tools", length: "3:30", feature: "cart_tools", youtubeId: null },
-  { title: "Payment and delivery rules", length: "3:00", feature: "checkout_rules", youtubeId: null },
+  { title: "Payment and delivery rules", length: "3:00", feature: "payment_rules", youtubeId: null },
   { title: "Read your Results", length: "2:30", feature: null, youtubeId: null },
 ];
 
@@ -33,6 +33,6 @@ export const tutorialWatchUrl = (t: Tutorial) => (t.youtubeId ? `https://www.you
 export const WHATS_NEW: { date: string; text: string; href?: string }[] = [
   { date: "Oct 2026", text: "Plans: start free, upgrade when you need more.", href: "/app#plans" },
   { date: "Oct 2026", text: "After-purchase offer: a one-click offer right after payment.", href: "/app/checkout/after-purchase" },
-  { date: "Sep 2026", text: "Thank-you page modules and checkout order limits.", href: "/app/browse/checkout" },
+  { date: "Sep 2026", text: "Thank-you page modules and checkout order limits.", href: "/app/checkout" },
   { date: "Sep 2026", text: "Results: see what the app's widgets sell, and run a holdout test.", href: "/app/results" },
 ];

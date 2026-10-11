@@ -1,4 +1,4 @@
-import { CATEGORIES } from "../lib/catalog";
+import { AREAS } from "../lib/catalog";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -29,19 +29,18 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Same map as Home's groups and every page's breadcrumb: app/lib/catalog.ts */}
+      {/* Same map as the hubs and every page's breadcrumb: app/lib/catalog.ts (6 items: Shopify shows 7 before "View more"). */}
       <s-app-nav>
         {/* rel="home": the app's name in the sidebar is Home, so no item lights up on every page (the typings lack rel). */}
         <s-link href="/app" {...({ rel: "home" } as object)}>
           Home
         </s-link>
-        <s-link href="/app/features">All features</s-link>
-        {CATEGORIES.map((c) => (
-          <s-link key={c.key} href={c.href}>
-            {c.title}
+        {AREAS.map((a) => (
+          <s-link key={a.key} href={a.href}>
+            {a.title}
           </s-link>
         ))}
-        <s-link href="/app/results">Results</s-link>
+        <s-link href="/app/results">Analytics</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <div className={frame.page}>{lock ? <LockedPage lock={lock} /> : <Outlet />}</div>

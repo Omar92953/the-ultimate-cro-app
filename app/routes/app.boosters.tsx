@@ -79,7 +79,7 @@ export default function Boosters() {
 
   return (
     <s-page heading="Conversion boosters" inlineSize="large">
-      <CategoryCrumb feature="boosters" />
+      <CategoryCrumb feature="sticky_atc" />
       <Button slot="primary-action" variant="primary" loading={busy && fetcher.formData?.get("intent") === "save"} onClick={save}>
         Save
       </Button>

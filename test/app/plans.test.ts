@@ -3,7 +3,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FEATURES, featuresForPath, type FeatureKey } from "../../app/lib/catalog";
+import { AREAS, FEATURES, areaForPath, featuresForPath, featuresIn, type FeatureKey } from "../../app/lib/catalog";
 import {
   EXTRA_PLAN,
   FEATURE_PLAN,
@@ -65,10 +65,10 @@ test("upgrade: paused items come back without going over the new limit", () => {
 
 test("features unlock from their plan up", () => {
   assert.ok(canUse("free", "upsell"));
-  assert.ok(!canUse("free", "wishlist"));
-  assert.ok(canUse("starter", "wishlist"));
-  assert.ok(!canUse("starter", "post_purchase"));
-  assert.ok(canUse("pro", "post_purchase"));
+  // Free matches the competitors' free tiers: checkout rules, wishlist, back in stock…
+  assert.ok(canUse("free", "wishlist") && canUse("free", "payment_rules") && canUse("free", "post_purchase"));
+  assert.ok(!canUse("free", "quiz"));
+  assert.ok(canUse("starter", "quiz"));
   assert.ok(atLeast("growth", "starter") && !atLeast("starter", "growth"));
   // Feature requests ("we build it for you") start on Growth.
   assert.ok(!atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("growth", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
@@ -78,11 +78,20 @@ test("pages map to features, and locked pages say which plan they need", () => {
   assert.deepEqual(featuresForPath("/app/offers/upsell/new"), ["upsell"]);
   assert.deepEqual(featuresForPath("/app/offers/upsell.data"), ["upsell"]);
   assert.deepEqual(featuresForPath("/app/settings"), []);
+  // Every feature belongs to a hub, and its pages lead back there.
+  assert.equal(areaForPath("/app/offers/upsell/new"), "offers");
+  assert.equal(areaForPath("/app/designs/quiz"), "storefront");
+  assert.equal(areaForPath("/app/checkout/limits"), "checkout");
+  assert.equal(areaForPath("/app/cart"), "cart");
   assert.deepEqual(featuresForPath("/app/sections/reviews").sort(), ["product_reviews", "reviews"]);
   assert.equal(pageLock("free", "/app/offers/upsell/new"), null);
-  assert.deepEqual(pageLock("free", "/app/designs/wishlist"), { kind: "feature", feature: "wishlist", needs: "starter" });
-  assert.deepEqual(pageLock("starter", "/app/checkout/payment"), { kind: "feature", feature: "checkout_rules", needs: "growth" });
-  assert.equal(pageLock("growth", "/app/checkout/payment"), null);
+  assert.deepEqual(pageLock("free", "/app/designs/quiz"), { kind: "feature", feature: "quiz", needs: "starter" });
+  assert.equal(pageLock("starter", "/app/designs/quiz"), null);
+  assert.equal(pageLock("free", "/app/checkout/payment"), null);
+  // Hubs and the offer picker are never locked.
+  assert.equal(pageLock("free", "/app/offers"), null);
+  assert.equal(pageLock("free", "/app/offers/new"), null);
+  assert.equal(pageLock("free", "/app/storefront"), null);
   // Not features: never locked.
   assert.equal(pageLock("free", "/app"), null);
   assert.equal(pageLock("free", "/app/results"), null);
@@ -112,4 +121,10 @@ test("subscription names and handles map to plans", () => {
 
 test("plan selection page URL", () => {
   assert.equal(planPageUrl("my-shop.myshopify.com", "cro-toolbox"), "https://admin.shopify.com/store/my-shop/charges/cro-toolbox/pricing_plans");
+});
+
+test("every feature is listed on its hub", () => {
+  for (const k of Object.keys(FEATURES) as FeatureKey[]) {
+    assert.ok(AREAS.some((a) => featuresIn(a.key).includes(k)), `${k} is on no hub`);
+  }
 });

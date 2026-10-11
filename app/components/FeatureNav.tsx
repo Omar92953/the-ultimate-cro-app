@@ -3,15 +3,15 @@
  * feature's category, and the feature's own tabs (e.g. Reviews | Design). Render both as direct
  * children of <s-page>.
  */
-import { category, feature, type FeatureKey } from "../lib/catalog";
+import { area, feature, type FeatureKey } from "../lib/catalog";
 import { Tabs } from "./ui";
 
-/** Breadcrumb to the feature's category (Offers & bundles, Sections…). */
+/** Breadcrumb to the feature's hub (Offers, Storefront, Cart, Checkout). */
 export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
-  const cat = category(feature(key).cat);
+  const hub = area(feature(key).area);
   return (
-    <s-link slot="breadcrumb-actions" href={cat.href}>
-      {cat.title}
+    <s-link slot="breadcrumb-actions" href={hub.href}>
+      {hub.title}
     </s-link>
   );
 }

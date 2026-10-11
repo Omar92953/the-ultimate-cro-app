@@ -82,7 +82,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
-const SHORTCUTS: FeatureKey[] = ["upsell", "bundles", "cross_sell", "reviews", "announcements", "shipping_bar", "cart_tools", "checkout_rules"];
+const SHORTCUTS: FeatureKey[] = ["upsell", "bundles", "cross_sell", "reviews", "announcements", "shipping_bar", "cart_tools", "payment_rules"];
 
 const money = (n: number, currency: string) => {
   try {
@@ -271,7 +271,7 @@ export default function Home() {
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
-              <li><Link to="/app/features">All features</Link></li>
+              <li><Link to="/app/storefront">Storefront</Link></li>
               <li><Link to="/app/settings">Settings</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>
@@ -283,7 +283,7 @@ export default function Home() {
           <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
 
           {/* Shortcuts */}
-          <Card title="Shortcuts" actions={<Button href="/app/features" variant="tertiary">All features</Button>}>
+          <Card title="Shortcuts" actions={<Button href="/app/storefront" variant="tertiary">All features</Button>}>
             <ul className={styles.shortcuts}>
               {SHORTCUTS.map((k) => {
                 const f = feature(k);

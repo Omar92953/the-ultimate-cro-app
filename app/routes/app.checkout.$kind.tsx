@@ -109,7 +109,7 @@ export default function CheckoutRules() {
     return selected ? selected.map((p) => ({ id: p.id, title: p.title })) : null;
   }
 
-  const feature = page === "limits" ? "order_limits" : "checkout_rules";
+  const feature = page === "limits" ? "order_limits" : page === "delivery" ? "delivery_rules" : "payment_rules";
   const heading = page === "limits" ? "Order limits" : TEXT[page].heading;
 
   return (

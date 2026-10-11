@@ -56,7 +56,7 @@ export default function DealList() {
   }, [fetcher.state, fetcher.data, shopify]);
 
   return (
-    <s-page heading="Bundles" inlineSize="large">
+    <s-page heading={t.title} inlineSize="large">
       <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}

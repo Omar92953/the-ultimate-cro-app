@@ -114,44 +114,48 @@ export const PLANS: Record<PlanKey, Plan> = {
  * capped by `limits` instead. PROPOSAL — confirm with Omar.
  */
 export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
-  // Offers & bundles
+  // Offers (Free: within the offer slots)
   upsell: "free",
   cross_sell: "free",
   bundles: "free",
   addons: "starter",
-  cart_extras: "starter",
   personalize: "starter",
-  // Sections
-  hero: "free",
+  // Cart
+  cart_tools: "free",
+  cart_offers: "free",
+  cart_extras: "starter",
+  // Storefront
   reviews: "free",
   product_reviews: "free",
-  faq: "free",
+  sales_pop: "free",
+  trust_badges: "free",
   logos: "free",
-  videos: "starter",
-  image_carousel: "starter",
-  quiz: "starter",
-  collection_pills: "starter",
-  // Boosters
   announcements: "free",
   countdown: "free",
   shipping_bar: "free",
+  stock_urgency: "free",
+  sticky_atc: "free",
   quick_add: "free",
-  boosters: "free",
-  wishlist: "starter",
-  cart_tools: "starter",
   delivery: "starter",
-  stock: "starter",
-  // Header & pages
+  stock: "free",
+  wishlist: "free",
+  hero: "free",
+  image_carousel: "starter",
+  videos: "starter",
+  faq: "free",
+  quiz: "starter",
+  collection_pills: "starter",
   header: "starter",
   footer: "starter",
+  contact: "starter",
   track: "starter",
   returns: "starter",
-  contact: "starter",
-  // Checkout
-  checkout_rules: "growth",
-  order_limits: "growth",
-  thank_you: "growth",
-  post_purchase: "growth",
+  // Checkout (Free: within the checkout-rule and thank-you limits)
+  payment_rules: "free",
+  delivery_rules: "free",
+  order_limits: "free",
+  thank_you: "free",
+  post_purchase: "free",
 };
 
 /** Things inside a page that need a plan (the page itself stays open). */

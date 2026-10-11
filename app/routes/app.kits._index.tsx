@@ -33,7 +33,7 @@ const range = (prices: string[]) => {
 export default function KitList() {
   const { kits, error } = useLoaderData<typeof loader>();
   return (
-    <s-page heading="Bundles" inlineSize="large">
+    <s-page heading="Bundle products" inlineSize="large">
       <CategoryCrumb feature="bundles" />
       <Button slot="primary-action" variant="primary" href="/app/kits/new">
         Create bundle product
