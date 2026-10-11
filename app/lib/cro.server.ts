@@ -1198,6 +1198,7 @@ export const BLOCKS = {
   personalize: "ucs-personalize",
   cart_extras: "ucs-cart-extras",
   cart_tools: "ucs-cart",
+  quiz: "ucs-quiz",
   wishlist: "ucs-boosters",
   track: "ucs-order-page",
   returns: "ucs-order-page",

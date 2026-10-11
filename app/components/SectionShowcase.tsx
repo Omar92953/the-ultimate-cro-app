@@ -1648,3 +1648,23 @@ export function WishlistShowcase() {
     </Stage>
   );
 }
+
+/** Product quiz: a question with answer cards and progress. */
+export function QuizShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 7, justifyItems: "center", width: "76%", fontSize: 11, textAlign: "center" }}>
+        <span style={{ opacity: 0.7 }}>Question 2 of 3</span>
+        <span style={{ width: "60%", height: 4, borderRadius: 4, background: "#ddd" }}>
+          <span style={{ display: "block", width: "33%", height: 4, borderRadius: 4, background: "#111" }} />
+        </span>
+        <b style={{ fontSize: 14 }}>What&apos;s your style?</b>
+        <span style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, width: "100%" }}>
+          {["Classic", "Bold", "Minimal"].map((t, i) => (
+            <span key={t} style={{ padding: "10px 0", borderRadius: 8, background: "#f4f4f4", border: i === 1 ? "2px solid #111" : "2px solid transparent", fontWeight: 600 }}>{t}</span>
+          ))}
+        </span>
+      </span>
+    </Stage>
+  );
+}

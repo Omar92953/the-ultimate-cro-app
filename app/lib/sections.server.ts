@@ -356,6 +356,7 @@ export function sectionLinks(shop: string) {
     track: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
     returns: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
     cart_tools: embed("ucs-cart"),
+    quiz: block("ucs-quiz"),
     wishlist: embed("ucs-boosters"),
     cart_extras: block("ucs-cart-extras", "cart"),
     personalize: `${base}?template=product&addAppBlockId=${key}/ucs-personalize&target=mainSection`,

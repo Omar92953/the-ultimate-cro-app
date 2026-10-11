@@ -455,6 +455,17 @@ pages["wishlist.html"] = page("Wishlist", wlFake +
   '<div class="card-wrapper" style="width:200px"><div class="card__media" style="height:120px;background:#eee"></div><a href="/products/classic-tee">Classic tee</a></div></div>' +
   (await block("ucs-order-page", { page: "wishlist" }, { page_type: "page" })),
   await block("ucs-boosters", {}, { page_type: "product", product: { ...watch, handle: "classic-watch", price: 12900 }, shop: wlShop }));
+const { toStorefrontQuiz, withQuizDefaults } = await import("../../app/lib/quiz-design.ts");
+const quizShop = withDesign(mo("quiz", { config: toStorefrontQuiz(withQuizDefaults({})) }));
+const quizFake = `<script>
+  window.__qcalls = [];
+  const qf = window.fetch;
+  const P = (id, title, tags) => ({ id, title, handle: title.toLowerCase().replace(/ /g, "-"), tags, images: [], variants: [{ id: id * 10, price: "450.00", available: true }] });
+  window.fetch = (u, o) => { u = String(u); window.__qcalls.push(u + (o && o.body ? " " + o.body : ""));
+    if (u.includes("/products.json")) return Promise.resolve(new Response(JSON.stringify({ products: [P(1, "Gift box", ["gift", "classic", "mid"]), P(2, "Bold mug", ["home", "bold", "budget"]), P(3, "Classic watch", ["for-me", "classic", "premium"]), P(4, "Plain tee", ["minimal"])] })));
+    return Promise.resolve(new Response("{}")); };
+</script>`;
+pages["quiz.html"] = page("Product quiz", quizFake + (await block("ucs-quiz", {}, { shop: quizShop })));
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

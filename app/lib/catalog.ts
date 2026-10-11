@@ -46,6 +46,7 @@ export const FEATURES = {
   logos: { title: "Scrolling logos and text", cat: "sections", tabs: [{ label: "Logos", href: "/app/sections/logos" }, design("/app/designs/logos")] },
   videos: { title: "Video carousel", cat: "sections", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
   image_carousel: { title: "Image carousel", cat: "sections", tabs: [design("/app/designs/image-carousel")] },
+  quiz: { title: "Product quiz", cat: "sections", tabs: [design("/app/designs/quiz")] },
   collection_pills: { title: "Collection pills", cat: "sections", tabs: [design("/app/designs/collection-pills")] },
   // Boosters
   announcements: { title: "Announcement bar", cat: "boosters", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },

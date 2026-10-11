@@ -17,6 +17,7 @@ import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesig
 import { toStorefrontCartExtras, withCartExtrasDefaults, type CartExtrasDesign } from "./cart-extras-design";
 import { toStorefrontCartTools, withCartToolsDefaults, type CartToolsDesign } from "./cart-tools-design";
 import { toStorefrontWishlist, withWishlistDefaults, type WishlistDesign } from "./wishlist-design";
+import { toStorefrontQuiz, withQuizDefaults, type QuizDesign } from "./quiz-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
 import { toStorefrontAddons, withAddonsDefaults, type AddonsConfig } from "./addons";
 import { toStorefrontVideoCarousel, withVideoCarouselDefaults, type VideoCarouselDesign } from "./video-carousel-design";
@@ -437,5 +438,20 @@ export async function saveWishlist(admin: AdminClient, config: WishlistDesign) {
   const clean = withWishlistDefaults(config);
   await upsert(admin, "$app:cro_design", "wishlist", { config: JSON.stringify(toStorefrontWishlist(clean)) });
   await upsert(admin, "$app:cro_design", "wishlist_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ---------------------------------------------------------------- product quiz -- */
+export async function getQuiz(admin: AdminClient): Promise<{ config: QuizDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "quiz_editor");
+  return { config: withQuizDefaults(raw), saved: raw !== null };
+}
+
+export async function saveQuiz(admin: AdminClient, config: QuizDesign, draftOnly = false) {
+  const clean = withQuizDefaults(config);
+  const store = JSON.stringify(toStorefrontQuiz(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("quiz"), { config: store });
+  await upsert(admin, "$app:cro_design", slotted("quiz_draft"), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("quiz_editor"), { config: JSON.stringify(clean) });
   return clean;
 }

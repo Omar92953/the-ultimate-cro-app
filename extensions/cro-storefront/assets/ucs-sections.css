@@ -741,3 +741,21 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-wl-drop { justify-self: start; padding: 2px 8px; border-radius: 999px; background: #e6f4ea; color: #1a7f37; font-size: 0.8em; font-weight: 600; }
 .ucs-wl-rm { justify-self: start; border: 0; background: none; color: inherit; font: inherit; font-size: 0.85em; text-decoration: underline; opacity: 0.7; cursor: pointer; }
 .ucs-wl-foot { margin-top: 20px; }
+/* ---- Product quiz ---------------------------------------------------------------------- */
+.ucs-qz__wrap { display: grid; gap: 14px; max-width: 760px; }
+.ucs-qz--center .ucs-qz__wrap { justify-items: center; margin-inline: auto; text-align: center; }
+.ucs-qz__h { margin: 0; font-size: var(--ucs-qz-h, 30px); }
+.ucs-qz__q { margin: 0; font-size: var(--ucs-qz-q, 22px); outline: none; }
+.ucs-qz__intro, .ucs-qz__progress { margin: 0; opacity: 0.8; }
+.ucs-qz__bar { display: block; width: min(320px, 100%); height: 6px; border-radius: 6px; background: rgba(127, 127, 127, 0.2); overflow: hidden; }
+.ucs-qz__bar i { display: block; height: 100%; background: var(--ucs-accent, #121212); }
+.ucs-qz__answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; width: 100%; }
+.ucs-qz--list .ucs-qz__answers { grid-template-columns: 1fr; }
+.ucs-qz__a { min-height: 56px; padding: 14px 16px; border: 2px solid transparent; border-radius: var(--ucs-qz-r, 12px); background: var(--ucs-qz-card, #f6f6f6); color: inherit; font: inherit; font-size: var(--ucs-qz-a, 15px); font-weight: 600; cursor: pointer; }
+.ucs-qz--list .ucs-qz__a { text-align: left; border-color: rgba(127, 127, 127, 0.3); }
+.ucs-qz__a:hover, .ucs-qz__a:focus-visible { border-color: var(--ucs-accent, #121212); }
+.ucs-qz__back { border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; opacity: 0.75; cursor: pointer; }
+.ucs-qz__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; width: 100%; margin: 0; padding: 0; list-style: none; text-align: left; }
+.ucs-qz__item { display: grid; gap: 6px; align-content: start; }
+.ucs-qz__item a { display: grid; gap: 6px; color: inherit; text-decoration: none; }
+.ucs-qz__item img, .ucs-qz__ph { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--ucs-qz-r, 12px); background: rgba(127, 127, 127, 0.15); }
