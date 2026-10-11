@@ -1,0 +1,10 @@
+# One-click after-purchase offer (app: Checkout → After-purchase offer). The offer is read from the
+# shop metafield below (storefront-readable, see app/lib/post-purchase.ts); the app server signs the
+# change when the shopper accepts.
+name = "CRO Toolbox after-purchase offer"
+type = "checkout_post_purchase"
+uid = "ffbe802e-da42-83a4-fd54-ae377963babed02d8990"
+
+[[metafields]]
+namespace = "cro_toolbox"
+key = "post_purchase"

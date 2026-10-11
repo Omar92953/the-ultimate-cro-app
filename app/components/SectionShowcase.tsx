@@ -1740,3 +1740,27 @@ export function ThankYouShowcase() {
     </Stage>
   );
 }
+
+/** After-purchase offer: one product at a discount, added to the paid order in one click. */
+export function PostPurchaseShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 7, width: "80%", fontSize: 11 }}>
+        <span style={{ padding: "6px 8px", borderRadius: 6, background: "#f1f6fe", border: "1px solid #c7dbf7", textAlign: "center" }}>
+          <b>Wait — add this to your order</b>
+        </span>
+        <span style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 8, alignItems: "center" }}>
+          <span style={{ aspectRatio: "1", borderRadius: 6, background: "#e9e2d8" }} />
+          <span style={{ display: "grid", gap: 4 }}>
+            <b>Travel case</b>
+            <span>
+              <s style={{ color: "#777" }}>EGP 300</s> <b style={{ color: "#b42318" }}>EGP 255</b>
+            </span>
+            <span style={{ display: "block", padding: "5px 0", borderRadius: 5, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to my order</span>
+            <span style={{ textAlign: "center", color: "#1773b0" }}>No thanks</span>
+          </span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
