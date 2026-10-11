@@ -11,15 +11,36 @@ import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
 import { OFFER_TYPES, OFFER_TYPE_KEYS, type OfferTypeKey } from "../lib/offer-types";
 import { area, feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { FEATURE_PLAN, PLANS, canUse } from "../lib/plans";
+import { FEATURE_PLAN, PLANS, canUse, limitOf, planAbove } from "../lib/plans";
 import { Button, Select, TextField } from "../components/fields";
 import { Pill } from "../components/ui";
-import { usePlan } from "../components/Upgrade";
+import { UpgradeButton, usePlan } from "../components/Upgrade";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   return { offers: await listOffers(admin) };
 };
+
+/** "2 of 3 offer slots used": every switched-on offer, any type, fills one slot (plans.ts offerSlots). */
+function SlotMeter({ used }: { used: number }) {
+  const { plan } = usePlan();
+  const slots = limitOf(plan, "offerSlots");
+  if (slots === null) return null;
+  const next = planAbove("offerSlots", slots, plan);
+  return (
+    <s-section>
+      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+        <s-stack gap="small-100">
+          <s-text type="strong">{`${Math.min(used, slots)} of ${slots} offer slots used`}</s-text>
+          <s-text color="subdued">
+            {`Any offer that's on fills a slot: upsells, cross-sells, bundles, deals and the after-purchase offer. Switch one off to free its slot.${next ? ` ${PLANS[next].name} has unlimited offers.` : ""}`}
+          </s-text>
+        </s-stack>
+        {next ? <UpgradeButton to={next} variant={used >= slots ? "primary" : "secondary"} /> : null}
+      </s-stack>
+    </s-section>
+  );
+}
 
 const EXTRAS: FeatureKey[] = ["addons", "personalize"];
 
@@ -42,6 +63,7 @@ export default function OffersHub() {
       </Button>
       <s-stack gap="base">
         <s-text color="subdued">{area("offers").intro}</s-text>
+        <SlotMeter used={offers.filter((o) => o.active).length} />
 
         <s-section padding="none">
           {offers.length ? (

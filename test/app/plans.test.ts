@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import { AREAS, FEATURES, areaForPath, featuresForPath, featuresIn, type FeatureKey } from "../../app/lib/catalog";
 import {
   EXTRA_PLAN,
+  GUARANTEE,
+  limitOf,
   FEATURE_PLAN,
   PLANS,
   PLAN_KEYS,
@@ -19,7 +21,7 @@ import {
   planFromSubscription,
   planPageUrl,
 } from "../../app/lib/plans";
-import { pageLock } from "../../app/lib/plan-gate";
+import { canTry, pageLock } from "../../app/lib/plan-gate";
 
 test("every feature has a plan, and prices only go up", () => {
   for (const k of Object.keys(FEATURES)) assert.ok(FEATURE_PLAN[k as FeatureKey], `no plan for ${k}`);
@@ -28,15 +30,28 @@ test("every feature has a plan, and prices only go up", () => {
   }
 });
 
-test("Free includes one active upsell, cross-sell and bundle-or-deal", () => {
-  assert.equal(limitError("free", "upsellOffers", 0), null);
-  assert.match(limitError("free", "upsellOffers", 1)!, /Free plan includes 1 active upsell offer\. Upgrade to Starter/);
-  assert.match(limitError("free", "bundlesAndDeals", 3)!, /1 active bundle or deal/);
-  assert.equal(limitError("starter", "upsellOffers", 500), null);
+test("Free has 3 offer slots shared by every offer type", () => {
+  assert.equal(limitError("free", "offerSlots", 2), null);
+  assert.match(limitError("free", "offerSlots", 3)!, /Free plan includes 3 offer slots\. Upgrade to Starter/);
+  assert.equal(limitError("starter", "offerSlots", 500), null);
+});
+
+test("each plan tastes the next: checkout rules 3 → 6 → unlimited, offer results 1 → 3 → all", () => {
+  assert.equal(limitOf("free", "checkoutRules"), 3);
+  assert.equal(limitOf("starter", "checkoutRules"), 6);
+  assert.equal(limitOf("growth", "checkoutRules"), null);
+  assert.deepEqual(PLAN_KEYS.map((p) => limitOf(p, "offerStats")), [1, 3, null, null]);
+  assert.equal(PLANS.free.limits.trialFeatures, 1);
+  assert.match(limitError("starter", "checkoutRules", 6)!, /Upgrade to Growth/);
+});
+
+test("every paid plan carries the cancel-anytime guarantee and a job", () => {
+  assert.match(GUARANTEE, /Cancel/);
+  for (const p of PLAN_KEYS) assert.ok(PLANS[p].job.length > 10);
 });
 
 test("the next plan up is the cheapest one with room", () => {
-  assert.equal(planAbove("upsellOffers", 1), "starter");
+  assert.equal(planAbove("offerSlots", 3), "starter");
   assert.equal(planAbove("designsPerSection", 1), "starter");
   assert.equal(planAbove("designsPerSection", 5), null);
   assert.equal(planAbove("monthlyOrders", 800, "starter"), "growth");
@@ -127,4 +142,23 @@ test("every feature is listed on its hub", () => {
   for (const k of Object.keys(FEATURES) as FeatureKey[]) {
     assert.ok(AREAS.some((a) => featuresIn(a.key).includes(k)), `${k} is on no hub`);
   }
+});
+
+test("Free tries 1 Starter feature: its pages open, others stay locked", () => {
+  assert.equal(canTry("free", "addons"), true);
+  assert.equal(canTry("free", "upsell"), false); // already free
+  assert.equal(canTry("starter", "addons"), false); // already included
+  assert.equal(canTry("starter", "payment_rules"), false); // Starter has no trial slot
+  assert.equal(pageLock("free", "/app/designs/add-ons")?.kind, "feature");
+  assert.equal(pageLock("free", "/app/designs/add-ons", "", "addons"), null);
+  assert.equal(pageLock("free", "/app/designs/personalize", "", "addons")?.kind, "feature");
+});
+
+test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () => {
+  assert.equal(limitError("free", "countdownPlaces", 0), null);
+  assert.match(limitError("free", "countdownPlaces", 1) ?? "", /Starter/);
+  assert.equal(limitError("free", "thankYouModules", 1), null);
+  assert.match(limitError("free", "thankYouModules", 2) ?? "", /Starter/);
+  assert.equal(limitError("starter", "countdownPlaces", 9), null);
+  assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
 });

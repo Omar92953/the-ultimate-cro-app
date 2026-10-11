@@ -9,6 +9,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks, shopOffset } from "../lib/sections.server";
 import { getCountdownBar, saveCountdownBar } from "../lib/designs.server";
+import { checkCount } from "../lib/billing.server";
 import { COUNTDOWN_BAR_PRESETS, COUNTDOWN_PLACES, FONTS, NUMBER_STYLES, applyCountdownBarPreset, isCountdownPlace, withCountdownBarDefaults, type CountdownBarConfig, type CountdownPlace } from "../lib/designs";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
@@ -44,10 +45,16 @@ export const loader = slottedRoute(["countdown_bar", "countdown_footer", "countd
 });
 
 export const action = slottedRoute(["countdown_bar", "countdown_footer", "countdown_home", "countdown_product", "countdown_cart"], async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     const place = placeFrom(request.url);
+    // Free: 1 countdown place on at a time (plans.ts countdownPlaces). Drafts (previews) don't count.
+    if (form.get("intent") !== "draft" && JSON.parse(String(form.get("config"))).on !== false) {
+      const others = await Promise.all(COUNTDOWN_PLACES.filter((p) => p.key !== place).map((p) => getCountdownBar(admin, p.key)));
+      const limit = await checkCount(admin, session.shop, "countdownPlaces", others.filter((o) => o.saved && o.config.on).length, 1);
+      if (limit) return { ok: false, draft: false, error: limit.error, config: null };
+    }
     const config = await saveCountdownBar(admin, withCountdownBarDefaults(JSON.parse(String(form.get("config"))), place), place, form.get("intent") === "draft");
     return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {

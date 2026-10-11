@@ -11,6 +11,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { getCheckoutRules, saveCheckoutRules } from "../lib/checkout-rules.server";
+import { checkCheckoutRules } from "../lib/billing.server";
+import { LimitUpgrade } from "../components/Upgrade";
 import { CUSTOMERS, LIMIT_KINDS, describeChange, newChangeRule, newLimitRule, type ChangeRule, type CheckoutKind, type LimitRule, type Picked } from "../lib/checkout-rules";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
@@ -36,13 +38,17 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const page = pageKind(params.kind);
   if (!page) throw new Response("Not found", { status: 404 });
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const saved = await saveCheckoutRules(admin, KIND[page], JSON.parse(String(form.get("rules") ?? "[]")), form.get("enabled") !== "false");
-    return { ok: true as const, error: null, saved };
+    const rules = JSON.parse(String(form.get("rules") ?? "[]")) as { on?: boolean }[];
+    // Checkout rules count together across payment, delivery and order limits (plans.ts checkoutRules).
+    const limit = await checkCheckoutRules(admin, session.shop, KIND[page], rules.filter((r) => r.on).length);
+    if (limit) return { ok: false as const, error: limit.error, saved: null, upgrade: true };
+    const saved = await saveCheckoutRules(admin, KIND[page], rules, form.get("enabled") !== "false");
+    return { ok: true as const, error: null, saved, upgrade: false };
   } catch (e) {
-    return { ok: false as const, error: errorMessage(e), saved: null };
+    return { ok: false as const, error: errorMessage(e), saved: null, upgrade: false };
   }
 };
 
@@ -129,6 +135,14 @@ export default function CheckoutRules() {
         ) : (
           <Explainer what={TEXT[page].what} how={TEXT[page].how} example={TEXT[page].example} />
         )}
+        {fetcher.data?.upgrade ? (
+          <s-banner tone="warning" heading="Plan limit reached">
+            <s-stack gap="small-200">
+              <s-text>{fetcher.data.error}</s-text>
+              <LimitUpgrade show />
+            </s-stack>
+          </s-banner>
+        ) : null}
         {data.error ? (
           <s-banner tone="critical" heading="Checkout rules could not be read">
             {data.error} If this mentions access, open the app again from your Shopify admin to accept the new permissions.

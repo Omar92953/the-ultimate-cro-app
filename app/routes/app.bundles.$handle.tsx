@@ -51,7 +51,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a bundle can always be saved off.
-    const over = await checkLimit(admin, session.shop, "bundlesAndDeals", bundle);
+    const over = await checkLimit(admin, session.shop, "offerSlots", bundle);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveBundle(admin, bundle);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };

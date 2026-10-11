@@ -7,7 +7,7 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 import { forgetShop } from "./lib/short-cache.server";
-import { getPlan } from "./lib/billing.server";
+import { getPlan, getPlanState } from "./lib/billing.server";
 import { pageLock } from "./lib/plan-gate";
 import { PLANS } from "./lib/plans";
 
@@ -43,7 +43,8 @@ const admin: typeof shopify.authenticate.admin = async (request) => {
     forgetShop(result.session.shop);
     const url = new URL(request.url);
     const { plan } = await getPlan(result.admin, result.session.shop);
-    const lock = pageLock(plan, url.pathname, url.search);
+    const trial = PLANS[plan].limits.trialFeatures ? (await getPlanState(result.admin).catch(() => null))?.trial ?? null : null;
+    const lock = pageLock(plan, url.pathname, url.search, trial);
     if (lock) throw new Response(`This needs the ${PLANS[lock.needs].name} plan.`, { status: 403 });
   }
   return result;

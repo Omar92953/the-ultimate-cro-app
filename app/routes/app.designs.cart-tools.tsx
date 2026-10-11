@@ -4,6 +4,10 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { getPlan } from "../lib/billing.server";
+import { EXTRA_PLAN, PLANS, atLeast, type PlanKey } from "../lib/plans";
+import { UpgradeButton, usePlan } from "../components/Upgrade";
+import { Pill } from "../components/ui";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
@@ -25,10 +29,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveCartTools(admin, withCartToolsDefaults(JSON.parse(String(form.get("config")))), form.get("intent") === "draft");
+    const raw = withCartToolsDefaults(JSON.parse(String(form.get("config"))));
+    // Express checkout, best discount and share cart are Starter modules (plans.ts EXTRA_PLAN.cartDrawerPro).
+    const { plan } = await getPlan(admin, session.shop);
+    const pro = atLeast(plan, EXTRA_PLAN.cartDrawerPro);
+    const clean = pro ? raw : { ...raw, express: { on: false }, discount: { ...raw.discount, on: false }, share: { ...raw.share, on: false } };
+    const config = await saveCartTools(admin, clean, form.get("intent") === "draft");
     return { ok: true, draft: form.get("intent") === "draft", error: null, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
@@ -37,10 +46,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 type C = CartToolsDesign;
 
+/** Under a module the plan doesn't include: which plan has it, and the way there. */
+function PlanNote({ needs }: { needs: PlanKey }) {
+  return (
+    <s-stack direction="inline" gap="small-200" alignItems="center">
+      <Pill tone="warn">{`${PLANS[needs].name} plan`}</Pill>
+      <UpgradeButton to={needs} variant="tertiary" />
+    </s-stack>
+  );
+}
+
 export default function CartToolsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
+  const { plan } = usePlan();
+  const pro = atLeast(plan, EXTRA_PLAN.cartDrawerPro);
+  const needs = pro ? null : <PlanNote needs={EXTRA_PLAN.cartDrawerPro} />;
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
@@ -120,14 +142,16 @@ export default function CartToolsDesigner() {
               </Pane>
               <Pane show={tab === "content"}>
                 <s-section heading="Express checkout">
-                  <Switch label="Shop Pay, Apple Pay, Google Pay… in the drawer" details="Shopify shows the buttons your store has turned on in Settings → Payments." checked={cfg.express.on} onValue={(v) => express({ on: v })} />
+                  <Switch label="Shop Pay, Apple Pay, Google Pay… in the drawer" details="Shopify shows the buttons your store has turned on in Settings → Payments." checked={pro && cfg.express.on} disabled={!pro} onValue={(v) => express({ on: v })} />
+                  {needs}
                 </s-section>
               </Pane>
               <Pane show={tab === "content"}>
                 <s-section heading="Best discount">
                   <s-stack gap="base">
-                    <Switch label="Apply the best discount code automatically" details="Tries each code on the cart and keeps the one that saves the most." checked={cfg.discount.on} onValue={(v) => discount({ on: v })} />
-                    {cfg.discount.on ? (
+                    <Switch label="Apply the best discount code automatically" details="Tries each code on the cart and keeps the one that saves the most." checked={pro && cfg.discount.on} disabled={!pro} onValue={(v) => discount({ on: v })} />
+                    {needs}
+                    {pro && cfg.discount.on ? (
                       <>
                         <TextField label="Discount codes" details="Codes from Shopify Discounts, separated by commas (up to 6)." value={cfg.discount.codes} onValue={(v) => discount({ codes: v })} />
                         <TextField label="Message" details="{code} = the code applied" value={cfg.discount.applied} onValue={(v) => discount({ applied: v })} />
@@ -142,8 +166,9 @@ export default function CartToolsDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Saved and shareable cart">
                   <s-stack gap="base">
-                    <Switch label="“Share cart” link and remembering the cart" details="The link rebuilds the cart on any device; an emptied cart offers the last one back on this device." checked={cfg.share.on} onValue={(v) => share({ on: v })} />
-                    {cfg.share.on ? (
+                    <Switch label="“Share cart” link and remembering the cart" details="The link rebuilds the cart on any device; an emptied cart offers the last one back on this device." checked={pro && cfg.share.on} disabled={!pro} onValue={(v) => share({ on: v })} />
+                    {needs}
+                    {pro && cfg.share.on ? (
                       <>
                         <TextField label="Button" value={cfg.share.button} onValue={(v) => share({ button: v })} />
                         <TextField label="After copying" value={cfg.share.copied} onValue={(v) => share({ copied: v })} />

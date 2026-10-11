@@ -66,7 +66,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
     // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
-    const over = await checkLimit(admin, session.shop, rule.kind === "upsell" ? "upsellOffers" : "crossSellOffers", rule);
+    const over = await checkLimit(admin, session.shop, "offerSlots", rule);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveRule(admin, rule);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };

@@ -19,7 +19,12 @@ import { gql, type AdminClient } from "./admin.server";
 import { listBundles, listDeals, listRules, syncBundles, syncDiscounts, upsert } from "./cro.server";
 import { forgetShop, remember } from "./short-cache.server";
 import { listKitIds } from "./kits.server";
-import { DEFAULT_APP_HANDLE, PLAN_KEYS, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
+import { listOffers } from "./offers.server";
+import { getPostPurchase } from "./post-purchase.server";
+import { getCheckoutRules, saveCheckoutRules } from "./checkout-rules.server";
+import type { CheckoutKind } from "./checkout-rules";
+import type { FeatureKey } from "./catalog";
+import { DEFAULT_APP_HANDLE, FEATURE_PLAN, PLAN_KEYS, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
 
 export type PlanInfo = {
   plan: PlanKey;
@@ -137,46 +142,77 @@ export function getMonthlyOrders(admin: AdminClient, shop: string): Promise<numb
 
 /* ----------------------------------------------- keeping within the plan -- */
 
-type PausedItem = { type: "rule" | "bundle" | "deal"; handle: string; name: string; limit: LimitKey };
-export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null };
-const EMPTY_STATE: PlanState = { plan: null, paused: [], at: null };
+type PausedItem = { type: "rule" | "bundle" | "deal" | "checkout"; handle: string; name: string; limit: LimitKey };
+export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null; trial?: FeatureKey | null };
+const EMPTY_STATE: PlanState = { plan: null, paused: [], at: null, trial: null };
 
 export async function getPlanState(admin: AdminClient): Promise<PlanState> {
   const data = await gql(admin, `#graphql
     query CroPlanState { metaobjectByHandle(handle: { type: "$app:cro_design", handle: "plan_state" }) { field(key: "config") { value } } }`);
   try {
     const v = JSON.parse(data.metaobjectByHandle?.field?.value ?? "null");
-    return v && Array.isArray(v.paused) ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null } : EMPTY_STATE;
+    return v && Array.isArray(v.paused)
+      ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null, trial: typeof v.trial === "string" && v.trial in FEATURE_PLAN ? (v.trial as FeatureKey) : null }
+      : EMPTY_STATE;
   } catch {
     return EMPTY_STATE;
   }
 }
 
-const TYPE: Record<PausedItem["type"], string> = { rule: "$app:cro_rule", bundle: "$app:cro_bundle", deal: "$app:cro_deal" };
+async function savePlanState(admin: AdminClient, state: PlanState) {
+  await upsert(admin, "$app:cro_design", "plan_state", { config: JSON.stringify(state) });
+}
+
+/**
+ * Free stores try 1 Starter feature of their choice (plans.ts `trialFeatures`). Choosing another
+ * one moves the trial: the old one keeps working on the store but can't be edited.
+ */
+export async function setTrialFeature(admin: AdminClient, key: FeatureKey | null) {
+  const state = await getPlanState(admin);
+  await savePlanState(admin, { ...state, trial: key });
+}
+
+const TYPE: Record<Exclude<PausedItem["type"], "checkout">, string> = { rule: "$app:cro_rule", bundle: "$app:cro_bundle", deal: "$app:cro_deal" };
+const CHECKOUT_KINDS: CheckoutKind[] = ["payment", "delivery", "validation"];
 
 /**
  * Switches off what's over the plan's limits (first N stay on) and, after an upgrade, switches back
  * on what the app paused before. Nothing is ever deleted. Returns the stored state.
+ * Offer slots count every offer type together, in the order the Offers hub lists them; bundle
+ * products (real products) and the after-purchase offer fill slots but are never switched off, so
+ * the others are paused first. Checkout rules count payment, delivery and order limits together.
  */
 export async function applyPlanLimits(admin: AdminClient, plan: PlanKey): Promise<PlanState> {
-  const [rules, bundles, deals, state] = await Promise.all([listRules(admin), listBundles(admin), listDeals(admin), getPlanState(admin)]);
+  const [rules, bundles, deals, kits, post, checkout, state] = await Promise.all([
+    listRules(admin),
+    listBundles(admin),
+    listDeals(admin),
+    listKitIds(admin).catch(() => [] as string[]),
+    getPostPurchase(admin).catch(() => null),
+    getCheckoutRules(admin).catch(() => null),
+    getPlanState(admin),
+  ]);
   type Item = { type: PausedItem["type"]; handle: string; name: string; active: boolean; limit: LimitKey };
-  const groups: Record<"upsellOffers" | "crossSellOffers" | "bundlesAndDeals", Item[]> = {
-    upsellOffers: rules.filter((r) => r.kind === "upsell").map((r) => ({ type: "rule", handle: r.handle!, name: r.name, active: r.active, limit: "upsellOffers" })),
-    crossSellOffers: rules.filter((r) => r.kind === "cross_sell").map((r) => ({ type: "rule", handle: r.handle!, name: r.name, active: r.active, limit: "crossSellOffers" })),
-    // Mix & match bundles first, then deals in their list order.
-    bundlesAndDeals: [
-      ...bundles.map((b): Item => ({ type: "bundle", handle: b.handle!, name: b.name, active: b.active, limit: "bundlesAndDeals" })),
-      ...deals.map((d): Item => ({ type: "deal", handle: d.handle!, name: d.name, active: d.active, limit: "bundlesAndDeals" })),
-    ],
-  };
+  const offers: Item[] = [
+    ...rules.filter((r) => r.kind === "upsell").map((r): Item => ({ type: "rule", handle: r.handle!, name: r.name, active: r.active, limit: "offerSlots" })),
+    ...rules.filter((r) => r.kind === "cross_sell").map((r): Item => ({ type: "rule", handle: r.handle!, name: r.name, active: r.active, limit: "offerSlots" })),
+    ...bundles.map((b): Item => ({ type: "bundle", handle: b.handle!, name: b.name, active: b.active, limit: "offerSlots" })),
+    ...deals.map((d): Item => ({ type: "deal", handle: d.handle!, name: d.name, active: d.active, limit: "offerSlots" })),
+  ];
+  const fixedSlots = kits.length + (post?.config.on ? 1 : 0);
+  const checks: Item[] = checkout
+    ? CHECKOUT_KINDS.flatMap((k) => checkout[k].rules.map((r): Item => ({ type: "checkout", handle: `${k}:${r.id}`, name: checkoutRuleName(k), active: r.on, limit: "checkoutRules" })))
+    : [];
+  const groups: [LimitKey, Item[], number][] = [["offerSlots", offers, fixedSlots], ["checkoutRules", checks, 0]];
+
   // Still paused = still saved and still off (the merchant may have deleted or switched one on since).
-  const off = new Set(Object.values(groups).flat().filter((i) => !i.active).map((i) => `${i.type}:${i.handle}`));
+  const off = new Set(groups.flatMap(([, items]) => items).filter((i) => !i.active).map((i) => `${i.type}:${i.handle}`));
   let paused = state.paused.filter((p) => off.has(`${p.type}:${p.handle}`));
   const turnOff: Item[] = [];
   const turnOn: PausedItem[] = [];
-  for (const [key, items] of Object.entries(groups) as [LimitKey, Item[]][]) {
-    const limit = limitOf(plan, key);
+  for (const [key, items, fixed] of groups) {
+    const raw = limitOf(plan, key);
+    const limit = raw === null ? null : Math.max(0, raw - fixed);
     const over = overLimit(items, limit);
     turnOff.push(...over);
     const activeNow = items.filter((i) => i.active).length - over.length;
@@ -184,18 +220,27 @@ export async function applyPlanLimits(admin: AdminClient, plan: PlanKey): Promis
   }
   if (!turnOff.length && !turnOn.length && state.plan === plan) return { ...state, paused };
 
-  const set = (type: PausedItem["type"], handle: string, active: boolean) => upsert(admin, TYPE[type], handle, { active: String(active) });
-  for (const i of turnOff) await set(i.type, i.handle, false);
-  for (const p of turnOn) await set(p.type, p.handle, true);
+  const changes = [...turnOff.map((i) => ({ ...i, on: false })), ...turnOn.map((p) => ({ ...p, on: true }))];
+  for (const c of changes) if (c.type !== "checkout") await upsert(admin, TYPE[c.type], c.handle, { active: String(c.on) });
+  if (checkout) {
+    for (const kind of CHECKOUT_KINDS) {
+      const mine = changes.filter((c) => c.type === "checkout" && c.handle.startsWith(`${kind}:`));
+      if (!mine.length) continue;
+      const set = new Map(mine.map((c) => [c.handle.slice(kind.length + 1), c.on]));
+      const next = checkout[kind].rules.map((r) => (set.has(r.id) ? { ...r, on: set.get(r.id)! } : r));
+      await saveCheckoutRules(admin, kind, next, checkout[kind].enabled);
+    }
+  }
   const resumed = new Set(turnOn.map((p) => `${p.type}:${p.handle}`));
   paused = [...paused.filter((p) => !resumed.has(`${p.type}:${p.handle}`)), ...turnOff.map(({ type, handle, name, limit }) => ({ type, handle, name, limit }))];
-  const changed = [...turnOff, ...turnOn];
-  if (changed.some((i) => i.type !== "bundle")) await syncDiscounts(admin);
-  if (changed.some((i) => i.type === "bundle")) await syncBundles(admin);
-  const next: PlanState = { plan, paused, at: new Date().toISOString() };
-  await upsert(admin, "$app:cro_design", "plan_state", { config: JSON.stringify(next) });
+  if (changes.some((c) => c.type === "rule" || c.type === "deal")) await syncDiscounts(admin);
+  if (changes.some((c) => c.type === "bundle")) await syncBundles(admin);
+  const next: PlanState = { ...state, plan, paused, at: new Date().toISOString() };
+  await savePlanState(admin, next);
   return next;
 }
+
+const checkoutRuleName = (k: CheckoutKind) => (k === "payment" ? "A payment rule" : k === "delivery" ? "A delivery rule" : "An order limit");
 
 /**
  * Runs applyPlanLimits once per plan change per shop (in the background; never slows a page). Only
@@ -213,22 +258,35 @@ export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo)
 }
 
 /**
- * For save actions: may this item be switched on? Counts the ones already on (not this one).
- * Returns null when allowed, otherwise { error, upgrade } for the page's error banner.
+ * For save actions: may this offer be switched on? Every offer type fills one of the plan's offer
+ * slots (plans.ts). `self` is the offer being saved (its id/handle, or a kit's product id), so it
+ * isn't counted twice. Returns null when allowed, otherwise { error, upgrade } for the page.
  */
-export async function checkLimit(admin: AdminClient, shop: string, key: "upsellOffers" | "crossSellOffers" | "bundlesAndDeals", self: { active: boolean; handle?: string | null }) {
+export async function checkLimit(admin: AdminClient, shop: string, key: "offerSlots", self: { active: boolean; handle?: string | null; id?: string | null }) {
   if (!self.active) return null;
   const info = await getPlan(admin, shop);
   if (limitOf(info.plan, key) === null) return null;
-  let othersOn: number;
-  if (key === "bundlesAndDeals") {
-    // Bundle products (kits) count too; `handle` is the kit's product id when saving one.
-    const [bundles, deals, kits] = await Promise.all([listBundles(admin), listDeals(admin), listKitIds(admin)]);
-    othersOn = [...bundles, ...deals].filter((x) => x.active && x.handle !== self.handle).length + kits.filter((id) => id !== self.handle).length;
-  } else {
-    const kind = key === "upsellOffers" ? "upsell" : "cross_sell";
-    othersOn = (await listRules(admin, kind)).filter((r) => r.active && r.handle !== self.handle).length;
-  }
+  const offers = await listOffers(admin);
+  const othersOn = offers.filter((o) => o.active && o.id !== self.id && !(self.handle && o.href.endsWith(`/${self.handle}`))).length;
   const error = limitError(info.plan, key, othersOn);
+  return error ? { error, upgrade: info.planUrl } : null;
+}
+
+/** For the checkout rules page: may this many rules be on (all kinds together)? */
+export async function checkCheckoutRules(admin: AdminClient, shop: string, kind: CheckoutKind, onHere: number) {
+  const info = await getPlan(admin, shop);
+  if (limitOf(info.plan, "checkoutRules") === null) return null;
+  const all = await getCheckoutRules(admin);
+  const others = CHECKOUT_KINDS.filter((k) => k !== kind).reduce((n, k) => n + all[k].rules.filter((r) => r.on).length, 0);
+  const error = onHere > 0 ? limitError(info.plan, "checkoutRules", others + onHere - 1) : null;
+  return error ? { error, upgrade: info.planUrl } : null;
+}
+
+/** For pages with their own counted limit (countdown places, thank-you modules): may `onHere` more be on, next to `othersOn`? */
+export async function checkCount(admin: AdminClient, shop: string, key: "countdownPlaces" | "thankYouModules", othersOn: number, onHere: number) {
+  if (onHere <= 0) return null;
+  const info = await getPlan(admin, shop);
+  if (limitOf(info.plan, key) === null) return null;
+  const error = limitError(info.plan, key, othersOn + onHere - 1);
   return error ? { error, upgrade: info.planUrl } : null;
 }

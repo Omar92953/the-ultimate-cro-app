@@ -34,5 +34,5 @@ export const WHATS_NEW: { date: string; text: string; href?: string }[] = [
   { date: "Oct 2026", text: "Plans: start free, upgrade when you need more.", href: "/app#plans" },
   { date: "Oct 2026", text: "After-purchase offer: a one-click offer right after payment.", href: "/app/checkout/after-purchase" },
   { date: "Sep 2026", text: "Thank-you page modules and checkout order limits.", href: "/app/checkout" },
-  { date: "Sep 2026", text: "Results: see what the app's widgets sell, and run a holdout test.", href: "/app/results" },
+  { date: "Sep 2026", text: "Results: see what the app's widgets sell, and run a holdout test.", href: "/app/analytics" },
 ];

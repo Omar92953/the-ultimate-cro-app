@@ -11,6 +11,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { createNextOrderCode, getThankYou, saveThankYou } from "../lib/thank-you.server";
+import { checkCount } from "../lib/billing.server";
 import { MODULE_TYPES, newModule, type ModuleType, type ThankYouModule } from "../lib/thank-you";
 import { CategoryCrumb } from "../components/FeatureNav";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
@@ -23,7 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     if (form.get("intent") === "code") {
@@ -31,7 +32,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return { ok: true as const, error: null, code, intent: "code" as const };
     }
     const { shopId } = await getThankYou(admin);
-    await saveThankYou(admin, shopId, JSON.parse(String(form.get("config") ?? "{}")));
+    const config = JSON.parse(String(form.get("config") ?? "{}"));
+    // Free: 2 modules on (plans.ts thankYouModules).
+    const on = Array.isArray(config?.modules) ? config.modules.filter((m: { on?: boolean }) => m?.on !== false).length : 0;
+    const limit = await checkCount(admin, session.shop, "thankYouModules", 0, on);
+    if (limit) return { ok: false as const, error: limit.error, code: null, intent: "save" as const };
+    await saveThankYou(admin, shopId, config);
     return { ok: true as const, error: null, code: null, intent: "save" as const };
   } catch (e) {
     return { ok: false as const, error: errorMessage(e), code: null, intent: String(form.get("intent") ?? "save") };

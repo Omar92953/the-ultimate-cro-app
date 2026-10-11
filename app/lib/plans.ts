@@ -17,18 +17,30 @@ import type { FeatureKey } from "./catalog";
 export type PlanKey = "free" | "starter" | "growth" | "pro";
 export const PLAN_KEYS: PlanKey[] = ["free", "starter", "growth", "pro"];
 
-/** Counted limits. `null` = unlimited. Offers and bundles count the ones switched on (active). */
+/**
+ * Counted limits. `null` = unlimited. Every plan also gets a small taste of the next plan
+ * (Omar: "so people can test everything"): Free tries 1 Starter feature and gets 3 checkout rules,
+ * Starter gets 6 checkout rules and per-offer results for its top 3 offers, and so on.
+ */
 export type Limits = {
-  upsellOffers: number | null;
-  crossSellOffers: number | null;
-  /** Mix & match bundles and deals (fixed, buy X get Y, volume, gift, upgrade) together. */
-  bundlesAndDeals: number | null;
-  /** Designs per section (Design 1…5 on a design page). */
+  /** Offers switched on at the same time, any type: upsells, cross-sells, bundles, bundle products, deals, the after-purchase offer. */
+  offerSlots: number | null;
+  /** Checkout rules switched on: payment + delivery + order limits together. */
+  checkoutRules: number | null;
+  /** Countdown timers (header, footer, home, product, cart: one place each). */
+  countdownPlaces: number | null;
+  /** Thank-you page modules switched on. */
+  thankYouModules: number | null;
+  /** Features of the next plan the store can use now (it picks which; plan_state.trial). */
+  trialFeatures: number;
+  /** Offers with their own results on Analytics (the rest are shown as a teaser). */
+  offerStats: number | null;
+  /** Styles per section (Design 1…5 on a design page). */
   designsPerSection: number | null;
   /** Orders a month. Soft: going over only shows a banner, nothing is switched off. */
   monthlyOrders: number | null;
 };
-export type LimitKey = keyof Limits;
+export type LimitKey = keyof Omit<Limits, "trialFeatures">;
 
 export type Plan = {
   key: PlanKey;
@@ -36,14 +48,19 @@ export type Plan = {
   name: string;
   /** The plan's handle in the Partner Dashboard (Shopify App Pricing `plan_handle`). */
   handle: string;
+  /** What the plan is for, in one line (leads its card). */
+  job: string;
   /** USD. */
   monthly: number;
   yearly: number;
   trialDays: number;
   limits: Limits;
-  /** Short lines for the plan cards on Home. */
+  /** What the plan adds over the plan below (its card on Home and the Plans page). */
   highlights: string[];
 };
+
+/** Shown on every paid plan (Shopify billing: merchants change or cancel from the plan page). */
+export const GUARANTEE = "Cancel or change your plan anytime. No contract.";
 
 // PROPOSAL — confirm with Omar (prices, trial, limits).
 export const PLANS: Record<PlanKey, Plan> = {
@@ -51,31 +68,38 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "free",
     name: "Free",
     handle: "free",
+    job: "Try everything: a little of every tool, free forever.",
     monthly: 0,
     yearly: 0,
     trialDays: 0,
-    limits: { upsellOffers: 1, crossSellOffers: 1, bundlesAndDeals: 1, designsPerSection: 1, monthlyOrders: null },
+    limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: null },
     highlights: [
-      "1 upsell, 1 cross-sell and 1 bundle or deal",
-      "Announcement, countdown and free-shipping bars",
-      "Reviews, FAQ, logos and hero banners",
-      "Quick add and sticky add to cart",
-      "1 design per section, no order cap",
+      "3 offer slots: any mix of upsells, cross-sells, bundles and deals",
+      "Cart drawer, free-shipping and announcement bars, 1 countdown",
+      "Unlimited reviews, FAQ, logos, hero, wishlist, back in stock",
+      "Sticky add to cart, quick add, trust badges, sales pop-ups",
+      "3 checkout rules and a thank-you page with 2 modules",
+      "Try 1 Starter feature of your choice",
+      "No order cap",
     ],
   },
   starter: {
     key: "starter",
     name: "Starter",
     handle: "starter",
+    job: "Sell more per order: every offer, bundle and storefront tool.",
     monthly: 9.99,
     yearly: 99,
     trialDays: 14,
-    limits: { upsellOffers: null, crossSellOffers: null, bundlesAndDeals: null, designsPerSection: 5, monthlyOrders: 500 },
+    limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
     highlights: [
-      "Unlimited offers, bundles, deals and add-ons",
-      "Every section and booster, 5 designs per section",
-      "Cart drawer, wishlist, back in stock, quiz, delivery estimate",
-      "Personalization, gift note, track order and returns pages",
+      "Unlimited offers and all 7 bundle types, price tiers and option pricing",
+      "Add-ons, personalization, gift note and delivery date",
+      "Full cart drawer: express checkout, best discount, share cart",
+      "Quiz, image and video carousels, collection pills, delivery estimate",
+      "Header, footer, contact, track order and returns pages",
+      "5 styles per section, unlimited countdowns and thank-you modules",
+      "6 checkout rules and results for your top 3 offers",
       "Up to 500 orders a month",
     ],
   },
@@ -83,15 +107,16 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "growth",
     name: "Growth",
     handle: "growth",
+    job: "Convert and optimise: checkout control and the numbers behind every offer.",
     monthly: 24.99,
     yearly: 249,
     trialDays: 14,
-    limits: { upsellOffers: null, crossSellOffers: null, bundlesAndDeals: null, designsPerSection: 5, monthlyOrders: 2000 },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 2000 },
     highlights: [
       "Everything in Starter",
-      "Payment and delivery rules, order limits",
-      "Thank-you page modules and the after-purchase offer",
-      "Results holdout test",
+      "Unlimited payment rules, delivery rules and order limits",
+      "Results for every offer and every bundle",
+      "Holdout test: measure what the app really adds",
       "Request any feature — we build it for you",
       "Up to 2,000 orders a month",
     ],
@@ -100,11 +125,12 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "pro",
     name: "Pro",
     handle: "pro",
+    job: "Priority: no limits, and we're first in line for you.",
     monthly: 49.99,
     yearly: 499,
     trialDays: 14,
-    limits: { upsellOffers: null, crossSellOffers: null, bundlesAndDeals: null, designsPerSection: 5, monthlyOrders: null },
-    highlights: ["Everything in Growth", "Unlimited orders", "Priority support", "Help setting up your store"],
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
+    highlights: ["Everything in Growth", "Unlimited orders", "Priority support", "Your feature requests built first"],
   },
 };
 
@@ -163,7 +189,10 @@ export const EXTRA_PLAN = {
   /** "Request a feature" on Home: the merchant asks, we build it for them. */
   featureRequests: "growth",
   holdoutTest: "growth",
+  /** The cart drawer's express checkout, best-discount and share-cart modules. */
+  cartDrawerPro: "starter",
   prioritySupport: "pro",
+  requestsFirst: "pro",
 } satisfies Record<string, PlanKey>;
 
 /** Referral reward text and link. PROPOSAL — the referral reward is Omar's decision. */
@@ -198,10 +227,12 @@ export function planAbove(k: LimitKey, count: number, from: PlanKey = "free"): P
 }
 
 const NOUN: Record<LimitKey, [string, string]> = {
-  upsellOffers: ["active upsell offer", "active upsell offers"],
-  crossSellOffers: ["active cross-sell offer", "active cross-sell offers"],
-  bundlesAndDeals: ["active bundle or deal", "active bundles and deals"],
-  designsPerSection: ["design per section", "designs per section"],
+  offerSlots: ["offer slot", "offer slots"],
+  checkoutRules: ["checkout rule", "checkout rules"],
+  countdownPlaces: ["countdown timer", "countdown timers"],
+  thankYouModules: ["thank-you module", "thank-you modules"],
+  offerStats: ["offer with its own results", "offers with their own results"],
+  designsPerSection: ["style per section", "styles per section"],
   monthlyOrders: ["order a month", "orders a month"],
 };
 export const limitText = (k: LimitKey, n: number) => `${n.toLocaleString("en-US")} ${NOUN[k][n === 1 ? 0 : 1]}`;

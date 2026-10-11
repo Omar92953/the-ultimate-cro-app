@@ -35,7 +35,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     const kit = JSON.parse(String(form.get("kit"))) as Kit;
     if (!kit.productId) {
-      const over = await checkLimit(admin, session.shop, "bundlesAndDeals", { active: true, handle: null });
+      const over = await checkLimit(admin, session.shop, "offerSlots", { active: true, handle: null });
       if (over) return { ok: false, error: over.error, id: null, deleted: false, upgrade: true };
     }
     const saved = await saveKit(admin, kit);
