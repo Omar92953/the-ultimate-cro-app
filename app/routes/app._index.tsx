@@ -1,750 +1,401 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData, useSearchParams } from "react-router";
+/**
+ * Home: the plan, the first steps, tutorials, plans, referral and shortcuts. Every feature as a card
+ * is on All features (app.features.tsx). One loader; every read runs at once and is remembered
+ * per shop (short-cache.server.ts), so coming back to Home is instant.
+ */
+import { useEffect, useState } from "react";
+import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { Link, useLoaderData, useLocation } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import {
-  editorLinks,
-  getDiscountStatus,
-  getSavedSections,
-  getSettings,
-  getSlides,
-  getThemeStatus,
-  hasCartTransform,
-  listBundles,
-  listRules,
-  setSavedSections,
-  setSetting,
-  FEATURE_KEYS,
-  type Settings,
-} from "../lib/cro.server";
-import type { DiscountMode } from "../lib/types";
-import { errorMessage } from "../lib/admin.server";
-import { Button } from "../components/fields";
-import {
-  AnnouncementShippingShowcase,
-  AnnouncementShowcase,
-  AnnouncementStyleShowcase,
-  BundlesShowcase,
-  BundlesStepsShowcase,
-  CountdownBarDarkShowcase,
-  CountdownBarShowcase,
-  CountdownRowShowcase,
-  CountdownShowcase,
-  CrossSellCardsShowcase,
-  CrossSellShowcase,
-  FaqCardsShowcase,
-  FaqShowcase,
-  HeroCenteredShowcase,
-  HeroShowcase,
-  LogosGridShowcase,
-  LogosOneLineShowcase,
-  LogosShowcase,
-  QuickAddShowcase,
-  QuickAddToastShowcase,
-  ReviewsChatShowcase,
-  ReviewsPhotosShowcase,
-  ReviewsShowcase,
-  UpsellListShowcase,
-  UpsellShowcase,
-  UpsellSizesShowcase,
-  VideosLargeShowcase,
-  ImageCarouselShowcase,
-  AddonsShowcase,
-  CollectionPillsShowcase,
-  ShippingBarShowcase,
-  ShippingBarCartShowcase,
-  ShippingBarCardShowcase,
-  CollectionPillsImagesShowcase,
-  AddonsCardsShowcase,
-  ImageCarouselOverlayShowcase,
-  VideosShowcase,
-  SalesPopShowcase,
-  SalesPopStackShowcase,
-  SectionCard,
-  type CardMenuItem,
-  StickyMobileShowcase,
-  StickyShowcase,
-  TrustGridShowcase,
-  TrustShowcase,
-  UrgencyLastShowcase,
-  UrgencyShowcase,
-  ContactShowcase,
-  ContactInfoShowcase,
-  HeaderGlassShowcase,
-  HeaderRoundedShowcase,
-  FooterShowcase,
-  ProductReviewsShowcase,
-  StockShowcase,
-  DeliveryShowcase,
-  PersonalizeShowcase,
-  CartExtrasShowcase,
-  CartToolsShowcase,
-  WishlistShowcase,
-  QuizShowcase,
-  TrackShowcase,
-  ReturnsShowcase,
-  PaymentRulesShowcase,
-  DeliveryRulesShowcase,
-  OrderLimitsShowcase,
-  ThankYouShowcase,
-  PostPurchaseShowcase,
-} from "../components/SectionShowcase";
-import showcase from "../components/SectionShowcase.module.css";
-import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
-import { listItems, sectionLinks } from "../lib/sections.server";
-import { getBoosters } from "../lib/boosters.server";
-import { getContact } from "../lib/pages.server";
-import { getAddons, getFooter, getHeader, getImageCarousel, getPills, getShippingBar } from "../lib/designs.server";
-import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
-import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
-import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
+import { getThemeStatus, listBundles, listDeals, listRules, editorLinks } from "../lib/cro.server";
+import { sectionLinks } from "../lib/sections.server";
+import { getExperiment, getResults } from "../lib/results.server";
+import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
+import { getReferral } from "../lib/referral.server";
 import { remember } from "../lib/short-cache.server";
-import { getCheckoutRules } from "../lib/checkout-rules.server";
-import { getThankYou } from "../lib/thank-you.server";
-import { getPostPurchase } from "../lib/post-purchase.server";
+import { feature, type FeatureKey } from "../lib/catalog";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, PLAN_KEYS, atLeast, canUse, limitOf, limitText, ordersOver, planRank, price, type PlanKey } from "../lib/plans";
+import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
+import { Button } from "../components/fields";
+import { Card, CardGrid, CardText, GroupTitle, Pill } from "../components/ui";
+import { UpgradeButton } from "../components/Upgrade";
+import styles from "../components/Home.module.css";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
 }
 
+/** Theme embeds that count as "the app is switched on in your theme". */
+const EMBED_KEYS = ["boosters", "drawer", "cart_tools", "announcements", "quick_add", "wishlist"] as const;
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  // Fresh for 30 s, then answered from memory while it refreshes (up to 5 min); any save in the
-  // app clears it (short-cache.server.ts).
-  return remember(session.shop, "home", 30000, () => loadHome(admin, session), 300000);
-};
+  const shop = session.shop;
+  // Everything at once: none of these reads depends on another. Orders (Results) are the slowest,
+  // so they're remembered longer and refreshed in the background.
+  const [plan, [theme, rules, bundles, deals, referral, planState, monthOrders], results] = await Promise.all([
+    getPlan(admin, shop),
+    remember(shop, "home", 30000, () =>
+      Promise.allSettled([
+        getThemeStatus(admin, shop),
+        listRules(admin),
+        listBundles(admin),
+        listDeals(admin),
+        getReferral(admin, shop),
+        getPlanState(admin),
+        getMonthlyOrders(admin, shop),
+      ]), 300000),
+    // Reading 60 days of orders can take a while the first time: Home doesn't wait more than 3 s
+    // for it (the read carries on and the card fills in on the next visit).
+    Promise.race([
+      remember(shop, "home-results", 10 * 60000, () => getExperiment(admin).then((xp) => getResults(admin, xp)), 60 * 60000),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+    ]).catch(() => null),
+  ]);
 
-async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["admin"], session: { shop: string }) {
-  // Everything at once: none of these reads depends on another.
-  const firstWave = Promise.allSettled([
-    getSettings(admin),
-    listRules(admin),
-    getSlides(admin),
-    listBundles(admin),
-    getThemeStatus(admin, session.shop),
-    getDiscountStatus(admin),
-    hasCartTransform(admin),
-  ]);
-  const secondWave = Promise.all([
-    Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
-    getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
-    getSavedSections(admin).catch(() => [] as string[]),
-    getContact(admin).catch(() => ({ saved: false })),
-    getImageCarousel(admin).catch(() => null),
-    getAddons(admin).catch(() => null),
-    getHeader(admin).catch(() => null),
-    getPills(admin).catch(() => null),
-    getShippingBar(admin).catch(() => null),
-    getFooter(admin).catch(() => null),
-    getCheckoutRules(admin).catch(() => null),
-    getThankYou(admin).catch(() => null),
-    getPostPurchase(admin).catch(() => null),
-  ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
+  const installed = theme.status === "fulfilled" ? theme.value.installed : null;
   const ruleList = settled(rules, []);
-  const sectionCounts = Object.fromEntries(
-    SECTION_KINDS.map((k, i) => {
-      const items = settled(lists[i], []);
-      return [k, { total: items.length, shown: items.filter((it) => itemStatus(k, it).tone === "ok").length }];
-    }),
-  ) as Record<SectionKind, { total: number; shown: number }>;
+  const offers = ruleList.length + settled(bundles, []).length + settled(deals, []).length;
+  const orders = settled(monthOrders, null);
+  const appRevenue = results ? results.bySource.reduce((n, s) => n + s.revenue, 0) : null;
   return {
-    boosters,
-    saved,
-    contactSaved: contact.saved,
-    headerSaved: !!header?.saved,
-    footerSaved: !!footer?.saved,
-    // null: the store hasn't granted the checkout scopes yet (or the read failed).
-    checkout: checkout
-      ? {
-          payment: checkout.payment.id ? (checkout.payment.enabled ? checkout.payment.rules.filter((r) => r.on).length : -1) : 0,
-          delivery: checkout.delivery.id ? (checkout.delivery.enabled ? checkout.delivery.rules.filter((r) => r.on).length : -1) : 0,
-          limits: checkout.validation.id ? (checkout.validation.enabled ? checkout.validation.rules.filter((r) => r.on).length : -1) : 0,
-        }
-      : null,
-    thankYou: thankYou ? thankYou.config.modules.filter((m) => m.on).length : 0,
-    postPurchase: postPurchase ? (postPurchase.config.on ? "on" : postPurchase.config.product ? "off" : "none") : "none",
-    pillCount: pills ? pills.config.items.length : 0,
-    shipBarSaved: !!shipBar?.saved,
-    addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
-    carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
-    sectionCounts,
-    sectionLinks: sectionLinks(session.shop),
-    shop: session.shop,
-    links: editorLinks(session.shop),
-    settings: settled(settings, { cross_sell_enabled: true, upsell_enabled: true, videos_enabled: true, bundles_enabled: true }),
-    counts: {
-      cross_sell: ruleList.filter((r) => r.kind === "cross_sell" && r.active).length,
-      upsell: ruleList.filter((r) => r.kind === "upsell" && r.active).length,
-      drawer: ruleList.filter((r) => r.kind === "cross_sell" && r.active && r.placements.includes("drawer")).length,
-      videos: settled(slides, []).length,
-      bundles: settled(bundles, []).filter((b) => b.active).length,
+    shop,
+    plan: { key: plan.plan, source: plan.source, trialEndsAt: plan.trialEndsAt },
+    paused: settled(planState, { plan: null, paused: [], at: null }).paused,
+    orders,
+    ordersOver: ordersOver(plan.plan, orders),
+    steps: {
+      // null = couldn't be checked (theme or orders not readable).
+      embed: installed ? EMBED_KEYS.some((k) => installed[k]) : null,
+      offer: rules.status === "fulfilled" ? offers > 0 : null,
+      section: installed ? Object.entries(installed).some(([k, on]) => on && !(EMBED_KEYS as readonly string[]).includes(k)) : null,
+      order: results ? results.bySource.length > 0 : null,
     },
-    theme: theme.status === "fulfilled" ? theme.value : null,
-    themeError: theme.status === "rejected" ? errorMessage(theme.reason) : null,
-    discount: settled(discount, {
-      id: null,
-      status: null,
-      needed: false,
-      mode: "auto" as DiscountMode,
-      engine: "function" as const,
-      reason: "",
-      nativeCount: 0,
-    }),
-    cartTransform: settled(transform, false),
-    loadError: [settings, rules].find((r) => r.status === "rejected") ? "Some data could not be loaded. Refresh to try again." : null,
+    themeName: theme.status === "fulfilled" ? theme.value.themeName : null,
+    embedLink: sectionLinks(shop).boosters,
+    editorLink: editorLinks(shop).editor,
+    results: results ? { currency: results.currency, orders: results.orders, revenue: results.revenue, appRevenue: appRevenue ?? 0, top: results.bySource[0] ?? null } : null,
+    referral: settled(referral, null),
+    supportEmail: process.env.SUPPORT_EMAIL || "",
   };
-}
-
-/** Changing the Home filters only changes the address: no need to reload everything. */
-export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl, formMethod, defaultShouldRevalidate }) =>
-  !formMethod && currentUrl.pathname === nextUrl.pathname ? false : defaultShouldRevalidate;
-
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
-  const form = await request.formData();
-  if (form.get("intent") === "saved") {
-    // The page sends the whole saved list, so quick clicks on several cards can't overwrite each other.
-    try {
-      await setSavedSections(admin, JSON.parse(String(form.get("list"))));
-      return { ok: true, error: null, message: String(form.get("message") || "") };
-    } catch (e) {
-      return { ok: false, error: errorMessage(e), message: null };
-    }
-  }
-  const key = String(form.get("key")) as keyof Settings;
-  if (!FEATURE_KEYS.includes(key)) return { ok: false, error: "Unknown feature.", message: null };
-  try {
-    await setSetting(admin, key, form.get("value") === "true");
-    return { ok: true, error: null, message: "Saved" };
-  } catch (e) {
-    return { ok: false, error: errorMessage(e), message: null };
-  }
 };
 
-type Counts = { cross_sell: number; upsell: number; drawer: number; videos: number; bundles: number };
-type FeatureKey = "upsell" | "cross_sell" | "videos" | "bundles";
+const SHORTCUTS: FeatureKey[] = ["upsell", "bundles", "cross_sell", "reviews", "announcements", "shipping_bar", "cart_tools", "checkout_rules"];
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-
-const FEATURES: {
-  key: FeatureKey;
-  setting: keyof Settings;
-  title: string;
-  description: string;
-  href: string;
-  createHref: string;
-  createLabel: string;
-  count: (c: Counts) => number;
-  noun: string;
-  Previews: (() => JSX.Element)[];
-}[] = [
-  {
-    key: "upsell",
-    setting: "upsell_enabled",
-    title: "Upsell offers",
-    description: "“Buy 2, save 10%” and bigger-size offers on product pages.",
-    href: "/app/offers/upsell",
-    createHref: "/app/offers/upsell/new",
-    createLabel: "Create an offer",
-    count: (c) => c.upsell,
-    noun: "offer",
-    Previews: [UpsellShowcase, UpsellSizesShowcase, UpsellListShowcase],
-  },
-  {
-    key: "cross_sell",
-    setting: "cross_sell_enabled",
-    title: "Cross-sell offers",
-    description: "“Pairs well with” products shoppers tick and add in one click.",
-    href: "/app/offers/cross-sell",
-    createHref: "/app/offers/cross-sell/new",
-    createLabel: "Create an offer",
-    count: (c) => c.cross_sell,
-    noun: "offer",
-    Previews: [CrossSellShowcase, CrossSellCardsShowcase],
-  },
-  {
-    key: "videos",
-    setting: "videos_enabled",
-    title: "Video carousel",
-    description: "Shoppable videos, each linked to a product.",
-    href: "/app/videos",
-    createHref: "/app/videos",
-    createLabel: "Add videos",
-    count: (c) => c.videos,
-    noun: "video",
-    Previews: [VideosShowcase, VideosLargeShowcase],
-  },
-  {
-    key: "bundles",
-    setting: "bundles_enabled",
-    title: "Bundles",
-    description: "Mix-and-match bundles at one price.",
-    href: "/app/bundles",
-    createHref: "/app/bundles/new",
-    createLabel: "Create a bundle",
-    count: (c) => c.bundles,
-    noun: "bundle",
-    Previews: [BundlesShowcase, BundlesStepsShowcase],
-  },
-];
-
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "personalize" | "cart_extras" | "cart_tools" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
-
-/** Sections and boosters, shown in the same card format as the features above. */
-/** `app`: designed in the app (the theme editor only switches it on). */
-const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers" | "boosters"; Previews: (() => JSX.Element)[] }[] = [
-  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
-  { key: "product_reviews", title: "Product page reviews", description: "A review card or the star rating next to the price and Add to cart.", list: null, embed: false, app: "/app/designs/product-reviews", Previews: [ProductReviewsShowcase] },
-  { key: "quiz", title: "Product quiz", description: "A few questions that lead shoppers to the right products, with add to cart.", list: null, embed: false, app: "/app/designs/quiz", Previews: [QuizShowcase] },
-  { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },
-  { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
-  { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
-  { key: "cart_extras", title: "Gift note & delivery date", description: "“This is a gift”, a gift message and a delivery date picked in the cart — all on the order.", list: null, embed: false, app: "/app/designs/cart-extras", cat: "offers", Previews: [CartExtrasShowcase] },
-  { key: "personalize", title: "Personalization", description: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", list: null, embed: false, app: "/app/designs/personalize", cat: "offers", Previews: [PersonalizeShowcase] },
-  { key: "wishlist", title: "Wishlist", description: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", list: null, embed: true, app: "/app/designs/wishlist", cat: "boosters", Previews: [WishlistShowcase] },
-  { key: "cart_tools", title: "Cart drawer & checkout", description: "A slide-out cart with Shop Pay / Apple Pay buttons, the best discount applied, and a shareable cart link.", list: null, embed: true, app: "/app/designs/cart-tools", cat: "boosters", Previews: [CartToolsShowcase] },
-  { key: "delivery", title: "Delivery estimate", description: "“Order within 2h 15m and get it Thu – Sat” on product pages and the cart.", list: null, embed: false, app: "/app/designs/delivery", cat: "boosters", Previews: [DeliveryShowcase] },
-  { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },
-  { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
-  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
-  { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
-  { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarCartShowcase, ShippingBarShowcase, ShippingBarCardShowcase] },
-  { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
-  { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
-  { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", cat: "boosters", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
-];
-
-/** Pages designed in the app (Contact page now; the others are coming). */
-const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => JSX.Element)[] }[] = [
-  { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
-];
-
-/** The four boosters live in one app embed; each is switched on and edited on the Conversion boosters page. */
-const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() => JSX.Element)[] }[] = [
-  { key: "sticky", title: "Sticky add to cart", Previews: [StickyShowcase, StickyMobileShowcase] },
-  { key: "urgency", title: "Stock urgency", Previews: [UrgencyShowcase, UrgencyLastShowcase] },
-  { key: "trust", title: "Trust badges", Previews: [TrustShowcase, TrustGridShowcase] },
-  { key: "salesPop", title: "Sales pop-ups", Previews: [SalesPopShowcase, SalesPopStackShowcase] },
-];
-
-type Status = { tone: "success" | "warning" | "neutral"; text: string };
-type Next = { label: string; href: string; external?: boolean };
+const money = (n: number, currency: string) => {
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+  } catch {
+    return `${Math.round(n)} ${currency}`;
+  }
+};
 
 export default function Home() {
-  return <HomeView />;
-}
-
-/** Home (all categories), or one category's page (`only`) — the same cards either way. */
-export function HomeView({ only }: { only?: CategoryKey }) {
   const data = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<typeof action>();
-  const shopify = useAppBridge();
-
-  const saveFetcher = useFetcher<typeof action>();
-  const [params, setParams] = useSearchParams();
-  // Home filters (kept in the address, so going back returns to the same view)
-  const cat = only ?? params.get("cat") ?? (params.get("view") === "saved" ? "saved" : "all");
-  const status = params.get("status") ?? "all";
-  const [query, setQuery] = useState("");
-  const setFilter = (patch: { cat?: string; status?: string }) => {
-    const next = new URLSearchParams(params);
-    next.delete("view");
-    for (const [k, v] of Object.entries(patch)) {
-      if (!v || v === "all") next.delete(k);
-      else next.set(k, v);
-    }
-    setParams(next, { replace: true });
-  };
-
+  const current = PLANS[data.plan.key];
+  const [playing, setPlaying] = useState<Tutorial | null>(null);
+  // "Compare plans" links elsewhere land on /app#plans.
+  const { hash } = useLocation();
   useEffect(() => {
-    if (fetcher.data?.ok) shopify.toast.show(fetcher.data.message || "Saved");
-    if (fetcher.data?.error) shopify.toast.show(fetcher.data.error, { isError: true });
-  }, [fetcher.data, shopify]);
-  useEffect(() => {
-    if (saveFetcher.data?.ok && saveFetcher.data.message) shopify.toast.show(saveFetcher.data.message);
-    if (saveFetcher.data?.error) shopify.toast.show(saveFetcher.data.error, { isError: true });
-  }, [saveFetcher.data, shopify]);
+    if (hash === "#plans") document.getElementById("plans")?.scrollIntoView();
+  }, [hash]);
 
-  // Saved cards, newest first. The page keeps its own copy, updated the moment a bookmark is
-  // clicked, so switching to Saved straight away shows it; the store is updated in the background.
-  const [saved, setSaved] = useState<string[]>(data.saved);
-  const [loadedSaved, setLoadedSaved] = useState(data.saved);
-  if (loadedSaved !== data.saved && saveFetcher.state === "idle") {
-    setLoadedSaved(data.saved);
-    setSaved(data.saved);
-  }
-  // Several quick clicks send one request with the final list (an older request can't land last).
-  const pending = useRef<ReturnType<typeof setTimeout>>();
-  const save = (key: string) => ({
-    saved: saved.includes(key),
-    onChange: (value: boolean) => {
-      const next = value ? [key, ...saved.filter((x) => x !== key)] : saved.filter((x) => x !== key);
-      setSaved(next);
-      clearTimeout(pending.current);
-      pending.current = setTimeout(() => {
-        saveFetcher.submit({ intent: "saved", list: JSON.stringify(next), message: value ? "Added to Saved" : "Removed from Saved" }, { method: "post" });
-      }, 350);
+  const steps: { done: boolean | null; title: string; text: string; action: JSX.Element }[] = [
+    {
+      done: data.steps.embed,
+      title: "Turn on the app in your theme",
+      text: `Switch on “Conversion boosters” in App embeds${data.themeName ? ` of “${data.themeName}”` : ""}. Bars, pop-ups and the cart drawer need it.`,
+      action: <Button href={data.embedLink} target="_top" variant="tertiary">Open App embeds</Button>,
     },
-  });
-
-  const settings: Settings = { ...data.settings };
-  if (fetcher.formData?.get("key")) {
-    settings[String(fetcher.formData.get("key")) as keyof Settings] = fetcher.formData.get("value") === "true";
-  }
-
-  const installed = data.theme?.installed;
-  const anyBlock = !!installed && Object.values(installed).some(Boolean);
-  const anyConfig = Object.values(data.counts).some((n) => n > 0);
-  const steps = [anyConfig, anyBlock, anyBlock && anyConfig];
-  const doneCount = steps.filter(Boolean).length;
-  const hasDiscountedOffers = data.counts.upsell + data.counts.cross_sell > 0;
-  const discountActive =
-    data.discount.engine === "native" ? data.discount.nativeCount > 0 : data.discount.status === "ACTIVE";
+    {
+      done: data.steps.offer,
+      title: "Create your first offer",
+      text: "An upsell (“Buy 2, save 10%”), a cross-sell or a bundle.",
+      action: <Button href="/app/offers/upsell/new" variant="tertiary">Create an offer</Button>,
+    },
+    {
+      done: data.steps.section,
+      title: "Add a section to your store",
+      text: "Place a block (offers, reviews, FAQ, banners…) on a page in the theme editor.",
+      action: <Button href={data.editorLink} target="_top" variant="tertiary">Open theme editor</Button>,
+    },
+    {
+      done: data.steps.order,
+      title: "Check a test order",
+      text: "Place a test order with an item added by the app; it then shows in Results.",
+      action: <Button href={`https://${data.shop}`} target="_blank" variant="tertiary">View store</Button>,
+    },
+  ];
+  const doneCount = steps.filter((s) => s.done).length;
 
   return (
-    <s-page heading={only ? category(only).title : "CRO Toolbox"} inlineSize="large">
+    <s-page heading="CRO Toolbox" inlineSize="large">
       <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
         View store
       </Button>
-      <s-stack gap="base">
+      <s-stack gap="large">
+        {/* Welcome + current plan */}
+        <div className={styles.welcome}>
+          <div className={styles.welcomeText}>
+            <h2 className={styles.h2}>Welcome to CRO Toolbox</h2>
+            <p className={styles.sub}>
+              You&apos;re on the <b>{current.name}</b> plan
+              {data.plan.trialEndsAt ? ` — free trial until ${new Date(data.plan.trialEndsAt).toLocaleDateString()}` : ""}.
+            </p>
+            <ul className={styles.includes}>
+              {current.highlights.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </div>
+          <div className={styles.welcomeActions}>
+            <Pill tone="ok">{current.name}</Pill>
+            <UpgradeButton variant={data.plan.key === "pro" ? "secondary" : "primary"}>Change plan</UpgradeButton>
+            <Button onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })} variant="tertiary">
+              Compare plans
+            </Button>
+          </div>
+        </div>
 
-      {data.loadError ? (
-        <s-banner tone="critical" heading="Something went wrong">
-          {data.loadError}
-        </s-banner>
-      ) : null}
-      {hasDiscountedOffers && !discountActive && !data.loadError ? (
-        <s-banner tone="warning" heading="Discounts aren't active yet">
-          Open any upsell or cross-sell offer and click Save to switch its discount on at checkout.
-        </s-banner>
-      ) : null}
-
-      {!only && doneCount < 3 ? (
-        <Card title="Get set up" badge={<Pill tone="warn">{`${doneCount} of 3 done`}</Pill>}>
-          <Checklist
-            items={[
-              !steps[0] && { text: "Create your first offer, video or bundle", action: <Button href="/app/offers/upsell/new" variant="tertiary">Create an offer</Button> },
-              !steps[1] && {
-                text: `Add the app's blocks to your theme${data.theme?.themeName ? ` (“${data.theme.themeName}”)` : ""}`,
-                action: (
-                  <Button href={data.links.upsell} target="_top" variant="tertiary">
-                    Open theme editor
-                  </Button>
-                ),
-              },
-              !steps[2] && {
-                text: "Check it on your store, then try the discount at checkout",
-                action: (
-                  <Button href={`https://${data.shop}`} target="_blank" variant="tertiary">
-                    View store
-                  </Button>
-                ),
-              },
-            ].filter((x): x is { text: string; action: JSX.Element } => !!x)}
-          />
-        </Card>
-      ) : null}
-
-      {(() => {
-        type Cat = CategoryKey;
-        /** `onStore`: it's in the theme right now (on or off), so it belongs in "On my store". */
-        type Entry = { key: string; cat: Cat; title: string; tone: Status["tone"]; onStore: boolean; el: ReactElement };
-        const cards: Entry[] = [];
-        const add = (e: Omit<Entry, "el" | "tone"> & { status: Status; next?: Next; open: { href: string; external?: boolean }; previews: (() => JSX.Element)[]; menu: CardMenuItem[]; off?: boolean }) =>
-          cards.push({
-            key: e.key,
-            cat: e.cat,
-            title: e.title,
-            tone: e.status.tone,
-            onStore: e.onStore,
-            el: (
-              <SectionCard
-                key={e.key}
-                title={e.title}
-                status={e.status}
-                next={e.next}
-                open={e.open}
-                previews={e.previews.map((P, i) => <P key={i} />)}
-                menu={e.menu}
-                off={e.off}
-                save={save(e.key)}
-              />
-            ),
-          });
-        const editor = (href: string, inTheme: boolean | null): CardMenuItem => ({ label: inTheme ? "Open in theme editor" : "Add to theme", href, external: true });
-
-        FEATURES.forEach((f) => {
-          const on = settings[f.setting];
-          const count = f.count(data.counts);
-          const inTheme = installed ? (installed[f.key] ?? false) : null;
-          let status: Status, next: Next | undefined;
-          if (!on) status = { tone: "neutral", text: "Turned off" };
-          else if (!count) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: f.createLabel, href: f.createHref }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: `${plural(count, f.noun)} ready` }, { label: "Add to theme", href: data.links[f.key], external: true }];
-          else status = { tone: "success", text: `Live · ${plural(count, f.noun)}` };
-          add({
-            key: f.key,
-            // The video carousel is a section on the store page, not an offer.
-            cat: f.key === "videos" ? "sections" : "offers",
-            title: f.title,
-            onStore: inTheme === true,
-            status,
-            next,
-            open: { href: f.href },
-            previews: f.Previews,
-            off: !on,
-            menu: [
-              { label: "Manage", href: f.href },
-              ...(f.key === "upsell" ? [{ label: "Design", href: "/app/designs/upsell" }] : f.key === "cross_sell" ? [{ label: "Design", href: "/app/designs/cross-sell" }] : f.key === "videos" ? [{ label: "Design", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Design", href: "/app/designs/bundles" }] : []),
-              ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
-              { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
-              editor(data.links[f.key], inTheme),
-            ],
-          });
-        });
-        SECTION_CARDS.forEach((c) => {
-          const counts = c.list ? data.sectionCounts[c.list] : null;
-          const inTheme = installed ? (installed[c.key] ?? false) : null;
-          const themeHref = data.sectionLinks[c.key];
-          const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
-          let status: Status, next: Next | undefined;
-          if (c.key === "shipping_bar" && !data.shipBarSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Set the goal", href: c.app! }];
-          else if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
-          else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
-          else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
-          else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];
-          else if (inTheme === null && !c.list) status = { tone: "neutral", text: "Set up in theme editor" };
-          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : c.key === "addons" ? `Live · ${plural(data.addonCount, "add-on")}` : c.key === "collection_pills" ? `Live · ${plural(data.pillCount, "collection")}` : "Live" };
-          add({
-            key: c.key,
-            cat: c.cat ?? "sections",
-            title: c.title,
-            onStore: inTheme === true,
-            status,
-            next,
-            open: manage ? { href: manage } : { href: c.embed ? themeHref : data.links.editor, external: true },
-            previews: c.Previews,
-            menu: [
-              ...(manage ? [{ label: c.key === "hero" ? "Banners" : c.app ? "Design" : "Manage", href: manage }] : []),
-              ...(c.list && SECTIONS[c.list].design ? [{ label: "Design", href: SECTIONS[c.list].design! }] : []),
-              ...(c.list && counts?.total ? [{ label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }] : []),
-              { ...editor(themeHref, inTheme), ...(c.embed && !inTheme ? { label: "Turn on in theme" } : {}) },
-            ],
-          });
-        });
-        BOOSTER_CARDS.forEach((b) => {
-          const embedOn = installed ? (installed.boosters ?? false) : null;
-          const enabled = data.boosters[b.key].enabled;
-          let status: Status, next: Next | undefined;
-          if (!enabled) [status, next] = [{ tone: "neutral", text: "Turned off" }, { label: "Switch on", href: "/app/boosters" }];
-          else if (embedOn === false) [status, next] = [{ tone: "warning", text: "Off in theme" }, { label: "Turn on", href: data.sectionLinks.boosters, external: true }];
-          else status = { tone: "success", text: "Live" };
-          add({
-            key: b.key,
-            cat: "boosters",
-            title: b.title,
-            onStore: embedOn === true && enabled,
-            status,
-            next,
-            open: { href: "/app/boosters" },
-            previews: b.Previews,
-            off: !enabled,
-            menu: [{ label: "Open boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
-          });
-        });
-        PAGE_CARDS.forEach((pg) => {
-          const inTheme = installed ? (installed.contact ?? false) : null;
-          let status: Status, next: Next | undefined;
-          if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: pg.href }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Designed" }, { label: "Add to page", href: data.links.contact, external: true }];
-          else status = { tone: "success", text: "Live" };
-          add({
-            key: pg.key,
-            cat: "design",
-            title: pg.title,
-            onStore: inTheme === true,
-            status,
-            next,
-            open: { href: pg.href },
-            previews: pg.Previews,
-            menu: [{ label: "Design", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }],
-          });
-        });
-
-        // Headers and footers: the header is designed in the app and switched on as an app embed.
-        {
-          const inTheme = installed ? (installed.header ?? false) : null;
-          let status: Status, next: Next | undefined;
-          if (!data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/header" }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Not on store" }, { label: "Add to header", href: data.sectionLinks.header, external: true }];
-          else status = { tone: "success", text: "Live" };
-          add({
-            key: "header",
-            cat: "design",
-            title: "Header",
-            onStore: inTheme === true,
-            status,
-            next,
-            open: { href: "/app/designs/header" },
-            previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
-            menu: [{ label: "Design", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
-          });
-          const footerIn = installed ? (installed.footer ?? false) : null;
-          let fStatus: Status, fNext: Next | undefined;
-          if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/footer" }];
-          else if (footerIn === false) [fStatus, fNext] = [{ tone: "warning", text: "Not on store" }, { label: "Add to footer", href: data.sectionLinks.footer, external: true }];
-          else fStatus = { tone: "success", text: "Live" };
-          for (const page of [
-            { key: "track" as const, title: "Track order page", href: "/app/pages/track", Preview: TrackShowcase },
-            { key: "returns" as const, title: "Returns page", href: "/app/returns", Preview: ReturnsShowcase },
-          ]) {
-            const on = installed ? (installed[page.key] ?? false) : null;
-            add({
-              key: page.key,
-              cat: "design",
-              title: page.title,
-              onStore: on === true,
-              status: on === false ? { tone: "warning", text: "Not on store" } : on ? { tone: "success", text: "Live" } : { tone: "neutral", text: "Set up in theme editor" },
-              next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
-              open: { href: page.href },
-              previews: [page.Preview],
-              menu: [{ label: page.key === "returns" ? "Requests" : "Design", href: page.href }, ...(page.key === "returns" ? [{ label: "Design", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
-            });
-          }
-          add({
-            key: "footer",
-            cat: "design",
-            title: "Footer",
-            onStore: footerIn === true,
-            status: fStatus,
-            next: fNext,
-            open: { href: "/app/designs/footer" },
-            previews: [FooterShowcase],
-            menu: [{ label: "Design", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
-          });
-        }
-
-        // Checkout: rules run by the app's Functions inside Shopify checkout (nothing to add to the theme).
-        for (const c of [
-          { key: "checkout_payment", title: "Payment rules", n: data.checkout?.payment, href: "/app/checkout/payment", Previews: [PaymentRulesShowcase] },
-          { key: "checkout_delivery", title: "Delivery rules", n: data.checkout?.delivery, href: "/app/checkout/delivery", Previews: [DeliveryRulesShowcase] },
-          { key: "checkout_limits", title: "Order limits", n: data.checkout?.limits, href: "/app/checkout/limits", Previews: [OrderLimitsShowcase] },
-        ]) {
-          const status: Status =
-            c.n === undefined ? { tone: "warning", text: "Needs permission" } : c.n === -1 ? { tone: "neutral", text: "Turned off" } : c.n ? { tone: "success", text: `Live · ${plural(c.n, "rule")}` } : { tone: "warning", text: "Needs setup" };
-          add({
-            key: c.key,
-            cat: "checkout",
-            title: c.title,
-            onStore: !!c.n && c.n > 0,
-            status,
-            next: c.n ? undefined : { label: "Add a rule", href: c.href },
-            open: { href: c.href },
-            previews: c.Previews,
-            off: c.n === -1,
-            menu: [{ label: "Rules", href: c.href }],
-          });
-        }
-
-        add({
-          key: "checkout_thank_you",
-          cat: "checkout",
-          title: "Thank-you page",
-          onStore: data.thankYou > 0,
-          status: data.thankYou ? { tone: "success", text: `${plural(data.thankYou, "module")} · add the block in checkout` } : { tone: "warning", text: "Needs setup" },
-          next: data.thankYou ? undefined : { label: "Add modules", href: "/app/checkout/thank-you" },
-          open: { href: "/app/checkout/thank-you" },
-          previews: [ThankYouShowcase],
-          menu: [{ label: "Modules", href: "/app/checkout/thank-you" }],
-        });
-
-        add({
-          key: "checkout_post_purchase",
-          cat: "checkout",
-          title: "After-purchase offer",
-          onStore: data.postPurchase === "on",
-          status: data.postPurchase === "on" ? { tone: "success", text: "Live" } : data.postPurchase === "off" ? { tone: "neutral", text: "Turned off" } : { tone: "warning", text: "Needs setup" },
-          next: data.postPurchase === "none" ? { label: "Pick a product", href: "/app/checkout/after-purchase" } : undefined,
-          open: { href: "/app/checkout/after-purchase" },
-          previews: [PostPurchaseShowcase],
-          off: data.postPurchase === "off",
-          menu: [{ label: "Offer", href: "/app/checkout/after-purchase" }],
-        });
-
-        const CATS = CATEGORIES;
-        const onStoreCount = cards.filter((c) => c.onStore).length;
-        const q = query.trim().toLowerCase();
-        const match = (c: Entry) =>
-          (cat !== "store" || c.onStore) &&
-          (status === "all" || (status === "live" ? c.tone === "success" : status === "setup" ? c.tone === "warning" : c.tone === "neutral")) &&
-          (!q || c.title.toLowerCase().includes(q));
-        const empty = (text: string) => <div className={showcase.empty}>{text}</div>;
-        const grid = (list: Entry[]) => <div className={showcase.grid}>{list.map((c) => c.el)}</div>;
-        const grouped = (cats: typeof CATS, emptyText: string) => {
-          const groups = cats.map((c) => ({ ...c, list: cards.filter((x) => x.cat === c.key && match(x)) })).filter((g) => g.list.length || cats.length === 1);
-          if (!groups.length) return empty(emptyText);
-          return groups.map((g) => (
-            <s-stack key={g.key} gap="small-200">
-              {only ? null : <GroupTitle>{`${g.title} (${g.list.length})`}</GroupTitle>}
-              {g.list.length ? grid(g.list) : empty("Nothing matches these filters.")}
-            </s-stack>
-          ));
-        };
-
-        return (
-          <>
-            {only ? <s-text color="subdued">{category(only).intro}</s-text> : null}
-            <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-              {/* Categories, then (set a little apart) the two personal views: what's on the store and what's saved. */}
-              {only ? <span /> : <s-stack direction="inline" gap="small-100" alignItems="center">
-                <Segmented
-                  label="Category"
-                  value={cat}
-                  options={[{ value: "all", label: "All" }, ...CATS.map((c) => ({ value: c.key, label: c.title }))]}
-                  onChange={(v) => setFilter({ cat: v })}
-                />
-                <Segmented
-                  label="My views"
-                  value={cat}
-                  options={[
-                    { value: "store", label: "On my store", count: onStoreCount },
-                    { value: "saved", label: "Saved", count: saved.length },
-                  ]}
-                  onChange={(v) => setFilter({ cat: v })}
-                />
-              </s-stack>}
-              <s-stack direction="inline" gap="small-200" alignItems="center">
-                <select className={`${showcase.find} ${showcase.statusSel}`} aria-label="Status" value={status} onChange={(e) => setFilter({ status: e.target.value })}>
-                  <option value="all">All statuses</option>
-                  <option value="live">Live</option>
-                  <option value="setup">Needs a step</option>
-                  <option value="off">Turned off</option>
-                </select>
-                <input className={showcase.find} type="search" placeholder="Search…" aria-label="Search sections" value={query} onChange={(e) => setQuery(e.target.value)} />
+        {data.plan.source === "error" ? (
+          <s-banner tone="warning" heading="Your plan couldn't be checked">
+            Everything stays open until it can be checked again. Refresh in a minute.
+          </s-banner>
+        ) : null}
+        {data.paused.length ? (
+          <s-banner tone="warning" heading={`${data.paused.length} item${data.paused.length === 1 ? " was" : "s were"} switched off to fit your plan`}>
+            <s-stack gap="small-200">
+              <s-text>
+                {`Nothing was deleted. On ${current.name} the first ones in each list stay on; these are saved and switch back on when you upgrade: ${data.paused.map((p) => p.name).join(", ")}.`}
+              </s-text>
+              <s-stack direction="inline" gap="small-200">
+                <UpgradeButton variant="secondary">See plans</UpgradeButton>
               </s-stack>
             </s-stack>
-            {cat === "store" ? (
-              <s-text color="subdued">Everything from the app that is in your theme right now. Use ⋯ on a card to manage it, turn it off or open it in the theme editor.</s-text>
-            ) : null}
-            {cat === "saved"
-              ? (() => {
-                  const list = saved.map((k) => cards.find((c) => c.key === k)).filter((c): c is Entry => !!c && match(c));
-                  return list.length ? grid(list) : empty("No saved items here. Click the bookmark on any card to keep it in Saved.");
-                })()
-              : cat === "store"
-                ? grouped(CATS, "Nothing from the app is on your store yet. Pick a card and follow its next step to add it.")
-                : grouped(CATS.filter((c) => cat === "all" || cat === c.key), "Nothing matches these filters.")}
-          </>
-        );
-      })()}
+          </s-banner>
+        ) : null}
+        {data.ordersOver ? (
+          <s-banner tone="warning" heading="You're past your plan's monthly orders">
+            <s-stack gap="small-200">
+              <s-text>{`${data.orders?.toLocaleString()} orders this month; ${current.name} includes ${limitText("monthlyOrders", limitOf(data.plan.key, "monthlyOrders") ?? 0)}. Everything keeps working — please move to a bigger plan.`}</s-text>
+              <s-stack direction="inline" gap="small-200">
+                <UpgradeButton variant="secondary">Change plan</UpgradeButton>
+              </s-stack>
+            </s-stack>
+          </s-banner>
+        ) : null}
 
-      {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
+        {/* Get started */}
+        <s-stack gap="small-200">
+          <div className={styles.rowHead}>
+            <GroupTitle>Get started</GroupTitle>
+            <Pill tone={doneCount === steps.length ? "ok" : "warn"}>{`${doneCount} of ${steps.length} done`}</Pill>
+          </div>
+          <ol className={styles.steps}>
+            {steps.map((s, i) => (
+              <li key={s.title} className={`${styles.step} ${s.done ? styles.stepDone : ""}`}>
+                <span className={styles.stepNum} aria-hidden="true">{s.done ? "✓" : i + 1}</span>
+                <span className={styles.stepBody}>
+                  <span className={styles.stepTitle}>
+                    {s.title}
+                    <span className={styles.srOnly}>{s.done ? " (done)" : " (not done)"}</span>
+                  </span>
+                  <span className={styles.stepText}>{s.text}</span>
+                </span>
+                {s.done ? <Pill tone="ok">Done</Pill> : s.action}
+              </li>
+            ))}
+          </ol>
+        </s-stack>
+
+        {/* Tutorials */}
+        <s-stack gap="small-200">
+          <GroupTitle>Tutorials</GroupTitle>
+          <div className={styles.videos}>
+            {TUTORIALS.map((t) => {
+              const ready = !!t.youtubeId;
+              return (
+                <button key={t.title} type="button" className={styles.video} disabled={!ready} onClick={() => setPlaying(t)}>
+                  <span className={styles.thumb}>
+                    {ready ? <span className={styles.play} aria-hidden="true">▶</span> : <span className={styles.soon}>Coming with launch</span>}
+                    <span className={styles.length}>{t.length}</span>
+                  </span>
+                  <span className={styles.videoTitle}>{t.title}</span>
+                  <span className={styles.videoMeta}>{t.feature ? feature(t.feature).title : "Getting started"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </s-stack>
+
+        {/* Plans */}
+        <s-stack gap="small-200">
+          <div id="plans" className={styles.rowHead}>
+            <GroupTitle>Plans</GroupTitle>
+            <s-text color="subdued">Change or cancel any time. Billed by Shopify.</s-text>
+          </div>
+          <div className={styles.plans}>
+            {PLAN_KEYS.map((k) => (
+              <PlanCard key={k} plan={k} current={data.plan.key} />
+            ))}
+          </div>
+        </s-stack>
+
+        <CardGrid cols={3}>
+          {/* Refer a merchant */}
+          <ReferralCard referral={data.referral} />
+
+          {/* Results summary */}
+          <Card title="Results" badge={<Pill>Last 60 days</Pill>} actions={<Button href="/app/results" variant="tertiary">Open Results</Button>}>
+            {data.results ? (
+              <>
+                <p className={styles.bigNumber}>{money(data.results.appRevenue, data.results.currency)}</p>
+                <CardText>
+                  {`From items the app's widgets added, out of ${money(data.results.revenue, data.results.currency)} in ${data.results.orders} orders.`}
+                  {data.results.top ? ` Top: ${data.results.top.label}.` : ""}
+                </CardText>
+              </>
+            ) : (
+              <CardText>Sales from the app show here once Shopify approves access to orders.</CardText>
+            )}
+          </Card>
+
+          {/* Help */}
+          <Card title="Help">
+            <ul className={styles.links}>
+              {data.supportEmail ? (
+                <li>
+                  <a href={`mailto:${data.supportEmail}`} target="_blank" rel="noreferrer">Email support</a>
+                  {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
+                </li>
+              ) : null}
+              <li><Link to="/app/features">All features</Link></li>
+              <li><Link to="/app/settings">Settings</Link></li>
+              <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
+            </ul>
+          </Card>
+        </CardGrid>
+
+        <CardGrid cols={2}>
+          {/* Shortcuts */}
+          <Card title="Shortcuts" actions={<Button href="/app/features" variant="tertiary">All features</Button>}>
+            <ul className={styles.shortcuts}>
+              {SHORTCUTS.map((k) => {
+                const f = feature(k);
+                return (
+                  <li key={k}>
+                    <Link to={f.tabs[0].href}>{f.title}</Link>
+                    {canUse(data.plan.key, k) ? null : <Pill>{PLANS[FEATURE_PLAN[k]].name}</Pill>}
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+
+          {/* What's new */}
+          <Card title="What's new">
+            <ul className={styles.news}>
+              {WHATS_NEW.map((n) => (
+                <li key={n.text}>
+                  <span className={styles.newsDate}>{n.date}</span>
+                  {n.href ? <Link to={n.href}>{n.text}</Link> : n.text}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </CardGrid>
       </s-stack>
+
+      {playing ? <VideoModal tutorial={playing} onClose={() => setPlaying(null)} /> : null}
     </s-page>
+  );
+}
+
+function PlanCard({ plan, current }: { plan: PlanKey; current: PlanKey }) {
+  const p = PLANS[plan];
+  const isCurrent = plan === current;
+  return (
+    <div className={`${styles.plan} ${isCurrent ? styles.planCurrent : ""}`}>
+      <div className={styles.planHead}>
+        <span className={styles.planName}>{p.name}</span>
+        {isCurrent ? <Pill tone="ok">Current plan</Pill> : null}
+      </div>
+      <p className={styles.planPrice}>
+        {price(p.monthly)}
+        {p.monthly ? <span className={styles.per}>/month</span> : null}
+      </p>
+      <p className={styles.planSub}>
+        {p.yearly ? `or ${price(p.yearly)}/year` : "No card needed"}
+        {p.trialDays ? ` · ${p.trialDays}-day free trial` : ""}
+      </p>
+      <ul className={styles.planList}>
+        {p.highlights.map((h) => (
+          <li key={h}>{h}</li>
+        ))}
+      </ul>
+      <div className={styles.planAction}>
+        {isCurrent ? null : <UpgradeButton variant={planRank(plan) > planRank(current) ? "primary" : "tertiary"}>{planRank(plan) > planRank(current) ? `Upgrade to ${p.name}` : `Switch to ${p.name}`}</UpgradeButton>}
+      </div>
+    </div>
+  );
+}
+
+function ReferralCard({ referral }: { referral: { code: string; link: string; reward: string; howItWorks: string } | null }) {
+  const shopify = useAppBridge();
+  const copy = async () => {
+    if (!referral) return;
+    try {
+      await navigator.clipboard.writeText(referral.link);
+      shopify.toast.show("Link copied");
+    } catch {
+      shopify.toast.show("Copy didn't work — select the link and copy it", { isError: true });
+    }
+  };
+  return (
+    <Card title="Refer a merchant" badge={referral ? <Pill tone="ok">{referral.reward}</Pill> : null} actions={referral ? <Button onClick={copy} icon="clipboard">Copy link</Button> : null}>
+      {referral ? (
+        <>
+          <CardText>{referral.howItWorks}</CardText>
+          <input className={styles.refLink} readOnly value={referral.link} aria-label="Your referral link" onFocus={(e) => e.currentTarget.select()} />
+          <CardText>{`Your code: ${referral.code}`}</CardText>
+        </>
+      ) : (
+        <CardText>Your referral link couldn&apos;t be loaded. Refresh to try again.</CardText>
+      )}
+    </Card>
+  );
+}
+
+function VideoModal({ tutorial, onClose }: { tutorial: Tutorial; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const src = tutorialEmbedUrl(tutorial);
+  const watch = tutorialWatchUrl(tutorial);
+  return (
+    // A click on the dark backdrop (not the box) closes it; Escape too.
+    <div className={styles.modalBack} role="presentation" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-label={tutorial.title}>
+        <div className={styles.modalHead}>
+          <span className={styles.planName}>{tutorial.title}</span>
+          <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        {src ? (
+          <iframe className={styles.player} src={src} title={tutorial.title} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
+        ) : null}
+        {watch ? (
+          <a href={watch} target="_blank" rel="noreferrer" className={styles.watch}>
+            Watch on YouTube
+          </a>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

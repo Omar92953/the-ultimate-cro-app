@@ -7,6 +7,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { deleteBundle, listBundles, saveBundle } from "../lib/cro.server";
 import { validateBundle } from "../lib/validate";
+import { checkLimit } from "../lib/billing.server";
+import { LimitUpgrade } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import type { Bundle, BundleStep } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
@@ -38,17 +40,21 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, redirect } = await authenticate.admin(request);
+  const { admin, redirect, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
       await deleteBundle(admin, String(form.get("handle")));
       return redirect("/app/bundles");
     }
-    const saved = await saveBundle(admin, JSON.parse(String(form.get("bundle"))) as Bundle);
-    return { ok: true, error: null, handle: saved.handle };
+    const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
+    // Bundles and deals share one limit on smaller plans (lib/plans.ts); a bundle can always be saved off.
+    const over = await checkLimit(admin, session.shop, "bundlesAndDeals", bundle);
+    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    const saved = await saveBundle(admin, bundle);
+    return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null };
+    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
   }
 };
 
@@ -109,7 +115,10 @@ export default function BundleEditor() {
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The bundle was not saved">
-          {fetcher.data.error}
+          <s-stack gap="small-200">
+            {fetcher.data.error}
+            <LimitUpgrade show={fetcher.data.upgrade} />
+          </s-stack>
         </s-banner>
       ) : null}
       {touched && problems.length ? (

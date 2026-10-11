@@ -4,6 +4,9 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { getPlan } from "../lib/billing.server";
+import { EXTRA_PLAN, PLANS, atLeast } from "../lib/plans";
+import { UpgradeCard, usePlan } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import { getExperiment, getResults, saveExperiment } from "../lib/results.server";
 import { getThemeStatus } from "../lib/cro.server";
@@ -19,9 +22,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
+    // Starting the test needs a plan that includes it (lib/plans.ts); stopping it is always allowed.
+    if (form.get("on") === "true" && !(await getExperiment(admin)).on && !atLeast((await getPlan(admin, session.shop)).plan, EXTRA_PLAN.holdoutTest)) {
+      return { ok: false, error: `The holdout test is on the ${PLANS[EXTRA_PLAN.holdoutTest].name} plan.`, xp: null };
+    }
     const xp = await saveExperiment(admin, { on: form.get("on") === "true", holdout: Number(form.get("holdout")), since: form.get("on") === "true" && form.get("restart") !== "true" ? ((await getExperiment(admin)).since ?? null) : null });
     return { ok: true, error: null, xp };
   } catch (e) {
@@ -33,6 +40,7 @@ export default function Results() {
   const data = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
+  const { plan } = usePlan();
   const [holdout, setHoldout] = useState(data.xp.holdout);
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
@@ -112,6 +120,10 @@ export default function Results() {
                 </s-link>
               </s-banner>
             ) : null}
+            {!data.xp.on && !atLeast(plan, EXTRA_PLAN.holdoutTest) ? (
+              <UpgradeCard needs={EXTRA_PLAN.holdoutTest} title={`The holdout test is on the ${PLANS[EXTRA_PLAN.holdoutTest].name} plan`} text="Find out what the app really adds to your sales, not just what passed through its widgets." />
+            ) : (
+            <>
             <NumberField label="Shoppers in the holdout" suffix="%" details="5–50%. 10% is a good start: few shoppers miss out, and results come in a few weeks." min={5} max={50} step={1} value={holdout} onValue={setHoldout} />
             <Switch label={data.xp.on ? "Test running" : "Run the test"} checked={data.xp.on} onValue={(v) => run(v)} />
             {data.xp.on ? (
@@ -119,6 +131,8 @@ export default function Results() {
                 Start over (new groups, results from today)
               </Button>
             ) : null}
+            </>
+            )}
             {r?.groups ? (
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <s-box padding="base" borderWidth="base" borderRadius="base">

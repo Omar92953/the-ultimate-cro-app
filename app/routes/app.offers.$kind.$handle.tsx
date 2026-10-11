@@ -8,6 +8,8 @@ import { deleteRule, listRules, resolveDiscountEngine, saveRule } from "../lib/c
 import { validateRule } from "../lib/validate";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
+import { checkLimit } from "../lib/billing.server";
+import { LimitUpgrade } from "../components/Upgrade";
 import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
@@ -54,7 +56,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { admin, redirect } = await authenticate.admin(request);
+  const { admin, redirect, session } = await authenticate.admin(request);
   const form = await request.formData();
   const intent = form.get("intent");
   try {
@@ -63,10 +65,13 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return redirect(`/app/offers/${params.kind}`);
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
+    // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
+    const over = await checkLimit(admin, session.shop, rule.kind === "upsell" ? "upsellOffers" : "crossSellOffers", rule);
+    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveRule(admin, rule);
-    return { ok: true, error: null, handle: saved.handle };
+    return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null };
+    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
   }
 };
 
@@ -132,7 +137,10 @@ export default function RuleEditor() {
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The offer was not saved">
-          {fetcher.data.error}
+          <s-stack gap="small-200">
+            {fetcher.data.error}
+            <LimitUpgrade show={fetcher.data.upgrade} />
+          </s-stack>
         </s-banner>
       ) : null}
       {touched && problems.length ? (

@@ -1,21 +1,31 @@
 import { CATEGORIES } from "../lib/catalog";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
+import { getPlan, keepWithinPlan } from "../lib/billing.server";
+import { pageLock } from "../lib/plan-gate";
+import { LockedPage } from "../components/Upgrade";
 import frame from "../components/AppFrame.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+  // Shopify adds ?plan_handle=… when it sends the merchant back from the plan selection page.
+  const info = await getPlan(admin, session.shop, new URL(request.url).searchParams.has("plan_handle"));
+  // After a plan change: switch off what's over the new limits, or back on after an upgrade (background).
+  keepWithinPlan(admin, session.shop, info);
 
   // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", plan: info.plan, planUrl: info.planUrl };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, plan } = useLoaderData<typeof loader>();
+  const location = useLocation();
+  // Pages the plan doesn't include show what they do and an upgrade card instead (lib/plans.ts).
+  const lock = pageLock(plan, location.pathname, location.search);
 
   return (
     <AppProvider embedded apiKey={apiKey}>
@@ -25,6 +35,7 @@ export default function App() {
         <s-link href="/app" {...({ rel: "home" } as object)}>
           Home
         </s-link>
+        <s-link href="/app/features">All features</s-link>
         {CATEGORIES.map((c) => (
           <s-link key={c.key} href={c.href}>
             {c.title}
@@ -33,9 +44,7 @@ export default function App() {
         <s-link href="/app/results">Results</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
-      <div className={frame.page}>
-        <Outlet />
-      </div>
+      <div className={frame.page}>{lock ? <LockedPage lock={lock} /> : <Outlet />}</div>
     </AppProvider>
   );
 }

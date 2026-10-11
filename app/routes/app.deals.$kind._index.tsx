@@ -6,6 +6,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { deleteDeal, listDeals, setDealActive } from "../lib/deals.server";
+import { checkLimit } from "../lib/billing.server";
+import { LimitUpgrade } from "../components/Upgrade";
 import { getDiscountStatus } from "../lib/cro.server";
 import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
 import { Button } from "../components/fields";
@@ -21,7 +23,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     // Only the id comes from the page: the deal itself is loaded fresh, so a stale tab can't
@@ -29,10 +31,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const deal = (await listDeals(admin)).find((d) => d.id === String(form.get("id")));
     if (!deal) throw new Error("This bundle no longer exists. Reload the page.");
     if (form.get("intent") === "delete") await deleteDeal(admin, deal.id!);
-    else await setDealActive(admin, deal, form.get("active") === "true");
-    return { ok: true, error: null, intent: String(form.get("intent")) };
+    else {
+      const active = form.get("active") === "true";
+      const over = await checkLimit(admin, session.shop, "bundlesAndDeals", { ...deal, active });
+      if (over) return { ok: false, error: over.error, intent: "active", upgrade: true };
+      await setDealActive(admin, deal, active);
+    }
+    return { ok: true, error: null, intent: String(form.get("intent")), upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), intent: String(form.get("intent")) };
+    return { ok: false, error: errorMessage(e), intent: String(form.get("intent")), upgrade: false };
   }
 };
 
@@ -56,6 +63,14 @@ export default function DealList() {
       </Button>
       <s-stack gap="base">
         <FeatureTabs feature="bundles" />
+        {fetcher.data?.upgrade ? (
+          <s-banner tone="warning" heading="Not switched on">
+            <s-stack gap="small-200">
+              {fetcher.data.error}
+              <LimitUpgrade show />
+            </s-stack>
+          </s-banner>
+        ) : null}
         <Explainer what={t.what} how={t.how} example={t.example} />
         {native ? (
           <s-banner tone="warning" heading="Not available with native discounts">
