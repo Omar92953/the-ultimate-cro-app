@@ -50,15 +50,15 @@ export function LockedPage({ lock }: { lock: PageLock }) {
   const { pathname } = useLocation();
   if (lock.kind === "design") {
     return (
-      <s-page heading={`Design ${lock.slot}`} inlineSize="large">
+      <s-page heading={`Style ${lock.slot}`} inlineSize="large">
         <s-stack gap="base">
           <UpgradeCard
             needs={lock.needs}
-            title="More designs for this section"
-            text={`Your ${PLANS[plan].name} plan includes ${lock.allowed} design${lock.allowed === 1 ? "" : "s"} per section. Designs you made before stay on your store as they are; upgrade to edit them or add more.`}
+            title="More styles for this section"
+            text={`Your ${PLANS[plan].name} plan includes ${lock.allowed} style${lock.allowed === 1 ? "" : "s"} per section. Styles you made before stay on your store as they are; upgrade to edit them or add more.`}
           />
           <s-stack direction="inline" gap="small-200">
-            <Button href={`${pathname}?design=1`}>Open design 1</Button>
+            <Button href={`${pathname}?design=1`}>Open style 1</Button>
           </s-stack>
         </s-stack>
       </s-page>

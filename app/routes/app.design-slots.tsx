@@ -49,7 +49,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const names = await readNames(admin);
     if (form.get("intent") === "delete") {
-      if (slot === 1) return { ok: false, error: "Design 1 can't be deleted." };
+      if (slot === 1) return { ok: false, error: "Style 1 can't be deleted." };
       const own = new Set([`${base}_${slot}`, `${base}_${slot}_draft`, `${base}_${slot}_editor`]);
       for (const m of await handles(admin)) if (own.has(m.handle)) await remove(admin, m.id);
       if (names[base]) delete names[base][String(slot)];

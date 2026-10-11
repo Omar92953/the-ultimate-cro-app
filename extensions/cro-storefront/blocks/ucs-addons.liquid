@@ -2,4 +2,4 @@
 <script type="application/json">{{ c | json }}</script>
 </div>
 <script src="{{ 'ucs-addons.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<p class="ucs-note">{{ 'ucs.ao_empty' | t }}</p>{%- endif -%}<script src="{{ 'ucs-cart-guard.js' | asset_url }}" defer></script>
-{% schema %}{"name":"Add-ons","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"select","id":"design","label":"Design","default":"1","info":"t:s.1","options":[{"value":"1","label":"Design 1"},{"value":"2","label":"Design 2"},{"value":"3","label":"Design 3"},{"value":"4","label":"Design 4"},{"value":"5","label":"Design 5"}]},{"type":"paragraph","content":"t:s.8"}]}{% endschema %}
+{% schema %}{"name":"Add-ons","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.8"}]}{% endschema %}

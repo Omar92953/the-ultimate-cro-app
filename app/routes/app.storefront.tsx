@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -257,7 +257,8 @@ export default function Storefront() {
  * A hub: every feature of one area (Storefront, Cart, Checkout) as a card with its preview, status
  * and next step — the same cards on every hub, listed from lib/catalog.ts.
  */
-export function FeatureHub({ area }: { area: AreaKey }) {
+/** `top`: shown above the cards (the Cart page puts its "which cart" choice there). */
+export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
   const { plan, trial } = usePlan();
   const grouped = area === "storefront";
   const data = useLoaderData<typeof loader>();
@@ -327,6 +328,7 @@ export function FeatureHub({ area }: { area: AreaKey }) {
         View store
       </Button>
       <s-stack gap="base">
+      {top}
 
       {data.loadError ? (
         <s-banner tone="critical" heading="Something went wrong">
