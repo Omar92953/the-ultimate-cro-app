@@ -1,45 +1,58 @@
 # CRO Toolbox: merchant guide
 
-Four tools that raise order value, for any Online Store 2.0 theme:
-
-- **Cross-sell:** "Pairs well with" products shoppers tick and add in one click, on product pages,
-  the cart page and the slide-out cart.
-- **Upsell:** quantity offers like "Buy 2, save 10%".
-- **Video carousel:** vertical, shoppable videos that play while on screen.
-- **Bundles:** mix-and-match bundles ("Any 3 posters for LE 399").
+One app for the tools that raise order value and turn visits into orders, for any Online Store 2.0
+theme: offers and bundles, storefront widgets and sections, the cart, checkout rules and analytics.
 
 Discounts are real: Shopify applies them at checkout, so the price on the offer is the price the
 customer pays.
 
 ## Finding your way
-The app has the same map everywhere:
-- **Menu:** Home · Offers & bundles · Boosters · Sections · Header & pages · Settings.
-  - **Offers & bundles:** upsell offers, cross-sell offers, bundles (mix & match and deals), add-ons.
-  - **Boosters:** announcement bar, countdown timers, free shipping bar, quick add to cart, and the
-    conversion boosters (sticky add to cart, stock urgency, trust badges, sales pop-ups).
-  - **Sections:** hero banners, customer reviews, FAQ, scrolling logos, video carousel, image carousel,
-    collection pills.
-  - **Header & pages:** header and contact page.
-- **Home** shows every feature as a card with its status and next step; each menu category shows the
-  same cards for that category only.
-- **Every feature page** looks the same: the breadcrumb goes back to its category, and tabs at the top
-  switch between its content and its look (e.g. Customer reviews: Reviews | Design).
-- **Every design page** has the same tabs in the same order (Templates · Content · Style), settings on the left and a live preview on the right, and the same
-  buttons: Save, See it on my store, and Add to theme / Open in theme editor.
+- **Menu:** Home · Offers · Storefront · Cart · Checkout · Analytics · Settings.
+  - **Offers:** every offer in one list — upsells, cross-sells, mix & match bundles, bundle products,
+    fixed bundles, buy X get Y, volume discounts, free gifts, upgrades and the after-purchase offer.
+    **Create offer** asks where it shows (product page, cart, after payment) and what it offers.
+    Add-ons and personalization are here too.
+  - **Storefront:** every widget and section, grouped: social proof (reviews, sales pop-ups, trust
+    badges, logos), bars & urgency (announcement, countdown, free shipping, stock urgency), product
+    page (sticky add to cart, quick add, delivery estimate, back in stock), content (hero, carousels,
+    FAQ, quiz, collection pills) and store pages (header, footer, contact, track order, returns).
+    Filter by status (live, needs setup, off, not in my plan) or search.
+  - **Cart:** first choose your cart — keep your theme's cart and add offers to it, or use the app's
+    cart drawer — then its modules (offers, free-shipping bar, gift note & delivery date, express
+    checkout, best discount, share cart).
+  - **Checkout:** payment rules, delivery rules, order limits, thank-you page, after-purchase offer.
+  - **Analytics:** sales from the app (last 30 days vs the 30 before), each offer and bundle, and the
+    holdout test.
+  - **Settings:** app embeds and their status, checkout discounts, plan and billing, referral, help.
+- **Home** shows the setup guide (5 steps that tick themselves), the last 30 days, what needs your
+  attention (pending reviews, return requests, back-in-stock requests, anything not on your store
+  yet) and what to try next.
+- **Every feature page** has a breadcrumb back to its menu item, and tabs for its content and its look.
+- **Every design page** has the same tabs (Templates · Content · Style), settings on the left and a
+  live preview on the right, and the same buttons: Save, See it on my store, Add to theme / Open in
+  theme editor. A section can have up to 5 **styles**; pick one per placement in the theme editor
+  (the block's **Style** setting).
 - **Theme editor:** blocks only place, move or remove a section; everything else is set in the app.
 
-## Set up in 3 steps
+## Set up in 5 steps (Home → Setup guide)
+1. **Turn on the app in your theme** (App embeds).
+2. **Create your first offer** (Offers → Create offer).
+3. **Place a section** — open a Storefront card and click **Add to theme**; the theme editor opens
+   with the block ready. Drag it where you want it, then click **Save**.
+4. **Check a test order**: add an offer to the cart and check the price at checkout.
+5. **Choose a plan** (Home → Compare plans).
 
-1. **Add the blocks to your theme.** Open the app → Home → **Add to theme** on each feature card. The theme
-   editor opens with the block ready. Drag it where you want it, then click **Save**. For offers in
-   the slide-out cart, open **Settings → Cart drawer offers** and switch it on in the theme editor.
-2. **Configure.** Create offers in **Upsell offers** and **Cross-sell offers**, pick videos in **Video carousel**,
-   and set up **Bundles**. Changes appear on your store straight away.
-3. **Preview.** Open a product that matches a rule, add the offer to your cart, and check the price at
-   checkout.
-
-Each feature has an **On/Off** switch on the Home page that hides it everywhere without deleting
-anything.
+## Plans
+- **Free:** 3 offer slots (any mix of offer types switched on at the same time; switch one off to free
+  its slot), the cart drawer, bars, reviews, wishlist, back in stock and most storefront widgets,
+  3 checkout rules, 2 thank-you modules, 1 countdown, and **1 Starter feature of your choice** to try.
+- **Starter:** unlimited offers, every storefront tool and page, 5 styles per section, 6 checkout
+  rules, results for your top 3 offers.
+- **Growth:** unlimited checkout rules, results for every offer and bundle, the holdout test, and
+  feature requests we build for you.
+- **Pro:** unlimited orders, priority support, your requests built first.
+- Paid plans are billed by Shopify. Cancel or change your plan anytime — nothing is deleted; offers
+  over a limit are switched off and come back on when you upgrade.
 
 ## Cross-sell offers
 - **Trigger:** all products, specific products, or products in collections. On the cart page and in
@@ -105,7 +118,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   links). Words, tray position and colours: **Bundles → Design** (preview: Bundle page / Collection page).
 
 ## Free shipping bar
-- Set the goal and messages in **Boosters → Free shipping bar**. With **Give free shipping
+- Set the goal and messages in **Storefront → Free shipping bar**. With **Give free shipping
   automatically** on (the default), saving creates or updates the automatic discount "CRO Toolbox free
   shipping" (Shopify → Discounts): free shipping on orders from the goal amount. Turning the bar or the
   option off switches the discount off. Off: the bar only shows the goal, and you give free shipping
@@ -116,7 +129,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   only inside the cart.
 
 ## Hero banners
-- Make banners in **Sections → Hero banners**: a wide desktop image and a tall phone image,
+- Make banners in **Storefront → Hero banners**: a wide desktop image and a tall phone image,
   heading, text, up to two buttons, where the text sits (separately for phones), colours and height.
 - In the theme editor add the **Hero image** section and pick a banner. With none picked it shows your
   first banner (change the order in the list). Set **Where on the page** to "Lower down" for banners
@@ -124,12 +137,12 @@ they picked, so **each item's stock goes down** and the items appear on the orde
 - **See it on my store** shows your unsaved changes in the theme editor only; **Save** puts them live.
 
 ## Logos, FAQ and quick add
-- **Scrolling logos and text** and **FAQ**: the logos and questions are in Sections; the look is
+- **Scrolling logos and text** and **FAQ**: the logos and questions are in Storefront; the look is
   in each list's **Design**. Every copy of the section uses that design. A FAQ copy can still show only
   one group (e.g. Shipping), have its own heading, and switch Google's FAQ data on or off.
-- **Quick add to cart**: design the card button and the "Added to your cart" popup from its card on
-  Home (**Design**); in the theme editor you only switch the embed on.
-- **Cart drawer offers**: heading, how many products and the button text are on **Cross-sell offers →
+- **Quick add to cart**: design the card button and the "Added to your cart" popup from its card in
+  Storefront (**Design**); in the theme editor you only switch the embed on.
+- **Offers in your theme's cart**: heading, how many products and the button text are on **Cross-sell offers →
   Design** (Content tab).
 
 ## Good to know

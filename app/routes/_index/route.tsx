@@ -13,12 +13,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 const FEATURES = [
-  ["Upsells and cross-sells", "“Buy 2, save 10%” tiers and “Pairs well with” offers, with real discounts at checkout."],
-  ["Bundles", "Mix-and-match, fixed bundles, buy X get Y, volume discounts and free gifts."],
-  ["Store sections", "Reviews, FAQ, logos, hero images, carousels, a product quiz and collection pills."],
-  ["Boosters", "Announcement and free-shipping bars, countdown timers, quick add, wishlist, a cart drawer, delivery estimates, back-in-stock alerts and more."],
-  ["Header & pages", "Header and footer designs, and contact, track order and returns pages."],
+  ["Offers", "Upsells, cross-sells, mix & match bundles, bundle products, buy X get Y, volume discounts, free gifts and an after-purchase offer."],
+  ["Storefront", "Reviews, sales pop-ups, trust badges, announcement, free-shipping and countdown bars, sticky add to cart, wishlist, back in stock, page sections and pages."],
+  ["Cart", "A cart drawer with offers, a free-shipping bar, express checkout buttons and a gift note — or offers inside your theme's own cart."],
   ["Checkout", "Payment and delivery rules, order limits, thank-you page modules and an after-purchase offer."],
+  ["Analytics", "What each offer and bundle sells, and a holdout test that shows what the app adds."],
 ];
 
 /**
