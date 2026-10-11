@@ -29,6 +29,14 @@ and respond quickly while the app is under review.
 - Render reads the included `render.yaml` Blueprint: build `npm ci --include=dev && npm run build:production`,
   start `npm run start:production` (runs database migrations, then the server).
 
+## Region (speed)
+
+Put both in **US East**: Render **Virginia** and Supabase **us-east-1 (N. Virginia)**. Every admin
+page asks Shopify's API for data, often in two rounds one after the other, and every request also
+reads the session from the database — so the server should sit next to Shopify and next to its
+database. Measured in development (server on a laptop in Egypt, through a tunnel): ~0.5 s per
+Shopify call; from US East it's ~0.1 s.
+
 ## Supabase (Postgres for sessions)
 
 - **Free plan: 500 MB database, 2 projects, and projects pause after 1 week of inactivity.**

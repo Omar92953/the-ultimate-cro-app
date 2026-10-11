@@ -7,7 +7,9 @@ services:
     # "starter" is a paid plan (no sleeping). "free" sleeps after ~15 min idle — fine for testing,
     # not for App Store review or real merchants. See docs/hosting.md.
     plan: starter
-    region: frankfurt
+    # Next to Shopify's API (US East): every admin page makes Shopify API calls, often two rounds
+    # in a row, so this region keeps pages fast. Put the Supabase project in us-east-1 too.
+    region: virginia
     buildCommand: npm ci --include=dev && npm run build:production
     startCommand: npm run start:production
     healthCheckPath: /
@@ -23,7 +25,7 @@ services:
       - key: SHOPIFY_APP_URL
         sync: false        # https://<this service>.onrender.com
       - key: SCOPES
-        value: read_files,write_files,read_orders,read_products,read_themes,write_cart_transforms,write_discounts,write_metaobject_definitions,write_metaobjects   # must match shopify.app.toml
+        value: read_files,write_files,read_online_store_navigation,read_orders,read_products,read_themes,write_cart_transforms,write_delivery_customizations,write_discounts,write_metaobject_definitions,write_metaobjects,write_payment_customizations,write_validations   # must match shopify.app.toml
       - key: DATABASE_URL
         sync: false        # Supabase → Connect → Session pooler (…pooler.supabase.com:5432/postgres) — Render is a long-running server
       - key: DIRECT_URL

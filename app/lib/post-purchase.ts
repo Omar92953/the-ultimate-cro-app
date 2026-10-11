@@ -5,7 +5,10 @@
  *
  * Saved in the shop metafield cro_toolbox.post_purchase (readable at checkout, which is how the
  * extension gets it). The app server re-reads it when it signs the change, so the discount and
- * product can't be altered in the browser. Shared by client and server.
+ * product can't be altered in the browser. App Store rules for post-purchase (5.8): the accept and
+ * decline buttons have fixed wording (not editable), and the product's name, picture and price
+ * shown are the store's current ones (read from the app server, not from this saved copy).
+ * Shared by client and server.
  */
 
 export type OfferProduct = { productId: string; variantId: string; title: string; variantTitle: string; price: number; image: string | null };
@@ -13,8 +16,6 @@ export type PostPurchaseConfig = {
   on: boolean;
   heading: string;
   text: string;
-  button: string;
-  decline: string;
   pct: number;
   min: number;
   product: OfferProduct | null;
@@ -28,8 +29,6 @@ export const DEFAULT_POST_PURCHASE: PostPurchaseConfig = {
   on: false,
   heading: "Wait — add this to your order",
   text: "A one-time offer for you, shipped with your order. No need to enter your details again.",
-  button: "Add to my order",
-  decline: "No thanks",
   pct: 15,
   min: 0,
   product: null,
@@ -55,8 +54,6 @@ export function withPostPurchaseDefaults(raw: unknown): PostPurchaseConfig {
     on: r.on === true,
     heading: s(r.heading, d.heading, 120),
     text: s(r.text, d.text, 300),
-    button: s(r.button, d.button, 40),
-    decline: s(r.decline, d.decline, 40),
     pct: Math.round(n(r.pct, 0, 90, d.pct)),
     min: n(r.min, 0, 1e9, 0),
     product,

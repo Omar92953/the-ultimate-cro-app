@@ -29,7 +29,7 @@
                 {%- if col.x != blank -%}<p class="ucs-ft__text">{{ col.x | escape | newline_to_br }}</p>{%- endif -%}
               {%- when 'logo' -%}
                 <a class="ucs-ft__logo" href="{{ routes.root_url }}">
-                  {%- if c.logo -%}<img src="{{ c.logo }}{% if c.logo contains '?' %}&{% else %}?{% endif %}width=480" alt="{{ shop.name | escape }}" loading="lazy">{%- else -%}<span>{{ shop.name | escape }}</span>{%- endif -%}
+                  {%- if c.logo -%}<img src="{{ c.logo }}{% if c.logo contains '?' %}&{% else %}?{% endif %}width=480" alt="{{ shop.name | escape }}" width="480" height="160" loading="lazy">{%- else -%}<span>{{ shop.name | escape }}</span>{%- endif -%}
                 </a>
                 {%- if col.x != blank -%}<p class="ucs-ft__text">{{ col.x | escape | newline_to_br }}</p>{%- endif -%}
               {%- when 'social' -%}

@@ -77,6 +77,40 @@ export async function verifyPostPurchaseToken(token: string) {
   return { referenceId, shop };
 }
 
+/**
+ * What the extension shows, from the store as it is now (App Store rule 5.8.3: the same name,
+ * picture and price as in the store): null when the offer is off or the variant can't be sold.
+ */
+export async function currentOffer(admin: AdminClient, config: PostPurchaseConfig) {
+  if (!config.on || !config.product) return null;
+  const data = await gql(
+    admin,
+    `#graphql
+    query CroPostPurchaseVariant($id: ID!) {
+      productVariant(id: $id) {
+        title price availableForSale
+        image { url altText }
+        product { title status featuredMedia { preview { image { url altText } } } }
+      }
+    }`,
+    { id: config.product.variantId },
+  );
+  const v = data.productVariant;
+  if (!v || !v.availableForSale || v.product?.status !== "ACTIVE") return null;
+  const image = v.image ?? v.product.featuredMedia?.preview?.image ?? null;
+  return {
+    heading: config.heading,
+    text: config.text,
+    pct: config.pct,
+    title: v.product.title as string,
+    variantTitle: v.title === "Default Title" ? "" : (v.title as string),
+    price: Number(v.price) || 0,
+    image: (image?.url as string) ?? null,
+    alt: (image?.altText as string) || (v.product.title as string),
+    variantId: config.product.variantId,
+  };
+}
+
 /** Signs the offer's change for this order, from the saved offer (never from what the browser sent). */
 export async function signOfferChangeset(config: PostPurchaseConfig, referenceId: string) {
   if (!config.on || !config.product) throw new Error("No offer");

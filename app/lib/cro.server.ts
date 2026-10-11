@@ -1217,9 +1217,10 @@ export type ThemeStatus = {
 };
 
 /** Reads the published theme (read_themes) to see which blocks/embeds are actually in use. */
-/** Which blocks/embeds the MAIN theme uses; with `shop`, remembered for 20 s (see short-cache.server.ts). */
+/** Which blocks/embeds the MAIN theme uses; with `shop`, fresh for 20 s, then answered from memory
+ * (refreshed in the background) for 10 min (see short-cache.server.ts). */
 export function getThemeStatus(admin: AdminClient, shop?: string): Promise<ThemeStatus> {
-  return shop ? remember(shop, "status", 20000, () => readThemeStatus(admin)) : readThemeStatus(admin);
+  return shop ? remember(shop, "status", 20000, () => readThemeStatus(admin), 600000) : readThemeStatus(admin);
 }
 
 async function readThemeStatus(admin: AdminClient): Promise<ThemeStatus> {

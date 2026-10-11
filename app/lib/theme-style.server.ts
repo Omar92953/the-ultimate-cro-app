@@ -19,9 +19,10 @@ const parse = (text: string | undefined): Obj | null => {
 const hex = (v: unknown, fallback: string) => (typeof v === "string" && /^#[0-9a-f]{3,8}$/i.test(v.trim()) ? v.trim().slice(0, 7) : fallback);
 const humanize = (id: string) => id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-/** The MAIN theme's styles; with `shop`, remembered for 20 s (see short-cache.server.ts). */
+/** The MAIN theme's styles; with `shop`, fresh for 1 min, then answered from memory (refreshed in
+ * the background) for 30 min (see short-cache.server.ts). */
 export function getThemeStyle(admin: AdminClient, shop?: string): Promise<ThemeStyle> {
-  return shop ? remember(shop, "style", 20000, () => readThemeStyle(admin)) : readThemeStyle(admin);
+  return shop ? remember(shop, "style", 60000, () => readThemeStyle(admin), 1800000) : readThemeStyle(admin);
 }
 
 async function readThemeStyle(admin: AdminClient): Promise<ThemeStyle> {

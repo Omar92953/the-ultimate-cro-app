@@ -1265,42 +1265,6 @@ export function ContactInfoShowcase() {
     </Stage>
   );
 }
-export function ProductPageShowcase() {
-  return (
-    <Stage wide>
-      <span className={`${s.pdp} ${s.w56}`}>
-        <Img id={PRODUCTS[0].id} w={500} h={500} />
-        <span className={s.plain}>
-          <b className={s.h2}>{PRODUCTS[0].name}</b>
-          <b className={s.h3}>{PRODUCTS[0].price}</b>
-          <Lines w={[95, 85, 60]} />
-          <span className={`${s.btn} ${s.btnDark} ${s.full}`}>Add to cart</span>
-        </span>
-      </span>
-    </Stage>
-  );
-}
-export function CollectionPageShowcase() {
-  return (
-    <Stage wide>
-      <span className={`${s.plain} ${s.w56}`}>
-        <span className={s.between}>
-          <b className={s.h3}>New arrivals</b>
-          <span className={s.filters}>
-            <i>Price</i>
-            <i>Size</i>
-            <i>Colour</i>
-          </span>
-        </span>
-        <span className={s.coll}>
-          {PRODUCTS.slice(0, 4).map((p) => (
-            <Img key={p.id} id={p.id} w={300} h={375} />
-          ))}
-        </span>
-      </span>
-    </Stage>
-  );
-}
 export function HeaderGlassShowcase() {
   return (
     <Stage wide>
@@ -1338,7 +1302,7 @@ export function HeaderRoundedShowcase() {
   );
 }
 
-/** Footer (coming soon): link columns, a newsletter box and payment icons. */
+/** Footer: link columns, a newsletter box and payment icons. */
 export function FooterShowcase() {
   return (
     <Stage>
@@ -1783,8 +1747,8 @@ export function PostPurchaseShowcase() {
             <span>
               <s style={{ color: "#777" }}>EGP 300</s> <b style={{ color: "#b42318" }}>EGP 255</b>
             </span>
-            <span style={{ display: "block", padding: "5px 0", borderRadius: 5, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to my order</span>
-            <span style={{ textAlign: "center", color: "#1773b0" }}>No thanks</span>
+            <span style={{ display: "block", padding: "5px 0", borderRadius: 5, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now · EGP 255</span>
+            <span style={{ textAlign: "center", color: "#1773b0" }}>Decline this offer</span>
           </span>
         </span>
       </span>

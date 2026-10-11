@@ -72,8 +72,6 @@ import {
   UrgencyShowcase,
   ContactShowcase,
   ContactInfoShowcase,
-  ProductPageShowcase,
-  CollectionPageShowcase,
   HeaderGlassShowcase,
   HeaderRoundedShowcase,
   FooterShowcase,
@@ -113,8 +111,9 @@ function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  // Remembered for 30 s; any save in the app clears it (short-cache.server.ts).
-  return remember(session.shop, "home", 30000, () => loadHome(admin, session));
+  // Fresh for 30 s, then answered from memory while it refreshes (up to 5 min); any save in the
+  // app clears it (short-cache.server.ts).
+  return remember(session.shop, "home", 30000, () => loadHome(admin, session), 300000);
 };
 
 async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["admin"], session: { shop: string }) {
@@ -321,8 +320,6 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
 /** Pages designed in the app (Contact page now; the others are coming). */
 const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
-  { key: "page_product", title: "Product page", href: "/app/browse/design", Previews: [ProductPageShowcase] },
-  { key: "page_collection", title: "Collection page", href: "/app/browse/design", Previews: [CollectionPageShowcase] },
 ];
 
 /** The four boosters live in one app embed; each is switched on and edited on the Conversion boosters page. */
@@ -560,24 +557,21 @@ export function HomeView({ only }: { only?: CategoryKey }) {
           });
         });
         PAGE_CARDS.forEach((pg) => {
-          const ready = pg.key === "page_contact";
           const inTheme = installed ? (installed.contact ?? false) : null;
           let status: Status, next: Next | undefined;
-          if (!ready) status = { tone: "neutral", text: "Coming soon" };
-          else if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: pg.href }];
+          if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: pg.href }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Designed" }, { label: "Add to page", href: data.links.contact, external: true }];
           else status = { tone: "success", text: "Live" };
           add({
             key: pg.key,
             cat: "design",
             title: pg.title,
-            onStore: ready && inTheme === true,
+            onStore: inTheme === true,
             status,
             next,
             open: { href: pg.href },
             previews: pg.Previews,
-            off: !ready,
-            menu: ready ? [{ label: "Design", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }] : [],
+            menu: [{ label: "Design", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }],
           });
         });
 
@@ -728,7 +722,7 @@ export function HomeView({ only }: { only?: CategoryKey }) {
                   <option value="all">All statuses</option>
                   <option value="live">Live</option>
                   <option value="setup">Needs a step</option>
-                  <option value="off">Off or coming soon</option>
+                  <option value="off">Turned off</option>
                 </select>
                 <input className={showcase.find} type="search" placeholder="Search…" aria-label="Search sections" value={query} onChange={(e) => setQuery(e.target.value)} />
               </s-stack>
