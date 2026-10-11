@@ -8,6 +8,7 @@
  * Checkout applies the same deals through the app's discount Function.
  */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsDeals) return;
   window.__ucsDeals = true;
   var el = document.getElementById('ucs-boost');
@@ -144,7 +145,7 @@
       btn.addEventListener('click', function () {
         btn.setAttribute('aria-busy', 'true');
         btn.disabled = true;
-        json('cart/add.js', { items: picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1 }; }) })
+        json('cart/add.js', { items: picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1, properties: { _source: 'fixed_bundle' } }; }) })
           .then(function () {
             document.dispatchEvent(new CustomEvent('ucs:cart:added'));
             window.location.href = root + 'cart';
@@ -190,7 +191,7 @@
           c.querySelector('button').addEventListener('click', function (e) {
             var b = e.currentTarget, q = form && form.querySelector('[name="quantity"]');
             b.disabled = true;
-            json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: Number(q && q.value) || 1 }] }).then(toCart).catch(function () { b.disabled = false; });
+            json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: Number(q && q.value) || 1, properties: { _source: 'upgrade' } }] }).then(toCart).catch(function () { b.disabled = false; });
           });
         }).catch(function () {});
       });
@@ -218,7 +219,7 @@
           c.querySelector('button').addEventListener('click', function (e) {
             e.currentTarget.disabled = true;
             json('cart/change.js', { id: line.key, quantity: 0 })
-              .then(function () { return json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: line.quantity }] }); })
+              .then(function () { return json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: line.quantity, properties: { _source: 'upgrade' } }] }); })
               .then(toCart).catch(toCart);
           });
         }).catch(function () {});

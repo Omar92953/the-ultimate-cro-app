@@ -30,6 +30,7 @@ export default function App() {
             {c.title}
           </s-link>
         ))}
+        <s-link href="/app/results">Results</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <div className={frame.page}>

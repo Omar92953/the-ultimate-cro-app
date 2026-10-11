@@ -3,6 +3,7 @@
    checked before the theme adds. A paid fee is added as a linked line (_cro_parent), removed with the
    item by ucs-cart-guard.js. The preview writes the text on the product picture as the shopper types. */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var widgets = [];
 

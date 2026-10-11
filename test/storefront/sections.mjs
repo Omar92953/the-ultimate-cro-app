@@ -466,6 +466,9 @@ const quizFake = `<script>
     return Promise.resolve(new Response("{}")); };
 </script>`;
 pages["quiz.html"] = page("Product quiz", quizFake + (await block("ucs-quiz", {}, { shop: quizShop })));
+// Holdout test: the boosters embed splits shoppers; a holdout shopper gets no app widgets.
+const xpShop = withDesign(mo("experiment", { config: { on: true, holdout: 10, since: "2026-10-11T00:00:00Z" } }));
+pages["holdout.html"] = page("Holdout test", '<script>try{localStorage.setItem("ucs-xp-2026-10-11T00:00:00Z","holdout")}catch(e){}window.__calls=[];const hf=window.fetch;window.fetch=(u,o)=>{window.__calls.push(String(u)+(o&&o.body?" "+o.body:""));return Promise.resolve(new Response(JSON.stringify({attributes:{}})))};</script><div class="ucs" style="margin:24px 40px">An app widget</div>', await block("ucs-boosters", {}, { shop: xpShop }));
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
@@ -500,6 +503,7 @@ const productReviews = (() => {
 })();
 check(productReviews === 2, `product page should pass only the tee's 2 reviews (got ${productReviews})`);
 check((idx.match(/class="ucs-faq__item"/g) || []).length === 4, "FAQ should show the 4 shown questions");
+check(pages["holdout.html"].includes("data-cro-group"), "holdout script should render when the test is on");
 check(pages["deals.html"].includes("ucs-deals.js") && !pages["boosters.html"].includes("ucs-deals.js"), "deals script should load only when the shop has deals");
 check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "product collection ids should reach the deals script");
 if (problems.length) {

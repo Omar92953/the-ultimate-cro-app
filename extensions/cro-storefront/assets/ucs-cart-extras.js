@@ -3,6 +3,7 @@
    cart page block ([data-ucs-ce]) and inside Dawn-family cart drawers (#ucs-ce-data from the
    Conversion boosters embed); re-inserted whenever the drawer redraws. */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsCe) return;
   window.__ucsCe = true;
   var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';

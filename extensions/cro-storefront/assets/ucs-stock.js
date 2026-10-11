@@ -2,6 +2,7 @@
    Follows the variant chosen in the product form: sold out → "Notify me" form (sent to the app);
    out of stock but still sellable → the Add to cart button says "Pre-order" and the line gets a property. */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
 
   function setup(host) {

@@ -5,6 +5,7 @@
    - Shareable cart: a link that rebuilds this cart anywhere (/cart/variant:qty,…?storefront=true),
      and the last cart is remembered on this device to offer it back when the cart is empty. */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsCart) return;
   window.__ucsCart = true;
   var el = document.getElementById('ucs-cart-data');

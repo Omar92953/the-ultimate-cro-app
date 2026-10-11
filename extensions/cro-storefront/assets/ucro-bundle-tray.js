@@ -237,7 +237,7 @@
       items = state.picks.map(function (p) { return { id: Number(p.v), quantity: 1, properties: { _bundle: b.id + ':' + state.g + ':' + p.s } }; });
     }
     tray.classList.add('is-busy');
-    U.add(items)
+    U.add(items, 'bundle_tray')
       .then(function () {
         // The theme's cart drawer opens (or the cart page, when there's no drawer).
         state = null;

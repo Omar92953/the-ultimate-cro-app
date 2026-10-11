@@ -137,7 +137,7 @@
       button.classList.add('loading', 'ucro-is-busy');
       var box = this.querySelector('.ucro__error');
       if (box) box.hidden = true;
-      U.add([{ id: Number(button.dataset.variant), quantity: 1 }])
+      U.add([{ id: Number(button.dataset.variant), quantity: 1 }], 'video_carousel')
         .catch((err) => {
           if (box) {
             box.textContent = (err && err.message !== 'error' && err.message) || this.dataset.error;

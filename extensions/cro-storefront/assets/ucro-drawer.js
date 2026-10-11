@@ -139,7 +139,7 @@
     btn.classList.add('loading', 'ucro-is-busy');
     var box = btn.closest('[data-ucro-drawer]');
     var err = box && box.querySelector('.ucro__error');
-    U.add([{ id: Number(btn.dataset.variant), quantity: 1 }])
+    U.add([{ id: Number(btn.dataset.variant), quantity: 1 }], 'cart_drawer_offer')
       .catch(function (error) {
         if (err) {
           err.textContent = (error && error.message !== 'error' && error.message) || data.error;

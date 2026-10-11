@@ -6,6 +6,7 @@
  * "Added to cart" popup, or the cart page.
  */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsQuickAdd) return;
   window.__ucsQuickAdd = true;
 
@@ -144,7 +145,7 @@
 
   function add(variant, p) {
     var ui = cfg.after === 'theme' ? cartUI() : null;
-    var body = { items: [{ id: variant.id, quantity: 1 }] };
+    var body = { items: [{ id: variant.id, quantity: 1, properties: { _source: 'quick_add' } }] };
     var bubble = document.getElementById('cart-icon-bubble');
     if (ui) {
       body.sections = ui.getSectionsToRender().map(function (s) { return s.id; });

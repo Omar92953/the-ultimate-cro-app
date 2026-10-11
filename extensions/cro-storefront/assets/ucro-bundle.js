@@ -226,7 +226,7 @@
       this.busy = true;
       this.button.classList.add('loading', 'ucro-is-busy');
       this.error('');
-      U.add(this.items())
+      U.add(this.items(), 'bundle_builder')
         .then(() => {
           this.steps.forEach((s) => (s.picks = []));
           this.clearSaved();

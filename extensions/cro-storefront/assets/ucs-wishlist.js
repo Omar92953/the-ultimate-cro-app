@@ -2,6 +2,7 @@
    Hearts on the product page and on product cards, a floating button with the count, and the wishlist
    page ([data-ucs-orders="wishlist"]) with add to cart, "price dropped" and a share link (?wl=a,b). */
 (function () {
+  if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsWl) return;
   window.__ucsWl = true;
   var el = document.getElementById('ucs-wl-data');
@@ -138,7 +139,7 @@
       var add = t.closest('[data-add]');
       if (add) {
         add.disabled = true;
-        return fetch(root + 'cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(add.getAttribute('data-add')), quantity: 1 }] }) })
+        return fetch(root + 'cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(add.getAttribute('data-add')), quantity: 1, properties: { _source: 'wishlist' } }] }) })
           .then(function () { add.disabled = false; document.dispatchEvent(new CustomEvent('ucs:cart:added')); });
       }
       if (t.closest('[data-share]')) {

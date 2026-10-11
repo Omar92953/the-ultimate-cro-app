@@ -167,7 +167,7 @@
   }
   function addDirect(id, btn) {
     btn.setAttribute('aria-busy', 'true');
-    fetch(root + 'cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(id), quantity: 1 }] }) })
+    fetch(root + 'cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(id), quantity: 1, properties: { _source: 'sticky_cart' } }] }) })
       .then(function (r) { if (!r.ok) throw new Error('add'); return r.json(); })
       .then(function () {
         document.dispatchEvent(new CustomEvent('ucs:cart:added'));
