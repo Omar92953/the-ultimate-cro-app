@@ -1197,6 +1197,7 @@ export const BLOCKS = {
   delivery: "ucs-delivery",
   personalize: "ucs-personalize",
   cart_extras: "ucs-cart-extras",
+  cart_tools: "ucs-cart",
   track: "ucs-order-page",
   returns: "ucs-order-page",
   collection_pills: "ucs-collection-pills",
@@ -1204,7 +1205,7 @@ export const BLOCKS = {
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
-const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "boosters", "bundle_tray"];
+const EMBEDS: (keyof typeof BLOCKS)[] = ["drawer", "announcements", "quick_add", "boosters", "bundle_tray", "cart_tools"];
 
 export type ThemeStatus = {
   themeName: string | null;

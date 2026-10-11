@@ -680,3 +680,39 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-ce__field select, .ucs-ce__field textarea { min-height: var(--ucs-ce-in, 40px); padding: 6px 10px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-ce-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
 .ucs-ce__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 .ucs-ce__msg { margin: 0; color: #b42318; font-size: 0.9em; }
+/* ---- Cart drawer & checkout -------------------------------------------------------------- */
+.ucs-cd { position: fixed; inset: 0; z-index: 2147483000; }
+.ucs-cd[hidden] { display: none; }
+.ucs-cd__overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, var(--ucs-cd-ov, 0.4)); opacity: 0; transition: opacity 0.25s ease; }
+.ucs-cd__panel { position: absolute; top: 0; bottom: 0; right: 0; display: flex; flex-direction: column; width: min(var(--ucs-cd-w, 420px), 100vw); background: var(--ucs-cd-bg, #fff); color: var(--ucs-cd-fg, #121212); box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15); transform: translateX(100%); transition: transform 0.25s ease; outline: none; }
+.ucs-cd--left .ucs-cd__panel { right: auto; left: 0; transform: translateX(-100%); }
+.ucs-cd.is-open .ucs-cd__overlay { opacity: 1; }
+.ucs-cd.is-open .ucs-cd__panel { transform: none; }
+.ucs-cd-open { overflow: hidden; }
+.ucs-cd__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.ucs-cd__title { margin: 0; font-size: var(--ucs-cd-h, 20px); }
+.ucs-cd__x { width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 26px; line-height: 1; cursor: pointer; }
+.ucs-cd__body { flex: 1; overflow: auto; padding: 8px 20px; }
+.ucs-cd__items { margin: 0; padding: 0; list-style: none; }
+.ucs-cd__item { display: grid; grid-template-columns: var(--ucs-cd-img, 72px) 1fr auto; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent); font-size: var(--ucs-cd-t, 14px); }
+.ucs-cd__item.is-busy { opacity: 0.5; }
+.ucs-cd__item img, .ucs-cd__ph { width: var(--ucs-cd-img, 72px); height: var(--ucs-cd-img, 72px); border-radius: min(var(--ucs-cd-r, 10px), 10px); object-fit: cover; background: color-mix(in srgb, currentColor 8%, transparent); }
+.ucs-cd__info { display: grid; gap: 4px; min-width: 0; }
+.ucs-cd__info a { color: inherit; font-weight: 600; text-decoration: none; }
+.ucs-cd__info small { opacity: 0.7; }
+.ucs-cd__qty { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; }
+.ucs-cd__qty button { min-width: 32px; height: 32px; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.ucs-cd__qty span { min-width: 24px; text-align: center; }
+.ucs-cd__qty .ucs-cd__rm { min-width: 0; margin-left: 8px; border: 0; text-decoration: underline; opacity: 0.7; }
+.ucs-cd__price { white-space: nowrap; font-weight: 600; }
+.ucs-cd__price s { opacity: 0.55; font-weight: 400; }
+.ucs-cd__foot { display: grid; gap: 8px; padding: 16px 20px 20px; border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.ucs-cd__foot:empty { display: none; }
+.ucs-cd__sub { display: flex; justify-content: space-between; margin: 0; font-size: 1.05em; }
+.ucs-cd__tax, .ucs-cd__note, .ucs-cd__disc, .ucs-cd__copied { margin: 0; font-size: 0.85em; opacity: 0.75; }
+.ucs-cd__note { color: #1a7f37; opacity: 1; font-weight: 600; }
+.ucs-cd__go { width: 100%; }
+.ucs-cd__express:empty { display: none; }
+.ucs-cd__share { justify-self: center; border: 0; background: transparent; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; opacity: 0.8; }
+.ucs-cd__empty { display: grid; gap: 12px; justify-items: center; padding: 40px 0; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .ucs-cd__panel, .ucs-cd__overlay { transition: none; } }

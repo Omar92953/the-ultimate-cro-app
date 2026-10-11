@@ -1,0 +1,22 @@
+{%- comment -%}
+  App embed: Cart drawer & checkout (Boosters → Cart drawer & checkout, $app:cro_design "cart_tools"):
+  the app's slide-out cart, express checkout buttons, best discount and shareable carts (ucs-cart.js).
+{%- endcomment -%}
+{%- assign d = shop.metaobjects['$app:cro_design']['cart_tools'].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design']['cart_tools_draft'].config.value -%}{%- assign d = shop.metaobjects['$app:cro_design']['cart_tools_draft'].config.value -%}{%- endif -%}
+{%- if d -%}
+  <script type="application/json" id="ucs-cart-data">{"c":{{ d | json }},"cur":{{ cart.currency.iso_code | default: shop.currency | default: 'USD' | json }},"count":{{ cart.item_count | default: 0 }}}</script>
+  {%- if d.ex and additional_checkout_buttons -%}<div id="ucs-cart-express" hidden>{{ content_for_additional_checkout_buttons }}</div>{%- endif -%}
+  <script src="{{ 'ucs-cart.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Cart drawer & checkout",
+  "target": "body",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "paragraph", "content": "The slide-out cart, express checkout buttons, best discount and shareable carts. Set them up in the app: Boosters → Cart drawer & checkout." }
+  ]
+}
+{% endschema %}

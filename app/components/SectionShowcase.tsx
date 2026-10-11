@@ -1601,3 +1601,29 @@ export function CartExtrasShowcase() {
     </Stage>
   );
 }
+
+/** Cart drawer & checkout: the slide-out cart with express buttons. */
+export function CartToolsShowcase() {
+  return (
+    <Stage>
+      <span style={{ position: "relative", display: "block", width: "88%", height: "100%", minHeight: 130, borderRadius: 8, background: "#e9e9e9", overflow: "hidden", fontSize: 10 }}>
+        <span style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "58%", display: "grid", alignContent: "start", gap: 6, padding: 8, background: "#fff", boxShadow: "-4px 0 12px rgba(0,0,0,.12)" }}>
+          <b style={{ fontSize: 12 }}>Your cart</b>
+          {["Linen shirt", "Classic tee"].map((t) => (
+            <span key={t} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <span style={{ width: 22, height: 22, borderRadius: 4, background: "#ddd" }} />
+              {t}
+              <span style={{ marginLeft: "auto" }}>− 1 +</span>
+            </span>
+          ))}
+          <span style={{ display: "flex", justifyContent: "space-between", fontWeight: 700 }}>
+            <span>Subtotal</span>
+            <span>EGP 1,100</span>
+          </span>
+          <span style={{ padding: "5px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Check out</span>
+          <span style={{ padding: "5px 0", borderRadius: 999, background: "#5a31f4", color: "#fff", textAlign: "center", fontWeight: 700 }}>Shop Pay</span>
+        </span>
+      </span>
+    </Stage>
+  );
+}
