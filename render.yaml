@@ -2,7 +2,7 @@
 # Nothing here is created until you apply it in the Render dashboard.
 services:
   - type: web
-    name: ultimate-cro-app
+    name: cro-toolbox
     runtime: node
     # "starter" is a paid plan (no sleeping). "free" sleeps after ~15 min idle — fine for testing,
     # not for App Store review or real merchants. See docs/hosting.md.
@@ -23,7 +23,7 @@ services:
       - key: SHOPIFY_API_SECRET
         sync: false        # Partner Dashboard → app → Client secret
       - key: SHOPIFY_APP_URL
-        sync: false        # https://<this service>.onrender.com
+        sync: false        # https://cro-toolbox.onrender.com
       - key: SCOPES
         value: read_files,write_files,read_online_store_navigation,read_orders,read_products,read_themes,write_cart_transforms,write_delivery_customizations,write_discounts,write_metaobject_definitions,write_metaobjects,write_payment_customizations,write_validations   # must match shopify.app.toml
       - key: SUPPORT_EMAIL
