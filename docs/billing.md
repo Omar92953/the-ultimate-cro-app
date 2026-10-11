@@ -2,7 +2,7 @@
 
 Everything about prices and limits lives in **`app/lib/plans.ts`** — change a number there and the
 whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values there now are the
-**proposal** (Free / Starter $9.99 / Growth $24.99 / Pro $49.99, 14-day trial) and still need
+**proposal** (Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial) and still need
 Omar's decision.
 
 ## How it works
@@ -60,9 +60,9 @@ Omar's decision.
    | Plan handle | Display name | Monthly | Yearly | Trial |
    |---|---|---|---|---|
    | `free` | Free | $0 | — | — |
-   | `starter` | Starter | $9.99 | $99 | 14 days |
-   | `growth` | Growth | $24.99 | $249 | 14 days |
-   | `pro` | Pro | $49.99 | $499 | 14 days |
+   | `starter` | Starter | $5.99 | $59 | 14 days |
+   | `growth` | Growth | $14.99 | $149 | 14 days |
+   | `pro` | Pro | $24.99 | $249 | 14 days |
 
    Use the `highlights` lines from `plans.ts` as each plan's "Top features". If a handle has to be
    different, change `handle` in `plans.ts` to match.

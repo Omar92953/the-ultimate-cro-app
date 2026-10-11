@@ -31,11 +31,11 @@ thank-you page modules. See what each offer sells in Analytics. Everything is sa
 ## Pricing (entered as Shopify App Pricing plans; text per plan)
 - **Free** — 3 offer slots, cart drawer, bars, reviews, wishlist, back in stock, 3 checkout rules,
   try 1 Starter feature.
-- **Starter $9.99/month** (14-day trial) — unlimited offers, every storefront tool and page, 5 styles
+- **Starter $5.99/month** (14-day trial) — unlimited offers, every storefront tool and page, 5 styles
   per section, 6 checkout rules, up to 500 orders a month.
-- **Growth $24.99/month** (14-day trial) — unlimited checkout rules, analytics for every offer and
+- **Growth $14.99/month** (14-day trial) — unlimited checkout rules, analytics for every offer and
   bundle, holdout test, feature requests built for you, up to 2,000 orders a month.
-- **Pro $49.99/month** (14-day trial) — unlimited orders, priority support, your requests built first.
+- **Pro $24.99/month** (14-day trial) — unlimited orders, priority support, your requests built first.
 (Prices and limits come from `app/lib/plans.ts`; update both together. Still a proposal — confirm.)
 
 ## Screenshots (1600×900, no browser chrome, no prices/reviews/stats)
