@@ -20,6 +20,7 @@
             "merchandise": {
               "__typename": "ProductVariant",
               "id": "gid://shopify/ProductVariant/101",
+              "title": "Default Title",
               "product": {
                 "id": "gid://shopify/Product/10"
               },
@@ -45,6 +46,7 @@
             "merchandise": {
               "__typename": "ProductVariant",
               "id": "gid://shopify/ProductVariant/102",
+              "title": "Default Title",
               "product": {
                 "id": "gid://shopify/Product/11"
               },
@@ -70,6 +72,7 @@
             "merchandise": {
               "__typename": "ProductVariant",
               "id": "gid://shopify/ProductVariant/201",
+              "title": "Default Title",
               "product": {
                 "id": "gid://shopify/Product/7"
               },
@@ -93,6 +96,7 @@
             "merchandise": {
               "__typename": "ProductVariant",
               "id": "gid://shopify/ProductVariant/999",
+              "title": "Default Title",
               "product": {
                 "id": "gid://shopify/Product/99"
               },
