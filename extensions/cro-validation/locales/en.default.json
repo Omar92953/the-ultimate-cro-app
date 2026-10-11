@@ -1,0 +1,4 @@
+{
+  "name": "CRO Toolbox order limits",
+  "description": "Blocks checkout when an order breaks the limits set in CRO Toolbox."
+}

@@ -1,0 +1,14 @@
+query CartDeliveryOptionsTransformRunInput {
+  cart {
+    cost { subtotalAmount { amount } }
+    lines { merchandise { __typename ... on ProductVariant { product { id } } } }
+    deliveryGroups {
+      deliveryAddress { countryCode }
+      deliveryOptions { handle title }
+    }
+    buyerIdentity { customer { numberOfOrders } }
+  }
+  deliveryCustomization {
+    metafield(namespace: "$app", key: "function-configuration") { jsonValue }
+  }
+}

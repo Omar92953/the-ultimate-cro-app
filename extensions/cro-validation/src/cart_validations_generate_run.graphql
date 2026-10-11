@@ -1,0 +1,12 @@
+query CartValidationsGenerateRunInput {
+  cart {
+    cost { subtotalAmount { amount } }
+    lines {
+      quantity
+      merchandise { __typename ... on ProductVariant { product { id title } } }
+    }
+  }
+  validation {
+    metafield(namespace: "$app", key: "function-configuration") { jsonValue }
+  }
+}

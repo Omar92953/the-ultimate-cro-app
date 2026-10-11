@@ -1,0 +1,12 @@
+query CartPaymentMethodsTransformRunInput {
+  cart {
+    cost { subtotalAmount { amount } }
+    lines { merchandise { __typename ... on ProductVariant { product { id } } } }
+    deliveryGroups { deliveryAddress { countryCode } }
+    buyerIdentity { customer { numberOfOrders } }
+  }
+  paymentMethods { id name }
+  paymentCustomization {
+    metafield(namespace: "$app", key: "function-configuration") { jsonValue }
+  }
+}

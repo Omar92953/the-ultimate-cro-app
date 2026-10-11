@@ -2,7 +2,7 @@
  * The map of the app, in one place. The side menu, Home's groups, every page's breadcrumb and the
  * tabs at the top of each feature all come from here, so they always agree:
  *
- *   Menu:     Home · Offers & bundles · Boosters · Sections · Header & pages · Settings
+ *   Menu:     Home · Offers & bundles · Boosters · Sections · Header & pages · Checkout · Settings
  *   A page:   breadcrumb = its category · heading = the feature · tabs = the feature's pages
  *             (e.g. Customer reviews: Reviews | Design)
  *
@@ -10,13 +10,14 @@
  */
 import { DEAL_KINDS, DEAL_TYPES } from "./deals";
 
-export type CategoryKey = "offers" | "sections" | "boosters" | "design";
+export type CategoryKey = "offers" | "sections" | "boosters" | "design" | "checkout";
 
 export const CATEGORIES: { key: CategoryKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers & bundles", href: "/app/browse/offers", intro: "Ways to raise the order value: upsells, cross-sells, bundles, deals and add-ons." },
   { key: "boosters", title: "Boosters", href: "/app/browse/boosters", intro: "Work across your whole store once switched on: bars, timers, quick add, pop-ups." },
   { key: "sections", title: "Sections", href: "/app/browse/sections", intro: "Sections you place on your store pages: banners, reviews, FAQ, logos, carousels." },
   { key: "design", title: "Header & pages", href: "/app/browse/design", intro: "Your store's header and pages designed in the app." },
+  { key: "checkout", title: "Checkout", href: "/app/browse/checkout", intro: "Rules that run inside Shopify checkout: payment and delivery options, and order limits." },
 ];
 export const isCategory = (v: unknown): v is CategoryKey => CATEGORIES.some((c) => c.key === v);
 export const category = (key: CategoryKey) => CATEGORIES.find((c) => c.key === key)!;
@@ -64,6 +65,9 @@ export const FEATURES = {
   track: { title: "Track order page", cat: "design", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns page", cat: "design", tabs: [{ label: "Requests", href: "/app/returns" }, design("/app/pages/returns")] },
   contact: { title: "Contact page", cat: "design", tabs: [design("/app/pages/contact")] },
+  // Checkout
+  checkout_rules: { title: "Payment & delivery rules", cat: "checkout", tabs: [{ label: "Payment", href: "/app/checkout/payment" }, { label: "Delivery", href: "/app/checkout/delivery" }] },
+  order_limits: { title: "Order limits", cat: "checkout", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
 } satisfies Record<string, Feature>;
 
 export type FeatureKey = keyof typeof FEATURES;

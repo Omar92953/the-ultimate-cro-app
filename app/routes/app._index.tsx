@@ -87,6 +87,9 @@ import {
   QuizShowcase,
   TrackShowcase,
   ReturnsShowcase,
+  PaymentRulesShowcase,
+  DeliveryRulesShowcase,
+  OrderLimitsShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { Card, Checklist, GroupTitle, Pill, Segmented } from "../components/ui";
@@ -98,6 +101,7 @@ import { DEFAULT_BOOSTERS, type BoostersConfig } from "../lib/boosters";
 import { SECTIONS, SECTION_KINDS, itemStatus, type SectionKind } from "../lib/sections";
 import { CATEGORIES, category, type CategoryKey } from "../lib/catalog";
 import { remember } from "../lib/short-cache.server";
+import { getCheckoutRules } from "../lib/checkout-rules.server";
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -131,8 +135,9 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
     getPills(admin).catch(() => null),
     getShippingBar(admin).catch(() => null),
     getFooter(admin).catch(() => null),
+    getCheckoutRules(admin).catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer, checkout]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -146,6 +151,14 @@ async function loadHome(admin: Awaited<ReturnType<typeof authenticate.admin>>["a
     contactSaved: contact.saved,
     headerSaved: !!header?.saved,
     footerSaved: !!footer?.saved,
+    // null: the store hasn't granted the checkout scopes yet (or the read failed).
+    checkout: checkout
+      ? {
+          payment: checkout.payment.id ? (checkout.payment.enabled ? checkout.payment.rules.filter((r) => r.on).length : -1) : 0,
+          delivery: checkout.delivery.id ? (checkout.delivery.enabled ? checkout.delivery.rules.filter((r) => r.on).length : -1) : 0,
+          limits: checkout.validation.id ? (checkout.validation.enabled ? checkout.validation.rules.filter((r) => r.on).length : -1) : 0,
+        }
+      : null,
     pillCount: pills ? pills.config.items.length : 0,
     shipBarSaved: !!shipBar?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
@@ -610,6 +623,28 @@ export function HomeView({ only }: { only?: CategoryKey }) {
             open: { href: "/app/designs/footer" },
             previews: [FooterShowcase],
             menu: [{ label: "Design", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
+          });
+        }
+
+        // Checkout: rules run by the app's Functions inside Shopify checkout (nothing to add to the theme).
+        for (const c of [
+          { key: "checkout_payment", title: "Payment rules", n: data.checkout?.payment, href: "/app/checkout/payment", Previews: [PaymentRulesShowcase] },
+          { key: "checkout_delivery", title: "Delivery rules", n: data.checkout?.delivery, href: "/app/checkout/delivery", Previews: [DeliveryRulesShowcase] },
+          { key: "checkout_limits", title: "Order limits", n: data.checkout?.limits, href: "/app/checkout/limits", Previews: [OrderLimitsShowcase] },
+        ]) {
+          const status: Status =
+            c.n === undefined ? { tone: "warning", text: "Needs permission" } : c.n === -1 ? { tone: "neutral", text: "Turned off" } : c.n ? { tone: "success", text: `Live · ${plural(c.n, "rule")}` } : { tone: "warning", text: "Needs setup" };
+          add({
+            key: c.key,
+            cat: "checkout",
+            title: c.title,
+            onStore: !!c.n && c.n > 0,
+            status,
+            next: c.n ? undefined : { label: "Add a rule", href: c.href },
+            open: { href: c.href },
+            previews: c.Previews,
+            off: c.n === -1,
+            menu: [{ label: "Rules", href: c.href }],
           });
         }
 

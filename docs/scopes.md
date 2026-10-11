@@ -14,6 +14,9 @@ listing's API access justification if asked.
 | `write_metaobject_definitions` | Shopify requires it for the app-owned metaobject definitions declared in `shopify.app.toml` | Install and deploy |
 | `write_discounts` | Creates and updates the single automatic discount ("CRO Toolbox offers") that runs the app's discount Function, and writes its configuration | Saving a rule |
 | `write_cart_transforms` | Registers the bundle Cart Transform and writes its configuration, so bundles split into their real items at checkout | Saving a bundle |
+| `write_payment_customizations` | Creates the app's payment customization ("CRO Toolbox payment rules") and writes its rules, so the cro-payment Function can hide, rename or reorder payment methods at checkout | Checkout → Payment rules |
+| `write_delivery_customizations` | Creates the app's delivery customization ("CRO Toolbox delivery rules") and writes its rules for the cro-delivery Function | Checkout → Delivery rules |
+| `write_validations` | Creates the app's checkout validation ("CRO Toolbox order limits") and writes its limits for the cro-validation Function | Checkout → Order limits |
 
 ## What the app does not do
 

@@ -1668,3 +1668,49 @@ export function QuizShowcase() {
     </Stage>
   );
 }
+
+/** A checkout list (payment methods or delivery options) with one row changed by a rule. */
+const CheckoutList = ({ title, rows }: { title: string; rows: { label: string; note?: string; hidden?: boolean; on?: boolean }[] }) => (
+  <Stage>
+    <span style={{ display: "grid", gap: 6, width: "76%", fontSize: 11 }}>
+      <b style={{ fontSize: 13 }}>{title}</b>
+      {rows.map((r) => (
+        <span
+          key={r.label}
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, border: `1px solid ${r.on ? "#111" : "#ddd"}`, background: "#fff", opacity: r.hidden ? 0.35 : 1, textDecoration: r.hidden ? "line-through" : "none" }}
+        >
+          <span style={{ width: 10, height: 10, borderRadius: 999, border: "1.5px solid #111", background: r.on ? "#111" : "transparent", flex: "none" }} />
+          <span style={{ flex: 1 }}>{r.label}</span>
+          {r.note ? <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 999, background: r.hidden ? "#fde8e8" : "#e8f5ec", color: r.hidden ? "#b42318" : "#1a7f37", textDecoration: "none" }}>{r.note}</span> : null}
+        </span>
+      ))}
+    </span>
+  </Stage>
+);
+
+/** Payment rules: Cash on Delivery hidden on a large order. */
+export function PaymentRulesShowcase() {
+  return <CheckoutList title="Payment" rows={[{ label: "Credit card", on: true }, { label: "Cash on Delivery", hidden: true, note: "Hidden over EGP 5,000" }, { label: "Bank transfer" }]} />;
+}
+
+/** Delivery rules: an option renamed, another hidden. */
+export function DeliveryRulesShowcase() {
+  return <CheckoutList title="Shipping method" rows={[{ label: "Free delivery in 2–3 days", on: true, note: "Renamed" }, { label: "Express", hidden: true, note: "Hidden for fragile items" }]} />;
+}
+
+/** Order limits: checkout blocked with the merchant's message. */
+export function OrderLimitsShowcase() {
+  return (
+    <Stage>
+      <span style={{ display: "grid", gap: 8, width: "76%", fontSize: 11 }}>
+        <b style={{ fontSize: 13 }}>Checkout</b>
+        <span style={{ padding: "8px 10px", borderRadius: 8, background: "#fdecea", color: "#8a1c12", border: "1px solid #f5c2bd" }}>The minimum order is EGP 300. Add EGP 75 more to continue.</span>
+        <span style={{ display: "flex", justifyContent: "space-between" }}>
+          <span>Subtotal</span>
+          <b>EGP 225.00</b>
+        </span>
+        <span style={{ display: "block", padding: "8px 0", borderRadius: 8, background: "#9ca3af", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now</span>
+      </span>
+    </Stage>
+  );
+}
