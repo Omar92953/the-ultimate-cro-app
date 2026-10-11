@@ -6,8 +6,8 @@
  * Shared by client and server.
  */
 
-export type DealKind = "fixed" | "bogo" | "volume" | "gift";
-export const DEAL_KINDS: DealKind[] = ["fixed", "bogo", "volume", "gift"];
+export type DealKind = "fixed" | "bogo" | "volume" | "gift" | "upgrade";
+export const DEAL_KINDS: DealKind[] = ["fixed", "bogo", "volume", "gift", "upgrade"];
 
 export type ProductPick = { id: string; title: string; image: string | null; handle: string };
 export type CollectionPick = { id: string; title: string; handle: string };
@@ -21,7 +21,10 @@ export type GiftConfig = {
   min: number; // in the store's currency
   onlyWith: Target | null; // optionally: only when the cart has one of these
 };
-export type DealConfig = FixedConfig | BogoConfig | VolumeConfig | GiftConfig;
+/** Upgrade: when the shopper has `from` (on its product page or in the cart), offer `to` instead. */
+export type VariantPick = { variantId: string; productId: string; handle: string; title: string; image: string | null };
+export type UpgradeConfig = { from: VariantPick | null; to: VariantPick | null; text: string; button: string };
+export type DealConfig = FixedConfig | BogoConfig | VolumeConfig | GiftConfig | UpgradeConfig;
 
 export type Deal = {
   id: string | null;
@@ -79,6 +82,16 @@ export const DEAL_TYPES: Record<
     defaultName: "Free gift",
     config: { gift: null, min: 50, onlyWith: null } as GiftConfig,
   },
+  upgrade: {
+    title: "Upgrades",
+    singular: "upgrade",
+    addLabel: "Create upgrade",
+    what: "Offer a better option in place of the one chosen — a bigger pack, a larger size, a premium version — with the price difference.",
+    how: "On the product page (when that option is selected) and in the cart, shoppers see “Upgrade to … for … more”; one tap swaps it.",
+    example: "“Upgrade to the 3-pack for EGP 150 more” when the 1-pack is selected.",
+    defaultName: "Upgrade and save",
+    config: { from: null, to: null, text: "Upgrade to {to} for {delta} more", button: "Upgrade" } as UpgradeConfig,
+  },
 };
 
 /** Words the storefront widgets use (sent with the deals; {placeholders} are filled in there). */
@@ -95,6 +108,8 @@ export const DEAL_TEXT = {
   gift_left: "Spend {amount} more to get {gift} free",
   gift_ok: "You've unlocked a free {gift}!",
   error: "Couldn't add the bundle. Please try again.",
+  more: "Add {n} more to get {pct}% off",
+  more_btn: "Add {n} more",
 };
 
 export function isDealKind(v: string | undefined): v is DealKind {
@@ -127,6 +142,10 @@ export function describeDeal(d: Deal): string {
     case "gift": {
       const c = d.config as GiftConfig;
       return c.gift ? `${c.gift.title} free over ${c.min}${c.onlyWith ? ` with ${target(c.onlyWith)}` : ""}` : "No gift chosen yet";
+    }
+    case "upgrade": {
+      const c = d.config as UpgradeConfig;
+      return c.from && c.to ? `${c.from.title} → ${c.to.title}` : "Choose the two options";
     }
   }
 }
@@ -169,6 +188,13 @@ export function validateDeal(d: Deal): string[] {
     // The storefront adds the gift itself, so it must be able to check the condition exactly.
     if (c.onlyWith?.type === "collections") p.push("Only with: choose specific products (collections aren't supported for gifts).");
   }
+  if (d.kind === "upgrade") {
+    const c = d.config as UpgradeConfig;
+    if (!c.from) p.push("Choose the option shoppers start with.");
+    if (!c.to) p.push("Choose the option to upgrade to.");
+    if (c.from && c.to && c.from.variantId === c.to.variantId) p.push("The two options must be different.");
+    if (!c.text.includes("{to}")) p.push("The offer text should include {to}.");
+  }
   return p;
 }
 
@@ -178,7 +204,7 @@ const fnTarget = (t: Target | null) =>
 const shopTarget = (t: Target | null) =>
   t ? { type: t.type, p: t.products.map((x) => numeric(x.id)), c: t.collections.map((x) => numeric(x.id)) } : null;
 
-/** The discount Function's "deals" entries (product/collection GIDs). */
+/** The discount Function's "deals" entries (product/collection GIDs); null for deals with no discount (upgrades). */
 export function toFunctionDeal(d: Deal) {
   const label = d.name;
   switch (d.kind) {
@@ -198,6 +224,8 @@ export function toFunctionDeal(d: Deal) {
       const c = d.config as GiftConfig;
       return { t: "gift", id: d.handle, variant: c.gift?.variantId, min: c.min, trigger: fnTarget(c.onlyWith), label };
     }
+    case "upgrade":
+      return null;
   }
 }
 
@@ -220,6 +248,11 @@ export function toStorefrontDeal(d: Deal) {
     case "gift": {
       const c = d.config as GiftConfig;
       return { ...base, gift: c.gift ? { v: numeric(c.gift.variantId), h: c.gift.handle, title: c.gift.title, img: c.gift.image } : null, min: c.min, only: shopTarget(c.onlyWith) };
+    }
+    case "upgrade": {
+      const c = d.config as UpgradeConfig;
+      const v = (x: VariantPick | null) => (x ? { v: numeric(x.variantId), p: numeric(x.productId), h: x.handle, title: x.title, img: x.image } : null);
+      return { ...base, from: v(c.from), to: v(c.to), text: c.text, btn: c.button };
     }
   }
 }

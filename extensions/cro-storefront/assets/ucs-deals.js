@@ -160,6 +160,99 @@
     }).catch(function () {});
   }
 
+  /* ---------- upgrades: "Upgrade to … for … more" (product page and cart) ---------- */
+  var upgrades = deals.filter(function (d) { return d.t === 'upgrade' && d.from && d.to; });
+  var variantOf = function (h, id) {
+    return json('products/' + h + '.js').then(function (p) { return (p.variants || []).filter(function (v) { return Number(v.id) === Number(id); })[0] || null; });
+  };
+  var upgradeText = function (d, delta) { return fill(esc(d.text || ''), { to: '<b>' + esc(d.to.title) + '</b>', delta: '<b>' + money(delta) + '</b>' }); };
+  var toCart = function () {
+    if (data.page === 'cart') return window.location.reload();
+    document.dispatchEvent(new CustomEvent('ucs:cart:added'));
+    window.location.href = root + 'cart';
+  };
+
+  if (data.page === 'product' && P && upgrades.length) {
+    var mine = upgrades.filter(function (d) { return Number(d.from.p) === Number(P.id); });
+    var paintUpgrade = function () {
+      var form = host() && box.nextElementSibling;
+      var input = (form && form.querySelector && form.querySelector('[name="id"]')) || document.querySelector('form[action*="/cart/add"] [name="id"]');
+      var sel = Number(input && input.value);
+      mine.forEach(function (d) {
+        var el = host() && box.querySelector('[data-deal="' + d.id + '"]');
+        if (sel !== Number(d.from.v)) { if (el) el.remove(); return; }
+        if (el) return;
+        Promise.all([variantOf(d.from.h, d.from.v), variantOf(d.to.h, d.to.v)]).then(function (vs) {
+          if (!vs[0] || !vs[1] || !vs[1].available) return;
+          var c = card('upgrade', (d.to.img ? '<img src="' + esc(img(d.to.img, 120)) + '" alt="" width="44" height="44" loading="lazy">' : '<span class="ucs-deal__icon" aria-hidden="true"></span>') +
+            '<div><p class="ucs-deal__text">' + upgradeText(d, vs[1].price - vs[0].price) + '</p></div><button type="button" class="ucs-deal__up">' + esc(d.btn || 'Upgrade') + '</button>', d.id);
+          if (!c) return;
+          c.querySelector('button').addEventListener('click', function (e) {
+            var b = e.currentTarget, q = form && form.querySelector('[name="quantity"]');
+            b.disabled = true;
+            json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: Number(q && q.value) || 1 }] }).then(toCart).catch(function () { b.disabled = false; });
+          });
+        }).catch(function () {});
+      });
+    };
+    paintUpgrade();
+    document.addEventListener('change', function () { setTimeout(paintUpgrade, 50); });
+  }
+
+  /* ---------- cart: upgrades for lines in the cart, and "add N more" for volume tiers ---------- */
+  function cartNudges() {
+    if (data.page !== 'cart') return;
+    var volume = deals.filter(function (d) { return d.t === 'volume' && d.target && d.target.type !== 'collections' && (d.tiers || []).length; });
+    if (!upgrades.length && !volume.length) return;
+    json('cart.js').then(function (cart) {
+      var items = (cart.items || []).filter(function (i) { return !(i.properties && (i.properties._cro_gift || i.properties._cro_parent)); });
+      upgrades.forEach(function (d) {
+        var line = items.filter(function (i) { return Number(i.variant_id) === Number(d.from.v); })[0];
+        var old = host() && box.querySelector('[data-deal="' + d.id + '"]');
+        if (!line) { if (old) old.remove(); return; }
+        variantOf(d.to.h, d.to.v).then(function (to) {
+          if (!to || !to.available) return;
+          var c = card('upgrade', (d.to.img ? '<img src="' + esc(img(d.to.img, 120)) + '" alt="" width="44" height="44" loading="lazy">' : '<span class="ucs-deal__icon" aria-hidden="true"></span>') +
+            '<div><p class="ucs-deal__text">' + upgradeText(d, (to.price - line.price) * line.quantity) + '</p></div><button type="button" class="ucs-deal__up">' + esc(d.btn || 'Upgrade') + '</button>', d.id);
+          if (!c) return;
+          c.querySelector('button').addEventListener('click', function (e) {
+            e.currentTarget.disabled = true;
+            json('cart/change.js', { id: line.key, quantity: 0 })
+              .then(function () { return json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: line.quantity }] }); })
+              .then(toCart).catch(toCart);
+          });
+        }).catch(function () {});
+      });
+      volume.forEach(function (d) {
+        var lines = items.filter(function (i) { return matches(d.target, i.product_id, []); });
+        var have = lines.reduce(function (n, i) { return n + i.quantity; }, 0);
+        var next = d.tiers.slice().sort(function (a, b) { return a.qty - b.qty; }).filter(function (t) { return t.qty > have; })[0];
+        var key = d.id + '-more', old = host() && box.querySelector('[data-deal="' + key + '"]');
+        if (!lines.length || !next || next.qty - have > 2) { if (old) old.remove(); return; }
+        var n = next.qty - have;
+        var cheapest = lines.slice().sort(function (a, b) { return a.price - b.price; })[0];
+        var c = card('volume-more', '<span class="ucs-deal__icon" aria-hidden="true"></span><div><p class="ucs-deal__name">' + esc(d.name) + '</p><p class="ucs-deal__text">' + esc(fill(T.more, { n: n, pct: next.pct })) + '</p></div><button type="button" class="ucs-deal__up">' + esc(fill(T.more_btn, { n: n })) + '</button>', key);
+        if (!c) return;
+        c.querySelector('button').addEventListener('click', function (e) {
+          e.currentTarget.disabled = true;
+          json('cart/change.js', { id: cheapest.key, quantity: cheapest.quantity + n }).then(toCart).catch(toCart);
+        });
+      });
+    }).catch(function () {});
+  }
+  cartNudges();
+
+  // One hook for every cart change (the theme or another app): cart nudges and the gift check.
+  var onCart = [];
+  var nudgeTimer;
+  onCart.push(function () { clearTimeout(nudgeTimer); nudgeTimer = setTimeout(cartNudges, 600); });
+  window.fetch = function (input, init) {
+    var res = nativeFetch(input, init);
+    var u = String((input && input.url) || input);
+    if (/\/cart\/(add|change|update|clear)/.test(u)) res.then(function () { onCart.forEach(function (f) { f(); }); }, function () {});
+    return res;
+  };
+
   /* ---------- gift with purchase: progress + add/remove the gift ---------- */
   var gifts = deals.filter(function (d) { return d.t === 'gift' && d.gift && d.gift.v; });
   if (!gifts.length) return;
@@ -220,12 +313,7 @@
   function schedule() { clearTimeout(timer); timer = setTimeout(sync, 500); }
 
   // Re-check whenever the theme (or another app) changes the cart.
-  window.fetch = function (input, init) {
-    var res = nativeFetch(input, init);
-    var u = String((input && input.url) || input);
-    if (/\/cart\/(add|change|update|clear)/.test(u)) res.then(schedule, function () {});
-    return res;
-  };
+  onCart.push(schedule);
   document.addEventListener('ucs:cart:added', schedule);
   window.addEventListener('pageshow', function (e) { if (e.persisted) schedule(); });
   sync();

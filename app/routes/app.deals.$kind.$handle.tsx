@@ -18,6 +18,7 @@ import {
   type Deal,
   type FixedConfig,
   type GiftConfig,
+  type UpgradeConfig,
   type Target,
   type VolumeConfig,
 } from "../lib/deals";
@@ -130,6 +131,15 @@ export default function DealEditor() {
     if (!deal.id || !window.confirm(`Delete “${deal.name}”? This can't be undone.`)) return;
     fetcher.submit({ intent: "delete", id: deal.id }, { method: "post" });
   };
+
+  async function pickVariant(which: "from" | "to") {
+    const selected: any = await shopify.resourcePicker({ type: "variant", multiple: false, action: "select" } as any);
+    const v = selected?.[0];
+    if (!v?.id) return;
+    const product = v.product ?? {};
+    const vt = v.title && v.title !== "Default Title" ? ` — ${v.title}` : "";
+    setConfig({ [which]: { variantId: v.id, productId: product.id ?? "", handle: product.handle ?? "", title: `${product.title ?? v.displayName ?? ""}${vt}`, image: v.image?.originalSrc ?? product.images?.[0]?.originalSrc ?? null } });
+  }
 
   async function pickGift() {
     const selected: any = await shopify.resourcePicker({
@@ -318,6 +328,35 @@ export default function DealEditor() {
                   </Button>
                 </s-stack>
               </s-stack>
+            </s-section>
+          </>
+        ) : null}
+
+        {kind === "upgrade" ? (
+          <>
+            <s-section heading="1. When the shopper has">
+              <s-stack gap="base">
+                <s-stack direction="inline" gap="small-200" alignItems="center">
+                  <Button onClick={() => pickVariant("from")}>{(config as UpgradeConfig).from ? "Change" : "Choose option"}</Button>
+                  <s-text>{(config as UpgradeConfig).from?.title ?? "Nothing chosen yet"}</s-text>
+                </s-stack>
+                <s-text color="subdued">The product option shoppers start with, e.g. “Coffee beans — 250 g”.</s-text>
+              </s-stack>
+            </s-section>
+            <s-section heading="2. Offer them">
+              <s-stack gap="base">
+                <s-stack direction="inline" gap="small-200" alignItems="center">
+                  <Button onClick={() => pickVariant("to")}>{(config as UpgradeConfig).to ? "Change" : "Choose option"}</Button>
+                  <s-text>{(config as UpgradeConfig).to?.title ?? "Nothing chosen yet"}</s-text>
+                </s-stack>
+                <s-text color="subdued">The better option, e.g. “Coffee beans — 1 kg”. It can be another product.</s-text>
+              </s-stack>
+            </s-section>
+            <s-section heading="3. Words">
+              <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                <TextField label="Offer" details="{to} = the better option, {delta} = how much more it costs" value={(config as UpgradeConfig).text} onValue={(v) => setConfig({ text: v })} />
+                <TextField label="Button" value={(config as UpgradeConfig).button} onValue={(v) => setConfig({ button: v })} />
+              </s-grid>
             </s-section>
           </>
         ) : null}

@@ -304,6 +304,7 @@ const offersData = {
     { id: "d-bogo", t: "bogo", name: "Buy 2, get 1 free", buy: { type: "all", p: [], c: [] }, x: 2, get: { type: "all", p: [], c: [] }, y: 1, pct: 100 },
     { id: "d-vol", t: "volume", name: "Buy more, save more", target: { type: "collections", p: [], c: [500] }, tiers: [{ qty: 3, pct: 15 }, { qty: 2, pct: 10 }] },
     { id: "d-fix", t: "fixed", name: "Watch + sunglasses set", items: [{ h: "classic-watch", id: 77, q: 1 }, { h: "sunglasses", id: 78, q: 1 }], pct: 15 },
+    { id: "d-up", t: "upgrade", name: "Upgrade", from: { v: 7701, p: 77, h: "classic-watch", title: "Classic watch — Silver" }, to: { v: 7703, p: 77, h: "classic-watch", title: "Classic watch — Gold", img: null }, text: "Upgrade to {to} for {delta} more", btn: "Upgrade" },
     { id: "d-gift", t: "gift", name: "Free mug", gift: { v: 9901, h: "mug", title: "Ceramic mug", img: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d" }, min: 150, only: null },
   ],
 };
@@ -403,6 +404,26 @@ const ceShop = withDesign(mo("cart_extras", { config: toStorefrontCartExtras(wit
 pages["cart-extras.html"] = page("Gift note & delivery date",
   '<script>window.__upd=[];const cf=window.fetch;window.fetch=async(u,o)=>{u=String(u);if(u.endsWith("cart.js"))return new Response(JSON.stringify({attributes:{},note:""}));if(u.includes("cart/update")){window.__upd.push(o.body);return new Response("{}")}return cf(u,o)};</script>' +
   '<div style="max-width:420px;margin:24px 40px">' + (await block("ucs-cart-extras", {}, { page_type: "cart", shop: ceShop })) + '<button name="checkout" type="button">Check out</button></div>');
+// Cart page: an upgrade for a line in the cart, and "add 1 more" for a volume deal on that product.
+const cartOffers = { ...offersData, t: { ...offersData.t, more: "Add {n} more to get {pct}% off", more_btn: "Add {n} more" },
+  deals: [offersData.deals.find((d) => d.t === "upgrade"), { id: "d-vol2", t: "volume", name: "Buy more, save more", target: { type: "products", p: [77], c: [] }, tiers: [{ qty: 2, pct: 10 }, { qty: 3, pct: 15 }] }] };
+const cartShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_offers": collectionOf([mo("main", { data: cartOffers })]) } };
+const cartFake = `<script>
+  window.__cc = { items: [{ key: "w1", variant_id: 7701, product_id: 77, quantity: 1, price: 12900, properties: {} }] };
+  window.__calls = [];
+  (function () {
+    const watchJs = ${JSON.stringify({ ...productJs, price: 12900 })};
+    const res = (o) => Promise.resolve(new Response(JSON.stringify(o), { headers: { "Content-Type": "application/json" } }));
+    window.fetch = (u, o) => {
+      u = String(u); const body = o && o.body ? JSON.parse(o.body) : {};
+      if (u.includes("/products/")) return res(watchJs);
+      if (u.includes("/cart/")) __calls.push(u.split("/cart/").pop()+ " " + JSON.stringify(body));
+      if (u.includes("/cart.js")) return res({ items: __cc.items });
+      return res({ items: __cc.items });
+    };
+  })();
+</script>`;
+pages["deals-cart.html"] = page("Deals in the cart", cartFake + '<form action="/cart" method="post" style="margin:24px 40px"><p>Cart: 1 × Classic watch — Silver</p></form>', (await block("ucs-boosters", {}, { page_type: "cart", shop: cartShop })) + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
 pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);

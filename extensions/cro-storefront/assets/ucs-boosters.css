@@ -98,3 +98,9 @@ body.ucs-sticky-on .ucs-pop { bottom: 92px; }
 .ucs-deal__bar { display: block; height: 6px; overflow: hidden; border-radius: 3px; background: color-mix(in srgb, var(--ucs-deal) 18%, transparent); }
 .ucs-deal__bar i { display: block; height: 100%; border-radius: 3px; background: var(--ucs-deal); transition: width 0.4s ease; }
 @media (prefers-reduced-motion: reduce) { .ucs-deal__bar i { transition: none; } }
+/* Upgrades and "add N more" in the deals box */
+.ucs-deal--upgrade, .ucs-deal--volume-more { display: flex; align-items: center; gap: 12px; }
+.ucs-deal--upgrade > div, .ucs-deal--volume-more > div { flex: 1; min-width: 0; }
+.ucs-deal--upgrade img { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; flex: none; }
+.ucs-deal__up { flex: none; min-height: 38px; padding: 8px 14px; border: 0; border-radius: 8px; background: #121212; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.ucs-deal__up:disabled { opacity: 0.6; }

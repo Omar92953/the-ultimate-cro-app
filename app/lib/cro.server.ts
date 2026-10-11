@@ -464,7 +464,7 @@ export function buildDiscountConfig(rules: Rule[], deals: Deal[] = []) {
         pct: r.discountPercent,
         label: r.discountLabel || r.headline || r.name,
       })),
-    deals: deals.filter((d) => d.active).sort((a, b) => a.position - b.position).map(toFunctionDeal),
+    deals: deals.filter((d) => d.active).sort((a, b) => a.position - b.position).map(toFunctionDeal).filter((x) => x !== null),
   };
   const dealCollections = config.deals.flatMap((d: any) =>
     [d.trigger, d.buy, d.get].filter(Boolean).flatMap((t: any) => t.collections || []),
