@@ -5,7 +5,7 @@ Cross-sell, quantity upsell, shoppable video carousel and mix-and-match bundles 
 
 - **Merchant guide:** [docs/README-merchant.md](docs/README-merchant.md)
 - **Testing (Step 3):** [docs/testing-checklist.md](docs/testing-checklist.md)
-- **Hosting:** [docs/hosting.md](docs/hosting.md) · **Scopes:** [docs/scopes.md](docs/scopes.md)
+- **Hosting:** [docs/hosting.md](docs/hosting.md) · **Scopes:** [docs/scopes.md](docs/scopes.md) · **Plans & billing:** [docs/billing.md](docs/billing.md)
 
 ## How it fits together
 
@@ -37,6 +37,7 @@ Database (Prisma): sessions only.
 | `shopify app config link` | **Once, interactive:** attach this folder to an app in your Partner org |
 | `shopify app dev` | Run against a development store (tunnel + local SQLite) |
 | `npm run test:functions` | Build both Functions to Wasm and run their fixture tests |
+| `npm run test:app` | Unit tests for the plan limits (`app/lib/plans.ts`) |
 | `npm run test:storefront` | Render the blocks with mock data into `test/storefront/out/` (open the HTML files through any local web server) |
 | `npm run graphql-codegen` | Validate every Admin GraphQL operation against the schema |
 | `npm run typecheck` / `npm run lint` / `npm run build` | The usual checks |

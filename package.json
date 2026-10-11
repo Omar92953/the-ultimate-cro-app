@@ -23,7 +23,8 @@
     "test:functions": "npm --workspace extensions/cro-discount run test && npm --workspace extensions/cro-bundles run test && npm --workspace extensions/cro-payment run test && npm --workspace extensions/cro-delivery run test && npm --workspace extensions/cro-validation run test",
     "build:theme": "node scripts/build-theme.mjs",
     "watch:theme": "node scripts/build-theme.mjs --watch",
-    "test:storefront": "node scripts/build-theme.mjs --check && node test/storefront/render.mjs && node test/storefront/sections.mjs"
+    "test:storefront": "node scripts/build-theme.mjs --check && node test/storefront/render.mjs && node test/storefront/sections.mjs",
+    "test:app": "node --experimental-strip-types --no-warnings --import ./test/app/resolve-ts.mjs --test test/app/*.test.ts"
   },
   "type": "module",
   "engines": {

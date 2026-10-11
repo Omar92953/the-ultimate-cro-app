@@ -32,3 +32,12 @@ services:
         sync: false        # Supabase → Connect → Session pooler (…pooler.supabase.com:5432/postgres) — Render is a long-running server
       - key: DIRECT_URL
         sync: false        # same Session pooler URL (used by prisma migrate deploy)
+      # Billing (Shopify App Pricing) — see docs/billing.md. Plans themselves live in the Partner Dashboard.
+      - key: CRO_APP_HANDLE
+        sync: false        # the app's handle (Partner Dashboard → app) — used in the plan selection page URL; defaults to cro-toolbox
+      - key: SHOPIFY_PARTNER_ORG_ID
+        sync: false        # Partner Dashboard URL: partners.shopify.com/<this number>/…
+      - key: SHOPIFY_PARTNER_API_TOKEN
+        sync: false        # Partner Dashboard → Settings → Partner API clients → token with "Manage apps"
+      - key: SHOPIFY_APP_GID
+        sync: false        # the app's id (gid://shopify/App/<number>) — Partner Dashboard → app URL

@@ -8,6 +8,8 @@ import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { resolveDiscountEngine } from "../lib/cro.server";
 import { deleteDeal, listDeals, saveDeal } from "../lib/deals.server";
+import { checkLimit } from "../lib/billing.server";
+import { LimitUpgrade } from "../components/Upgrade";
 import {
   DEAL_TYPES,
   blankDeal,
@@ -43,17 +45,21 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { admin, redirect } = await authenticate.admin(request);
+  const { admin, redirect, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
       await deleteDeal(admin, String(form.get("id")));
       return redirect(`/app/deals/${params.kind}`);
     }
-    const saved = await saveDeal(admin, JSON.parse(String(form.get("deal"))) as Deal);
-    return { ok: true, error: null, handle: saved.handle };
+    const deal = JSON.parse(String(form.get("deal"))) as Deal;
+    // Bundles and deals share one limit on smaller plans (lib/plans.ts); a deal can always be saved off.
+    const over = await checkLimit(admin, session.shop, "bundlesAndDeals", deal);
+    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    const saved = await saveDeal(admin, deal);
+    return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null };
+    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
   }
 };
 
@@ -175,7 +181,10 @@ export default function DealEditor() {
       <s-stack gap="base">
         {fetcher.data?.error ? (
           <s-banner tone="critical" heading="The bundle was not saved">
-            {fetcher.data.error}
+            <s-stack gap="small-200">
+              {fetcher.data.error}
+              <LimitUpgrade show={fetcher.data.upgrade} />
+            </s-stack>
           </s-banner>
         ) : null}
         {touched && problems.length ? (

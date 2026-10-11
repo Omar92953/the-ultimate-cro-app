@@ -5,6 +5,8 @@
 import { useEffect, useState } from "react";
 import { useFetcher, useNavigate, useSearchParams } from "react-router";
 import { Button, TextField } from "./fields";
+import { UpgradeButton, usePlan } from "./Upgrade";
+import { PLANS, limitOf, planAbove } from "../lib/plans";
 
 const MAX = 5;
 
@@ -35,7 +37,11 @@ export function DesignSlots({ base, blockName }: { base: string; blockName: stri
   const all = slots.includes(slot) ? slots : [...slots, slot].sort((a, b) => a - b);
   const names = list.data?.names ?? {};
   const label = (n: number) => names[String(n)] || `Design ${n}`;
+  // The plan decides how many designs a section can have (lib/plans.ts); older ones above it stay on the store.
+  const { plan } = usePlan();
+  const allowed = limitOf(plan, "designsPerSection") ?? MAX;
   const next = Array.from({ length: MAX }, (_, i) => i + 1).find((n) => !all.includes(n));
+  const upgradeTo = next && next > allowed ? planAbove("designsPerSection", next - 1, plan) : null;
   const go = (n: number, copy = false) => navigate(`?design=${n}${copy ? "&copy=1" : ""}`);
   const [name, setName] = useState(names[String(slot)] ?? "");
   const [shown, setShown] = useState(`${slot}:${names[String(slot)] ?? ""}`);
@@ -53,10 +59,13 @@ export function DesignSlots({ base, blockName }: { base: string; blockName: stri
               {label(n)}
             </Button>
           ))}
-          {next ? (
+          {next && !upgradeTo ? (
             <Button variant="tertiary" icon="plus" onClick={() => go(next, true)}>
               New design
             </Button>
+          ) : null}
+          {upgradeTo ? (
+            <UpgradeButton variant="tertiary">{`More designs on ${PLANS[upgradeTo].name}`}</UpgradeButton>
           ) : null}
         </s-stack>
         <s-grid gridTemplateColumns="minmax(0, 1fr) auto" gap="small-300" alignItems="end">
