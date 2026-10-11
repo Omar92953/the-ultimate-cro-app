@@ -5,6 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FEATURES, featuresForPath, type FeatureKey } from "../../app/lib/catalog";
 import {
+  EXTRA_PLAN,
   FEATURE_PLAN,
   PLANS,
   PLAN_KEYS,
@@ -69,6 +70,8 @@ test("features unlock from their plan up", () => {
   assert.ok(!canUse("starter", "post_purchase"));
   assert.ok(canUse("pro", "post_purchase"));
   assert.ok(atLeast("growth", "starter") && !atLeast("starter", "growth"));
+  // Feature requests ("we build it for you") start on Starter.
+  assert.ok(!atLeast("free", EXTRA_PLAN.featureRequests) && atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
 });
 
 test("pages map to features, and locked pages say which plan they need", () => {

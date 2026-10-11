@@ -278,7 +278,10 @@ export default function Home() {
           </Card>
         </CardGrid>
 
-        <CardGrid cols={2}>
+        <CardGrid cols={3}>
+          {/* Request a feature (Starter and up: we build it for them) */}
+          <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
+
           {/* Shortcuts */}
           <Card title="Shortcuts" actions={<Button href="/app/features" variant="tertiary">All features</Button>}>
             <ul className={styles.shortcuts}>
@@ -310,6 +313,24 @@ export default function Home() {
 
       {playing ? <VideoModal tutorial={playing} onClose={() => setPlaying(null)} /> : null}
     </s-page>
+  );
+}
+
+function FeatureRequestCard({ plan, shop, supportEmail }: { plan: PlanKey; shop: string; supportEmail: string }) {
+  const needs = EXTRA_PLAN.featureRequests;
+  if (!atLeast(plan, needs)) {
+    return (
+      <Card title="Request a feature" badge={<Pill>{PLANS[needs].name}</Pill>} actions={<UpgradeButton to={needs} />}>
+        <CardText>{`Need something the app doesn't do yet? On ${PLANS[needs].name} and up, ask for any feature and we build it for you.`}</CardText>
+      </Card>
+    );
+  }
+  const mail = `mailto:${supportEmail}?subject=${encodeURIComponent(`Feature request — ${shop}`)}&body=${encodeURIComponent("What would you like your store to do?\n\nWhere should it show (page, cart, checkout…)?\n\nAn example or a link to a store that does it (optional):\n")}`;
+  return (
+    <Card title="Request a feature" badge={<Pill tone="ok">Included</Pill>} actions={supportEmail ? <Button href={mail} target="_blank">Request a feature</Button> : null}>
+      <CardText>Tell us what you&apos;d like your store to do. We build it for you — it&apos;s included in your plan.</CardText>
+      {supportEmail ? null : <CardText>Requests open as soon as our support email is set up.</CardText>}
+    </Card>
   );
 }
 

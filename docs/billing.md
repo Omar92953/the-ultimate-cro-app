@@ -36,6 +36,7 @@ Omar's decision.
 - **Orders a month** is a soft limit: Home shows a banner when this month's orders pass it. It
   needs `read_orders` (pending Shopify's approval); until then nothing is shown.
 - Results' **holdout test** needs Growth to start; a running test can always be stopped.
+- **Request a feature** (Starter and up): a card on Home opens an email to `SUPPORT_EMAIL` with the shop's name; we build the requested feature for them. Free stores see the card with an upgrade button.
 
 ## Partner Dashboard steps (Omar)
 
