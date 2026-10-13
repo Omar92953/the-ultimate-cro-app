@@ -693,10 +693,25 @@
   box-shadow: none;
 }
 .ucro-upsell--list .ucro-tier:hover:not(:disabled) { border-color: transparent; background: var(--ucro-soft); }
-.ucro-upsell--list .ucro-tier.is-selected {
+/* The selected row's tint sits on its wrapper (row + size pickers). Its edge bar runs only along the
+   straight part of the side: on the first and last rows it stops where the box's rounded corner starts. */
+.ucro-upsell--list .ucro-tier-wrap { position: relative; }
+.ucro-upsell--list .ucro-tier-wrap:has(.ucro-tier.is-selected) {
   background: color-mix(in srgb, var(--ucro-on) 12%, transparent);
-  box-shadow: inset 3px 0 0 var(--ucro-on);
 }
+.ucro-upsell--list .ucro-tier-wrap:has(.ucro-tier.is-selected)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--ucro-on);
+  pointer-events: none;
+}
+.ucro-upsell--list .ucro-tier-wrap:first-child:has(.ucro-tier.is-selected)::before { top: var(--ucro-radius); }
+.ucro-upsell--list .ucro-tier-wrap:last-child:has(.ucro-tier.is-selected)::before { bottom: var(--ucro-radius); }
+.ucro-upsell--list .ucro-tier.is-selected { background: transparent; }
 .ucro-tier__main {
   display: flex;
   flex: 1 1 auto;
@@ -736,10 +751,6 @@
   padding: 10px 14px 12px;
 }
 .ucro-upsell:not(.ucro-upsell--list) .ucro-tier__items { padding: 8px 2px 0; }
-.ucro-upsell--list .ucro-tier-wrap:has(.ucro-tier.is-selected) .ucro-tier__items {
-  background: color-mix(in srgb, var(--ucro-on) 12%, transparent);
-  box-shadow: inset 3px 0 0 var(--ucro-on);
-}
 .ucro-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
 .ucro-item__n { flex: none; font-weight: 600; opacity: 0.75; }
 .ucro-item__select { margin-top: 0; }

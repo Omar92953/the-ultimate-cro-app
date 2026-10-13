@@ -102,6 +102,11 @@ export async function upsert(admin: AdminClient, type: string, handle: string, f
     if (e instanceof AdminError && /blank|empty/i.test(e.message) && Object.keys(nonEmpty).length < Object.keys(fields).length) {
       return upsertOnce(admin, type, handle, nonEmpty);
     }
+    // The app's storage types come from shopify.app.toml; Shopify adds them to a store a little
+    // after each release. Until then say so plainly instead of Shopify's raw message.
+    if (e instanceof Error && /No metaobject definition exists/i.test(e.message)) {
+      throw new AdminError("Shopify is still setting up this app's storage on your store after the update. Try again in a few minutes. If it keeps happening, reopen the app from Apps.");
+    }
     throw e;
   }
 }
