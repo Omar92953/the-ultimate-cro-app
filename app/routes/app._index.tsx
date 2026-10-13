@@ -329,23 +329,24 @@ export default function Home() {
           </Card>
         </CardGrid>
 
-        {/* Tutorials: only once there are videos to play */}
-        {TUTORIALS.some((t) => t.youtubeId) ? (
-          <s-section heading="Tutorials">
-            <div className={styles.videos}>
-              {TUTORIALS.filter((t) => t.youtubeId).map((t) => (
-                <button key={t.title} type="button" className={styles.video} onClick={() => setPlaying(t)}>
+        {/* Tutorials: cards without a video yet say "Coming soon" */}
+        <s-section heading="Tutorials">
+          <div className={styles.videos}>
+            {TUTORIALS.map((t) => {
+              const ready = !!t.youtubeId;
+              return (
+                <button key={t.title} type="button" className={styles.video} disabled={!ready} onClick={() => setPlaying(t)}>
                   <span className={styles.thumb}>
-                    <span className={styles.play} aria-hidden="true">▶</span>
+                    {ready ? <span className={styles.play} aria-hidden="true">▶</span> : <span className={styles.soon}>Coming soon</span>}
                     <span className={styles.length}>{t.length}</span>
                   </span>
                   <span className={styles.videoTitle}>{t.title}</span>
                   <span className={styles.videoMeta}>{t.feature ? feature(t.feature).title : "Getting started"}</span>
                 </button>
-              ))}
-            </div>
-          </s-section>
-        ) : null}
+              );
+            })}
+          </div>
+        </s-section>
 
         <s-section heading="What's new">
           <ul className={styles.news}>
