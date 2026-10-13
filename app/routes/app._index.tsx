@@ -19,7 +19,7 @@ import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
-import { Card, CardGrid, CardText, Pill } from "../components/ui";
+import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
 import { UpgradeButton, planPriceText } from "../components/Upgrade";
 import { PlanFeatures } from "../components/PlanCard";
 import { loadHub } from "../lib/hub.server";
@@ -262,35 +262,22 @@ export default function Home() {
         {/* Needs your attention */}
         {data.attention.length ? (
           <s-section heading="Needs your attention">
-            <ul className={styles.rows}>
-              {data.attention.map((a) => (
-                <li key={a.text} className={styles.row}>
-                  <span>{a.text}</span>
-                  <Button href={a.href} target={a.external ? "_top" : undefined} variant="tertiary">
-                    {a.action}
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            <LinkTiles items={data.attention.map((a) => ({ key: a.text, title: a.text, href: a.href, external: a.external, end: a.action }))} />
           </s-section>
         ) : null}
 
         {/* Try next */}
         {data.recommended.length ? (
           <s-section heading="Try next">
-            {/* Each one is a whole clickable tile: title, short line, arrow */}
-            <div className={styles.tiles}>
-              {data.recommended.map((k) => (
-                <Link key={k} to={featureHref(k)} className={styles.tile}>
-                  <span className={styles.tileText}>
-                    <span className={styles.tileTitle}>{feature(k).title}</span>
-                    <span className={styles.tileSub}>{feature(k).about}</span>
-                  </span>
-                  {canUse(data.plan.key, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>}
-                  <span className={styles.tileArrow} aria-hidden="true">›</span>
-                </Link>
-              ))}
-            </div>
+            <LinkTiles
+              items={data.recommended.map((k) => ({
+                key: k,
+                title: feature(k).title,
+                sub: feature(k).about,
+                href: featureHref(k),
+                end: canUse(data.plan.key, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>,
+              }))}
+            />
           </s-section>
         ) : null}
 

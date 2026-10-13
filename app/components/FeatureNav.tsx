@@ -19,5 +19,6 @@ export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
 /** The feature's pages as tabs; nothing when it has only one page. */
 export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
   const tabs = feature(key).tabs;
-  return tabs.length > 1 ? <Tabs items={tabs.map((t) => ({ label: t.label, to: t.href }))} /> : null;
+  // Design is set apart from the feature's content (offers, reviews, messages…).
+  return tabs.length > 1 ? <Tabs items={tabs.map((t) => ({ label: t.label, to: t.href, side: t.label === "Design" }))} /> : null;
 }

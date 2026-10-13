@@ -46,26 +46,28 @@ export function Toolbar({ children, note }: { children: ReactNode; note?: ReactN
   );
 }
 
-/** Link tabs. `match` decides which is active (pathname + optional ?tab=). */
-export function Tabs({ items }: { items: { label: string; to: string }[] }) {
+/** Link tabs. `match` decides which is active (pathname + optional ?tab=). `side` tabs sit apart on the right (e.g. Design). */
+export function Tabs({ items }: { items: { label: string; to: string; side?: boolean }[] }) {
   const location = useLocation();
   // While the next tab loads, show it as chosen straight away (with a thin loading bar).
   const pending = useNavigation().location;
   const { pathname, search } = pending ?? location;
   const loading = !!pending && items.some((t) => t.to.split("?")[0] === pending.pathname);
   const here = new URLSearchParams(search).get("tab");
+  const link = (t: { label: string; to: string }) => {
+    const [path, query] = t.to.split("?");
+    const tab = new URLSearchParams(query ?? "").get("tab");
+    const active = pathname === path && (tab ?? null) === (here ?? null);
+    return (
+      <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
+        {t.label}
+      </Link>
+    );
+  };
   return (
     <nav className={`${styles.pageTabs} ${loading ? styles.pageTabsLoading : ""}`} aria-label="Pages of this feature" aria-busy={loading || undefined}>
-      {items.map((t) => {
-        const [path, query] = t.to.split("?");
-        const tab = new URLSearchParams(query ?? "").get("tab");
-        const active = pathname === path && (tab ?? null) === (here ?? null);
-        return (
-          <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
-            {t.label}
-          </Link>
-        );
-      })}
+      {items.filter((t) => !t.side).map(link)}
+      {items.some((t) => t.side) ? <span className={styles.pageTabsSide}>{items.filter((t) => t.side).map(link)}</span> : null}
     </nav>
   );
 }
@@ -121,5 +123,50 @@ export function Explainer(props: { what: ReactNode; how: ReactNode; example: Rea
         <CardText>{props.example}</CardText>
       </Card>
     </CardGrid>
+  );
+}
+
+export type LinkTile = {
+  key: string;
+  title: ReactNode;
+  sub?: ReactNode;
+  href: string;
+  /** Opens outside the app frame (theme editor, Shopify admin pages). */
+  external?: boolean;
+  /** Shown next to the title, e.g. an On/Off pill. */
+  badge?: ReactNode;
+  /** Shown before the arrow, e.g. a plan pill or "Create". */
+  end?: ReactNode;
+};
+
+/** A list of soft grey tiles; each whole tile is the link. Use instead of rows of text links. */
+export function LinkTiles({ items }: { items: LinkTile[] }) {
+  return (
+    <div className={styles.tiles}>
+      {items.map((t) => {
+        const inner = (
+          <>
+            <span className={styles.tileText}>
+              <span className={styles.tileTitle}>
+                {t.title}
+                {t.badge}
+              </span>
+              {t.sub ? <span className={styles.tileSub}>{t.sub}</span> : null}
+            </span>
+            {t.end ? <span className={styles.tileEnd}>{t.end}</span> : null}
+            <span className={styles.tileArrow} aria-hidden="true">›</span>
+          </>
+        );
+        return t.external ? (
+          <a key={t.key} href={t.href} target="_top" className={styles.tile}>
+            {inner}
+          </a>
+        ) : (
+          <Link key={t.key} to={t.href} className={styles.tile}>
+            {inner}
+          </Link>
+        );
+      })}
+    </div>
   );
 }

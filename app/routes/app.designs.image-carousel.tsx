@@ -10,7 +10,7 @@ import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getImageCarousel, saveImageCarousel } from "../lib/designs.server";
 import { RATIOS, withImageCarouselDefaults, type ImageCarouselConfig, type ImageSlide } from "../lib/image-carousel";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { ImageCarouselPreview } from "../components/ImageCarouselPreview";
@@ -200,7 +200,9 @@ export default function ImageCarouselDesigner() {
                 ) : (
                   <span />
                 )}
-                <NumberField label="Auto-move every" details="0 = off. Pauses while shoppers hover or touch it." suffix="sec" min={0} max={15} step={1} value={cfg.nav.autoplay} onValue={(v) => nav({ autoplay: v })} />
+                <OptionalSetting label="Move by itself" details="Pauses while shoppers hover or touch it." initiallyOn={cfg.nav.autoplay > 0} onOn={() => nav({ autoplay: 5 })} onOff={() => nav({ autoplay: 0 })}>
+<NumberField label="Move every" suffix="sec" min={1} max={15} step={1} value={cfg.nav.autoplay} onValue={(v) => nav({ autoplay: Math.max(1, v) })} />
+</OptionalSetting>
               </s-grid>
             </s-section></Pane>
 

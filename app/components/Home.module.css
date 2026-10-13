@@ -74,17 +74,5 @@
 .up { color: #0c5132; }
 .down { color: #8e1f0b; }
 
-.rows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #ebebeb; }
 .row:first-child { border-top: 0; padding-top: 0; }
-.rowText { display: flex; flex-direction: column; min-width: 0; font-size: 13px; color: #303030; }
 
-/* "Try next": soft grey tiles with a bold title, a grey line and an arrow; the whole tile is the link. */
-.tiles { display: flex; flex-direction: column; gap: 10px; }
-.tile { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #f3f3f3; color: inherit; text-decoration: none; transition: background 0.15s; }
-.tile:hover { background: #ebebeb; }
-.tile:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
-.tileText { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.tileTitle { font-size: 14px; font-weight: 650; color: #303030; }
-.tileSub { font-size: 13px; color: #8a8a8a; }
-.tileArrow { font-size: 22px; line-height: 1; color: #8a8a8a; }

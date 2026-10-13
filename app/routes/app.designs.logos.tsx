@@ -15,7 +15,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { matchLogos } from "../lib/theme-match";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { applyLogosPreset, LOGOS_PRESETS, withLogosDefaults, type LogosDesign } from "../lib/logos-design";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { LogosDesignPreview, type PreviewLogo } from "../components/LogosDesignPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
@@ -114,7 +114,9 @@ export default function LogosDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-grid gridTemplateColumns="2fr 1fr" gap="base">
-                    <TextField label="Heading" details="Leave empty for no heading." value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
+                    <OptionalSetting label="Show a heading" initiallyOn={!!cfg.text.heading} onOn={() => text({ heading: "Trusted by" })} onOff={() => text({ heading: "" })}>
+<TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
+</OptionalSetting>
                     <NumberField label="Size" suffix="px" min={14} max={48} step={2} value={cfg.text.headingSize} onValue={(v) => text({ headingSize: v })} />
                   </s-grid>
                 </s-section>

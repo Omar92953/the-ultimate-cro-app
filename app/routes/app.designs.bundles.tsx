@@ -14,7 +14,7 @@ import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
 import { applyBundlePreset, BUNDLE_PRESETS, matchBundleTheme, toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "../lib/bundle-design";
 import type { Bundle } from "../lib/types";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { BundlePreview, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
 import { BundleCollectionPreview } from "../components/BundleCollectionPreview";
@@ -233,7 +233,9 @@ export default function BundleDesigner() {
                     <NumberField label="Columns on mobile" min={1} max={3} step={1} value={cfg.products.mobile} onValue={(v) => { products({ mobile: v }); setDevice("phone"); }} />
                     <NumberField label="Space between cards" suffix="px" min={0} max={40} step={1} value={cfg.card.gap} onValue={(v) => card({ gap: v })} />
                     <Select label="On phones" value={cfg.layout.mobile} onValue={(v) => { layout({ mobile: v as C["layout"]["mobile"] }); setDevice("phone"); }} options={[{ value: "grid", label: "Grid (rows of cards)" }, { value: "swipe", label: "One row you swipe" }]} />
-                    <NumberField label="Maximum width" details="0 = as wide as the page" suffix="px" min={0} max={1600} step={20} value={cfg.layout.maxWidth} onValue={(v) => layout({ maxWidth: v })} />
+                    <OptionalSetting label="Limit the width" details="Off: as wide as the page." initiallyOn={cfg.layout.maxWidth > 0} onOn={() => layout({ maxWidth: 1200 })} onOff={() => layout({ maxWidth: 0 })}>
+<NumberField label="Maximum width" suffix="px" min={320} max={1600} step={20} value={cfg.layout.maxWidth} onValue={(v) => layout({ maxWidth: Math.max(320, v) })} />
+</OptionalSetting>
                     <span />
                     <NumberField label="Space above" suffix="px" min={0} max={80} step={4} value={cfg.look.top} onValue={(v) => look({ top: v })} />
                     <NumberField label="Space below" suffix="px" min={0} max={80} step={4} value={cfg.look.bottom} onValue={(v) => look({ bottom: v })} />

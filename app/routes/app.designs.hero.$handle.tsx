@@ -14,7 +14,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { matchHero } from "../lib/theme-match";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { applyHeroPreset, DEFAULT_HERO, HERO_PRESETS, withHeroDefaults, type HeroDesign, type HeroHeight } from "../lib/hero-design";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
 import { HeroDesignPreview } from "../components/HeroDesignPreview";
 import ui from "../components/PageEditor.module.css";
@@ -184,12 +184,18 @@ export default function HeroEditor() {
                   <s-stack gap="base">
                     <TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
                     <TextArea label="Text" rows={3} value={cfg.text.text} onValue={(v) => text({ text: v })} />
-                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                      <TextField label="First button" details="Empty = no button." value={cfg.text.b1} onValue={(v) => text({ b1: v })} />
-                      <TextField label="First button link" placeholder="/collections/all" value={cfg.text.l1} onValue={(v) => text({ l1: v })} />
-                      <TextField label="Second button" details="Shown as an outline." value={cfg.text.b2} onValue={(v) => text({ b2: v })} />
-                      <TextField label="Second button link" placeholder="/" value={cfg.text.l2} onValue={(v) => text({ l2: v })} />
-                    </s-grid>
+                    <OptionalSetting label="Show a button" initiallyOn={!!cfg.text.b1} onOn={() => text({ b1: "Shop now", l1: cfg.text.l1 || "/collections/all" })} onOff={() => text({ b1: "", b2: "" })}>
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        <TextField label="Button" value={cfg.text.b1} onValue={(v) => text({ b1: v })} />
+                        <TextField label="Button link" placeholder="/collections/all" value={cfg.text.l1} onValue={(v) => text({ l1: v })} />
+                      </s-grid>
+                      <OptionalSetting label="Add a second button" details="Shown as an outline." initiallyOn={!!cfg.text.b2} onOn={() => text({ b2: "Learn more", l2: cfg.text.l2 || "/" })} onOff={() => text({ b2: "" })}>
+                        <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                          <TextField label="Second button" value={cfg.text.b2} onValue={(v) => text({ b2: v })} />
+                          <TextField label="Second button link" placeholder="/" value={cfg.text.l2} onValue={(v) => text({ l2: v })} />
+                        </s-grid>
+                      </OptionalSetting>
+                    </OptionalSetting>
                   </s-stack>
                 </s-section>
               </Pane>

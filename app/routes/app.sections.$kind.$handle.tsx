@@ -10,6 +10,7 @@ import { deleteItem, listItems, saveItem, shopOffset, toForm } from "../lib/sect
 import { SECTIONS, SOURCES, blankItem, isKind, type FieldDef, type MediaRef, type ProductRef, type SectionItem, type SectionKind, type Value } from "../lib/sections";
 import { Button, Checkbox, DateField, Select, TextArea, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
+import { Segmented } from "../components/ui";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -109,9 +110,14 @@ export default function SectionItemEditor() {
 
       <s-section>
         <s-stack gap="base">
-          {cfg.fields.filter((f) => !f.hidden).map((f) => (
-            <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />
-          ))}
+          {cfg.fields.filter((f) => !f.hidden).map((f, i, shown) => {
+            // Date fields sit behind one "When does it show?" choice, placed where the first one was.
+            if (f.type === "datetime") {
+              if (shown.findIndex((x) => x.type === "datetime") !== i) return null;
+              return <ScheduleInput key="schedule" fields={shown.filter((x) => x.type === "datetime")} values={item.values} set={set} singular={cfg.singular} />;
+            }
+            return <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />;
+          })}
         </s-stack>
       </s-section>
 
@@ -119,6 +125,43 @@ export default function SectionItemEditor() {
         <Preview kind={kind} values={item.values} />
       </s-section>
     </s-page>
+  );
+}
+
+/* ------------------------------------------------------- when it shows -- */
+// "Always" or "Only between dates"; the date pickers appear only for the second. Going back to
+// "Always" clears the dates, so what's saved matches what's chosen.
+function ScheduleInput(props: { fields: FieldDef[]; values: SectionItem["values"]; set: (key: string, v: Value) => void; singular: string }) {
+  const { fields, values, set } = props;
+  const hasDates = fields.some((f) => !!values[f.key]);
+  const [mode, setMode] = useState<"always" | "dates">(hasDates ? "dates" : "always");
+  const choose = (m: "always" | "dates") => {
+    setMode(m);
+    if (m === "always") for (const f of fields) set(f.key, "");
+  };
+  return (
+    <s-stack gap="small-200">
+      <s-text type="strong">{`When does this ${props.singular} show?`}</s-text>
+      <s-box>
+        <Segmented
+          label="When it shows"
+          value={mode}
+          onChange={choose}
+          options={[
+            { value: "always", label: "Always" },
+            { value: "dates", label: "Only between dates" },
+          ]}
+        />
+      </s-box>
+      {mode === "dates" ? (
+        <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+          {fields.map((f) => {
+            const text = typeof values[f.key] === "string" ? String(values[f.key]) : "";
+            return <DateField key={f.key} label={f.label} details={f.details} value={text} onValue={(v) => set(f.key, v)} />;
+          })}
+        </s-grid>
+      ) : null}
+    </s-stack>
   );
 }
 

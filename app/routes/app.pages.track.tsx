@@ -13,7 +13,7 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
 import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
-import { Button, ColorField, NumberField, Select, TextArea, TextField } from "../components/fields";
+import { Button, ColorField, NumberField, OptionalSetting, Select, TextArea, TextField } from "../components/fields";
 import { OrderPagePreview } from "../components/OrderPagePreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
@@ -127,7 +127,9 @@ export default function OrderPageDesigner() {
               {!isTrack ? (
                 <Pane show={tab === "content"}>
                   <s-section heading="Return window">
-                    <NumberField label="Days after the order" details="Older orders can't be returned here. 0 = no limit." suffix="days" min={0} max={365} step={1} value={cfg.rules.days} onValue={(v) => setCfg((c) => ({ ...c, rules: { days: v } }))} />
+                    <OptionalSetting label="Only recent orders can be returned" initiallyOn={cfg.rules.days > 0} onOn={() => setCfg((c) => ({ ...c, rules: { days: 30 } }))} onOff={() => setCfg((c) => ({ ...c, rules: { days: 0 } }))}>
+<NumberField label="Days after the order" details="Older orders can't be returned here." suffix="days" min={1} max={365} step={1} value={cfg.rules.days} onValue={(v) => setCfg((c) => ({ ...c, rules: { days: Math.max(1, v) } }))} />
+</OptionalSetting>
                   </s-section>
                 </Pane>
               ) : null}
