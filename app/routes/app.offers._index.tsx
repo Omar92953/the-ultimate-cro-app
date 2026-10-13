@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
@@ -13,7 +13,7 @@ import { OFFER_TYPES, OFFER_TYPE_KEYS, type OfferTypeKey } from "../lib/offer-ty
 import { area, feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { FEATURE_PLAN, PLANS, canUse, limitOf, planAbove } from "../lib/plans";
 import { Button, Select, TextField } from "../components/fields";
-import { Pill } from "../components/ui";
+import { LinkTiles, Pill } from "../components/ui";
 import { UpgradeButton, usePlan } from "../components/Upgrade";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -131,17 +131,15 @@ export default function OffersHub() {
         </s-section>
 
         <s-section heading="Extras on product pages">
-          <s-stack gap="small-200">
-            {EXTRAS.map((k) => (
-              <s-stack key={k} direction="inline" gap="small-200" alignItems="center" justifyContent="space-between">
-                <s-stack gap="none">
-                  <Link to={featureHref(k)}>{feature(k).title}</Link>
-                  <s-text color="subdued">{feature(k).about}</s-text>
-                </s-stack>
-                {canUse(plan, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>}
-              </s-stack>
-            ))}
-          </s-stack>
+          <LinkTiles
+            items={EXTRAS.map((k) => ({
+              key: k,
+              title: feature(k).title,
+              sub: feature(k).about,
+              href: featureHref(k),
+              end: canUse(plan, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>,
+            }))}
+          />
         </s-section>
       </s-stack>
     </s-page>

@@ -13,9 +13,9 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getCheckoutRules, saveCheckoutRules } from "../lib/checkout-rules.server";
 import { checkCheckoutRules } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
-import { CUSTOMERS, LIMIT_KINDS, describeChange, newChangeRule, newLimitRule, type ChangeRule, type CheckoutKind, type LimitRule, type Picked } from "../lib/checkout-rules";
+import { CUSTOMERS, LIMIT_KINDS, describeChange, emptyWhen, newChangeRule, newLimitRule, type ChangeRule, type CheckoutKind, type LimitRule, type Picked } from "../lib/checkout-rules";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
-import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
+import { Button, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
 
@@ -257,8 +257,17 @@ function ChangeCard({ r, i, count, page, money, currency, update, move, remove, 
         {r.action === "rename" ? <TextField label="New name" value={r.name} maxLength={100} onValue={(name) => update(r.id, { name })} /> : null}
         {r.action === "move" ? <NumberField label="New position" details="1 = first in the list" min={1} max={20} step={1} value={r.index + 1} onValue={(v) => update(r.id, { index: Math.max(0, Math.round(v) - 1) })} /> : null}
         <s-divider />
-        <s-text type="strong">Only when (leave empty for always)</s-text>
-        <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+        <OptionalSetting
+          label="Only under certain conditions"
+          details="Off: the rule applies to every checkout."
+          initiallyOn={r.when.min > 0 || r.when.max > 0 || r.when.countries.length > 0 || r.when.products.length > 0 || r.when.customer !== "any"}
+          onOn={() => {}}
+          onOff={() => {
+            setCountries("");
+            update(r.id, { picked: [], when: emptyWhen() });
+          }}
+        >
+          <s-grid gridTemplateColumns="1fr 1fr" gap="base">
           <NumberField label="Order total at least" suffix={currency} min={0} step={1} value={r.when.min} onValue={(min) => when({ min: Math.max(0, min) })} />
           <NumberField label="Order total at most" suffix={currency} min={0} step={1} value={r.when.max} onValue={(max) => when({ max: Math.max(0, max) })} />
           <TextField
@@ -280,6 +289,7 @@ function ChangeCard({ r, i, count, page, money, currency, update, move, remove, 
             if (p) update(r.id, { picked: p, when: { ...r.when, products: p.map((x) => x.id) } });
           }}
         />
+        </OptionalSetting>
         <RuleActions i={i} count={count} move={move} remove={remove} />
       </s-stack>
     </s-section>

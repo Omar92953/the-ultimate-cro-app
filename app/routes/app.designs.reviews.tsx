@@ -12,7 +12,7 @@ import { getReviewsDesign, saveReviewsDesign } from "../lib/designs.server";
 import { ICON_SOURCES, PRODUCT_REVIEW_PRESETS, REVIEW_PRESETS, applyReviewPreset, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "../lib/reviews-design";
 import { SOURCES } from "../lib/sections";
 import type { MediaRef, ProductRef } from "../lib/sections";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
 import { ReviewsPreview, type PreviewReview } from "../components/ReviewsPreview";
 import ui from "../components/PageEditor.module.css";
@@ -229,7 +229,9 @@ export default function ReviewsDesigner() {
                 <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={isProduct ? [{ value: "carousel", label: "Cards, one at a time" }, { value: "badge", label: "Star rating line" }] : [{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }, { value: "list", label: "List (full reviews, with sorting)" }]} />
                 <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
                 <Select label="Per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
-                <NumberField label="Card width" details="0 = cards fill the row" suffix="px" min={0} max={600} step={10} value={cfg.layout.cardWidth} onValue={(v) => layout({ cardWidth: v > 0 ? Math.max(160, v) : 0 })} />
+                <OptionalSetting label="Fixed card width" details="Off: cards fill the row." initiallyOn={cfg.layout.cardWidth > 0} onOn={() => layout({ cardWidth: 300 })} onOff={() => layout({ cardWidth: 0 })}>
+<NumberField label="Card width" suffix="px" min={160} max={600} step={10} value={cfg.layout.cardWidth} onValue={(v) => layout({ cardWidth: Math.max(160, v) })} />
+</OptionalSetting>
                 {cfg.layout.mode === "carousel" ? (
                   <>
                     <Select
@@ -245,7 +247,9 @@ export default function ReviewsDesigner() {
                       ]}
                     />
                     {cfg.layout.nav === "arrows" || cfg.layout.nav === "sides" || cfg.layout.nav === "both" ? <NumberField label="Arrow size" suffix="px" min={24} max={64} step={2} value={cfg.layout.arrowSize} onValue={(v) => layout({ arrowSize: v })} /> : <span />}
-                    <NumberField label="Auto-move every" details="0 = off" suffix="sec" min={0} max={15} step={1} value={cfg.layout.autoplay} onValue={(v) => layout({ autoplay: v })} />
+                    <OptionalSetting label="Move by itself" initiallyOn={cfg.layout.autoplay > 0} onOn={() => layout({ autoplay: 5 })} onOff={() => layout({ autoplay: 0 })}>
+<NumberField label="Move every" suffix="sec" min={1} max={15} step={1} value={cfg.layout.autoplay} onValue={(v) => layout({ autoplay: Math.max(1, v) })} />
+</OptionalSetting>
                   </>
                 ) : null}
               </s-grid>
@@ -265,7 +269,9 @@ export default function ReviewsDesigner() {
                   <Checkbox label="Product" checked={cfg.card.product} onValue={(v) => card({ product: v })} />
                 </s-grid>
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                  <NumberField label="Lines shown" details="Then “Read more”. 0 = show all." min={0} max={12} step={1} value={cfg.card.clamp} onValue={(v) => card({ clamp: v })} />
+                  <OptionalSetting label="Shorten long reviews" initiallyOn={cfg.card.clamp > 0} onOn={() => card({ clamp: 4 })} onOff={() => card({ clamp: 0 })}>
+<NumberField label="Lines shown" details="Then “Read more”." min={1} max={12} step={1} value={cfg.card.clamp} onValue={(v) => card({ clamp: Math.max(1, v) })} />
+</OptionalSetting>
                   <NumberField label="Card corners" suffix="px" min={0} max={40} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
                 </s-grid>
                 <Checkbox label="Videos play silently when on screen" checked={cfg.card.videoAutoplay} onValue={(v) => card({ videoAutoplay: v })} />

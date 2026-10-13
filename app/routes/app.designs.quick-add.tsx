@@ -15,7 +15,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { matchQuickAdd } from "../lib/theme-match";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { applyQuickAddPreset, QUICK_ADD_PRESETS, withQuickAddDefaults, type QuickAddDesign } from "../lib/quick-add-design";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { QuickAddDesignPreview, type QuickAddProduct } from "../components/QuickAddDesignPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
@@ -136,7 +136,9 @@ export default function QuickAddDesigner() {
                         <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                           <TextField label="View cart button" value={cfg.after.viewCart} onValue={(v) => after({ viewCart: v })} />
                           <TextField label="Checkout button" value={cfg.after.checkoutText} onValue={(v) => after({ checkoutText: v })} />
-                          <NumberField label="Hide the popup after" details="0 = stays until closed" suffix="sec" min={0} max={10} step={1} value={cfg.after.autohide} onValue={(v) => after({ autohide: v })} />
+                          <OptionalSetting label="Hide the popup by itself" details="Off: it stays until the shopper closes it." initiallyOn={cfg.after.autohide > 0} onOn={() => after({ autohide: 4 })} onOff={() => after({ autohide: 0 })}>
+<NumberField label="Hide it after" suffix="sec" min={1} max={10} step={1} value={cfg.after.autohide} onValue={(v) => after({ autohide: Math.max(1, v) })} />
+</OptionalSetting>
                         </s-grid>
                         <Switch label="Show a Checkout button in the popup" checked={cfg.after.checkout} onValue={(v) => after({ checkout: v })} />
                       </>

@@ -13,7 +13,7 @@ import { UpgradeButton, planPriceText } from "../components/Upgrade";
 import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
 import { Button, Select } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { Explainer, LinkTiles, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -75,25 +75,20 @@ export default function SettingsPage() {
             <s-text color="subdued">
               {data.theme?.themeName ? `Your live theme: ${data.theme.themeName}. ` : ""}App embeds are switched on once in the theme editor (App embeds); sections are added from each feature&apos;s page.
             </s-text>
-            {data.embeds.map((e) => {
-              const on = installed ? installed[e.key] : null;
-              return (
-                <s-box key={e.key} padding="small-300" borderWidth="base" borderRadius="base">
-                  <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                    <s-stack gap="none">
-                      <s-stack direction="inline" gap="small-200" alignItems="center">
-                        <s-text type="strong">{e.title}</s-text>
-                        {on === null ? null : <Pill tone={on ? "ok" : "muted"}>{on ? "On" : "Off"}</Pill>}
-                      </s-stack>
-                      <s-text color="subdued">{e.about}</s-text>
-                    </s-stack>
-                    <Button href={e.href} target="_top" variant="tertiary">
-                      {on ? "Open" : "Turn on"}
-                    </Button>
-                  </s-stack>
-                </s-box>
-              );
-            })}
+            <LinkTiles
+              items={data.embeds.map((e) => {
+                const on = installed ? installed[e.key] : null;
+                return {
+                  key: e.key,
+                  title: e.title,
+                  sub: e.about,
+                  href: e.href,
+                  external: true,
+                  badge: on === null ? null : <Pill tone={on ? "ok" : "muted"}>{on ? "On" : "Off"}</Pill>,
+                  end: on ? "Open" : "Turn on",
+                };
+              })}
+            />
           </s-stack>
         </s-section>
 

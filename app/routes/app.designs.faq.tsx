@@ -28,7 +28,7 @@ import {
   Button,
   Checkbox,
   ColorField,
-  NumberField,
+  NumberField, OptionalSetting,
   Select,
   Switch,
   TextField,
@@ -207,12 +207,9 @@ export default function FaqDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Heading">
                   <s-stack gap="base">
-                    <TextField
-                      label="Heading"
-                      details="Leave empty for no heading."
-                      value={cfg.text.heading}
-                      onValue={(v) => text({ heading: v })}
-                    />
+<OptionalSetting label="Show a heading" initiallyOn={!!cfg.text.heading} onOn={() => text({ heading: "Frequently asked questions" })} onOff={() => text({ heading: "" })}>
+<TextField label="Heading" value={cfg.text.heading} onValue={(v) => text({ heading: v })} />
+</OptionalSetting>
                     <TextField
                       label="Text under the heading"
                       value={cfg.text.sub}
@@ -297,10 +294,10 @@ export default function FaqDesigner() {
                           value={cfg.text.contactText}
                           onValue={(v) => text({ contactText: v })}
                         />
+                        <OptionalSetting label="Show a button" initiallyOn={!!cfg.text.contactLabel} onOn={() => text({ contactLabel: "Contact us" })} onOff={() => text({ contactLabel: "" })}>
                         <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                           <TextField
                             label="Button"
-                            details="Empty = no button."
                             value={cfg.text.contactLabel}
                             onValue={(v) => text({ contactLabel: v })}
                           />
@@ -312,6 +309,7 @@ export default function FaqDesigner() {
                             onValue={(v) => text({ contactLink: v })}
                           />
                         </s-grid>
+                        </OptionalSetting>
                       </>
                     ) : null}
                   </s-stack>

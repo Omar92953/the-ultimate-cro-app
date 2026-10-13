@@ -12,7 +12,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getPostPurchase, refreshPostPurchaseUrl, savePostPurchase } from "../lib/post-purchase.server";
 import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
 import { CategoryCrumb } from "../components/FeatureNav";
-import { Button, NumberField, Switch, TextArea, TextField } from "../components/fields";
+import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
 
@@ -136,7 +136,9 @@ export default function AfterPurchase() {
                 </s-stack>
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                   <NumberField label="Discount" suffix="%" min={0} max={90} step={1} value={c.pct} onValue={(pct) => set({ pct: Math.min(90, Math.max(0, Math.round(pct))) })} />
-                  <NumberField label="Only for orders from" suffix={data.currency} details="0 = every order" min={0} step={1} value={c.min} onValue={(min) => set({ min: Math.max(0, min) })} />
+                  <OptionalSetting label="Only for bigger orders" details="Off: every order sees the offer." initiallyOn={c.min > 0} onOn={() => set({ min: 50 })} onOff={() => set({ min: 0 })}>
+<NumberField label="Orders from" suffix={data.currency} min={1} step={1} value={c.min} onValue={(min) => set({ min: Math.max(1, min) })} />
+</OptionalSetting>
                 </s-grid>
               </s-stack>
             </s-section>

@@ -213,8 +213,8 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "message", label: "Message", type: "text", required: true, placeholder: "Free delivery in Cairo over LE 1,000" },
       { key: "link", label: "Link", type: "link", placeholder: "/collections/sale", details: "Optional. A page in your store (/collections/sale) or a full link." },
       { key: "icon", label: "Icon", type: "select", options: ANNOUNCE_ICONS, default: "none" },
-      { key: "starts_at", label: "Show from", type: "datetime", edge: "start", details: "Optional. Leave empty to show it now." },
-      { key: "ends_at", label: "Show until", type: "datetime", edge: "end", details: "Optional. It disappears after this day." },
+      { key: "starts_at", label: "Start date", type: "datetime", edge: "start" },
+      { key: "ends_at", label: "End date", type: "datetime", edge: "end", details: "Hidden after this day." },
       { key: "active", label: "Shown on the store", type: "bool", default: true },
     ],
     help: {

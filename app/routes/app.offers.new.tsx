@@ -5,7 +5,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { OFFER_TYPES, OFFER_TYPE_KEYS, OFFER_WHERE } from "../lib/offer-types";
-import { Button } from "../components/fields";
+import { LinkTiles } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -21,19 +21,15 @@ export default function NewOffer() {
       <s-stack gap="base">
         {OFFER_WHERE.map((w) => (
           <s-section key={w.key} heading={w.title}>
-            <s-stack gap="small-200">
-              {OFFER_TYPE_KEYS.filter((k) => OFFER_TYPES[k].where === w.key).map((k) => (
-                <s-box key={k} padding="small-300" borderWidth="base" borderRadius="base">
-                  <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                    <s-stack gap="none">
-                      <s-text type="strong">{OFFER_TYPES[k].title}</s-text>
-                      <s-text color="subdued">{OFFER_TYPES[k].about}</s-text>
-                    </s-stack>
-                    <Button href={OFFER_TYPES[k].create}>Create</Button>
-                  </s-stack>
-                </s-box>
-              ))}
-            </s-stack>
+            <LinkTiles
+              items={OFFER_TYPE_KEYS.filter((k) => OFFER_TYPES[k].where === w.key).map((k) => ({
+                key: k,
+                title: OFFER_TYPES[k].title,
+                sub: OFFER_TYPES[k].about,
+                href: OFFER_TYPES[k].create,
+                end: "Create",
+              }))}
+            />
           </s-section>
         ))}
       </s-stack>

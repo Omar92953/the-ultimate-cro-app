@@ -6,7 +6,7 @@
  * "false" (which reads as true), and `onChange` never fires on custom elements. These wrappers
  * set values as element properties and listen to the native `input`/`change` events instead.
  */
-import { useEffect, useLayoutEffect as useClientLayoutEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect as useClientLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 // Layout effects only run in the browser; on the server use a no-op-equivalent to avoid SSR warnings.
 const useLayoutEffect = typeof window === "undefined" ? useEffect : useClientLayoutEffect;
@@ -241,5 +241,29 @@ export function Button(props: {
     >
       {props.children}
     </s-button>
+  );
+}
+
+/**
+ * A switch that shows its setting only when it's on, instead of "0 = off" or "leave empty for none".
+ * Switching off calls onOff (set the value back to 0 or ""); switching on calls onOn (set a
+ * sensible starting value) so the setting is never on with an empty value.
+ */
+export function OptionalSetting(props: { label: string; details?: string; initiallyOn: boolean; onOn: () => void; onOff: () => void; children: ReactNode }) {
+  const [on, setOn] = useState(props.initiallyOn);
+  return (
+    <s-stack gap="small-200">
+      <Switch
+        label={props.label}
+        details={props.details}
+        checked={on}
+        onValue={(v) => {
+          setOn(v);
+          if (v) props.onOn();
+          else props.onOff();
+        }}
+      />
+      {on ? props.children : null}
+    </s-stack>
   );
 }
