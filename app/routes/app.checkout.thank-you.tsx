@@ -182,7 +182,7 @@ export default function ThankYouPage() {
             ))}
             <s-section heading="Add a module">
               <s-stack gap="base">
-                <Select label="Module" value={add} options={MODULE_TYPES.map((t) => ({ value: t.type, label: `${t.title} — ${t.help}` }))} onValue={(v) => setAdd(v as ModuleType)} />
+                <Select label="Module" value={add} options={MODULE_TYPES.map((t) => ({ value: t.type, label: `${t.title}: ${t.help}` }))} onValue={(v) => setAdd(v as ModuleType)} />
                 <s-stack direction="inline">
                   <Button icon="plus" disabled={modules.length >= 10} onClick={() => setModules([...modules, newModule(add)])}>
                     Add

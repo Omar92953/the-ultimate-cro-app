@@ -70,7 +70,7 @@ function subtitle(kind: SectionKind, item: SectionItem): string {
   } else {
     if (v.link) parts.push(`→ ${v.link}`);
     const day = (s: unknown) => new Date(String(s)).toLocaleDateString();
-    if (v.starts_at || v.ends_at) parts.push(`${v.starts_at ? day(v.starts_at) : "now"} – ${v.ends_at ? day(v.ends_at) : "no end"}`);
+    if (v.starts_at || v.ends_at) parts.push(`${v.starts_at ? day(v.starts_at) : "Now"} to ${v.ends_at ? day(v.ends_at) : "no end"}`);
   }
   return parts.filter(Boolean).join(" · ");
 }

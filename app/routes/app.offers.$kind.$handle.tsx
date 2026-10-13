@@ -98,7 +98,7 @@ export default function RuleEditor() {
       shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/offers/${kindSlug}/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
-      shopify.toast.show("Could not save — see the message at the top", { isError: true });
+      shopify.toast.show("Could not save. See the message at the top", { isError: true });
     }
   }, [fetcher.state, fetcher.data, shopify, isNew, kindSlug, navigate]);
 
@@ -410,7 +410,7 @@ export default function RuleEditor() {
 
       <s-section slot="aside" heading="Status">
         <s-stack gap="base">
-          <Switch label={rule.active ? "Active — showing on your store" : "Paused — hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
+          <Switch label={rule.active ? "Active: showing on your store" : "Paused: hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
           <TextField label="Offer name" placeholder={rule.headline} details="Only you see this." value={rule.name} onValue={(v) => set("name", v)} />
           <NumberField
             label="Priority"

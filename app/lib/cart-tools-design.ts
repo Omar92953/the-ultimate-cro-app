@@ -35,7 +35,7 @@ export const DEFAULT_CART_TOOLS: CartToolsDesign = {
   drawer: { on: true, side: "right", width: 420, title: "Your cart", empty: "Your cart is empty", continueText: "Continue shopping", checkout: "Check out", subtotal: "Subtotal", taxes: "Taxes and shipping at checkout", openOnAdd: true },
   express: { on: true },
   discount: { on: false, codes: "", applied: "Best discount applied: {code}" },
-  share: { on: true, button: "Share cart", copied: "Link copied — open it on any device to get this cart", restore: "Welcome back — your saved cart is ready" },
+  share: { on: true, button: "Share cart", copied: "Link copied. Open it on any device to get this cart", restore: "Welcome back, your saved cart is ready" },
   look: { bg: "#ffffff", fg: "#121212", accent: "#121212", onAccent: "#ffffff", radius: 10, overlay: 40 },
   sizes: defaultSizes(CART_TOOLS_SIZES),
 };

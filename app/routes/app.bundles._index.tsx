@@ -78,7 +78,7 @@ export default function BundleList() {
                   <s-table-cell>
                     <s-badge tone={b.active ? "success" : "neutral"}>{b.active ? "Active" : "Paused"}</s-badge>
                   </s-table-cell>
-                  <s-table-cell>{b.product?.title ?? "—"}</s-table-cell>
+                  <s-table-cell>{b.product?.title ?? "None"}</s-table-cell>
                   <s-table-cell>{b.steps.map((s) => s.label).join(" → ")}</s-table-cell>
                 </s-table-row>
               ))}

@@ -29,7 +29,7 @@ export const DEFAULT_CART_EXTRAS: CartExtrasDesign = {
   scheme: "",
   heading: "Gift and delivery",
   gift: { on: true, label: "This is a gift", attr: "Gift" },
-  note: { on: true, label: "Gift message", placeholder: "Write a message — we'll add it to a card", max: 250, onlyGift: true },
+  note: { on: true, label: "Gift message", placeholder: "Write a message and we'll add it to a card", max: 250, onlyGift: true },
   date: { on: true, label: "Delivery date", attr: "Delivery date", minDays: 2, maxDays: 30, daysOff: [5], required: false, requiredText: "Please choose a delivery date", slots: "", slotLabel: "Time", slotAttr: "Delivery time" },
   where: { page: true, drawer: true },
   look: { style: "box", bg: "#f6f6f6", accent: "#121212", radius: 10 },

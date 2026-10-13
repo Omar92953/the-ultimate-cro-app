@@ -100,7 +100,7 @@ export default function Analytics() {
     ? [
         { label: "Sales from the app", value: fmt(cur.appRevenue), delta: change(cur.appRevenue, prev.appRevenue) },
         { label: "Orders with the app's items", value: String(cur.appOrders), delta: change(cur.appOrders, prev.appOrders) },
-        { label: "Share of your sales", value: cur.revenue ? `${Math.round((cur.appRevenue / cur.revenue) * 100)}%` : "—", delta: null },
+        { label: "Share of your sales", value: cur.revenue ? `${Math.round((cur.appRevenue / cur.revenue) * 100)}%` : "No data yet", delta: null },
         { label: "All orders", value: String(cur.orders), delta: change(cur.orders, prev.orders) },
       ]
     : [];
@@ -110,7 +110,7 @@ export default function Analytics() {
       <s-stack gap="base">
         <Explainer
           what="What the app's offers and widgets sell: every item they add to a cart is marked, so orders show which one brought it in."
-          how="Numbers come from your orders of the last 60 days. The holdout test hides the widgets from a small share of shoppers; comparing how often each group orders shows the real lift — not just what passed through the widgets."
+          how="Numbers come from your orders of the last 60 days. The holdout test hides the widgets from a small share of shoppers; comparing how often each group orders shows the real lift, not just what passed through the widgets."
           example="Upsell offers: EGP 12,400 from 31 orders. Holdout test: shoppers who see the app order 9% more often."
         />
         {"error" in data.results ? (
@@ -225,9 +225,9 @@ export default function Analytics() {
         {tab === "holdout" ? (
         <s-section heading="Holdout test">
           <s-stack gap="base">
-            <s-text color="subdued">A share of shoppers (picked at random, kept for their visits) see your store without the app’s widgets. Orders from each group are compared — the honest way to know what the app adds.</s-text>
+            <s-text color="subdued">A share of shoppers (picked at random, kept for their visits) see your store without the app’s widgets. Orders from each group are compared. It&apos;s the honest way to know what the app adds.</s-text>
             {data.boostersOn === false ? (
-              <s-banner tone="warning" heading="The test runs from the Conversion boosters embed — turn it on">
+              <s-banner tone="warning" heading="The test runs from the Conversion boosters embed. Turn it on">
                 <s-link href={data.boostersLink} target="_top">
                   Open App embeds
                 </s-link>
@@ -237,7 +237,7 @@ export default function Analytics() {
               <UpgradeCard needs={EXTRA_PLAN.holdoutTest} title={`The holdout test is on the ${PLANS[EXTRA_PLAN.holdoutTest].name} plan`} text="Find out what the app really adds to your sales, not just what passed through its widgets." />
             ) : (
             <>
-            <NumberField label="Shoppers in the holdout" suffix="%" details="5–50%. 10% is a good start: few shoppers miss out, and results come in a few weeks." min={5} max={50} step={1} value={holdout} onValue={setHoldout} />
+            <NumberField label="Shoppers in the holdout" suffix="%" details="5% to 50%. 10% is a good start: few shoppers miss out, and results come in a few weeks." min={5} max={50} step={1} value={holdout} onValue={setHoldout} />
             <Switch label={data.xp.on ? "Test running" : "Run the test"} checked={data.xp.on} onValue={(v) => run(v)} />
             {data.xp.on ? (
               <Button variant="tertiary" onClick={() => run(true, true)}>

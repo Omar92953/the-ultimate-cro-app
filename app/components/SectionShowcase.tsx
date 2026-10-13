@@ -563,7 +563,7 @@ export function CountdownShowcase() {
     <Stage>
       <span className={`${s.box} ${s.center} ${s.w40} ${s.cd}`}>
         <span className={s.tag}>SUMMER SALE</span>
-        <b className={s.h2}>Hurry — the sale ends soon</b>
+        <b className={s.h2}>Hurry, the sale ends soon</b>
         <small className={s.muted}>Up to 30% off everything.</small>
         <span className={s.timer}>
           {[
@@ -994,7 +994,7 @@ export function CountdownRowShowcase() {
     <Stage>
       <span className={`${s.box} ${s.w52} ${s.cdRow}`}>
         <span className={s.pairText}>
-          <b className={s.h3}>Flash sale — 40% off</b>
+          <b className={s.h3}>Flash sale: 40% off</b>
           <small className={s.muted}>Ends tonight at midnight</small>
         </span>
         <span className={s.timerPlain}>
@@ -1255,7 +1255,7 @@ export function ContactInfoShowcase() {
           <span className={s.infoRow}>hello@store.com</span>
           <span className={s.infoRow}>+20 100 123 4567</span>
           <span className={s.infoRow}>WhatsApp</span>
-          <span className={s.infoRow}>Sat–Thu, 10–8</span>
+          <span className={s.infoRow}>Sat to Thu, 10 to 8</span>
         </span>
         <span className={`${s.box} ${s.gradBg}`}>
           <b className={s.h3}>Send us a message</b>
@@ -1549,7 +1549,7 @@ export function DeliveryShowcase() {
         <span style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 10px", borderRadius: 8, background: "#f3f8f4" }}>
           <span style={{ color: "#1a7f37", fontSize: 14 }}>🚚</span>
           <span>
-            Order within <b style={{ color: "#1a7f37" }}>2h 15m</b> and get it <b>Thu, Oct 15 – Sun, Oct 18</b>
+            Order within <b style={{ color: "#1a7f37" }}>2h 15m</b> and get it <b>Thu, Oct 15 to Sun, Oct 18</b>
           </span>
         </span>
       </span>
@@ -1586,7 +1586,7 @@ export function CartExtrasShowcase() {
         <span style={{ padding: "6px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd", color: "#777" }}>Happy birthday, Nour!</span>
         <span style={{ display: "flex", gap: 6 }}>
           <span style={{ flex: 1, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>Thu, Oct 15 ▾</span>
-          <span style={{ flex: 1, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>2–6 pm ▾</span>
+          <span style={{ flex: 1, whiteSpace: "nowrap", padding: "5px 7px", borderRadius: 6, background: "#fff", border: "1px solid #ddd" }}>2 to 6 pm ▾</span>
         </span>
       </span>
     </Fit>
@@ -1686,7 +1686,7 @@ export function PaymentRulesShowcase() {
 
 /** Delivery rules: an option renamed, another hidden. */
 export function DeliveryRulesShowcase() {
-  return <CheckoutList title="Shipping method" rows={[{ label: "Free delivery, 2–3 days", on: true, note: "Renamed" }, { label: "Express", hidden: true, note: "Hidden: fragile item" }, { label: "Local pickup" }]} />;
+  return <CheckoutList title="Shipping method" rows={[{ label: "Free delivery, 2 to 3 days", on: true, note: "Renamed" }, { label: "Express", hidden: true, note: "Hidden: fragile item" }, { label: "Local pickup" }]} />;
 }
 
 /** Order limits: checkout blocked with the merchant's message. */
@@ -1738,7 +1738,7 @@ export function PostPurchaseShowcase() {
     <Fit>
       <span style={{ display: "grid", gap: 7, width: "80%", fontSize: 11 }}>
         <span style={{ padding: "6px 8px", borderRadius: 6, background: "#f1f6fe", border: "1px solid #c7dbf7", textAlign: "center" }}>
-          <b>Wait — add this to your order</b>
+          <b>Wait, add this to your order</b>
         </span>
         <span style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 8, alignItems: "center" }}>
           <span style={{ aspectRatio: "1", borderRadius: 6, background: "#e9e2d8" }} />

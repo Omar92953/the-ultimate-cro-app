@@ -8,8 +8,8 @@ import { faqClass, faqVars, type FaqDesign } from "../lib/faq-design";
 export type PreviewQuestion = { q: string; a: string; group: string };
 
 const SAMPLE: PreviewQuestion[] = [
-  { q: "How long does delivery take?", a: "2–4 working days in the city, 4–7 days elsewhere.", group: "Shipping" },
-  { q: "Can I pay cash on delivery?", a: "Yes — cash or card when your order arrives.", group: "Payment" },
+  { q: "How long does delivery take?", a: "2 to 4 working days in the city, 4 to 7 days elsewhere.", group: "Shipping" },
+  { q: "Can I pay cash on delivery?", a: "Yes, cash or card when your order arrives.", group: "Payment" },
   { q: "What is your return policy?", a: "Return any unused item within 14 days for a full refund.", group: "Returns" },
   { q: "Do you ship abroad?", a: "We ship to most countries; costs show at checkout.", group: "Shipping" },
 ];

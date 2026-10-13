@@ -82,7 +82,7 @@ export default function BundleEditor() {
       shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/bundles/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
-      shopify.toast.show("Could not save — see the message at the top", { isError: true });
+      shopify.toast.show("Could not save. See the message at the top", { isError: true });
     }
   }, [fetcher.state, fetcher.data, shopify, isNew, navigate]);
 
@@ -221,7 +221,7 @@ export default function BundleEditor() {
         onMove={moveStep}
         gap={16}
         render={(step, i, handle) => (
-        <s-section heading={`Step ${i + 1}${step.label ? ` — ${step.label}` : ""}`}>
+        <s-section heading={`Step ${i + 1}${step.label ? `: ${step.label}` : ""}`}>
           <s-stack gap="base">
             <s-stack direction="inline" gap="small-100" alignItems="center">
               {handle}
@@ -313,7 +313,7 @@ export default function BundleEditor() {
             Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick.
           </s-list-item>
           <s-list-item>
-            In the bundle product, untick “Track quantity” — the picked items’ own stock is what goes down.
+            In the bundle product, untick “Track quantity”. The picked items’ own stock is what goes down.
           </s-list-item>
           <s-list-item>
             Add the Bundle builder block to the bundle product’s page in the theme editor (a separate product template

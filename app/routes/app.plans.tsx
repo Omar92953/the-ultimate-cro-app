@@ -50,7 +50,7 @@ const LIMIT_ROWS: { key: LimitKey; label: string }[] = [
 const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
   { label: "Cart drawer: express checkout, best discount, share cart", needs: EXTRA_PLAN.cartDrawerPro },
   { label: "Holdout test (measure what the app adds)", needs: EXTRA_PLAN.holdoutTest },
-  { label: "Request any feature — we build it", needs: EXTRA_PLAN.featureRequests },
+  { label: "Request any feature and we build it", needs: EXTRA_PLAN.featureRequests },
   { label: "Priority support", needs: EXTRA_PLAN.prioritySupport },
   { label: "Your requests built first", needs: EXTRA_PLAN.requestsFirst },
 ];
@@ -107,7 +107,7 @@ export default function Plans() {
             Monthly
           </Button>
           <Button variant={yearly ? "primary" : "secondary"} onClick={() => setYearly(true)}>
-            Yearly — 2 months free
+            Yearly: 2 months free
           </Button>
         </s-stack>
 
@@ -151,7 +151,7 @@ export default function Plans() {
               <s-table-row>
                 <s-table-cell>Try a feature of the next plan</s-table-cell>
                 {PLAN_KEYS.map((k) => (
-                  <s-table-cell key={k}>{PLANS[k].limits.trialFeatures ? `${PLANS[k].limits.trialFeatures} of your choice` : "—"}</s-table-cell>
+                  <s-table-cell key={k}>{PLANS[k].limits.trialFeatures ? `${PLANS[k].limits.trialFeatures} of your choice` : "✕"}</s-table-cell>
                 ))}
               </s-table-row>
               {AREAS.flatMap((a) =>
@@ -161,7 +161,7 @@ export default function Plans() {
                     <s-table-row key={f}>
                       <s-table-cell>{`${a.title}: ${feature(f).title}`}</s-table-cell>
                       {PLAN_KEYS.map((k) => (
-                        <s-table-cell key={k}>{atLeast(k, FEATURE_PLAN[f]) ? "✓" : "—"}</s-table-cell>
+                        <s-table-cell key={k}>{atLeast(k, FEATURE_PLAN[f]) ? "✓" : "✕"}</s-table-cell>
                       ))}
                     </s-table-row>
                   )),
@@ -170,7 +170,7 @@ export default function Plans() {
                 <s-table-row key={r.label}>
                   <s-table-cell>{r.label}</s-table-cell>
                   {PLAN_KEYS.map((k) => (
-                    <s-table-cell key={k}>{atLeast(k, r.needs) ? "✓" : "—"}</s-table-cell>
+                    <s-table-cell key={k}>{atLeast(k, r.needs) ? "✓" : "✕"}</s-table-cell>
                   ))}
                 </s-table-row>
               ))}

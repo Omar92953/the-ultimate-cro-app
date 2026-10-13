@@ -63,7 +63,7 @@ export default function StockRequests() {
       } else {
         navigator.clipboard.writeText(d.rows.map((r) => r.email).join(", ")).then(
           () => shopify.toast.show(`${d.rows.length} email${d.rows.length === 1 ? "" : "s"} copied`),
-          () => shopify.toast.show("Couldn't copy — use Download CSV", { isError: true }),
+          () => shopify.toast.show("Couldn't copy. Use Download CSV", { isError: true }),
         );
       }
     } else if (d.intent === "told") shopify.toast.show("Marked as told");

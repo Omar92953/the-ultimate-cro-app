@@ -75,7 +75,7 @@ export default function CartToolsDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show(data.embedOn ? "Saved — live on your store" : "Saved");
+    else shopify.toast.show(data.embedOn ? "Saved and live on your store" : "Saved");
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
 
   const part =

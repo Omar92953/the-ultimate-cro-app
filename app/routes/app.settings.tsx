@@ -174,7 +174,7 @@ function ReferralBox({ referral }: { referral: { code: string; link: string; rew
       await navigator.clipboard.writeText(referral.link);
       shopify.toast.show("Link copied");
     } catch {
-      shopify.toast.show("Copy didn't work — select the link and copy it", { isError: true });
+      shopify.toast.show("Copy didn't work. Select the link and copy it", { isError: true });
     }
   };
   return (

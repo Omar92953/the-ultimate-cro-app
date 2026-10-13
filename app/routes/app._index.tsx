@@ -241,7 +241,7 @@ export default function Home() {
                 <Metric label="Orders with app items" value={String(m.current.appOrders)} change={ordersChange} />
                 <Metric
                   label="Average order with app items"
-                  value={m.aovWith !== null ? money(m.aovWith, m.currency) : "—"}
+                  value={m.aovWith !== null ? money(m.aovWith, m.currency) : "No data yet"}
                   note={m.aovWithout !== null ? `${money(m.aovWithout, m.currency)} without` : undefined}
                 />
                 <Metric
@@ -373,7 +373,7 @@ function FeatureRequestCard({ plan, shop, supportEmail }: { plan: PlanKey; shop:
     );
   }
   const first = atLeast(plan, EXTRA_PLAN.requestsFirst);
-  const mail = `mailto:${supportEmail}?subject=${encodeURIComponent(`Feature request — ${shop}`)}&body=${encodeURIComponent("What would you like your store to do?\n\nWhere should it show (page, cart, checkout…)?\n\nAn example or a link to a store that does it (optional):\n")}`;
+  const mail = `mailto:${supportEmail}?subject=${encodeURIComponent(`Feature request from ${shop}`)}&body=${encodeURIComponent("What would you like your store to do?\n\nWhere should it show (page, cart, checkout…)?\n\nAn example or a link to a store that does it (optional):\n")}`;
   return (
     <Card title="Request a feature" badge={<Pill tone="ok">{first ? "Built first" : "Included"}</Pill>} actions={supportEmail ? <Button href={mail} target="_blank">Request a feature</Button> : null}>
       <CardText>{first ? "Tell us what you'd like your store to do. We build it for you, and Pro requests come first." : "Tell us what you'd like your store to do. We build it for you; it's included in your plan."}</CardText>

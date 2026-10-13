@@ -113,7 +113,7 @@ export default function ShippingBarDesigner() {
         {cfg.autoDiscount ? (
           <s-banner tone="success">
             Free shipping is automatic: saving keeps the “{data.discountTitle}” discount (Shopify → Discounts) at your goal amount
-            {data.discount?.on && data.discount.goal ? ` — now active from ${data.discount.goal} ${data.currency}` : ""}.
+            {data.discount?.on && data.discount.goal ? `, now active from ${data.discount.goal} ${data.currency}` : ""}.
           </s-banner>
         ) : (
           <s-banner tone="warning">
@@ -155,7 +155,7 @@ export default function ShippingBarDesigner() {
 
             <Pane show={tab === "content"}><s-section heading="Reward steps">
               <s-stack gap="base">
-                <s-text color="subdued">Optional: more rewards after free shipping — a free gift, a % off, or just a message. The bar shows each step; the message always points to the next one.</s-text>
+                <s-text color="subdued">Optional: more rewards after free shipping: a free gift, a % off, or just a message. The bar shows each step; the message always points to the next one.</s-text>
                 {cfg.tiers.length ? <TextField label="Free shipping step's label" value={cfg.freeLabel} onValue={(v) => setCfg((c) => ({ ...c, freeLabel: v }))} /> : null}
                 {cfg.tiers.map((t) => (
                   <s-box key={t.id} padding="small-300" borderWidth="base" borderRadius="base">

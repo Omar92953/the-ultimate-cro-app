@@ -15,7 +15,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 const FEATURES = [
   ["Offers", "Upsells, cross-sells, mix & match bundles, bundle products, buy X get Y, volume discounts, free gifts and an after-purchase offer."],
   ["Storefront", "Reviews, sales pop-ups, trust badges, announcement, free-shipping and countdown bars, sticky add to cart, wishlist, back in stock, page sections and pages."],
-  ["Cart", "A cart drawer with offers, a free-shipping bar, express checkout buttons and a gift note — or offers inside your theme's own cart."],
+  ["Cart", "A cart drawer with offers, a free-shipping bar, express checkout buttons and a gift note, or offers inside your theme's own cart."],
   ["Checkout", "Payment and delivery rules, order limits, thank-you page modules and an after-purchase offer."],
   ["Analytics", "What each offer and bundle sells, and a holdout test that shows what the app adds."],
 ];

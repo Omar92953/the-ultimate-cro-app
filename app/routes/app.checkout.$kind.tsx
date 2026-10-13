@@ -67,7 +67,7 @@ const TEXT = {
     heading: "Delivery rules",
     what: "Hide, rename or reorder the delivery options shoppers see at checkout, depending on the order.",
     how: "Each rule picks the delivery options whose name contains your text, and changes them when every condition you set is met. The cheapest option stays first and selected, as Shopify requires.",
-    example: "Hide “Express” when the cart has a fragile product, or rename “Standard” to “Free delivery in 2–3 days” over EGP 1,500.",
+    example: "Hide “Express” when the cart has a fragile product, or rename “Standard” to “Free delivery in 2 to 3 days” over EGP 1,500.",
     what1: "delivery option" as const,
     match: "Delivery option name contains",
     matchHelp: "As it appears at checkout, e.g. Standard, Express, Local pickup. Shopify keeps a carrier's name in front of a renamed option.",

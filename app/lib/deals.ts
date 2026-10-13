@@ -56,7 +56,7 @@ export const DEAL_TYPES: Record<
     title: "Buy X get Y",
     singular: "buy X get Y deal",
     addLabel: "Create buy X get Y",
-    what: "Buy a number of items, get others free or discounted — the classic BOGO.",
+    what: "Buy a number of items, get others free or discounted: the classic BOGO.",
     how: "When the cart has enough “buy” items, the cheapest “get” items are discounted automatically at checkout. Qualifying product pages show the deal.",
     example: "“Buy 2 T-shirts, get 1 free”, or “Buy a camera, get the case 50% off”.",
     defaultName: "Buy 2, get 1 free",
@@ -66,7 +66,7 @@ export const DEAL_TYPES: Record<
     title: "Volume discounts",
     singular: "volume discount",
     addLabel: "Create volume discount",
-    what: "The more they buy from a group of products, the bigger the discount — counted across different products.",
+    what: "The more they buy from a group of products, the bigger the discount, counted across different products.",
     how: "Choose the products or collections and the tiers. Product pages show the tier table; checkout applies the best tier reached.",
     example: "Any 2 posters 10% off, any 3 posters 15% off.",
     defaultName: "Buy more, save more",
@@ -78,7 +78,7 @@ export const DEAL_TYPES: Record<
     addLabel: "Create gift",
     what: "A free gift once the cart reaches an amount (or has a certain product).",
     how: "Shoppers see how far they are from the gift. When they qualify, the gift is added to the cart for free; if they drop below, it's removed.",
-    example: "Free tote bag on orders over $50 — “You're $12 away from your free tote”.",
+    example: "Free tote bag on orders over $50: “You're $12 away from your free tote”.",
     defaultName: "Free gift",
     config: { gift: null, min: 50, onlyWith: null } as GiftConfig,
   },
@@ -86,7 +86,7 @@ export const DEAL_TYPES: Record<
     title: "Upgrades",
     singular: "upgrade",
     addLabel: "Create upgrade",
-    what: "Offer a better option in place of the one chosen — a bigger pack, a larger size, a premium version — with the price difference.",
+    what: "Offer a better option in place of the one chosen (a bigger pack, a larger size, a premium version), with the price difference.",
     how: "On the product page (when that option is selected) and in the cart, shoppers see “Upgrade to … for … more”; one tap swaps it.",
     example: "“Upgrade to the 3-pack for EGP 150 more” when the 1-pack is selected.",
     defaultName: "Upgrade and save",
@@ -153,7 +153,7 @@ export function describeDeal(d: Deal): string {
 /** Problems that stop a save (shown in the editor). */
 export function validateDeal(d: Deal): string[] {
   const p: string[] = [];
-  if (!d.name.trim()) p.push("Give the deal a name — shoppers see it.");
+  if (!d.name.trim()) p.push("Give the deal a name. Shoppers see it.");
   const pct = (n: number, label: string) => (!(n > 0 && n <= 100) ? p.push(`${label} must be between 1 and 100%.`) : 0);
   const target = (t: Target | null, label: string) => {
     if (t && t.type === "products" && !t.products.length) p.push(`${label}: choose at least one product.`);

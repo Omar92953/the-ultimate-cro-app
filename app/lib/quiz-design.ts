@@ -38,7 +38,7 @@ export const DEFAULT_QUIZ: QuizDesign = {
     start: "Start the quiz",
     back: "Back",
     resultsHeading: "Our picks for you",
-    none: "Nothing matched exactly — here are our best sellers.",
+    none: "Nothing matched exactly. Here are our best sellers.",
     add: "Add to cart",
     again: "Take the quiz again",
     progress: "Question {n} of {total}",
@@ -46,7 +46,7 @@ export const DEFAULT_QUIZ: QuizDesign = {
   questions: [
     { id: "q1", text: "Who is it for?", answers: [a("a1", "Me", "for-me"), a("a2", "A gift", "gift"), a("a3", "My home", "home")] },
     { id: "q2", text: "What's your style?", answers: [a("a4", "Classic", "classic"), a("a5", "Bold", "bold"), a("a6", "Minimal", "minimal")] },
-    { id: "q3", text: "Your budget?", answers: [a("a7", "Under 500", "budget"), a("a8", "500 – 1500", "mid"), a("a9", "Treat yourself", "premium")] },
+    { id: "q3", text: "Your budget?", answers: [a("a7", "Under 500", "budget"), a("a8", "500 to 1500", "mid"), a("a9", "Treat yourself", "premium")] },
   ],
   results: { collection: "all", count: 4, saveToCart: true },
   look: { style: "cards", accent: "#121212", onAccent: "#ffffff", card: "#f6f6f6", radius: 12, align: "center" },

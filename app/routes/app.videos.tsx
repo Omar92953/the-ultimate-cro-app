@@ -71,7 +71,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
   useEffect(() => {
     if (save.state !== "idle" || !save.data) return;
     if (save.data.ok) shopify.toast.show("Saved");
-    else shopify.toast.show("Could not save — see the message at the top", { isError: true });
+    else shopify.toast.show("Could not save. See the message at the top", { isError: true });
   }, [save.state, save.data, shopify]);
 
   const inCarousel = new Set(slides.map((s) => s.video?.id));

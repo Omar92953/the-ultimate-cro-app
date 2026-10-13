@@ -27,7 +27,7 @@ export type WishlistDesign = {
 export const DEFAULT_WISHLIST: WishlistDesign = {
   scheme: "",
   where: { product: true, cards: true, floating: true, floatPos: "bl" },
-  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet — tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied" },
+  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied" },
   text: { add: "Add to wishlist", saved: "Saved to wishlist" },
   look: { icon: "heart", color: "#e11d48", bg: "#ffffff", radius: 999 },
   sizes: defaultSizes(WISHLIST_SIZES),

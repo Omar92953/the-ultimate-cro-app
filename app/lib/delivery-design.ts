@@ -36,7 +36,7 @@ export type DeliveryDesign = {
 export const DEFAULT_DELIVERY: DeliveryDesign = {
   scheme: "",
   rules: { cutoff: "14:00", processing: 1, min: 2, max: 4, daysOff: [5], holidays: "", zones: [] },
-  text: { line: "{countdown} {arrives}", countdown: "Order within {time}", arrives: "and get it {dates}", range: "{from} – {to}", hideAfterCutoff: false },
+  text: { line: "{countdown} {arrives}", countdown: "Order within {time}", arrives: "and get it {dates}", range: "{from} to {to}", hideAfterCutoff: false },
   look: { style: "box", icon: "truck", accent: "#1a7f37", bg: "#f3f8f4", radius: 10, countdownBold: true },
   where: { product: true, cart: true },
   sizes: defaultSizes(DELIVERY_SIZES),

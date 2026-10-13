@@ -54,9 +54,9 @@ export type SectionItem = {
 export const PHOTO_FITS = [
   { value: "", label: "Like the section design" },
   { value: "whole", label: "Show the whole photo" },
-  { value: "center", label: "Crop to fill — keep the middle" },
-  { value: "top", label: "Crop to fill — keep the top" },
-  { value: "bottom", label: "Crop to fill — keep the bottom" },
+  { value: "center", label: "Crop to fill, keep the middle" },
+  { value: "top", label: "Crop to fill, keep the top" },
+  { value: "bottom", label: "Crop to fill, keep the bottom" },
 ];
 
 export const SOURCES = [
@@ -141,11 +141,11 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "pending", label: "Waiting for approval", type: "bool", default: false, hidden: true },
     ],
     help: {
-      what: "Reviews and testimonials from your customers — text, photos or videos — with the icon of where they came from (WhatsApp, Instagram, TikTok…).",
+      what: "Reviews and testimonials from your customers (text, photos or videos) with the icon of where they came from (WhatsApp, Instagram, TikTok…).",
       how: "Add reviews here, choose how the section looks in “Design”, then place the “Customer reviews” section in the theme editor.",
-      example: "A WhatsApp screenshot from Mariam in Cairo, 5 stars, linked to the Basic tee — shown on the home page and on the tee's page.",
+      example: "A WhatsApp screenshot from Mariam in Cairo, 5 stars, linked to the Basic tee, shown on the home page and on the tee's page.",
     },
-    empty: "No reviews yet. Add your first one — a WhatsApp message or an Instagram comment works great.",
+    empty: "No reviews yet. Add your first one. A WhatsApp message or an Instagram comment works great.",
   },
   faq: {
     type: "$app:cro_faq",
@@ -190,11 +190,11 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "link", label: "Link", type: "url", placeholder: "https://…", details: "Optional, e.g. the article that mentioned you." },
     ],
     help: {
-      what: "A strip of logos or short texts — press that featured you, partners, or lines like “Free delivery” — that scrolls endlessly or sits in a grid.",
+      what: "A strip of logos or short texts (press that featured you, partners, or lines like “Free delivery”) that scrolls endlessly or sits in a grid.",
       how: "Upload logos here, choose speed, size and grey-until-hover in “Design”, then add the “Scrolling logos and text” section in the theme editor.",
       example: "“As seen in” with five magazine logos scrolling slowly under the hero image.",
     },
-    empty: "No logos yet. Upload a few — magazines, partners or brands you work with.",
+    empty: "No logos yet. Upload a few: magazines, partners or brands you work with.",
   },
   announcements: {
     type: "$app:cro_announce",

@@ -64,7 +64,7 @@ export default function SectionItemEditor() {
       // A fresh "new" URL reloads a blank form for the next one.
       navigate(fetcher.data.next === "another" ? `/app/sections/${kind}/new?n=${Date.now()}` : `/app/sections/${kind}`);
     } else if (fetcher.data.error) {
-      shopify.toast.show("Not saved — see the message at the top", { isError: true });
+      shopify.toast.show("Not saved. See the message at the top", { isError: true });
     }
   }, [fetcher.state, fetcher.data, shopify, navigate, kind, cfg.singular]);
 

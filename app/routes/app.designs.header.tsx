@@ -74,7 +74,7 @@ export default function HeaderDesigner() {
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Header saved — live on your store" : "Header saved");
+    else if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Header saved and live on your store" : "Header saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
 

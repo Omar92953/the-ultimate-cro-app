@@ -27,7 +27,7 @@ export const POST_PURCHASE_METAFIELD = { namespace: "cro_toolbox", key: "post_pu
 
 export const DEFAULT_POST_PURCHASE: PostPurchaseConfig = {
   on: false,
-  heading: "Wait — add this to your order",
+  heading: "Wait, add this to your order",
   text: "A one-time offer for you, shipped with your order. No need to enter your details again.",
   pct: 15,
   min: 0,
@@ -71,7 +71,7 @@ export function offerChanges(c: PostPurchaseConfig) {
       type: "add_variant" as const,
       variantId: numericId(c.product.variantId),
       quantity: 1,
-      ...(c.pct > 0 ? { discount: { value: c.pct, valueType: "percentage" as const, title: `${c.pct}% off — after-purchase offer` } } : {}),
+      ...(c.pct > 0 ? { discount: { value: c.pct, valueType: "percentage" as const, title: `${c.pct}% off, after-purchase offer` } } : {}),
     },
   ];
 }
