@@ -7,7 +7,7 @@ import type { MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import styles from "./_index/styles.module.css";
 
-export const meta: MetaFunction = () => [{ title: "Privacy policy — CRO Toolbox" }];
+export const meta: MetaFunction = () => [{ title: "Privacy policy | CRO Toolbox" }];
 
 export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 11, 2026" });
 
@@ -29,7 +29,7 @@ const SECTIONS: [string, string[]][] = [
   [
     "Information about your customers",
     [
-      "Orders: the app reads orders from the last 60 days to show which sales came from its widgets (Results), to find products that are often bought together, to show recent purchases in sales pop-ups (product, time and, only if you turn it on, the shipping city — never names) and to let shoppers look up their own order by order number and email on your Track order and Returns pages. Order data is read from Shopify when needed and isn't copied to our servers, except as described below.",
+      "Orders: the app reads orders from the last 60 days to show which sales came from its widgets (Results), to find products that are often bought together, to show recent purchases in sales pop-ups (product, time and, only if you turn it on, the shipping city, never names) and to let shoppers look up their own order by order number and email on your Track order and Returns pages. Order data is read from Shopify when needed and isn't copied to our servers, except as described below.",
       "Back-in-stock requests: when a shopper asks to be told when a product is back, we store their email address and the product they want, so you can see and export the list in the app.",
       "Return requests: when a shopper asks for a return, we store the order number, their email, the items, the reason and any note, so you can handle the request in the app.",
       "Reviews written on your store: the name, text, rating and location the shopper enters are saved in your Shopify store for you to approve. No email address is collected.",
@@ -46,7 +46,7 @@ const SECTIONS: [string, string[]][] = [
     "How long we keep it and how it's deleted",
     [
       "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock and return requests and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
-      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store — your access token, back-in-stock requests and return requests — which we do.",
+      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests and return requests), which we do.",
     ],
   ],
   [

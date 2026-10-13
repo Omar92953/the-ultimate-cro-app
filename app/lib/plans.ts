@@ -119,7 +119,7 @@ export const PLANS: Record<PlanKey, Plan> = {
       "Unlimited payment rules, delivery rules and order limits",
       "Results for every offer and every bundle",
       "Holdout test: measure what the app really adds",
-      "Request any feature — we build it for you",
+      "Request any feature and we build it for you",
       "Email support",
     ],
   },

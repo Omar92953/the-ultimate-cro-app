@@ -57,7 +57,7 @@ export const FEATURES = {
   // Cart
   cart_tools: { title: "Cart drawer", area: "cart", about: "A slide-out cart with Shop Pay / Apple Pay buttons, the best discount applied, and a shareable cart link.", tabs: [design("/app/designs/cart-tools")] },
   cart_offers: { title: "Offers in your theme's cart", area: "cart", about: "Cross-sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
-  cart_extras: { title: "Gift note & delivery date", area: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart — all on the order.", tabs: [design("/app/designs/cart-extras")] },
+  cart_extras: { title: "Gift note & delivery date", area: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "storefront", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
   product_reviews: { title: "Product page reviews", area: "storefront", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
@@ -72,7 +72,7 @@ export const FEATURES = {
   // Storefront · product page
   sticky_atc: { title: "Sticky add to cart", area: "storefront", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   quick_add: { title: "Quick add to cart", area: "storefront", group: "product", about: "A button on every product card; sizes open a small picker.", tabs: [design("/app/designs/quick-add")] },
-  delivery: { title: "Delivery estimate", area: "storefront", group: "product", about: "“Order within 2h 15m and get it Thu – Sat” on product pages and the cart.", tabs: [design("/app/designs/delivery")] },
+  delivery: { title: "Delivery estimate", area: "storefront", group: "product", about: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", tabs: [design("/app/designs/delivery")] },
   stock: { title: "Back in stock & pre-order", area: "storefront", group: "product", about: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
   wishlist: { title: "Wishlist", area: "storefront", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
   // Storefront · sections

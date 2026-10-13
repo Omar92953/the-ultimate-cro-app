@@ -52,7 +52,7 @@ export default function WishlistDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Wishlist saved — live on your store" : "Wishlist saved");
+    if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Wishlist saved and live on your store" : "Wishlist saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
 
@@ -76,7 +76,7 @@ export default function WishlistDesigner() {
             Shoppers save products with a heart and find them on your wishlist page. The list is kept in their browser; “Share my wishlist” gives a link that opens it on any device. For the page: create a page (e.g. “Wishlist”, address {cfg.page.url}) and add the “Order &amp; wishlist pages” block to it with Page: Wishlist.
           </s-text>
           {data.embedOn === false ? (
-            <s-banner tone="warning" heading="Turn on the Conversion boosters embed — the wishlist runs from it">
+            <s-banner tone="warning" heading="Turn on the Conversion boosters embed. The wishlist runs from it">
               <s-link href={data.embedLink} target="_top">
                 Open App embeds
               </s-link>

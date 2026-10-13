@@ -89,7 +89,7 @@ export const DEFAULT_COUNTDOWN_BAR: CountdownBarConfig = {
   scheme: "",
   on: true,
   kind: "bar",
-  section: { heading: "Hurry — the sale ends soon", sub: "Up to 30% off. Don't miss out.", layout: "stack", headingSize: 30, paddingTop: 36, paddingBottom: 36 },
+  section: { heading: "Hurry, the sale ends soon", sub: "Up to 30% off. Don't miss out.", layout: "stack", headingSize: 30, paddingTop: 36, paddingBottom: 36 },
   timer: {
     mode: "fixed",
     end: "",

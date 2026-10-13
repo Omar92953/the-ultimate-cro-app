@@ -23,7 +23,7 @@
                     {%- for l in ml.links -%}<li><a href="{{ l.url }}">{{ l.title | escape }}</a></li>{%- endfor -%}
                   </ul>
                 {%- elsif request.design_mode -%}
-                  <p class="ucs-ft__text">Menu “{{ col.m | escape }}” not found — create it in Online Store → Navigation.</p>
+                  <p class="ucs-ft__text">Menu “{{ col.m | escape }}” not found. Create it in Online Store → Navigation.</p>
                 {%- endif -%}
               {%- when 'text' -%}
                 {%- if col.x != blank -%}<p class="ucs-ft__text">{{ col.x | escape | newline_to_br }}</p>{%- endif -%}

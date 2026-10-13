@@ -65,7 +65,7 @@ export default function ReturnRequests() {
         <Explainer
           what="A Returns page for your store: shoppers find their order with its number and email, choose the items and a reason."
           how="Requests arrive here. Open the order in Shopify to arrange the return or refund, then mark the request approved, declined or done, and email the shopper the next steps."
-          example="Order #1042: 1 × Linen shirt (Medium), “Wrong size” — you approve it and send the return address."
+          example="Order #1042: 1 × Linen shirt (Medium), “Wrong size”. You approve it and send the return address."
         />
         {fresh ? <s-banner tone="warning" heading={`${fresh} new return request${fresh === 1 ? "" : "s"}`} /> : null}
         <s-section heading={data.returns.length ? `${data.returns.length} request${data.returns.length === 1 ? "" : "s"}` : "No return requests yet"}>
@@ -99,7 +99,7 @@ export default function ReturnRequests() {
                       </s-stack>
                     </s-stack>
                     <s-text>
-                      {r.items.map((i) => `${i.quantity} × ${i.title}${i.variant ? ` (${i.variant})` : ""}`).join(", ")} — <b>{r.reason}</b>
+                      {r.items.map((i) => `${i.quantity} × ${i.title}${i.variant ? ` (${i.variant})` : ""}`).join(", ")}: <b>{r.reason}</b>
                     </s-text>
                     {r.note ? <s-text color="subdued">“{r.note}”</s-text> : null}
                   </s-stack>

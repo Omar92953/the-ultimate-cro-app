@@ -140,7 +140,7 @@ export default function Boosters() {
             <NumberField label="Time between them (seconds)" min={5} max={600} value={cfg.salesPop.gap} onValue={(v) => set("salesPop", { gap: v })} />
             <NumberField label="Most per visit" min={1} max={20} value={cfg.salesPop.perVisit} onValue={(v) => set("salesPop", { perVisit: v })} />
             <NumberField label="Only orders from the last (days)" min={1} max={60} value={cfg.salesPop.maxAgeDays} onValue={(v) => set("salesPop", { maxAgeDays: v })} />
-            <Checkbox label="Show the buyer's city" details="Uses the shipping city only — never names. Needs Shopify's approval for customer address data." checked={cfg.salesPop.showCity} onValue={(v) => set("salesPop", { showCity: v })} />
+            <Checkbox label="Show the buyer's city" details="Uses the shipping city only, never names. Needs Shopify's approval for customer address data." checked={cfg.salesPop.showCity} onValue={(v) => set("salesPop", { showCity: v })} />
             <Select label="Devices" value={cfg.salesPop.devices} onValue={(v) => set("salesPop", { devices: v as "all" })} options={DEVICES} />
             <s-stack direction="inline" gap="small-200" alignItems="center">
               <Button onClick={() => fetcher.submit({ intent: "refresh" }, { method: "post" })} loading={busy && fetcher.formData?.get("intent") === "refresh"}>

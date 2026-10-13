@@ -63,7 +63,7 @@ export default function ImageCarouselDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else if (fetcher.data.missing) shopify.toast.show(`Saved. ${fetcher.data.missing} image(s) are still processing — save again in a minute.`);
+    else if (fetcher.data.missing) shopify.toast.show(`Saved. ${fetcher.data.missing} image(s) are still processing. Save again in a minute.`);
     else shopify.toast.show("Saved and live");
   }, [fetcher.state, fetcher.data, shopify]);
 

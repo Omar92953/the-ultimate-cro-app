@@ -54,7 +54,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!(rating >= 1 && rating <= 5)) return json({ ok: false, error: "Please choose 1 to 5 stars." }, 400);
   if (text.length < 3) return json({ ok: false, error: "Please write a few words." }, 400);
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
-  if (tooMany(`${session.shop}|${ip}`)) return json({ ok: false, error: "Thanks — please wait a few minutes before sending another review." }, 429);
+  if (tooMany(`${session.shop}|${ip}`)) return json({ ok: false, error: "Thanks! Please wait a few minutes before sending another review." }, 429);
 
   const today = new Date().toISOString().slice(0, 10);
   const item: SectionItem = {

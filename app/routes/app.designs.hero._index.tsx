@@ -52,7 +52,7 @@ export default function HeroBanners() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
     else if (fetcher.data.intent === "duplicate" && fetcher.data.handle) navigate(`/app/designs/hero/${fetcher.data.handle}`);
-    else shopify.toast.show(fetcher.data.intent === "delete" ? "Banner deleted" : "Order saved — the first banner shows when none is picked");
+    else shopify.toast.show(fetcher.data.intent === "delete" ? "Banner deleted" : "Order saved. The first banner shows when none is picked");
   }, [fetcher.state, fetcher.data, shopify, navigate]);
 
   const act = (intent: string, handle: string) => fetcher.submit({ intent, handle }, { method: "post" });
@@ -81,8 +81,8 @@ export default function HeroBanners() {
       <s-stack gap="base">
         <Explainer
           what="Big banners at the top of a page, with a separate image for phones so each device gets a picture that fits."
-          how="Make banners here — images, text, buttons and look. Then add the “Hero image” section in the theme editor and pick a banner; with none picked it shows your first banner."
-          example="A wide summer photo on desktop and a tall crop of it on phones, “Summer sale — up to 40% off”, with a Shop now button."
+          how="Make banners here: images, text, buttons and look. Then add the “Hero image” section in the theme editor and pick a banner; with none picked it shows your first banner."
+          example="A wide summer photo on desktop and a tall crop of it on phones, “Summer sale: up to 40% off”, with a Shop now button."
         />
         {data.error ? (
           <s-banner tone="critical" heading="Your banners could not be loaded">
@@ -144,7 +144,7 @@ export default function HeroBanners() {
             />
           ) : (
             <s-stack gap="base" alignItems="start">
-              <s-paragraph>No banners yet. Start with your main one — a wide image for desktop and a tall one for phones.</s-paragraph>
+              <s-paragraph>No banners yet. Start with your main one: a wide image for desktop and a tall one for phones.</s-paragraph>
               <Button variant="primary" href="/app/designs/hero/new" icon="plus">
                 Add banner
               </Button>

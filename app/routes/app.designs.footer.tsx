@@ -86,7 +86,7 @@ export default function FooterDesigner() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
     else if (fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
-    else shopify.toast.show(data.inTheme ? "Footer saved — live on your store" : "Footer saved");
+    else shopify.toast.show(data.inTheme ? "Footer saved and live on your store" : "Footer saved");
   }, [fetcher.state, fetcher.data, shopify, data.inTheme]);
 
   const part =

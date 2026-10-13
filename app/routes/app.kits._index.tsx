@@ -24,10 +24,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 const range = (prices: string[]) => {
   const n = prices.map(Number).filter((x) => Number.isFinite(x));
-  if (!n.length) return "—";
+  if (!n.length) return "None";
   const lo = Math.min(...n);
   const hi = Math.max(...n);
-  return lo === hi ? lo.toFixed(2) : `${lo.toFixed(2)} – ${hi.toFixed(2)}`;
+  return lo === hi ? lo.toFixed(2) : `${lo.toFixed(2)} to ${hi.toFixed(2)}`;
 };
 
 export default function KitList() {
@@ -66,7 +66,7 @@ export default function KitList() {
                       <s-link href={`/app/kits/${productNumber(k.productId)}`}>{k.title}</s-link>
                     </s-table-cell>
                     <s-table-cell>
-                      <s-badge tone={k.status === "ACTIVE" ? "success" : "warning"}>{k.status === "ACTIVE" ? "Active" : k.status === "DRAFT" ? "Draft: publish it in Products" : (k.status ?? "—")}</s-badge>
+                      <s-badge tone={k.status === "ACTIVE" ? "success" : "warning"}>{k.status === "ACTIVE" ? "Active" : k.status === "DRAFT" ? "Draft: publish it in Products" : (k.status ?? "Unknown")}</s-badge>
                     </s-table-cell>
                     <s-table-cell>{k.items.map((i) => (i.qty > 1 ? `${i.qty}× ` : "") + i.title).join(" + ")}</s-table-cell>
                     <s-table-cell>{range(k.variants.map((v) => v.price))}</s-table-cell>

@@ -29,7 +29,7 @@ export function newModule(type: ModuleType): ThankYouModule {
     case "code":
       return { id, type, on: true, heading: "A thank-you gift", text: "Use this code for 10% off your next order.", code: "" };
     case "note":
-      return { id, type, on: true, heading: "What happens next", text: "We'll pack your order within 1–2 days and send you the tracking link.", tone: "info" };
+      return { id, type, on: true, heading: "What happens next", text: "We'll pack your order within 1 to 2 days and send you the tracking link.", tone: "info" };
     case "social":
       return { id, type, on: true, heading: "Follow us", text: "New drops and offers first.", links: [{ label: "Instagram", url: "" }] };
     case "products":

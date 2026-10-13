@@ -69,7 +69,7 @@ export default function KitEditor() {
       shopify.toast.show("Saved");
       if (isNew && fetcher.data.id) navigate(`/app/kits/${fetcher.data.id}`, { replace: true });
     } else if (fetcher.data.error) {
-      shopify.toast.show("Could not save — see the message at the top", { isError: true });
+      shopify.toast.show("Could not save. See the message at the top", { isError: true });
     }
   }, [fetcher.state, fetcher.data, shopify, isNew, navigate]);
 
@@ -190,9 +190,9 @@ export default function KitEditor() {
               <s-table-body>
                 {row.variants.slice(0, 50).map((v) => (
                   <s-table-row key={v.title}>
-                    <s-table-cell>{v.title === "Default Title" ? "—" : v.title}</s-table-cell>
+                    <s-table-cell>{v.title === "Default Title" ? "Default" : v.title}</s-table-cell>
                     <s-table-cell>{v.price}</s-table-cell>
-                    <s-table-cell>{v.compareAtPrice ?? "—"}</s-table-cell>
+                    <s-table-cell>{v.compareAtPrice ?? "None"}</s-table-cell>
                   </s-table-row>
                 ))}
               </s-table-body>

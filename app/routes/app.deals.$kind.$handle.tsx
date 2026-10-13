@@ -122,7 +122,7 @@ export default function DealEditor() {
       shopify.toast.show("Saved");
       if (isNew && fetcher.data.handle) navigate(`/app/deals/${kind}/${fetcher.data.handle}`, { replace: true });
     } else if (fetcher.data.error) {
-      shopify.toast.show("Could not save — see the message at the top", { isError: true });
+      shopify.toast.show("Could not save. See the message at the top", { isError: true });
     }
   }, [fetcher.state, fetcher.data, shopify, isNew, kind, navigate]);
 
@@ -144,7 +144,7 @@ export default function DealEditor() {
     const v = selected?.[0];
     if (!v?.id) return;
     const product = v.product ?? {};
-    const vt = v.title && v.title !== "Default Title" ? ` — ${v.title}` : "";
+    const vt = v.title && v.title !== "Default Title" ? ` (${v.title})` : "";
     setConfig({ [which]: { variantId: v.id, productId: product.id ?? "", handle: product.handle ?? "", title: `${product.title ?? v.displayName ?? ""}${vt}`, image: v.image?.originalSrc ?? product.images?.[0]?.originalSrc ?? null } });
   }
 
@@ -159,7 +159,7 @@ export default function DealEditor() {
     if (!p) return;
     const v = p.variants?.[0];
     if (!v?.id) return;
-    const variantTitle = v.title && v.title !== "Default Title" ? ` — ${v.title}` : "";
+    const variantTitle = v.title && v.title !== "Default Title" ? ` (${v.title})` : "";
     setConfig({
       gift: { variantId: v.id, title: `${p.title}${variantTitle}`, image: v.image?.originalSrc ?? p.images?.[0]?.originalSrc ?? null, handle: p.handle ?? "" },
     });
@@ -348,7 +348,7 @@ export default function DealEditor() {
                   <Button onClick={() => pickVariant("from")}>{(config as UpgradeConfig).from ? "Change" : "Choose option"}</Button>
                   <s-text>{(config as UpgradeConfig).from?.title ?? "Nothing chosen yet"}</s-text>
                 </s-stack>
-                <s-text color="subdued">The product option shoppers start with, e.g. “Coffee beans — 250 g”.</s-text>
+                <s-text color="subdued">The product option shoppers start with, e.g. “Coffee beans, 250 g”.</s-text>
               </s-stack>
             </s-section>
             <s-section heading="2. Offer them">
@@ -357,7 +357,7 @@ export default function DealEditor() {
                   <Button onClick={() => pickVariant("to")}>{(config as UpgradeConfig).to ? "Change" : "Choose option"}</Button>
                   <s-text>{(config as UpgradeConfig).to?.title ?? "Nothing chosen yet"}</s-text>
                 </s-stack>
-                <s-text color="subdued">The better option, e.g. “Coffee beans — 1 kg”. It can be another product.</s-text>
+                <s-text color="subdued">The better option, e.g. “Coffee beans, 1 kg”. It can be another product.</s-text>
               </s-stack>
             </s-section>
             <s-section heading="3. Words">

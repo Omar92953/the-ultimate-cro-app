@@ -140,7 +140,7 @@ export const PRESETS: { key: PresetKey; title: string; text: string; patch: Patc
   {
     key: "bold",
     title: "Bold dark",
-    text: "A dark bar with a bright button — strong and simple.",
+    text: "A dark bar with a bright button. Strong and simple.",
     patch: {
       layout: { logo: "left", menu: "center", width: "full", height: 68, float: false, margin: 0, radius: 0, sticky: "always", overlay: "none" },
       menu: { dropdown: "mega", pill: false, upper: false, size: 15, weight: 600, gap: 26 },

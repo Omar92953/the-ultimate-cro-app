@@ -89,9 +89,9 @@ export default function AfterPurchase() {
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setC(JSON.parse(fetcher.data?.ok ? sent : JSON.stringify(data.config)))} />
       <s-stack gap="base">
         <Explainer
-          what="Right after paying, the shopper sees one more product at a discount and adds it to the order with one click — no card details again."
+          what="Right after paying, the shopper sees one more product at a discount and adds it to the order with one click, without entering card details again."
           how="Pick the product and the discount here. Shopify shows the offer between payment and the thank-you page, and adds it to the same order and shipment. Not shown when the product is already in the order."
-          example="“Wait — add this to your order: Travel case, EGP 300 → EGP 255 (15% off).”"
+          example="“Wait, add this to your order: Travel case, EGP 300 → EGP 255 (15% off).”"
         />
         <s-banner tone="info" heading="Before it shows to shoppers">
           In Settings → Checkout, under Post-purchase page, choose CRO Toolbox. Shopify shows after-purchase offers for card and Shop Pay payments; publishing an app with this feature needs Shopify’s approval for post-purchase extensions.{" "}
@@ -146,7 +146,7 @@ export default function AfterPurchase() {
               <s-stack gap="base">
                 <TextField label="Heading" value={c.heading} maxLength={120} onValue={(heading) => set({ heading })} />
                 <TextArea label="Text" rows={2} maxLength={300} value={c.text} onValue={(text) => set({ text })} />
-                <s-text color="subdued">The product and discount are added after your text (“Get 15% off Travel case.”). The buttons always read “Pay now” and “Decline this offer”, and the shopper sees the price, shipping and taxes before paying — Shopify’s rules for after-purchase offers.</s-text>
+                <s-text color="subdued">The product and discount are added after your text (“Get 15% off Travel case.”). The buttons always read “Pay now” and “Decline this offer”, and the shopper sees the price, shipping and taxes before paying. Those are Shopify’s rules for after-purchase offers.</s-text>
               </s-stack>
             </s-section>
           </s-stack>
@@ -165,7 +165,7 @@ export default function AfterPurchase() {
                   <b style={{ fontSize: 15 }}>{c.product?.title ?? "Your product"}</b>
                   <span>
                     {c.pct > 0 && c.product ? <s style={{ color: "#707070", marginRight: 6 }}>{money(c.product.price)}</s> : null}
-                    <b style={{ color: "#b42318" }}>{c.product ? money(offerPrice) : "—"}</b>
+                    <b style={{ color: "#b42318" }}>{c.product ? money(offerPrice) : "Pick a product"}</b>
                   </span>
                   <span style={{ display: "block", padding: "9px 0", borderRadius: 6, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now{c.product ? ` · ${money(offerPrice)}` : ""}</span>
                   <span style={{ textAlign: "center", color: "#1773b0" }}>Decline this offer</span>

@@ -32,14 +32,14 @@ export const DEFAULT_STOCK: StockDesign = {
   scheme: "",
   notify: {
     on: true,
-    heading: "Sold out — get an email when it's back",
+    heading: "Sold out? Get an email when it's back",
     text: "Leave your email and we'll let you know as soon as it's in stock.",
     placeholder: "Your email",
     button: "Notify me",
     thanks: "Thanks! We'll email you when it's back in stock.",
     privacy: "We only use your email for this message.",
   },
-  preorder: { on: true, button: "Pre-order", note: "Pre-order now — ships in 2–3 weeks.", label: "Pre-order", value: "Ships in 2–3 weeks" },
+  preorder: { on: true, button: "Pre-order", note: "Pre-order now. Ships in 2 to 3 weeks.", label: "Pre-order", value: "Ships in 2 to 3 weeks" },
   look: { style: "box", accent: "#121212", onAccent: "#ffffff", bg: "#f6f6f6", radius: 12 },
   sizes: defaultSizes(STOCK_SIZES),
 };

@@ -71,7 +71,7 @@ export function MediaPicker(props: {
           <s-thumbnail src={thumb} alt={v.title} size="large" />
           <s-stack gap="small-100">
             <s-text>{v.kind === "video" ? "Video" : "Image"}: {v.title}</s-text>
-            {!v.url && !localPreview ? <s-text color="subdued">{"Shopify is still processing it — that's fine, you can save now."}</s-text> : null}
+            {!v.url && !localPreview ? <s-text color="subdued">{"Shopify is still processing it. That's fine, you can save now."}</s-text> : null}
             <s-stack direction="inline" gap="small-200">
               <Button variant="tertiary" onClick={loadFiles}>
                 Change
@@ -128,7 +128,7 @@ export function MediaPicker(props: {
             ))}
           </s-grid>
         ) : (
-          <s-text color="subdued">No files yet — upload one above.</s-text>
+          <s-text color="subdued">No files yet. Upload one above.</s-text>
         )
       ) : null}
       {props.details ? <s-text color="subdued">{props.details}</s-text> : null}
