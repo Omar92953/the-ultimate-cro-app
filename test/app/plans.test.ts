@@ -3,7 +3,9 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AREAS, FEATURES, areaForPath, featuresForPath, featuresIn, type FeatureKey } from "../../app/lib/catalog";
+import { AREAS, FEATURES, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
+import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../../app/lib/offer-types";
+import { DEAL_KINDS } from "../../app/lib/deals";
 import {
   EXTRA_PLAN,
   GUARANTEE,
@@ -110,6 +112,23 @@ test("pages map to features, and locked pages say which plan they need", () => {
   // Not features: never locked.
   assert.equal(pageLock("free", "/app"), null);
   assert.equal(pageLock("free", "/app/results"), null);
+});
+
+test("offers sit in four groups, and every offer page shows its group's tabs", () => {
+  assert.deepEqual(OFFER_GROUPS.map((g) => g.key), ["upsell", "cross_sell", "bundles", "discounts"]);
+  // Every offer type and every deal kind lands in a group.
+  for (const k of OFFER_TYPE_KEYS) assert.ok(OFFER_GROUPS.some((g) => g.key === OFFER_TYPES[k].group), k);
+  for (const k of DEAL_KINDS) assert.ok(offerGroupOf(dealFeature(k)), k);
+  assert.deepEqual(featuresForPath("/app/deals/bogo/new"), ["discounts"]);
+  assert.deepEqual(featuresForPath("/app/deals/upgrade"), ["upsell"]);
+  assert.deepEqual(featuresForPath("/app/deals/fixed"), ["bundles"]);
+  assert.equal(offerGroupOf("addons")?.key, "upsell");
+  assert.equal(offerGroupOf("post_purchase")?.key, "upsell");
+  assert.equal(areaForPath("/app/checkout/after-purchase"), "offers");
+  // The after-purchase offer is still listed on the Checkout hub.
+  assert.ok(featuresIn("checkout").includes("post_purchase"));
+  // Add-ons stay a Starter feature inside the Upsell group.
+  assert.deepEqual(pageLock("free", "/app/designs/add-ons"), { kind: "feature", feature: "addons", needs: "starter" });
 });
 
 test("designs 2–5 need a plan with more designs per section", () => {

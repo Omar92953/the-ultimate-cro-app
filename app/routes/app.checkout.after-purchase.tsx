@@ -1,5 +1,5 @@
 /**
- * Checkout → After-purchase offer: one product at a discount, offered right after payment and added
+ * Offers → Upsell → After purchase: one product at a discount, offered right after payment and added
  * to the paid order in one click (cro-post-purchase extension; see app/lib/post-purchase.ts).
  */
 import { useEffect, useState } from "react";
@@ -11,7 +11,8 @@ import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getPostPurchase, refreshPostPurchaseUrl, savePostPurchase } from "../lib/post-purchase.server";
 import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
-import { CategoryCrumb } from "../components/FeatureNav";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { checkLimit } from "../lib/billing.server";
 import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
@@ -24,11 +25,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     const { shopId } = await getPostPurchase(admin);
-    const config = await savePostPurchase(admin, shopId, JSON.parse(String(form.get("config") ?? "{}")));
+    const next = JSON.parse(String(form.get("config") ?? "{}")) as PostPurchaseConfig;
+    // Switched on, it fills an offer slot like any other offer (plans.ts offerSlots).
+    const over = await checkLimit(admin, session.shop, "offerSlots", { active: !!next.on, id: "post_purchase" });
+    if (over) return { ok: false as const, error: over.error, config: null };
+    const config = await savePostPurchase(admin, shopId, next);
     return { ok: true as const, error: null, config };
   } catch (e) {
     return { ok: false as const, error: errorMessage(e), config: null };
@@ -88,6 +93,7 @@ export default function AfterPurchase() {
       <CategoryCrumb feature="post_purchase" />
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setC(JSON.parse(fetcher.data?.ok ? sent : JSON.stringify(data.config)))} />
       <s-stack gap="base">
+        <FeatureTabs feature="post_purchase" />
         <Explainer
           what="Right after paying, the shopper sees one more product at a discount and adds it to the order with one click, without entering card details again."
           how="Pick the product and the discount here. Shopify shows the offer between payment and the thank-you page, and adds it to the same order and shipment. Not shown when the product is already in the order."

@@ -9,12 +9,12 @@
  *
  * Shared by client and server.
  */
-import { DEAL_KINDS, DEAL_TYPES } from "./deals";
+import { DEAL_TYPES, type DealKind } from "./deals";
 
 export type AreaKey = "offers" | "storefront" | "cart" | "checkout";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
-  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value: upsells, cross-sells, bundles, deals and add-ons." },
+  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, cross-sells, bundles and discounts." },
   { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: reviews, bars, timers, product-page tools, sections and pages." },
   { key: "cart", title: "Cart", href: "/app/cart", intro: "The cart drawer and everything in it: offers, the free-shipping bar, gift notes and checkout buttons." },
   { key: "checkout", title: "Checkout", href: "/app/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
@@ -41,16 +41,29 @@ export type FeatureTab = { label: string; href: string };
 export type Feature = { title: string; area: AreaKey; group?: GroupKey; also?: AreaKey[]; about: string; tabs: FeatureTab[] };
 
 const design = (href: string): FeatureTab => ({ label: "Design", href });
+/** The deal kinds the Discounts feature holds (fixed bundles sit in Bundles, upgrades in Upsell). */
+const DISCOUNT_KINDS: DealKind[] = ["bogo", "volume", "gift"];
 
 export const FEATURES = {
   // Offers
-  upsell: { title: "Upsell offers", area: "offers", about: "“Buy 2, save 10%” and bigger-size offers on product pages.", tabs: [{ label: "Offers", href: "/app/offers/upsell" }, design("/app/designs/upsell")] },
+  upsell: {
+    title: "Upsell offers",
+    area: "offers",
+    about: "“Buy 2, save 10%”, bigger sizes and upgrades to a better option.",
+    tabs: [{ label: "Quantity & sizes", href: "/app/offers/upsell" }, { label: DEAL_TYPES.upgrade.title, href: "/app/deals/upgrade" }, design("/app/designs/upsell")],
+  },
   cross_sell: { title: "Cross-sell offers", area: "offers", about: "“Pairs well with” products shoppers tick and add in one click.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
   bundles: {
     title: "Bundles",
     area: "offers",
-    about: "Mix-and-match bundles, bundles sold as their own product, fixed bundles, buy X get Y, volume, gift and upgrade deals.",
-    tabs: [{ label: "Mix & match", href: "/app/bundles" }, { label: "Bundle products", href: "/app/kits" }, ...DEAL_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })), design("/app/designs/bundles")],
+    about: "Mix-and-match bundles, bundles sold as their own product, and fixed bundles.",
+    tabs: [{ label: "Mix & match", href: "/app/bundles" }, { label: "Bundle products", href: "/app/kits" }, { label: DEAL_TYPES.fixed.title, href: "/app/deals/fixed" }, design("/app/designs/bundles")],
+  },
+  discounts: {
+    title: "Discounts",
+    area: "offers",
+    about: "Buy X get Y, volume discounts and a gift with purchase, applied at checkout.",
+    tabs: DISCOUNT_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })),
   },
   addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [design("/app/designs/add-ons")] },
   personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [design("/app/designs/personalize")] },
@@ -93,7 +106,7 @@ export const FEATURES = {
   delivery_rules: { title: "Delivery rules", area: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },
   order_limits: { title: "Order limits", area: "checkout", about: "Minimum and maximum order amounts and quantities at checkout.", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
   thank_you: { title: "Thank-you page", area: "checkout", about: "Extra modules on the thank-you page after checkout.", tabs: [{ label: "Modules", href: "/app/checkout/thank-you" }] },
-  post_purchase: { title: "After-purchase offer", area: "checkout", about: "A one-click offer shoppers can add right after paying.", tabs: [{ label: "Offer", href: "/app/checkout/after-purchase" }] },
+  post_purchase: { title: "After-purchase offer", area: "offers", also: ["checkout"], about: "A one-click offer shoppers can add right after paying.", tabs: [{ label: "Offer", href: "/app/checkout/after-purchase" }] },
 } satisfies Record<string, Feature>;
 
 export type FeatureKey = keyof typeof FEATURES;
@@ -103,6 +116,35 @@ export const feature = (key: FeatureKey): Feature => FEATURES[key];
 export const featureHref = (key: FeatureKey) => FEATURES[key].tabs[0].href;
 /** The features a hub lists: its own, plus those shown there too (`also`). */
 export const featuresIn = (a: AreaKey) => FEATURE_KEYS.filter((k) => feature(k).area === a || (feature(k).also ?? []).includes(a));
+
+/**
+ * The Offers hub's four groups. Each group's pages show its tabs (FeatureNav), so add-ons,
+ * personalization and the after-purchase offer sit with the upsells they belong to.
+ */
+export type OfferGroupKey = "upsell" | "cross_sell" | "bundles" | "discounts";
+export type OfferGroup = { key: OfferGroupKey; title: string; about: string; features: FeatureKey[]; tabs: FeatureTab[] };
+export const OFFER_GROUPS: OfferGroup[] = [
+  {
+    key: "upsell",
+    title: "Upsell",
+    about: "Sell more of the same: quantity breaks, bigger sizes, upgrades, add-ons and a one-click offer after payment.",
+    features: ["upsell", "addons", "personalize", "post_purchase"],
+    tabs: [
+      ...FEATURES.upsell.tabs.filter((t) => t.label !== "Design"),
+      { label: "Add-ons", href: featureHref("addons") },
+      { label: "Personalization", href: featureHref("personalize") },
+      { label: "After purchase", href: featureHref("post_purchase") },
+      design("/app/designs/upsell"),
+    ],
+  },
+  { key: "cross_sell", title: "Cross-sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
+  { key: "bundles", title: "Bundles", about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed bundles.", features: ["bundles"], tabs: FEATURES.bundles.tabs },
+  { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },
+];
+/** Which feature a deal kind's pages belong to. */
+export const dealFeature = (kind: DealKind): FeatureKey => (kind === "fixed" ? "bundles" : kind === "upgrade" ? "upsell" : "discounts");
+/** The offer group a feature belongs to, if any. */
+export const offerGroupOf = (key: FeatureKey) => OFFER_GROUPS.find((g) => g.features.includes(key)) ?? null;
 
 /** Which feature a Store-sections list or an offer type belongs to. */
 export const LIST_FEATURE = { reviews: "reviews", faq: "faq", logos: "logos", announcements: "announcements" } as const satisfies Record<string, FeatureKey>;
