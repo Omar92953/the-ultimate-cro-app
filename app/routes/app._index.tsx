@@ -278,21 +278,19 @@ export default function Home() {
         {/* Try next */}
         {data.recommended.length ? (
           <s-section heading="Try next">
-            <ul className={styles.rows}>
+            {/* Each one is a whole clickable tile: title, short line, arrow */}
+            <div className={styles.tiles}>
               {data.recommended.map((k) => (
-                <li key={k} className={styles.row}>
-                  <span className={styles.rowText}>
-                    <Link to={featureHref(k)}>{feature(k).title}</Link>
-                    <span className={styles.stepText}>{feature(k).about}</span>
+                <Link key={k} to={featureHref(k)} className={styles.tile}>
+                  <span className={styles.tileText}>
+                    <span className={styles.tileTitle}>{feature(k).title}</span>
+                    <span className={styles.tileSub}>{feature(k).about}</span>
                   </span>
-                  {canUse(data.plan.key, k) ? (
-                    <Button href={featureHref(k)} variant="tertiary">Set up</Button>
-                  ) : (
-                    <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>
-                  )}
-                </li>
+                  {canUse(data.plan.key, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>}
+                  <span className={styles.tileArrow} aria-hidden="true">›</span>
+                </Link>
               ))}
-            </ul>
+            </div>
           </s-section>
         ) : null}
 
