@@ -146,6 +146,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   upsell: "free",
   cross_sell: "free",
   bundles: "free",
+  discounts: "free",
   addons: "starter",
   personalize: "starter",
   // Cart

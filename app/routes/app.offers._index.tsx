@@ -1,7 +1,7 @@
 /**
- * Offers hub: every offer of every type in one table (lib/offer-types.ts, lib/offers.server.ts),
- * with filters, plus the product-page extras (add-ons, personalization). "Create offer" opens the
- * type picker (/app/offers/new).
+ * Offers hub: the four groups as cards (catalog.ts OFFER_GROUPS), then every offer of every type in
+ * one table (lib/offer-types.ts, lib/offers.server.ts) with filters. "Create offer" opens the type
+ * picker (/app/offers/new).
  */
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
@@ -9,11 +9,13 @@ import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
-import { OFFER_TYPES, OFFER_TYPE_KEYS, type OfferTypeKey } from "../lib/offer-types";
-import { area, feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { FEATURE_PLAN, PLANS, canUse, limitOf, planAbove } from "../lib/plans";
+import type { ReactNode } from "react";
+import { OFFER_TYPES } from "../lib/offer-types";
+import { OFFER_GROUPS, area, type OfferGroupKey } from "../lib/catalog";
+import { PLANS, limitOf, planAbove } from "../lib/plans";
 import { Button, Select, TextField } from "../components/fields";
-import { LinkTiles, Pill } from "../components/ui";
+import { GroupCards, Pill } from "../components/ui";
+import { BundleIcon, CrossSellIcon, DiscountIcon, UpsellIcon } from "../components/icons";
 import { UpgradeButton, usePlan } from "../components/Upgrade";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -42,19 +44,18 @@ function SlotMeter({ used }: { used: number }) {
   );
 }
 
-const EXTRAS: FeatureKey[] = ["addons", "personalize"];
+const ICONS: Record<OfferGroupKey, ReactNode> = { upsell: <UpsellIcon />, cross_sell: <CrossSellIcon />, bundles: <BundleIcon />, discounts: <DiscountIcon /> };
 
 export default function OffersHub() {
   const { offers } = useLoaderData<typeof loader>();
-  const { plan } = usePlan();
-  const [type, setType] = useState<"all" | OfferTypeKey>("all");
+  const [group, setGroup] = useState<"all" | OfferGroupKey>("all");
   const [status, setStatus] = useState<"all" | "on" | "off">("all");
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const shown = offers.filter(
-    (o) => (type === "all" || o.type === type) && (status === "all" || (status === "on") === o.active) && (!q || o.name.toLowerCase().includes(q)),
+    (o) => (group === "all" || OFFER_TYPES[o.type].group === group) && (status === "all" || (status === "on") === o.active) && (!q || o.name.toLowerCase().includes(q)),
   );
-  const types = OFFER_TYPE_KEYS.filter((k) => offers.some((o) => o.type === k));
+  const onIn = (g: OfferGroupKey) => offers.filter((o) => o.active && OFFER_TYPES[o.type].group === g).length;
 
   return (
     <s-page heading="Offers" inlineSize="large">
@@ -65,17 +66,32 @@ export default function OffersHub() {
         <s-text color="subdued">{area("offers").intro}</s-text>
         <SlotMeter used={offers.filter((o) => o.active).length} />
 
-        <s-section padding="none">
+        <GroupCards
+          items={OFFER_GROUPS.map((g) => {
+            const on = onIn(g.key);
+            return {
+              key: g.key,
+              title: g.title,
+              about: g.about,
+              href: g.tabs[0].href,
+              icon: ICONS[g.key],
+              status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
+              chips: g.tabs.filter((t) => t.label !== "Design").map((t) => t.label),
+            };
+          })}
+        />
+
+        <s-section heading="All offers" padding="none">
           {offers.length ? (
             <s-stack gap="none">
               <s-box padding="small-300">
                 <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)" gap="small-200" alignItems="end">
                   <TextField label="Search" placeholder="Search offers" value={query} onValue={setQuery} />
                   <Select
-                    label="Type"
-                    value={type}
-                    onValue={(v) => setType(v as typeof type)}
-                    options={[{ value: "all", label: "All types" }, ...types.map((k) => ({ value: k, label: OFFER_TYPES[k].title }))]}
+                    label="Group"
+                    value={group}
+                    onValue={(v) => setGroup(v as typeof group)}
+                    options={[{ value: "all", label: "All groups" }, ...OFFER_GROUPS.map((g) => ({ value: g.key, label: g.title }))]}
                   />
                   <Select
                     label="Status"
@@ -121,7 +137,7 @@ export default function OffersHub() {
             <s-box padding="large-200">
               <s-stack gap="base" alignItems="center">
                 <s-heading>Create your first offer</s-heading>
-                <s-paragraph>Upsells, cross-sells, bundles and deals raise the order value. Pick where it shows, then what it offers.</s-paragraph>
+                <s-paragraph>Pick a group above, or create any kind of offer here. Your offers then show in this list.</s-paragraph>
                 <Button variant="primary" href="/app/offers/new">
                   Create offer
                 </Button>
@@ -130,17 +146,6 @@ export default function OffersHub() {
           )}
         </s-section>
 
-        <s-section heading="Extras on product pages">
-          <LinkTiles
-            items={EXTRAS.map((k) => ({
-              key: k,
-              title: feature(k).title,
-              sub: feature(k).about,
-              href: featureHref(k),
-              end: canUse(plan, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>,
-            }))}
-          />
-        </s-section>
       </s-stack>
     </s-page>
   );

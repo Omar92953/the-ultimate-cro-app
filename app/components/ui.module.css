@@ -80,3 +80,19 @@
 .tileSub { font-size: 13px; color: #8a8a8a; }
 .tileEnd { display: flex; align-items: center; gap: 8px; flex-shrink: 0; font-size: 13px; font-weight: 550; color: #303030; }
 .tileArrow { font-size: 22px; line-height: 1; color: #8a8a8a; }
+
+/* Hub group cards: icon, title, status, one line, the options as chips; the whole card is the link. */
+.groupCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .groupCards { grid-template-columns: minmax(0, 1fr); } }
+.groupCard { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px; border-radius: 12px; background: #fff; color: inherit; text-decoration: none; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); transition: box-shadow 0.15s, transform 0.15s; }
+.groupCard:hover { box-shadow: 0 4px 12px rgba(26, 26, 26, 0.1), 0 0 0 1px rgba(26, 26, 26, 0.14); }
+.groupCard:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
+.groupCardHead { display: flex; align-items: center; gap: 10px; }
+.groupIcon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; background: #f1f1f1; color: #303030; }
+.groupIcon svg { width: 20px; height: 20px; }
+.groupCardTitle { flex: 1; min-width: 0; font-size: 15px; font-weight: 650; color: #303030; }
+.groupCardStatus { flex-shrink: 0; }
+.groupCardAbout { font-size: 13px; line-height: 1.45; color: #616161; }
+.groupChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.groupChip { padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 550; line-height: 18px; color: #4a4a4a; background: #f3f3f3; }
+.groupCardOpen { margin-top: auto; font-size: 13px; font-weight: 600; color: #303030; }

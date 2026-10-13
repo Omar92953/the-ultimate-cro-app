@@ -11,7 +11,8 @@ import { LimitUpgrade } from "../components/Upgrade";
 import { getDiscountStatus } from "../lib/cro.server";
 import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
 import { Button } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { Explainer } from "../components/ui";
+import { dealFeature } from "../lib/catalog";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -55,14 +56,15 @@ export default function DealList() {
     else shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
 
+  const featureKey = dealFeature(kind);
   return (
     <s-page heading={t.title} inlineSize="large">
-      <CategoryCrumb feature="bundles" />
+      <CategoryCrumb feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}
       </Button>
       <s-stack gap="base">
-        <FeatureTabs feature="bundles" />
+        <FeatureTabs feature={featureKey} />
         {fetcher.data?.upgrade ? (
           <s-banner tone="warning" heading="Not switched on">
             <s-stack gap="small-200">
@@ -77,52 +79,60 @@ export default function DealList() {
             This store uses Shopify&apos;s native discounts (Settings → Discounts), which can&apos;t apply this bundle type. Switch to the app&apos;s discount engine to use it.
           </s-banner>
         ) : null}
-        <s-section heading={deals.length ? `${t.title} (${deals.length})` : `No ${t.singular}s yet`}>
+        <s-section heading={`Your ${t.title.toLowerCase()} (${deals.length})`} padding="none">
           {deals.length ? (
-            <s-stack gap="small-200">
-              {deals.map((d) => (
-                <s-box key={d.id ?? d.name} padding="small-300" borderWidth="base" borderRadius="base">
-                  <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                    <s-stack gap="small-100">
-                      <s-stack direction="inline" gap="small-200" alignItems="center">
-                        <s-link href={`/app/deals/${kind}/${d.handle}`}>{d.name}</s-link>
-                        <Pill tone={d.active ? "ok" : "muted"}>{d.active ? "Active" : "Paused"}</Pill>
-                      </s-stack>
-                      <s-text color="subdued">{describeDeal(d)}</s-text>
-                    </s-stack>
-                    <s-stack direction="inline" gap="small-200" alignItems="center">
-                      <Button variant="tertiary" icon={d.active ? "pause-circle" : "play-circle"} onClick={() => fetcher.submit({ intent: "active", active: String(!d.active), id: d.id ?? "" }, { method: "post" })}>
-                        {d.active ? "Pause" : "Activate"}
-                      </Button>
-                      <Button href={`/app/deals/${kind}/${d.handle}`} icon="edit">
-                        Edit
-                      </Button>
-                      {confirming === d.id ? (
-                        <>
-                          <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ intent: "delete", id: d.id ?? "" }, { method: "post" }); }}>
+            <s-table>
+              <s-table-header-row>
+                <s-table-header listSlot="primary">Name</s-table-header>
+                <s-table-header>Status</s-table-header>
+                <s-table-header>Offer</s-table-header>
+                <s-table-header>Actions</s-table-header>
+              </s-table-header-row>
+              <s-table-body>
+                {deals.map((d) => (
+                  <s-table-row key={d.id ?? d.name}>
+                    <s-table-cell>
+                      <s-link href={`/app/deals/${kind}/${d.handle}`}>{d.name}</s-link>
+                    </s-table-cell>
+                    <s-table-cell>
+                      <s-badge tone={d.active ? "success" : "neutral"}>{d.active ? "Active" : "Paused"}</s-badge>
+                    </s-table-cell>
+                    <s-table-cell>{describeDeal(d)}</s-table-cell>
+                    <s-table-cell>
+                      <s-stack direction="inline" gap="small-200" justifyContent="end">
+                        <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "active", active: String(!d.active), id: d.id ?? "" }, { method: "post" })}>
+                          {d.active ? "Pause" : "Activate"}
+                        </Button>
+                        {confirming === d.id ? (
+                          <>
+                            <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ intent: "delete", id: d.id ?? "" }, { method: "post" }); }}>
+                              Delete
+                            </Button>
+                            <Button variant="tertiary" onClick={() => setConfirming(null)}>
+                              Keep
+                            </Button>
+                          </>
+                        ) : (
+                          <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(d.id)}>
                             Delete
                           </Button>
-                          <Button variant="tertiary" onClick={() => setConfirming(null)}>
-                            Keep
-                          </Button>
-                        </>
-                      ) : (
-                        <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(d.id)}>
-                          Delete
-                        </Button>
-                      )}
-                    </s-stack>
-                  </s-stack>
-                </s-box>
-              ))}
-            </s-stack>
+                        )}
+                      </s-stack>
+                    </s-table-cell>
+                  </s-table-row>
+                ))}
+              </s-table-body>
+            </s-table>
           ) : (
-            <s-stack gap="base" alignItems="start">
-              <s-paragraph>{t.example}</s-paragraph>
-              <Button variant="primary" href={`/app/deals/${kind}/new`} icon="plus">
-                {t.addLabel}
-              </Button>
-            </s-stack>
+            <s-box padding="base">
+              <s-stack gap="base" alignItems="center">
+                <s-heading>{`No ${t.singular}s yet`}</s-heading>
+                <s-paragraph>{t.example}</s-paragraph>
+                <Button variant="primary" href={`/app/deals/${kind}/new`}>
+                  {t.addLabel}
+                </Button>
+              </s-stack>
+            </s-box>
           )}
         </s-section>
       </s-stack>

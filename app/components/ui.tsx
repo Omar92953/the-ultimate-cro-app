@@ -170,3 +170,37 @@ export function LinkTiles({ items }: { items: LinkTile[] }) {
     </div>
   );
 }
+
+export type GroupCardItem = { key: string; title: string; about: string; href: string; icon: ReactNode; status?: ReactNode; chips?: string[] };
+
+/** Big clickable cards for a hub's groups (Offers: Upsell, Cross-sell, Bundles, Discounts). */
+export function GroupCards({ items }: { items: GroupCardItem[] }) {
+  return (
+    <div className={styles.groupCards}>
+      {items.map((g) => (
+        <Link key={g.key} to={g.href} prefetch="intent" className={styles.groupCard}>
+          <span className={styles.groupCardHead}>
+            <span className={styles.groupIcon} aria-hidden="true">
+              {g.icon}
+            </span>
+            <span className={styles.groupCardTitle}>{g.title}</span>
+            {g.status ? <span className={styles.groupCardStatus}>{g.status}</span> : null}
+          </span>
+          <span className={styles.groupCardAbout}>{g.about}</span>
+          {g.chips?.length ? (
+            <span className={styles.groupChips}>
+              {g.chips.map((c) => (
+                <span key={c} className={styles.groupChip}>
+                  {c}
+                </span>
+              ))}
+            </span>
+          ) : null}
+          <span className={styles.groupCardOpen}>
+            Open <span aria-hidden="true">›</span>
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
