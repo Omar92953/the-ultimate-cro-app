@@ -67,15 +67,15 @@
 .segButton.tabActive { background: #fff; }
 
 /* Link tiles: soft grey, a bold title, a grey line and an arrow; the whole tile is the link. */
-.tiles { display: flex; flex-direction: column; gap: 10px; }
-.tile { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #f3f3f3; color: inherit; text-decoration: none; transition: background 0.15s; }
+.tiles { display: flex; flex-direction: column; gap: 6px; }
+.tile { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-radius: 10px; background: #f3f3f3; color: inherit; text-decoration: none; transition: background 0.15s; }
 .tile:hover { background: #ebebeb; }
 .tile:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
-.tileText { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.tileTitle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 650; color: #303030; }
-.tileSub { font-size: 13px; color: #8a8a8a; }
+.tileText { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.tileTitle { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; color: #303030; }
+.tileSub { font-size: 12px; line-height: 1.4; color: #8a8a8a; }
 .tileEnd { display: flex; align-items: center; gap: 8px; flex-shrink: 0; font-size: 13px; font-weight: 550; color: #303030; }
-.tileArrow { font-size: 22px; line-height: 1; color: #8a8a8a; }
+.tileArrow { font-size: 18px; line-height: 1; color: #8a8a8a; }
 
 /* Hub group cards: icon, title, status, one line, the options as chips; the whole card is the link. */
 .groupCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
