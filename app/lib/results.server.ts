@@ -1,7 +1,8 @@
 /**
  * Results: revenue the app's widgets brought in, and the holdout test.
  *  - Every cart line the app adds carries `_source` (quick_add, cross_sell, upsell…) or one of the
- *    app's own markers (_cro_addon, _cro_gift, _cro_fee). Orders from the last 60 days are summed by it.
+ *    app's own markers (_cro_addon, _cro_gift, _cro_fee). Orders from the last 60 days (the last 30
+ *    and the 30 before, for comparisons) are summed by it; test orders are left out.
  *  - Holdout test: a share of shoppers don't see the app's widgets; their cart (and so their order)
  *    carries `_cro_group` = "holdout", everyone else "app". Because shoppers are split at random,
  *    orders per group divided by the group's share compares how often each group buys.
@@ -83,10 +84,16 @@ const sourceOf = (l: Line) => {
   return null;
 };
 
+/** Most orders read per visit (25 a page): enough for busy stores, short enough to stay fast. */
+const MAX_PAGES = 60;
+
 export async function getResults(admin: AdminClient, xp: Experiment): Promise<Results> {
   const orders: Order[] = [];
   let after: string | null = null;
-  for (let page = 0; page < 20; page++) {
+  // Only what the numbers use: the last 60 days (or since the holdout test started, if earlier).
+  const since = new Date(Math.min(Date.now() - 60 * 864e5, xp.since ? Date.parse(xp.since) : Infinity)).toISOString();
+  const q = `created_at:>='${since}' test:false`;
+  for (let page = 0; page < MAX_PAGES; page++) {
     const data: { orders: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: Order[] } } = await gql(
       admin,
       `#graphql
@@ -101,7 +108,7 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
           }
         }
       }`,
-      { after, q: "status:any" },
+      { after, q },
     );
     orders.push(...data.orders.nodes.filter((o) => !o.cancelledAt));
     if (!data.orders.pageInfo.hasNextPage) break;
