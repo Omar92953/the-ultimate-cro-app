@@ -54,7 +54,7 @@
     data-pc="{{ bundle.percent_off.value | default: 0 }}"
     data-rules="{{ bundle.price_rules.value | json | escape }}"
     data-dup="{{ dup }}"
-    data-theme-button="{% if d.tb %}true{% else %}false{% endif %}"
+    data-theme-button="{% if d == blank or d.tb %}true{% else %}false{% endif %}"
     data-money-format="{{ shop.money_format | escape }}"
     data-t-button="{{ d.btn | default: 'Add bundle to cart' | escape }}"
     data-t-remaining="{{ d.rem | default: 'Choose [remaining] more' | escape }}"
@@ -99,7 +99,7 @@
           {%- for p in pool limit: 50 -%}
             {%- if hide_sold_out and p.available == false -%}{%- continue -%}{%- endif -%}
             {%- assign pv = p.selected_or_first_available_variant -%}
-            <li class="ucro-bundle__card{% unless p.available %} is-sold-out{% endunless %}" data-title="{{ p.title | escape }}">
+            <li class="ucro-bundle__card{% unless p.available %} is-sold-out{% endunless %}" data-title="{{ p.title | escape }}" data-handle="{{ p.handle }}">
               <span class="ucro-bundle__img">
                 {%- if p.featured_media -%}
                   {{ p.featured_media | image_url: width: 400 | image_tag: loading: 'lazy', widths: '200, 300, 400', sizes: '(min-width: 750px) 20vw, 45vw', alt: p.title }}

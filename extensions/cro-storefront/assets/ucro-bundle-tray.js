@@ -66,7 +66,7 @@
   }
   function rulesOf(b) {
     var r = b.r || {};
-    return { k: b.k, pr: b.pr, pc: b.pc, tr: r.tr || [], ex: r.ex || {} };
+    return { k: b.k, pr: b.pr, pc: b.pc, tr: r.tr || [], pt: r.pt || [], at: r.at || [], ex: r.ex || {} };
   }
   function money(cents) {
     return U.money(cents, D.fmt);
@@ -441,6 +441,12 @@
       }).observe(main, { childList: true, subtree: true });
     }
   }
+  // The bundle builder on the bundle's own page shares this state (ucro-bundle.js): redraw when it changes.
+  document.addEventListener('ucro:bundle-picks', function () {
+    state = load();
+    render();
+    markCards();
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

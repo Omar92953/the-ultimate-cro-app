@@ -56,6 +56,16 @@ export type BundleStep = {
   collection: Ref | null;
 };
 
+/**
+ * One tier row. `qty` = number of items; `price` = the tier's value, read by the pricing kind:
+ * "tiers" the bundle price, "percent_tiers" the percent off, "amount_tiers" the amount off.
+ */
+export const BUNDLE_PRICINGS = ["fixed", "percent", "tiers", "percent_tiers", "amount_tiers"] as const;
+export type BundlePricing = (typeof BUNDLE_PRICINGS)[number];
+export const bundlePricing = (v: unknown): BundlePricing => (BUNDLE_PRICINGS as readonly string[]).includes(String(v)) ? (v as BundlePricing) : "fixed";
+/** Growing discounts: % or amount off that grows with the number of items. */
+export const growingPricing = (p: BundlePricing) => p === "percent_tiers" || p === "amount_tiers";
+
 export type BundleTier = { qty: number; price: number };
 export type BundleExtra = { value: string; amount: number };
 
@@ -70,9 +80,11 @@ export type Bundle = {
   hideSoldOut: boolean;
   /**
    * "fixed": shoppers pay the bundle product's price; "percent": percentOff off the picked items;
-   * "tiers": the price depends on how many items they pick (tiers, e.g. 3 for $30, 6 for $55).
+   * "tiers": the price depends on how many items they pick (tiers, e.g. 3 for $30, 6 for $55);
+   * "percent_tiers" / "amount_tiers": a discount that grows with the number of items
+   * (e.g. 2 items 10% off, 3 items 15%; or 2 items $5 off, 3 items $10 off).
    */
-  pricing: "fixed" | "percent" | "tiers";
+  pricing: BundlePricing;
   percentOff: number;
   /** "tiers" pricing: box sizes and their prices (store currency). */
   tiers: BundleTier[];

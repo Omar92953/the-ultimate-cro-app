@@ -56,12 +56,32 @@ async function kitProducts(admin: AdminClient, ids: string[]): Promise<Map<strin
             status
             featuredMedia { preview { image { url } } }
             variants(first: 100) {
+              pageInfo { hasNextPage endCursor }
               nodes { id title price compareAtPrice productVariantComponents(first: 30) { nodes { quantity productVariant { id price } } } }
             }
           }
         }
       }`, { ids: ids.slice(i, i + 25) });
     for (const n of data.nodes ?? []) if (n?.id) out.set(n.id, n);
+  }
+  // Kits with many option combinations: read the rest of their variants, 100 at a time.
+  for (const p of out.values()) {
+    let page = (p.variants as { pageInfo?: { hasNextPage: boolean; endCursor: string | null } }).pageInfo;
+    while (page?.hasNextPage && page.endCursor) {
+      const more: any = await gql(admin, `#graphql
+        query CroKitVariants($id: ID!, $after: String) {
+          product(id: $id) {
+            variants(first: 100, after: $after) {
+              pageInfo { hasNextPage endCursor }
+              nodes { id title price compareAtPrice productVariantComponents(first: 30) { nodes { quantity productVariant { id price } } } }
+            }
+          }
+        }`, { id: p.id, after: page.endCursor });
+      const v = more.product?.variants;
+      if (!v) break;
+      p.variants.nodes.push(...v.nodes);
+      page = v.pageInfo;
+    }
   }
   return out;
 }

@@ -27,7 +27,9 @@
         rules = {};
       }
       // Price rules, priced the same way as the Cart Transform (UCRO.bundlePrice).
-      this.rules = { k: this.dataset.k || 'fixed', pr: Number(this.dataset.price) || 0, pc: Number(this.dataset.pc) || 0, tr: rules.tr || [], ex: rules.ex || {} };
+      this.rules = { k: this.dataset.k || 'fixed', pr: Number(this.dataset.price) || 0, pc: Number(this.dataset.pc) || 0, tr: rules.tr || [], pt: rules.pt || [], at: rules.at || [], ex: rules.ex || {} };
+      // The price follows the picks (no fixed bundle price to show before anything is picked).
+      this.variable = ['percent', 'percent_tiers', 'amount_tiers'].indexOf(this.rules.k) > -1;
       this.steps = Array.prototype.slice.call(this.querySelectorAll('.ucro-bundle__step')).map((el) => ({
         el: el,
         min: Number(el.dataset.min) || 0,
@@ -197,14 +199,18 @@
       var value = calc.value;
       var price = calc.price === null ? 0 : calc.price;
       var priceEl = this.querySelector('[data-price]');
-      if (priceEl && calc.price !== null && (this.total() || this.rules.k !== 'percent')) priceEl.textContent = U.money(price, this.fmt);
+      if (priceEl && calc.price !== null && (this.total() || !this.variable)) priceEl.textContent = U.money(price, this.fmt);
       var valueEl = this.querySelector('[data-value]');
       var saveEl = this.querySelector('[data-save]');
       var saving = value - price;
       if (valueEl) valueEl.textContent = ready && saving > 0 ? fill(this.dataset.tValue, { amount: U.money(value, this.fmt) }) : '';
       if (saveEl) {
-        saveEl.hidden = !(ready && saving > 0);
-        saveEl.textContent = fill(this.dataset.tSave, { amount: U.money(saving, this.fmt), percent: value ? Math.round((saving / value) * 100) : 0 });
+        var lines = [];
+        if (ready && saving > 0) lines.push(fill(this.dataset.tSave, { amount: U.money(saving, this.fmt), percent: value ? Math.round((saving / value) * 100) : 0 }));
+        // Growing discounts: "Add 1 more to save 15%".
+        if (calc.more) lines.push(fill(this.dataset.tNext || 'Add [count] more to save [deal]', { count: calc.more.count, deal: calc.more.pct !== null ? calc.more.pct + '%' : U.money(calc.more.cents, this.fmt) }));
+        saveEl.hidden = !lines.length;
+        saveEl.textContent = lines.join('. ');
       }
 
       this.syncForm();
@@ -312,26 +318,64 @@
     }
 
     /* ---- Keep picks when the shopper navigates away and back ------------------- */
+    // When the bundle tray is on, the builder and the tray share one state (localStorage
+    // "ucro-bundle-tray", the tray's format), so picks made while browsing show here and back.
+    shared() {
+      return !!document.getElementById('ucro-bt-data');
+    }
+
     save() {
       try {
         sessionStorage.setItem(this.storeKey, JSON.stringify(this.steps.map((s) => s.picks.map((p) => p.id))));
+        if (!this.shared()) return;
+        var old = JSON.parse(localStorage.getItem('ucro-bundle-tray') || 'null');
+        var mine = old && String(old.b) === String(this.dataset.bundle);
+        var picks = [];
+        this.steps.forEach((s, i) => s.picks.forEach((p) => {
+          var img = p.card && p.card.querySelector('img');
+          picks.push({ v: Number(p.id), s: i, t: p.title, i: img ? img.currentSrc || img.src : '', c: p.cents, h: p.card ? p.card.dataset.handle || '' : '', o: p.vt || '' });
+        }));
+        if (!picks.length && !mine) return; // never wipe another bundle the shopper is building
+        var state = { b: Number(this.dataset.bundle), g: mine ? old.g : Math.random().toString(36).slice(2, 10), picks: picks, open: mine ? old.open : false };
+        if (picks.length) localStorage.setItem('ucro-bundle-tray', JSON.stringify(state));
+        else localStorage.removeItem('ucro-bundle-tray');
+        document.dispatchEvent(new CustomEvent('ucro:bundle-picks'));
       } catch (e) {
         // storage unavailable (private mode): picks just are not remembered
+      }
+    }
+
+    /** The picks saved by the bundle tray for this bundle, as variant ids per step (or null). */
+    trayPicks() {
+      if (!this.shared()) return null;
+      try {
+        var s = JSON.parse(localStorage.getItem('ucro-bundle-tray') || 'null');
+        if (!s || String(s.b) !== String(this.dataset.bundle) || !Array.isArray(s.picks)) return null;
+        var out = this.steps.map(() => []);
+        s.picks.forEach((p) => { if (out[p.s]) out[p.s].push(p.v); });
+        return out;
+      } catch (e) {
+        return null;
       }
     }
 
     clearSaved() {
       try {
         sessionStorage.removeItem(this.storeKey);
+        var s = this.shared() && JSON.parse(localStorage.getItem('ucro-bundle-tray') || 'null');
+        if (s && String(s.b) === String(this.dataset.bundle)) {
+          localStorage.removeItem('ucro-bundle-tray');
+          document.dispatchEvent(new CustomEvent('ucro:bundle-picks'));
+        }
       } catch (e) {
         // storage unavailable (private mode): picks just are not remembered
       }
     }
 
     restore() {
-      var saved;
+      var saved = this.trayPicks();
       try {
-        saved = JSON.parse(sessionStorage.getItem(this.storeKey) || 'null');
+        if (!saved) saved = JSON.parse(sessionStorage.getItem(this.storeKey) || 'null');
       } catch (e) {
         // storage unavailable (private mode): picks just are not remembered
       }

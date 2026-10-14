@@ -22,9 +22,12 @@
  * Config, from the dashboard, in this cart transform's `$app.bundles` metafield:
  * { "b": { "<bundle product id>": {
  *     "pv": "<parent variant id>", "t": "<title>", "d": 0|1 (same item twice),
- *     "k": "f" (fixed: the bundle product's price) | "p" (percent off) | "t" (tiers: price by item count),
+ *     "k": "f" (fixed: the bundle product's price) | "p" (percent off) | "t" (tiers: price by item count)
+ *          | "pt" (% off that grows with the item count) | "at" (amount off that grows with the item count),
  *     "pr": <price in cents>, "pc": <percent>,
  *     "tr": [[<item count>, <price in cents>], …] (tiers; the bundle is complete at exactly one of these counts),
+ *     "pt": [[<at least this many items>, <percent>], …] / "at": [[<at least this many items>, <cents off>], …]
+ *          (growing discounts: the highest tier reached applies; fewer items than the first tier = no discount),
  *     "ex": { "<option value, lower case>": <extra cents per item> } (fixed and tier prices),
  *     "s": [{ "n": min, "x": max, "c": "<collection id>" | "p": ["<product id base36>", …] }] } } }
  * The step collections are also passed as input variables (`$app.bundle_vars`, set with the config).
@@ -152,9 +155,22 @@ function inStep(merch, step) {
 }
 
 /**
+ * Growing discounts: the value of the highest tier whose item count is reached, or null.
+ * @param {any} tiers [[minItems, value], …]
+ * @param {number} count
+ */
+export function growTier(tiers, count) {
+  let hit = null;
+  for (const t of Array.isArray(tiers) ? tiers : []) {
+    if (Array.isArray(t) && Number(t[0]) <= count && (hit === null || Number(t[0]) >= hit[0])) hit = [Number(t[0]), Number(t[1]) || 0];
+  }
+  return hit ? hit[1] : null;
+}
+
+/**
  * The discount to reach the bundle price: a fixed price (the bundle product's, or the tier's for
- * the number of items, plus option extras, converted to the shopper's currency) or a percentage.
- * Never a price increase.
+ * the number of items, plus option extras, converted to the shopper's currency), a percentage, or a
+ * growing discount (% or amount off for the number of items). Never a price increase.
  * @param {any} bundle
  * @param {number} total the picks' total in the shopper's currency
  * @param {number} rate shop currency → shopper's currency
@@ -163,6 +179,15 @@ function inStep(merch, step) {
  */
 export function percentOff(bundle, total, rate, extras = 0, count) {
   if (bundle.k === "p") return clamp(Number(bundle.pc) || 0);
+  if (bundle.k === "pt") {
+    const pct = growTier(bundle.pt, count ?? 0);
+    return pct === null ? 0 : clamp(pct);
+  }
+  if (bundle.k === "at") {
+    const cents = growTier(bundle.at, count ?? 0);
+    if (cents === null || !(total > 0)) return 0;
+    return clamp(((cents / 100) * rate / total) * 100);
+  }
   const base = bundle.k === "t" ? tierPrice(bundle, count ?? 0) : Number(bundle.pr) || 0;
   if (base === null) return 0;
   const price = ((base + (Number(extras) || 0)) / 100) * rate;

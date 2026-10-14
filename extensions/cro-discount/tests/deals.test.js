@@ -96,3 +96,23 @@ describe("deals and upsells together", () => {
     expect(candidates[0].message).toBe("Volume");
   });
 });
+
+describe("bundles are never discounted again", () => {
+  const input = (productId) => ({
+    presentmentCurrencyRate: 1,
+    cart: {
+      cost: { subtotalAmount: { amount: "100" } },
+      lines: [{ id: "l1", quantity: 3, bundle: null, gift: null, cost: { amountPerQuantity: { amount: "30" } }, merchandise: { __typename: "ProductVariant", id: V(1), title: "Default Title", product: { id: P(productId), inCollections: [] } } }],
+    },
+    discount: {
+      discountClasses: ["PRODUCT"],
+      metafield: { jsonValue: { upsell: [{ trigger: { type: "all", products: [], collections: [] }, tiers: [{ qty: 2, pct: 10 }], label: "Buy more" }], crossSell: [], deals: [], skip: ["55"] } },
+    },
+  });
+  test("an all-products upsell discounts a normal product", () => {
+    expect(cartLinesDiscountsGenerateRun(/** @type {any} */ (input(7))).operations.length).toBe(1);
+  });
+  test("but not a bundle product (merged mix & match line or kit)", () => {
+    expect(cartLinesDiscountsGenerateRun(/** @type {any} */ (input(55))).operations).toEqual([]);
+  });
+});

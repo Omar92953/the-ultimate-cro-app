@@ -30,7 +30,7 @@ import type {
   DiscountEngine,
   UpsellType,
 } from "./types";
-import { FEATURE_KEYS } from "./types";
+import { FEATURE_KEYS, bundlePricing } from "./types";
 import { validateBundle, validateRule } from "./validate";
 import { DEAL_TEXT, toFunctionDeal, toStorefrontDeal, type Deal, type DealKind } from "./deals";
 export * from "./types";
@@ -436,7 +436,11 @@ async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
   await upsert(admin, "$app:cro_offers", "main", { data: JSON.stringify(data) });
 }
 
-export function buildDiscountConfig(rules: Rule[], deals: Deal[] = []) {
+/**
+ * `skip`: product ids (numbers) whose lines are bundles already priced as a bundle (mix & match
+ * bundle products, merged at checkout, and bundle products/kits), so no offer discount stacks on them.
+ */
+export function buildDiscountConfig(rules: Rule[], deals: Deal[] = [], skip: string[] = []) {
   const active = rules.filter((r) => r.active).sort((a, b) => a.priority - b.priority);
   const trigger = (r: Rule) => ({
     type: r.triggerType,
@@ -470,6 +474,7 @@ export function buildDiscountConfig(rules: Rule[], deals: Deal[] = []) {
         label: r.discountLabel || r.headline || r.name,
       })),
     deals: deals.filter((d) => d.active).sort((a, b) => a.position - b.position).map(toFunctionDeal).filter((x) => x !== null),
+    ...(skip.length ? { skip: [...new Set(skip)] } : {}),
   };
   const dealCollections = config.deals.flatMap((d: any) =>
     [d.trigger, d.buy, d.get].filter(Boolean).flatMap((t: any) => t.collections || []),
@@ -702,8 +707,15 @@ async function syncFunctionDiscount(
   admin: AdminClient,
   rules: Rule[],
 ): Promise<{ id: string | null; status: string | null; needed: boolean }> {
-  const deals = await listDeals(admin);
-  const { config, collectionIds, needed } = buildDiscountConfig(rules, deals);
+  // Bundles are priced as bundles: offer discounts must not stack on them (kits loaded lazily:
+  // kits.server imports this file).
+  const [deals, bundles, kitIds] = await Promise.all([
+    listDeals(admin),
+    listBundles(admin).catch(() => []),
+    import("./kits.server").then((m) => m.listKitIds(admin)).catch(() => [] as string[]),
+  ]);
+  const skip = [...bundles.flatMap((b) => (b.product ? [b.product.id] : [])), ...kitIds].map(numericId);
+  const { config, collectionIds, needed } = buildDiscountConfig(rules, deals, skip);
   const value = JSON.stringify(config);
   if (value.length > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(
@@ -920,55 +932,65 @@ async function refsByIds(admin: AdminClient, ids: string[]) {
   return out;
 }
 
+/** Up to 50 bundles (the storefront's limit), read 25 at a time to keep each query's cost low. */
 export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
-  const data = await gql(
-    admin,
-    `#graphql
-    ${REF_FRAGMENT}
-    query CroBundles {
-      metaobjects(type: "$app:cro_bundle", first: 25) {
-        nodes {
-          id
-          handle
-          # One aliased field each, so only the reference fields ask for references (keeps the cost low).
-          name: field(key: "name") { key value }
-          active: field(key: "active") { key value }
-          product: field(key: "product") { key value reference { ...CroRef } }
-          allow_duplicates: field(key: "allow_duplicates") { key value }
-          hide_sold_out: field(key: "hide_sold_out") { key value }
-          pricing: field(key: "pricing") { key value }
-          percent_off: field(key: "percent_off") { key value }
-          price_rules: field(key: "price_rules") { key value }
-          store_wide: field(key: "store_wide") { key value }
-          steps: field(key: "steps") {
-            key
-            value
-            references(first: 10) {
-              nodes {
-                ... on Metaobject {
-                  id
-                  label: field(key: "label") { key value }
-                  required: field(key: "required") { key value }
-                  min_picks: field(key: "min_picks") { key value }
-                  max_picks: field(key: "max_picks") { key value }
-                  collection: field(key: "collection") { key value reference { ...CroRef } }
-                  products: field(key: "products") { key value }
+  const nodes: any[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 2; page++) {
+    const data: any = await gql(
+      admin,
+      `#graphql
+      ${REF_FRAGMENT}
+      query CroBundles($after: String) {
+        metaobjects(type: "$app:cro_bundle", first: 25, after: $after) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            id
+            handle
+            # One aliased field each, so only the reference fields ask for references (keeps the cost low).
+            name: field(key: "name") { key value }
+            active: field(key: "active") { key value }
+            product: field(key: "product") { key value reference { ...CroRef } }
+            allow_duplicates: field(key: "allow_duplicates") { key value }
+            hide_sold_out: field(key: "hide_sold_out") { key value }
+            pricing: field(key: "pricing") { key value }
+            percent_off: field(key: "percent_off") { key value }
+            price_rules: field(key: "price_rules") { key value }
+            store_wide: field(key: "store_wide") { key value }
+            steps: field(key: "steps") {
+              key
+              value
+              references(first: 10) {
+                nodes {
+                  ... on Metaobject {
+                    id
+                    label: field(key: "label") { key value }
+                    required: field(key: "required") { key value }
+                    min_picks: field(key: "min_picks") { key value }
+                    max_picks: field(key: "max_picks") { key value }
+                    collection: field(key: "collection") { key value reference { ...CroRef } }
+                    products: field(key: "products") { key value }
+                  }
                 }
               }
             }
           }
         }
-      }
-    }`,
-  );
+      }`,
+      { after },
+    );
+    nodes.push(...data.metaobjects.nodes);
+    if (!data.metaobjects.pageInfo.hasNextPage) break;
+    after = data.metaobjects.pageInfo.endCursor;
+  }
   const aliased = (node: any, keys: string[]) => ({ fields: keys.map((k) => node[k]).filter(Boolean) as Field[] });
   // Step products are stored as a list of ids; load them all in one go (a nested connection per step costs too much).
   const productIds = new Set<string>();
-  for (const node of data.metaobjects.nodes as any[]) {
+  for (const node of nodes) {
     for (const s of node.steps?.references?.nodes ?? []) for (const id of jsonList(s.products?.value)) productIds.add(id);
   }
   const products = await refsByIds(admin, [...productIds]);
-  return data.metaobjects.nodes.map((node: any) => {
+  return nodes.map((node: any) => {
     const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "price_rules", "store_wide", "steps"]));
     const rules = fromPriceRules(json<any>(f.price_rules, null));
     return {
@@ -979,7 +1001,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       product: toRef(f.product?.reference),
       allowDuplicates: bool(f.allow_duplicates),
       hideSoldOut: bool(f.hide_sold_out, true),
-      pricing: f.pricing?.value === "percent" ? "percent" : f.pricing?.value === "tiers" ? "tiers" : "fixed",
+      pricing: bundlePricing(f.pricing?.value),
       percentOff: Math.min(90, Math.max(0, Number(f.percent_off?.value) || 0)),
       tiers: rules.tiers,
       extras: rules.extras,
@@ -1030,7 +1052,7 @@ export async function saveBundle(admin: AdminClient, bundle: Bundle) {
     steps: JSON.stringify(stepIdsNew),
     allow_duplicates: String(bundle.allowDuplicates),
     hide_sold_out: String(bundle.hideSoldOut),
-    pricing: bundle.pricing === "percent" || bundle.pricing === "tiers" ? bundle.pricing : "fixed",
+    pricing: bundlePricing(bundle.pricing),
     percent_off: String(Math.min(90, Math.max(0, Number(bundle.percentOff) || 0))),
     price_rules: JSON.stringify(toPriceRules(bundle)),
     store_wide: String(bundle.storeWide !== false),
@@ -1065,20 +1087,30 @@ export async function deleteBundle(admin: AdminClient, handle: string) {
 }
 
 /**
- * Tiers and option extras in cents, in the compact form both the storefront (price_rules field,
- * read by Liquid) and the Cart Transform use: { tr: [[qty, cents]…] sorted by qty, ex: { "xl": cents } }.
+ * Tiers and option extras, in the compact form both the storefront (price_rules field, read by
+ * Liquid) and the Cart Transform use, sorted by item count:
+ *   tiers          { tr: [[qty, price cents]…] }
+ *   percent_tiers  { pt: [[min qty, percent]…] }
+ *   amount_tiers   { at: [[min qty, cents off]…] }
+ * plus option extras { ex: { "xl": cents } } for the fixed and tier prices.
  */
 export function toPriceRules(bundle: Pick<Bundle, "pricing" | "tiers" | "extras">) {
-  const tr = bundle.pricing === "tiers"
-    ? [...(bundle.tiers ?? [])].filter((t) => t.qty >= 1 && t.price > 0).sort((a, b) => a.qty - b.qty).map((t) => [Math.round(t.qty), Math.round(t.price * 100)])
-    : [];
-  const ex: Record<string, number> = {};
-  if (bundle.pricing !== "percent") for (const x of bundle.extras ?? []) if (x.value.trim() && x.amount > 0) ex[x.value.trim().toLowerCase()] = Math.round(x.amount * 100);
-  return { tr, ex };
+  const rows = [...(bundle.tiers ?? [])].filter((t) => t.qty >= 1 && t.price > 0).sort((a, b) => a.qty - b.qty);
+  const tr = bundle.pricing === "tiers" ? rows.map((t) => [Math.round(t.qty), Math.round(t.price * 100)]) : [];
+  const out: { tr: number[][]; ex: Record<string, number>; pt?: number[][]; at?: number[][] } = { tr, ex: {} };
+  if (bundle.pricing === "percent_tiers") out.pt = rows.map((t) => [Math.round(t.qty), Math.min(90, Math.round(t.price * 100) / 100)]);
+  if (bundle.pricing === "amount_tiers") out.at = rows.map((t) => [Math.round(t.qty), Math.round(t.price * 100)]);
+  if (bundle.pricing === "fixed" || bundle.pricing === "tiers") {
+    for (const x of bundle.extras ?? []) if (x.value.trim() && x.amount > 0) out.ex[x.value.trim().toLowerCase()] = Math.round(x.amount * 100);
+  }
+  return out;
 }
 
 function fromPriceRules(v: any): Pick<Bundle, "tiers" | "extras"> {
-  const tiers = Array.isArray(v?.tr) ? v.tr.filter((t: unknown) => Array.isArray(t)).map(([qty, cents]: number[]) => ({ qty: Number(qty) || 1, price: (Number(cents) || 0) / 100 })) : [];
+  const rows = (list: unknown, scale: number) =>
+    Array.isArray(list) ? list.filter((t: unknown) => Array.isArray(t)).map(([qty, n]: number[]) => ({ qty: Number(qty) || 1, price: (Number(n) || 0) / scale })) : [];
+  // One kind of tier per bundle: % (pt), amount off (at) or price (tr).
+  const tiers = Array.isArray(v?.pt) ? rows(v.pt, 1) : Array.isArray(v?.at) ? rows(v.at, 100) : rows(v?.tr, 100);
   const extras = v?.ex && typeof v.ex === "object" ? Object.entries(v.ex).map(([value, cents]) => ({ value, amount: (Number(cents) || 0) / 100 })) : [];
   return { tiers, extras };
 }
@@ -1118,7 +1150,7 @@ export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[]) {
     b[numericId(bundle.product!.id)] = {
       pv: parent.variant,
       d: bundle.allowDuplicates ? 1 : 0,
-      k: bundle.pricing === "percent" ? "p" : bundle.pricing === "tiers" ? "t" : "f",
+      k: ({ fixed: "f", percent: "p", tiers: "t", percent_tiers: "pt", amount_tiers: "at" } as const)[bundle.pricing] ?? "f",
       pr: parent.cents,
       pc: bundle.pricing === "percent" ? bundle.percentOff : 0,
       ...toPriceRules(bundle),

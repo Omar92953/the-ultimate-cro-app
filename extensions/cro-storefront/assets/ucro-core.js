@@ -262,10 +262,12 @@
 
   /*
    * Mix & match bundle price, the same way the cro-bundles Cart Transform charges it (keep in sync):
-   * b = { k: 'fixed'|'percent'|'tiers', pr: bundle product price (cents, shopper's currency),
-   *       pc: percent, tr: [[count, cents]], ex: { 'xl': cents } } (tr and ex in the store's currency)
-   * picks = [{ cents, vt: 'XL / Red' }]. Returns { value, price, next } — price is null when the number
-   * of items doesn't match a tier; next = the item count of the next tier (tiers only).
+   * b = { k: 'fixed'|'percent'|'tiers'|'percent_tiers'|'amount_tiers', pr: bundle product price
+   *       (cents, shopper's currency), pc: percent, tr: [[count, cents]], pt: [[min count, percent]],
+   *       at: [[min count, cents off]], ex: { 'xl': cents } } (tr, at and ex in the store's currency)
+   * picks = [{ cents, vt: 'XL / Red' }]. Returns { value, price, next, more } — price is null when the
+   * number of items doesn't match a tier; next = the item count of the next tier; more (growing
+   * discounts) = { count: items still to add, pct | cents: the next tier's discount } or null.
    */
   function bundlePrice(b, picks) {
     var rate = (window.Shopify && window.Shopify.currency && Number(window.Shopify.currency.rate)) || 1;
@@ -275,6 +277,19 @@
     var nextTier = tiers.filter(function (t) { return t[0] >= n; })[0];
     var next = nextTier ? nextTier[0] : null;
     if (b.k === 'percent') return { value: value, price: Math.round(value * (1 - (Number(b.pc) || 0) / 100)), next: next };
+    if (b.k === 'percent_tiers' || b.k === 'amount_tiers') {
+      // The highest tier reached applies; the next one tells shoppers what one more item earns.
+      var pct = b.k === 'percent_tiers';
+      var list = (pct ? b.pt : b.at) || [];
+      var hit = null, up = null;
+      list.forEach(function (t) {
+        if (t[0] <= n && (!hit || t[0] >= hit[0])) hit = t;
+        if (t[0] > n && (!up || t[0] < up[0])) up = t;
+      });
+      var off = hit ? (pct ? Math.round(value * hit[1] / 100) : Math.round(hit[1] * rate)) : 0;
+      var more = up ? { count: up[0] - n, pct: pct ? up[1] : null, cents: pct ? null : Math.round(up[1] * rate) } : null;
+      return { value: value, price: Math.max(0, value - Math.min(off, value)), next: up ? up[0] : null, more: more };
+    }
     var extra = 0;
     var ex = b.ex || {};
     picks.forEach(function (p) {

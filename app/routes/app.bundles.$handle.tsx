@@ -10,7 +10,7 @@ import { validateBundle } from "../lib/validate";
 import { checkLimit } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
-import type { Bundle, BundleStep } from "../lib/types";
+import { bundlePricing, growingPricing, type Bundle, type BundleStep, type BundleTier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { SortableList, arrayMove } from "../components/Sortable";
@@ -138,7 +138,9 @@ export default function BundleEditor() {
             <s-section heading="Before you go live">
                 <s-unordered-list>
                   <s-list-item>
-                    Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick.
+                    {bundle.pricing === "fixed"
+                      ? "Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick."
+                      : "The bundle product’s price is only its starting price; shoppers pay what the bundle’s pricing gives for their picks."}
                   </s-list-item>
                   <s-list-item>
                     In the bundle product, untick “Track quantity”. The picked items’ own stock is what goes down.
@@ -178,38 +180,58 @@ export default function BundleEditor() {
                 label="Bundle price"
                 value={bundle.pricing}
                 onValue={(v) => {
-                  const pricing = v === "percent" || v === "tiers" ? v : "fixed";
-                  setBundle((b) => ({ ...b, pricing, tiers: pricing === "tiers" && !b.tiers.length ? [{ qty: 3, price: 30 }, { qty: 6, price: 55 }] : b.tiers }));
+                  const pricing = bundlePricing(v);
+                  // Switching kind starts from example tiers, since a tier means something else in each kind.
+                  const seed: Record<string, BundleTier[]> = {
+                    tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }],
+                    percent_tiers: [{ qty: 2, price: 10 }, { qty: 3, price: 15 }, { qty: 4, price: 20 }],
+                    amount_tiers: [{ qty: 2, price: 5 }, { qty: 3, price: 10 }],
+                  };
+                  setBundle((b) => ({ ...b, pricing, tiers: pricing === b.pricing ? b.tiers : (seed[pricing] ?? b.tiers) }));
                 }}
                 options={[
                   { value: "fixed", label: "One price: the bundle product's price" },
                   { value: "percent", label: "A percentage off the items shoppers pick" },
+                  { value: "percent_tiers", label: "A bigger % off for more items (e.g. 2 items 10%, 3 items 15%)" },
+                  { value: "amount_tiers", label: "A bigger amount off for more items (e.g. 2 items 5 off, 3 items 10 off)" },
                   { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
                 ]}
               />
               {bundle.pricing === "percent" ? (
                 <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
               ) : null}
-              {bundle.pricing === "tiers" ? (
+              {bundle.pricing === "tiers" || growingPricing(bundle.pricing) ? (
                 <s-stack gap="small-200">
-                  <s-text color="subdued">Shoppers pick exactly one of these numbers of items, and the bundle costs that tier&apos;s price. Make the steps&apos; maximum high enough for the biggest tier.</s-text>
+                  <s-text color="subdued">
+                    {bundle.pricing === "tiers"
+                      ? "Shoppers pick exactly one of these numbers of items, and the bundle costs that tier's price. Make the steps' maximum high enough for the biggest tier."
+                      : "Shoppers can pick any number of items; the biggest tier they reach applies, and the bundle shows what one more item would save."}
+                  </s-text>
                   {bundle.tiers.map((t, i) => (
                     <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
-                      <NumberField label="Items" min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
-                      <NumberField label="Price" min={0} step={0.01} value={t.price} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))} />
+                      <NumberField label={bundle.pricing === "tiers" ? "Items" : "Items or more"} min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
+                      <NumberField
+                        label={bundle.pricing === "percent_tiers" ? "Discount" : bundle.pricing === "amount_tiers" ? "Amount off" : "Price"}
+                        suffix={bundle.pricing === "percent_tiers" ? "%" : undefined}
+                        min={0}
+                        max={bundle.pricing === "percent_tiers" ? 90 : undefined}
+                        step={bundle.pricing === "percent_tiers" ? 1 : 0.01}
+                        value={t.price}
+                        onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))}
+                      />
                       <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
                         Remove
                       </Button>
                     </s-grid>
                   ))}
                   <s-stack direction="inline">
-                    <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + 3, price: 0 }])}>
+                    <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + (bundle.pricing === "tiers" ? 3 : 1), price: 0 }])}>
                       Add tier
                     </Button>
                   </s-stack>
                 </s-stack>
               ) : null}
-              {bundle.pricing !== "percent" ? (
+              {bundle.pricing === "fixed" || bundle.pricing === "tiers" ? (
                 <s-stack gap="small-200">
                   <s-text type="strong">Extra charge for pricier options (optional)</s-text>
                   <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>

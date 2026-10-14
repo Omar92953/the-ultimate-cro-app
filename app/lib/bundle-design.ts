@@ -30,7 +30,9 @@ export const DEFAULT_BUNDLE_DESIGN: BundleDesign = {
   text: { heading: "Build your bundle", sub: "", size: "medium", align: "left" },
   products: { desktop: 4, mobile: 2, pick: "Add", picked: "Added" },
   summary: { show: true, value: "Worth [amount]", save: "You save [amount] ([percent]%)", sticky: false },
-  button: { theme: false, label: "Add bundle to cart", remaining: "Choose [remaining] more" },
+  // On by default: the bundle page's own Add to cart and Buy it now would sell the bundle product
+  // without any picks.
+  button: { theme: true, label: "Add bundle to cart", remaining: "Choose [remaining] more" },
   tray: { add: "Add to bundle", cart: "Add bundle to cart", checkout: "Checkout", position: "bottom" },
   look: { themeAccent: true, accent: "#111111", themeRadius: true, radius: 12, top: 16, bottom: 16, scheme: "" },
   card: { style: "outline", bg: "", border: "", borderWidth: 1, padding: 8, gap: 13, align: "left", pickedTint: false, pickedBorder: "" },
