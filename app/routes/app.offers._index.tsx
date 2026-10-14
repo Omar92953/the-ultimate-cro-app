@@ -76,7 +76,7 @@ export default function OffersHub() {
               href: g.tabs[0].href,
               icon: ICONS[g.key],
               status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
-              chips: g.tabs.filter((t) => t.label !== "Design").map((t) => t.label),
+              chips: g.chips ?? g.tabs.filter((t) => t.label !== "Design").map((t) => t.label),
             };
           })}
         />

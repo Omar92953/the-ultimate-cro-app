@@ -38,7 +38,16 @@ export type FeatureTab = { label: string; href: string };
  * `group`: its group on the Storefront hub. `also`: other hubs that list it too (e.g. the
  * free-shipping bar also shows in the cart).
  */
-export type Feature = { title: string; area: AreaKey; group?: GroupKey; also?: AreaKey[]; about: string; tabs: FeatureTab[] };
+export type Feature = {
+  title: string;
+  area: AreaKey;
+  group?: GroupKey;
+  also?: AreaKey[];
+  about: string;
+  tabs: FeatureTab[];
+  /** More pages that belong to it without a tab of their own (e.g. the bundle editors). */
+  paths?: string[];
+};
 
 const design = (href: string): FeatureTab => ({ label: "Design", href });
 /** The deal kinds the Discounts feature holds (fixed bundles sit in Bundles, upgrades in Upsell). */
@@ -57,7 +66,10 @@ export const FEATURES = {
     title: "Bundles",
     area: "offers",
     about: "Mix-and-match bundles, bundles sold as their own product, and fixed “frequently bought together” bundles.",
-    tabs: [{ label: "Mix & match", href: "/app/bundles" }, { label: "Bundle products", href: "/app/kits" }, { label: DEAL_TYPES.fixed.title, href: "/app/deals/fixed" }, design("/app/designs/bundles")],
+    // One list of every bundle (mix & match, bundle products, frequently bought together); their
+    // editors keep their own addresses.
+    tabs: [{ label: "Bundles", href: "/app/bundles" }, design("/app/designs/bundles")],
+    paths: ["/app/kits", "/app/deals/fixed"],
   },
   discounts: {
     title: "Discounts",
@@ -122,7 +134,7 @@ export const featuresIn = (a: AreaKey) => FEATURE_KEYS.filter((k) => feature(k).
  * personalization and the after-purchase offer sit with the upsells they belong to.
  */
 export type OfferGroupKey = "upsell" | "cross_sell" | "bundles" | "discounts";
-export type OfferGroup = { key: OfferGroupKey; title: string; about: string; features: FeatureKey[]; tabs: FeatureTab[] };
+export type OfferGroup = { key: OfferGroupKey; title: string; about: string; features: FeatureKey[]; tabs: FeatureTab[]; chips?: string[] };
 export const OFFER_GROUPS: OfferGroup[] = [
   {
     key: "upsell",
@@ -138,7 +150,14 @@ export const OFFER_GROUPS: OfferGroup[] = [
     ],
   },
   { key: "cross_sell", title: "Cross-sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
-  { key: "bundles", title: "Bundles", about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed “frequently bought together” bundles.", features: ["bundles"], tabs: FEATURES.bundles.tabs },
+  {
+    key: "bundles",
+    title: "Bundles",
+    about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed “frequently bought together” bundles.",
+    features: ["bundles"],
+    tabs: FEATURES.bundles.tabs,
+    chips: ["Frequently bought together", "Kits", "Mix & match", "Build your bundle"],
+  },
   { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },
 ];
 /** Which feature a deal kind's pages belong to. */
@@ -156,7 +175,8 @@ export const OFFER_FEATURE: Record<string, FeatureKey> = { upsell: "upsell", "cr
  */
 export function featuresForPath(pathname: string): FeatureKey[] {
   const path = pathname.replace(/\.data$/, "").replace(/\/+$/, "");
-  return FEATURE_KEYS.filter((k) => FEATURES[k].tabs.some((t) => path === t.href || path.startsWith(`${t.href}/`)));
+  const under = (href: string) => path === href || path.startsWith(`${href}/`);
+  return FEATURE_KEYS.filter((k) => FEATURES[k].tabs.some((t) => under(t.href)) || ((FEATURES[k] as Feature).paths ?? []).some(under));
 }
 
 /** Which area (menu item) a page belongs to: its features' area, or the hub it is. */

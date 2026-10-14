@@ -43,7 +43,8 @@ bundles). He also reversed the plan limit: plans are limited by **orders per mon
   - Done 2026-10-15. Not done: blocking a bare bundle product at checkout (Shopify docs were unreachable to confirm the validation input can tell merged lines apart); covered instead by the theme-button default on bundle pages. Store-page builder needs Phase 3 to create/pick the page (the `page` field and Liquid support exist).
 - [x] Phase 3: the app creates products and pages
   - Done 2026-10-15: `app/lib/bundle-product.server.ts` (create/publish bundle products, create store pages), kits come out Active + published with picture and contents, mix & match editor "Create it for me" + "Where shoppers build it" + "Get it on your store" checklist with Add to theme links (previewPath). Products/pages are never deleted automatically when a bundle is deleted.
-- [ ] Phase 4: Bundles list + Create bundle recipes
+- [x] Phase 4: Bundles list + Create bundle recipes
+  - Done 2026-10-15: `/app/bundles` lists every bundle with a type filter; `/app/bundles/create` shows the 6 recipes (`app/lib/bundle-recipes.ts`, `app/components/BundleRecipes.tsx`); mix & match presets via `?recipe=`; old kit and fixed-bundle lists redirect; Bundles tabs = Bundles · Design (`Feature.paths`). The per-editor "How it works" card exists for mix & match ("Get it on your store"); kits and FBT get theirs in Phase 5.
 - [ ] Phase 5: editors as sections + live preview
 - [ ] Phase 6: release and end-to-end test of recipes 1 to 6
 

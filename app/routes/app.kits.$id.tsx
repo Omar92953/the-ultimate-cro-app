@@ -64,7 +64,7 @@ export default function KitEditor() {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.deleted) {
       shopify.toast.show("Bundle product deleted");
-      navigate("/app/kits");
+      navigate("/app/bundles?type=kit");
     } else if (fetcher.data.ok) {
       shopify.toast.show("Saved");
       if (isNew && fetcher.data.id) navigate(`/app/kits/${fetcher.data.id}`, { replace: true });
@@ -87,8 +87,8 @@ export default function KitEditor() {
 
   return (
     <s-page heading={isNew ? "New bundle product" : kit.title} inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/kits">
-        Bundle products
+      <s-link slot="breadcrumb-actions" href="/app/bundles?type=kit">
+        Bundles
       </s-link>
       <SaveControls dirty={changed(kit, initial)} saving={busy} saved={!isNew} label={isNew ? "Create in Shopify" : "Save"} allowLeave={busy || !!fetcher.data?.deleted || (isNew && !!fetcher.data?.id)} onSave={save} onDiscard={() => { setKit(initial); setTouched(false); }} />
       {!isNew ? (
