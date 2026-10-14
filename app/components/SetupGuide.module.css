@@ -21,16 +21,16 @@
 
 .steps { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .step { border-radius: 10px; }
-.stepOpen { display: flex; align-items: flex-start; gap: 12px; padding: 14px 12px; background: #f3f3f3; }
-.stepButton { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.stepOpen { display: flex; align-items: flex-start; gap: 12px; padding: 9px 12px; background: #f3f3f3; }
+.stepButton { display: flex; align-items: center; gap: 12px; width: 100%; padding: 7px 12px; border: 0; border-radius: 10px; background: transparent; font: inherit; text-align: left; cursor: pointer; }
 .stepButton:hover { background: #f7f7f7; }
 .stepButton:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
 .circle { flex: none; width: 22px; height: 22px; }
-.body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .stepTitle { font-size: 13px; font-weight: 600; color: #303030; }
 .titleDone { color: #616161; font-weight: 500; }
-.stepText { font-size: 13px; line-height: 1.45; color: #616161; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 6px; }
+.stepText { font-size: 12px; line-height: 1.4; color: #616161; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 4px; }
 .manual { padding: 4px 6px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; font-weight: 550; color: #303030; cursor: pointer; }
 .manual:hover { background: #e3e3e3; }
 .manual:focus-visible { outline: 2px solid #005bd3; outline-offset: 1px; }
