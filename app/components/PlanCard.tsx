@@ -4,7 +4,7 @@
  * Content: lib/plans.ts.
  */
 import type { ReactNode } from "react";
-import { PLANS, price, revenueLine, usd, type PlanKey } from "../lib/plans";
+import { PLANS, ordersLine, price, type PlanKey } from "../lib/plans";
 import { Pill } from "./ui";
 import styles from "./PlanCard.module.css";
 
@@ -31,11 +31,11 @@ export function PlanFeatures({ plan, limit }: { plan: PlanKey; limit?: number })
   );
 }
 
-/** "Up to **$500** revenue added monthly" */
-export function RevenueLine({ plan }: { plan: PlanKey }) {
-  const r = revenueLine(plan);
+/** "Up to **500** orders monthly" */
+export function OrdersLine({ plan }: { plan: PlanKey }) {
+  const r = ordersLine(plan);
   return (
-    <p className={styles.revenue}>
+    <p className={styles.limitLine}>
       {r.amount === "Unlimited" ? null : "Up to "}
       <b>{r.amount}</b>
       {r.rest}
@@ -53,7 +53,7 @@ export function PlanCard({ plan, current, yearly = false, action }: { plan: Plan
         {p.badge ? <span className={styles.badge}>{p.badge}</span> : null}
         {current ? <Pill tone="ok">Your plan</Pill> : null}
       </div>
-      <RevenueLine plan={plan} />
+      <OrdersLine plan={plan} />
       <PlanFeatures plan={plan} />
       <div className={styles.bottom}>
         <p className={styles.price}>
@@ -76,7 +76,7 @@ export function FreeRow({ current, action }: { current: boolean; action?: ReactN
           <span className={styles.name}>{p.name}</span>
           {current ? <Pill tone="ok">Your plan</Pill> : null}
         </span>
-        <RevenueLine plan="free" />
+        <OrdersLine plan="free" />
         <span className={styles.freeLines}>{p.highlights.join(" · ")}</span>
       </div>
       {action ? <div className={styles.freeAction}>{action}</div> : null}
@@ -85,13 +85,13 @@ export function FreeRow({ current, action }: { current: boolean; action?: ReactN
 }
 
 /**
- * Home's plan bar: the plan, how much revenue the app added against its limit, and "See plans".
- * `addedUsd` null = not measured yet (orders not readable).
+ * Home's plan bar: the plan, this month's orders against its limit, and "See plans".
+ * `orders` null = the count couldn't be read (then only the limit is shown).
  */
-export function PlanBar({ plan, addedUsd, trialEndsAt, action }: { plan: PlanKey; addedUsd: number | null; trialEndsAt: string | null; action: ReactNode }) {
+export function PlanBar({ plan, orders, trialEndsAt, action }: { plan: PlanKey; orders: number | null; trialEndsAt: string | null; action: ReactNode }) {
   const p = PLANS[plan];
-  const limit = p.limits.monthlyRevenue;
-  const pct = limit && addedUsd !== null ? Math.min(100, (addedUsd / limit) * 100) : null;
+  const limit = p.limits.monthlyOrders;
+  const pct = limit && orders !== null ? Math.min(100, (orders / limit) * 100) : null;
   return (
     <div className={styles.planBar}>
       <div className={styles.planBarText}>
@@ -101,13 +101,13 @@ export function PlanBar({ plan, addedUsd, trialEndsAt, action }: { plan: PlanKey
         </span>
         <span className={styles.planBarLine}>
           {limit === null
-            ? "Unlimited revenue added"
-            : addedUsd === null
-              ? `Up to ${usd(limit)} revenue added monthly`
-              : `${usd(addedUsd)} of ${usd(limit)} revenue added in the last 30 days`}
+            ? `Unlimited orders${orders !== null ? ` · ${orders.toLocaleString("en-US")} this month` : ""}`
+            : orders === null
+              ? `Up to ${limit.toLocaleString("en-US")} orders monthly`
+              : `${orders.toLocaleString("en-US")} of ${limit.toLocaleString("en-US")} orders this month`}
         </span>
         {pct !== null ? (
-          <span className={styles.meter} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Revenue added against your plan">
+          <span className={styles.meter} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Orders this month against your plan">
             <span className={`${styles.meterFill} ${pct >= 100 ? styles.meterFull : ""}`} style={{ width: `${pct}%` }} />
           </span>
         ) : null}

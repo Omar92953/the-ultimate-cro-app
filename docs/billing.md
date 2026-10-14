@@ -45,11 +45,10 @@ with Omar on 2026-10-14: Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-d
   the plan is confirmed (Partner API, or a subscription found by the Admin API, or the override):
   **set the Partner API variables before launch**, or Free stores won't have extras switched off. Designs 2–5 made before a downgrade
   stay on the store; the editor for them shows an upgrade card.
-- **Revenue added a month** is the soft limit (Free $100, Starter $500, Growth $2,000, Pro unlimited):
-  revenue from the app's offers and widgets in the last 30 days, converted to US dollars with the
-  approximate rates in `USD_RATE` (plans.ts). Home's plan bar shows it as a meter and a banner
-  appears when it's passed; nothing is switched off. It needs `read_orders` (protected customer
-  data approval); until then the meter shows only the plan's limit.
+- **Orders a month** is the soft limit (Free 50, Starter 500, Growth 1,000, Pro unlimited): all of
+  the store's orders in the calendar month, from Shopify's order count (works before the protected
+  customer data approval). Home's plan bar shows "N of 500 orders this month" with a meter, and a
+  banner appears when it's passed; nothing is switched off.
 - Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
 - **Request a feature** (Growth and up): a card on Home opens an email to `SUPPORT_EMAIL` with the shop's name; we build the requested feature for them. Free and Starter stores see the card with an upgrade button.
 

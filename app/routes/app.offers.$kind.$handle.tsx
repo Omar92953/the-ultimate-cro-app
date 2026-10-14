@@ -14,6 +14,7 @@ import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { CrossSellPreview, UpsellPreview } from "../components/FeaturePreview";
+import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
 
 function blankRule(kind: RuleKind): Rule {
@@ -152,285 +153,291 @@ export default function RuleEditor() {
         </s-banner>
       ) : null}
 
-      {isUpsell ? (
-        <>
-          <s-section heading="1. Choose the offer">
-            <s-stack gap="base">
-            <Select
-              label="What do shoppers get?"
-              value={rule.upsellType}
-              onValue={(v) => {
-                const type = v as Rule["upsellType"];
-                if (type === rule.upsellType) return;
-                setRule((r) => ({
-                  ...r,
-                  upsellType: type,
-                  optionName: type === "variant" ? r.optionName || "Size" : r.optionName,
-                  headline: type === "variant" && r.headline === "Buy more, save more" ? "Choose your size" : r.headline,
-                  tiers:
-                    type === "variant"
-                      ? [
-                          { qty: 1, value: "", pct: 0 },
-                          { qty: 1, value: "", pct: 10, badge: "Best value" },
-                        ]
-                      : [
-                          { qty: 1, pct: 0 },
-                          { qty: 2, pct: 10 },
-                          { qty: 3, pct: 15, badge: "Most popular" },
-                        ],
-                }));
-              }}
-              options={[
-                { value: "quantity", label: "A discount for buying more (Buy 2, save 10%)" },
-                { value: "variant", label: "A discount on bigger sizes (size upgrade)" },
-              ]}
-              details={
-                rule.upsellType === "variant"
-                  ? "Each choice is a size (or another option). Picking it switches the product to that size, discounted at checkout."
-                  : "Each choice is a quantity. The discount applies at checkout once the cart has that many; different sizes count together."
-              }
-            />
-            {rule.upsellType === "variant" ? (
-              <TextField
-                label="Option name"
-                placeholder="Size"
-                details="Exactly as it appears on your products, e.g. Size, Volume, Pack."
-                value={rule.optionName}
-                onValue={(v) => set("optionName", v)}
-              />
-            ) : null}
-            </s-stack>
-          </s-section>
-          <s-section heading={rule.upsellType === "variant" ? "2. Set the sizes and discounts" : "2. Set the quantities and discounts"}>
-            <s-stack gap="base">
-            {rule.tiers.map((t, i) => (
-              <s-box key={i} padding="base" borderWidth="base" borderRadius="base">
-                <s-stack gap="small-200">
-                  <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                    {rule.upsellType === "variant" ? (
-                      <TextField
-                        label={`${rule.optionName || "Option"} value`}
-                        placeholder={i === 0 ? "50 ml" : "100 ml"}
-                        value={t.value ?? ""}
-                        onValue={(v) => setTier(i, { value: v })}
-                      />
-                    ) : (
-                      <NumberField label="Quantity" value={t.qty} min={1} max={99} step={1} onValue={(v) => setTier(i, { qty: v })} />
-                    )}
-                    <NumberField label="Discount" suffix="%" value={t.pct} min={0} max={90} step={1} onValue={(v) => setTier(i, { pct: v })} />
-                    <TextField
-                      label="Label (optional)"
-                      placeholder={rule.upsellType === "variant" ? t.value || "100 ml" : `Buy ${t.qty}`}
-                      value={t.label ?? ""}
-                      onValue={(v) => setTier(i, { label: v })}
-                    />
-                    <TextField
-                      label="Badge (optional)"
-                      placeholder={rule.upsellType === "variant" ? "Best value" : "Most popular"}
-                      value={t.badge ?? ""}
-                      onValue={(v) => setTier(i, { badge: v })}
-                    />
-                  </s-grid>
-                  <s-stack direction="inline">
-                    <Button variant="tertiary" tone="critical" icon="delete" onClick={() => set("tiers", rule.tiers.filter((_, j) => j !== i))}>
-                      Remove tier
-                    </Button>
-                  </s-stack>
+      <EditorLayout
+        side={
+          <>
+              <s-section heading="Status">
+                <s-stack gap="base">
+                  <Switch label={rule.active ? "Active: showing on your store" : "Paused: hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
+                  <TextField label="Offer name" placeholder={rule.headline} details="Only you see this." value={rule.name} onValue={(v) => set("name", v)} />
+                  <NumberField
+                    label="Priority"
+                    details="If several offers match the same product, the lowest number is shown."
+                    value={rule.priority}
+                    min={0}
+                    max={999}
+                    step={1}
+                    onValue={(v) => set("priority", v)}
+                  />
                 </s-stack>
-              </s-box>
-            ))}
-            <s-stack direction="inline">
-              <Button
-                icon="plus"
-                disabled={rule.tiers.length >= 6}
-                onClick={() => {
-                  const last = rule.tiers[rule.tiers.length - 1];
-                  set(
-                    "tiers",
+              </s-section>
+
+              <s-section heading="Preview">
+                <s-stack gap="small-200">
+                  <div style={{ height: 200, overflow: "hidden" }}>
+                    {isUpsell ? (
+                      <UpsellPreview heading={rule.headline} tiers={rule.tiers} variant={rule.upsellType === "variant"} />
+                    ) : (
+                      <CrossSellPreview
+                        heading={rule.headline}
+                        button={rule.buttonLabel}
+                        products={rule.offeredProducts.map((p) => p.title)}
+                        pct={rule.discountPercent}
+                      />
+                    )}
+                  </div>
+                  <s-text color="subdued">A sketch with sample prices. Colors and fonts follow your theme on the store.</s-text>
+                </s-stack>
+              </s-section>
+
+              <s-section heading="Discount at checkout">
+                <s-paragraph>
+                  {engine === "native"
+                    ? "Saving creates Shopify automatic discounts for this offer. Don't edit them in Discounts; the app replaces them on every save."
+                    : "Applied by the “CRO Toolbox offers” automatic discount, which combines with order and shipping discounts."}
+                </s-paragraph>
+              </s-section>
+          </>
+        }
+      >
+          {isUpsell ? (
+            <>
+              <s-section heading="1. Choose the offer">
+                <s-stack gap="base">
+                <Select
+                  label="What do shoppers get?"
+                  value={rule.upsellType}
+                  onValue={(v) => {
+                    const type = v as Rule["upsellType"];
+                    if (type === rule.upsellType) return;
+                    setRule((r) => ({
+                      ...r,
+                      upsellType: type,
+                      optionName: type === "variant" ? r.optionName || "Size" : r.optionName,
+                      headline: type === "variant" && r.headline === "Buy more, save more" ? "Choose your size" : r.headline,
+                      tiers:
+                        type === "variant"
+                          ? [
+                              { qty: 1, value: "", pct: 0 },
+                              { qty: 1, value: "", pct: 10, badge: "Best value" },
+                            ]
+                          : [
+                              { qty: 1, pct: 0 },
+                              { qty: 2, pct: 10 },
+                              { qty: 3, pct: 15, badge: "Most popular" },
+                            ],
+                    }));
+                  }}
+                  options={[
+                    { value: "quantity", label: "A discount for buying more (Buy 2, save 10%)" },
+                    { value: "variant", label: "A discount on bigger sizes (size upgrade)" },
+                  ]}
+                  details={
                     rule.upsellType === "variant"
-                      ? [...rule.tiers, { qty: 1, value: "", pct: Math.min(90, (last?.pct ?? 0) + 5) }]
-                      : [...rule.tiers, { qty: (last?.qty ?? 0) + 1, pct: Math.min(90, (last?.pct ?? 0) + 5) }],
-                  );
-                }}
-              >
-                Add tier
-              </Button>
-            </s-stack>
-            {engine === "native" && rule.upsellType === "variant" && rule.triggerType === "all" ? (
-              <s-banner tone="warning" heading="Choose products or collections">
-                With native discounts, size tiers need specific products or collections (so the app can find each
-                size’s variants). With “All products” the tiers show, but checkout won’t discount them.
-              </s-banner>
-            ) : null}
-              </s-stack>
-          </s-section>
-          <s-section heading="3. Choose the products">
-            <s-stack gap="base">
-          <Select
-            label={isUpsell ? "Show this offer on" : "Show these suggestions for"}
-            value={rule.triggerType}
-            onValue={(v) => set("triggerType", v as Rule["triggerType"])}
-            options={[
-              { value: "all", label: "All products" },
-              { value: "products", label: "Specific products" },
-              { value: "collections", label: "Products in collections" },
-            ]}
-            details={isUpsell ? undefined : "On the product page of these products, or when they are in the cart."}
-          />
-          {rule.triggerType === "products" ? (
-            <ResourceList type="product" label="Products" value={rule.triggerProducts} onChange={(v) => set("triggerProducts", v)} />
-          ) : null}
-          {rule.triggerType === "collections" ? (
-            <ResourceList
-              type="collection"
-              label="Collections"
-              value={rule.triggerCollections}
-              onChange={(v) => set("triggerCollections", v)}
-            />
-          ) : null}
-            </s-stack>
-          </s-section>
-        </>
-      ) : (
-        <>
-          <s-section heading="1. Choose when to show it">
-            <s-stack gap="base">
-          <Select
-            label={isUpsell ? "Show this offer on" : "Show these suggestions for"}
-            value={rule.triggerType}
-            onValue={(v) => set("triggerType", v as Rule["triggerType"])}
-            options={[
-              { value: "all", label: "All products" },
-              { value: "products", label: "Specific products" },
-              { value: "collections", label: "Products in collections" },
-            ]}
-            details={isUpsell ? undefined : "On the product page of these products, or when they are in the cart."}
-          />
-          {rule.triggerType === "products" ? (
-            <ResourceList type="product" label="Products" value={rule.triggerProducts} onChange={(v) => set("triggerProducts", v)} />
-          ) : null}
-          {rule.triggerType === "collections" ? (
-            <ResourceList
-              type="collection"
-              label="Collections"
-              value={rule.triggerCollections}
-              onChange={(v) => set("triggerCollections", v)}
-            />
-          ) : null}
-            </s-stack>
-          </s-section>
-          <s-section heading="2. Choose the products to suggest">
-            <s-stack gap="base">
-            <ResourceList
-              type="product"
-              label="Products to suggest"
-              details="Sold-out products, the product being viewed and products already in the cart are skipped automatically."
-              value={rule.offeredProducts}
-              onChange={(v) => set("offeredProducts", v)}
-            />
-            <s-text type="strong">Show them on</s-text>
-            <Checkbox label="Product page" checked={rule.placements.includes("product")} onValue={(v) => togglePlacement("product", v)} />
-            <Checkbox label="Cart page" checked={rule.placements.includes("cart")} onValue={(v) => togglePlacement("cart", v)} />
-            <Checkbox
-              label="Cart drawer"
-              details="Also switch on “Cart drawer offers” in Settings."
-              checked={rule.placements.includes("drawer")}
-              onValue={(v) => togglePlacement("drawer", v)}
-            />
-            </s-stack>
-          </s-section>
-          <s-section heading="3. Add a discount (optional)">
-            <NumberField
-              label="Discount on the suggested products"
-              suffix="%"
-              details="0 = no discount. Applies at checkout while one of the products from step 1 is also in the cart."
-              value={rule.discountPercent}
-              min={0}
-              max={90}
-              step={1}
-              onValue={(v) => set("discountPercent", v)}
-            />
-          </s-section>
-        </>
-      )}
-
-      <s-section heading="4. Write the text">
-        <s-stack gap="base">
-          <TextField label="Headline" value={rule.headline} onValue={(v) => set("headline", v)} />
-          <TextField label="Subheadline (optional)" value={rule.subheadline} onValue={(v) => set("subheadline", v)} />
-          {!isUpsell ? (
-            <TextField
-              label="Button text"
-              details="The number of ticked products is added automatically, e.g. “Add selected to cart (2)”."
-              value={rule.buttonLabel}
-              onValue={(v) => set("buttonLabel", v)}
-            />
-          ) : null}
-          <TextField
-            label="Discount name at checkout"
-            placeholder={rule.headline || rule.name}
-            details="Shoppers see this next to the discount in the cart and at checkout."
-            value={rule.discountLabel}
-            onValue={(v) => set("discountLabel", v)}
-          />
-          {engine === "native" && isUpsell && rule.triggerType === "all" && rule.tiers.some((t) => t.pct > 0) ? (
-            <s-banner tone="warning" heading="Counts the whole cart">
-              With native discounts, an “All products” upsell is an order discount: the minimum quantity counts every item
-              in the cart, the tier’s percentage comes off the whole order, and it doesn’t combine with other order
-              discounts. Choose specific products or collections to limit it.
-            </s-banner>
-          ) : null}
-          {engine === "native" && !isUpsell && rule.triggerType === "all" && rule.discountPercent > 0 ? (
-            <s-banner tone="warning" heading="Discount applies without a trigger">
-              With native discounts, an “All products” cross-sell can’t require a trigger product, so the offered products
-              get this discount even when bought on their own. Choose specific products or collections as the trigger to
-              require one.
-            </s-banner>
-          ) : null}
-        </s-stack>
-      </s-section>
-
-      <s-section slot="aside" heading="Preview">
-        <s-stack gap="small-200">
-          <div style={{ height: 200, overflow: "hidden" }}>
-            {isUpsell ? (
-              <UpsellPreview heading={rule.headline} tiers={rule.tiers} variant={rule.upsellType === "variant"} />
-            ) : (
-              <CrossSellPreview
-                heading={rule.headline}
-                button={rule.buttonLabel}
-                products={rule.offeredProducts.map((p) => p.title)}
-                pct={rule.discountPercent}
+                      ? "Each choice is a size (or another option). Picking it switches the product to that size, discounted at checkout."
+                      : "Each choice is a quantity. The discount applies at checkout once the cart has that many; different sizes count together."
+                  }
+                />
+                {rule.upsellType === "variant" ? (
+                  <TextField
+                    label="Option name"
+                    placeholder="Size"
+                    details="Exactly as it appears on your products, e.g. Size, Volume, Pack."
+                    value={rule.optionName}
+                    onValue={(v) => set("optionName", v)}
+                  />
+                ) : null}
+                </s-stack>
+              </s-section>
+              <s-section heading={rule.upsellType === "variant" ? "2. Set the sizes and discounts" : "2. Set the quantities and discounts"}>
+                <s-stack gap="base">
+                {rule.tiers.map((t, i) => (
+                  <s-box key={i} padding="base" borderWidth="base" borderRadius="base">
+                    <s-stack gap="small-200">
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        {rule.upsellType === "variant" ? (
+                          <TextField
+                            label={`${rule.optionName || "Option"} value`}
+                            placeholder={i === 0 ? "50 ml" : "100 ml"}
+                            value={t.value ?? ""}
+                            onValue={(v) => setTier(i, { value: v })}
+                          />
+                        ) : (
+                          <NumberField label="Quantity" value={t.qty} min={1} max={99} step={1} onValue={(v) => setTier(i, { qty: v })} />
+                        )}
+                        <NumberField label="Discount" suffix="%" value={t.pct} min={0} max={90} step={1} onValue={(v) => setTier(i, { pct: v })} />
+                        <TextField
+                          label="Label (optional)"
+                          placeholder={rule.upsellType === "variant" ? t.value || "100 ml" : `Buy ${t.qty}`}
+                          value={t.label ?? ""}
+                          onValue={(v) => setTier(i, { label: v })}
+                        />
+                        <TextField
+                          label="Badge (optional)"
+                          placeholder={rule.upsellType === "variant" ? "Best value" : "Most popular"}
+                          value={t.badge ?? ""}
+                          onValue={(v) => setTier(i, { badge: v })}
+                        />
+                      </s-grid>
+                      <s-stack direction="inline">
+                        <Button variant="tertiary" tone="critical" icon="delete" onClick={() => set("tiers", rule.tiers.filter((_, j) => j !== i))}>
+                          Remove tier
+                        </Button>
+                      </s-stack>
+                    </s-stack>
+                  </s-box>
+                ))}
+                <s-stack direction="inline">
+                  <Button
+                    icon="plus"
+                    disabled={rule.tiers.length >= 6}
+                    onClick={() => {
+                      const last = rule.tiers[rule.tiers.length - 1];
+                      set(
+                        "tiers",
+                        rule.upsellType === "variant"
+                          ? [...rule.tiers, { qty: 1, value: "", pct: Math.min(90, (last?.pct ?? 0) + 5) }]
+                          : [...rule.tiers, { qty: (last?.qty ?? 0) + 1, pct: Math.min(90, (last?.pct ?? 0) + 5) }],
+                      );
+                    }}
+                  >
+                    Add tier
+                  </Button>
+                </s-stack>
+                {engine === "native" && rule.upsellType === "variant" && rule.triggerType === "all" ? (
+                  <s-banner tone="warning" heading="Choose products or collections">
+                    With native discounts, size tiers need specific products or collections (so the app can find each
+                    size’s variants). With “All products” the tiers show, but checkout won’t discount them.
+                  </s-banner>
+                ) : null}
+                  </s-stack>
+              </s-section>
+              <s-section heading="3. Choose the products">
+                <s-stack gap="base">
+              <Select
+                label={isUpsell ? "Show this offer on" : "Show these suggestions for"}
+                value={rule.triggerType}
+                onValue={(v) => set("triggerType", v as Rule["triggerType"])}
+                options={[
+                  { value: "all", label: "All products" },
+                  { value: "products", label: "Specific products" },
+                  { value: "collections", label: "Products in collections" },
+                ]}
+                details={isUpsell ? undefined : "On the product page of these products, or when they are in the cart."}
               />
-            )}
-          </div>
-          <s-text color="subdued">A sketch with sample prices. Colors and fonts follow your theme on the store.</s-text>
-        </s-stack>
-      </s-section>
+              {rule.triggerType === "products" ? (
+                <ResourceList type="product" label="Products" value={rule.triggerProducts} onChange={(v) => set("triggerProducts", v)} />
+              ) : null}
+              {rule.triggerType === "collections" ? (
+                <ResourceList
+                  type="collection"
+                  label="Collections"
+                  value={rule.triggerCollections}
+                  onChange={(v) => set("triggerCollections", v)}
+                />
+              ) : null}
+                </s-stack>
+              </s-section>
+            </>
+          ) : (
+            <>
+              <s-section heading="1. Choose when to show it">
+                <s-stack gap="base">
+              <Select
+                label={isUpsell ? "Show this offer on" : "Show these suggestions for"}
+                value={rule.triggerType}
+                onValue={(v) => set("triggerType", v as Rule["triggerType"])}
+                options={[
+                  { value: "all", label: "All products" },
+                  { value: "products", label: "Specific products" },
+                  { value: "collections", label: "Products in collections" },
+                ]}
+                details={isUpsell ? undefined : "On the product page of these products, or when they are in the cart."}
+              />
+              {rule.triggerType === "products" ? (
+                <ResourceList type="product" label="Products" value={rule.triggerProducts} onChange={(v) => set("triggerProducts", v)} />
+              ) : null}
+              {rule.triggerType === "collections" ? (
+                <ResourceList
+                  type="collection"
+                  label="Collections"
+                  value={rule.triggerCollections}
+                  onChange={(v) => set("triggerCollections", v)}
+                />
+              ) : null}
+                </s-stack>
+              </s-section>
+              <s-section heading="2. Choose the products to suggest">
+                <s-stack gap="base">
+                <ResourceList
+                  type="product"
+                  label="Products to suggest"
+                  details="Sold-out products, the product being viewed and products already in the cart are skipped automatically."
+                  value={rule.offeredProducts}
+                  onChange={(v) => set("offeredProducts", v)}
+                />
+                <s-text type="strong">Show them on</s-text>
+                <Checkbox label="Product page" checked={rule.placements.includes("product")} onValue={(v) => togglePlacement("product", v)} />
+                <Checkbox label="Cart page" checked={rule.placements.includes("cart")} onValue={(v) => togglePlacement("cart", v)} />
+                <Checkbox
+                  label="Cart drawer"
+                  details="Also switch on “Cart drawer offers” in Settings."
+                  checked={rule.placements.includes("drawer")}
+                  onValue={(v) => togglePlacement("drawer", v)}
+                />
+                </s-stack>
+              </s-section>
+              <s-section heading="3. Add a discount (optional)">
+                <NumberField
+                  label="Discount on the suggested products"
+                  suffix="%"
+                  details="0 = no discount. Applies at checkout while one of the products from step 1 is also in the cart."
+                  value={rule.discountPercent}
+                  min={0}
+                  max={90}
+                  step={1}
+                  onValue={(v) => set("discountPercent", v)}
+                />
+              </s-section>
+            </>
+          )}
 
-      <s-section slot="aside" heading="Status">
-        <s-stack gap="base">
-          <Switch label={rule.active ? "Active: showing on your store" : "Paused: hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
-          <TextField label="Offer name" placeholder={rule.headline} details="Only you see this." value={rule.name} onValue={(v) => set("name", v)} />
-          <NumberField
-            label="Priority"
-            details="If several offers match the same product, the lowest number is shown."
-            value={rule.priority}
-            min={0}
-            max={999}
-            step={1}
-            onValue={(v) => set("priority", v)}
-          />
-        </s-stack>
-      </s-section>
-
-      <s-section slot="aside" heading="Discount at checkout">
-        <s-paragraph>
-          {engine === "native"
-            ? "Saving creates Shopify automatic discounts for this offer. Don't edit them in Discounts; the app replaces them on every save."
-            : "Applied by the “CRO Toolbox offers” automatic discount, which combines with order and shipping discounts."}
-        </s-paragraph>
-      </s-section>
+          <s-section heading="4. Write the text">
+            <s-stack gap="base">
+              <TextField label="Headline" value={rule.headline} onValue={(v) => set("headline", v)} />
+              <TextField label="Subheadline (optional)" value={rule.subheadline} onValue={(v) => set("subheadline", v)} />
+              {!isUpsell ? (
+                <TextField
+                  label="Button text"
+                  details="The number of ticked products is added automatically, e.g. “Add selected to cart (2)”."
+                  value={rule.buttonLabel}
+                  onValue={(v) => set("buttonLabel", v)}
+                />
+              ) : null}
+              <TextField
+                label="Discount name at checkout"
+                placeholder={rule.headline || rule.name}
+                details="Shoppers see this next to the discount in the cart and at checkout."
+                value={rule.discountLabel}
+                onValue={(v) => set("discountLabel", v)}
+              />
+              {engine === "native" && isUpsell && rule.triggerType === "all" && rule.tiers.some((t) => t.pct > 0) ? (
+                <s-banner tone="warning" heading="Counts the whole cart">
+                  With native discounts, an “All products” upsell is an order discount: the minimum quantity counts every item
+                  in the cart, the tier’s percentage comes off the whole order, and it doesn’t combine with other order
+                  discounts. Choose specific products or collections to limit it.
+                </s-banner>
+              ) : null}
+              {engine === "native" && !isUpsell && rule.triggerType === "all" && rule.discountPercent > 0 ? (
+                <s-banner tone="warning" heading="Discount applies without a trigger">
+                  With native discounts, an “All products” cross-sell can’t require a trigger product, so the offered products
+                  get this discount even when bought on their own. Choose specific products or collections as the trigger to
+                  require one.
+                </s-banner>
+              ) : null}
+            </s-stack>
+          </s-section>
+      </EditorLayout>
     </s-page>
   );
 }

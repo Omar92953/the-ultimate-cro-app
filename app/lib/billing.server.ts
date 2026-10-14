@@ -122,6 +122,25 @@ export function getPlan(admin: AdminClient, shop: string, fresh = false): Promis
   return remember(shop, "plan", 60000, load);
 }
 
+/**
+ * All of the store's orders this calendar month (UTC), for the soft order limit (plans.ts
+ * monthlyOrders). Shopify's order count works before the protected customer data approval; null
+ * when the read fails (then no banner is shown).
+ */
+export function getMonthlyOrders(admin: AdminClient, shop: string): Promise<number | null> {
+  return remember(shop, "orders-month", 10 * 60000, async () => {
+    try {
+      const now = new Date();
+      const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+      const data = await gql(admin, `#graphql
+        query CroOrdersThisMonth($q: String!) { ordersCount(query: $q, limit: 100000) { count } }`, { q: `created_at:>='${since}'` });
+      return typeof data.ordersCount?.count === "number" ? data.ordersCount.count : null;
+    } catch {
+      return null;
+    }
+  });
+}
+
 /* ----------------------------------------------- keeping within the plan -- */
 
 type PausedItem = { type: "rule" | "bundle" | "deal" | "checkout"; handle: string; name: string; limit: LimitKey };

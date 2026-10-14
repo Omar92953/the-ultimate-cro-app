@@ -38,7 +38,7 @@ bundles). He also reversed the plan limit: plans are limited by **orders per mon
 
 ## Progress
 - [x] Phase 0: plan in the repo
-- [ ] Phase 1: orders limit + hidden-settings fix
+- [x] Phase 1: orders limit + hidden-settings fix
 - [ ] Phase 2: engine (growing discounts, store pages, long collections, bundle bugs)
 - [ ] Phase 3: the app creates products and pages
 - [ ] Phase 4: Bundles list + Create bundle recipes

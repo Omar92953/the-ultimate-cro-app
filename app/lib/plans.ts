@@ -38,10 +38,10 @@ export type Limits = {
   /** Styles per section (Design 1…5 on a design page). */
   designsPerSection: number | null;
   /**
-   * Revenue the app's offers and widgets added in the last 30 days, in US dollars (the store's
-   * currency is converted with USD_RATE). Soft: going over only shows a banner, nothing switches off.
+   * All of the store's orders in the calendar month (Shopify's order count, which works before the
+   * protected customer data approval). Soft: going over only shows a banner, nothing switches off.
    */
-  monthlyRevenue: number | null;
+  monthlyOrders: number | null;
 };
 export type LimitKey = keyof Omit<Limits, "trialFeatures">;
 
@@ -76,7 +76,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 0,
     yearly: 0,
     trialDays: 0,
-    limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyRevenue: 100 },
+    limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: 50 },
     highlights: ["3 offers on at once", "Cart drawer and announcement bars", "Reviews, FAQ and wishlist", "3 checkout rules", "Try 1 Starter feature free"],
   },
   starter: {
@@ -87,7 +87,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 5.99,
     yearly: 59,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyRevenue: 500 },
+    limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
     highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Full cart drawer", "Quiz, carousels and store pages", "5 styles per section"],
   },
   growth: {
@@ -98,7 +98,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 14.99,
     yearly: 149,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyRevenue: 2000 },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
     badge: "Popular",
     highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Features built on request"],
   },
@@ -110,7 +110,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 24.99,
     yearly: 249,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyRevenue: null },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
     highlights: ["Everything in Growth", "Your requests built first", "Priority support"],
   },
 };
@@ -217,14 +217,13 @@ const NOUN: Record<LimitKey, [string, string]> = {
   thankYouModules: ["thank-you module", "thank-you modules"],
   offerStats: ["offer with its own results", "offers with their own results"],
   designsPerSection: ["style per section", "styles per section"],
-  monthlyRevenue: ["", ""],
+  monthlyOrders: ["order a month", "orders a month"],
 };
-export const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-export const limitText = (k: LimitKey, n: number) => (k === "monthlyRevenue" ? `${usd(n)} revenue added a month` : `${n.toLocaleString("en-US")} ${NOUN[k][n === 1 ? 0 : 1]}`);
-/** "Up to $500 revenue added monthly" / "Unlimited revenue added monthly" (the plan card's line). */
-export function revenueLine(p: PlanKey): { amount: string; rest: string } {
-  const n = limitOf(p, "monthlyRevenue");
-  return n === null ? { amount: "Unlimited", rest: " revenue added monthly" } : { amount: usd(n), rest: " revenue added monthly" };
+export const limitText = (k: LimitKey, n: number) => `${n.toLocaleString("en-US")} ${NOUN[k][n === 1 ? 0 : 1]}`;
+/** "Up to 500 orders monthly" / "Unlimited orders monthly" (the plan card's line). */
+export function ordersLine(p: PlanKey): { amount: string; rest: string } {
+  const n = limitOf(p, "monthlyOrders");
+  return n === null ? { amount: "Unlimited", rest: " orders monthly" } : { amount: n.toLocaleString("en-US"), rest: " orders monthly" };
 }
 
 /**
@@ -260,26 +259,10 @@ export function canResume<T>(paused: T[], activeNow: number, limit: number | nul
   return paused.slice(0, Math.max(0, limit - activeNow));
 }
 
-/**
- * Approximate US dollars per unit of a store currency, for the soft revenue limit only (a banner,
- * never a lock). Update now and then; a currency missing here simply shows no limit.
- */
-export const USD_RATE: Record<string, number> = {
-  USD: 1, EUR: 1.08, GBP: 1.27, CAD: 0.73, AUD: 0.66, NZD: 0.6, CHF: 1.13, SEK: 0.095, NOK: 0.093, DKK: 0.145, PLN: 0.25, CZK: 0.043, HUF: 0.0027, RON: 0.22,
-  EGP: 0.02, SAR: 0.27, AED: 0.27, QAR: 0.27, KWD: 3.25, BHD: 2.65, OMR: 2.6, JOD: 1.41, MAD: 0.1, TND: 0.32, TRY: 0.029, ILS: 0.27,
-  INR: 0.012, PKR: 0.0036, BDT: 0.0084, JPY: 0.0067, CNY: 0.14, HKD: 0.13, TWD: 0.031, KRW: 0.00073, SGD: 0.74, MYR: 0.22, IDR: 0.000062, PHP: 0.017, THB: 0.028, VND: 0.00004,
-  BRL: 0.18, MXN: 0.055, ARS: 0.001, CLP: 0.0011, COP: 0.00025, PEN: 0.27, ZAR: 0.054, NGN: 0.00065, KES: 0.0077,
-};
-/** An amount in a store currency, in US dollars (null when the currency isn't known). */
-export function toUsd(amount: number, currency: string): number | null {
-  const rate = USD_RATE[currency.toUpperCase()];
-  return rate === undefined ? null : amount * rate;
-}
-
-/** Is the revenue the app added (last 30 days, US dollars) over the plan's soft limit? */
-export function revenueOver(p: PlanKey, revenueUsd: number | null): boolean {
-  const n = limitOf(p, "monthlyRevenue");
-  return n !== null && revenueUsd !== null && revenueUsd > n;
+/** Is this month's order count over the plan's (soft) limit? */
+export function ordersOver(p: PlanKey, orders: number | null): boolean {
+  const n = limitOf(p, "monthlyOrders");
+  return n !== null && orders !== null && orders > n;
 }
 
 /** Shopify's hosted plan selection page (open it with target="_top"). */

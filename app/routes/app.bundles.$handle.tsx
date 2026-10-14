@@ -14,6 +14,7 @@ import type { Bundle, BundleStep } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
@@ -132,206 +133,210 @@ export default function BundleEditor() {
         </s-banner>
       ) : null}
 
-      <s-section heading="Bundle">
-        <s-stack gap="base">
-          <TextField label="Name" details="Only you see this." value={bundle.name} onValue={(v) => set("name", v)} />
-          <Switch label="Active" checked={bundle.active} onValue={(v) => set("active", v)} />
-          <ResourceList
-            type="product"
-            multiple={false}
-            label="Bundle product"
-            details="The bundle as it shows in the cart and on the order (its title and picture). Create it first in Products."
-            value={bundle.product ? [bundle.product] : []}
-            onChange={(v) => set("product", v[0] ?? null)}
-          />
-          <Select
-            label="Bundle price"
-            value={bundle.pricing}
-            onValue={(v) => {
-              const pricing = v === "percent" || v === "tiers" ? v : "fixed";
-              setBundle((b) => ({ ...b, pricing, tiers: pricing === "tiers" && !b.tiers.length ? [{ qty: 3, price: 30 }, { qty: 6, price: 55 }] : b.tiers }));
-            }}
-            options={[
-              { value: "fixed", label: "One price: the bundle product's price" },
-              { value: "percent", label: "A percentage off the items shoppers pick" },
-              { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
-            ]}
-          />
-          {bundle.pricing === "percent" ? (
-            <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
-          ) : null}
-          {bundle.pricing === "tiers" ? (
-            <s-stack gap="small-200">
-              <s-text color="subdued">Shoppers pick exactly one of these numbers of items, and the bundle costs that tier&apos;s price. Make the steps&apos; maximum high enough for the biggest tier.</s-text>
-              {bundle.tiers.map((t, i) => (
-                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
-                  <NumberField label="Items" min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
-                  <NumberField label="Price" min={0} step={0.01} value={t.price} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))} />
-                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
-                    Remove
-                  </Button>
-                </s-grid>
-              ))}
-              <s-stack direction="inline">
-                <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + 3, price: 0 }])}>
-                  Add tier
-                </Button>
-              </s-stack>
-            </s-stack>
-          ) : null}
-          {bundle.pricing !== "percent" ? (
-            <s-stack gap="small-200">
-              <s-text type="strong">Extra charge for pricier options (optional)</s-text>
-              <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>
-              {bundle.extras.map((x, i) => (
-                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
-                  <TextField label="Option value" placeholder="XL" value={x.value} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, value: v } : y)))} />
-                  <NumberField label="Extra per item" min={0} step={0.01} value={x.amount} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
-                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove extra charge ${i + 1}`} onClick={() => set("extras", bundle.extras.filter((_, j) => j !== i))}>
-                    Remove
-                  </Button>
-                </s-grid>
-              ))}
-              <s-stack direction="inline">
-                <Button variant="tertiary" icon="plus" onClick={() => set("extras", [...bundle.extras, { value: "", amount: 0 }])}>
-                  Add extra charge
-                </Button>
-              </s-stack>
-            </s-stack>
-          ) : null}
-          <Switch
-            label="Let shoppers build it anywhere in the store"
-            details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."
-            checked={bundle.storeWide}
-            onValue={(v) => set("storeWide", v)}
-          />
-          <Checkbox
-            label="Allow the same item more than once"
-            checked={bundle.allowDuplicates}
-            onValue={(v) => set("allowDuplicates", v)}
-          />
-          <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
-        </s-stack>
-      </s-section>
-
-      <SortableList
-        items={bundle.steps}
-        keyOf={(_step, i) => String(i)}
-        labelOf={(step) => step.label || "Step"}
-        onMove={moveStep}
-        gap={16}
-        render={(step, i, handle) => (
-        <s-section heading={`Step ${i + 1}${step.label ? `: ${step.label}` : ""}`}>
-          <s-stack gap="base">
-            <s-stack direction="inline" gap="small-100" alignItems="center">
-              {handle}
-              <s-text color="subdued">Drag to change the order of the steps</s-text>
-            </s-stack>
-            <TextField label="Label" placeholder="Choose 3 posters" value={step.label} onValue={(v) => setStep(i, { label: v })} />
-            <Checkbox
-              label="Required"
-              details="Optional steps can be skipped."
-              checked={step.required}
-              onValue={(v) => setStep(i, { required: v })}
-            />
-            <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-              <NumberField
-                label="Minimum picks"
-                value={step.required ? step.min : 0}
-                min={step.required ? 1 : 0}
-                max={20}
-                step={1}
-                disabled={!step.required}
-                onValue={(v) => setStep(i, { min: v })}
+      <EditorLayout
+        side={
+            <s-section heading="Before you go live">
+                <s-unordered-list>
+                  <s-list-item>
+                    Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick.
+                  </s-list-item>
+                  <s-list-item>
+                    In the bundle product, untick “Track quantity”. The picked items’ own stock is what goes down.
+                  </s-list-item>
+                  <s-list-item>
+                    Add the Bundle builder block to the bundle product’s page in the theme editor (a separate product template
+                    works well), and turn off express checkout buttons there.
+                  </s-list-item>
+                  <s-list-item>
+                    {bundle.product ? (
+                      <s-link href={`https://${shop}/admin/products/${bundle.product.id.split("/").pop()}`} target="_top">
+                        Open the bundle product
+                      </s-link>
+                    ) : (
+                      <s-link href={`https://${shop}/admin/products/new`} target="_top">
+                        Create a bundle product
+                      </s-link>
+                    )}
+                  </s-list-item>
+                </s-unordered-list>
+              </s-section>
+        }
+      >
+          <s-section heading="Bundle">
+            <s-stack gap="base">
+              <TextField label="Name" details="Only you see this." value={bundle.name} onValue={(v) => set("name", v)} />
+              <Switch label="Active" checked={bundle.active} onValue={(v) => set("active", v)} />
+              <ResourceList
+                type="product"
+                multiple={false}
+                label="Bundle product"
+                details="The bundle as it shows in the cart and on the order (its title and picture). Create it first in Products."
+                value={bundle.product ? [bundle.product] : []}
+                onChange={(v) => set("product", v[0] ?? null)}
               />
-              <NumberField label="Maximum picks" value={step.max} min={1} max={20} step={1} onValue={(v) => setStep(i, { max: v })} />
-            </s-grid>
-            {step.collection ? (
-              <>
-                <ResourceList
-                  type="collection"
-                  multiple={false}
-                  label="Choose from this collection"
-                  details="Its first 50 products (in the collection’s own order) are offered."
-                  value={[step.collection]}
-                  onChange={(v) => setStep(i, { collection: v[0] ?? null })}
-                />
-                <s-stack direction="inline">
-                  <Button variant="tertiary" icon="product" onClick={() => setStep(i, { collection: null })}>
-                    Use specific products instead
-                  </Button>
+              <Select
+                label="Bundle price"
+                value={bundle.pricing}
+                onValue={(v) => {
+                  const pricing = v === "percent" || v === "tiers" ? v : "fixed";
+                  setBundle((b) => ({ ...b, pricing, tiers: pricing === "tiers" && !b.tiers.length ? [{ qty: 3, price: 30 }, { qty: 6, price: 55 }] : b.tiers }));
+                }}
+                options={[
+                  { value: "fixed", label: "One price: the bundle product's price" },
+                  { value: "percent", label: "A percentage off the items shoppers pick" },
+                  { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
+                ]}
+              />
+              {bundle.pricing === "percent" ? (
+                <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
+              ) : null}
+              {bundle.pricing === "tiers" ? (
+                <s-stack gap="small-200">
+                  <s-text color="subdued">Shoppers pick exactly one of these numbers of items, and the bundle costs that tier&apos;s price. Make the steps&apos; maximum high enough for the biggest tier.</s-text>
+                  {bundle.tiers.map((t, i) => (
+                    <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                      <NumberField label="Items" min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
+                      <NumberField label="Price" min={0} step={0.01} value={t.price} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))} />
+                      <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
+                        Remove
+                      </Button>
+                    </s-grid>
+                  ))}
+                  <s-stack direction="inline">
+                    <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + 3, price: 0 }])}>
+                      Add tier
+                    </Button>
+                  </s-stack>
                 </s-stack>
-              </>
-            ) : (
-              <>
-                <ResourceList
-                  type="product"
-                  label="Choose from these products"
-                  value={step.products}
-                  onChange={(v) => setStep(i, { products: v })}
-                />
-                <s-stack direction="inline">
-                  <Button
-                    variant="tertiary"
-                    icon="collection"
-                    onClick={async () => {
-                      const picked: any = await shopify.resourcePicker({ type: "collection", multiple: false, action: "select" } as any);
-                      const c = picked?.[0];
-                      if (c) setStep(i, { collection: { id: c.id, title: c.title, image: c.image?.originalSrc ?? null }, products: [] });
-                    }}
-                  >
-                    Use a collection instead
-                  </Button>
+              ) : null}
+              {bundle.pricing !== "percent" ? (
+                <s-stack gap="small-200">
+                  <s-text type="strong">Extra charge for pricier options (optional)</s-text>
+                  <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>
+                  {bundle.extras.map((x, i) => (
+                    <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                      <TextField label="Option value" placeholder="XL" value={x.value} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, value: v } : y)))} />
+                      <NumberField label="Extra per item" min={0} step={0.01} value={x.amount} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
+                      <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove extra charge ${i + 1}`} onClick={() => set("extras", bundle.extras.filter((_, j) => j !== i))}>
+                        Remove
+                      </Button>
+                    </s-grid>
+                  ))}
+                  <s-stack direction="inline">
+                    <Button variant="tertiary" icon="plus" onClick={() => set("extras", [...bundle.extras, { value: "", amount: 0 }])}>
+                      Add extra charge
+                    </Button>
+                  </s-stack>
                 </s-stack>
-              </>
-            )}
-            <s-stack direction="inline" gap="small-200">
-              <Button
-                tone="critical"
-                variant="tertiary"
-                icon="delete"
-                disabled={bundle.steps.length === 1}
-                onClick={() => set("steps", bundle.steps.filter((_, j) => j !== i))}
-              >
-                Remove step
-              </Button>
+              ) : null}
+              <Switch
+                label="Let shoppers build it anywhere in the store"
+                details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."
+                checked={bundle.storeWide}
+                onValue={(v) => set("storeWide", v)}
+              />
+              <Checkbox
+                label="Allow the same item more than once"
+                checked={bundle.allowDuplicates}
+                onValue={(v) => set("allowDuplicates", v)}
+              />
+              <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
             </s-stack>
-          </s-stack>
-        </s-section>
-        )}
-      />
+          </s-section>
 
-      <s-section>
-        <Button icon="plus" disabled={bundle.steps.length >= 6} onClick={() => set("steps", [...bundle.steps, blankStep()])}>
-          Add step
-        </Button>
-      </s-section>
-
-      <s-section slot="aside" heading="Before you go live">
-        <s-unordered-list>
-          <s-list-item>
-            Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick.
-          </s-list-item>
-          <s-list-item>
-            In the bundle product, untick “Track quantity”. The picked items’ own stock is what goes down.
-          </s-list-item>
-          <s-list-item>
-            Add the Bundle builder block to the bundle product’s page in the theme editor (a separate product template
-            works well), and turn off express checkout buttons there.
-          </s-list-item>
-          <s-list-item>
-            {bundle.product ? (
-              <s-link href={`https://${shop}/admin/products/${bundle.product.id.split("/").pop()}`} target="_top">
-                Open the bundle product
-              </s-link>
-            ) : (
-              <s-link href={`https://${shop}/admin/products/new`} target="_top">
-                Create a bundle product
-              </s-link>
+          <SortableList
+            items={bundle.steps}
+            keyOf={(_step, i) => String(i)}
+            labelOf={(step) => step.label || "Step"}
+            onMove={moveStep}
+            gap={16}
+            render={(step, i, handle) => (
+            <s-section heading={`Step ${i + 1}${step.label ? `: ${step.label}` : ""}`}>
+              <s-stack gap="base">
+                <s-stack direction="inline" gap="small-100" alignItems="center">
+                  {handle}
+                  <s-text color="subdued">Drag to change the order of the steps</s-text>
+                </s-stack>
+                <TextField label="Label" placeholder="Choose 3 posters" value={step.label} onValue={(v) => setStep(i, { label: v })} />
+                <Checkbox
+                  label="Required"
+                  details="Optional steps can be skipped."
+                  checked={step.required}
+                  onValue={(v) => setStep(i, { required: v })}
+                />
+                <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                  <NumberField
+                    label="Minimum picks"
+                    value={step.required ? step.min : 0}
+                    min={step.required ? 1 : 0}
+                    max={20}
+                    step={1}
+                    disabled={!step.required}
+                    onValue={(v) => setStep(i, { min: v })}
+                  />
+                  <NumberField label="Maximum picks" value={step.max} min={1} max={20} step={1} onValue={(v) => setStep(i, { max: v })} />
+                </s-grid>
+                {step.collection ? (
+                  <>
+                    <ResourceList
+                      type="collection"
+                      multiple={false}
+                      label="Choose from this collection"
+                      details="Its first 50 products (in the collection’s own order) are offered."
+                      value={[step.collection]}
+                      onChange={(v) => setStep(i, { collection: v[0] ?? null })}
+                    />
+                    <s-stack direction="inline">
+                      <Button variant="tertiary" icon="product" onClick={() => setStep(i, { collection: null })}>
+                        Use specific products instead
+                      </Button>
+                    </s-stack>
+                  </>
+                ) : (
+                  <>
+                    <ResourceList
+                      type="product"
+                      label="Choose from these products"
+                      value={step.products}
+                      onChange={(v) => setStep(i, { products: v })}
+                    />
+                    <s-stack direction="inline">
+                      <Button
+                        variant="tertiary"
+                        icon="collection"
+                        onClick={async () => {
+                          const picked: any = await shopify.resourcePicker({ type: "collection", multiple: false, action: "select" } as any);
+                          const c = picked?.[0];
+                          if (c) setStep(i, { collection: { id: c.id, title: c.title, image: c.image?.originalSrc ?? null }, products: [] });
+                        }}
+                      >
+                        Use a collection instead
+                      </Button>
+                    </s-stack>
+                  </>
+                )}
+                <s-stack direction="inline" gap="small-200">
+                  <Button
+                    tone="critical"
+                    variant="tertiary"
+                    icon="delete"
+                    disabled={bundle.steps.length === 1}
+                    onClick={() => set("steps", bundle.steps.filter((_, j) => j !== i))}
+                  >
+                    Remove step
+                  </Button>
+                </s-stack>
+              </s-stack>
+            </s-section>
             )}
-          </s-list-item>
-        </s-unordered-list>
-      </s-section>
+          />
+
+          <s-section>
+            <Button icon="plus" disabled={bundle.steps.length >= 6} onClick={() => set("steps", [...bundle.steps, blankStep()])}>
+              Add step
+            </Button>
+          </s-section>
+      </EditorLayout>
     </s-page>
   );
 }

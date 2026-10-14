@@ -208,7 +208,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
         </s-stack>
       </s-section>
 
-      <s-section slot="aside" heading="Tips">
+      <s-section heading="Tips">
         <s-unordered-list>
           <s-list-item>Vertical (9:16) videos under 30 seconds work best.</s-list-item>
           <s-list-item>Videos play muted and only while on screen, and never autoplay for shoppers who prefer reduced motion.</s-list-item>
