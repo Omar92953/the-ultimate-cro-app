@@ -32,7 +32,7 @@ import type {
 } from "./types";
 import { FEATURE_KEYS, bundlePricing } from "./types";
 import { validateBundle, validateRule } from "./validate";
-import { DEAL_TEXT, toFunctionDeal, toStorefrontDeal, type Deal, type DealKind } from "./deals";
+import { DEAL_TEXT, fbtForStorefront, normalizeFbt, toFunctionDeal, toStorefrontDeal, type Deal, type DealKind, type FbtDesign } from "./deals";
 export * from "./types";
 export { validateBundle, validateRule };
 
@@ -431,8 +431,20 @@ export async function listDeals(admin: AdminClient): Promise<Deal[]> {
 }
 
 /** The storefront copy of active deals ($app:cro_offers "main"), read by the boosters script. */
+/** The "Frequently bought together" box design ($app:cro_design "fbt"), with defaults. */
+export async function getFbtDesign(admin: AdminClient): Promise<FbtDesign> {
+  const data = await gql(admin, `#graphql
+    query CroFbt { metaobjectByHandle(handle: { type: "$app:cro_design", handle: "fbt" }) { field(key: "config") { value } } }`);
+  try {
+    return normalizeFbt(JSON.parse(data.metaobjectByHandle?.field?.value ?? "null"));
+  } catch {
+    return normalizeFbt(null);
+  }
+}
+
 async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
-  const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal), t: DEAL_TEXT };
+  const fbt = await getFbtDesign(admin).catch(() => normalizeFbt(null));
+  const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal), t: DEAL_TEXT, fbt: fbtForStorefront(fbt) };
   await upsert(admin, "$app:cro_offers", "main", { data: JSON.stringify(data) });
 }
 
@@ -957,6 +969,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
             percent_off: field(key: "percent_off") { key value }
             price_rules: field(key: "price_rules") { key value }
             store_wide: field(key: "store_wide") { key value }
+            page: field(key: "page") { key value reference { ... on Page { id title handle } } }
             steps: field(key: "steps") {
               key
               value
@@ -1006,6 +1019,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       tiers: rules.tiers,
       extras: rules.extras,
       storeWide: bool(f.store_wide, true),
+      page: node.page?.reference?.id ? { id: node.page.reference.id, title: node.page.reference.title, handle: node.page.reference.handle } : null,
       steps: (f.steps?.references?.nodes ?? []).map((s: any) => {
         const sf = fieldsOf(aliased(s, ["label", "required", "min_picks", "max_picks", "collection", "products"]));
         return {
@@ -1056,6 +1070,7 @@ export async function saveBundle(admin: AdminClient, bundle: Bundle) {
     percent_off: String(Math.min(90, Math.max(0, Number(bundle.percentOff) || 0))),
     price_rules: JSON.stringify(toPriceRules(bundle)),
     store_wide: String(bundle.storeWide !== false),
+    page: bundle.page?.id ?? "",
   });
   for (const id of oldSteps) await remove(admin, id);
   await syncBundles(admin);

@@ -281,12 +281,12 @@
       // The highest tier reached applies; the next one tells shoppers what one more item earns.
       var pct = b.k === 'percent_tiers';
       var list = (pct ? b.pt : b.at) || [];
-      var hit = null, up = null;
+      var reached = null, up = null;
       list.forEach(function (t) {
-        if (t[0] <= n && (!hit || t[0] >= hit[0])) hit = t;
+        if (t[0] <= n && (!reached || t[0] >= reached[0])) reached = t;
         if (t[0] > n && (!up || t[0] < up[0])) up = t;
       });
-      var off = hit ? (pct ? Math.round(value * hit[1] / 100) : Math.round(hit[1] * rate)) : 0;
+      var off = reached ? (pct ? Math.round(value * reached[1] / 100) : Math.round(reached[1] * rate)) : 0;
       var more = up ? { count: up[0] - n, pct: pct ? up[1] : null, cents: pct ? null : Math.round(up[1] * rate) } : null;
       return { value: value, price: Math.max(0, value - Math.min(off, value)), next: up ? up[0] : null, more: more };
     }

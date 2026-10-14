@@ -73,8 +73,10 @@
       this.addEventListener('change', this.onChange);
 
       if (this.form) this.useThemeButton();
+      this.setupMore();
       this.restore();
       this.render();
+      this.restoreLater();
     }
 
     disconnectedCallback() {
@@ -325,6 +327,7 @@
     }
 
     save() {
+      if (this.restoring) return;
       try {
         sessionStorage.setItem(this.storeKey, JSON.stringify(this.steps.map((s) => s.picks.map((p) => p.id))));
         if (!this.shared()) return;
@@ -359,6 +362,182 @@
       }
     }
 
+    /** Pick variant `id` in `step` if its card is on the page; true when placed. */
+    place(step, id) {
+      var card = Array.prototype.find.call(step.el.querySelectorAll('.ucro-bundle__card'), (c) => {
+        var v = c.querySelector('.ucro-bundle__variant');
+        if (!v) return false;
+        if (v.tagName !== 'SELECT') return v.value === String(id);
+        var opt = Array.prototype.find.call(v.options, (o) => o.value === String(id) && !o.disabled);
+        if (opt) v.value = opt.value;
+        return !!opt;
+      });
+      if (!card || step.picks.length >= step.max) return false;
+      var v = this.variantOf(card);
+      if (!v || (!this.dup && this.countOf(step, card))) return false;
+      step.picks.push({ card: card, id: v.id, cents: v.cents, vt: v.vt, title: v.title });
+      return true;
+    }
+
+    /** Picks saved from further down a long collection: load pages until their cards appear. */
+    restoreLater() {
+      var todo = this.missing || [];
+      this.missing = [];
+      if (!todo.length) return;
+      this.restoring = true; // don't save half-restored picks over the full ones
+      var tries = 0;
+      var go = () => {
+        todo = todo.filter((m) => !this.place(m.step, m.id));
+        var next = todo.find((m) => !m.step.done);
+        if (!next || ++tries > 10) {
+          this.restoring = false;
+          return this.render();
+        }
+        this.loadMore(next.step).then(go);
+      };
+      go();
+    }
+
+    /* ---- Long collections: "Show more" and search --------------------------------- */
+    setupMore() {
+      this.hso = this.dataset.hso === 'true';
+      this.steps.forEach((s) => {
+        var grid = s.el.querySelector('.ucro-bundle__grid');
+        s.handle = s.el.dataset.collection || '';
+        s.page = 1; // Liquid shows the collection's first 50 products
+        s.done = !s.handle || (Number(s.el.dataset.total) || 0) <= 50;
+        if (!s.handle || !grid) return;
+        if ((Number(s.el.dataset.total) || 0) > 12) {
+          var box = document.createElement('input');
+          box.type = 'search';
+          box.className = 'ucro-bundle__search';
+          box.placeholder = this.dataset.tSearch || 'Search';
+          box.setAttribute('aria-label', (this.dataset.tSearch || 'Search') + ': ' + s.label);
+          grid.parentNode.insertBefore(box, grid);
+          box.addEventListener('input', () => this.filter(s, box.value));
+        }
+        if (!s.done) {
+          s.more = document.createElement('button');
+          s.more.type = 'button';
+          s.more.className = 'ucro-btn ucro-bundle__more';
+          s.more.textContent = this.dataset.tMore || 'Show more';
+          grid.parentNode.insertBefore(s.more, grid.nextSibling);
+          s.more.addEventListener('click', () => this.loadMore(s));
+        }
+      });
+    }
+
+    loadMore(s) {
+      if (s.done || s.loading) return Promise.resolve();
+      s.loading = true;
+      if (s.more) s.more.setAttribute('aria-busy', 'true');
+      var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+      return fetch(root + 'collections/' + encodeURIComponent(s.handle) + '/products.json?limit=50&page=' + (s.page + 1), { headers: { Accept: 'application/json' } })
+        .then((r) => (r.ok ? r.json() : { products: [] }))
+        .then((data) => {
+          var list = data.products || [];
+          s.page += 1;
+          var grid = s.el.querySelector('.ucro-bundle__grid');
+          var tpl = grid.querySelector('.ucro-bundle__card:not(.is-sold-out)') || grid.querySelector('.ucro-bundle__card');
+          var have = {};
+          grid.querySelectorAll('.ucro-bundle__card').forEach((c) => (have[c.dataset.handle] = true));
+          list.forEach((p) => {
+            if (!tpl || have[p.handle] || (this.hso && !p.variants.some((v) => v.available))) return;
+            grid.appendChild(this.cardFrom(tpl, p));
+          });
+          if (list.length < 50 || s.page >= 40) s.done = true;
+        })
+        .catch(() => (s.done = true))
+        .finally(() => {
+          s.loading = false;
+          if (s.more) {
+            s.more.removeAttribute('aria-busy');
+            s.more.hidden = s.done;
+          }
+          if (s.query) this.filter(s, s.query, true);
+          this.render();
+        });
+    }
+
+    /** A product from /products.json as a card, cloned from one Liquid rendered (same markup and look). */
+    cardFrom(tpl, p) {
+      var rate = (window.Shopify && window.Shopify.currency && Number(window.Shopify.currency.rate)) || 1;
+      var cents = (v) => Math.round(parseFloat(v.price) * 100 * rate);
+      var esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      var card = tpl.cloneNode(true);
+      var avail = p.variants.some((v) => v.available);
+      var first = p.variants.find((v) => v.available) || p.variants[0];
+      card.classList.remove('is-picked');
+      card.classList.toggle('is-sold-out', !avail);
+      card.dataset.title = p.title;
+      card.dataset.handle = p.handle;
+      var box = card.querySelector('.ucro-bundle__img');
+      var src = p.images && p.images[0] && p.images[0].src;
+      if (box) box.innerHTML = src ? '<img src="' + esc(U.img(src, 400)) + '" alt="' + esc(p.title) + '" loading="lazy" width="400" height="400">' : '';
+      var name = card.querySelector('.ucro-bundle__name');
+      if (name) name.textContent = p.title;
+      var price = card.querySelector('[data-ucro-price]');
+      if (price) price.textContent = U.money(cents(first), this.fmt);
+      var ctl;
+      if (p.variants.length === 1 && p.variants[0].title === 'Default Title') {
+        ctl = document.createElement('input');
+        ctl.type = 'hidden';
+        ctl.className = 'ucro-bundle__variant';
+        ctl.value = String(first.id);
+        ctl.dataset.cents = String(cents(first));
+        ctl.dataset.title = '';
+      } else {
+        ctl = document.createElement('select');
+        ctl.className = 'ucro-bundle__variant ucro-select';
+        ctl.setAttribute('aria-label', p.title);
+        p.variants.forEach((v) => {
+          if (this.hso && !v.available) return;
+          var o = document.createElement('option');
+          o.value = String(v.id);
+          o.dataset.cents = String(cents(v));
+          o.dataset.price = U.money(cents(v), this.fmt);
+          o.dataset.title = v.title;
+          o.textContent = v.title;
+          o.disabled = !v.available;
+          o.selected = v === first;
+          ctl.appendChild(o);
+        });
+      }
+      var old = card.querySelector('.ucro-bundle__variant');
+      if (old) old.replaceWith(ctl);
+      var actions = card.querySelector('.ucro-bundle__actions');
+      if (!avail && actions) {
+        var sold = document.createElement('span');
+        sold.className = 'ucro-bundle__soldout';
+        sold.textContent = this.dataset.tSoldout || 'Sold out';
+        actions.replaceWith(sold);
+      }
+      var pick = card.querySelector('.ucro-bundle__pick');
+      if (pick) {
+        pick.setAttribute('aria-pressed', 'false');
+        pick.textContent = this.dataset.tPick;
+        pick.hidden = false;
+      }
+      ['.ucro-bundle__minus', '.ucro-bundle__plus', '.ucro-bundle__qty'].forEach((sel) => {
+        var el = card.querySelector(sel);
+        if (el) el.hidden = true;
+      });
+      return card;
+    }
+
+    /** Show only the cards whose name contains `q`; fetch more pages while few match. */
+    filter(s, q, fromLoad) {
+      s.query = q;
+      var needle = String(q || '').trim().toLowerCase();
+      var shown = 0;
+      s.el.querySelectorAll('.ucro-bundle__card').forEach((c) => {
+        var hit = !needle || String(c.dataset.title || '').toLowerCase().indexOf(needle) > -1;
+        c.hidden = !hit;
+        if (hit) shown++;
+      });
+      if (needle && shown < 8 && !s.done && !(fromLoad && s.loading)) this.loadMore(s);
+    }
+
     clearSaved() {
       try {
         sessionStorage.removeItem(this.storeKey);
@@ -379,23 +558,14 @@
       } catch (e) {
         // storage unavailable (private mode): picks just are not remembered
       }
+      this.missing = [];
       if (!Array.isArray(saved)) return;
       saved.forEach((ids, i) => {
         var step = this.steps[i];
         if (!step || !Array.isArray(ids)) return;
         ids.forEach((id) => {
-          var card = Array.prototype.find.call(step.el.querySelectorAll('.ucro-bundle__card'), (c) => {
-            var v = c.querySelector('.ucro-bundle__variant');
-            if (!v) return false;
-            if (v.tagName !== 'SELECT') return v.value === String(id);
-            var opt = Array.prototype.find.call(v.options, (o) => o.value === String(id) && !o.disabled);
-            if (opt) v.value = opt.value;
-            return !!opt;
-          });
-          if (card && step.picks.length < step.max) {
-            var v = this.variantOf(card);
-            if (v && (this.dup || !this.countOf(step, card))) step.picks.push({ card: card, id: v.id, cents: v.cents, vt: v.vt, title: v.title });
-          }
+          // A pick from further down a long collection: its card loads later (restoreLater).
+          if (!this.place(step, id) && step.handle) this.missing.push({ step: step, id: id });
         });
       });
     }

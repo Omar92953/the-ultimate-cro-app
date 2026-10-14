@@ -39,7 +39,8 @@ bundles). He also reversed the plan limit: plans are limited by **orders per mon
 ## Progress
 - [x] Phase 0: plan in the repo
 - [x] Phase 1: orders limit + hidden-settings fix
-- [ ] Phase 2: engine (growing discounts, store pages, long collections, bundle bugs)
+- [x] Phase 2: engine (growing discounts, store pages, long collections, bundle bugs)
+  - Done 2026-10-15. Not done: blocking a bare bundle product at checkout (Shopify docs were unreachable to confirm the validation input can tell merged lines apart); covered instead by the theme-button default on bundle pages. Store-page builder needs Phase 3 to create/pick the page (the `page` field and Liquid support exist).
 - [ ] Phase 3: the app creates products and pages
 - [ ] Phase 4: Bundles list + Create bundle recipes
 - [ ] Phase 5: editors as sections + live preview

@@ -92,6 +92,8 @@ export type Bundle = {
   extras: BundleExtra[];
   /** Shoppers can also build it from product and collection pages (Add to bundle + bundle tray). */
   storeWide: boolean;
+  /** Optional store page (/pages/…) that shows the builder too; the bundle product stays the checkout parent. */
+  page?: { id: string; title: string; handle: string } | null;
 };
 
 export const FEATURE_KEYS = [
