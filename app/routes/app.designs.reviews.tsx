@@ -457,7 +457,7 @@ export default function ReviewsDesigner() {
                 <Select label="Devices" value={cfg.space.devices} onValue={(v) => space({ devices: v as C["space"]["devices"] })} options={[{ value: "all", label: "Desktop and mobile" }, { value: "desktop", label: "Desktop only" }, { value: "mobile", label: "Mobile only" }]} />
               </s-grid>
               <s-box paddingBlockStart="base">
-                <Checkbox label="Tell Google about a product's reviews (star ratings in search results)" checked={cfg.space.schema} onValue={(v) => space({ schema: v })} />
+                <Checkbox label="Tell Google about a product's reviews (star ratings in search results)" details="Only turn this on if the reviews were written by real customers. Google doesn't allow it for reviews you typed in yourself." checked={cfg.space.schema} onValue={(v) => space({ schema: v })} />
               </s-box>
             </s-section></Pane>
           </s-stack>

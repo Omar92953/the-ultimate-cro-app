@@ -13,7 +13,7 @@ import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/o
  * ($app:cro_recent) — product, purchase time, order id and, if the merchant turned it on, the
  * shipping city; and back-in-stock requests (StockAlert: the email a shopper typed and the variant
  * they want); and return requests (order number, email, items, reason). No names or addresses. So:
- *  - customers/data_request: log what's held for the listed orders and the customer's email
+ *  - customers/data_request: count (never log) what's held for the listed orders and the customer's email
  *  - customers/redact: remove those orders from the list and that email's back-in-stock requests
  *  - shop/redact (48h after uninstall): delete sessions and back-in-stock requests for the shop;
  *    the shop's app-owned metaobjects go with the app
@@ -29,7 +29,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const email = String(payload?.customer?.email ?? "");
       const alerts = email ? await alertsForEmail(shop, email) : [];
       const returns = email ? await returnsForEmail(shop, email) : [];
-      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests`, JSON.stringify({ held, alerts, returns }));
+      // Counts only: customer data never goes into the server logs.
+      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests`);
       break;
     }
     case "CUSTOMERS_REDACT": {

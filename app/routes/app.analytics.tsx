@@ -9,6 +9,7 @@ import { EXTRA_PLAN, PLANS, atLeast, limitOf, planAbove } from "../lib/plans";
 import { UpgradeButton, UpgradeCard, usePlan } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import { getExperiment, getResults, saveExperiment, type Results } from "../lib/results.server";
+import { remember } from "../lib/short-cache.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { Button, NumberField, Switch } from "../components/fields";
@@ -18,7 +19,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
   const [raw, theme, info] = await Promise.all([
-    getResults(admin, xp).catch((e) => ({ error: errorMessage(e) })),
+    // Shared with Home (same key as value.server.ts cachedResults): the slow order read runs once per shop every 10 minutes.
+    remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
     getPlan(admin, session.shop),
   ]);

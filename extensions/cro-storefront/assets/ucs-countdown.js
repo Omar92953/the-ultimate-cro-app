@@ -1,6 +1,7 @@
 /*
- * CRO Toolbox — countdown timers (block and bar). Modes: a fixed date (store time zone),
- * a per-visitor "evergreen" timer kept in localStorage, or a daily cut-off.
+ * CRO Toolbox countdown timers (block and bar). Modes: a fixed date (store time zone) or a daily
+ * cut-off. Both are true deadlines; there is no per-visitor timer (old "evergreen" settings count
+ * down to their saved date).
  */
 (function () {
   if (window.__ucsCountdown) return;
@@ -8,7 +9,6 @@
 
   var HOUR = 3600000, DAY = 24 * HOUR;
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-  var local = function (fn) { try { return fn(window.localStorage); } catch (e) { return null; } };
 
   // "+0300" → minutes east of UTC
   function offset(tz) {
@@ -20,15 +20,6 @@
 
   function deadline(d) {
     var now = Date.now(), off = offset(d.tz);
-    if (d.mode === 'evergreen') {
-      var span = Math.max(1, Number(d.hours) || 24) * HOUR;
-      var key = 'ucs-cd-' + d.key + '-' + span;
-      var end = Number(local(function (s) { return s.getItem(key); })) || 0;
-      if (!end) end = now + span;
-      else if (end <= now && d.ended === 'restart') end += Math.ceil((now - end) / span) * span;
-      local(function (s) { s.setItem(key, String(end)); });
-      return end;
-    }
     if (d.mode === 'daily') {
       var p = String(d.cutoff || '17:00').split(':');
       var shop = new Date(now + off * 60000);
@@ -52,7 +43,7 @@
     disconnectedCallback() { clearInterval(this._t); this._t = null; }
     tick() {
       var d = this.dataset, left = this.end - Date.now();
-      if (left <= 0 && (d.mode === 'daily' || (d.mode === 'evergreen' && d.ended === 'restart'))) {
+      if (left <= 0 && d.mode === 'daily') {
         this.end = deadline(d);
         left = this.end - Date.now();
       }
@@ -128,7 +119,7 @@
         '<span class="ucs-cd__u" data-u="' + u + '"><span class="ucs-cd__n">00</span>' + (T.labels ? '<span class="ucs-cd__l">' + esc((T.labelText || {})[u]) + '</span>' : '') + '</span>';
     }).join('');
     var timer = '<ucs-countdown class="ucs-cd ucs-cd--' + esc(T.style) + '" role="timer" aria-label="' + esc(X.value || S.heading || 'Countdown') + '" data-mode="' + esc(T.mode) + '" data-end="' + esc(T.end) +
-      '" data-hours="' + esc(T.hours) + '" data-cutoff="' + esc(T.cutoff) + '" data-tz="' + esc(el.dataset.tz) + '" data-ended="' + esc(T.ended) + '" data-key="' + place + '">' + units + '</ucs-countdown>' +
+      '" data-cutoff="' + esc(T.cutoff) + '" data-tz="' + esc(el.dataset.tz) + '" data-ended="' + esc(T.ended) + '" data-key="' + place + '">' + units + '</ucs-countdown>' +
       '<span class="ucs-cd__end" hidden>' + esc(T.endedText) + '</span>';
     var btn = '';
     if (B.show && B.text) {

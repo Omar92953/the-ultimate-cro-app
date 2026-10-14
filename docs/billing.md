@@ -1,9 +1,8 @@
 # Plans and billing (Shopify App Pricing)
 
 Everything about prices and limits lives in **`app/lib/plans.ts`** — change a number there and the
-whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values there now are the
-**proposal** (Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial) and still need
-Omar's decision.
+whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values were confirmed
+with Omar on 2026-10-14: Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial.
 
 ## How it works
 
@@ -46,8 +45,11 @@ Omar's decision.
   the plan is confirmed (Partner API, or a subscription found by the Admin API, or the override):
   **set the Partner API variables before launch**, or Free stores won't have extras switched off. Designs 2–5 made before a downgrade
   stay on the store; the editor for them shows an upgrade card.
-- **Orders a month** is a soft limit: Home shows a banner when this month's orders pass it. It
-  needs `read_orders` (pending Shopify's approval); until then nothing is shown.
+- **Revenue added a month** is the soft limit (Free $100, Starter $500, Growth $2,000, Pro unlimited):
+  revenue from the app's offers and widgets in the last 30 days, converted to US dollars with the
+  approximate rates in `USD_RATE` (plans.ts). Home's plan bar shows it as a meter and a banner
+  appears when it's passed; nothing is switched off. It needs `read_orders` (protected customer
+  data approval); until then the meter shows only the plan's limit.
 - Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
 - **Request a feature** (Growth and up): a card on Home opens an email to `SUPPORT_EMAIL` with the shop's name; we build the requested feature for them. Free and Starter stores see the card with an upgrade button.
 

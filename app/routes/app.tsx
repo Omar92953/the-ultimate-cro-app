@@ -1,6 +1,6 @@
 import { AREAS } from "../lib/catalog";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
+import { Outlet, isRouteErrorResponse, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
@@ -11,6 +11,7 @@ import { PLANS } from "../lib/plans";
 import { pageLock } from "../lib/plan-gate";
 import { LockedPage } from "../components/Upgrade";
 import frame from "../components/AppFrame.module.css";
+import { ErrorPage, FAILED, NOT_FOUND } from "../components/ErrorPage";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -54,7 +55,11 @@ export default function App() {
 
 // Shopify needs React Router to catch some thrown responses, so that their headers are included in the response.
 export function ErrorBoundary() {
-  return boundary.error(useRouteError());
+  const error = useRouteError();
+  // Our own "not found" answers get a friendly page; Shopify's auth responses must go through its boundary.
+  if (isRouteErrorResponse(error) && error.status === 404) return <ErrorPage {...NOT_FOUND} />;
+  if (isRouteErrorResponse(error)) return boundary.error(error);
+  return <ErrorPage {...FAILED} />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

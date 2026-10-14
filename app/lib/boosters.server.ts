@@ -4,6 +4,7 @@
  * real purchases for sales pop-ups ($app:cro_recent "main"). No customer names are ever stored;
  * the city only when the merchant turns it on.
  */
+import { createHash } from "node:crypto";
 import { gql, numericId, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { withDefaults, type BoostersConfig, type RecentPurchase } from "./boosters";
@@ -41,6 +42,14 @@ export async function getRecent(admin: AdminClient): Promise<RecentPurchase[]> {
   }
 }
 
+/**
+ * The list is printed into every storefront page, so it keeps a one-way fingerprint of each order
+ * id, not the id: enough to skip repeats and to find an order's entry for privacy requests.
+ */
+export const orderKey = (id: string | number) => createHash("sha256").update(`cro-recent:${String(id)}`).digest("hex").slice(0, 16);
+/** An entry's order (older entries kept the raw id). */
+const matches = (r: RecentPurchase, ids: Set<string>) => !!r.order && (ids.has(r.order) || [...ids].some((id) => orderKey(id) === r.order));
+
 async function saveRecent(admin: AdminClient, list: RecentPurchase[]) {
   await upsert(admin, "$app:cro_recent", "main", { purchases: JSON.stringify(list.slice(0, KEEP)) });
 }
@@ -76,7 +85,7 @@ export async function refreshRecent(admin: AdminClient): Promise<RecentPurchase[
       image: p.featuredMedia?.preview?.image?.url ?? null,
       city: salesPop.showCity ? (o.shippingAddress?.city ?? null) : null,
       at: o.createdAt,
-      order: numericId(o.id),
+      order: orderKey(numericId(o.id)),
     });
   }
   await saveRecent(admin, list);
@@ -88,7 +97,7 @@ export async function addPurchaseFromWebhook(admin: AdminClient, order: any) {
   if (order?.test) return;
   const productId = order?.line_items?.find((l: any) => l.product_id)?.product_id;
   if (!productId) return;
-  const orderId = String(order?.id ?? "");
+  const orderId = order?.id ? orderKey(order.id) : "";
   const data = await gql(
     admin,
     `#graphql
@@ -119,7 +128,7 @@ export async function redactRecent(admin: AdminClient, orderIds: (string | numbe
   const ids = new Set(orderIds.map(String));
   const current = await getRecent(admin);
   const next = current
-    .filter((r) => !(r.order && ids.has(r.order)))
+    .filter((r) => !matches(r, ids))
     .map((r) => (r.order ? r : { ...r, city: null }));
   if (JSON.stringify(next) !== JSON.stringify(current)) await saveRecent(admin, next);
   return current.length - next.length;
@@ -128,5 +137,5 @@ export async function redactRecent(admin: AdminClient, orderIds: (string | numbe
 /** customers/data_request: what the app holds for these orders (product, time, optional city). */
 export async function recentForOrders(admin: AdminClient, orderIds: (string | number)[]) {
   const ids = new Set(orderIds.map(String));
-  return (await getRecent(admin)).filter((r) => r.order && ids.has(r.order));
+  return (await getRecent(admin)).filter((r) => matches(r, ids));
 }
