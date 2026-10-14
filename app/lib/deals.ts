@@ -46,7 +46,7 @@ export const DEAL_TYPES: Record<
     title: "Fixed bundles",
     singular: "fixed bundle",
     addLabel: "Create fixed bundle",
-    what: "A set of specific products sold together with a discount, added to the cart with one button.",
+    what: "“Frequently bought together”: a set of specific products sold together with a discount, added to the cart with one button.",
     how: "Shoppers see the set on each of its products' pages with the total and the saving. The discount applies at checkout whenever the whole set is in the cart.",
     example: "“Camera kit”: instant camera + case + film, 15% off when bought together.",
     defaultName: "Bundle & save",
