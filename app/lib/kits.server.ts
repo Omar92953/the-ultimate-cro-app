@@ -16,6 +16,7 @@
 import { AdminError, gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { kitVariantPrice, validateKit, type Kit, type KitItem, type KitRow } from "./kits";
+import { publishToOnlineStore } from "./bundle-product.server";
 
 export { blankKit, validateKit, type Kit, type KitItem, type KitRow } from "./kits";
 
@@ -183,12 +184,39 @@ export async function saveKit(admin: AdminClient, kit: Kit): Promise<Kit> {
         productBundleCreate(input: $input) { productBundleOperation { id status } userErrors { field message } }
       }`, { input });
     productId = await waitFor(admin, data.productBundleCreate.productBundleOperation.id);
+    await finishNewKit(admin, productId, kit);
   }
   const saved: Kit = { ...kit, productId, title: input.title };
   const list = await readList(admin);
   await writeList(admin, [...list.filter((k) => k.productId !== productId), saved]);
   await applyKitPrices(admin, saved);
   return saved;
+}
+
+const escHtml = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+/**
+ * Shopify creates bundle products as drafts with no picture or description. Make a new kit ready to
+ * sell: the first item's picture, a "What's inside" list, Active and published to the Online Store.
+ * If a step fails (e.g. the publishing permission isn't approved yet), the kit stays a draft and the
+ * editor says so; the kit itself is saved either way.
+ */
+async function finishNewKit(admin: AdminClient, productId: string, kit: Kit) {
+  const image = kit.items.find((i) => i.image)?.image ?? null;
+  const inside = kit.items.map((i) => `<li>${i.qty > 1 ? `${i.qty} × ` : ""}${escHtml(i.title)}</li>`).join("");
+  try {
+    const data = await gql(admin, `#graphql
+      mutation CroKitFinish($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
+        productUpdate(product: $product, media: $media) { product { id } userErrors { field message } }
+      }`, {
+      product: { id: productId, status: "ACTIVE", descriptionHtml: `<p>What's inside:</p><ul>${inside}</ul>` },
+      media: image ? [{ originalSource: image, mediaContentType: "IMAGE", alt: kit.title }] : [],
+    });
+    if (data.productUpdate?.userErrors?.length) throw new Error(data.productUpdate.userErrors.map((e: any) => e.message).join(" "));
+    await publishToOnlineStore(admin, productId);
+  } catch (e) {
+    console.error("Finishing a new bundle product:", e);
+  }
 }
 
 /** Removes the kit from the app and deletes its product in Shopify (the items are untouched). */
