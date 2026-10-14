@@ -122,7 +122,7 @@ export default function KitEditor() {
         ) : null}
         {row && row.status !== "ACTIVE" ? (
           <s-banner tone="info" heading="Not on your store yet">
-            Shopify created the bundle as a draft. Add photos and a description, then set it to Active in Products to sell it.
+            It&apos;s still a draft. CRO Toolbox publishes new bundle products itself once you approve its new permission (open the app from Apps). You can also set it to Active in Products.
           </s-banner>
         ) : null}
 

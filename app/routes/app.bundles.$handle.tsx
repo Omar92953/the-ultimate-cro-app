@@ -5,7 +5,8 @@ import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { deleteBundle, listBundles, saveBundle } from "../lib/cro.server";
+import { bundleBuilderLinks, deleteBundle, getThemeStatus, listBundles, saveBundle } from "../lib/cro.server";
+import { SCOPE_MESSAGE, createBundlePage, createBundleProduct, isScopeError } from "../lib/bundle-product.server";
 import { validateBundle } from "../lib/validate";
 import { checkLimit } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
@@ -13,15 +14,29 @@ import { errorMessage } from "../lib/admin.server";
 import { bundlePricing, growingPricing, type Bundle, type BundleStep, type BundleTier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
+import { MediaPicker } from "../components/MediaPicker";
+import { Segmented } from "../components/ui";
+import type { MediaRef } from "../lib/sections";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
 
+/** Whether the builder block sits on the product template and on a page template (theme status). */
+async function placement(admin: Parameters<typeof getThemeStatus>[0], shop: string) {
+  const status = await getThemeStatus(admin, shop).catch(() => null);
+  const files = status?.files.bundles ?? [];
+  return {
+    known: !!status,
+    product: files.some((f) => /^templates\/product(\.|$)/.test(f)),
+    page: files.some((f) => /^templates\/page(\.|$)/.test(f)),
+  };
+}
+
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const all = await listBundles(admin);
+  const [all, placed] = await Promise.all([listBundles(admin), placement(admin, session.shop)]);
   if (params.handle === "new") {
     const bundle: Bundle = {
       name: "",
@@ -35,13 +50,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       tiers: [],
       extras: [],
       storeWide: true,
+      page: null,
     };
-    return { bundle, others: all, isNew: true, shop: session.shop };
+    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop) };
   }
   const bundle = all.find((b) => b.handle === params.handle);
   if (!bundle) throw new Response("Bundle not found", { status: 404 });
-  return { bundle, others: all, isNew: false, shop: session.shop };
+  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle) };
 };
+
+/** "Create it for me": the bundle product the app makes on save. */
+type NewProduct = { title: string; price: number; imageUrl: string | null };
+/** Where shoppers build the bundle: its product page, a store page, or both. */
+type Where = "product" | "page" | "both";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, redirect, session } = await authenticate.admin(request);
@@ -52,19 +73,34 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return redirect("/app/bundles");
     }
     const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
+    const create = form.get("create") ? (JSON.parse(String(form.get("create"))) as NewProduct) : null;
+    const where = (["product", "page", "both"].includes(String(form.get("where"))) ? String(form.get("where")) : "product") as Where;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a bundle can always be saved off.
     const over = await checkLimit(admin, session.shop, "offerSlots", bundle);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    // Check everything else first, so a product or page is never created for a bundle that won't save.
+    const others = await listBundles(admin);
+    const problems = validateBundle({ ...bundle, product: bundle.product ?? (create ? { id: "pending", title: create.title } : null) }, others);
+    if (problems.length) return { ok: false, error: problems.join(" "), handle: null, upgrade: false };
+    if (!bundle.product && create) {
+      const p = await createBundleProduct(admin, { title: create.title || bundle.name, price: create.price, imageUrl: create.imageUrl, hidden: where === "page" });
+      bundle.product = { id: p.id, title: p.title, image: p.image, handle: p.handle };
+    }
+    if (where === "product") bundle.page = null;
+    else if (!bundle.page) bundle.page = await createBundlePage(admin, bundle.name || bundle.product?.title || "Build your bundle");
     const saved = await saveBundle(admin, bundle);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
+    return { ok: false, error: isScopeError(e) ? SCOPE_MESSAGE : errorMessage(e), handle: null, upgrade: false };
   }
 };
 
 export default function BundleEditor() {
-  const { bundle: initial, others, isNew, shop } = useLoaderData<typeof loader>();
+  const { bundle: initial, others, isNew, shop, placed, links } = useLoaderData<typeof loader>();
   const [bundle, setBundle] = useState<Bundle>(initial);
+  // "Create it for me" (new bundles start with it) or pick a product the store already has.
+  const [create, setCreate] = useState<{ on: boolean; title: string; price: number; image: MediaRef | null }>({ on: !initial.product, title: "", price: 0, image: null });
+  const [where, setWhere] = useState<"product" | "page" | "both">(initial.page ? "both" : "product");
   const [touched, setTouched] = useState(false);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -92,11 +128,21 @@ export default function BundleEditor() {
     set("steps", bundle.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   const moveStep = (from: number, to: number) => set("steps", arrayMove(bundle.steps, from, to));
 
-  const problems = validateBundle(bundle, others);
+  const creating = create.on && !bundle.product;
+  // The product is made on save when "Create it for me" is chosen.
+  const problems = validateBundle({ ...bundle, product: bundle.product ?? (creating ? { id: "pending", title: create.title } : null) }, others);
   const save = () => {
     setTouched(true);
     if (problems.length) return;
-    fetcher.submit({ intent: "save", bundle: JSON.stringify(bundle) }, { method: "post" });
+    fetcher.submit(
+      {
+        intent: "save",
+        bundle: JSON.stringify(bundle),
+        where,
+        ...(creating ? { create: JSON.stringify({ title: create.title.trim() || bundle.name, price: create.price, imageUrl: create.image?.url ?? null }) } : {}),
+      },
+      { method: "post" },
+    );
   };
   const remove = () => {
     if (!bundle.handle || !window.confirm(`Delete “${bundle.name}”? The bundle product itself is not deleted.`)) return;
@@ -135,46 +181,111 @@ export default function BundleEditor() {
 
       <EditorLayout
         side={
-            <s-section heading="Before you go live">
-                <s-unordered-list>
-                  <s-list-item>
-                    {bundle.pricing === "fixed"
-                      ? "Set the bundle product’s price to the bundle price. Shoppers pay exactly that price, whatever they pick."
-                      : "The bundle product’s price is only its starting price; shoppers pay what the bundle’s pricing gives for their picks."}
-                  </s-list-item>
-                  <s-list-item>
-                    In the bundle product, untick “Track quantity”. The picked items’ own stock is what goes down.
-                  </s-list-item>
-                  <s-list-item>
-                    Add the Bundle builder block to the bundle product’s page in the theme editor (a separate product template
-                    works well), and turn off express checkout buttons there.
-                  </s-list-item>
-                  <s-list-item>
-                    {bundle.product ? (
-                      <s-link href={`https://${shop}/admin/products/${bundle.product.id.split("/").pop()}`} target="_top">
-                        Open the bundle product
-                      </s-link>
-                    ) : (
-                      <s-link href={`https://${shop}/admin/products/new`} target="_top">
-                        Create a bundle product
-                      </s-link>
-                    )}
-                  </s-list-item>
-                </s-unordered-list>
-              </s-section>
+            <s-section heading="Get it on your store">
+              <s-stack gap="base">
+                <s-stack gap="small-100">
+                  <s-text type="strong">{bundle.product ? "1. Bundle product ✓" : "1. Bundle product"}</s-text>
+                  <s-text color="subdued">
+                    {bundle.product
+                      ? "Shoppers see its page, and checkout shows the bundle under its name and picture."
+                      : creating
+                        ? "CRO Toolbox creates and publishes it when you save."
+                        : "Choose the product in “Bundle” on the left."}
+                  </s-text>
+                  {bundle.product ? (
+                    <s-stack direction="inline">
+                      <Button variant="tertiary" href={`https://${shop}/admin/products/${bundle.product.id.split("/").pop()}`} target="_top">
+                        Open in Shopify
+                      </Button>
+                    </s-stack>
+                  ) : null}
+                </s-stack>
+                {where !== "page" ? (
+                  <s-stack gap="small-100">
+                    <s-text type="strong">{placed.product ? "2. Builder on the product page ✓" : "2. Add the builder to the product page"}</s-text>
+                    <s-text color="subdued">Opens the theme editor with the Bundle builder block added. Click Save there. It shows only on bundle products.</s-text>
+                    <s-stack direction="inline">
+                      <Button variant={placed.product ? "tertiary" : "primary"} href={links.product} target="_top" icon="theme-edit" disabled={!bundle.product && !isNew}>
+                        {placed.product ? "Open in theme editor" : "Add to theme"}
+                      </Button>
+                    </s-stack>
+                  </s-stack>
+                ) : null}
+                {where !== "product" ? (
+                  <s-stack gap="small-100">
+                    <s-text type="strong">{placed.page && bundle.page ? `${where === "page" ? 2 : 3}. Builder on the store page ✓` : `${where === "page" ? 2 : 3}. Add the builder to the store page`}</s-text>
+                    <s-text color="subdued">
+                      {bundle.page ? `Your page: /pages/${bundle.page.handle}. The block shows only on this page.` : "CRO Toolbox creates the page when you save."}
+                    </s-text>
+                    {links.page ? (
+                      <s-stack direction="inline">
+                        <Button variant={placed.page ? "tertiary" : "primary"} href={links.page} target="_top" icon="theme-edit">
+                          {placed.page ? "Open in theme editor" : "Add to theme"}
+                        </Button>
+                      </s-stack>
+                    ) : null}
+                  </s-stack>
+                ) : null}
+                {bundle.product ? (
+                  <s-stack direction="inline">
+                    <Button variant="tertiary" href={`https://${shop}${where === "page" && bundle.page ? `/pages/${bundle.page.handle}` : `/products/${bundle.product.handle ?? ""}`}`} target="_blank" icon="view">
+                      View on your store
+                    </Button>
+                  </s-stack>
+                ) : null}
+              </s-stack>
+            </s-section>
         }
       >
           <s-section heading="Bundle">
             <s-stack gap="base">
               <TextField label="Name" details="Only you see this." value={bundle.name} onValue={(v) => set("name", v)} />
               <Switch label="Active" checked={bundle.active} onValue={(v) => set("active", v)} />
-              <ResourceList
-                type="product"
-                multiple={false}
-                label="Bundle product"
-                details="The bundle as it shows in the cart and on the order (its title and picture). Create it first in Products."
-                value={bundle.product ? [bundle.product] : []}
-                onChange={(v) => set("product", v[0] ?? null)}
+              {!bundle.product ? (
+                <Segmented
+                  label="Bundle product"
+                  value={create.on ? "create" : "pick"}
+                  onChange={(v) => setCreate((c) => ({ ...c, on: v === "create" }))}
+                  options={[
+                    { value: "create", label: "Create it for me" },
+                    { value: "pick", label: "Use a product I have" },
+                  ]}
+                />
+              ) : null}
+              {creating ? (
+                <s-stack gap="base">
+                  <s-text color="subdued">The bundle product is what shoppers open, and what the cart and the order show for the bundle. CRO Toolbox creates it, publishes it and keeps its stock untracked (the picked items&apos; stock goes down).</s-text>
+                  <TextField label="Product title" placeholder={bundle.name || "Build your own box"} value={create.title} onValue={(v) => setCreate((c) => ({ ...c, title: v }))} />
+                  <NumberField
+                    label={bundle.pricing === "fixed" ? "Bundle price" : "Starting price"}
+                    details={bundle.pricing === "fixed" ? "Shoppers pay this for the whole bundle, whatever they pick." : "Shown before anything is picked; shoppers pay what the pricing below gives."}
+                    min={0}
+                    step={0.01}
+                    value={create.price}
+                    onValue={(v) => setCreate((c) => ({ ...c, price: Math.max(0, v) }))}
+                  />
+                  <MediaPicker label="Picture (optional)" accept="image" alt={create.title || bundle.name} value={create.image} onValue={(v) => setCreate((c) => ({ ...c, image: v }))} />
+                </s-stack>
+              ) : (
+                <ResourceList
+                  type="product"
+                  multiple={false}
+                  label="Bundle product"
+                  details="The bundle as it shows on its page, in the cart and on the order (its title and picture)."
+                  value={bundle.product ? [bundle.product] : []}
+                  onChange={(v) => set("product", v[0] ?? null)}
+                />
+              )}
+              <Select
+                label="Where shoppers build it"
+                value={where}
+                onValue={(v) => setWhere(v === "page" || v === "both" ? v : "product")}
+                options={[
+                  { value: "product", label: "On the bundle product's page" },
+                  { value: "page", label: "On its own store page (/pages/…)" },
+                  { value: "both", label: "Both" },
+                ]}
+                details={where === "page" ? "The bundle product stays out of search; shoppers start on the store page." : undefined}
               />
               <Select
                 label="Bundle price"

@@ -56,6 +56,7 @@ function toRef(node: any): Ref | null {
     id: node.id,
     title: node.title ?? node.alt ?? node.handle ?? "",
     image: node.featuredMedia?.preview?.image?.url ?? node.image?.url ?? node.preview?.image?.url ?? null,
+    ...(node.handle ? { handle: node.handle } : {}),
   };
 }
 
@@ -85,8 +86,8 @@ const REF_FRAGMENT = `#graphql
   fragment CroRef on Node {
     __typename
     id
-    ... on Product { title featuredMedia { preview { image { url } } } }
-    ... on Collection { title image { url } }
+    ... on Product { title handle featuredMedia { preview { image { url } } } }
+    ... on Collection { title handle image { url } }
     ... on Video { alt preview { image { url } } }
     ... on MediaImage { alt preview { image { url } } }
   }
@@ -1344,6 +1345,21 @@ function embedEnabled(settingsData: string, handle: string) {
   } catch {
     return false;
   }
+}
+
+/**
+ * "Add to theme" for one bundle: the builder block added to the product template (opened on the
+ * bundle product) and, for a store-page bundle, to the page template (opened on that page). The
+ * block shows only on its bundle's product or page, so placing it once per template is enough.
+ */
+export function bundleBuilderLinks(shop: string, productHandle?: string | null, pageHandle?: string | null) {
+  const key = process.env.SHOPIFY_API_KEY;
+  const base = `https://${shop}/admin/themes/current/editor`;
+  const block = `${key}/${BLOCKS.bundles}`;
+  return {
+    product: `${base}?template=product&addAppBlockId=${block}&target=mainSection${productHandle ? `&previewPath=${encodeURIComponent(`/products/${productHandle}`)}` : ""}`,
+    page: pageHandle ? `${base}?template=page&addAppBlockId=${block}&target=newAppsSection&previewPath=${encodeURIComponent(`/pages/${pageHandle}`)}` : null,
+  };
 }
 
 /** Theme editor deep links that add our block (or switch on our embed) in one click. */
