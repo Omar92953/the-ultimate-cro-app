@@ -1,8 +1,8 @@
 /**
  * Home: is the app set up and working, and what is it bringing in. Top to bottom: one banner at
- * most, the setup guide (5 steps that tick themselves, can be dismissed), the last 30 days, what
- * needs attention, what to try next, the plan, and help. Features themselves live in the hubs
- * (Offers, Storefront, Cart, Checkout). One loader; reads run at once and are remembered per shop.
+ * most, the setup guide (4 steps that tick themselves, "I've done it" as a fallback), the plan bar,
+ * the last 30 days, what needs attention, what to try next, tutorials, then help, feature requests
+ * and what's new. Features live in the hubs. One loader; reads run at once, remembered per shop.
  */
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
@@ -10,18 +10,20 @@ import { Link, useFetcher, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { cachedResults } from "../lib/value.server";
-import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
+import { getPlan, getPlanState } from "../lib/billing.server";
+import { listOffers } from "../lib/offers.server";
 import { getHomeState, setHomeState } from "../lib/home-state.server";
 import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, revenueOver, toUsd, usd, type PlanKey } from "../lib/plans";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
 import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
-import { UpgradeButton, planPriceText } from "../components/Upgrade";
-import { PlanFeatures } from "../components/PlanCard";
+import { UpgradeButton } from "../components/Upgrade";
+import { PlanBar } from "../components/PlanCard";
+import { SetupGuide, type GuideStep } from "../components/SetupGuide";
 import { loadHub } from "../lib/hub.server";
 import styles from "../components/Home.module.css";
 
@@ -39,16 +41,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     remember(shop, "home", 30000, () =>
       Promise.all([
         getPlanState(admin).catch(() => ({ plan: null, paused: [], at: null })),
-        getHomeState(admin).catch(() => ({ dismissed: false, planSeen: false })),
-        getMonthlyOrders(admin, shop),
+        getHomeState(admin).catch(() => ({ dismissed: false, manual: [] as string[] })),
+        listOffers(admin).catch(() => []),
         listReturns(shop).catch(() => []),
         waitingEmails(shop).catch(() => []),
       ]), 300000),
     cachedResults(admin, shop),
   ]);
-  const [planState, homeState, monthOrders, returns, waiting] = extras;
+  const [planState, homeState, offers, returns, waiting] = extras;
   const installed = hub.theme?.installed ?? null;
-  const offerCount = hub.counts.upsell + hub.counts.cross_sell + hub.counts.bundles;
+  // Any offer of any type that's switched on (upsells, cross-sells, bundles, deals…).
+  const offerCount = offers.filter((o) => o.active).length || hub.counts.upsell + hub.counts.cross_sell + hub.counts.bundles;
 
   // What to try next: features not set up yet, in the order they usually pay off.
   const notUsed: Record<string, boolean> = {
@@ -78,20 +81,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (waiting.length) attention.push({ text: `${waiting.length} shopper${waiting.length === 1 ? " is" : "s are"} waiting for a product to be back in stock`, href: "/app/stock", action: "Open" });
 
   const cur = results?.periods.current ?? null;
+  // Revenue the app added in the last 30 days, in US dollars (the plans' soft limit).
+  const addedUsd = results && cur ? toUsd(cur.appRevenue, results.currency) : null;
   return {
     shop,
     plan: { key: plan.plan, source: plan.source, trialEndsAt: plan.trialEndsAt },
     paused: planState.paused,
-    orders: monthOrders,
-    ordersOver: ordersOver(plan.plan, monthOrders),
+    addedUsd,
+    revenueOver: revenueOver(plan.plan, addedUsd),
     dismissed: homeState.dismissed,
+    manual: homeState.manual,
     steps: {
-      // null = couldn't be checked (theme or orders not readable).
-      embed: installed ? EMBED_KEYS.some((k) => installed[k]) : null,
+      embed: installed ? EMBED_KEYS.some((k) => installed[k]) : false,
       offer: offerCount > 0,
-      section: installed ? Object.entries(installed).some(([k, on]) => on && !(EMBED_KEYS as readonly string[]).includes(k)) : null,
-      order: results ? results.bySource.length > 0 : null,
-      plan: plan.plan !== "free" || homeState.planSeen,
+      // A block (offers, reviews…) placed in the theme, or the embed when offers run from it.
+      place: installed ? Object.entries(installed).some(([k, on]) => on && !(EMBED_KEYS as readonly string[]).includes(k)) : false,
+      works: results ? results.bySource.length > 0 : false,
     },
     themeName: hub.theme?.themeName ?? null,
     embedLink: hub.sectionLinks.boosters,
@@ -117,6 +122,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const intent = form.get("intent");
   if (intent === "dismiss" || intent === "restore") await setHomeState(admin, { dismissed: intent === "dismiss" });
+  if (intent === "manual") {
+    const step = String(form.get("step") ?? "");
+    const { manual } = await getHomeState(admin);
+    if (step && !manual.includes(step)) await setHomeState(admin, { manual: [...manual, step] });
+  }
   return { ok: true };
 };
 
@@ -135,49 +145,49 @@ export default function Home() {
   const fetcher = useFetcher();
   const current = PLANS[data.plan.key];
   const [playing, setPlaying] = useState<Tutorial | null>(null);
-  const dismissed = fetcher.formData ? fetcher.formData.get("intent") === "dismiss" : data.dismissed;
+  const pending = fetcher.formData?.get("intent");
+  const dismissed = pending === "dismiss" ? true : pending === "restore" ? false : data.dismissed;
+  // Ticked by hand ("I've done it"), including the one being saved right now.
+  const manual = new Set([...data.manual, ...(pending === "manual" ? [String(fetcher.formData?.get("step"))] : [])]);
 
-  const steps: { done: boolean | null; title: string; text: string; action: JSX.Element }[] = [
+  const steps: GuideStep[] = [
     {
-      done: data.steps.embed,
-      title: "Turn on the app in your theme",
-      text: `Switch on “Conversion boosters” in App embeds${data.themeName ? ` of “${data.themeName}”` : ""}. Bars, pop-ups and the cart drawer need it.`,
-      action: <Button href={data.embedLink} target="_top" variant="tertiary">Open App embeds</Button>,
+      key: "embed",
+      title: "Turn on the app embed",
+      text: `In your theme's App embeds${data.themeName ? ` (“${data.themeName}”)` : ""}, switch on “Conversion boosters” and save. Bars, pop-ups, discounts and the cart drawer run from it.`,
+      done: data.steps.embed || manual.has("embed"),
+      action: <Button href={data.embedLink} target="_top" variant="primary">Turn on</Button>,
     },
     {
-      done: data.steps.offer,
+      key: "offer",
       title: "Create your first offer",
-      text: "An upsell (“Buy 2, save 10%”), a cross-sell or a bundle.",
-      action: <Button href="/app/offers/new" variant="tertiary">Create offer</Button>,
+      text: "An upsell (“Buy 2, save 10%”), a cross-sell, a bundle or a discount. Pick a group and fill in the offer.",
+      done: data.steps.offer || manual.has("offer"),
+      action: <Button href="/app/offers/new" variant="primary">Create offer</Button>,
     },
     {
-      done: data.steps.section,
-      title: "Add a section to your store",
-      text: "Place a block (offers, reviews, FAQ, banners…) on a page in the theme editor.",
-      action: <Button href={data.editorLink} target="_top" variant="tertiary">Open theme editor</Button>,
+      key: "place",
+      title: "Place it on your store",
+      text: "Open the theme editor and add the offer's block to your product page (or the cart). Each offer page has an “Add to theme” button that opens the right spot.",
+      done: data.steps.place || manual.has("place"),
+      action: <Button href={data.editorLink} target="_top" variant="primary">Open theme editor</Button>,
     },
     {
-      done: data.steps.order,
-      title: "Check a test order",
-      text: "Place a test order with an item added by the app; it then shows in Analytics.",
-      action: <Button href={`https://${data.shop}`} target="_blank" variant="tertiary">View store</Button>,
-    },
-    {
-      done: data.steps.plan,
-      title: "Pick your plan",
-      text: "See what each plan adds. Free stays free; paid plans have a free trial and can be cancelled anytime.",
-      action: <Button href="/app/plans" variant="tertiary">Compare plans</Button>,
+      key: "works",
+      title: "Check that it works",
+      text: "Open your store, add the offer to the cart and place a test order. The sale then shows in Analytics.",
+      done: data.steps.works || manual.has("works"),
+      action: <Button href={`https://${data.shop}`} target="_blank" variant="primary">View store</Button>,
     },
   ];
-  const doneCount = steps.filter((s) => s.done).length;
 
   // One banner at most: the most urgent one.
   const banner = data.plan.source === "error"
     ? { tone: "warning" as const, heading: "Your plan couldn't be checked", text: "Everything stays open until it can be checked again. Refresh in a minute.", upgrade: false }
     : data.paused.length
       ? { tone: "warning" as const, heading: `${data.paused.length} offer${data.paused.length === 1 ? " was" : "s were"} switched off to fit your plan`, text: `Nothing was deleted: ${data.paused.map((p) => p.name).join(", ")}. They switch back on when you upgrade.`, upgrade: true }
-      : data.ordersOver
-        ? { tone: "warning" as const, heading: "You're past your plan's monthly orders", text: `${data.orders?.toLocaleString()} orders this month; ${current.name} includes ${limitText("monthlyOrders", limitOf(data.plan.key, "monthlyOrders") ?? 0)}. Everything keeps working.`, upgrade: true }
+      : data.revenueOver && data.addedUsd !== null
+        ? { tone: "info" as const, heading: "The app is earning more than your plan covers", text: `It added about ${usd(data.addedUsd)} in the last 30 days; ${current.name} includes ${limitText("monthlyRevenue", limitOf(data.plan.key, "monthlyRevenue") ?? 0)}. Everything keeps working.`, upgrade: true }
         : null;
 
   const m = data.metrics;
@@ -203,34 +213,20 @@ export default function Home() {
           </s-banner>
         ) : null}
 
-        {/* Setup guide */}
         {!dismissed ? (
-          <s-section heading="Setup guide">
-            <s-stack gap="small-300">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <Pill tone={doneCount === steps.length ? "ok" : "warn"}>{`${doneCount} of ${steps.length} done`}</Pill>
-                <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "dismiss" }, { method: "post" })}>
-                  {doneCount === steps.length ? "Hide the setup guide" : "Hide for now"}
-                </Button>
-              </s-stack>
-              <ol className={styles.steps}>
-                {steps.map((s, i) => (
-                  <li key={s.title} className={`${styles.step} ${s.done ? styles.stepDone : ""}`}>
-                    <span className={styles.stepNum} aria-hidden="true">{s.done ? "✓" : i + 1}</span>
-                    <span className={styles.stepBody}>
-                      <span className={styles.stepTitle}>
-                        {s.title}
-                        <span className={styles.srOnly}>{s.done ? " (done)" : " (not done)"}</span>
-                      </span>
-                      <span className={styles.stepText}>{s.text}</span>
-                    </span>
-                    {s.done ? <Pill tone="ok">Done</Pill> : s.action}
-                  </li>
-                ))}
-              </ol>
-            </s-stack>
-          </s-section>
+          <SetupGuide
+            steps={steps}
+            onManual={(step) => fetcher.submit({ intent: "manual", step }, { method: "post" })}
+            onHide={() => fetcher.submit({ intent: "dismiss" }, { method: "post" })}
+          />
         ) : null}
+
+        <PlanBar
+          plan={data.plan.key}
+          addedUsd={data.addedUsd}
+          trialEndsAt={data.plan.trialEndsAt}
+          action={<Button href="/app/plans" variant={data.plan.key === "free" ? "primary" : "secondary"}>{data.plan.key === "pro" ? "Your plan" : "See plans"}</Button>}
+        />
 
         {/* Last 30 days */}
         <s-section heading="Last 30 days">
@@ -245,9 +241,9 @@ export default function Home() {
                   note={m.aovWithout !== null ? `${money(m.aovWithout, m.currency)} without` : undefined}
                 />
                 <Metric
-                  label="Your plan"
-                  value={current.monthly ? `${current.name} · $${current.monthly}` : "Free"}
-                  note={current.monthly && m.current.appRevenue > 0 ? `The app brought in ${Math.max(1, Math.round(m.current.appRevenue / current.monthly))}× its price` : undefined}
+                  label="Return on your plan"
+                  value={!current.monthly ? "Free plan" : data.addedUsd ? `${Math.max(1, Math.round(data.addedUsd / current.monthly))}×` : "No data yet"}
+                  note={current.monthly ? `What the app added against ${current.name}'s price` : undefined}
                 />
               </div>
             ) : (
@@ -259,14 +255,12 @@ export default function Home() {
           </s-stack>
         </s-section>
 
-        {/* Needs your attention */}
         {data.attention.length ? (
           <s-section heading="Needs your attention">
             <LinkTiles items={data.attention.map((a) => ({ key: a.text, title: a.text, href: a.href, external: a.external, end: a.action }))} />
           </s-section>
         ) : null}
 
-        {/* Try next */}
         {data.recommended.length ? (
           <s-section heading="Try next">
             <LinkTiles
@@ -280,39 +274,6 @@ export default function Home() {
             />
           </s-section>
         ) : null}
-
-        <CardGrid cols={3}>
-          {/* Plan */}
-          <Card title="Your plan" badge={<Pill tone="ok">{current.name}</Pill>} actions={<><Button href="/app/plans" variant={data.plan.key === "pro" ? "tertiary" : "primary"}>Compare plans</Button><UpgradeButton variant="tertiary">Change plan</UpgradeButton></>}>
-            <CardText>
-              {planPriceText(data.plan.key)}
-              {data.plan.trialEndsAt ? ` · free trial until ${new Date(data.plan.trialEndsAt).toLocaleDateString()}` : ""}
-            </CardText>
-            <PlanFeatures plan={data.plan.key} limit={3} />
-          </Card>
-
-          {/* Request a feature (Growth and up) */}
-          <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
-
-          {/* Help */}
-          <Card title="Help">
-            <ul className={styles.links}>
-              {data.supportEmail ? (
-                <li>
-                  <a href={`mailto:${data.supportEmail}`} target="_blank" rel="noreferrer">Email support</a>
-                  {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
-                </li>
-              ) : null}
-              <li><Link to="/app/settings">Settings and app embeds</Link></li>
-              <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
-            </ul>
-            {data.dismissed ? (
-              <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "restore" }, { method: "post" })}>
-                Show the setup guide
-              </Button>
-            ) : null}
-          </Card>
-        </CardGrid>
 
         {/* Tutorials: cards without a video yet say "Coming soon" */}
         <s-section heading="Tutorials">
@@ -333,16 +294,38 @@ export default function Home() {
           </div>
         </s-section>
 
-        <s-section heading="What's new">
-          <ul className={styles.news}>
-            {WHATS_NEW.map((n) => (
-              <li key={n.text}>
-                <span className={styles.newsDate}>{n.date}</span>
-                {n.href ? <Link to={n.href}>{n.text}</Link> : n.text}
-              </li>
-            ))}
-          </ul>
-        </s-section>
+        <CardGrid cols={3}>
+          <Card title="Help">
+            <ul className={styles.links}>
+              {data.supportEmail ? (
+                <li>
+                  <a href={`mailto:${data.supportEmail}`} target="_blank" rel="noreferrer">Email support</a>
+                  {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
+                </li>
+              ) : null}
+              <li><Link to="/app/settings">Settings and app embeds</Link></li>
+              <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
+            </ul>
+            {dismissed ? (
+              <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "restore" }, { method: "post" })}>
+                Show the setup guide
+              </Button>
+            ) : null}
+          </Card>
+
+          <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
+
+          <Card title="What's new">
+            <ul className={styles.news}>
+              {WHATS_NEW.slice(0, 4).map((n) => (
+                <li key={n.text}>
+                  <span className={styles.newsDate}>{n.date}</span>
+                  {n.href ? <Link to={n.href}>{n.text}</Link> : n.text}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </CardGrid>
       </s-stack>
 
       {playing ? <VideoModal tutorial={playing} onClose={() => setPlaying(null)} /> : null}

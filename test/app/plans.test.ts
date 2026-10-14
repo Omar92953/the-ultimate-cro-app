@@ -17,7 +17,9 @@ import {
   canResume,
   canUse,
   limitError,
-  ordersOver,
+  revenueLine,
+  revenueOver,
+  toUsd,
   overLimit,
   planAbove,
   planFromSubscription,
@@ -56,8 +58,8 @@ test("the next plan up is the cheapest one with room", () => {
   assert.equal(planAbove("offerSlots", 3), "starter");
   assert.equal(planAbove("designsPerSection", 1), "starter");
   assert.equal(planAbove("designsPerSection", 5), null);
-  assert.equal(planAbove("monthlyOrders", 800, "starter"), "growth");
-  assert.equal(planAbove("monthlyOrders", 3000, "starter"), "pro");
+  assert.equal(planAbove("monthlyRevenue", 800, "starter"), "growth");
+  assert.equal(planAbove("monthlyRevenue", 3000, "starter"), "pro");
 });
 
 test("downgrade: only the first N that are on stay on", () => {
@@ -137,11 +139,17 @@ test("designs 2–5 need a plan with more designs per section", () => {
   assert.equal(pageLock("starter", "/app/designs/faq", "?design=5"), null);
 });
 
-test("soft order limit", () => {
-  assert.ok(!ordersOver("free", 10000));
-  assert.ok(ordersOver("starter", 501));
-  assert.ok(!ordersOver("starter", 500));
-  assert.ok(!ordersOver("starter", null));
+test("soft revenue limit, in US dollars", () => {
+  // Every plan has a limit that grows with the price, and Pro has none.
+  assert.equal(limitOf("free", "monthlyRevenue"), 100);
+  assert.equal(limitOf("pro", "monthlyRevenue"), null);
+  assert.ok(revenueOver("free", 101));
+  assert.ok(!revenueOver("free", 100));
+  assert.ok(!revenueOver("starter", null));
+  assert.ok(!revenueOver("pro", 1_000_000));
+  assert.equal(toUsd(100, "USD"), 100);
+  assert.ok((toUsd(5000, "egp") ?? 0) < 200);
+  assert.equal(toUsd(100, "XYZ"), null);
 });
 
 test("subscription names and handles map to plans", () => {
@@ -182,9 +190,12 @@ test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () 
   assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
 });
 
-test("plan cards: each plan leads with its main limit, then its features", () => {
+test("plan cards: a revenue line, then at least 3 short feature lines", () => {
   for (const k of PLAN_KEYS) {
     assert.ok(PLANS[k].highlights.length >= 3, k);
-    assert.match(PLANS[k].highlights[0], /orders/, k);
+    assert.ok(PLANS[k].highlights.every((h) => h.length <= 40), k);
+    assert.match(revenueLine(k).rest, /revenue added/, k);
   }
+  assert.equal(revenueLine("pro").amount, "Unlimited");
+  assert.equal(revenueLine("starter").amount, "$500");
 });

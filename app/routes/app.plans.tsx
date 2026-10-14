@@ -1,7 +1,8 @@
 /**
- * Plans: what each plan is for, what it adds, and the full comparison. Not in the menu — linked
- * from Home, Settings and every upgrade card. Prices, limits and features all come from
- * lib/plans.ts; choosing a plan happens on Shopify's plan selection page (planUrl, target _top).
+ * Plans: the three paid plans as wide cards (Omar's reference style), Free as one slim row, then
+ * the full comparison folded away. Not in the menu: linked from Home's plan bar, Settings and every
+ * upgrade card. Prices, limits and features come from lib/plans.ts; choosing a plan happens on
+ * Shopify's plan selection page (planUrl, target _top).
  */
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
@@ -9,22 +10,17 @@ import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { getPlan } from "../lib/billing.server";
-import { getHomeState, setHomeState } from "../lib/home-state.server";
 import { getValue } from "../lib/value.server";
 import { AREAS, feature, featuresIn } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, price, type LimitKey, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, usd, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
-import { Pill } from "../components/ui";
-import { PlanCard } from "../components/PlanCard";
-import styles from "../components/Home.module.css";
+import { Pill, Segmented } from "../components/ui";
+import { FreeRow, PlanCard } from "../components/PlanCard";
+import styles from "../components/PlanCard.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [info, value] = await Promise.all([getPlan(admin, session.shop), getValue(admin, session.shop)]);
-  // Looking at the plans ticks the last step of Home's setup guide (in the background).
-  getHomeState(admin)
-    .then((s) => (s.planSeen ? null : setHomeState(admin, { planSeen: true })))
-    .catch(() => null);
   return { plan: info.plan, planUrl: info.planUrl, trialEndsAt: info.trialEndsAt, value };
 };
 
@@ -44,7 +40,7 @@ const LIMIT_ROWS: { key: LimitKey; label: string }[] = [
   { key: "thankYouModules", label: "Thank-you page modules" },
   { key: "checkoutRules", label: "Checkout rules (payment, delivery, order limits)" },
   { key: "offerStats", label: "Offers with their own results" },
-  { key: "monthlyOrders", label: "Orders a month" },
+  { key: "monthlyRevenue", label: "Revenue added a month" },
 ];
 
 const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
@@ -55,30 +51,26 @@ const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
   { label: "Your requests built first", needs: EXTRA_PLAN.requestsFirst },
 ];
 
-/** Kinds of apps one CRO Toolbox plan does the job of (generic: no other app's name or price). */
-const REPLACES = [
-  "Bundles and quantity breaks",
-  "Upsell and cross-sell offers",
-  "Cart drawer",
-  "Announcement, free-shipping and countdown bars",
-  "Product reviews",
-  "Sales pop-ups and trust badges",
-  "Back in stock and pre-orders",
-  "Wishlist",
-  "Payment and delivery customizations",
-  "Thank-you and after-purchase offers",
-  "Page sections (hero, FAQ, logos, carousels)",
-];
-
 function limitCell(p: PlanKey, key: LimitKey) {
   const n = limitOf(p, key);
-  return n === null ? "Unlimited" : n.toLocaleString("en-US");
+  if (n === null) return "Unlimited";
+  return key === "monthlyRevenue" ? usd(n) : n.toLocaleString("en-US");
 }
 
 export default function Plans() {
   const { plan, planUrl, trialEndsAt, value } = useLoaderData<typeof loader>();
   const [yearly, setYearly] = useState(false);
   const current = PLANS[plan];
+  const choose = (k: PlanKey) =>
+    k === plan ? (
+      <Button variant="secondary" inlineSize="fill" disabled>
+        Your plan
+      </Button>
+    ) : (
+      <Button href={planUrl} target="_top" inlineSize="fill" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
+        {planRank(k) > planRank(plan) ? (PLANS[k].trialDays ? `Start ${PLANS[k].trialDays}-day free trial` : `Choose ${PLANS[k].name}`) : `Switch to ${PLANS[k].name}`}
+      </Button>
+    );
 
   return (
     <s-page heading="Plans" inlineSize="large">
@@ -86,109 +78,86 @@ export default function Plans() {
         Home
       </s-link>
       <s-stack gap="base">
-        <s-section>
-          <s-stack gap="small-200">
+        <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+          <s-stack gap="small-100">
             <s-stack direction="inline" gap="small-200" alignItems="center">
               <s-heading>{`You're on ${current.name}`}</s-heading>
               {trialEndsAt ? <Pill tone="ok">{`Free trial until ${new Date(trialEndsAt).toLocaleDateString()}`}</Pill> : null}
             </s-stack>
-            <s-text color="subdued">{current.job}</s-text>
             {value && value.appOrders > 0 ? (
-              <s-text>
-                {`Last 30 days: ${money(value.appRevenue, value.currency)} in sales from the app's offers and widgets (${value.appOrders} order${value.appOrders === 1 ? "" : "s"})` +
-                  (current.monthly ? ` · your plan: ${price(current.monthly)}/month.` : ".")}
-              </s-text>
-            ) : null}
+              <s-text color="subdued">{`The app added ${money(value.appRevenue, value.currency)} in the last 30 days (${value.appOrders} order${value.appOrders === 1 ? "" : "s"}).`}</s-text>
+            ) : (
+              <s-text color="subdued">{GUARANTEE}</s-text>
+            )}
           </s-stack>
-        </s-section>
-
-        <s-stack direction="inline" gap="small-200" alignItems="center">
-          <Button variant={yearly ? "secondary" : "primary"} onClick={() => setYearly(false)}>
-            Monthly
-          </Button>
-          <Button variant={yearly ? "primary" : "secondary"} onClick={() => setYearly(true)}>
-            Yearly: 2 months free
-          </Button>
+          <Segmented
+            label="Billing period"
+            value={yearly ? "yearly" : "monthly"}
+            onChange={(v) => setYearly(v === "yearly")}
+            options={[
+              { value: "monthly", label: "Monthly" },
+              { value: "yearly", label: "Yearly: 2 months free" },
+            ]}
+          />
         </s-stack>
 
-        <div className={styles.plans}>
-          {PLAN_KEYS.map((k) => (
-            <PlanCard
-              key={k}
-              plan={k}
-              current={k === plan}
-              yearly={yearly}
-              action={
-                k === plan ? (
-                  <s-text color="subdued">Your plan</s-text>
-                ) : (
-                  <Button href={planUrl} target="_top" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
-                    {planRank(k) > planRank(plan) ? `Choose ${PLANS[k].name}` : `Switch to ${PLANS[k].name}`}
-                  </Button>
-                )
-              }
-            />
+        <div className={styles.cards}>
+          {PLAN_KEYS.filter((k) => k !== "free").map((k) => (
+            <PlanCard key={k} plan={k} current={k === plan} yearly={yearly} action={choose(k)} />
           ))}
         </div>
+        <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
+        <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>
 
-        <s-section heading="Compare plans" padding="none">
-          <s-table>
-            <s-table-header-row>
-              <s-table-header listSlot="primary">What you get</s-table-header>
-              {PLAN_KEYS.map((k) => (
-                <s-table-header key={k}>{PLANS[k].name}</s-table-header>
-              ))}
-            </s-table-header-row>
-            <s-table-body>
-              {LIMIT_ROWS.map((r) => (
-                <s-table-row key={r.key}>
-                  <s-table-cell>{r.label}</s-table-cell>
-                  {PLAN_KEYS.map((k) => (
-                    <s-table-cell key={k}>{limitCell(k, r.key)}</s-table-cell>
-                  ))}
-                </s-table-row>
-              ))}
-              <s-table-row>
-                <s-table-cell>Try a feature of the next plan</s-table-cell>
+        <details className={styles.compare}>
+          <summary className={styles.compareSummary}>Compare all features</summary>
+          <s-section padding="none">
+            <s-table>
+              <s-table-header-row>
+                <s-table-header listSlot="primary">What you get</s-table-header>
                 {PLAN_KEYS.map((k) => (
-                  <s-table-cell key={k}>{PLANS[k].limits.trialFeatures ? `${PLANS[k].limits.trialFeatures} of your choice` : "✕"}</s-table-cell>
+                  <s-table-header key={k}>{PLANS[k].name}</s-table-header>
                 ))}
-              </s-table-row>
-              {AREAS.flatMap((a) =>
-                featuresIn(a.key)
-                  .filter((f) => feature(f).area === a.key)
-                  .map((f) => (
-                    <s-table-row key={f}>
-                      <s-table-cell>{`${a.title}: ${feature(f).title}`}</s-table-cell>
-                      {PLAN_KEYS.map((k) => (
-                        <s-table-cell key={k}>{atLeast(k, FEATURE_PLAN[f]) ? "✓" : "✕"}</s-table-cell>
-                      ))}
-                    </s-table-row>
-                  )),
-              )}
-              {EXTRA_ROWS.map((r) => (
-                <s-table-row key={r.label}>
-                  <s-table-cell>{r.label}</s-table-cell>
+              </s-table-header-row>
+              <s-table-body>
+                {LIMIT_ROWS.map((r) => (
+                  <s-table-row key={r.key}>
+                    <s-table-cell>{r.label}</s-table-cell>
+                    {PLAN_KEYS.map((k) => (
+                      <s-table-cell key={k}>{limitCell(k, r.key)}</s-table-cell>
+                    ))}
+                  </s-table-row>
+                ))}
+                <s-table-row>
+                  <s-table-cell>Try a feature of the next plan</s-table-cell>
                   {PLAN_KEYS.map((k) => (
-                    <s-table-cell key={k}>{atLeast(k, r.needs) ? "✓" : "✕"}</s-table-cell>
+                    <s-table-cell key={k}>{PLANS[k].limits.trialFeatures ? `${PLANS[k].limits.trialFeatures} of your choice` : "✕"}</s-table-cell>
                   ))}
                 </s-table-row>
-              ))}
-            </s-table-body>
-          </s-table>
-        </s-section>
-
-        <s-section heading="One app instead of many">
-          <s-stack gap="small-200">
-            <s-paragraph>Every plan covers the jobs stores usually install separate apps for:</s-paragraph>
-            <ul className={styles.planList}>
-              {REPLACES.map((r) => (
-                <li key={r}>{r}</li>
-              ))}
-            </ul>
-            <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice. ${GUARANTEE} Nothing is deleted when you change plans: offers over a limit are switched off and come back on when you upgrade.`}</s-text>
-          </s-stack>
-        </s-section>
+                {AREAS.flatMap((a) =>
+                  featuresIn(a.key)
+                    .filter((f) => feature(f).area === a.key)
+                    .map((f) => (
+                      <s-table-row key={f}>
+                        <s-table-cell>{`${a.title}: ${feature(f).title}`}</s-table-cell>
+                        {PLAN_KEYS.map((k) => (
+                          <s-table-cell key={k}>{atLeast(k, FEATURE_PLAN[f]) ? "✓" : "✕"}</s-table-cell>
+                        ))}
+                      </s-table-row>
+                    )),
+                )}
+                {EXTRA_ROWS.map((r) => (
+                  <s-table-row key={r.label}>
+                    <s-table-cell>{r.label}</s-table-cell>
+                    {PLAN_KEYS.map((k) => (
+                      <s-table-cell key={k}>{atLeast(k, r.needs) ? "✓" : "✕"}</s-table-cell>
+                    ))}
+                  </s-table-row>
+                ))}
+              </s-table-body>
+            </s-table>
+          </s-section>
+        </details>
       </s-stack>
     </s-page>
   );

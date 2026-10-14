@@ -223,10 +223,14 @@ export function Button(props: {
   icon?: string;
   slot?: string;
   accessibilityLabel?: string;
+  /** "fill": as wide as its container (plan cards). */
+  inlineSize?: "auto" | "fill" | "fit-content";
 }) {
   const ref = useRef<any>(null);
   useProp(ref, "loading", !!props.loading);
   useProp(ref, "disabled", !!props.disabled);
+  // Set as a property: this Polaris version's React types don't list inlineSize on s-button.
+  useProp(ref, "inlineSize", props.inlineSize ?? "auto");
   return (
     <s-button
       ref={ref}

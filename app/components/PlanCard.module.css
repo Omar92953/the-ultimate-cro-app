@@ -1,14 +1,36 @@
-/* Plan card (PlanCard.tsx): name and price, then "Features" with a check mark on every line. */
-.card { display: flex; flex-direction: column; gap: 8px; padding: 20px; background: #fff; border: 1px solid #e3e3e3; border-radius: 12px; }
-.current { border: 2px solid #303030; padding: 19px; }
-.head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.name { font-size: 16px; font-weight: 650; color: #303030; }
-.price { margin: 0; font-size: 28px; font-weight: 700; color: #303030; }
-.per { font-size: 14px; font-weight: 500; color: #616161; }
-.sub { margin: 0; font-size: 13px; color: #616161; }
-.featuresTitle { margin: 8px 0 0; font-size: 18px; font-weight: 700; color: #000; }
-.list { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
-.item { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.35; color: #4a4a4a; }
-.check { flex: none; width: 16px; height: 16px; margin-top: 2px; color: #000; }
-.guarantee { margin: 4px 0 0; font-size: 13px; color: #616161; }
-.action { margin-top: auto; padding-top: 12px; }
+/* Plan pieces (PlanCard.tsx): wide paid cards, the slim Free row and Home's plan bar. */
+.card { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 22px; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.1); }
+.current { box-shadow: 0 0 0 2px #303030; }
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.name { font-size: 17px; font-weight: 700; color: #303030; }
+.badge { padding: 2px 10px; border-radius: 10px; font-size: 13px; font-weight: 550; color: #00527c; background: #e0f0ff; }
+.revenue { margin: 0; font-size: 15px; color: #303030; }
+.revenue b { font-weight: 700; }
+.list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.item { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.35; color: #303030; }
+.check { flex: none; width: 16px; height: 16px; margin-top: 1px; color: #303030; }
+.bottom { display: flex; flex-direction: column; gap: 14px; margin-top: auto; padding-top: 10px; }
+.price { margin: 0; font-size: 32px; font-weight: 700; line-height: 1.1; color: #303030; }
+.per { margin-left: 4px; font-size: 15px; font-weight: 550; color: #616161; }
+.action { display: grid; }
+.action > * { width: 100%; }
+
+.freeRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 16px 22px; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.1); }
+.freeText { display: flex; flex-direction: column; gap: 4px; flex: 1 1 360px; min-width: 0; }
+.freeLines { font-size: 13px; color: #616161; }
+.freeAction { flex: none; }
+
+.planBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
+.planBarText { display: flex; flex-direction: column; gap: 6px; flex: 1 1 320px; min-width: 0; }
+.planBarText .name { font-size: 14px; font-weight: 650; }
+.planBarLine { font-size: 13px; color: #616161; }
+.meter { position: relative; display: block; max-width: 320px; height: 6px; overflow: hidden; border-radius: 3px; background: #e3e3e3; }
+.meterFill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: #303030; }
+.meterFull { background: #b28400; }
+
+/* Plans page: three paid cards side by side, the comparison folded away. */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+@media (max-width: 860px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.compare { border-radius: 12px; }
+.compareSummary { padding: 12px 4px; font-size: 14px; font-weight: 650; color: #303030; cursor: pointer; }
+.compareSummary:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; border-radius: 6px; }
