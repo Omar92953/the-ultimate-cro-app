@@ -63,10 +63,6 @@
 .warn { color: #5e4200; background: #ffef9d; }
 .muted { color: #4a4a4a; background: #ebebeb; }
 
-.checklist { display: flex; flex-direction: column; gap: 6px; }
-.checkRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 8px; background: #f7f7f7; }
-.checkText { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #303030; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: #e2b203; flex: none; }
 .segButton { border: 0; background: transparent; cursor: pointer; font-family: inherit; }
 .segButton.tabActive { background: #fff; }
 

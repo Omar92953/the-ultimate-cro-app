@@ -72,22 +72,6 @@ export function Tabs({ items }: { items: { label: string; to: string; side?: boo
   );
 }
 
-export function Checklist({ items }: { items: { text: string; action: ReactNode }[] }) {
-  return (
-    <div className={styles.checklist}>
-      {items.map((i) => (
-        <div key={i.text} className={styles.checkRow}>
-          <span className={styles.checkText}>
-            <span className={styles.dot} />
-            {i.text}
-          </span>
-          {i.action}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /** Segmented buttons (e.g. which metric a chart shows). */
 export function Segmented<T extends string>(props: { value: T; options: { value: T; label: string; count?: number }[]; onChange: (v: T) => void; label: string }) {
   return (

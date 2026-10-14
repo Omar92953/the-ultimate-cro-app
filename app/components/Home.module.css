@@ -1,24 +1,4 @@
 /* Home page (app._index.tsx). Colours follow the Shopify admin, like ui.module.css. */
-.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
-.welcome { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.welcomeText { min-width: 0; flex: 1 1 320px; }
-.welcomeActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.h2 { margin: 0 0 4px; font-size: 20px; font-weight: 650; color: #303030; }
-.sub { margin: 0 0 8px; font-size: 13px; color: #616161; }
-.includes { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: #303030; columns: 2 240px; }
-
-.rowHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; scroll-margin-top: 16px; }
-
-.steps { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.step { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #fff; border-radius: 10px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.stepNum { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 650; color: #303030; background: #ebebeb; }
-.stepDone .stepNum { color: #0c5132; background: #cdfee1; }
-.stepBody { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.stepTitle { font-size: 13px; font-weight: 600; color: #303030; }
-.stepDone .stepTitle { color: #616161; }
-.stepText { font-size: 12px; line-height: 1.4; color: #616161; }
-@media (max-width: 560px) { .step { flex-wrap: wrap; } .stepBody { flex-basis: calc(100% - 40px); } }
 
 .videos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -33,27 +13,11 @@
 .videoTitle { padding: 4px 10px 0; font-size: 13px; font-weight: 600; color: #303030; }
 .videoMeta { padding: 0 10px; font-size: 12px; color: #616161; }
 
-.plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
-@media (max-width: 1000px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .plans { grid-template-columns: minmax(0, 1fr); } }
-.plan { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.planCurrent { box-shadow: 0 0 0 2px #303030; }
-.planHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .planName { font-size: 14px; font-weight: 650; color: #303030; }
-.planPrice { margin: 0; font-size: 24px; font-weight: 700; color: #303030; }
-.per { font-size: 13px; font-weight: 500; color: #616161; }
-.planSub { margin: 0; font-size: 12px; color: #616161; }
-.planList { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: #303030; }
-.planAction { margin-top: auto; padding-top: 8px; }
 
-.bigNumber { margin: 0; font-size: 24px; font-weight: 700; color: #303030; }
-.refLink { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #c9c9c9; border-radius: 8px; font: inherit; font-size: 13px; color: #303030; background: #f7f7f7; }
-.links, .shortcuts, .news { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
-.links a, .shortcuts a, .news a { color: #005bd3; text-decoration: none; }
-.links a:hover, .shortcuts a:hover, .news a:hover { text-decoration: underline; }
-.shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
-.shortcuts li { display: flex; align-items: center; gap: 6px; min-width: 0; }
-@media (max-width: 480px) { .shortcuts { grid-template-columns: minmax(0, 1fr); } }
+.links, .news { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.links a, .news a { color: #005bd3; text-decoration: none; }
+.links a:hover, .news a:hover { text-decoration: underline; }
 .newsDate { display: inline-block; min-width: 64px; margin-right: 6px; font-size: 12px; color: #616161; }
 
 .modalBack { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.5); }
@@ -73,6 +37,4 @@
 .metricNote { font-size: 12px; color: #616161; }
 .up { color: #0c5132; }
 .down { color: #8e1f0b; }
-
-.row:first-child { border-top: 0; padding-top: 0; }
 
