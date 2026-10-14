@@ -9,6 +9,7 @@ import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../lib/offer-types";
 import { OFFER_GROUPS, feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { FEATURE_PLAN, PLANS, canUse } from "../lib/plans";
 import { LinkTiles, Pill } from "../components/ui";
+import { BUNDLE_RECIPES } from "../lib/bundle-recipes";
 import { usePlan } from "../components/Upgrade";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -30,7 +31,7 @@ export default function NewOffer() {
         {OFFER_GROUPS.map((g) => (
           <s-section key={g.key} heading={g.title}>
             <LinkTiles
-              items={[
+              items={g.key === "bundles" ? BUNDLE_RECIPES.map((r) => ({ key: r.key, title: r.title, sub: r.about, href: r.href, end: "Create" })) : [
                 ...OFFER_TYPE_KEYS.filter((k) => OFFER_TYPES[k].group === g.key).map((k) => ({
                   key: k,
                   title: OFFER_TYPES[k].title,

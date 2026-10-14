@@ -16,9 +16,11 @@ import { dealFeature } from "../lib/catalog";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, redirect } = await authenticate.admin(request);
   const kind = params.kind;
   if (!isDealKind(kind)) throw new Response("Not found", { status: 404 });
+  // Frequently bought together bundles are listed with every other bundle.
+  if (kind === "fixed") throw redirect("/app/bundles?type=fixed");
   const [deals, discount] = await Promise.all([listDeals(admin), getDiscountStatus(admin).catch(() => null)]);
   return { kind, deals: deals.filter((d) => d.kind === kind), native: discount?.engine === "native" };
 };

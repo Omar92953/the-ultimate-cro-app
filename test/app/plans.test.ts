@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { AREAS, FEATURES, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
 import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../../app/lib/offer-types";
 import { DEAL_KINDS } from "../../app/lib/deals";
+import { BUNDLE_RECIPES } from "../../app/lib/bundle-recipes";
 import {
   EXTRA_PLAN,
   GUARANTEE,
@@ -129,6 +130,14 @@ test("offers sit in four groups, and every offer page shows its group's tabs", (
   assert.equal(areaForPath("/app/checkout/after-purchase"), "offers");
   // The after-purchase offer is still listed on the Checkout hub.
   assert.ok(featuresIn("checkout").includes("post_purchase"));
+  // Every bundle editor belongs to Bundles (one list, tabs Bundles · Design).
+  assert.deepEqual(featuresForPath("/app/kits/new"), ["bundles"]);
+  assert.deepEqual(featuresForPath("/app/bundles/create"), ["bundles"]);
+  assert.equal(areaForPath("/app/kits/123"), "offers");
+  assert.deepEqual(FEATURES.bundles.tabs.map((t) => t.label), ["Bundles", "Design"]);
+  // The 6 recipes open real editors.
+  assert.equal(BUNDLE_RECIPES.length, 6);
+  for (const r of BUNDLE_RECIPES) assert.match(r.href, /^\/app\/(bundles\/new\?recipe=|kits\/new$|deals\/fixed\/new$)/, r.key);
   // Add-ons stay a Starter feature inside the Upsell group.
   assert.deepEqual(pageLock("free", "/app/designs/add-ons"), { kind: "feature", feature: "addons", needs: "starter" });
 });

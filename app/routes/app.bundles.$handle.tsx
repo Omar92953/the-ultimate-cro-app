@@ -52,11 +52,21 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       storeWide: true,
       page: null,
     };
-    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop) };
+    // Recipes from "Create bundle" (lib/bundle-recipes.ts) start with matching settings.
+    const recipe = new URL(request.url).searchParams.get("recipe");
+    let where: "product" | "page" | "both" = "product";
+    if (recipe === "mixmatch") Object.assign(bundle, { storeWide: false, steps: [{ ...blankStep(), label: "Choose 3 items", min: 3, max: 3 }] });
+    if (recipe === "growing") {
+      Object.assign(bundle, { pricing: "percent_tiers", tiers: [{ qty: 2, price: 10 }, { qty: 3, price: 15 }, { qty: 4, price: 20 }], storeWide: false, steps: [{ ...blankStep(), label: "Choose your items", min: 1, max: 10 }] });
+      where = "page";
+    }
+    if (recipe === "browse") Object.assign(bundle, { pricing: "percent", percentOff: 10, storeWide: true, steps: [{ ...blankStep(), label: "Choose 3 items", min: 3, max: 3 }] });
+    if (recipe === "anyN") Object.assign(bundle, { pricing: "tiers", tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }], storeWide: false, steps: [{ ...blankStep(), label: "Choose 3 or 6 items", min: 3, max: 6 }] });
+    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop), where };
   }
   const bundle = all.find((b) => b.handle === params.handle);
   if (!bundle) throw new Response("Bundle not found", { status: 404 });
-  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle) };
+  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle), where: (bundle.page ? "both" : "product") as "product" | "page" | "both" };
 };
 
 /** "Create it for me": the bundle product the app makes on save. */
@@ -96,11 +106,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function BundleEditor() {
-  const { bundle: initial, others, isNew, shop, placed, links } = useLoaderData<typeof loader>();
+  const { bundle: initial, others, isNew, shop, placed, links, where: initialWhere } = useLoaderData<typeof loader>();
   const [bundle, setBundle] = useState<Bundle>(initial);
   // "Create it for me" (new bundles start with it) or pick a product the store already has.
   const [create, setCreate] = useState<{ on: boolean; title: string; price: number; image: MediaRef | null }>({ on: !initial.product, title: "", price: 0, image: null });
-  const [where, setWhere] = useState<"product" | "page" | "both">(initial.page ? "both" : "product");
+  const [where, setWhere] = useState<"product" | "page" | "both">(initialWhere);
   const [touched, setTouched] = useState(false);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -151,7 +161,7 @@ export default function BundleEditor() {
 
   return (
     <s-page heading={isNew ? "New bundle" : bundle.name} inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/bundles">
+      <s-link slot="breadcrumb-actions" href="/app/bundles?type=bundle">
         Bundles
       </s-link>
       <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
