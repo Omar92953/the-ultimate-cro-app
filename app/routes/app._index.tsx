@@ -10,14 +10,14 @@ import { Link, useFetcher, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { cachedResults } from "../lib/value.server";
-import { getPlan, getPlanState } from "../lib/billing.server";
+import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
 import { listOffers } from "../lib/offers.server";
 import { getHomeState, setHomeState } from "../lib/home-state.server";
 import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, revenueOver, toUsd, usd, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
 import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
@@ -43,12 +43,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         getPlanState(admin).catch(() => ({ plan: null, paused: [], at: null })),
         getHomeState(admin).catch(() => ({ dismissed: false, manual: [] as string[] })),
         listOffers(admin).catch(() => []),
+        getMonthlyOrders(admin, shop),
         listReturns(shop).catch(() => []),
         waitingEmails(shop).catch(() => []),
       ]), 300000),
     cachedResults(admin, shop),
   ]);
-  const [planState, homeState, offers, returns, waiting] = extras;
+  const [planState, homeState, offers, monthOrders, returns, waiting] = extras;
   const installed = hub.theme?.installed ?? null;
   // Any offer of any type that's switched on (upsells, cross-sells, bundles, deals…).
   const offerCount = offers.filter((o) => o.active).length || hub.counts.upsell + hub.counts.cross_sell + hub.counts.bundles;
@@ -81,14 +82,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (waiting.length) attention.push({ text: `${waiting.length} shopper${waiting.length === 1 ? " is" : "s are"} waiting for a product to be back in stock`, href: "/app/stock", action: "Open" });
 
   const cur = results?.periods.current ?? null;
-  // Revenue the app added in the last 30 days, in US dollars (the plans' soft limit).
-  const addedUsd = results && cur ? toUsd(cur.appRevenue, results.currency) : null;
   return {
     shop,
     plan: { key: plan.plan, source: plan.source, trialEndsAt: plan.trialEndsAt },
     paused: planState.paused,
-    addedUsd,
-    revenueOver: revenueOver(plan.plan, addedUsd),
+    // All of the store's orders this month (the plans' soft limit).
+    orders: monthOrders,
+    ordersOver: ordersOver(plan.plan, monthOrders),
     dismissed: homeState.dismissed,
     manual: homeState.manual,
     steps: {
@@ -186,8 +186,8 @@ export default function Home() {
     ? { tone: "warning" as const, heading: "Your plan couldn't be checked", text: "Everything stays open until it can be checked again. Refresh in a minute.", upgrade: false }
     : data.paused.length
       ? { tone: "warning" as const, heading: `${data.paused.length} offer${data.paused.length === 1 ? " was" : "s were"} switched off to fit your plan`, text: `Nothing was deleted: ${data.paused.map((p) => p.name).join(", ")}. They switch back on when you upgrade.`, upgrade: true }
-      : data.revenueOver && data.addedUsd !== null
-        ? { tone: "info" as const, heading: "The app is earning more than your plan covers", text: `It added about ${usd(data.addedUsd)} in the last 30 days; ${current.name} includes ${limitText("monthlyRevenue", limitOf(data.plan.key, "monthlyRevenue") ?? 0)}. Everything keeps working.`, upgrade: true }
+      : data.ordersOver && data.orders !== null
+        ? { tone: "warning" as const, heading: "You're past your plan's monthly orders", text: `${data.orders.toLocaleString("en-US")} orders this month; ${current.name} includes ${limitText("monthlyOrders", limitOf(data.plan.key, "monthlyOrders") ?? 0)}. Everything keeps working.`, upgrade: true }
         : null;
 
   const m = data.metrics;
@@ -223,7 +223,7 @@ export default function Home() {
 
         <PlanBar
           plan={data.plan.key}
-          addedUsd={data.addedUsd}
+          orders={data.orders}
           trialEndsAt={data.plan.trialEndsAt}
           action={<Button href="/app/plans" variant={data.plan.key === "free" ? "primary" : "secondary"}>{data.plan.key === "pro" ? "Your plan" : "See plans"}</Button>}
         />
@@ -241,9 +241,9 @@ export default function Home() {
                   note={m.aovWithout !== null ? `${money(m.aovWithout, m.currency)} without` : undefined}
                 />
                 <Metric
-                  label="Return on your plan"
-                  value={!current.monthly ? "Free plan" : data.addedUsd ? `${Math.max(1, Math.round(data.addedUsd / current.monthly))}×` : "No data yet"}
-                  note={current.monthly ? `What the app added against ${current.name}'s price` : undefined}
+                  label="Share of your sales"
+                  value={m.current.revenue > 0 ? `${Math.round((m.current.appRevenue / m.current.revenue) * 100)}%` : "No data yet"}
+                  note="Sales from the app out of all your sales"
                 />
               </div>
             ) : (

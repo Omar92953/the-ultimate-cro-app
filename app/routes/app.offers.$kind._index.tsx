@@ -90,13 +90,13 @@ export default function RuleList() {
         )}
       </s-section>
 
-      </s-stack>
-      <s-section slot="aside" heading="Which offer is shown?">
+      <s-section heading="Which offer is shown?">
         <s-paragraph>
           If several active offers match the same product, the one with the lowest priority number is shown. The
           checkout discount follows the same order.
         </s-paragraph>
       </s-section>
+      </s-stack>
     </s-page>
   );
 }

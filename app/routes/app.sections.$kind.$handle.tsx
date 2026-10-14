@@ -11,6 +11,7 @@ import { SECTIONS, SOURCES, blankItem, isKind, type FieldDef, type MediaRef, typ
 import { Button, Checkbox, DateField, Select, TextArea, TextField } from "../components/fields";
 import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
+import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -108,22 +109,26 @@ export default function SectionItemEditor() {
         </s-banner>
       ) : null}
 
-      <s-section>
-        <s-stack gap="base">
-          {cfg.fields.filter((f) => !f.hidden).map((f, i, shown) => {
-            // Date fields sit behind one "When does it show?" choice, placed where the first one was.
-            if (f.type === "datetime") {
-              if (shown.findIndex((x) => x.type === "datetime") !== i) return null;
-              return <ScheduleInput key="schedule" fields={shown.filter((x) => x.type === "datetime")} values={item.values} set={set} singular={cfg.singular} />;
-            }
-            return <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />;
-          })}
-        </s-stack>
-      </s-section>
-
-      <s-section slot="aside" heading="Preview">
-        <Preview kind={kind} values={item.values} />
-      </s-section>
+      <EditorLayout
+        side={
+            <s-section heading="Preview">
+                <Preview kind={kind} values={item.values} />
+              </s-section>
+        }
+      >
+          <s-section>
+            <s-stack gap="base">
+              {cfg.fields.filter((f) => !f.hidden).map((f, i, shown) => {
+                // Date fields sit behind one "When does it show?" choice, placed where the first one was.
+                if (f.type === "datetime") {
+                  if (shown.findIndex((x) => x.type === "datetime") !== i) return null;
+                  return <ScheduleInput key="schedule" fields={shown.filter((x) => x.type === "datetime")} values={item.values} set={set} singular={cfg.singular} />;
+                }
+                return <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />;
+              })}
+            </s-stack>
+          </s-section>
+      </EditorLayout>
     </s-page>
   );
 }

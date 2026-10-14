@@ -1,0 +1,8 @@
+/* Editor pages (EditorLayout.tsx): the form wide on the left, a sticky column on the right. */
+.editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 16px; align-items: start; }
+.main, .side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.side { position: sticky; top: 12px; }
+@media (max-width: 900px) {
+  .editor { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+}

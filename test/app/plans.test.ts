@@ -17,9 +17,9 @@ import {
   canResume,
   canUse,
   limitError,
-  revenueLine,
-  revenueOver,
-  toUsd,
+  limitText,
+  ordersLine,
+  ordersOver,
   overLimit,
   planAbove,
   planFromSubscription,
@@ -58,8 +58,8 @@ test("the next plan up is the cheapest one with room", () => {
   assert.equal(planAbove("offerSlots", 3), "starter");
   assert.equal(planAbove("designsPerSection", 1), "starter");
   assert.equal(planAbove("designsPerSection", 5), null);
-  assert.equal(planAbove("monthlyRevenue", 800, "starter"), "growth");
-  assert.equal(planAbove("monthlyRevenue", 3000, "starter"), "pro");
+  assert.equal(planAbove("monthlyOrders", 800, "starter"), "growth");
+  assert.equal(planAbove("monthlyOrders", 3000, "starter"), "pro");
 });
 
 test("downgrade: only the first N that are on stay on", () => {
@@ -139,17 +139,13 @@ test("designs 2–5 need a plan with more designs per section", () => {
   assert.equal(pageLock("starter", "/app/designs/faq", "?design=5"), null);
 });
 
-test("soft revenue limit, in US dollars", () => {
-  // Every plan has a limit that grows with the price, and Pro has none.
-  assert.equal(limitOf("free", "monthlyRevenue"), 100);
-  assert.equal(limitOf("pro", "monthlyRevenue"), null);
-  assert.ok(revenueOver("free", 101));
-  assert.ok(!revenueOver("free", 100));
-  assert.ok(!revenueOver("starter", null));
-  assert.ok(!revenueOver("pro", 1_000_000));
-  assert.equal(toUsd(100, "USD"), 100);
-  assert.ok((toUsd(5000, "egp") ?? 0) < 200);
-  assert.equal(toUsd(100, "XYZ"), null);
+test("soft order limit: all of the store's orders in the month", () => {
+  assert.deepEqual(PLAN_KEYS.map((k) => limitOf(k, "monthlyOrders")), [50, 500, 1000, null]);
+  assert.ok(ordersOver("free", 51));
+  assert.ok(!ordersOver("free", 50));
+  assert.ok(!ordersOver("starter", null));
+  assert.ok(!ordersOver("pro", 1_000_000));
+  assert.equal(limitText("monthlyOrders", 500), "500 orders a month");
 });
 
 test("subscription names and handles map to plans", () => {
@@ -190,12 +186,12 @@ test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () 
   assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
 });
 
-test("plan cards: a revenue line, then at least 3 short feature lines", () => {
+test("plan cards: an orders line, then at least 3 short feature lines", () => {
   for (const k of PLAN_KEYS) {
     assert.ok(PLANS[k].highlights.length >= 3, k);
     assert.ok(PLANS[k].highlights.every((h) => h.length <= 40), k);
-    assert.match(revenueLine(k).rest, /revenue added/, k);
+    assert.match(ordersLine(k).rest, /orders monthly/, k);
   }
-  assert.equal(revenueLine("pro").amount, "Unlimited");
-  assert.equal(revenueLine("starter").amount, "$500");
+  assert.equal(ordersLine("pro").amount, "Unlimited");
+  assert.equal(ordersLine("starter").amount, "500");
 });

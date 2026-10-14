@@ -29,13 +29,13 @@ thank-you page modules. See what each offer sells in Analytics. Everything is sa
 8. Countdowns, sticky add to cart, wishlist and back in stock alerts
 
 ## Pricing (entered as Shopify App Pricing plans; text per plan)
-- **Free**: up to $100 revenue added monthly. 3 offers on at once, cart drawer, bars, reviews, FAQ,
+- **Free**: up to 50 orders a month. 3 offers on at once, cart drawer, bars, reviews, FAQ,
   wishlist, 3 checkout rules, try 1 Starter feature.
-- **Starter $5.99/month** (14-day trial): up to $500 revenue added monthly. Unlimited offers, every
+- **Starter $5.99/month** (14-day trial): up to 500 orders a month. Unlimited offers, every
   bundle and discount type, add-ons, personalization, full cart drawer, store pages, 5 styles per section.
-- **Growth $14.99/month** (14-day trial): up to $2,000 revenue added monthly. Unlimited checkout rules,
+- **Growth $14.99/month** (14-day trial): up to 1,000 orders a month. Unlimited checkout rules,
   results for every offer, holdout test, features built on request.
-- **Pro $24.99/month** (14-day trial): unlimited revenue added. Your requests built first, priority support.
+- **Pro $24.99/month** (14-day trial): unlimited orders. Your requests built first, priority support.
 (Prices and limits come from `app/lib/plans.ts`, confirmed with Omar on 2026-10-14; the Partner
 Dashboard plans must match exactly.)
 

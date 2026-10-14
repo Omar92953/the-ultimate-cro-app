@@ -12,7 +12,7 @@ import { authenticate } from "../shopify.server";
 import { getPlan } from "../lib/billing.server";
 import { getValue } from "../lib/value.server";
 import { AREAS, feature, featuresIn } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, usd, type LimitKey, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
 import { Pill, Segmented } from "../components/ui";
 import { FreeRow, PlanCard } from "../components/PlanCard";
@@ -40,7 +40,7 @@ const LIMIT_ROWS: { key: LimitKey; label: string }[] = [
   { key: "thankYouModules", label: "Thank-you page modules" },
   { key: "checkoutRules", label: "Checkout rules (payment, delivery, order limits)" },
   { key: "offerStats", label: "Offers with their own results" },
-  { key: "monthlyRevenue", label: "Revenue added a month" },
+  { key: "monthlyOrders", label: "Orders a month" },
 ];
 
 const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
@@ -53,8 +53,7 @@ const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
 
 function limitCell(p: PlanKey, key: LimitKey) {
   const n = limitOf(p, key);
-  if (n === null) return "Unlimited";
-  return key === "monthlyRevenue" ? usd(n) : n.toLocaleString("en-US");
+  return n === null ? "Unlimited" : n.toLocaleString("en-US");
 }
 
 export default function Plans() {
