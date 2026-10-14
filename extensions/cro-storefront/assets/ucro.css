@@ -772,3 +772,8 @@
 [style*="--ucro-img"] .ucro-offer__img { width: var(--ucro-img); height: var(--ucro-img); }
 [style*="--ucro-vc-tt"] .ucro-vc__title, [style*="--ucro-vc-tt"] .ucro-vc__caption { font-size: var(--ucro-vc-tt); }
 [style*="--ucro-vc-arrow"] .ucro-vc__arrow { width: var(--ucro-vc-arrow); height: var(--ucro-vc-arrow); }
+
+/* Mix & match builder: search and "Show more" for long collections (ucro-bundle.js). */
+.ucro-bundle__search { display: block; box-sizing: border-box; width: 100%; margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(var(--color-foreground, 18, 18, 18), 0.25); border-radius: var(--ucro-radius, 8px); background: transparent; color: inherit; font: inherit; }
+.ucro-bundle__more { display: block; margin: 14px auto 0; }
+.ucro-bundle__more[aria-busy="true"] { opacity: 0.6; pointer-events: none; }

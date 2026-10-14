@@ -41,6 +41,9 @@ export function validateBundle(bundle: Bundle, others: Bundle[]): string[] {
   if (bundle.product && others.some((b) => b.handle !== bundle.handle && b.product?.id === bundle.product!.id)) {
     errors.push("Another bundle already uses that bundle product.");
   }
+  if (bundle.page && others.some((b) => b.handle !== bundle.handle && b.page?.id === bundle.page!.id)) {
+    errors.push("Another bundle already uses that store page.");
+  }
   if (!bundle.steps.length) errors.push("Add at least one step.");
   bundle.steps.forEach((s, i) => {
     const n = i + 1;
@@ -63,6 +66,22 @@ export function validateBundle(bundle: Bundle, others: Bundle[]): string[] {
     if (new Set(tiers.map((t) => t.qty)).size !== tiers.length) errors.push("Two tiers have the same number of items.");
     const most = bundle.steps.reduce((n, s) => n + Math.max(1, s.max), 0);
     if (tiers.some((t) => t.qty > most)) errors.push(`A tier needs more items than the steps allow (${most} at most). Raise the steps' maximum.`);
+  }
+  if (bundle.pricing === "percent_tiers" || bundle.pricing === "amount_tiers") {
+    const pct = bundle.pricing === "percent_tiers";
+    const tiers = bundle.tiers ?? [];
+    if (!tiers.length) errors.push(pct ? "Add at least one discount tier (how many items, and the % off)." : "Add at least one discount tier (how many items, and the amount off).");
+    tiers.forEach((t, i) => {
+      if (!(Number.isInteger(t.qty) && t.qty >= 1)) errors.push(`Tier ${i + 1}: the number of items must be 1 or more.`);
+      if (pct && !(t.price >= 1 && t.price <= 90)) errors.push(`Tier ${i + 1}: the discount must be between 1% and 90%.`);
+      if (!pct && !(t.price > 0)) errors.push(`Tier ${i + 1}: enter an amount above 0.`);
+    });
+    if (new Set(tiers.map((t) => t.qty)).size !== tiers.length) errors.push("Two tiers have the same number of items.");
+    const most = bundle.steps.reduce((n, s) => n + Math.max(1, s.max), 0);
+    if (tiers.some((t) => t.qty > most)) errors.push(`A tier needs more items than the steps allow (${most} at most). Raise the steps' maximum.`);
+    // A bigger box must never give a smaller discount.
+    const sorted = [...tiers].sort((x, y) => x.qty - y.qty);
+    if (sorted.some((t, i) => i > 0 && t.price < sorted[i - 1].price)) errors.push("Each tier with more items should give at least the same discount as the one before.");
   }
   (bundle.extras ?? []).forEach((x, i) => {
     if (!x.value.trim()) errors.push(`Extra charge ${i + 1}: enter the option value (e.g. XL).`);

@@ -296,6 +296,11 @@ access.storefront = "public_read"
   name = "Build it anywhere in the store"
   type = "boolean"
 
+  # Optional store page (/pages/…) that shows the builder, besides the bundle product's own page.
+  [metaobjects.app.cro_bundle.fields.page]
+  name = "Store page"
+  type = "page_reference"
+
 # ---------- Store sections (cro-sections extension) ----------
 
 # A customer review / testimonial: text, photo or video, from a chosen source.

@@ -109,6 +109,40 @@
     });
   }
 
+  /*
+   * "Frequently bought together" box (fixed bundles). Look and words: offers.fbt, set in the app
+   * (Bundles → Design): h heading ("" = the bundle's name), img item pictures, btn button text,
+   * sv saving style ("amount" = "Save $12", "pct" = "15% off").
+   */
+  var FBT = offers.fbt || {};
+
+  // Adds the items, then shows them the way the store expects: the theme's drawer (Dawn family),
+  // the app's cart drawer, or the cart page.
+  function addItems(items) {
+    var ui = document.querySelector('cart-drawer') || document.querySelector('cart-notification');
+    ui = ui && typeof ui.renderContents === 'function' && typeof ui.getSectionsToRender === 'function' ? ui : null;
+    var body = { items: items };
+    if (ui) {
+      body.sections = ui.getSectionsToRender().map(function (x) { return x.id; });
+      body.sections_url = window.location.pathname;
+    }
+    return json('cart/add.js', body).then(function (res) {
+      document.dispatchEvent(new CustomEvent('ucs:cart:added', { detail: res }));
+      if (window.publish && window.PUB_SUB_EVENTS) window.publish(window.PUB_SUB_EVENTS.cartUpdate, { source: 'ucs-deals', cartData: res });
+      if (ui) {
+        var last = res.items ? res.items[res.items.length - 1] : res;
+        ui.classList.remove('is-empty');
+        var inner = ui.querySelector('.drawer__inner.is-empty');
+        if (inner) inner.classList.remove('is-empty');
+        ui.renderContents(Object.assign({}, res, { key: res.key || (last && last.key), id: last && last.id }));
+      } else if (window.__ucsCart) {
+        document.dispatchEvent(new CustomEvent('ucs:cart:open'));
+      } else {
+        window.location.href = root + 'cart';
+      }
+    });
+  }
+
   function fixedBundle(d) {
     Promise.all(d.items.map(function (i) { return json('products/' + i.h + '.js'); })).then(function (products) {
       var picks = products.map(function (p) { return (p.variants || []).filter(function (v) { return v.available; })[0] || null; });
@@ -121,18 +155,20 @@
         var select = avail.length > 1
           ? '<select class="ucs-deal__var" data-n="' + n + '" aria-label="' + esc(p.title) + '">' + avail.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select>'
           : '';
-        return '<li class="ucs-deal__item">' + (p.featured_image ? '<img src="' + esc(img(p.featured_image, 120)) + '" alt="" width="48" height="48" loading="lazy">' : '<span></span>') +
+        return '<li class="ucs-deal__item">' + (FBT.img === false ? '' : p.featured_image ? '<img src="' + esc(img(p.featured_image, 120)) + '" alt="" width="48" height="48" loading="lazy">' : '<span></span>') +
           '<span class="ucs-deal__it"><a href="' + esc(root + 'products/' + p.handle) + '">' + (q > 1 ? q + ' × ' : '') + esc(p.title) + '</a>' + select + '</span></li>';
       }).join('<li class="ucs-deal__plus" aria-hidden="true">+</li>');
-      el.innerHTML = '<p class="ucs-deal__name">' + esc(d.name) + '</p><ul class="ucs-deal__items" role="list">' + rows + '</ul>' +
+      var heading = FBT.h != null && FBT.h !== '' ? FBT.h : d.name;
+      el.innerHTML = '<p class="ucs-deal__name">' + esc(heading) + '</p><ul class="ucs-deal__items" role="list">' + rows + '</ul>' +
         '<div class="ucs-deal__total"><span>' + esc(T.bundle_total) + '</span><span class="ucs-deal__price"></span></div>' +
         '<button type="button" class="ucs-deal__add"></button><p class="ucs-deal__err" role="alert" hidden></p>';
       var btn = el.querySelector('.ucs-deal__add');
-      btn.textContent = T.add_bundle || 'Add bundle to cart';
+      btn.textContent = FBT.btn || T.add_bundle || 'Add bundle to cart';
       function paint() {
         var full = picks.reduce(function (n, v, i) { return n + v.price * (Number(d.items[i].q) || 1); }, 0);
         var cut = Math.round(full * (Number(d.pct) || 0) / 100);
-        el.querySelector('.ucs-deal__price').innerHTML = '<b>' + money(full - cut) + '</b> <s>' + money(full) + '</s> <em>' + fill(esc(T.save), { amount: money(cut) }) + '</em>';
+        var saving = FBT.sv === 'pct' ? fill(esc(T.off || '{pct}% off'), { pct: Number(d.pct) || 0 }) : fill(esc(T.save), { amount: money(cut) });
+        el.querySelector('.ucs-deal__price').innerHTML = '<b>' + money(full - cut) + '</b> <s>' + money(full) + '</s> <em>' + saving + '</em>';
       }
       paint();
       Array.prototype.forEach.call(el.querySelectorAll('.ucs-deal__var'), function (s) {
@@ -145,10 +181,10 @@
       btn.addEventListener('click', function () {
         btn.setAttribute('aria-busy', 'true');
         btn.disabled = true;
-        json('cart/add.js', { items: picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1, properties: { _source: 'fixed_bundle' } }; }) })
+        addItems(picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1, properties: { _source: 'fixed_bundle' } }; }))
           .then(function () {
-            document.dispatchEvent(new CustomEvent('ucs:cart:added'));
-            window.location.href = root + 'cart';
+            btn.removeAttribute('aria-busy');
+            btn.disabled = false;
           })
           .catch(function () {
             btn.removeAttribute('aria-busy');

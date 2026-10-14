@@ -7,17 +7,26 @@
     assign enabled = false
   endif
 
+  # The bundle of this product page, or of this store page (a bundle's "page" field).
   assign bundle = nil
-  if enabled and product != blank
+  assign bp = product
+  if enabled
     for b in shop.metaobjects['$app:cro_bundle'].values
-      if b.active.value == true and b.product.value.id == product.id
+      if b.active.value != true
+        continue
+      endif
+      if product != blank and b.product.value.id == product.id
         assign bundle = b
+        break
+      elsif product == blank and page != blank and b.page.value.handle == page.handle
+        assign bundle = b
+        assign bp = b.product.value
         break
       endif
     endfor
   endif
 
-  assign bv = product.selected_or_first_available_variant
+  assign bv = bp.selected_or_first_available_variant
   assign hide_sold_out = false
   if bundle and bundle.hide_sold_out.value == true
     assign hide_sold_out = true
@@ -45,8 +54,8 @@
   <ucro-bundle
     class="ucro ucro-bundle{{ d.cls }}"
     style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
-    data-key="{{ product.id }}"
-    data-bundle="{{ product.id }}"
+    data-key="{{ bp.id }}"
+    data-bundle="{{ bp.id }}"
     data-mode="{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' }}"
     data-variant-id="{{ bv.id }}"
     data-price="{{ bv.price }}"
@@ -54,7 +63,9 @@
     data-pc="{{ bundle.percent_off.value | default: 0 }}"
     data-rules="{{ bundle.price_rules.value | json | escape }}"
     data-dup="{{ dup }}"
-    data-theme-button="{% if d.tb %}true{% else %}false{% endif %}"
+    data-hso="{{ hide_sold_out }}"
+    data-t-soldout="{{ 'ucro.sold_out' | t | escape }}"
+    data-theme-button="{% if product != blank %}{% if d == blank or d.tb %}true{% else %}false{% endif %}{% else %}false{% endif %}"
     data-money-format="{{ shop.money_format | escape }}"
     data-t-button="{{ d.btn | default: 'Add bundle to cart' | escape }}"
     data-t-remaining="{{ d.rem | default: 'Choose [remaining] more' | escape }}"
@@ -86,11 +97,13 @@
           assign max = min
         endif
         assign pool = step.products.value
+        assign col = nil
         if pool == blank and step.collection.value != blank
-          assign pool = step.collection.value.products
+          assign col = step.collection.value
+          assign pool = col.products
         endif
       -%}
-      <fieldset class="ucro-bundle__step" data-step="{{ forloop.index0 }}" data-min="{{ min }}" data-max="{{ max }}" data-label="{{ step.label.value | escape }}">
+      <fieldset class="ucro-bundle__step" data-step="{{ forloop.index0 }}" data-min="{{ min }}" data-max="{{ max }}" data-label="{{ step.label.value | escape }}"{% if col %} data-collection="{{ col.handle }}" data-total="{{ col.products_count }}"{% endif %}>
         <legend class="ucro-bundle__legend">
           <span class="ucro-bundle__label">{{ step.label.value | escape }}</span>
           <span class="ucro-bundle__count"><span data-count>0</span> / {{ max }}</span>
@@ -99,7 +112,7 @@
           {%- for p in pool limit: 50 -%}
             {%- if hide_sold_out and p.available == false -%}{%- continue -%}{%- endif -%}
             {%- assign pv = p.selected_or_first_available_variant -%}
-            <li class="ucro-bundle__card{% unless p.available %} is-sold-out{% endunless %}" data-title="{{ p.title | escape }}">
+            <li class="ucro-bundle__card{% unless p.available %} is-sold-out{% endunless %}" data-title="{{ p.title | escape }}" data-handle="{{ p.handle }}">
               <span class="ucro-bundle__img">
                 {%- if p.featured_media -%}
                   {{ p.featured_media | image_url: width: 400 | image_tag: loading: 'lazy', widths: '200, 300, 400', sizes: '(min-width: 750px) 20vw, 45vw', alt: p.title }}
@@ -159,7 +172,7 @@
     {%- if enabled == false -%}
       Bundles are switched off in CRO Toolbox.
     {%- else -%}
-      Bundle builder: this product is not set up as a bundle. In CRO Toolbox → Bundles, create a bundle and choose this product as the bundle product. Only you see this note.
+      Bundle builder: no bundle uses this product or page. In CRO Toolbox → Bundles, choose it as a bundle's product or store page. Only you see this note.
     {%- endif -%}
   </div>
 {%- endif -%}
@@ -169,7 +182,7 @@
   "name": "Bundle builder",
   "target": "section",
   "stylesheet": "ucro.css",
-  "enabled_on": { "templates": ["product"] },
+  "enabled_on": { "templates": ["product", "page"] },
   "settings": [
     { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
       { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }

@@ -23,9 +23,11 @@
  *   ]
  * Rules arrive sorted by priority; for upsells the first matching rule wins, like on the storefront.
  *
+ *   "skip": ["123", …]   // product ids of bundles (mix & match bundle products, bundle products/kits)
+ *
  * Each cart line gets at most one candidate (the highest percentage it qualifies for), so our
- * own offers never stack on each other. Bundle lines (built by the bundle builder) are skipped:
- * their price is already the bundle price.
+ * own offers never stack on each other. Bundle lines are skipped: their price is already the
+ * bundle price (merged mix & match lines carry the bundle product; kits are their own product).
  */
 
 /**
@@ -47,11 +49,14 @@ export function cartLinesDiscountsGenerateRun(input) {
   const config = input.discount.metafield?.jsonValue;
   if (!config || typeof config !== "object") return EMPTY;
 
+  /** @type {Set<string>} */
+  const skip = new Set(Array.isArray(config.skip) ? config.skip.map(String) : []);
   const lines = [];
   for (const line of input.cart.lines) {
     const merchandise = /** @type {any} */ (line.merchandise);
     if (merchandise.__typename !== "ProductVariant") continue;
     if (line.bundle?.value) continue;
+    if (skip.has(String(merchandise.product?.id || "").split("/").pop())) continue;
     lines.push({
       id: line.id,
       quantity: line.quantity,

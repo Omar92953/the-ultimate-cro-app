@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { extraCents, percentOff, tierPrice, validGroup } from "../src/cart_transform_run.js";
+import { extraCents, growTier, percentOff, tierPrice, validGroup } from "../src/cart_transform_run.js";
 
 const COL = "gid://shopify/Collection/900";
 const pick = (variant, step, { qty = 1, member = true, product = 10, title = "Default Title" } = {}) => ({
@@ -65,5 +65,36 @@ describe("option extras (a pricier option costs more inside the bundle)", () => 
   });
   test("the bundle price includes the extras", () => {
     expect(percentOff(b, 80, 1, 1000)).toBe(12.5); // 60 + 10 = 70 of 80
+  });
+});
+
+describe("growing discounts (more items, bigger discount)", () => {
+  const picks = (n) => Array.from({ length: n }, (_, i) => pick(i + 1, 0));
+  const pctTiers = { pv: "1", d: 1, k: "pt", pt: [[2, 10], [3, 15], [4, 20]], s: [{ n: 1, x: 8, c: "900" }] };
+  const amtTiers = { pv: "1", d: 1, k: "at", at: [[2, 500], [3, 1000]], s: [{ n: 1, x: 8, c: "900" }] };
+  test("the highest tier reached applies", () => {
+    expect(growTier(pctTiers.pt, 1)).toBe(null);
+    expect(growTier(pctTiers.pt, 2)).toBe(10);
+    expect(growTier(pctTiers.pt, 3)).toBe(15);
+    expect(growTier(pctTiers.pt, 7)).toBe(20);
+    expect(growTier([[3, 15], [2, 10]], 3)).toBe(15); // order doesn't matter
+  });
+  test("any count that fits the steps is a complete bundle (no exact-count rule)", () => {
+    expect(validGroup(picks(1), pctTiers)).toBe(true);
+    expect(validGroup(picks(5), pctTiers)).toBe(true);
+    expect(validGroup(picks(9), pctTiers)).toBe(false); // over the step's maximum
+  });
+  test("% off grows with the number of items", () => {
+    expect(percentOff(pctTiers, 100, 1, 0, 1)).toBe(0);
+    expect(percentOff(pctTiers, 100, 1, 0, 2)).toBe(10);
+    expect(percentOff(pctTiers, 100, 1, 0, 3)).toBe(15);
+    expect(percentOff(pctTiers, 100, 1, 0, 6)).toBe(20);
+  });
+  test("amount off becomes a percentage of the picks' total, in the shopper's currency", () => {
+    expect(percentOff(amtTiers, 40, 1, 0, 2)).toBe(12.5); // $5 off $40
+    expect(percentOff(amtTiers, 40, 1, 0, 3)).toBe(25); // $10 off $40
+    expect(percentOff(amtTiers, 40, 2, 0, 3)).toBe(50); // rate 2: $10 = 20 off 40
+    expect(percentOff(amtTiers, 5, 1, 0, 3)).toBe(100); // never below zero
+    expect(percentOff(amtTiers, 40, 1, 0, 1)).toBe(0);
   });
 });

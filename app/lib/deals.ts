@@ -94,6 +94,24 @@ export const DEAL_TYPES: Record<
   },
 };
 
+/**
+ * The "Frequently bought together" box (fixed bundles on product pages): its heading, item
+ * pictures, button text and how the saving reads. Stored in $app:cro_design "fbt"; sent to the
+ * storefront with the deals (offers.fbt, compact keys).
+ */
+export type FbtDesign = { heading: string; images: boolean; button: string; saving: "amount" | "pct" };
+export const DEFAULT_FBT: FbtDesign = { heading: "Frequently bought together", images: true, button: "Add bundle to cart", saving: "amount" };
+export function normalizeFbt(v: unknown): FbtDesign {
+  const o = (v && typeof v === "object" ? v : {}) as Partial<FbtDesign>;
+  return {
+    heading: typeof o.heading === "string" ? o.heading.slice(0, 80) : DEFAULT_FBT.heading,
+    images: typeof o.images === "boolean" ? o.images : DEFAULT_FBT.images,
+    button: typeof o.button === "string" && o.button.trim() ? o.button.slice(0, 40) : DEFAULT_FBT.button,
+    saving: o.saving === "pct" ? "pct" : "amount",
+  };
+}
+export const fbtForStorefront = (f: FbtDesign) => ({ h: f.heading, img: f.images, btn: f.button, sv: f.saving });
+
 /** Words the storefront widgets use (sent with the deals; {placeholders} are filled in there). */
 export const DEAL_TEXT = {
   add_bundle: "Add bundle to cart",
