@@ -56,7 +56,7 @@ export const FEATURES = {
   bundles: {
     title: "Bundles",
     area: "offers",
-    about: "Mix-and-match bundles, bundles sold as their own product, and fixed bundles.",
+    about: "Mix-and-match bundles, bundles sold as their own product, and fixed “frequently bought together” bundles.",
     tabs: [{ label: "Mix & match", href: "/app/bundles" }, { label: "Bundle products", href: "/app/kits" }, { label: DEAL_TYPES.fixed.title, href: "/app/deals/fixed" }, design("/app/designs/bundles")],
   },
   discounts: {
@@ -138,7 +138,7 @@ export const OFFER_GROUPS: OfferGroup[] = [
     ],
   },
   { key: "cross_sell", title: "Cross-sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
-  { key: "bundles", title: "Bundles", about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed bundles.", features: ["bundles"], tabs: FEATURES.bundles.tabs },
+  { key: "bundles", title: "Bundles", about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed “frequently bought together” bundles.", features: ["bundles"], tabs: FEATURES.bundles.tabs },
   { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },
 ];
 /** Which feature a deal kind's pages belong to. */
