@@ -8,7 +8,7 @@ import { editorLinks, getDiscountStatus, getThemeStatus, setDiscountMode } from 
 import { sectionLinks } from "../lib/sections.server";
 import { getPlan } from "../lib/billing.server";
 import { getReferral } from "../lib/referral.server";
-import { PLANS } from "../lib/plans";
+import { PLANS, REFERRAL } from "../lib/plans";
 import { UpgradeButton, planPriceText } from "../components/Upgrade";
 import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
@@ -17,7 +17,7 @@ import { Explainer, LinkTiles, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [discount, theme, plan, referral] = await Promise.allSettled([getDiscountStatus(admin), getThemeStatus(admin, session.shop), getPlan(admin, session.shop), getReferral(admin, session.shop)]);
+  const [discount, theme, plan, referral] = await Promise.allSettled([getDiscountStatus(admin), getThemeStatus(admin, session.shop), getPlan(admin, session.shop), REFERRAL.live ? getReferral(admin, session.shop) : Promise.resolve(null)]);
   const links = editorLinks(session.shop);
   const sl = sectionLinks(session.shop);
   return {
@@ -144,7 +144,7 @@ export default function SettingsPage() {
               </Button>
               <UpgradeButton variant="secondary">Change plan</UpgradeButton>
             </s-stack>
-            <ReferralBox referral={data.referral} />
+            {REFERRAL.live ? <ReferralBox referral={data.referral} /> : null}
           </s-stack>
         </s-section>
 

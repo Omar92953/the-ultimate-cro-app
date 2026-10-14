@@ -196,14 +196,12 @@ export default function CountdownBarDesigner() {
                   options={[
                     { value: "fixed", label: "A date and time" },
                     { value: "daily", label: "A cut-off time every day" },
-                    { value: "evergreen", label: "A fresh timer for each visitor" },
                   ]}
                 />
                 {t.mode === "fixed" ? (
                   <TextField label="Ends on" details="Your store's time zone. Format: 2026-12-31T23:59" value={t.end} onValue={(v) => timer({ end: v })} />
                 ) : null}
                 {t.mode === "daily" ? <TextField label="Cut-off time" details="24-hour clock, e.g. 17:00" value={t.cutoff} onValue={(v) => timer({ cutoff: v })} /> : null}
-                {t.mode === "evergreen" ? <NumberField label="Each visitor gets" suffix="hours" min={1} max={168} step={1} value={t.hours} onValue={(v) => timer({ hours: v })} /> : null}
                 <Select
                   label="When it ends"
                   value={t.ended}
@@ -211,7 +209,6 @@ export default function CountdownBarDesigner() {
                   options={[
                     { value: "hide", label: "Hide the bar" },
                     { value: "message", label: "Show a message" },
-                    { value: "restart", label: "Start again (visitor timer)" },
                   ]}
                 />
                 {t.ended === "message" ? <TextField label="Message" value={t.endedText} onValue={(v) => timer({ endedText: v })} /> : null}

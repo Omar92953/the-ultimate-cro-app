@@ -1,6 +1,6 @@
 # App Store listing draft — CRO Toolbox
 
-Draft for the Partner Dashboard listing, matching the app after the reorganisation (menu: Offers ·
+Draft for the Partner Dashboard listing, matching the app after the reorganisation (menu: Offers (Upsell, Cross-sell, Bundles, Discounts) ·
 Storefront · Cart · Checkout · Analytics · Settings). Rules followed: no promised results, no
 superlatives, no other apps' names, no prices or stats in screenshots, name identical to
 `shopify.app.toml`. Character limits are Shopify's.
@@ -26,17 +26,18 @@ thank-you page modules. See what each offer sells in Analytics. Everything is sa
 5. Payment and delivery rules, order limits and thank-you page modules
 6. Hero, FAQ, carousels, quiz, header, footer and order tracking pages
 7. Analytics per offer and bundle, plus a holdout test
-8. Free plan with 3 offer slots and 1 paid feature to try
+8. Countdowns, sticky add to cart, wishlist and back in stock alerts
 
 ## Pricing (entered as Shopify App Pricing plans; text per plan)
-- **Free** — 3 offer slots, cart drawer, bars, reviews, wishlist, back in stock, 3 checkout rules,
-  try 1 Starter feature.
-- **Starter $5.99/month** (14-day trial) — unlimited offers, every storefront tool and page, 5 styles
-  per section, 6 checkout rules, up to 500 orders a month.
-- **Growth $14.99/month** (14-day trial) — unlimited checkout rules, analytics for every offer and
-  bundle, holdout test, feature requests built for you, up to 2,000 orders a month.
-- **Pro $24.99/month** (14-day trial) — unlimited orders, priority support, your requests built first.
-(Prices and limits come from `app/lib/plans.ts`; update both together. Still a proposal — confirm.)
+- **Free**: up to $100 revenue added monthly. 3 offers on at once, cart drawer, bars, reviews, FAQ,
+  wishlist, 3 checkout rules, try 1 Starter feature.
+- **Starter $5.99/month** (14-day trial): up to $500 revenue added monthly. Unlimited offers, every
+  bundle and discount type, add-ons, personalization, full cart drawer, store pages, 5 styles per section.
+- **Growth $14.99/month** (14-day trial): up to $2,000 revenue added monthly. Unlimited checkout rules,
+  results for every offer, holdout test, features built on request.
+- **Pro $24.99/month** (14-day trial): unlimited revenue added. Your requests built first, priority support.
+(Prices and limits come from `app/lib/plans.ts`, confirmed with Omar on 2026-10-14; the Partner
+Dashboard plans must match exactly.)
 
 ## Screenshots (1600×900, no browser chrome, no prices/reviews/stats)
 Take them on the dev store testing-store-2v65holh with sample data, never on the live store.

@@ -51,6 +51,8 @@
   .ucs-sticky__btn { min-height: 40px; padding: 0 16px; }
 }
 body.ucs-sticky-on { padding-bottom: 72px; }
+/* Keyboard focus never ends up hidden under the bar (WCAG 2.4.11). */
+html:has(body.ucs-sticky-on) { scroll-padding-bottom: 84px; }
 
 /* sales pop-ups */
 .ucs-pop { position: fixed; bottom: 20px; z-index: 2147482001; width: min(340px, calc(100vw - 32px)); opacity: 0; transform: translateY(20px); pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; font-family: inherit; }

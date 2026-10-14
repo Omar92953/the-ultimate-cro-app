@@ -24,11 +24,11 @@ export type CountdownBarConfig = {
   kind: "bar" | "section" | "inline";
   section: { heading: string; sub: string; layout: "stack" | "row"; headingSize: number; paddingTop: number; paddingBottom: number };
   timer: {
-    mode: "fixed" | "evergreen" | "daily";
+    /** A date, or a daily cut-off. No per-visitor timers: Shopify rejects urgency that isn't real. */
+    mode: "fixed" | "daily";
     end: string; // "YYYY-MM-DDTHH:mm", store time zone
-    hours: number; // evergreen: each visitor gets
     cutoff: string; // daily: "HH:mm"
-    ended: "hide" | "message" | "restart";
+    ended: "hide" | "message";
     endedText: string;
     style: NumberStyle;
     labels: boolean;
@@ -93,7 +93,6 @@ export const DEFAULT_COUNTDOWN_BAR: CountdownBarConfig = {
   timer: {
     mode: "fixed",
     end: "",
-    hours: 24,
     cutoff: "17:00",
     ended: "hide",
     endedText: "This offer has ended.",
@@ -201,11 +200,11 @@ export function withCountdownBarDefaults(raw: unknown, place: CountdownPlace = "
       paddingBottom: num(sec.paddingBottom, 0, 120, d.section.paddingBottom),
     },
     timer: {
-      mode: pick(t.mode, ["fixed", "evergreen", "daily"] as const, d.timer.mode),
+      // Old "evergreen" settings become a fixed date (their saved end date).
+      mode: pick(t.mode, ["fixed", "daily"] as const, d.timer.mode),
       end: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(end) ? end : in30days(),
-      hours: num(t.hours, 1, 168, d.timer.hours),
       cutoff: /^\d{1,2}:\d{2}$/.test(str(t.cutoff)) ? str(t.cutoff) : d.timer.cutoff,
-      ended: pick(t.ended, ["hide", "message", "restart"] as const, d.timer.ended),
+      ended: pick(t.ended, ["hide", "message"] as const, d.timer.ended),
       endedText: str(t.endedText, d.timer.endedText, 160),
       style: pick(t.style, NUMBER_STYLES.map((x) => x.value), d.timer.style),
       labels: bool(t.labels, d.timer.labels),

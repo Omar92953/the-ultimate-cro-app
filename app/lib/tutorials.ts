@@ -1,7 +1,7 @@
 /**
  * Tutorial videos on Home — the ONLY list of them. Placeholders until Omar records them:
  * set `youtubeId` (the part after watch?v=) when a video is ready, and its card starts working.
- * Cards without a video show "Coming with launch" instead of a broken player.
+ * Cards without a video show "Coming soon" instead of a broken player.
  */
 import type { FeatureKey } from "./catalog";
 

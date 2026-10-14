@@ -179,6 +179,8 @@ export const EXTRA_PLAN = {
 
 /** Referral reward text and link. PROPOSAL — the referral reward is Omar's decision. */
 export const REFERRAL = {
+  /** Shown in Settings only once rewards are really applied (App Store review: no promises the app can't keep). */
+  live: false,
   reward: "1 free month for you and the store you refer",
   /** TODO(Omar): how rewards are applied isn't built yet — likely a private plan or a discount in
    * Shopify App Pricing (Partner Dashboard), applied by hand or with Shopify CLI when a referred

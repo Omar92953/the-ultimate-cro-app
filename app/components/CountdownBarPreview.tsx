@@ -11,7 +11,6 @@ const at = (y: number, mo: number, d: number, h: number, mi: number, off: number
 /** off = the shop's UTC offset in minutes: dates and cut-offs are the store's clock, not this computer's. */
 function deadline(c: CountdownBarConfig, now: number, off: number) {
   const t = c.timer;
-  if (t.mode === "evergreen") return now + t.hours * 3600000 - 1000;
   if (t.mode === "daily") {
     const [h, m] = t.cutoff.split(":").map(Number);
     const shop = new Date(now + off * 60000);
