@@ -3,6 +3,23 @@
 Written 2026-10-13 for a new Claude Code account taking over from the previous sessions. Read this
 first, then `AGENTS.md`, `docs/billing.md`, `docs/hosting.md`, `docs/scopes.md`, `docs/listing.md`.
 
+## Current state and next steps (updated 2026-10-14)
+- **Active work: the bundles overhaul.** Full plan, approved by Omar: `docs/plans/bundles-overhaul.md`.
+  It has a Progress checklist; resume at the first unticked phase and tick it in the same PR that
+  finishes it. Phases: 0 plan in repo · 1 orders limit + hidden-settings fix · 2 engine · 3 app creates
+  products and pages · 4 Bundles list + recipes · 5 editors as sections · 6 release + end-to-end test.
+- **Test store is now Testing2** (`testing2-j6mmnywm.myshopify.com`). The old dev store
+  `testing-store-2v65holh` can't save several app settings any more (hidden leftovers after a
+  dev-preview clean block the fixed storage names `main`/`settings`); don't use it.
+- **Never run `shopify app dev clean`** (it deletes the app's storage types on the store; only a
+  reinstall brings them back). Ship to Render through PRs instead of `shopify app dev`.
+- Branches: one `claude/<topic>` branch per change, PR, merge (Omar asked for this flow and is fine
+  with merges once checks pass). Live Shopify version: `cro-toolbox-7`
+  (rollback: `shopify app release --version=<previous>`).
+- Omar's style rules for the app UI: no dashes in any visible text; `LinkTiles` instead of rows of
+  links; `OptionalSetting` (a switch that reveals the setting) instead of "0 = off"; Design tabs sit
+  apart on the right of a feature's tabs.
+
 ## Who and what
 - Owner: **Omar** (GitHub `Omar92953`). Writes short messages, often with screenshots. Explain steps
   plainly, one command at a time, and say what to click.
@@ -15,11 +32,11 @@ first, then `AGENTS.md`, `docs/billing.md`, `docs/hosting.md`, `docs/scopes.md`,
 | Thing | Location |
 |---|---|
 | Repo | https://github.com/Omar92953/the-ultimate-cro-app (default branch `main`) |
-| Working branch | `claude/admiring-hypatia-x38z5c` (PRs from here; never push to `main` directly) |
+| Working branch | a new `claude/<topic>` branch per change (PRs from there; never push to `main` directly) |
 | Omar's local clone (Mac) | `~/Workspace/the-ultimate-cro-app` (i.e. `/Users/omarmoaz/Workspace/the-ultimate-cro-app`) |
 | App server | Render web service **cro-toolbox**, https://cro-toolbox.onrender.com (Virginia, Starter plan). Auto-deploys when `main` changes. |
 | Database | Supabase project **cro-toolbox** (id `mjrarywblutwmtakdkze`, us-east-1). Old project `ultimate-profit-tracker` is paused. Session pooler URL is in Render env (`DATABASE_URL`, `DIRECT_URL`). |
-| Dev store (all testing) | `testing-store-2v65holh.myshopify.com`, theme "test-data" |
+| Dev store (all testing) | **Testing2** `testing2-j6mmnywm.myshopify.com` (the old `testing-store-2v65holh` is broken for the app, see above) |
 | Omar's LIVE store | `ms6vwv-3n.myshopify.com` (Backrooms) — **never touch it or its themes** |
 
 ## Hard rules (from Omar)
@@ -63,20 +80,14 @@ only run on the Mac.
   discounts, plan & referral, help); Shopify save bar on all 36 editors; "Style 1–5" naming.
 - Deployed: Omar ran `shopify app deploy` (all tests passed) and PR #5 was merged.
 
-## Open right now
-- **PR #6** (branch `claude/admiring-hypatia-x38z5c`): upsell "list" style — selected row's left bar is
-  straight and stops where a rounded corner starts; clearer message for the save error below.
-  Needs: Omar runs the release line above → "deployed" → merge PR #6.
-- **Save error on the dev store:** `No metaobject definition exists for type "app--427692097537--cro_design"`.
-  Code is correct (`[metaobjects.app.cro_design]` is in `shopify.app.toml`). Likely caused by
-  `shopify app dev clean` right before the release; Shopify re-adds declarative definitions shortly
-  after a release. Ask Omar if saving works now; if not, re-run `shopify app deploy`, and check
-  Settings → Custom data → Metaobjects for "CRO section design".
-- Render env: confirm `SCOPES` includes `write_products`; add `SHOPIFY_PARTNER_ORG_ID`,
-  `SHOPIFY_PARTNER_API_TOKEN`, `SHOPIFY_APP_GID` (plan confirmation), `SUPPORT_EMAIL`.
+## Open right now (outside the code)
+- Partner Dashboard (Omar, permanent): choose Public distribution and request protected customer data
+  (orders) access; until approved, Shopify returns no order details (Analytics, sales pop-ups).
 - Partner Dashboard: create the 4 App Pricing plans with handles `free`, `starter`, `growth`, `pro`
-  at the prices above (steps in `docs/billing.md`).
-- Listing & branding: draft in `docs/listing.md`; screenshots/video to record on the dev store.
+  at the prices in `app/lib/plans.ts` (steps in `docs/billing.md`).
+- Render env: `SCOPES` must equal the TOML list; add `SHOPIFY_PARTNER_ORG_ID`,
+  `SHOPIFY_PARTNER_API_TOKEN`, `SHOPIFY_APP_GID` (plan confirmation), `SUPPORT_EMAIL`.
+- Listing: screenshots and video on Testing2; tutorial videos (Home shows "Coming soon" until then).
 
 ## Ideas queued (not started)
 Competitor features we lack: product labels/badges, A/B test per offer, scheduling and targeting per
