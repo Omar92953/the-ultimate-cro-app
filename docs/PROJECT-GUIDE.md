@@ -226,6 +226,14 @@ features and sends people to the App Store listing.
   schema.org `SoftwareApplication`, `FAQPage` and `Article` markup, internal links.
 - **GEO**: plain factual statements (exact prices, limits, what each feature does, which themes),
   question headings with direct answers, an `llms.txt`, consistent naming "CRO Toolbox".
+- **Decided (2026-10-15)**: hosting on **Cloudflare Pages (free plan, upgrade at launch if needed)**,
+  domain **crotoolbox.com** from Cloudflare Registrar (about $10.46 a year; Omar buys it).
+- **Visibility plan** (how to get mentioned by AI assistants and found on Google and Bing): see
+  "Visibility plan" in `docs/prompts/build-website.md`. Short version: register the site in Google
+  Search Console and Bing Webmaster Tools (ChatGPT searches with Bing), one shared description
+  everywhere, 1 or 2 real articles a week, honest comparison pages, App Store reviews, and mentions on
+  other sites ("best bundle apps" lists, Reddit and Shopify Community answers, YouTube, Product Hunt,
+  G2/Capterra).
 - **Calls to action**: "Install on Shopify" buttons to the App Store listing with UTM tags
   (`?utm_source=site&utm_medium=<page>`), so installs per page can be measured. Until the listing is
   live, link to a "Coming soon" or waitlist form.
