@@ -5,13 +5,19 @@ one GitHub repo, so they must never step on each other. These rules make that sa
 
 ## The accounts
 
-| Account | Where it runs | Can do | Main job |
-|---|---|---|---|
-| **Mac** | Claude Code desktop on Omar's Mac, folder `~/Workspace/the-ultimate-cro-app` | everything: Shopify CLI (`shopify app deploy`, `shopify app execute`), `npm run test:functions`, the browser on Testing2 | app releases, Shopify deploys, testing on Testing2, keeping the Mac in sync |
-| **Cloud A** | claude.ai/code, connected to the GitHub repo | code, checks, PRs. **Cannot** reach Shopify (no deploy, no `shopify app execute`, no function tests) | app features and fixes |
-| **Cloud B** | claude.ai/code, connected to the GitHub repo | same as Cloud A | the website (`site/`) |
+All three accounts are **equal**: any of them can work on anything, the app or the website. There is
+no main account and no fixed roles. Pick the next free task from `docs/WORKBOARD.md` that no open PR
+has claimed.
 
-Omar can move jobs between accounts; update this table when he does.
+What a session can do depends only on **where it runs**, not on which account it is:
+
+| Where the session runs | Can do |
+|---|---|
+| **On Omar's Mac** (Claude Code desktop or terminal, folder `~/Workspace/the-ultimate-cro-app`) | everything: code, checks, PRs, Shopify CLI (`shopify app deploy`, `shopify app execute`), `npm run test:functions`, the browser on Testing2 |
+| **In the cloud** (claude.ai/code, connected to the GitHub repo) | code, checks, PRs, merges. **Cannot** reach Shopify: no Shopify deploy, no `shopify app execute`, no function tests |
+
+So the only hand off is a Shopify deploy (see below): a cloud session that changes `theme/`,
+`extensions/` or `shopify.app.toml` leaves the deploy to the next session running on the Mac.
 
 ## The board: open pull requests
 
@@ -49,9 +55,9 @@ limits, also read by the website), `app/lib/catalog.ts` (features, also read by 
 ## Shopify deploys (Mac only)
 
 A PR that changes `theme/`, `extensions/` or `shopify.app.toml` needs a Shopify deploy **before** it
-merges, and only the Mac account can deploy:
-- Cloud accounts: open the PR, mark it **"Needs Shopify deploy"** in the description, and stop there.
-- Mac account: check out the PR, run `npm run test:functions`, deploy
+merges, and only a session running on the Mac can deploy:
+- In the cloud: open the PR, add **"Needs Shopify deploy"** to its title, and leave it open.
+- On the Mac (any account): `gh pr list --search "Needs Shopify deploy"`, check out the PR, run `npm run test:functions`, deploy
   (`NODE_OPTIONS=--dns-result-order=ipv4first shopify app deploy --allow-updates --message "…"`),
   then merge it. Only one deploy at a time, always from an up to date branch.
 
@@ -60,7 +66,7 @@ by Render on its own when `main` changes.
 
 ## Keeping the Mac in sync with GitHub
 
-Run on the Mac (or ask the Mac account to):
+Run on the Mac (any account can):
 
 ```bash
 cd ~/Workspace/the-ultimate-cro-app && bash scripts/sync.sh

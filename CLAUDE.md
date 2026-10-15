@@ -3,7 +3,8 @@
 # CRO Toolbox — read this first
 
 This repo holds Omar's public Shopify app **and** its marketing website (`site/`). Omar manages both
-from **three Claude accounts at once** (a Mac account and two cloud accounts).
+from **three Claude accounts at once**. All three are equal: any account can work on the app or the
+website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.md`).
 
 **Every session, before anything else:**
 1. `git fetch --prune && git checkout main && git pull`
@@ -37,8 +38,8 @@ from **three Claude accounts at once** (a Mac account and two cloud accounts).
   secrets, never print `.env`.
 - One `claude/<topic>` branch per change → checks → PR → merge. If `extensions/`, `theme/` or
   `shopify.app.toml` changed, `shopify app deploy --allow-updates` before merging (prefix
-  `NODE_OPTIONS=--dns-result-order=ipv4first`). Only the **Mac** account can deploy to Shopify;
-  cloud accounts mark such PRs "Needs Shopify deploy" (`docs/TEAM.md`).
+  `NODE_OPTIONS=--dns-result-order=ipv4first`). Only a session running on the Mac can deploy to
+  Shopify; cloud sessions add "Needs Shopify deploy" to such PR titles (`docs/TEAM.md`).
 - No dashes in UI text. Use `app/components/fields.tsx` wrappers, never raw `onChange` or boolean
   props on `s-*` elements. Never `slot="aside"` on a `large` page; editors use `EditorLayout`.
 - Storefront Liquid is edited in `theme/` and built with `npm run build:theme`; 30 of 30 theme blocks
