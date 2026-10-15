@@ -1,0 +1,22 @@
+---
+/**
+ * The main call to action. Goes to the App Store listing with UTM tags, or to "Get notified"
+ * while the listing isn't live (see INSTALL_URL in lib/site.ts).
+ */
+import { installHref, INSTALL_URL } from "../lib/site";
+interface Props {
+  /** Page type for utm_medium (home, pricing, demo, article…). */
+  medium: string;
+  /** Page slug for utm_campaign. */
+  campaign: string;
+  label?: string;
+  class?: string;
+}
+const { medium, campaign, label = "Install free on Shopify", class: cls = "primary" } = Astro.props;
+const live = Boolean(INSTALL_URL);
+---
+
+<a class:list={["btn", cls]} href={installHref(medium, campaign)} {...live ? { rel: "noopener" } : {}}>
+  <svg class="shopify" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z"></path><path d="M9 10V7a3 3 0 0 1 6 0v3"></path></svg>
+  {label}
+</a>

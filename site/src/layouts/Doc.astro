@@ -1,0 +1,37 @@
+---
+/** Text pages (legal, support): breadcrumb, title, last updated date and readable prose. */
+import Base from "./Base.astro";
+import type { PageMeta } from "../lib/pages";
+interface Props {
+  page: PageMeta;
+  heading: string;
+  intro?: string;
+  updated?: string;
+  schema?: object[];
+}
+const { page, heading, intro, updated, schema } = Astro.props;
+const crumb = { name: heading, href: page.path };
+---
+
+<Base page={page} crumbs={[crumb]} schema={schema}>
+  <section class="page-hero mist">
+    <div class="wrap">
+      <nav aria-label="Breadcrumb"><ol class="breadcrumbs"><li><a href="/">Home</a></li><li aria-current="page">{heading}</li></ol></nav>
+      <h1>{heading}</h1>
+      {intro && <p class="lead">{intro}</p>}
+      {updated && <p class="muted updated">Last updated {updated}</p>}
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="wrap">
+      <article class="prose"><slot /></article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .updated {
+    margin-top: 12px;
+    font-size: 0.9rem;
+  }
+</style>

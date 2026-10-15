@@ -1,0 +1,297 @@
+---
+import Base from "../layouts/Base.astro";
+import PlanCards from "../components/PlanCards.astro";
+import Faq, { type QA } from "../components/Faq.astro";
+import NotifyCta from "../components/NotifyCta.astro";
+import { PAGES } from "../lib/pages";
+import { softwareApplication, faqPage } from "../lib/schema";
+import {
+  plans,
+  PLANS,
+  SITE_AREAS,
+  FEATURE_PLAN,
+  EXTRA_PLAN,
+  atLeast,
+  featureTitle,
+  money,
+  trialDays,
+  yearlySaving,
+  GUARANTEE,
+  type Limits,
+  type PlanKey,
+} from "../lib/app";
+
+const page = PAGES.pricing;
+
+/** The counted limits, in the order the table shows them. */
+const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
+  { key: "monthlyOrders", label: "Orders a month" },
+  { key: "offerSlots", label: "Offers switched on at once" },
+  { key: "checkoutRules", label: "Checkout rules (payment, delivery and order limits)" },
+  { key: "countdownPlaces", label: "Countdown timers" },
+  { key: "thankYouModules", label: "Thank you page modules" },
+  { key: "designsPerSection", label: "Styles per section" },
+  { key: "offerStats", label: "Offers with their own results" },
+];
+const limitCell = (p: PlanKey, k: keyof Limits) => {
+  const n = PLANS[p].limits[k];
+  if (n === null) return "Unlimited";
+  return n.toLocaleString("en-US");
+};
+
+/** Extras inside pages that need a plan (EXTRA_PLAN in plans.ts). */
+const EXTRAS: { key: keyof typeof EXTRA_PLAN; label: string }[] = [
+  { key: "cartDrawerPro", label: "Cart drawer express checkout, best discount and share cart" },
+  { key: "holdoutTest", label: "Holdout test" },
+  { key: "featureRequests", label: "Features built on request" },
+  { key: "requestsFirst", label: "Your requests built first" },
+  { key: "prioritySupport", label: "Priority support" },
+];
+
+/** Feature rows by area, each feature once (the free shipping bar shows under Storefront only). */
+const seen = new Set<string>();
+const tableAreas = SITE_AREAS.filter((a) => a.features.length > 0).map((a) => ({
+  ...a,
+  features: a.features.filter((k) => (seen.has(k) ? false : (seen.add(k), true))),
+}));
+
+const faq: QA[] = [
+  {
+    q: "How much does CRO Toolbox cost?",
+    a: plans.map((p) => (p.monthly ? `${p.name} is ${money(p.monthly)} a month or ${money(p.yearly)} a year` : `${p.name} is free`)).join(". ") + ".",
+  },
+  {
+    q: "Is there a free trial?",
+    a: `Yes. Every paid plan starts with a ${trialDays} day free trial. The ${PLANS.free.name} plan has no time limit.`,
+  },
+  {
+    q: "What counts toward the orders limit?",
+    a: "All of your store's orders in a calendar month, not only orders with an offer. The limit is soft: going over shows a reminder in the app and nothing switches off.",
+  },
+  {
+    q: "What is an offer slot?",
+    a: `An offer switched on: an upsell, cross sell, bundle, bundle product, discount or after purchase offer. The ${PLANS.free.name} plan has ${PLANS.free.limits.offerSlots} at a time; switch one off to free its slot. Paid plans have unlimited offers.`,
+  },
+  {
+    q: "How does billing work?",
+    a: "Shopify bills the plan on your Shopify invoice. You pick, change or cancel a plan from the app; Shopify shows the plan page and handles the charge.",
+  },
+  {
+    q: "What happens when I downgrade or cancel?",
+    a: `${GUARANTEE} Nothing is deleted: offers over the new plan's limits are switched off, and come back on when you upgrade again.`,
+  },
+  {
+    q: "Is yearly billing cheaper?",
+    a: `Yes. Yearly saves up to ${Math.max(...plans.map(yearlySaving))}% compared with paying monthly for 12 months.`,
+  },
+];
+
+const schema = [softwareApplication(page.description), faqPage(faq)];
+---
+
+<Base page={page} schema={schema} crumbs={[{ name: "Pricing", href: page.path }]}>
+  <section class="page-hero">
+    <div class="wrap head center">
+      <nav aria-label="Breadcrumb"><ol class="breadcrumbs center-crumbs"><li><a href="/">Home</a></li><li aria-current="page">Pricing</li></ol></nav>
+      <h1>Simple pricing. Free plan included.</h1>
+      <p class="lead">
+        CRO Toolbox costs {money(PLANS.free.monthly)} on the {PLANS.free.name} plan and {plans.filter((p) => p.monthly).map((p) => money(p.monthly)).join(", ")} a month on paid plans, each with a {trialDays} day free trial.
+      </p>
+    </div>
+  </section>
+
+  <section class="section tight cards-section">
+    <div class="wrap">
+      <PlanCards medium="pricing" campaign="pricing" />
+    </div>
+  </section>
+
+  <section class="section mist">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Compare plans</span>
+        <h2>What each plan includes</h2>
+        <p class="lead">The same numbers the app uses to unlock features, so this table is always up to date.</p>
+      </div>
+
+      <div class="table-scroll">
+        <table class="compare">
+          <caption class="sr-only">Plan limits</caption>
+          <thead>
+            <tr>
+              <th scope="col">Limits</th>
+              {plans.map((p) => <th scope="col">{p.name}<span>{p.monthly ? `${money(p.monthly)} / month` : "$0"}</span></th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              LIMIT_ROWS.map((r) => (
+                <tr>
+                  <th scope="row">{r.label}</th>
+                  {plans.map((p) => (
+                    <td>{limitCell(p.key, r.key)}</td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      {
+        tableAreas.map((a) => (
+          <div class="table-scroll">
+            <table class="compare">
+              <caption class="sr-only">{a.title} features by plan</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{a.title}</th>
+                  {plans.map((p) => (
+                    <th scope="col">{p.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {a.features.map((k) => (
+                  <tr>
+                    <th scope="row">{featureTitle(k)}</th>
+                    {plans.map((p) => (
+                      <td>{atLeast(p.key, FEATURE_PLAN[k]) ? <span class="yes" title="Included"><span class="sr-only">Included</span></span> : <span class="no"><span class="sr-only">Not included</span></span>}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
+      }
+
+      <div class="table-scroll">
+        <table class="compare">
+          <caption class="sr-only">Extras by plan</caption>
+          <thead>
+            <tr>
+              <th scope="col">Analytics and support</th>
+              {plans.map((p) => <th scope="col">{p.name}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Sales from the app (last 30 days)</th>
+              {plans.map(() => <td><span class="yes"><span class="sr-only">Included</span></span></td>)}
+            </tr>
+            {
+              EXTRAS.map((e) => (
+                <tr>
+                  <th scope="row">{e.label}</th>
+                  {plans.map((p) => (
+                    <td>{atLeast(p.key, EXTRA_PLAN[e.key]) ? <span class="yes"><span class="sr-only">Included</span></span> : <span class="no"><span class="sr-only">Not included</span></span>}</td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small-note">
+        On the {PLANS.free.name} plan, offers and checkout features are open within the counted limits above, and you can try {PLANS.free.limits.trialFeatures} {PLANS.starter.name} feature of your choice.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">Pricing FAQ</span>
+        <h2>Questions about plans and billing</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <NotifyCta campaign="pricing" />
+</Base>
+
+<style>
+  .center-crumbs {
+    justify-content: center;
+  }
+  .page-hero {
+    padding-bottom: 0;
+  }
+  .cards-section {
+    padding-top: 24px;
+  }
+  .table-scroll {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .compare {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .compare th,
+  .compare td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--mist-2);
+    text-align: center;
+  }
+  .compare tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .compare th[scope="row"],
+  .compare thead th:first-child {
+    text-align: left;
+    font-weight: 550;
+    width: 40%;
+  }
+  .compare thead th {
+    font-weight: 750;
+    background: var(--mist);
+    font-size: 1rem;
+  }
+  .compare thead th:first-child {
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  .compare thead th span {
+    display: block;
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .compare thead th:first-child {
+    border-top-left-radius: var(--radius);
+  }
+  .compare thead th:last-child {
+    border-top-right-radius: var(--radius);
+  }
+  .yes,
+  .no {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    vertical-align: middle;
+    border-radius: 50%;
+  }
+  .yes {
+    background: var(--accent-soft)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%230b7a45' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      center / 15px no-repeat;
+  }
+  .no {
+    width: 10px;
+    height: 2px;
+    border-radius: 2px;
+    background: #c9c9c3;
+  }
+  .small-note {
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+</style>

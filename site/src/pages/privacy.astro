@@ -1,0 +1,130 @@
+---
+import Doc from "../layouts/Doc.astro";
+import ContactLine from "../components/ContactLine.astro";
+import { PAGES } from "../lib/pages";
+import { OPERATOR } from "../lib/site";
+const page = PAGES.privacy;
+---
+
+<Doc page={page} heading="Privacy policy" intro="What the CRO Toolbox Shopify app and this website collect, why, where it's kept and how it's deleted." updated="October 15, 2026">
+  <p>
+    This policy covers the CRO Toolbox app for Shopify ("the app") and this website. CRO Toolbox is run by {OPERATOR} ("we"). Questions: contact us
+    through <ContactLine />.
+  </p>
+
+  <h2>The short version</h2>
+  <ul>
+    <li>The app's settings are saved in your own Shopify store, not on our servers.</li>
+    <li>Our database holds only what the app needs to work: Shopify login sessions, back in stock requests and return requests.</li>
+    <li>We never store shoppers' names, phone numbers or full addresses.</li>
+    <li>When you uninstall, Shopify asks us to delete your store's data and we do.</li>
+    <li>This website has no cookies, no analytics and no forms.</li>
+  </ul>
+
+  <h2>Data the app uses</h2>
+  <p>When a merchant installs the app, Shopify gives it access to the store data it asks for (its access scopes). The app uses that data as follows.</p>
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Why</th><th>Where it's kept</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Store settings: offers, bundles, designs, reviews, FAQ and other content you create in the app</td>
+        <td>To show your offers and sections on your store and apply them at checkout</td>
+        <td>In your store, as app data Shopify keeps for the app (metaobjects and metafields)</td>
+      </tr>
+      <tr>
+        <td>Products, collections, files and menus</td>
+        <td>To let you pick products, images, videos and menus in the app, and to create the bundle products and pages you ask for</td>
+        <td>Read from Shopify when needed, not copied to our database</td>
+      </tr>
+      <tr>
+        <td>Orders from the last 60 days</td>
+        <td>
+          Analytics (which sales came from the app's offers), the monthly order count for your plan, "bought together" suggestions, sales pop ups
+          (product and time, and the shipping city only if you turn it on), and the order lookup on the track order and returns pages (order number and
+          email typed by the shopper)
+        </td>
+        <td>Read from Shopify when needed. The sales pop up list is kept in your store</td>
+      </tr>
+      <tr>
+        <td>Reviews written on your store: the name, text, rating and location the shopper enters (no email)</td>
+        <td>So you can approve and show them</td>
+        <td>In your store</td>
+      </tr>
+      <tr>
+        <td>Wishlists, and choices like gift notes, delivery dates and personalization text</td>
+        <td>To save the shopper's wishlist, and to pass their choices to the order</td>
+        <td>Wishlists stay in the shopper's own browser. Choices are added to the cart and order in Shopify</td>
+      </tr>
+      <tr>
+        <td>Login sessions: your store's address, its access token and, for staff who open the app, the name and email Shopify provides</td>
+        <td>To keep you signed in to the app inside Shopify admin</td>
+        <td>Our database</td>
+      </tr>
+      <tr>
+        <td>Back in stock requests: the email a shopper types and the product they want</td>
+        <td>So the store can tell the shopper when the product is back</td>
+        <td>Our database</td>
+      </tr>
+      <tr>
+        <td>Return requests: order number, email, items, reason and note</td>
+        <td>So the merchant can review the return in the app</td>
+        <td>Our database</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    The app's widgets read your store's own data as the page loads. Only the forms shoppers send (reviews, back in stock requests, return requests
+    and order lookups) reach our server, through Shopify. Checkout logic (discounts, bundles, payment and delivery rules, order limits) runs inside
+    Shopify. We do not sell data, and we do not use it for advertising.
+  </p>
+
+  <h2>Security</h2>
+  <p>
+    All connections use HTTPS. Requests from Shopify are verified with Shopify's signatures, and each store's data is only accessed with that store's
+    own access token.
+  </p>
+
+  <h2>Service providers</h2>
+  <ul>
+    <li><strong>Shopify</strong>: the platform the app runs on, and billing for paid plans.</li>
+    <li><strong>Render</strong>: hosts the app's server (United States).</li>
+    <li><strong>Supabase</strong>: hosts the app's database (United States, East).</li>
+  </ul>
+
+  <h2>How long we keep it, and deleting it</h2>
+  <ul>
+    <li>
+      <strong>Uninstall:</strong> 48 hours after a store uninstalls the app, Shopify asks us to delete the store's data. We then delete its sessions,
+      back in stock requests and return requests. App data saved in the store is removed by Shopify together with the app.
+    </li>
+    <li>
+      <strong>Shopper requests:</strong> when a shopper asks a store to delete their data, Shopify tells us and we delete that shopper's back in stock
+      requests, return requests and sales pop up entries.
+    </li>
+    <li>Merchants can also delete reviews, return requests and other content in the app at any time.</li>
+  </ul>
+
+  <h2>Shoppers</h2>
+  <p>
+    If you shopped at a store that uses CRO Toolbox, the store is responsible for your data. Contact the store first; we help stores answer data
+    requests through Shopify's privacy tools.
+  </p>
+
+  <h2>This website</h2>
+  <p>
+    This website is a static site. It sets no cookies, runs no analytics and has no forms. Like any website, our hosting provider may keep standard
+    server logs (such as IP address, browser and page requested) for security and reliability. Links to the Shopify App Store carry tags that tell
+    Shopify which page you came from; Shopify's own privacy policy applies there.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    Depending on where you live, you may have the right to access, correct or delete your personal data, or to object to how it's used. Merchants can
+    contact us through <ContactLine />. We answer within 30 days.
+  </p>
+
+  <h2>Changes</h2>
+  <p>We update this policy when the app changes what it collects. The date at the top shows the latest version.</p>
+</Doc>

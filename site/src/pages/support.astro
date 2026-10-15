@@ -1,0 +1,41 @@
+---
+import Doc from "../layouts/Doc.astro";
+import { PAGES } from "../lib/pages";
+import { SUPPORT_EMAIL } from "../lib/site";
+import { PLANS } from "../lib/app";
+const page = PAGES.support;
+---
+
+<Doc page={page} heading="Support" intro="Questions, a problem, or a feature you need? We're here to help.">
+  <h2>Contact support</h2>
+  {
+    SUPPORT_EMAIL ? (
+      <p>
+        Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. {PLANS.pro.name} plan stores get priority
+        support.
+      </p>
+    ) : (
+      <p class="note">Our support email will be listed here at launch. Until then, merchants using the app can reach us from Settings → Help inside the app.</p>
+    )
+  }
+
+  <h2>What to include</h2>
+  <ul>
+    <li>Your store's address (yourstore.myshopify.com).</li>
+    <li>The feature and page you were using, for example "Bundles, mix and match box".</li>
+    <li>What you expected, what happened instead, and a screenshot if you can.</li>
+  </ul>
+
+  <h2>Quick answers</h2>
+  <ul>
+    <li><strong>A section doesn't show on my store.</strong> Check the app embed is on (Settings → App embeds), then open the feature and click Add to theme. Save in the theme editor.</li>
+    <li><strong>The discount isn't applied.</strong> Discounts apply at checkout. Check the offer is switched on and the cart meets its rules.</li>
+    <li><strong>I hit a limit.</strong> Switch another offer off to free its slot, or compare plans on the <a href="/pricing/">pricing page</a>.</li>
+  </ul>
+
+  <h2>Feature requests</h2>
+  <p>
+    Tell us what your store needs. On the {PLANS.growth.name} plan we build features on request, and on {PLANS.pro.name} your requests are built
+    first.
+  </p>
+</Doc>

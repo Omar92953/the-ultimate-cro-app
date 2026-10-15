@@ -1,0 +1,392 @@
+---
+/**
+ * The hero picture: a demo store's product page with several CRO Toolbox features on it
+ * (announcement bar with countdown, reviews, quantity breaks, stock urgency, delivery estimate,
+ * frequently bought together), plus a sales pop up and the cart drawer's free-shipping bar.
+ * Plain HTML and CSS; the tiers can be clicked and the timer ticks.
+ */
+import ProductArt from "./ProductArt.astro";
+---
+
+<figure class="mock">
+  <figcaption class="sr-only">Example product page with CRO Toolbox features: announcement bar with a countdown, reviews, quantity breaks, stock urgency, a delivery estimate, frequently bought together, a sales pop up and the cart drawer's free shipping bar.</figcaption>
+  <div class="browser">
+    <div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span>yourstore.com/products/glowserum</span></div>
+    <div class="announce">Free shipping over $50 <span class="dot">•</span> Sale ends in <b data-countdown="8537">02:22:17</b></div>
+    <div class="page">
+      <div class="media">
+        <ProductArt kind="serum" class="main-art" fit="meet" />
+        <div class="thumbs"><ProductArt kind="serum" /><ProductArt kind="cream" /><ProductArt kind="soap" /></div>
+      </div>
+      <div class="info">
+        <div class="stars"><span aria-hidden="true">★★★★★</span> 128 reviews</div>
+        <div class="title">Glow Serum</div>
+        <div class="price">$34.00 <s>$40.00</s></div>
+        <fieldset class="tiers">
+          <legend class="sr-only">Quantity</legend>
+          <label><input type="radio" name="hero-tier" /><span class="t">1 bottle</span><span class="p">$34.00</span></label>
+          <label class="pop"><input type="radio" name="hero-tier" checked /><span class="t">2 bottles <em>Save 10%</em></span><span class="p">$61.20</span><span class="badge">Most popular</span></label>
+          <label><input type="radio" name="hero-tier" /><span class="t">3 bottles <em>Save 15%</em></span><span class="p">$86.70</span></label>
+        </fieldset>
+        <div class="atc">Add to cart</div>
+        <div class="urgency"><i></i>Only 4 left in stock</div>
+        <div class="delivery">Order within <b>2h 15m</b>, get it Thu to Sat</div>
+      </div>
+    </div>
+    <div class="fbt">
+      <div class="fbt-title">Frequently bought together</div>
+      <div class="fbt-row">
+        <ProductArt kind="serum" /><span>+</span><ProductArt kind="cream" /><span>+</span><ProductArt kind="soap" />
+        <div class="fbt-buy">Buy all 3: <b>$63.90</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="float salespop" aria-hidden="true">
+    <ProductArt kind="candle" />
+    <div><b>Someone in Austin</b><br />bought Cedar Candle<small>2 minutes ago</small></div>
+  </div>
+  <div class="float cart" aria-hidden="true">
+    <div class="cart-h">Your cart <span>3</span></div>
+    <div class="ship">You unlocked <b>free shipping</b></div>
+    <div class="bar"><i></i></div>
+  </div>
+</figure>
+
+<script>
+  // Ticks the demo countdown (resets so it never reaches zero).
+  for (const el of document.querySelectorAll<HTMLElement>("[data-countdown]")) {
+    let s = Number(el.dataset.countdown);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setInterval(() => {
+      s = s > 0 ? s - 1 : 9000;
+      el.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    }, 1000);
+  }
+</script>
+
+<style>
+  .mock {
+    margin: 0;
+    position: relative;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #1d1d22;
+    padding: 0 0 52px;
+  }
+  .browser {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid #e6e6e1;
+    overflow: hidden;
+  }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #f3f3f0;
+    border-bottom: 1px solid #e6e6e1;
+  }
+  .chrome i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #d8d8d3;
+  }
+  .chrome span {
+    margin-left: 10px;
+    flex: 1;
+    background: #fff;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    color: #777;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .announce {
+    background: #16161a;
+    color: #fff;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .announce b {
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .announce .dot {
+    opacity: 0.5;
+    margin: 0 4px;
+  }
+  .page {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  @media (min-width: 520px) {
+    .page {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  .media :global(.main-art) {
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+    border-radius: 12px;
+  }
+  .thumbs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .thumbs :global(svg) {
+    border-radius: 8px;
+    aspect-ratio: 1;
+    height: auto;
+  }
+  .stars {
+    font-size: 11.5px;
+    color: #555;
+  }
+  .stars span {
+    color: #f5a524;
+    letter-spacing: 1px;
+  }
+  .title {
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    margin: 2px 0;
+  }
+  .price {
+    font-weight: 650;
+    font-size: 15px;
+  }
+  .price s {
+    color: #999;
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .tiers {
+    border: 0;
+    padding: 0;
+    margin: 10px 0 8px;
+    display: grid;
+    gap: 6px;
+  }
+  .tiers label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1.5px solid #e2e2dd;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .tiers label:has(input:checked) {
+    border-color: #16161a;
+    background: #fafaf8;
+  }
+  .tiers input {
+    accent-color: #16161a;
+    margin: 0;
+  }
+  .tiers .t {
+    flex: 1;
+    font-weight: 600;
+  }
+  .tiers em {
+    font-style: normal;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-left: 4px;
+  }
+  .tiers .p {
+    font-weight: 650;
+  }
+  .badge {
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    background: #16161a;
+    color: #fff;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+  }
+  .atc {
+    background: #16161a;
+    color: #fff;
+    text-align: center;
+    font-weight: 650;
+    padding: 11px;
+    border-radius: 10px;
+  }
+  .urgency {
+    margin-top: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--warn);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .urgency i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--warn);
+    box-shadow: 0 0 0 3px rgb(180 35 24 / 0.15);
+  }
+  .delivery {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #555;
+  }
+  .fbt {
+    border-top: 1px solid #eee;
+    padding: 12px 16px 16px;
+  }
+  .fbt-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .fbt-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .fbt-row :global(svg) {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+  .fbt-row > span {
+    color: #999;
+    font-weight: 700;
+  }
+  .fbt-buy {
+    margin-left: auto;
+    border: 1.5px solid #16161a;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .float {
+    position: absolute;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgb(11 11 15 / 0.18);
+    border: 1px solid #ececea;
+    font-size: 12px;
+  }
+  .salespop {
+    left: -36px;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px 10px 10px;
+    animation: rise 0.8s 0.6s both cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .salespop :global(svg) {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+  }
+  .salespop small {
+    display: block;
+    color: #888;
+    font-size: 11px;
+  }
+  .cart {
+    right: -32px;
+    top: -58px;
+    width: 196px;
+    padding: 12px 14px;
+    animation: rise 0.8s 0.9s both cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cart-h {
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+  }
+  .cart-h span {
+    background: #16161a;
+    color: #fff;
+    border-radius: 999px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+  .ship {
+    margin: 8px 0 6px;
+    color: #444;
+  }
+  .ship b {
+    color: var(--accent-deep);
+  }
+  .bar {
+    height: 7px;
+    border-radius: 99px;
+    background: #eee;
+    overflow: hidden;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #22c172, var(--accent));
+    border-radius: 99px;
+    animation: fill 1.6s 1.2s both ease-out;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  @keyframes fill {
+    from {
+      width: 30%;
+    }
+  }
+  @media (max-width: 1100px) {
+    .salespop {
+      left: 8px;
+    }
+    .cart {
+      right: 8px;
+    }
+  }
+  @media (max-width: 519px) {
+    .cart {
+      display: none;
+    }
+    .salespop {
+      bottom: 0;
+    }
+    .media :global(.main-art) {
+      aspect-ratio: 16 / 9;
+    }
+    .thumbs {
+      display: none;
+    }
+  }
+</style>

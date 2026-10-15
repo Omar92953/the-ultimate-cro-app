@@ -1,0 +1,543 @@
+---
+import Base from "../layouts/Base.astro";
+import InstallButton from "../components/InstallButton.astro";
+import HeroMock from "../components/HeroMock.astro";
+import MiniDemo from "../components/MiniDemo.astro";
+import PlanCards from "../components/PlanCards.astro";
+import Faq, { type QA } from "../components/Faq.astro";
+import NotifyCta from "../components/NotifyCta.astro";
+import { PAGES } from "../lib/pages";
+import { demoPath, recipeDemoPath } from "../lib/site";
+import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
+import { organization, website, softwareApplication, faqPage } from "../lib/schema";
+
+const page = PAGES.home;
+const free = PLANS.free;
+
+/** The strip of live feature cards ("Tap a feature to see it live"). */
+const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_tools", "reviews", "countdown", "shipping_bar", "sticky_atc", "sales_pop", "videos", "wishlist", "faq"];
+
+const VALUES = [
+  {
+    title: "One app instead of many",
+    text: "Offers, bundles, a cart drawer, reviews, bars, timers and checkout rules share one menu, one design style and one plan.",
+    icon: "M4 6h7v7H4zM13 6h7v7h-7zM4 15h7v5H4zM13 15h7v5h-7z",
+  },
+  {
+    title: "Real discounts at checkout",
+    text: "Shopify applies every offer and bundle price at checkout, so the price shoppers see on the offer is the price they pay.",
+    icon: "M4 12l5 5L20 6",
+  },
+  {
+    title: "Fits your theme, no code",
+    text: "Sections and widgets are theme app blocks for any Online Store 2.0 theme. You place them in the theme editor; your theme's code is never edited.",
+    icon: "M8 7l-5 5 5 5M16 7l5 5-5 5",
+  },
+];
+
+const STEPS = [
+  { title: "Install the app", text: `Install CRO Toolbox from the Shopify App Store. The ${free.name} plan needs no card.` },
+  { title: "Pick a feature", text: "Create an offer or open a storefront feature. Set it up on the left and watch the live preview on the right." },
+  { title: "It shows in your theme", text: "Click Add to theme. The theme editor opens with the block ready: drag it where you want and save." },
+];
+
+const GUIDES = [
+  { cat: "Bundles & AOV", title: "Mix and match bundles on Shopify: a complete guide" },
+  { cat: "Product pages", title: "How to add Frequently bought together to a Shopify theme" },
+  { cat: "Cart & checkout", title: "Cart drawer upsells that work" },
+];
+
+const paid = plans.filter((p) => p.monthly > 0);
+const faq: QA[] = [
+  {
+    q: "What is CRO Toolbox?",
+    a: "CRO Toolbox is a Shopify app that brings upsells, cross sells, bundles, discounts, a cart drawer, storefront widgets and checkout rules into one app with one menu. It helps a store sell more per order and turn more visits into orders.",
+  },
+  {
+    q: "Which Shopify themes does CRO Toolbox work with?",
+    a: "CRO Toolbox works with any Online Store 2.0 theme. Its sections and widgets are theme app blocks and app embeds that you place in the theme editor, so it never edits your theme's code.",
+  },
+  {
+    q: "Do I need to write code?",
+    a: "No. You set everything up in the app with a live preview, then click Add to theme and place the block in the theme editor.",
+  },
+  {
+    q: "How much does CRO Toolbox cost?",
+    a: `CRO Toolbox has a ${free.name} plan and three paid plans: ${paid.map((p) => `${p.name} ${money(p.monthly)} a month (${money(p.yearly)} a year)`).join(", ")}. See <a href="/pricing/">pricing</a> for what each plan includes.`,
+  },
+  {
+    q: "Is there a free trial?",
+    a: `Yes. Every paid plan starts with a ${trialDays} day free trial, and the ${free.name} plan is free with no time limit.`,
+  },
+  {
+    q: "What happens if my store goes over its orders limit?",
+    a: "Nothing switches off. The limit counts all store orders in a calendar month and is soft: the app shows a reminder to move up a plan.",
+  },
+  {
+    q: "Are offer and bundle discounts applied at checkout?",
+    a: "Yes. Discounts run as Shopify discounts at checkout, and bundles are merged into one cart line at the bundle price, so the price on the offer is the price the shopper pays.",
+  },
+  {
+    q: "How do the widgets load on my store?",
+    a: "Widgets are theme app blocks that read your store's own data as the page loads, so showing an offer doesn't wait on an outside server. Only forms shoppers send, such as reviews, back in stock requests and returns, go to the app's server through Shopify. Checkout logic runs inside Shopify Functions.",
+  },
+  {
+    q: "Where are my settings stored?",
+    a: "In your own store, as app data Shopify keeps for you. The app's database only holds login sessions, back in stock requests and return requests.",
+  },
+  {
+    q: "Can I cancel or change plans anytime?",
+    a: `${GUARANTEE} Nothing is deleted: offers over a lower plan's limit are switched off and come back on when you upgrade.`,
+  },
+];
+
+const schema = [organization(), website(), softwareApplication(page.description), faqPage(faq)];
+---
+
+<Base page={page} schema={schema}>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="pill">Shopify app · Any Online Store 2.0 theme</span>
+        <h1>Sell more on every order. <span class="soft">All in one Shopify app.</span></h1>
+        <p class="lead">
+          Upsells, bundles, a cart drawer, reviews, countdowns and checkout rules. Set up in minutes with a live preview, added to your theme
+          without code.
+        </p>
+        <div class="actions">
+          <InstallButton medium="home" campaign="hero" />
+          <a class="btn ghost" href="/demo/">See it live <span aria-hidden="true">→</span></a>
+        </div>
+        <ul class="trust">
+          <li>Built for any Online Store 2.0 theme</li>
+          <li>{free.name} plan, paid from {money(cheapestPaid.monthly)} a month</li>
+          <li>{trialDays} day free trial</li>
+        </ul>
+      </div>
+      <div class="hero-art">
+        <HeroMock />
+      </div>
+    </div>
+  </section>
+
+  <!-- Live feature strip -->
+  <section class="section mist" id="live">
+    <div class="wrap">
+      <div class="head strip-head">
+        <span class="eyebrow">Live demos</span>
+        <h2>Tap a feature to see it live</h2>
+        <p class="lead">Every widget and section the app adds to a store, working on a demo store you can click through.</p>
+      </div>
+    </div>
+    <div class="strip" role="list">
+      {
+        STRIP.map((k) => (
+          <a class="feat" role="listitem" href={demoPath(k)}>
+            <div class="feat-art">
+              <MiniDemo kind={k} />
+            </div>
+            <div class="feat-text">
+              <h3>{featureTitle(k)}</h3>
+              <p>{featureAbout(k)}</p>
+              <span class="go">
+                Live preview <span aria-hidden="true">→</span>
+              </span>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+    <div class="wrap strip-foot">
+      <a class="link" href="/demo/">Browse all live demos →</a>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="section">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">Why CRO Toolbox</span>
+        <h2>Everything a store adds one app at a time, in one place</h2>
+      </div>
+      <div class="grid three">
+        {
+          VALUES.map((v) => (
+            <div class="card value">
+              <span class="ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d={v.icon} />
+                </svg>
+              </span>
+              <h3>{v.title}</h3>
+              <p class="muted">{v.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Bundles -->
+  <section class="section mist" id="bundles">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Bundles</span>
+        <h2>Six ways to bundle, all on the {free.name} plan</h2>
+        <p class="lead">Every bundle type is included on every plan, within your plan's offer slots. Bundles are priced at checkout by Shopify.</p>
+      </div>
+      <div class="grid three recipes">
+        {
+          BUNDLE_RECIPES.map((r, i) => (
+            <a class="card recipe" href={recipeDemoPath(r.key)}>
+              <span class="num">{String(i + 1).padStart(2, "0")}</span>
+              <h3>{plain(r.title)}</h3>
+              <p class="muted">{plain(r.about)}</p>
+              <p class="best">{plain(r.best)}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Features by area -->
+  <section class="section dark" id="features">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Features</span>
+        <h2>Offers, storefront, cart, checkout and analytics</h2>
+        <p class="lead">The app's menu follows how a shopper moves through your store. Here is everything in it today.</p>
+      </div>
+      <div class="areas">
+        {
+          SITE_AREAS.map((a) => (
+            <div class={`card area area-${a.key}`}>
+              <h3>{a.title}</h3>
+              <p class="muted">{a.intro}</p>
+              {a.features.length > 0 && (
+                <ul class="chips">
+                  {a.features.map((k) => (
+                    <li>{featureTitle(k)}</li>
+                  ))}
+                </ul>
+              )}
+              {a.key === "analytics" && (
+                <ul class="chips">
+                  <li>Sales from the app</li>
+                  <li>Results per offer</li>
+                  <li>Results per bundle</li>
+                  <li>Holdout test</li>
+                </ul>
+              )}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">How it works</span>
+        <h2>Live on your store in three steps</h2>
+        <p class="lead">No code, no theme edits, no developer.</p>
+      </div>
+      <ol class="steps">
+        {
+          STEPS.map((s, i) => (
+            <li class="card step">
+              <span class="step-n">{i + 1}</span>
+              <h3>{s.title}</h3>
+              <p class="muted">{s.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Pricing teaser -->
+  <section class="section mist" id="pricing">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">Pricing</span>
+        <h2>Start free. Upgrade when you grow.</h2>
+        <p class="lead">Start on the Free plan. Paid plans add unlimited offers, every storefront tool, checkout control and results for every offer.</p>
+      </div>
+      <PlanCards medium="home" campaign="pricing" />
+      <p class="center-link"><a class="link" href="/pricing/">Compare every plan in detail →</a></p>
+    </div>
+  </section>
+
+  <!-- Guides teaser -->
+  <section class="section">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">Guides</span>
+        <h2>Learn what raises order value</h2>
+        <p class="lead">Practical how to guides for Shopify stores. The first ones are being written now.</p>
+      </div>
+      <div class="grid three">
+        {
+          GUIDES.map((g) => (
+            <article class="card guide">
+              <span class="pill">{g.cat}</span>
+              <h3>{g.title}</h3>
+              <p class="muted soon">Coming soon</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section mist" id="faq">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">FAQ</span>
+        <h2>Questions, answered</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <NotifyCta campaign="home" />
+</Base>
+
+<style>
+  .hero {
+    padding: clamp(40px, 7vw, 88px) 0 clamp(56px, 8vw, 96px);
+    background:
+      radial-gradient(60% 50% at 85% 20%, rgb(62 224 143 / 0.16), transparent 70%),
+      radial-gradient(50% 40% at 0% 0%, rgb(11 11 15 / 0.04), transparent 70%);
+  }
+  .hero-grid {
+    display: grid;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .hero-grid {
+      grid-template-columns: 1.02fr 1fr;
+      gap: 56px;
+    }
+  }
+  .hero h1 {
+    margin: 22px 0 20px;
+  }
+  .hero .soft {
+    color: #8b8d97;
+  }
+  .hero .actions {
+    margin-top: 32px;
+  }
+  .trust {
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .trust li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trust li::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-deep);
+  }
+  .hero-art {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .strip-head {
+    margin-bottom: 32px;
+  }
+  .strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(250px, 270px);
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px max(var(--gutter), calc((100vw - var(--wrap)) / 2 + var(--gutter))) 24px;
+    scroll-padding: 0 max(var(--gutter), calc((100vw - var(--wrap)) / 2 + var(--gutter)));
+    scrollbar-width: thin;
+  }
+  .feat {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .feat:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  .feat-art {
+    height: 200px;
+    background: linear-gradient(160deg, #f1f1ec, #e6e6df);
+  }
+  .feat-text {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .feat-text p {
+    font-size: 0.92rem;
+    color: var(--muted);
+    flex: 1;
+  }
+  .go {
+    margin-top: 8px;
+    font-weight: 650;
+    font-size: 0.92rem;
+    color: var(--accent-deep);
+  }
+  .strip-foot {
+    margin-top: 8px;
+  }
+
+  .value .ico {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .value svg {
+    width: 24px;
+    height: 24px;
+  }
+  .value h3 {
+    margin-bottom: 8px;
+  }
+
+  .recipe {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .recipe:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .num {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--accent-deep);
+    letter-spacing: 0.05em;
+  }
+  .best {
+    margin-top: auto;
+    padding-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .areas {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 860px) {
+    .areas {
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-flow: dense;
+    }
+    .area-storefront {
+      grid-column: 1 / -1;
+    }
+  }
+  .area h3 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chips li {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #2a2b33;
+    font-size: 0.88rem;
+    font-weight: 550;
+  }
+
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 20px;
+    counter-reset: step;
+  }
+  @media (min-width: 820px) {
+    .steps {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .step-n {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    font-weight: 800;
+    margin-bottom: 18px;
+  }
+  .step h3 {
+    margin-bottom: 8px;
+  }
+
+  .center-link {
+    text-align: center;
+    margin-top: 28px;
+  }
+
+  .guide {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .soon {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+</style>

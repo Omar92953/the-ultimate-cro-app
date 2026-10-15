@@ -1,0 +1,6 @@
+---
+/** "email us at …" while the support email isn't set, points to the support page instead. */
+import { SUPPORT_EMAIL } from "../lib/site";
+---
+
+{SUPPORT_EMAIL ? <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> : <a href="/support/">our support page</a>}
