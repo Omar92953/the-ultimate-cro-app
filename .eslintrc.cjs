@@ -19,7 +19,7 @@ module.exports = {
     commonjs: true,
     es6: true,
   },
-  ignorePatterns: ["!**/.server", "!**/.client"],
+  ignorePatterns: ["!**/.server", "!**/.client", "site/"], // site/ is the Astro website with its own build
 
   // Base config
   extends: ["eslint:recommended"],
