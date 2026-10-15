@@ -16,6 +16,14 @@ import type { RecipeKey } from "./bundle-recipes";
 export const SITE_URL = "https://crotoolbox.com";
 /** The website's video tutorials page (same list as app/lib/tutorials.ts). */
 export const TUTORIALS_URL = `${SITE_URL}/tutorials/`;
+/**
+ * Help center: `helpUrl()` is the front page, `helpUrl("bundles")` an article. Only use slugs that
+ * exist in site/src/content/help/ (file name without .md); the link check (scripts/check-links.mjs)
+ * fails on a slug that is missing.
+ */
+export const helpUrl = (slug?: string) => `${SITE_URL}/help/${slug ? `${slug}/` : ""}`;
+/** Every help slug the app links to (checked by scripts/check-links.mjs). */
+export const HELP_SLUGS_USED = ["getting-started", "plans-and-billing", "good-to-know", "upsell-offers", "cross-sell-offers", "bundles", "storefront-sections", "discounts-addons-personalization"];
 export const DEMO_URL = "https://demo.crotoolbox.com";
 /** The App Store listing. Placeholder until the listing is live (confirm the handle then). */
 export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";

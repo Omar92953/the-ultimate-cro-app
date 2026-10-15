@@ -114,6 +114,7 @@ export default function SectionItemEditor() {
       ) : null}
 
       <EditorLayout
+        help="storefront-sections"
         side={
             <s-section heading="Preview">
                 <Preview kind={kind} values={item.values} />

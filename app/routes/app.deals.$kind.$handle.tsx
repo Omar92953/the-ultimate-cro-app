@@ -224,7 +224,7 @@ export default function DealEditor() {
         ) : null}
 
         {kind === "fixed" && fbt ? (
-          <EditorLayout side={<FbtSide deal={deal} fbt={fbt} how={t.how} />}>
+          <EditorLayout help="bundles" side={<FbtSide deal={deal} fbt={fbt} how={t.how} />}>
             <EditorSection
               n={1}
               title="Items"
@@ -319,6 +319,7 @@ export default function DealEditor() {
           </EditorLayout>
         ) : (
           <EditorLayout
+            help={kind === "fixed" ? "bundles" : "discounts-addons-personalization"}
             side={
               <s-section heading="How it works">
                 <s-paragraph>{t.how}</s-paragraph>

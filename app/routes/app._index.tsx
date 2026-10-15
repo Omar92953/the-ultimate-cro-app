@@ -19,7 +19,7 @@ import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
-import { TUTORIALS_URL } from "../lib/site";
+import { TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
 import { REQUEST_STATUS_LABEL, cleanRequest, MAX_PLACE, MAX_TEXT } from "../lib/feature-requests";
@@ -311,13 +311,14 @@ export default function Home() {
         <CardGrid cols={3}>
           <Card title="Help">
             <ul className={styles.links}>
+              <li><a href={helpUrl()} target="_blank" rel="noreferrer">Help center</a></li>
+              <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li>
               {data.supportEmail ? (
                 <li>
                   <a href={`mailto:${data.supportEmail}`} target="_blank" rel="noreferrer">Email support</a>
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
-              <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li>
               <li><Link to="/app/settings">Settings and app embeds</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>

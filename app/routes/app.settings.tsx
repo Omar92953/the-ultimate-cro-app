@@ -8,6 +8,7 @@ import { editorLinks, getDiscountStatus, getThemeStatus, setDiscountMode } from 
 import { sectionLinks } from "../lib/sections.server";
 import { getPlan } from "../lib/billing.server";
 import { getReferral } from "../lib/referral.server";
+import { helpUrl } from "../lib/site";
 import { PLANS, REFERRAL } from "../lib/plans";
 import { UpgradeButton, planPriceText } from "../components/Upgrade";
 import type { DiscountMode } from "../lib/types";
@@ -150,6 +151,15 @@ export default function SettingsPage() {
 
         <s-section heading="Help">
           <s-stack gap="small-200">
+            <s-link href={helpUrl()} target="_blank">
+              Help center
+            </s-link>
+            <s-link href={helpUrl("getting-started")} target="_blank">
+              Turn on the app in your theme (app embeds)
+            </s-link>
+            <s-link href={helpUrl("plans-and-billing")} target="_blank">
+              Plans and billing
+            </s-link>
             {data.supportEmail ? (
               <s-link href={`mailto:${data.supportEmail}`} target="_blank">
                 Email support

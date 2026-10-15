@@ -269,6 +269,7 @@ export default function BundleEditor() {
 
       <EditorLayout
         preview
+        help="bundles"
         side={
           <>
             <s-section heading="Get it on your store">

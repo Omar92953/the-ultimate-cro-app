@@ -158,6 +158,7 @@ export default function RuleEditor() {
       ) : null}
 
       <EditorLayout
+        help={meta.kind === "upsell" ? "upsell-offers" : "cross-sell-offers"}
         side={
           <>
               <s-section heading="Status">
