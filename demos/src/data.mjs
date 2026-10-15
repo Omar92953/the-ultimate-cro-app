@@ -4,7 +4,14 @@
  */
 import { STORE_ROOT } from "./shell.mjs";
 
-const IMG = (handle) => `/img/${handle}.svg`;
+const { productImage } = await import("../../site/src/lib/art.ts");
+/** Product picture address: a real file from site/public/products when there is one (by handle, then by art kind), else the drawn SVG. */
+const KIND_OF = {};
+export const imgUrl = (handle) => {
+  const real = productImage(handle, KIND_OF[handle] ?? "");
+  return `/img/${handle}.${real ? real.ext : "svg"}`;
+};
+const IMG = imgUrl;
 
 /** [handle, title, art kind, tint, price $, compare at $, variants?, extra] */
 const P = [
@@ -37,6 +44,7 @@ const P = [
   ["engraved-mug", "Engraved Mug", "mug", "#f1ece4", 24, null, null, { tags: ["personalize"] }],
 ];
 
+for (const [handle, , kind] of P) KIND_OF[handle] = kind;
 export const ART = P.map(([handle, , kind, tint]) => ({ handle, kind, tint }));
 
 let vid = 1000;

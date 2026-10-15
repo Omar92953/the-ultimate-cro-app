@@ -50,7 +50,14 @@ write("index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8">
 write("404.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta http-equiv="refresh" content="0; url=${SITE_URL}"><title>CRO Toolbox</title></head><body><a href="${SITE_URL}">CRO Toolbox</a></body></html>`);
 
 // ------------------------------------------------------------------------ pictures --
-for (const a of data.ART) write(`img/${a.handle}.svg`, artSvg(a.kind, { id: "a", tint: a.tint ?? undefined, size: 800 }));
+// A real picture (site/public/products/<handle>.* or <kind>.*) is copied as it is; otherwise the drawn SVG.
+const { productImage } = await import("../site/src/lib/art.ts");
+fs.mkdirSync(path.join(dist, "img"), { recursive: true });
+for (const a of data.ART) {
+  const real = productImage(a.handle, a.kind);
+  if (real) fs.copyFileSync(real.file, path.join(dist, `img/${a.handle}.${real.ext}`));
+  else write(`img/${a.handle}.svg`, artSvg(a.kind, { id: "a", tint: a.tint ?? undefined, size: 800 }));
+}
 /** The hero banner: products on a shelf, as one picture. */
 function shelf(w, h, items) {
   const inner = items

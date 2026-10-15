@@ -43,13 +43,10 @@ const crumbs = [{ name: "Compare", href: page.path }];
     display: flex;
     flex-direction: column;
     gap: 10px;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .ccard:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--ink);
   }
   .ccard h2 {
     font-size: 1.25rem;

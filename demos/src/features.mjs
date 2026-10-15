@@ -7,7 +7,7 @@
  * A design is { title, layout, product?, html, embeds?, css?, …frame options } (see build.mjs).
  */
 import { resolveTsImports } from "../../test/storefront/engine.mjs";
-import { products, collections, collectionHandles, reviews, faq, logos, announcements, recent } from "./data.mjs";
+import { imgUrl, products, collections, collectionHandles, reviews, faq, logos, announcements, recent } from "./data.mjs";
 
 resolveTsImports();
 const app = async (name) => import(`../../app/lib/${name}.ts`);
@@ -227,7 +227,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     return { template: p.key, title: p.title, layout: "page", html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] }, designs: { hero_default: { h: "hero-demo" } } }) }) };
   }));
 
-  const slide = (h, title, text, button) => ({ image: { id: `img-${h}`, url: `/img/${h}.svg`, kind: "image", title }, alt: P[h].title, title, text, link: "", button });
+  const slide = (h, title, text, button) => ({ image: { id: `img-${h}`, url: imgUrl(h), kind: "image", title }, alt: P[h].title, title, text, link: "", button });
   const slides = [slide("cedar-candle", "Candles", "Hand poured soy wax", "Shop candles"), slide("glow-serum", "Skincare", "Gentle, every day", "Shop skincare"), slide("studio-tee", "Apparel", "Soft cotton basics", "Shop apparel"), slide("monstera-pot", "Home", "Little things for your space", "Shop home"), slide("clay-mug", "Gifts", "Ready to wrap", "Shop gifts")];
   const imageMap = new Map(slides.map((s) => [s.image.id, { url: s.image.url, width: 800, height: 800 }]));
   const carouselOf = (raw) => carouselD.toStorefrontImageCarousel(carouselD.withImageCarouselDefaults({ slides, ...raw }), imageMap);
@@ -239,7 +239,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const video = (n, h) => ({
     alt: P[h].title,
-    preview_image: { src: `/img/${h}.svg` },
+    preview_image: { src: imgUrl(h) },
     sources: [{ mime_type: "video/mp4", url: `https://interactive-examples.mdn.mozilla.net/media/cc0-videos/${n}.mp4`, height: 720 }],
   });
   const vslides = [["flower", "glow-serum", "Morning routine"], ["flower", "cedar-candle", "Unboxing"], ["flower", "studio-tee", "How it fits"], ["flower", "clay-mug", "Made by hand"], ["flower", "canvas-tote", "Everyday carry"]].map(([n, h, caption], i) =>

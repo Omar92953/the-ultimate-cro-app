@@ -44,13 +44,10 @@ const list = await guides();
     display: grid;
     gap: 8px;
     align-content: start;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .hcard:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--ink);
   }
   .hcard h2 {
     font-size: 1.15rem;

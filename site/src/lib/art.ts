@@ -3,9 +3,37 @@
  * few hundred bytes each. Used by the site's components (ProductArt.astro) and written as files for
  * the live demos (demos/build.mjs, demo.crotoolbox.com), so both show the same products.
  *
+ * Real product photos win over the drawings: drop files in site/public/products/ (README.md there
+ * lists the names). `productImage()` finds them; ProductArt.astro and demos/build.mjs both use it.
+ *
  * `tint` recolours the product itself (a candle in another wax, a tee in another colour), so one
  * drawing can stand for several products.
  */
+import fs from "node:fs";
+import path from "node:path";
+
+export const PRODUCT_IMAGE_EXTS = ["webp", "jpg", "jpeg", "png"];
+let dirCache: string | null | undefined;
+/** site/public/products, found from wherever the build runs (site/, demos/ or the repo root). */
+function productsDir(): string | null {
+  if (dirCache !== undefined) return dirCache;
+  const cwd = process.cwd();
+  dirCache = [path.join(cwd, "public/products"), path.join(cwd, "site/public/products"), path.join(cwd, "../site/public/products")].find((d) => fs.existsSync(d)) ?? null;
+  return dirCache;
+}
+/** A real picture for `name` (a product handle or an art kind) if its file exists in site/public/products. */
+export function productImage(...names: string[]): { file: string; ext: string; name: string } | null {
+  const dir = productsDir();
+  if (!dir) return null;
+  for (const name of names) {
+    for (const ext of PRODUCT_IMAGE_EXTS) {
+      const file = path.join(dir, `${name}.${ext}`);
+      if (fs.existsSync(file)) return { file, ext, name };
+    }
+  }
+  return null;
+}
+
 export type ArtKind = "serum" | "cream" | "candle" | "mug" | "tote" | "soap" | "bottle" | "tee" | "socks" | "gift" | "plant";
 export const ART_KINDS: ArtKind[] = ["serum", "cream", "candle", "mug", "tote", "soap", "bottle", "tee", "socks", "gift", "plant"];
 

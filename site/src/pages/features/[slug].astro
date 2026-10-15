@@ -96,7 +96,7 @@ const reading = feature ? (await articles()).filter((a) => a.data.feature === fe
 
         <section class="section tight mist">
           <div class="wrap grid two">
-            <div class="card">
+            <div class="block">
               <h2 class="h3">What you can set</h2>
               <ul class="check-list">
                 {copy.points.map((p) => (
@@ -105,7 +105,7 @@ const reading = feature ? (await articles()).filter((a) => a.data.feature === fe
               </ul>
               {copy.note && <p class="note">{copy.note}</p>}
             </div>
-            <div class="card">
+            <div class="block">
               <h2 class="h3">How to set it up</h2>
               <ol class="steps">
                 {steps.map((s) => (
@@ -188,7 +188,7 @@ const reading = feature ? (await articles()).filter((a) => a.data.feature === fe
                 ))}
               </div>
             ) : (
-              <div class="card prose">
+              <div class="block prose">
                 <h2>What Analytics shows</h2>
                 <ul>
                   <li>Sales from the app's offers and widgets, last 30 days compared with the 30 days before.</li>

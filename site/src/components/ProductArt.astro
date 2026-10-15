@@ -1,6 +1,6 @@
 ---
-/** A demo product picture (SVG, see lib/art.ts). */
-import { artSvg, type ArtKind } from "../lib/art";
+/** A demo product picture: the real file site/public/products/<kind>.* when there is one, else the drawn SVG (lib/art.ts). */
+import { artSvg, productImage, type ArtKind } from "../lib/art";
 interface Props {
   kind: ArtKind;
   class?: string;
@@ -14,6 +14,12 @@ const { kind, class: cls, alt = "", fit = "slice", tint } = Astro.props;
 // Gradient ids must be unique on the page; a module counter keeps builds deterministic.
 const g = globalThis as { __artId?: number };
 const id = `art${(g.__artId = (g.__artId ?? 0) + 1)}`;
+const photo = productImage(kind);
 ---
 
-<Fragment set:html={artSvg(kind, { id, alt, fit, tint, cls: [cls, "product-art"].filter(Boolean).join(" ") })} />
+{
+  photo ? (
+    <img class:list={[cls, "product-art"]} src={`/products/${photo.name}.${photo.ext}`} alt={alt} width="800" height="800" loading="lazy" decoding="async" style="display:block;width:100%;height:100%;object-fit:cover" />
+  ) : (
+    <Fragment set:html={artSvg(kind, { id, alt, fit, tint, cls: [cls, "product-art"].filter(Boolean).join(" ") })} />  )
+}
