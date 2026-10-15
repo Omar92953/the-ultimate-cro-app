@@ -1,5 +1,7 @@
 # CRO Toolbox: project guide
 
+> Several Claude accounts work on this repo at once: read `docs/TEAM.md` first.
+
 Everything a new Claude Code account (or developer) needs to work on the app and on its marketing
 website. Start with `CLAUDE.md` (short rules and current status), then this file. Updated 2026-10-15.
 
@@ -82,6 +84,8 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `extensions/cro-bundles` | Cart Transform: merges bundle picks into one line at the bundle price |
 | `extensions/cro-discount` | Discount Function: offers and deals, skips bundle lines |
 | `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data |
+| `site/` | The marketing website (Astro). Brief: `docs/prompts/build-website.md` |
+| `scripts/sync.sh` | Brings the Mac copy up to date with GitHub and reports differences |
 | `docs/` | `README-merchant.md` (merchant guide), `testing-checklist.md`, `billing.md`, `hosting.md`, `scopes.md`, `listing.md`, `plans/bundles-overhaul.md`, `HANDOFF.md` |
 
 ## 5. Commands and checks
