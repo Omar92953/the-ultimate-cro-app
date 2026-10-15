@@ -64,3 +64,17 @@ model ReturnRequest {
 
   @@index([shop, status])
 }
+
+/// "Request a feature" from the app's Home (Growth and up): waits for Omar, who reads it in the database.
+model FeatureRequest {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  plan      String
+  text      String
+  place     String   @default("")
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+
+  @@index([shop, createdAt])
+  @@index([status])
+}
