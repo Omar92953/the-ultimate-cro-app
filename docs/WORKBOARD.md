@@ -11,9 +11,14 @@ Updated 2026-10-15.
 - [ ] "Show live preview" buttons in the app, linking to the website demos (`demoUrl()`), after
       the website's demo pages exist (website PR 2)
 - [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
-- [~] Known gap, draft PR "App: refuse a bare bundle product at checkout" (2nd Claude account, Mac); other gaps follow in their own PRs: Add to theme places the builder below the theme's Add to cart; a bare bundle
-      product can be bought through collection quick add buttons; checkout doesn't reject a bundle
-      product picked inside a bundle
+- [ ] Known gap: a bare mix and match bundle product can still be bought alone through a theme's own
+      quick add (our quick add now opens its page). A checkout validation can't tell it apart: Shopify
+      shows the validation a merged bundle as one line with no picks under it, so the "bundle guard"
+      (PR #45) refused real bundles and is switched off. Idea: let the cart transform give a bare
+      bundle line a price that makes no sense to buy, or hide bundle products from collections.
+- [x] Checkout rejects a bundle product picked inside a bundle (PR #46, cro-toolbox-19)
+- [ ] Add to theme places the builder below the theme's Add to cart: the theme editor link can't
+      choose a position (PR #47 adds a hint in the app)
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 

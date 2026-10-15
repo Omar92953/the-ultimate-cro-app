@@ -129,6 +129,15 @@ export async function syncBundleGuard(admin: AdminClient, productIds: string[]) 
   const apiKey = process.env.SHOPIFY_API_KEY;
   const guard = (data.validations.nodes as Pick<Node, "id" | "title" | "enabled" | "shopifyFunction">[]).find((x) => x.title === GUARD_TITLE && x.shopifyFunction?.app?.apiKey === apiKey);
   if (!guard && !productIds.length) return;
+  if (guard && !productIds.length) {
+    // Nothing to guard (or the guard is switched off): turn it off so it can't refuse anything.
+    if (guard.enabled) {
+      const r = await gql(admin, `#graphql
+        mutation CroGuardOff($id: ID!, $input: ValidationUpdateInput!) { validationUpdate(id: $id, validation: $input) { userErrors { field message } } }`, { id: guard.id, input: { enable: false, title: GUARD_TITLE } });
+      userErrors(r.validationUpdate.userErrors);
+    }
+    return;
+  }
   const metafields = [{ namespace: "$app", key: "function-configuration", type: "json", value: JSON.stringify({ bundles: productIds }) }];
   if (guard) {
     const set = await gql(admin, `#graphql

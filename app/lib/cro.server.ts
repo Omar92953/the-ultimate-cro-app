@@ -1229,7 +1229,10 @@ export async function syncBundles(admin: AdminClient) {
     { namespace: "$app", key: "bundle_vars", type: "json", value: vars },
   ];
   await setBundleMode(admin, "merge");
-  await guardBundles(admin, Object.keys(JSON.parse(value).b));
+  // The bundle guard is off: Shopify's validation sees a merged bundle as one line with no picks
+  // under it, so it refused real bundles (tested on Testing2, 2026-10-15). Passing no ids switches
+  // off any guard made earlier.
+  await guardBundles(admin, []);
   if (existing) {
     const set = await gql(
       admin,
