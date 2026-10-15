@@ -422,7 +422,7 @@ export default function BundleEditor() {
                       type="collection"
                       multiple={false}
                       label="Choose from this collection"
-                      details="Its first 50 products (in the collection’s own order) are offered."
+                      details="All its products are offered, in the collection’s order (shoppers can load more and search)."
                       value={[step.collection]}
                       onChange={(v) => setStep(i, { collection: v[0] ?? null })}
                     />

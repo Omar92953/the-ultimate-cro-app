@@ -181,6 +181,9 @@ export async function saveKit(admin: AdminClient, kit: Kit): Promise<Kit> {
         productBundleUpdate(input: $input) { productBundleOperation { id status } userErrors { field message } }
       }`, { input: { ...input, productId } });
     await waitFor(admin, data.productBundleUpdate.productBundleOperation.id);
+    // Kits made before the cro-bundle tag existed get it on their next save.
+    await gql(admin, `#graphql
+      mutation CroKitTag($id: ID!, $tags: [String!]!) { tagsAdd(id: $id, tags: $tags) { userErrors { field message } } }`, { id: productId, tags: ["cro-bundle"] }).catch(() => null);
   } else {
     const data = await gql(admin, `#graphql
       mutation CroKitCreate($input: ProductBundleCreateInput!) {
@@ -212,7 +215,8 @@ async function finishNewKit(admin: AdminClient, productId: string, kit: Kit) {
       mutation CroKitFinish($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
         productUpdate(product: $product, media: $media) { product { id } userErrors { field message } }
       }`, {
-      product: { id: productId, status: "ACTIVE", descriptionHtml: `<p>What's inside:</p><ul>${inside}</ul>` },
+      // Tag cro-bundle: the bundle builder never offers a bundle product as a pick.
+      product: { id: productId, status: "ACTIVE", tags: ["cro-bundle"], descriptionHtml: `<p>What's inside:</p><ul>${inside}</ul>` },
       media: image ? [{ originalSource: image, mediaContentType: "IMAGE", alt: kit.title }] : [],
     });
     if (data.productUpdate?.userErrors?.length) throw new Error(data.productUpdate.userErrors.map((e: any) => e.message).join(" "));
