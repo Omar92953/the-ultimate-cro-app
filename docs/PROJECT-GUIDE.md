@@ -84,7 +84,7 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `extensions/cro-bundles` | Cart Transform: merges bundle picks into one line at the bundle price |
 | `extensions/cro-discount` | Discount Function: offers and deals, skips bundle lines |
 | `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data (`engine.mjs`: the Liquid engine shared with `demos/`) |
-| `site/` | The marketing website (Astro), crotoolbox.com. Content in `site/src/lib/`: `features.ts` (feature pages), `usecases.ts`, `competitors.ts` (comparisons, with sources), `pages.ts` (titles); screenshots in `site/src/assets` (from `npm --prefix demos run screenshots`). Brief: `docs/prompts/build-website.md`; how to run and deploy: `docs/website.md` |
+| `site/` | The marketing website (Astro), crotoolbox.com. Content in `site/src/lib/`: `features.ts` (feature pages), `usecases.ts`, `competitors.ts` (comparisons, with sources), `pages.ts` (titles), `brand.ts` (the shared one line description); articles and help guides are Markdown in `site/src/content/blog` and `site/src/content/help`; `.github/workflows/indexnow.yml` tells Bing about new pages; screenshots in `site/src/assets` (from `npm --prefix demos run screenshots`). Brief: `docs/prompts/build-website.md`; how to run and deploy: `docs/website.md` |
 | `demos/` | The hidden live demos (demo.crotoolbox.com, noindex, opened only from the app): renders every feature's real blocks with demo data. `docs/website.md` |
 | `app/lib/site.ts` | Website and demo addresses: `SITE_URL`, `DEMO_URL`, `demoUrl()`, `DEMOS` (the demo build checks it) |
 | `scripts/sync.sh` | Brings the Mac copy up to date with GitHub and reports differences |

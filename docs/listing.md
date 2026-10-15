@@ -5,6 +5,12 @@ Rules followed (Shopify App Store requirements 4.x): no stats, guarantees, price
 listing text, no other apps' names, name identical to `shopify.app.toml`, English only.
 Prices and limits live in `app/lib/plans.ts`; the Partner Dashboard plans must match them exactly.
 
+## Shared description (use word for word everywhere)
+CRO Toolbox is a Shopify app for bundles, upsells and cross sells.
+
+Same sentence as `site/src/lib/brand.ts` on the website. Use it on YouTube, social profiles and
+directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see one consistent line.
+
 ## 1. Listing text (copy and paste)
 
 **App name (30 max):** `CRO Toolbox`

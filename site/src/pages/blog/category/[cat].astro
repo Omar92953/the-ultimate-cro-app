@@ -1,0 +1,40 @@
+---
+import Base from "../../../layouts/Base.astro";
+import Crumbs from "../../../components/Crumbs.astro";
+import ArticleCard from "../../../components/blog/ArticleCard.astro";
+import BlogNav from "../../../components/blog/BlogNav.astro";
+import NotifyCta from "../../../components/NotifyCta.astro";
+import { articles, categoryMeta, CATEGORY_LIST, BLOG_PAGE } from "../../../lib/content";
+
+export function getStaticPaths() {
+  return CATEGORY_LIST.map((c) => ({ params: { cat: c.slug }, props: { c } }));
+}
+interface Props {
+  c: (typeof CATEGORY_LIST)[number];
+}
+const { c } = Astro.props;
+const page = categoryMeta(c);
+const crumbs = [
+  { name: "Blog", href: BLOG_PAGE.path },
+  { name: c.name, href: c.path },
+];
+const list = (await articles()).filter((a) => a.data.category === c.name);
+---
+
+<Base page={page} crumbs={crumbs} noindex={list.length === 0}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Blog</span>
+      <h1>{c.name}</h1>
+      <p class="lead">{page.description}</p>
+      <BlogNav current={c.slug} />
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap">
+      {list.length ? <div class="grid three">{list.map((a) => <ArticleCard article={a} />)}</div> : <p class="muted">New guides in this category are on the way.</p>}
+    </div>
+  </section>
+  <NotifyCta campaign={`blog_${c.slug}`} />
+</Base>

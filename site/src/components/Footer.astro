@@ -1,6 +1,7 @@
 ---
 import Logo from "./Logo.astro";
 import { FOOTER, OPERATOR } from "../lib/site";
+import { BRAND_LINE } from "../lib/brand";
 const year = new Date().getFullYear();
 ---
 
@@ -9,7 +10,7 @@ const year = new Date().getFullYear();
     <div class="top">
       <div class="brand">
         <Logo />
-        <p class="muted">One Shopify app for upsells, bundles, a cart drawer, storefront widgets and checkout rules. Works with any Online Store 2.0 theme.</p>
+        <p class="muted">{BRAND_LINE} Works with any Online Store 2.0 theme.</p>
       </div>
       {
         FOOTER.map((col) => (
@@ -83,7 +84,7 @@ const year = new Date().getFullYear();
   }
   @media (min-width: 820px) {
     .top {
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1.6fr repeat(4, 1fr);
     }
     .brand {
       grid-column: auto;

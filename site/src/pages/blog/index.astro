@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import ArticleCard from "../../components/blog/ArticleCard.astro";
+import BlogNav from "../../components/blog/BlogNav.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { articles, BLOG_PAGE } from "../../lib/content";
+
+const page = BLOG_PAGE;
+const crumbs = [{ name: "Blog", href: page.path }];
+const list = await articles();
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Blog</span>
+      <h1>Guides for Shopify stores</h1>
+      <p class="lead">Practical guides on bundles, upsells, product pages, the cart and checkout. Each one answers one question, with real steps.</p>
+      <BlogNav />
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">{list.map((a) => <ArticleCard article={a} />)}</div>
+  </section>
+  <NotifyCta campaign="blog" />
+</Base>

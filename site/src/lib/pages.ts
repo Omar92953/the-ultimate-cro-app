@@ -7,6 +7,7 @@ import { plans, cheapestPaid, money, trialDays, FEATURE_KEYS, FEATURES, FEATURE_
 import { FEATURE_COPY } from "./features";
 import { USE_CASES } from "./usecases";
 import { COMPETITORS } from "./competitors";
+import { BRAND_LINE } from "./brand";
 
 const paidList = plans.filter((p) => p.monthly > 0).map((p) => `${p.name} ${money(p.monthly)}`);
 const free = plans.find((p) => p.monthly === 0)?.name ?? "Free";
@@ -28,7 +29,7 @@ export const PAGES = {
     path: "/",
     title: "CRO Toolbox: upsells, bundles, cart drawer and more for Shopify",
     description:
-      `CRO Toolbox is one Shopify app for upsells, cross sells, six kinds of bundles, discounts, a cart drawer, reviews, countdowns and checkout rules. Works with any Online Store 2.0 theme, no code. Free plan, paid plans from ${money(cheapestPaid.monthly)} a month.`,
+      `${BRAND_LINE} Six kinds of bundles, upsells, discounts, a cart drawer, reviews, countdowns and checkout rules for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
     ogTitle: "Sell more per order, with one app",
     ogKicker: "Shopify app",
   },

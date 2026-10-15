@@ -1,0 +1,189 @@
+---
+/** An article: cover, table of contents, reading time, a call to action and related articles. */
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Shot from "../../components/Shot.astro";
+import ArticleCard from "../../components/blog/ArticleCard.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { articles, articleMeta, readingMinutes, BLOG_PAGE, CATEGORY_LIST, type Article } from "../../lib/content";
+import { featurePath } from "../../lib/pages";
+import { featureTitle, featureAbout, type FeatureKey } from "../../lib/app";
+import { SITE_NAME, SITE_URL } from "../../lib/site";
+
+export async function getStaticPaths() {
+  return (await articles()).map((a) => ({ params: { slug: a.id }, props: { a } }));
+}
+interface Props {
+  a: Article;
+}
+const { a } = Astro.props;
+const { Content, headings } = await render(a);
+const page = articleMeta(a);
+const cat = CATEGORY_LIST.find((c) => c.name === a.data.category)!;
+const crumbs = [
+  { name: "Blog", href: BLOG_PAGE.path },
+  { name: cat.name, href: cat.path },
+  { name: a.data.title, href: page.path },
+];
+const toc = headings.filter((h) => h.depth === 2);
+const minutes = readingMinutes(a.body ?? "");
+const fmt = (d: Date) => d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+const all = await articles();
+const related = [...all.filter((x) => x.id !== a.id && x.data.category === a.data.category), ...all.filter((x) => x.id !== a.id && x.data.category !== a.data.category)].slice(0, 3);
+const feature = a.data.feature as FeatureKey;
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.data.title,
+    description: a.data.description,
+    datePublished: a.data.date.toISOString(),
+    dateModified: (a.data.updated ?? a.data.date).toISOString(),
+    author: { "@type": "Organization", name: a.data.author },
+    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    mainEntityOfPage: new URL(page.path, SITE_URL).toString(),
+    image: new URL(`/og/${page.slug}.png`, SITE_URL).toString(),
+  },
+];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <article>
+    <header class="page-hero">
+      <div class="wrap narrow">
+        <Crumbs items={crumbs} />
+        <a class="pill" href={cat.path}>{a.data.category}</a>
+        <h1>{a.data.title}</h1>
+        <p class="lead">{a.data.description}</p>
+        <p class="meta">
+          {a.data.author} · <time datetime={a.data.date.toISOString()}>{fmt(a.data.date)}</time>{a.data.updated && <> · Updated <time datetime={a.data.updated.toISOString()}>{fmt(a.data.updated)}</time></>} · {minutes} min read
+        </p>
+      </div>
+    </header>
+    <div class="wrap layout">
+      <aside class="toc" aria-label="On this page">
+        <p>On this page</p>
+        <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+      </aside>
+      <div class="body">
+        <Shot name={a.data.cover} alt={a.data.coverAlt} eager sizes="(min-width: 1100px) 760px, 100vw" />
+        <div class="prose article"><Content /></div>
+        <aside class="cta" aria-label={`Try ${featureTitle(feature)}`}>
+          <span class="eyebrow">Try it on your store</span>
+          <h2>{featureTitle(feature)}</h2>
+          <p>{featureAbout(feature)}</p>
+          <div class="actions">
+            <InstallButton medium="article" campaign={a.id} />
+            <a class="btn ghost" href={featurePath(feature)}>About {featureTitle(feature)}</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </article>
+  <section class="section tight mist">
+    <div class="wrap">
+      <h2 class="rel">Related guides</h2>
+      <div class="grid three">{related.map((r) => <ArticleCard article={r} />)}</div>
+    </div>
+  </section>
+  <NotifyCta campaign={a.id} />
+</Base>
+
+<style>
+  .narrow {
+    max-width: 900px;
+  }
+  .page-hero h1 {
+    margin-top: 16px;
+  }
+  .pill {
+    text-decoration: none;
+  }
+  .meta {
+    margin-top: 16px;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .layout {
+    display: grid;
+    gap: 32px;
+    padding-bottom: 72px;
+  }
+  @media (min-width: 1040px) {
+    .layout {
+      grid-template-columns: 240px minmax(0, 760px);
+      justify-content: center;
+    }
+    .toc {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+    }
+  }
+  .toc {
+    font-size: 0.92rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    background: var(--mist);
+  }
+  .toc p {
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+  }
+  .toc a {
+    text-decoration: none;
+    color: #34363f;
+  }
+  .toc a:hover {
+    text-decoration: underline;
+  }
+  .article {
+    margin-top: 36px;
+    max-width: none;
+    font-size: 1.05rem;
+  }
+  .article :global(h2) {
+    scroll-margin-top: 96px;
+  }
+  .cta {
+    margin-top: 48px;
+    padding: 28px;
+    border-radius: var(--radius);
+    background: var(--ink);
+    color: #fff;
+  }
+  .cta .eyebrow {
+    color: var(--accent);
+  }
+  .cta h2 {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+  }
+  .cta p {
+    color: var(--muted-dark);
+  }
+  .cta .actions {
+    margin-top: 20px;
+  }
+  .cta .btn.ghost {
+    border-color: #3a3b44;
+    color: #fff;
+  }
+  .cta :global(.btn.primary) {
+    background: var(--accent);
+    color: var(--ink);
+  }
+  .rel {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+</style>

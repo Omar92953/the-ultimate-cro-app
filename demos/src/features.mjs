@@ -163,7 +163,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const annOf = (key) => annD.toStorefrontAnnouncement(annD.applyAnnouncementPreset(annD.withAnnouncementDefaults({}), key));
   F.announcements = await Promise.all(annD.ANNOUNCEMENT_PRESETS.map(async (p) => ({
-    title: p.title, layout: "page", html: '<div class="page-width demo-pad"><p style="color:#777">Your page content.</p></div>',
+    title: p.title, layout: "product", product: "cedar-candle",
     top: await block("ucs-announcement", { shop: shopWith({ designs: { announcement: annOf(p.key) } }) }),
   })));
 
@@ -171,7 +171,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const countOf = (key, place, raw = {}) => countD.toStorefrontCountdownBar(countD.applyCountdownBarPreset(countD.withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 6 }, ...raw }, place), key));
   F.countdown = [
     ...await Promise.all(countD.COUNTDOWN_BAR_PRESETS.slice(0, 6).map(async (p) => ({
-      title: `Top bar: ${p.title}`, layout: "page", html: '<div class="page-width demo-pad"><p style="color:#777">Your page content.</p></div>',
+      title: `Top bar: ${p.title}`, layout: "product", product: "cedar-candle",
       top: await block("ucs-countdown-bar", { settings: { position: "top" }, shop: shopWith({ designs: { countdown_bar: countOf(p.key, "header") } }) }),
     }))),
     {
