@@ -1,6 +1,31 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "harness", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "-d", "test/storefront/out", "8123"], "port": 8123 }
+    {
+      "name": "harness",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "-d",
+        "test/storefront/out",
+        "8123"
+      ],
+      "port": 8123
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "site",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "4321"
+      ],
+      "port": 4321
+    }
   ]
 }

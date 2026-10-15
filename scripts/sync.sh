@@ -24,9 +24,10 @@ fi
 echo
 echo "Local branches:"
 for b in $(git for-each-ref --format='%(refname:short)' refs/heads); do
-  if ! git rev-parse -q --verify "origin/$b" >/dev/null; then
-    if git merge-base --is-ancestor "$b" origin/main; then
-      echo "  $b: already merged into main (safe to delete: git branch -D $b)"
+  if [ "$b" != main ] && git merge-base --is-ancestor "$b" origin/main; then
+    echo "  $b: already merged into main (safe to delete: git branch -D $b)"
+  elif ! git rev-parse -q --verify "origin/$b" >/dev/null; then
+    if false; then :
     else
       echo "  $b: NOT on GitHub (push it or open a PR)"
     fi
