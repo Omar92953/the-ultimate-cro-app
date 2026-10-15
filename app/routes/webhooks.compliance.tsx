@@ -54,6 +54,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await db.session.deleteMany({ where: { shop } });
       await redactShop(shop);
       await redactReturnsShop(shop);
+      await db.featureRequest.deleteMany({ where: { shop } });
       break;
     default:
       break;
