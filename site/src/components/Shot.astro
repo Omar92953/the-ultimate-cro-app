@@ -6,16 +6,19 @@
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 interface Props {
-  /** "features/<feature-slug>" or "bundles/<recipe-slug>". */
+  /** "features/<feature-slug>", "bundles/<recipe-slug>" or "app/<screenshot-name>" (.jpg or .png in src/assets). */
   name: string;
+  /** Used when `name` has no file yet (same format as `name`). */
+  fallback?: string;
   alt: string;
   caption?: string;
   eager?: boolean;
   sizes?: string;
 }
-const { name, alt, caption, eager = false, sizes = "(min-width: 1100px) 640px, 100vw" } = Astro.props;
-const all = import.meta.glob<{ default: ImageMetadata }>("../assets/**/*.jpg", { eager: true });
-const img = all[`../assets/${name}.jpg`]?.default;
+const { name, fallback, alt, caption, eager = false, sizes = "(min-width: 1100px) 640px, 100vw" } = Astro.props;
+const all = import.meta.glob<{ default: ImageMetadata }>("../assets/**/*.{jpg,png}", { eager: true });
+const find = (n: string) => all[`../assets/${n}.png`]?.default ?? all[`../assets/${n}.jpg`]?.default;
+const img = find(name) ?? (fallback ? find(fallback) : undefined);
 ---
 
 {

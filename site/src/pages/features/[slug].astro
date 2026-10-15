@@ -258,20 +258,14 @@ const reading = feature ? (await articles()).filter((a) => a.data.feature === fe
     display: grid;
     gap: 10px;
   }
+  /* Plain text list, no pills or boxes. */
   .chips {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .chips li {
-    padding: 5px 12px;
-    border-radius: 999px;
-    background: var(--mist);
-    border: 1px solid var(--line);
-    font-size: 0.86rem;
+    display: grid;
+    gap: 6px;
+    font-size: 0.92rem;
   }
   .note {
     margin-top: 18px;
