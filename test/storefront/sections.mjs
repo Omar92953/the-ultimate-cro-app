@@ -12,91 +12,17 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
-import { registerHooks } from "node:module";
+import { EXT, collectionOf, copyAssets, createEngine, defaults, mo, resolveTsImports } from "./engine.mjs";
 
-// App modules import each other without ".ts" (bundler style); let Node find them.
-registerHooks({
-  resolve(spec, ctx, next) {
-    try {
-      return next(spec, ctx);
-    } catch (e) {
-      if (spec.startsWith(".") && !/\.[a-z]+$/.test(spec)) return next(spec + ".ts", ctx);
-      throw e;
-    }
-  },
-});
+resolveTsImports();
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ext = path.resolve(here, "../../extensions/cro-storefront");
+const ext = EXT;
 const out = path.join(here, "out/sections");
-fs.mkdirSync(path.join(out, "assets"), { recursive: true });
-for (const f of fs.readdirSync(path.join(ext, "assets"))) fs.copyFileSync(path.join(ext, "assets", f), path.join(out, "assets", f));
-const locale = JSON.parse(fs.readFileSync(path.join(ext, "locales/en.default.json"), "utf8"));
-
-const engine = new Liquid({ root: [path.join(ext, "blocks"), path.join(ext, "snippets")], extname: ".liquid", strictFilters: true });
-engine.registerTag("schema", {
-  parse(token, remain) {
-    const stream = this.liquid.parser.parseStream(remain);
-    stream.on("tag:endschema", () => stream.stop()).on("template", () => {}).on("end", () => { throw new Error("schema not closed"); });
-    stream.start();
-  },
-  *render() {},
-});
-// Named filter arguments arrive as [key, value] pairs.
-const named = (args) => Object.fromEntries(args.filter(Array.isArray));
-const attrs = (o) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}="${String(v).replace(/"/g, "&quot;")}"`).join(" ");
-engine.registerFilter("image_url", (img, ...args) => {
-  const src = img?.src ?? img?.preview_image?.src ?? String(img ?? "");
-  const o = named(args);
-  return src.startsWith("data:") ? src : `${src}${src.includes("?") ? "&" : "?"}width=${o.width ?? o.height ?? 720}`;
-});
-engine.registerFilter("image_tag", (url, ...args) => {
-  const o = named(args);
-  return `<img ${attrs({ src: url, alt: o.alt ?? "", class: o.class, loading: o.loading ?? "lazy", fetchpriority: o.fetchpriority, width: o.width, height: o.height, sizes: o.sizes })}>`;
-});
-engine.registerFilter("video_tag", (video, ...args) => {
-  const o = named(args);
-  const flags = ["muted", "loop", "playsinline", "autoplay", "controls"].filter((k) => o[k]).join(" ");
-  return `<video ${attrs({ class: o.class, preload: o.preload, poster: video.preview_image?.src })} ${flags}><source src="${video.sources[0].url}" type="video/mp4"></video>`;
-});
-engine.registerFilter("placeholder_svg_tag", (name, cls) => `<svg class="${cls}" viewBox="0 0 525 300" xmlns="http://www.w3.org/2000/svg"><rect width="525" height="300"/></svg>`);
-engine.registerFilter("asset_url", (name) => `assets/${name}`);
-engine.registerFilter("default_errors", (e) => `<ul><li>${e}</li></ul>`);
-// {% form 'contact' %} … {% endform %}: a plain form posting to /contact, with an empty "form" object.
-engine.registerTag("form", {
-  parse(token, remain) {
-    this.cls = (token.args.match(/class:\s*'([^']*)'/) || [])[1] || "";
-    this.tpls = [];
-    const stream = this.liquid.parser.parseStream(remain);
-    stream.on("tag:endform", () => stream.stop()).on("template", (t) => this.tpls.push(t)).on("end", () => { throw new Error("form not closed"); });
-    stream.start();
-  },
-  *render(ctx, emitter) {
-    emitter.write(`<form method="post" action="/contact" class="${this.cls}"><input type="hidden" name="form_type" value="contact">`);
-    ctx.push({ form: { posted_successfully: false, errors: null, email: "", body: "" } });
-    yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
-    ctx.pop();
-    emitter.write("</form>");
-  },
-});
-engine.registerFilter("payment_type_svg_tag", (type, ...args) => `<svg class="${named(args).class ?? ""}" viewBox="0 0 38 24" role="img" aria-label="${type}"><rect width="38" height="24" rx="3" fill="#fff" stroke="#ccc"/><text x="19" y="15" font-size="7" text-anchor="middle" font-family="Arial" font-weight="700">${String(type).toUpperCase()}</text></svg>`);
-engine.registerFilter("handleize", (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
-engine.registerFilter("color_brightness", (hex) => {
-  const m = String(hex).replace("#", "").match(/../g) || ["0", "0", "0"];
-  const [r, g, b] = m.map((x) => parseInt(x, 16));
-  return (r * 299 + g * 587 + b * 114) / 1000;
-});
-engine.registerFilter("t", (key, ...args) => {
-  const o = named(args);
-  let v = key.split(".").reduce((x, k) => (x ? x[k] : undefined), locale) ?? key;
-  if (v && typeof v === "object") v = o.count === 1 ? v.one : v.other;
-  return String(v).replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => o[k] ?? "");
-});
+copyAssets(path.join(out, "assets"));
+const engine = createEngine(Liquid);
 
 // ---------------------------------------------------------------- mock data --
-const f = (value) => ({ value });
-const mo = (handle, fields) => ({ system: { handle }, ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, f(v)])) });
-const collectionOf = (items) => Object.assign(Object.fromEntries(items.map((m) => [m.system.handle, m])), { values: items });
 const photo = (seed, w = 800, h = 1000) => ({ media_type: "image", src: `https://picsum.photos/seed/${seed}/${w}/${h}`, width: w, height: h, aspect_ratio: w / h, alt: "" });
 const video = (n) => ({ media_type: "video", preview_image: { src: `https://picsum.photos/seed/v${n}/720/900` }, sources: [{ url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" }] });
 const logo = (text, color) => ({ media_type: "image", src: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60"><text x="0" y="44" font-family="Arial" font-weight="700" font-size="40" fill="${color}">${text}</text></svg>`)}`, width: 200, height: 60, aspect_ratio: 200 / 60 });
@@ -216,11 +142,6 @@ const watch = {
 
 const empty = { ...shop, metaobjects: { "$app:cro_lists": lists([], [], [], []) } };
 
-function defaults(name) {
-  const src = fs.readFileSync(path.join(ext, "blocks", `${name}.liquid`), "utf8");
-  const schema = JSON.parse(src.split("{% schema %}")[1].split("{% endschema %}")[0]);
-  return Object.fromEntries(schema.settings.filter((s) => s.id).map((s) => [s.id, s.default ?? (s.type === "checkbox" ? false : "")]));
-}
 async function block(name, overrides = {}, ctx = {}) {
   const settings = { ...defaults(name), ...overrides };
   const globals = {
