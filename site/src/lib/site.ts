@@ -22,7 +22,7 @@ export const OPERATOR = "OMC";
 export const NOTIFY_HREF = "/#get-notified";
 
 /**
- * Where an Install button goes. `medium` is the page type (home, pricing, demo…), `campaign` the
+ * Where an Install button goes. `medium` is the page type (home, pricing…), `campaign` the
  * page slug, so installs per page can be measured in the listing's analytics.
  */
 export function installHref(medium: string, campaign: string): string {
@@ -34,20 +34,12 @@ export function installHref(medium: string, campaign: string): string {
   return url.toString();
 }
 
-/** A feature's live demo page: the key exactly as in app/lib/catalog.ts, underscores as hyphens. */
-export const demoPath = (featureKey: string, design?: number) =>
-  `/demo/${featureKey.replace(/_/g, "-")}/${design ? `#design-${design}` : ""}`;
-
-/** A bundle recipe's live demo (recipe keys from app/lib/bundle-recipes.ts, "anyN" as "any-n"). */
-export const recipeDemoPath = (recipeKey: string) =>
-  `/demo/bundles/${recipeKey.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}/`;
-
 export type NavLink = { label: string; href: string };
 
 /** Header menu. Pages are added here as they ship. */
 export const NAV: NavLink[] = [
-  { label: "Live demos", href: "/#live" },
   { label: "Features", href: "/#features" },
+  { label: "Bundles", href: "/#bundles" },
   { label: "Pricing", href: "/pricing/" },
   { label: "FAQ", href: "/#faq" },
 ];
@@ -57,7 +49,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     title: "Product",
     links: [
       { label: "Features", href: "/#features" },
-      { label: "Live demos", href: "/#live" },
+      { label: "Bundles", href: "/#bundles" },
       { label: "Pricing", href: "/pricing/" },
       { label: "How it works", href: "/#how" },
     ],

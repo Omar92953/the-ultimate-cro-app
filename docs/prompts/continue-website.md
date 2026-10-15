@@ -25,26 +25,32 @@ into it, run `npm --prefix site ci && npm --prefix site run build` and the app c
 (`npx tsc --noEmit`, `npm run lint`, `npm run test:app`, `npm run build`), fix anything, push, then
 `gh pr merge 36 --merge --delete-branch`. If it was already merged, skip this.
 
-## Step 1: PR 2, live demos (the most important part)
+## Step 1: PR 2, live demos on demo.crotoolbox.com (hidden)
 
-- A build step that renders the **real storefront blocks** with demo data, reusing
-  `test/storefront/render.mjs` and `test/storefront/sections.mjs` (they already render every block
-  from `theme/` with the JS/CSS in `extensions/cro-storefront/assets`). Refactor shared parts into a
-  module both the tests and the site can import, without breaking `npm run test:storefront`.
-- `/demo/` catalog (filter by area) and `/demo/<feature-key>/` for **every** key in
-  `app/lib/catalog.ts` `FEATURES` (underscores become hyphens), all designs stacked with anchors
-  `#design-1`, `#design-2`…, bundle recipes at `/demo/bundles/<recipe-key>/` (keys from
-  `app/lib/bundle-recipes.ts`). Checkout-only features get faithful visual mocks.
-- Interactions must work (picking bundle items, a fake cart, carousels, countdowns, tabs).
-- Write `site/public/demo/index.json` (`{ key, title, url, designs }`).
-- Images: if the sandbox can't download photos, commit small optimized images you're allowed to use
-  (or keep illustrations) and note it in the PR for Omar.
-- Now make the home page's feature strip and "See it live" links point to real demo pages (no 404s).
+Changed by Omar on 2026-10-15: the live demos are **not part of the public website**. They live on
+their own subdomain, demo.crotoolbox.com, open only from the app's "See live demo" buttons, and are
+hidden from search. Full rules in `docs/prompts/build-website.md` ("Live demos") and `docs/website.md`.
+
+- A separate static build in `demos/` (output `demos/dist`) that renders the **real storefront
+  blocks** with demo data through the shared renderer `test/storefront/engine.mjs` (also used by
+  `npm run test:storefront`, which must keep passing).
+- `/<feature-key>/` for **every** key in `app/lib/catalog.ts` `FEATURES` (underscores become hyphens),
+  designs stacked as `#design-1`, `#design-2`…, bundle recipes at `/bundles/<recipe-key>/` (keys from
+  `app/lib/bundle-recipes.ts`). Checkout-only features get faithful visual mocks. A top bar with the
+  feature name, Desktop/Phone and "Install CRO Toolbox"; no navigation between demos.
+- Hidden: `noindex, nofollow` on every page, `_headers` with `X-Robots-Tag`, robots.txt `Disallow: /`,
+  no sitemap, no list of demos, `/` redirects to crotoolbox.com.
+- `app/lib/site.ts`: `SITE_URL`, `DEMO_URL`, `APP_STORE_URL`, `demoUrl()`, `DEMOS`; the demo build fails
+  when `DEMOS` and the built demos differ.
+- The website (`site/`) has no links to the demos and no `/demo/` pages.
+- `docs/website.md`: how to build both, and the Cloudflare steps for Omar (second Pages project
+  `cro-toolbox-demos`, custom domain demo.crotoolbox.com).
 
 ## Step 2: PR 3, bundles hub, features, use cases, comparisons
 
-- Bundles hub with the 6 recipes, each linking to its demo, plus a bundle gallery of examples.
-- One page per area and per main feature (what it does, who it's for, options, link to its demo).
+- Bundles hub with the 6 recipes (screenshots or short videos), plus a bundle gallery of examples.
+- One page per area and per main feature (what it does, who it's for, options, screenshots or short
+  videos). No links to the live demos.
 - Use case and industry pages ("Bundles for beauty brands", "Raise average order value"…).
 - `/compare/cro-toolbox-vs-<app>/` pages with honest, checkable tables; mark anything unverified.
   Never invent facts about competitors.
@@ -53,27 +59,29 @@ into it, run `npm --prefix site ci && npm --prefix site run build` and the app c
 
 - Astro content collection `site/src/content/blog` (title, description, date, category, cover,
   author), `/blog/`, categories, article layout (table of contents, reading time, related articles,
-  call to action to the matching demo). Adding an article = adding one Markdown file.
+  call to action to the matching feature page and the App Store). Adding an article = adding one Markdown file.
 - 6 starter articles from the brief, genuinely useful, with real steps from the app.
 - Help center adapted from `docs/README-merchant.md`; tutorials page ready for Omar's videos.
-- `docs/website.md`: how to run, build and deploy the site, how to add an article or a demo, and the
-  Visibility plan checklist for Omar (Google Search Console, Bing Webmaster Tools, IndexNow, off site
+- Extend `docs/website.md` (made in PR 2): how to add an article, and the Visibility plan checklist for Omar (Google Search Console, Bing Webmaster Tools, IndexNow, off site
   steps), as the brief describes.
 
-## Step 4: PR 5 (app), "Show live preview" buttons
+## Step 4: PR 5 (app), "See live demo" buttons
 
-- `app/lib/site.ts`: `SITE_URL` (`https://crotoolbox.com`) and `demoUrl(featureKey, design?)`.
-- A "Show live preview" button that opens the demo in a new tab on each feature page, design page
-  and Create bundle recipe card. Use `app/components/fields.tsx` and the existing UI patterns; no
-  dashes in text. Run all app checks from `docs/PROJECT-GUIDE.md` §5. This touches `app/` only, so no
-  Shopify deploy is needed.
+- `app/lib/site.ts` (made in PR 2) has `SITE_URL`, `DEMO_URL`, `demoUrl(featureKey, design?, recipe?)`
+  and `DEMOS`.
+- A "See live demo" button that opens the demo in a new tab (`target="_blank"`) on each feature's main
+  page, each design page (that design's `#design-N`) and each recipe card in Bundles → Create bundle,
+  shown only for keys in `DEMOS`. Use `app/components/fields.tsx` Button and the existing UI patterns;
+  no dashes in text. Run all app checks from `docs/PROJECT-GUIDE.md` §5. App only, so no Shopify
+  deploy is needed; it can merge on its own.
 
 ## For every PR
 
 - Branch `claude/<topic>` from an up to date `main`, draft PR first, then build.
-- Checks: `npm --prefix site run build` (plus the app checks if you touched anything outside `site/`).
-  Look at the pages in a browser at desktop and 375 px phone width: no horizontal scroll, no broken
-  links (`/demo/...` included), no dashes in visible text.
+- Checks: `npm --prefix site run build`, `npm --prefix demos run build` when demos or the storefront
+  code changed (plus the app checks if you touched anything outside `site/` and `demos/`). Look at
+  the pages in a browser at desktop and 375 px phone width: no horizontal scroll, no broken links,
+  no dashes in visible text, and no link from the website to the demos.
 - Before merging: `git merge origin/main`, checks again, then `gh pr merge --merge --delete-branch`.
 - Update `docs/WORKBOARD.md` (tick the step) and the code map in `docs/PROJECT-GUIDE.md` in the PR.
 - If you stop before the end, write in the PR what's done, what's left and how to test, so another

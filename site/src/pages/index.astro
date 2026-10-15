@@ -7,14 +7,13 @@ import PlanCards from "../components/PlanCards.astro";
 import Faq, { type QA } from "../components/Faq.astro";
 import NotifyCta from "../components/NotifyCta.astro";
 import { PAGES } from "../lib/pages";
-import { demoPath, recipeDemoPath } from "../lib/site";
 import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
 import { organization, website, softwareApplication, faqPage } from "../lib/schema";
 
 const page = PAGES.home;
 const free = PLANS.free;
 
-/** The strip of live feature cards ("Tap a feature to see it live"). */
+/** The strip of feature cards, each with a small picture of what it adds to a store. */
 const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_tools", "reviews", "countdown", "shipping_bar", "sticky_atc", "sales_pop", "videos", "wishlist", "faq"];
 
 const VALUES = [
@@ -107,7 +106,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
         </p>
         <div class="actions">
           <InstallButton medium="home" campaign="hero" />
-          <a class="btn ghost" href="/demo/">See it live <span aria-hidden="true">→</span></a>
+          <a class="btn ghost" href="#features">See all features <span aria-hidden="true">→</span></a>
         </div>
         <ul class="trust">
           <li>Built for any Online Store 2.0 theme</li>
@@ -121,35 +120,32 @@ const schema = [organization(), website(), softwareApplication(page.description)
     </div>
   </section>
 
-  <!-- Live feature strip -->
-  <section class="section mist" id="live">
+  <!-- Feature strip -->
+  <section class="section mist" id="tour">
     <div class="wrap">
       <div class="head strip-head">
-        <span class="eyebrow">Live demos</span>
-        <h2>Tap a feature to see it live</h2>
-        <p class="lead">Every widget and section the app adds to a store, working on a demo store you can click through.</p>
+        <span class="eyebrow">On your store</span>
+        <h2>What CRO Toolbox adds to your store</h2>
+        <p class="lead">Widgets and sections that sit in your theme like they were made for it. Scroll for more.</p>
       </div>
     </div>
-    <div class="strip" role="list">
+    <ul class="strip" role="list">
       {
         STRIP.map((k) => (
-          <a class="feat" role="listitem" href={demoPath(k)}>
+          <li class="feat">
             <div class="feat-art">
               <MiniDemo kind={k} />
             </div>
             <div class="feat-text">
               <h3>{featureTitle(k)}</h3>
               <p>{featureAbout(k)}</p>
-              <span class="go">
-                Live preview <span aria-hidden="true">→</span>
-              </span>
             </div>
-          </a>
+          </li>
         ))
       }
-    </div>
+    </ul>
     <div class="wrap strip-foot">
-      <a class="link" href="/demo/">Browse all live demos →</a>
+      <a class="link" href="#features">See every feature →</a>
     </div>
   </section>
 
@@ -189,12 +185,12 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="grid three recipes">
         {
           BUNDLE_RECIPES.map((r, i) => (
-            <a class="card recipe" href={recipeDemoPath(r.key)}>
+            <div class="card recipe">
               <span class="num">{String(i + 1).padStart(2, "0")}</span>
               <h3>{plain(r.title)}</h3>
               <p class="muted">{plain(r.about)}</p>
               <p class="best">{plain(r.best)}</p>
-            </a>
+            </div>
           ))
         }
       </div>
@@ -367,6 +363,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
     margin-bottom: 32px;
   }
   .strip {
+    list-style: none;
+    margin: 0;
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(250px, 270px);
@@ -385,15 +383,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
-    text-decoration: none;
     box-shadow: var(--shadow);
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-  .feat:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
   }
   .feat-art {
     height: 200px;
@@ -410,12 +400,6 @@ const schema = [organization(), website(), softwareApplication(page.description)
     font-size: 0.92rem;
     color: var(--muted);
     flex: 1;
-  }
-  .go {
-    margin-top: 8px;
-    font-weight: 650;
-    font-size: 0.92rem;
-    color: var(--accent-deep);
   }
   .strip-foot {
     margin-top: 8px;
@@ -440,17 +424,9 @@ const schema = [organization(), website(), softwareApplication(page.description)
   }
 
   .recipe {
-    text-decoration: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-  .recipe:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
   }
   .num {
     font-weight: 800;

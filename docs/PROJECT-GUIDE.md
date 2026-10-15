@@ -83,8 +83,10 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `extensions/cro-storefront/assets` | Storefront JS/CSS: `ucro-bundle.js` (builder), `ucro-bundle-tray.js`, `ucro-core.js`, `ucs-deals.js` (deal boxes), `ucs-boosters.css`, `ucro.css` |
 | `extensions/cro-bundles` | Cart Transform: merges bundle picks into one line at the bundle price |
 | `extensions/cro-discount` | Discount Function: offers and deals, skips bundle lines |
-| `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data |
-| `site/` | The marketing website (Astro). Brief: `docs/prompts/build-website.md` |
+| `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data (`engine.mjs`: the Liquid engine shared with `demos/`) |
+| `site/` | The marketing website (Astro), crotoolbox.com. Brief: `docs/prompts/build-website.md`; how to run and deploy: `docs/website.md` |
+| `demos/` | The hidden live demos (demo.crotoolbox.com, noindex, opened only from the app): renders every feature's real blocks with demo data. `docs/website.md` |
+| `app/lib/site.ts` | Website and demo addresses: `SITE_URL`, `DEMO_URL`, `demoUrl()`, `DEMOS` (the demo build checks it) |
 | `scripts/sync.sh` | Brings the Mac copy up to date with GitHub and reports differences |
 | `docs/` | `README-merchant.md` (merchant guide), `testing-checklist.md`, `billing.md`, `hosting.md`, `scopes.md`, `listing.md`, `plans/bundles-overhaul.md`, `HANDOFF.md` |
 
@@ -210,18 +212,21 @@ cards; checkout doesn't reject a bundle product picked inside a bundle (the stor
 Open with Omar (outside the code): protected customer data request and App Pricing plans in the
 Partner Dashboard, listing screenshots and video, tutorial videos (Home shows "Coming soon").
 
-## 11. The marketing website (next project)
+## 11. The marketing website and the live demos
 
 Omar wants a website for SEO and GEO (being cited by AI assistants) that explains the app, shows the
 features and sends people to the App Store listing.
 
 - **The full brief is `docs/prompts/build-website.md`** (pages modeled on section.store and
-  simplebundles.com, live demo pages for every feature, articles, SEO/GEO, "Show live preview" links
-  from the app). Give that file to the session that builds the site.
-- Lives in a `site/` folder of this repo (Astro, static), separate from the app build, so live demos
-  can reuse the real storefront code (`theme/`, `extensions/cro-storefront/assets`, the
-  `test/storefront` renderer). Not on `cro-toolbox.onrender.com` (that host is the app server).
-  Static host and its own domain (e.g. `crotoolbox.app`): ask Omar before buying anything.
+  simplebundles.com, articles, SEO/GEO, the hidden live demos and the app's "See live demo" buttons).
+  Running, building and deploying both: **`docs/website.md`**.
+- The website lives in `site/` (Astro, static), separate from the app build. Not on
+  `cro-toolbox.onrender.com` (that host is the app server).
+- **Live demos** (decided 2026-10-15): a separate static build in `demos/`, deployed to
+  **demo.crotoolbox.com** and hidden from search (noindex everywhere, robots.txt `Disallow: /`, no
+  list of demos, `/` redirects to the website). They reuse the real storefront code (`theme/`,
+  `extensions/cro-storefront/assets`, `test/storefront/engine.mjs`) and open only from the app's
+  "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`). The website never links to them.
 - **Pages**: home; one page per feature (the 6 bundle recipes, upsell, cross-sell, video carousel,
   cart drawer, reviews, countdown...) with real screenshots from Testing2; pricing (from
   `app/lib/plans.ts`: Free / $5.99 / $14.99 / $24.99, orders per month, 14-day trial); help center
