@@ -45,7 +45,8 @@ bundles). He also reversed the plan limit: plans are limited by **orders per mon
   - Done 2026-10-15: `app/lib/bundle-product.server.ts` (create/publish bundle products, create store pages), kits come out Active + published with picture and contents, mix & match editor "Create it for me" + "Where shoppers build it" + "Get it on your store" checklist with Add to theme links (previewPath). Products/pages are never deleted automatically when a bundle is deleted.
 - [x] Phase 4: Bundles list + Create bundle recipes
   - Done 2026-10-15: `/app/bundles` lists every bundle with a type filter; `/app/bundles/create` shows the 6 recipes (`app/lib/bundle-recipes.ts`, `app/components/BundleRecipes.tsx`); mix & match presets via `?recipe=`; old kit and fixed-bundle lists redirect; Bundles tabs = Bundles · Design (`Feature.paths`). The per-editor "How it works" card exists for mix & match ("Get it on your store"); kits and FBT get theirs in Phase 5.
-- [ ] Phase 5: editors as sections + live preview
+- [x] Phase 5: editors as sections + live preview
+  - Done 2026-10-15: `EditorSection` (numbered, collapsible, summary, done tick) in `EditorLayout preview`. Mix & match: 5 sections + live `BundlePreview` with real prices (`/app/bundles/preview-items`, `lib/bundle-price.ts` mirrors checkout for every pricing kind). Kit: Items · Price + product page sketch. Fixed bundle: Items · Discount · Box look (saves `$app:cro_design` "fbt", then `syncDiscounts`) + box preview. Other deal kinds sit in `EditorLayout`. Not done: a "Frequently bought together box" page on the Design tab (the Box look step covers it).
 - [ ] Phase 6: release and end-to-end test of recipes 1 to 6
 
 ## Phase 0: make the plan portable

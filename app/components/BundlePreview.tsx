@@ -3,13 +3,14 @@
  * ucro-bundle-builder.liquid, with one of the merchant's bundles (or a sample). Picking items,
  * the counts, the summary and the button text behave like on the store.
  */
-import type { BundlePricing } from "../lib/types";
+import type { BundlePricing, BundleTier } from "../lib/types";
+import { bundlePrice } from "../lib/bundle-price";
 import { useState, type CSSProperties } from "react";
 import { bundleClass, bundleVars, type BundleDesign } from "../lib/bundle-design";
 import type { PreviewTheme } from "../lib/theme-style";
 
 export type PreviewItem = { title: string; image: string | null; cents: number };
-export type PreviewBundle = { name: string; handle?: string; price: number; pricing?: { kind: BundlePricing; percent: number }; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
+export type PreviewBundle = { name: string; handle?: string; price: number; pricing?: { kind: BundlePricing; percent: number; tiers?: BundleTier[] }; steps: { label: string; min: number; max: number; items: PreviewItem[] }[] };
 
 const TINTS = ["linear-gradient(145deg,#ffd6a5,#f4a261)", "linear-gradient(145deg,#bde0fe,#6c9bd2)", "linear-gradient(145deg,#cdb4db,#9b72b0)", "linear-gradient(145deg,#b7e4c7,#52b788)", "linear-gradient(145deg,#ffc8dd,#e07a9a)"];
 export const SAMPLE_BUNDLE: PreviewBundle = {
@@ -46,10 +47,13 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
     return { ...s, count, min: Math.max(0, s.min), max: Math.max(1, s.max, s.min) };
   });
   const remaining = steps.reduce((n, s) => n + Math.max(0, s.min - s.count), 0);
-  const ready = remaining === 0;
   const chosen = steps.flatMap((s, si) => s.items.filter((_, i) => picked[`${si}-${i}`]));
-  const value = chosen.reduce((n, it) => n + it.cents, 0);
-  const saving = value - bundle.price;
+  // Priced like checkout for every pricing kind (lib/bundle-price.ts).
+  const calc = bundlePrice(bundle.pricing, bundle.price, chosen.map((it) => it.cents));
+  const ready = remaining === 0 && calc.price !== null && chosen.length > 0;
+  const value = calc.value;
+  const total = calc.price ?? bundle.price;
+  const saving = value - total;
   const toggle = (si: number, i: number) =>
     setPicked((p) => {
       const key = `${si}-${i}`;
@@ -104,9 +108,18 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
               ) : null}
               <p className="ucro-bundle__totals">
                 <span data-value>{ready && saving > 0 ? fill(c.summary.value, { amount: money(value) }) : ""}</span>
-                <strong>{money(bundle.price)}</strong>
+                <strong>{money(total)}</strong>
               </p>
-              {ready && saving > 0 ? <p className="ucro-bundle__save">{fill(c.summary.save, { amount: money(saving), percent: Math.round((saving / value) * 100) })}</p> : null}
+              {(ready && saving > 0) || calc.more ? (
+                <p className="ucro-bundle__save">
+                  {[
+                    ready && saving > 0 ? fill(c.summary.save, { amount: money(saving), percent: Math.round((saving / value) * 100) }) : "",
+                    calc.more ? `Add ${calc.more.count} more to save ${calc.more.pct !== null ? `${calc.more.pct}%` : money(calc.more.cents ?? 0)}` : "",
+                  ]
+                    .filter(Boolean)
+                    .join(". ")}
+                </p>
+              ) : null}
             </>
           ) : null}
           {c.button.theme ? (

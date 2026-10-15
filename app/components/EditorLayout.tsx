@@ -6,9 +6,10 @@
 import type { ReactNode } from "react";
 import styles from "./EditorLayout.module.css";
 
-export function EditorLayout({ children, side }: { children: ReactNode; side: ReactNode }) {
+/** `preview`: settings in a narrower column on the left and a wide live preview on the right. */
+export function EditorLayout({ children, side, preview = false }: { children: ReactNode; side: ReactNode; preview?: boolean }) {
   return (
-    <div className={styles.editor}>
+    <div className={`${styles.editor} ${preview ? styles.withPreview : ""}`}>
       <div className={styles.main}>{children}</div>
       <div className={styles.side}>{side}</div>
     </div>

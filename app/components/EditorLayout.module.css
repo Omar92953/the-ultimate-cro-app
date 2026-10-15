@@ -6,3 +6,6 @@
   .editor { grid-template-columns: minmax(0, 1fr); }
   .side { position: static; }
 }
+/* Editors with a live preview (bundles): settings left, the preview wide on the right. */
+.withPreview { grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); }
+@media (max-width: 900px) { .withPreview { grid-template-columns: minmax(0, 1fr); } }

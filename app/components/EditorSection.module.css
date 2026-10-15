@@ -1,0 +1,18 @@
+/* Numbered editor steps (EditorSection.tsx), styled like Polaris sections. */
+.section { background: #fff; border-radius: 12px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
+.head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 0; border-radius: 12px; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.head:hover { background: #fafafa; }
+.head:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
+.badge { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 650; color: #303030; background: #ebebeb; }
+.done { color: #fff; background: #303030; }
+.text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.title { font-size: 14px; font-weight: 650; color: #303030; }
+.summary { overflow: hidden; font-size: 12px; color: #616161; white-space: nowrap; text-overflow: ellipsis; }
+.chevron { flex: none; width: 18px; height: 18px; color: #616161; transition: transform 0.15s; }
+.open .chevron { transform: rotate(180deg); }
+.body { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 16px 52px; }
+@media (max-width: 560px) { .body { padding-left: 16px; } }
+.next { display: flex; justify-content: flex-end; }
+.nextButton { padding: 6px 12px; border: 0; border-radius: 8px; background: #303030; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.nextButton:hover { background: #1a1a1a; }
+.nextButton:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; }
