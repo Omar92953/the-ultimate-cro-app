@@ -207,10 +207,13 @@ Partner Dashboard, listing screenshots and video, tutorial videos (Home shows "C
 Omar wants a website for SEO and GEO (being cited by AI assistants) that explains the app, shows the
 features and sends people to the App Store listing.
 
-- **Separate project**, not inside this repo or on `cro-toolbox.onrender.com` (that host is the app
-  server). Suggested: a new repo (e.g. `cro-toolbox-site`), a static site generator (Astro or Next.js
-  static export), hosted on Vercel, Netlify, Cloudflare Pages or Render static, on its own domain
-  (e.g. `crotoolbox.app`). Ask Omar before buying a domain or anything paid.
+- **The full brief is `docs/prompts/build-website.md`** (pages modeled on section.store and
+  simplebundles.com, live demo pages for every feature, articles, SEO/GEO, "Show live preview" links
+  from the app). Give that file to the session that builds the site.
+- Lives in a `site/` folder of this repo (Astro, static), separate from the app build, so live demos
+  can reuse the real storefront code (`theme/`, `extensions/cro-storefront/assets`, the
+  `test/storefront` renderer). Not on `cro-toolbox.onrender.com` (that host is the app server).
+  Static host and its own domain (e.g. `crotoolbox.app`): ask Omar before buying anything.
 - **Pages**: home; one page per feature (the 6 bundle recipes, upsell, cross-sell, video carousel,
   cart drawer, reviews, countdown...) with real screenshots from Testing2; pricing (from
   `app/lib/plans.ts`: Free / $5.99 / $14.99 / $24.99, orders per month, 14-day trial); help center
