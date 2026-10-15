@@ -27,7 +27,7 @@ Updated 2026-10-15.
       no demo links on the website, `docs/website.md` (PR #43)
 - [x] PR 3: bundles hub, feature and area pages, use cases, comparisons (PR #50)
 - [ ] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
-- [ ] PR 4: blog (6 articles), help center, tutorials page
+- [~] PR 4: blog (6 articles), help center, tutorials page (in progress)
 - [ ] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
