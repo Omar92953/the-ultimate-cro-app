@@ -1,0 +1,211 @@
+---
+import Base from "../layouts/Base.astro";
+import Crumbs from "../components/Crumbs.astro";
+import Shot from "../components/Shot.astro";
+import ProductArt from "../components/ProductArt.astro";
+import Faq, { type QA } from "../components/Faq.astro";
+import InstallButton from "../components/InstallButton.astro";
+import NotifyCta from "../components/NotifyCta.astro";
+import { BUNDLE_RECIPES, PLANS, plain } from "../lib/app";
+import { MORE_PAGES, featurePath } from "../lib/pages";
+import { faqPage } from "../lib/schema";
+import type { ArtKind } from "../lib/art";
+
+const page = MORE_PAGES.bundles;
+const crumbs = [{ name: "Bundles", href: page.path }];
+const recipeSlug = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+
+/** How each recipe is priced and where it shows, in plain words. */
+const HOW: Record<string, { price: string; where: string }> = {
+  fbt: { price: "A percentage off when all the items are bought together.", where: "On each item's product page, with Buy all." },
+  kit: { price: "Its own price; Shopify takes each item from stock.", where: "Its own product page, one line in the cart." },
+  mixmatch: { price: "One price for the box, or a percentage off the picks.", where: "The box's product page." },
+  growing: { price: "More off for each extra item: by percent, by amount or a set price.", where: "A product page or its own store page made by the app." },
+  browse: { price: "The bundle's price once every step is filled.", where: "Collection pages (+ Add to bundle), product pages and a tray that follows the shopper." },
+  anyN: { price: "A set price for N items, such as any 3 for $30 or any 6 for $55.", where: "A product page; long collections get Show more and a search box." },
+};
+
+/** Example bundles (made up for the demo store). */
+const GALLERY: { name: string; recipe: string; art: ArtKind; tint?: string; price: string; items: string }[] = [
+  { name: "Evening ritual set", recipe: "fbt", art: "candle", price: "15% off together", items: "Cedar Candle, Clay Mug, Oat Soap" },
+  { name: "Calm Night Kit", recipe: "kit", art: "gift", tint: "#6b5ca5", price: "$62 instead of $74", items: "Candle, cream and soap in one box" },
+  { name: "Candle box", recipe: "mixmatch", art: "candle", tint: "#a8692b", price: "Any 3 candles for $56", items: "Picked from the candles collection" },
+  { name: "Build your skin set", recipe: "growing", art: "serum", price: "2 items 10% off, 3 items 15%, 4 items 20%", items: "From the skincare collection" },
+  { name: "Gift tote, built while browsing", recipe: "browse", art: "tote", price: "One price once full", items: "Added from collection pages" },
+  { name: "Sock drawer", recipe: "anyN", art: "socks", tint: "#3d5a80", price: "Any 3 for $30, any 6 for $55", items: "From a long collection" },
+  { name: "Coffee corner", recipe: "fbt", art: "mug", price: "10% off together", items: "Clay Mug and a bag of beans" },
+  { name: "Plant starter kit", recipe: "kit", art: "plant", price: "$39 instead of $46", items: "Pot, plant food and a mister" },
+];
+
+const faq: QA[] = [
+  { q: "How many kinds of bundles does CRO Toolbox have?", a: "Six: frequently bought together, a kit sold as one product, a mix and match box, build your bundle and save more, build while browsing, and any N for one price." },
+  { q: "Does the bundle price apply at checkout?", a: "Yes. Shopify prices the bundle at checkout, and in the cart the picked items merge into one bundle line at the bundle price." },
+  { q: "Does stock go down for each item in a bundle?", a: "Yes. At checkout the bundle is split into the items the shopper picked, so each item's stock goes down and the items appear on the order." },
+  { q: "Which plan includes bundles?", a: `Every bundle type is on the ${PLANS.free.name} plan, within its ${PLANS.free.limits.offerSlots} offer slots. Paid plans have unlimited offers. See <a href="/pricing/">pricing</a>.` },
+  { q: "Do I need to create the bundle product myself?", a: "No. For mix and match bundles the app can create and publish the bundle product, and the store page if you choose one." },
+];
+const schema = [faqPage(faq)];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Bundles</span>
+      <h1>Six ways to bundle on Shopify</h1>
+      <p class="lead">
+        From a simple frequently bought together box to a build your own box with growing discounts. Pick what you want to sell; the app opens the right
+        editor with a live preview of your real products.
+      </p>
+      <nav class="jump" aria-label="Bundle types">
+        {BUNDLE_RECIPES.map((r, i) => <a class="btn ghost small" href={`#${recipeSlug(r.key)}`}>{i + 1}. {plain(r.title)}</a>)}
+      </nav>
+    </div>
+  </section>
+
+  {
+    BUNDLE_RECIPES.map((r, i) => (
+      <section class:list={["section tight recipe", { mist: i % 2 === 0 }]} id={recipeSlug(r.key)}>
+        <div class:list={["wrap", "rgrid", { flip: i % 2 === 1 }]}>
+          <div>
+            <span class="eyebrow">Bundle type {i + 1}</span>
+            <h2>{plain(r.title)}</h2>
+            <p class="lead">{plain(r.about)}</p>
+            <dl>
+              <dt>Best for</dt>
+              <dd>{plain(r.best).replace(/^Best for /, "")}</dd>
+              <dt>Price</dt>
+              <dd>{HOW[r.key].price}</dd>
+              <dt>Where it shows</dt>
+              <dd>{HOW[r.key].where}</dd>
+            </dl>
+          </div>
+          <Shot name={`bundles/${recipeSlug(r.key)}`} alt={`${plain(r.title)} on a demo store`} />
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section" id="gallery">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">Bundle gallery</span>
+        <h2>Bundles you could make this afternoon</h2>
+        <p class="lead">Examples from our demo store, one or two for each bundle type.</p>
+      </div>
+      <div class="gallery">
+        {
+          GALLERY.map((g) => (
+            <article class="gcard">
+              <ProductArt kind={g.art} tint={g.tint} class="gart" />
+              <div class="gtext">
+                <span class="pill">{plain(BUNDLE_RECIPES.find((r) => r.key === g.recipe)!.title)}</span>
+                <h3>{g.name}</h3>
+                <p class="gprice">{g.price}</p>
+                <p class="muted">{g.items}</p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+      <p class="center-actions">
+        <InstallButton medium="bundles" campaign="gallery" />
+        <a class="btn ghost" href={featurePath("bundles")}>About the bundles feature</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section mist">
+    <div class="wrap">
+      <div class="head center"><h2>Questions about bundles</h2></div>
+      <Faq items={faq} />
+    </div>
+  </section>
+  <NotifyCta campaign="bundles" />
+</Base>
+
+<style>
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .rgrid {
+    display: grid;
+    gap: 36px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .rgrid {
+      grid-template-columns: 1fr 1.15fr;
+    }
+    .rgrid.flip > :first-child {
+      order: 2;
+    }
+  }
+  .recipe h2 {
+    margin-bottom: 12px;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+    margin: 22px 0 0;
+    font-size: 0.95rem;
+  }
+  dt {
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+    color: #2b2d35;
+  }
+  @media (max-width: 479px) {
+    dl {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    dd {
+      margin-bottom: 10px;
+    }
+  }
+  .gallery {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .gcard {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .gcard :global(.gart) {
+    width: 100%;
+    height: 180px;
+  }
+  .gtext {
+    padding: 16px 18px 18px;
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .gtext h3 {
+    margin-top: 4px;
+  }
+  .gprice {
+    font-weight: 650;
+  }
+  .gtext .muted {
+    font-size: 0.9rem;
+  }
+  .center-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 36px;
+  }
+</style>

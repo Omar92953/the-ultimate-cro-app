@@ -38,20 +38,30 @@ export type NavLink = { label: string; href: string };
 
 /** Header menu. Pages are added here as they ship. */
 export const NAV: NavLink[] = [
-  { label: "Features", href: "/#features" },
-  { label: "Bundles", href: "/#bundles" },
+  { label: "Features", href: "/features/" },
+  { label: "Bundles", href: "/bundles/" },
+  { label: "Use cases", href: "/use-cases/" },
+  { label: "Compare", href: "/compare/" },
   { label: "Pricing", href: "/pricing/" },
-  { label: "FAQ", href: "/#faq" },
 ];
 
 export const FOOTER: { title: string; links: NavLink[] }[] = [
   {
     title: "Product",
     links: [
-      { label: "Features", href: "/#features" },
-      { label: "Bundles", href: "/#bundles" },
+      { label: "Features", href: "/features/" },
+      { label: "Bundles", href: "/bundles/" },
       { label: "Pricing", href: "/pricing/" },
-      { label: "How it works", href: "/#how" },
+      { label: "Compare", href: "/compare/" },
+    ],
+  },
+  {
+    title: "Use cases",
+    links: [
+      { label: "Raise order value", href: "/use-cases/raise-average-order-value/" },
+      { label: "Beauty brands", href: "/use-cases/bundles-for-beauty-brands/" },
+      { label: "Fashion stores", href: "/use-cases/upsells-for-fashion/" },
+      { label: "All use cases", href: "/use-cases/" },
     ],
   },
   {

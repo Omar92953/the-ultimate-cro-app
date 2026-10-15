@@ -1,0 +1,15 @@
+---
+/** Visible breadcrumbs (Base adds the matching BreadcrumbList data). */
+interface Props {
+  items: { name: string; href: string }[];
+  center?: boolean;
+}
+const { items, center = false } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb">
+  <ol class="breadcrumbs" style={center ? "justify-content:center" : undefined}>
+    <li><a href="/">Home</a></li>
+    {items.map((c, i) => <li>{i === items.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.href}>{c.name}</a>}</li>)}
+  </ol>
+</nav>

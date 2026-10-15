@@ -1,0 +1,75 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import FeatureCard from "../../components/FeatureCard.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { SITE_AREAS, FEATURE_KEYS } from "../../lib/app";
+import { MORE_PAGES, areaPath } from "../../lib/pages";
+
+const page = MORE_PAGES.features;
+const crumbs = [{ name: "Features", href: page.path }];
+// A feature listed in two areas (the free shipping bar) shows under the first one only.
+const seen = new Set<string>();
+const areas = SITE_AREAS.map((a) => ({ ...a, list: a.features.filter((k) => (seen.has(k) ? false : (seen.add(k), true))) }));
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Features</span>
+      <h1>Every CRO Toolbox feature</h1>
+      <p class="lead">
+        {FEATURE_KEYS.length} features in one app, grouped the way the app's menu is: offers, storefront, cart, checkout and analytics. Each one works with
+        any Online Store 2.0 theme, without code.
+      </p>
+      <nav class="jump" aria-label="Areas">
+        {areas.map((a) => <a class="btn ghost small" href={`#${a.key}`}>{a.title}</a>)}
+      </nav>
+    </div>
+  </section>
+  {
+    areas.map((a, i) => (
+      <section class:list={["section tight", { mist: i % 2 === 0 }]} id={a.key}>
+        <div class="wrap">
+          <div class="head">
+            <h2>
+              <a href={areaPath(a.key)}>{a.title}</a>
+            </h2>
+            <p class="lead">{a.intro}</p>
+          </div>
+          {a.list.length > 0 ? (
+            <div class="grid three">
+              {a.list.map((k) => (
+                <FeatureCard feature={k} />
+              ))}
+            </div>
+          ) : (
+            <p>
+              <a class="link" href={areaPath(a.key)}>
+                What Analytics shows →
+              </a>
+            </p>
+          )}
+        </div>
+      </section>
+    ))
+  }
+  <NotifyCta campaign="features" />
+</Base>
+
+<style>
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  h2 a {
+    text-decoration: none;
+  }
+  h2 a:hover {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+</style>
