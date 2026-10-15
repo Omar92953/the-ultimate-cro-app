@@ -158,7 +158,7 @@
           ? '<select class="ucs-deal__var" data-n="' + n + '" aria-label="' + esc(p.title) + '">' + avail.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select>'
           : '';
         return '<li class="ucs-deal__item">' + (FBT.img === false || row ? '' : p.featured_image ? '<img src="' + esc(img(p.featured_image, 120)) + '" alt="" width="48" height="48" loading="lazy">' : '<span></span>') +
-          '<span class="ucs-deal__it"><a href="' + esc(root + 'products/' + p.handle) + '">' + (q > 1 ? q + ' × ' : '') + esc(p.title) + '</a>' + select + '</span></li>';
+          '<span class="ucs-deal__it"><a href="' + esc(root + 'products/' + p.handle) + '">' + (q > 1 ? q + ' × ' : '') + esc(p.title) + '</a>' + select + '</span><span class="ucs-deal__ip" data-n="' + n + '"></span></li>';
       }).join(row ? '' : '<li class="ucs-deal__plus" aria-hidden="true">+</li>');
       var pics = row && FBT.img !== false ? '<div class="ucs-deal__pics" aria-hidden="true">' + products.map(function (p) {
         return '<span class="ucs-deal__pic">' + (p.featured_image ? '<img src="' + esc(img(p.featured_image, 300)) + '" alt="" loading="lazy">' : '') + '</span>';
@@ -173,6 +173,10 @@
         var full = picks.reduce(function (n, v, i) { return n + v.price * (Number(d.items[i].q) || 1); }, 0);
         var cut = Math.round(full * (Number(d.pct) || 0) / 100);
         var saving = FBT.sv === 'pct' ? fill(esc(T.off || '{pct}% off'), { pct: Number(d.pct) || 0 }) : fill(esc(T.save), { amount: money(cut) });
+        Array.prototype.forEach.call(el.querySelectorAll('.ucs-deal__ip'), function (s) {
+          var n = Number(s.getAttribute('data-n'));
+          s.textContent = money(picks[n].price * (Number(d.items[n].q) || 1));
+        });
         el.querySelector('.ucs-deal__price').innerHTML = '<b>' + money(full - cut) + '</b> <s>' + money(full) + '</s> <em>' + saving + '</em>';
         var count = d.items.reduce(function (n, i) { return n + (Number(i.q) || 1); }, 0);
         btn.innerHTML = esc(FBT.btn || T.add_bundle || 'Add bundle to cart').replace(/\[count\]/g, count).replace(/\[price\]/g, money(full - cut));

@@ -517,8 +517,8 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {items.map((i, n) => (
                   <Fragment key={i.product.id}>
-                    {n ? <span style={{ fontSize: 20, fontWeight: 700, opacity: 0.7 }}>+</span> : null}
-                    <span style={{ flex: "1 1 0", maxWidth: 132, aspectRatio: "1", borderRadius: 10, background: i.product.image ? `#f4f4f4 center / contain no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
+                    {n ? <span style={{ fontSize: 22, opacity: 0.6 }}>+</span> : null}
+                    <span style={{ flex: "1 1 0", maxWidth: 140, aspectRatio: "1", borderRadius: 12, background: i.product.image ? `#f4f4f4 center / 84% no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
                   </Fragment>
                 ))}
               </div>
@@ -534,9 +534,9 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
               <span>{total ? <><strong>{money(total - saving)}</strong> <s style={{ color: "#8a8a8a" }}>{money(total)}</s></> : null}</span>
-              <span style={{ color: "#1a7f37", fontWeight: 600 }}>{fbt.saving === "pct" ? `${cfg.pct}% off` : total ? `Save ${money(saving)}` : `Save ${cfg.pct}%`}</span>
+              <span style={{ padding: "2px 8px", borderRadius: 999, background: "#e3f1e6", color: "#1a7f37", fontWeight: 700, fontSize: 12 }}>{fbt.saving === "pct" ? `${cfg.pct}% off` : total ? `Save ${money(saving)}` : `Save ${cfg.pct}%`}</span>
             </div>
-            <span style={{ padding: "10px 12px", textAlign: "center", borderRadius: row ? 999 : 8, background: "#303030", color: "#fff", fontWeight: 600, fontSize: 14 }}>
+            <span style={{ padding: "10px 12px", textAlign: "center", borderRadius: 999, background: "#121212", color: "#fff", fontWeight: 600, fontSize: 14 }}>
               {fbt.button.replace(/\[count\]/g, String(count)).replace(/\[price\]/g, total ? money(total - saving) : "$0.00")}
             </span>
           </div>
