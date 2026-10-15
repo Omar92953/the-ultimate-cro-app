@@ -18,9 +18,10 @@ import { applyLogosPreset, LOGOS_PRESETS, withLogosDefaults, type LogosDesign } 
 import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { LogosDesignPreview, type PreviewLogo } from "../components/LogosDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { LOGOS_SIZES } from "../lib/logos-design";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -82,6 +83,7 @@ export default function LogosDesigner() {
   return (
     <s-page heading="Scrolling logos and text" inlineSize="large">
       <CategoryCrumb feature="logos" />
+      <DemoButton feature="logos" template={templateInUse(LOGOS_PRESETS, cfg, applyLogosPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store

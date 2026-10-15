@@ -65,6 +65,12 @@ export type LookSwatch = {
   list?: boolean; // one box with rows instead of cards
 };
 
+/** Which template is in use (applying it would change nothing), -1 when none. */
+export function templateInUse<C, K extends string>(presets: readonly { key: K }[], config: C, apply: (c: C, key: K) => C): number {
+  const now = JSON.stringify(config);
+  return presets.findIndex((p) => JSON.stringify(apply(config, p.key)) === now);
+}
+
 export function LookPicker<C>({ presets, config, apply, swatch, render, onPick, width }: { presets: { key: string; title: string }[]; config: C; apply: (c: C, key: string) => C; swatch?: (c: C) => LookSwatch; render?: (c: C) => ReactNode; onPick: (key: string) => void; /** The page width each template is drawn at (default 760). */ width?: number }) {
   const now = JSON.stringify(config);
   return (

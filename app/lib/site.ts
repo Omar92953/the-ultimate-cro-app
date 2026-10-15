@@ -32,7 +32,23 @@ export const DEMOS: FeatureKey[] = [
 /** Bundle recipes with their own live demo page. */
 export const DEMO_RECIPES: RecipeKey[] = ["fbt", "kit", "mixmatch", "growing", "browse", "anyN"];
 
+/**
+ * Features whose demo starts with the app's templates, in the order their design page lists them
+ * (template 1 is #design-1…), and how many templates the demo shows. The demo build checks these.
+ */
+export const DEMO_TEMPLATES: Partial<Record<FeatureKey, number>> = {
+  upsell: 6, cross_sell: 6, personalize: 4, cart_tools: 4, cart_extras: 4,
+  reviews: 6, product_reviews: 3, logos: 6, announcements: 6, countdown: 6, shipping_bar: 6,
+  quick_add: 5, delivery: 4, stock: 4, wishlist: 4, hero: 5, videos: 6, faq: 6, quiz: 4,
+  header: 6, footer: 5, track: 4, returns: 4,
+};
+
 export const hasDemo = (key: FeatureKey) => DEMOS.includes(key);
+export const hasRecipeDemo = (key: RecipeKey) => DEMO_RECIPES.includes(key);
+/** The demo design that shows template number `index` (0 based) of a design page, if the demo has it. */
+export function demoDesign(featureKey: FeatureKey, index: number): number | undefined {
+  return index >= 0 && index < (DEMO_TEMPLATES[featureKey] ?? 0) ? index + 1 : undefined;
+}
 export const demoSlug = (featureKey: string) => featureKey.replace(/_/g, "-");
 export const recipeSlug = (recipeKey: string) => recipeKey.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 

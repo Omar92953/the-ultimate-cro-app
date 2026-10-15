@@ -17,9 +17,10 @@ import { applyCrossSellPreset, CROSS_SELL_PRESETS, matchCrossSellTheme, withCros
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { CrossSellDesignPreview, CrossSellDrawerPreview, SAMPLE_CROSS_SELL, type CrossSellOffer } from "../components/CrossSellDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -111,6 +112,7 @@ export default function CrossSellDesigner() {
   return (
     <s-page heading="Cross-sell offers" inlineSize="large">
       <CategoryCrumb feature="cross_sell" />
+      <DemoButton feature="cross_sell" template={templateInUse(CROSS_SELL_PRESETS, cfg, applyCrossSellPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store

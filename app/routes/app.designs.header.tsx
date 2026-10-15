@@ -21,6 +21,8 @@ import { ThemeMatch } from "../components/ThemeStyle";
 import { matchHeader } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
+import { templateInUse } from "../components/LookPicker";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -85,6 +87,7 @@ export default function HeaderDesigner() {
   return (
     <s-page heading="Header" inlineSize="large">
       <CategoryCrumb feature="header" />
+      <DemoButton feature="header" template={templateInUse(PRESETS, cfg, applyPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store

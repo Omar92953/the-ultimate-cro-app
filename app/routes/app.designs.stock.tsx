@@ -16,9 +16,10 @@ import { applyStockPreset, STOCK_PRESETS, STOCK_SIZES, withStockDefaults, type S
 import { Button, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { StockPreview } from "../components/StockPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { Segmented } from "../components/ui";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -75,6 +76,7 @@ export default function StockDesigner() {
   return (
     <s-page heading="Back in stock & pre-order" inlineSize="large">
       <CategoryCrumb feature="stock" />
+      <DemoButton feature="stock" template={templateInUse(STOCK_PRESETS, cfg, applyStockPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
         See it on my store

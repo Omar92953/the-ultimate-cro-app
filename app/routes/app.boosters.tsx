@@ -11,6 +11,7 @@ import { sectionLinks } from "../lib/sections.server";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { Card, CardGrid, CardText, Explainer, Pill } from "../components/ui";
 import { CategoryCrumb } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -94,7 +95,7 @@ export default function Boosters() {
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <CardGrid cols={2}>
-          <Card title="Sticky add to cart" badge={<Pill tone={cfg.sticky.enabled ? "ok" : "muted"}>{cfg.sticky.enabled ? "On" : "Off"}</Pill>}>
+          <Card title="Sticky add to cart" actions={<DemoButton feature="sticky_atc" slot="" variant="tertiary" />} badge={<Pill tone={cfg.sticky.enabled ? "ok" : "muted"}>{cfg.sticky.enabled ? "On" : "Off"}</Pill>}>
             <CardText>A bar with the product, price and Add to cart that appears once shoppers scroll past your button.</CardText>
             <Switch label="Show the sticky bar" checked={cfg.sticky.enabled} onValue={(v) => set("sticky", { enabled: v })} />
             <Select label="Position" value={cfg.sticky.position} onValue={(v) => set("sticky", { position: v as "bottom" | "top" })} options={[{ value: "bottom", label: "Bottom of the screen" }, { value: "top", label: "Top of the screen" }]} />
@@ -105,7 +106,7 @@ export default function Boosters() {
             <TextField label="Button colour" details="Empty = your theme's button colour. Example: #111111" value={cfg.sticky.buttonBg} onValue={(v) => set("sticky", { buttonBg: v })} />
           </Card>
 
-          <Card title="Stock urgency" badge={<Pill tone={cfg.urgency.enabled ? "ok" : "muted"}>{cfg.urgency.enabled ? "On" : "Off"}</Pill>}>
+          <Card title="Stock urgency" actions={<DemoButton feature="stock_urgency" slot="" variant="tertiary" />} badge={<Pill tone={cfg.urgency.enabled ? "ok" : "muted"}>{cfg.urgency.enabled ? "On" : "Off"}</Pill>}>
             <CardText>“Only 3 left” above Add to cart, from your real stock, when a variant runs low.</CardText>
             <Switch label="Show low-stock urgency" checked={cfg.urgency.enabled} onValue={(v) => set("urgency", { enabled: v })} />
             <NumberField label="Show when stock is at or below" min={1} max={100} value={cfg.urgency.threshold} onValue={(v) => set("urgency", { threshold: v })} />
@@ -116,7 +117,7 @@ export default function Boosters() {
             <CardText>Only for products that track stock and stop selling at zero.</CardText>
           </Card>
 
-          <Card title="Trust badges" badge={<Pill tone={cfg.trust.enabled ? "ok" : "muted"}>{cfg.trust.enabled ? "On" : "Off"}</Pill>}>
+          <Card title="Trust badges" actions={<DemoButton feature="trust_badges" slot="" variant="tertiary" />} badge={<Pill tone={cfg.trust.enabled ? "ok" : "muted"}>{cfg.trust.enabled ? "On" : "Off"}</Pill>}>
             <CardText>Reassurance under Add to cart: secure checkout, delivery, returns… plus the payment methods your store accepts.</CardText>
             <Switch label="Show trust badges" checked={cfg.trust.enabled} onValue={(v) => set("trust", { enabled: v })} />
             <TextField label="Heading (optional)" value={cfg.trust.heading} onValue={(v) => set("trust", { heading: v })} />
@@ -132,7 +133,7 @@ export default function Boosters() {
             <Select label="Layout" value={cfg.trust.style} onValue={(v) => set("trust", { style: v as "row" | "grid" })} options={[{ value: "row", label: "In a row" }, { value: "grid", label: "Boxes, two per row" }]} />
           </Card>
 
-          <Card title="Sales pop-ups" badge={<Pill tone={cfg.salesPop.enabled ? "ok" : "muted"}>{cfg.salesPop.enabled ? "On" : "Off"}</Pill>}>
+          <Card title="Sales pop-ups" actions={<DemoButton feature="sales_pop" slot="" variant="tertiary" />} badge={<Pill tone={cfg.salesPop.enabled ? "ok" : "muted"}>{cfg.salesPop.enabled ? "On" : "Off"}</Pill>}>
             <CardText>Small notes of real recent purchases. Never invented: with no orders in the last days, nothing shows.</CardText>
             <Switch label="Show sales pop-ups" checked={cfg.salesPop.enabled} onValue={(v) => set("salesPop", { enabled: v })} />
             <Select label="Corner" value={cfg.salesPop.position} onValue={(v) => set("salesPop", { position: v as "bottom-left" })} options={[{ value: "bottom-left", label: "Bottom left" }, { value: "bottom-right", label: "Bottom right" }]} />

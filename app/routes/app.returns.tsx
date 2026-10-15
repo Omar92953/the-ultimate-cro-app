@@ -11,6 +11,7 @@ import { sectionLinks } from "../lib/sections.server";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -54,6 +55,7 @@ export default function ReturnRequests() {
   return (
     <s-page heading="Returns" inlineSize="large">
       <CategoryCrumb feature="returns" />
+      <DemoButton feature="returns" />
       <Button slot="primary-action" variant="primary" href="/app/pages/returns">
         Design the page
       </Button>

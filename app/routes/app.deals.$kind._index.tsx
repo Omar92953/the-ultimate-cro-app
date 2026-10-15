@@ -14,6 +14,7 @@ import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { dealFeature } from "../lib/catalog";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, redirect } = await authenticate.admin(request);
@@ -62,6 +63,7 @@ export default function DealList() {
   return (
     <s-page heading={t.title} inlineSize="large">
       <CategoryCrumb feature={featureKey} />
+      <DemoButton feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}
       </Button>

@@ -13,9 +13,10 @@ import { applyWishlistPreset, WISHLIST_PRESETS, WISHLIST_SIZES, withWishlistDefa
 import { Button, Checkbox, ColorField, NumberField, Select, TextField } from "../components/fields";
 import { WishlistPreview } from "../components/WishlistPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -65,6 +66,7 @@ export default function WishlistDesigner() {
   return (
     <s-page heading="Wishlist" inlineSize="large">
       <CategoryCrumb feature="wishlist" />
+      <DemoButton feature="wishlist" template={templateInUse(WISHLIST_PRESETS, cfg, applyWishlistPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Turn on in theme"}

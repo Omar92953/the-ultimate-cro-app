@@ -16,13 +16,14 @@ import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Swi
 import { MediaPicker } from "../components/MediaPicker";
 import { ReviewsPreview, type PreviewReview } from "../components/ReviewsPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchReviews } from "../lib/theme-match";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -108,6 +109,7 @@ export default function ReviewsDesigner() {
   return (
     <s-page heading={isProduct ? "Product page reviews" : "Customer reviews"} inlineSize="large">
       <CategoryCrumb feature={feature} />
+      <DemoButton feature={feature} template={templateInUse(isProduct ? PRODUCT_REVIEW_PRESETS : REVIEW_PRESETS, cfg, applyReviewPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store

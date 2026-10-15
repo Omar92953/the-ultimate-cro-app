@@ -92,6 +92,11 @@ plays on `/tutorials/` too.
 
 ### Adding or changing a demo
 
+- The app's "See live demo" button (`app/components/DemoButton.tsx`) opens `demoUrl()` from
+  `app/lib/site.ts`. On a design page it opens the demo design of the template in use: a feature's
+  first demo designs are its templates in the app's order (tagged `template: p.key` in
+  `demos/src/features.mjs`), and `DEMO_TEMPLATES` says how many. The demo build tells you the right
+  number when they drift.
 - A new feature: add it to `demos/src/features.mjs` (render its block with the app's templates, like
   the others) and to `DEMOS` in `app/lib/site.ts`, then `npm --prefix demos run build` and look at it.
 - Demo products, reviews, questions: `demos/src/data.mjs`. The demo store page: `demos/src/shell.mjs`.

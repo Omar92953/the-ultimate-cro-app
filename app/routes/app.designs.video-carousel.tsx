@@ -16,9 +16,10 @@ import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../com
 import { Segmented } from "../components/ui";
 import { VideoCarouselPreview, type PreviewSlide } from "../components/VideoCarouselPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { VIDEO_SIZES } from "../lib/video-carousel-design";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -112,6 +113,7 @@ export default function VideoCarouselDesigner() {
   return (
     <s-page heading="Video carousel" inlineSize="large">
       <CategoryCrumb feature="videos" />
+      <DemoButton feature="videos" template={templateInUse(VIDEO_CAROUSEL_PRESETS, cfg, applyVideoCarouselPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store

@@ -22,6 +22,8 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchShippingBar } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
+import { templateInUse } from "../components/LookPicker";
 import { SizesSection } from "../components/SizesSection";
 import { SHIPPING_BAR_SIZES } from "../lib/shipping-bar";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -95,6 +97,7 @@ export default function ShippingBarDesigner() {
   return (
     <s-page heading="Free shipping bar" inlineSize="large">
       <CategoryCrumb feature="shipping_bar" />
+      <DemoButton feature="shipping_bar" template={templateInUse(SHIPPING_BAR_PRESETS, cfg, (c, key) => ({ ...c, look: { ...c.look, ...SHIPPING_BAR_PRESETS.find((x) => x.key === key)?.look } }))} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store

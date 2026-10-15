@@ -15,6 +15,7 @@ import { checkCheckoutRules } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
 import { CUSTOMERS, LIMIT_KINDS, describeChange, emptyWhen, newChangeRule, newLimitRule, type ChangeRule, type CheckoutKind, type LimitRule, type Picked } from "../lib/checkout-rules";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { Button, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
@@ -122,6 +123,7 @@ export default function CheckoutRules() {
   return (
     <s-page heading={heading} inlineSize="large">
       <CategoryCrumb feature={feature} />
+      <DemoButton feature={feature} />
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setRules(JSON.parse(saved))} />
       <s-stack gap="base">
         <FeatureTabs feature={feature} />

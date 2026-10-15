@@ -17,9 +17,10 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } 
 import { SAMPLE_OFFER, UpsellDesignPreview, type PreviewOffer } from "../components/UpsellDesignPreview";
 import type { PreviewProduct } from "../lib/preview-products.server";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { UPSELL_SIZES } from "../lib/upsell-design";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -112,6 +113,7 @@ export default function UpsellDesigner() {
   return (
     <s-page heading="Upsell offers" inlineSize="large">
       <CategoryCrumb feature="upsell" />
+      <DemoButton feature="upsell" template={templateInUse(UPSELL_PRESETS, cfg, applyUpsellPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store

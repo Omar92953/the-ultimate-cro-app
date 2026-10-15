@@ -16,9 +16,10 @@ import { applyCartExtrasPreset, CART_EXTRAS_PRESETS, CART_EXTRAS_SIZES, withCart
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { CartExtrasPreview } from "../components/CartExtrasPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -73,6 +74,7 @@ export default function CartExtrasDesigner() {
   return (
     <s-page heading="Gift note & delivery date" inlineSize="large">
       <CategoryCrumb feature="cart_extras" />
+      <DemoButton feature="cart_extras" template={templateInUse(CART_EXTRAS_PRESETS, cfg, applyCartExtrasPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=cart`} target="_blank" onClick={seeOnStore}>
         See it on my store

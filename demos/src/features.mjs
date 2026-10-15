@@ -42,7 +42,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const upsellOf = (key) => upsellD.toStorefrontUpsell(upsellD.applyUpsellPreset(upsellD.withUpsellDefaults({}), key));
   F.upsell = [
     ...await Promise.all(upsellD.UPSELL_PRESETS.map(async (p) => ({
-      title: `Quantity breaks: ${p.title}`, layout: "product", product: "glow-serum", place: "above",
+      template: p.key, title: `Quantity breaks: ${p.title}`, layout: "product", product: "glow-serum", place: "above",
       html: await block("ucro-upsell", { product: P["glow-serum"], page_type: "product", shop: shopWith({ designs: { upsell: upsellOf(p.key) }, meta: { "$app:cro_rule": [upsellRule] } }) }),
     }))),
     {
@@ -58,7 +58,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   });
   const crossOf = (key) => crossD.toStorefrontCrossSell(crossD.applyCrossSellPreset(crossD.withCrossSellDefaults({}), key));
   F.cross_sell = await Promise.all(crossD.CROSS_SELL_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "glow-serum",
+    template: p.key, title: p.title, layout: "product", product: "glow-serum",
     html: await block("ucro-cross-sell", { product: P["glow-serum"], page_type: "product", shop: shopWith({ designs: { cross_sell: crossOf(p.key) }, meta: { "$app:cro_rule": [crossRule] } }) }),
   })));
 
@@ -93,7 +93,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const persOf = (key) => persD.toStorefrontPersonalize(persD.applyPersonalizePreset(persD.withPersonalizeDefaults({ fields: [{ label: "Name to engrave", type: "text", max: 14, required: true, preview: true }] }), key));
   F.personalize = await Promise.all(persD.PERSONALIZE_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "engraved-mug", place: "above",
+    template: p.key, title: p.title, layout: "product", product: "engraved-mug", place: "above",
     html: await block("ucs-personalize", { product: P["engraved-mug"], page_type: "product", shop: shopWith({ designs: { personalize: persOf(p.key) } }) }),
   })));
 
@@ -101,7 +101,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const seed = { items: [{ key: "s1", id: P["glow-serum"].variants[0].id, quantity: 1, properties: {} }], attributes: {}, note: "", discount: "" };
   const toolsOf = (key) => toolsD.toStorefrontCartTools(toolsD.applyCartToolsPreset(toolsD.withCartToolsDefaults({}), key));
   F.cart_tools = await Promise.all(toolsD.CART_TOOLS_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "daily-cream", minHeight: 720, cartSeed: seed, autoClick: "#cart-icon-bubble",
+    template: p.key, title: p.title, layout: "product", product: "daily-cream", minHeight: 720, cartSeed: seed, autoClick: "#cart-icon-bubble",
     // TODO: remove once the countdown's ".ucs-cd { visibility: hidden }" no longer hides the app's cart drawer (same class) in ucs-sections.css.
     head: "<style>.ucs-cd.ucs-cd--right,.ucs-cd.ucs-cd--left{visibility:visible;display:block}</style>",
     embeds: await block("ucs-cart", { shop: shopWith({ designs: { cart_tools: toolsOf(p.key) } }) }),
@@ -120,18 +120,18 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const extrasOf = (key) => extrasD.toStorefrontCartExtras(extrasD.applyCartExtrasPreset(extrasD.withCartExtrasDefaults({ date: { on: true } }), key));
   F.cart_extras = await Promise.all(extrasD.CART_EXTRAS_PRESETS.map(async (p) => ({
-    title: p.title, layout: "cart", cartSeed: seed,
+    template: p.key, title: p.title, layout: "cart", cartSeed: seed,
     html: await block("ucs-cart-extras", { page_type: "cart", shop: shopWith({ designs: { cart_extras: extrasOf(p.key) } }) }),
   })));
 
   // ------------------------------------------------------------------------- Storefront --
   const reviewsOf = (key, place = "home") => reviewsD.toStorefrontReviews(reviewsD.applyReviewPreset(reviewsD.withReviewsDefaults({}, place), key));
   F.reviews = await Promise.all(reviewsD.REVIEW_PRESETS.filter((p) => p.key !== "widget").map(async (p) => ({
-    title: p.title, layout: "page",
+    template: p.key, title: p.title, layout: "page",
     html: await block("ucs-reviews", { shop: shopWith({ designs: { reviews: reviewsOf(p.key) } }) }),
   })));
   F.product_reviews = await Promise.all([...reviewsD.PRODUCT_REVIEW_PRESETS, reviewsD.REVIEW_PRESETS.find((p) => p.key === "widget")].map(async (p) => ({
-    title: p.title, layout: "product", product: "glow-serum", place: p.key === "widget" ? undefined : "above",
+    template: p.key, title: p.title, layout: "product", product: "glow-serum", place: p.key === "widget" ? undefined : "above",
     html: await block("ucs-product-reviews", { page_type: "product", product: reviewProductOf("glow-serum"), shop: shopWith({ designs: { reviews_product: reviewsOf(p.key, "product") } }) }),
   })));
 
@@ -159,11 +159,11 @@ export async function buildFeatures({ block, shopWith, mo }) {
   ];
 
   const logosOf = (key) => logosD.toStorefrontLogos(logosD.applyLogosPreset(logosD.withLogosDefaults({ text: { heading: "As seen in" } }), key));
-  F.logos = await Promise.all(logosD.LOGOS_PRESETS.map(async (p) => ({ title: p.title, layout: "page", html: await block("ucs-logos", { shop: shopWith({ designs: { logos: logosOf(p.key) } }) }) })));
+  F.logos = await Promise.all(logosD.LOGOS_PRESETS.map(async (p) => ({ template: p.key, title: p.title, layout: "page", html: await block("ucs-logos", { shop: shopWith({ designs: { logos: logosOf(p.key) } }) }) })));
 
   const annOf = (key) => annD.toStorefrontAnnouncement(annD.applyAnnouncementPreset(annD.withAnnouncementDefaults({}), key));
   F.announcements = await Promise.all(annD.ANNOUNCEMENT_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "cedar-candle",
+    template: p.key, title: p.title, layout: "product", product: "cedar-candle",
     top: await block("ucs-announcement", { shop: shopWith({ designs: { announcement: annOf(p.key) } }) }),
   })));
 
@@ -171,7 +171,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const countOf = (key, place, raw = {}) => countD.toStorefrontCountdownBar(countD.applyCountdownBarPreset(countD.withCountdownBarDefaults({ on: true, timer: { mode: "evergreen", hours: 6 }, ...raw }, place), key));
   F.countdown = [
     ...await Promise.all(countD.COUNTDOWN_BAR_PRESETS.slice(0, 6).map(async (p) => ({
-      title: `Top bar: ${p.title}`, layout: "product", product: "cedar-candle",
+      template: p.key, title: `Top bar: ${p.title}`, layout: "product", product: "cedar-candle",
       top: await block("ucs-countdown-bar", { settings: { position: "top" }, shop: shopWith({ designs: { countdown_bar: countOf(p.key, "header") } }) }),
     }))),
     {
@@ -187,7 +187,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const shipOf = (look, raw = {}) => shipD.toStorefrontShippingBar(shipD.withShippingBarDefaults({ goal: 50, look, ...raw }));
   F.shipping_bar = [
     ...await Promise.all(shipD.SHIPPING_BAR_PRESETS.map(async (p) => ({
-      title: p.title, layout: "product", product: "daily-cream", cartSeed: seed, css: ["ucs-shipping-bar.css"],
+      template: p.key, title: p.title, layout: "product", product: "daily-cream", cartSeed: seed, css: ["ucs-shipping-bar.css"],
       html: await block("ucs-shipping-bar", { cartTotal: 3400, shop: shopWith({ designs: { shipping_bar: shipOf(p.look) } }) }),
     }))),
     {
@@ -198,25 +198,25 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const quickOf = (key) => quickD.toStorefrontQuickAdd(quickD.applyQuickAddPreset(quickD.withQuickAddDefaults({}), key));
   F.quick_add = await Promise.all(quickD.QUICK_ADD_PRESETS.map(async (p) => ({
-    title: p.title, layout: "collection", collection: "bestsellers", css: ["ucs-quick-add.css"], minHeight: 620,
+    template: p.key, title: p.title, layout: "collection", collection: "bestsellers", css: ["ucs-quick-add.css"], minHeight: 620,
     embeds: await block("ucs-quick-add", { settings: { after: "drawer" }, shop: shopWith({ designs: { quick_add: quickOf(p.key) } }) }),
   })));
 
   const deliveryOf = (key) => deliveryD.toStorefrontDelivery(deliveryD.applyDeliveryPreset(deliveryD.withDeliveryDefaults({}), key));
   F.delivery = await Promise.all(deliveryD.DELIVERY_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "studio-tee",
+    template: p.key, title: p.title, layout: "product", product: "studio-tee",
     html: await block("ucs-delivery", { page_type: "product", product: P["studio-tee"], shop: shopWith({ designs: { delivery: deliveryOf(p.key) } }) }),
   })));
 
   const stockOf = (key) => stockD.toStorefrontStock(stockD.applyStockPreset(stockD.withStockDefaults({}), key));
   F.stock = await Promise.all(stockD.STOCK_PRESETS.map(async (p) => ({
-    title: p.title, layout: "product", product: "rose-candle",
+    template: p.key, title: p.title, layout: "product", product: "rose-candle",
     html: await block("ucs-stock", { page_type: "product", product: P["rose-candle"], shop: shopWith({ designs: { stock: stockOf(p.key) } }) }),
   })));
 
   const wishOf = (key) => wishD.toStorefrontWishlist(wishD.applyWishlistPreset(wishD.withWishlistDefaults({}), key));
   F.wishlist = await Promise.all(wishD.WISHLIST_PRESETS.map(async (p) => ({
-    title: p.title, layout: "collection", collection: "bestsellers", css: PAY_CSS,
+    template: p.key, title: p.title, layout: "collection", collection: "bestsellers", css: PAY_CSS,
     embeds: await block("ucs-boosters", { page_type: "collection", shop: shopWith({ designs: { wishlist: wishOf(p.key) }, meta: { "$app:cro_boosters": [mo("main", { config: boostersOnly({}) })] } }) }),
   })));
 
@@ -226,7 +226,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   F.hero = await Promise.all(heroD.HERO_PRESETS.map(async (p) => {
     const cfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "Our story" } }), p.key));
     const banner = mo("hero-demo", { name: "Demo", config: cfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
-    return { title: p.title, layout: "page", html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] }, designs: { hero_default: { h: "hero-demo" } } }) }) };
+    return { template: p.key, title: p.title, layout: "page", html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] }, designs: { hero_default: { h: "hero-demo" } } }) }) };
   }));
 
   const slide = (h, title, text, button) => ({ image: { id: `img-${h}`, url: `/img/${h}.svg`, kind: "image", title }, alt: P[h].title, title, text, link: "", button });
@@ -249,12 +249,12 @@ export async function buildFeatures({ block, shopWith, mo }) {
   );
   const videoOf = (key) => videoD.toStorefrontVideoCarousel(videoD.applyVideoCarouselPreset(videoD.withVideoCarouselDefaults({}), key));
   F.videos = await Promise.all(videoD.VIDEO_CAROUSEL_PRESETS.map(async (p) => ({
-    title: p.title, layout: "page",
+    template: p.key, title: p.title, layout: "page",
     html: `<div class="page-width">${await block("ucro-video-carousel", { product: P["glow-serum"], page_type: "index", shop: shopWith({ designs: { videos: videoOf(p.key) }, meta: { "$app:cro_carousel": [mo("main", { slides: vslides })] } }) })}</div>`,
   })));
 
   const faqOf = (key) => faqD.toStorefrontFaq(faqD.applyFaqPreset(faqD.withFaqDefaults({}), key));
-  F.faq = await Promise.all(faqD.FAQ_PRESETS.map(async (p) => ({ title: p.title, layout: "page", html: await block("ucs-faq", { shop: shopWith({ designs: { faq: faqOf(p.key) } }) }) })));
+  F.faq = await Promise.all(faqD.FAQ_PRESETS.map(async (p) => ({ template: p.key, title: p.title, layout: "page", html: await block("ucs-faq", { shop: shopWith({ designs: { faq: faqOf(p.key) } }) }) })));
 
   const qa = (id, label, tag) => ({ id, label, tag });
   const quizQuestions = [
@@ -262,7 +262,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     { id: "q2", text: "What sounds best?", answers: [qa("a4", "A calm evening", "candle"), qa("a5", "Glowing skin", "glow"), qa("a6", "Cosy feet", "socks")] },
   ];
   const quizOf = (key) => quizD.toStorefrontQuiz(quizD.applyQuizPreset(quizD.withQuizDefaults({ questions: quizQuestions, text: { intro: "Answer 2 quick questions and we'll pick the best products for you." }, results: { collection: "all", count: 3, saveToCart: true } }), key));
-  F.quiz = await Promise.all(quizD.QUIZ_PRESETS.map(async (p) => ({ title: p.title, layout: "page", html: await block("ucs-quiz", { shop: shopWith({ designs: { quiz: quizOf(p.key) } }) }) })));
+  F.quiz = await Promise.all(quizD.QUIZ_PRESETS.map(async (p) => ({ template: p.key, title: p.title, layout: "page", html: await block("ucs-quiz", { shop: shopWith({ designs: { quiz: quizOf(p.key) } }) }) })));
 
   const pillItems = ["all", "candles", "skincare", "socks", "home", "apparel", "gifts"].map((h) => ({ id: String(collections[h].id), handle: h, title: collections[h].title, label: "", image: null }));
   const pillsOf = (look, layout = {}) => pillsD.toStorefrontPills(pillsD.withPillsDefaults({ items: pillItems, look, layout }));
@@ -282,7 +282,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     const heroCfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "" } }), "classic"));
     const banner = mo("hero-demo", { name: "Demo", config: heroCfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
     return {
-      title: p.title, layout: "page", css: ["ucs-header.css"], minHeight: 520,
+      template: p.key, title: p.title, layout: "page", css: ["ucs-header.css"], minHeight: 520,
       html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] } }) }),
       embeds: await block("ucs-header", { linklists, shop: shopWith({ designs: { header: cfg } }) }),
     };
@@ -291,7 +291,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const social = { instagram: "https://instagram.com/", tiktok: "https://tiktok.com/", pinterest: "https://pinterest.com/" };
   const footerOf = (key) => footerD.toStorefrontFooter({ ...footerD.applyFooterPreset(footerD.withFooterDefaults({}), key), social });
   F.footer = await Promise.all(footerD.FOOTER_PRESETS.map(async (p) => ({
-    title: p.title, layout: "page", html: '<div class="page-width demo-pad"><p style="color:#777">Your page content.</p></div>',
+    template: p.key, title: p.title, layout: "page", html: '<div class="page-width demo-pad"><p style="color:#777">Your page content.</p></div>',
     bottom: await block("ucs-footer", { linklists, shop: shopWith({ designs: { footer: footerOf(p.key) } }) }),
   })));
 
@@ -303,7 +303,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   ].map(async ([title, raw]) => ({ title, layout: "page", css: ["ucs-contact.css"], html: await block("ucs-contact", { page_type: "page", shop: shopWith({ meta: { "$app:cro_page": [mo("contact", { config: contactCfg(raw) })] } }) }) })));
 
   const orderPage = (kind) => async (p) => ({
-    title: p.title, layout: "page",
+    template: p.key, title: p.title, layout: "page",
     html: await block("ucs-order-page", { settings: { page: kind }, page_type: "page", shop: shopWith({ designs: { [kind]: orderD.toStorefrontOrderPage(orderD.applyOrderPagePreset(orderD.withOrderPageDefaults({}, kind), p.key)) } }) }),
   });
   F.track = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("track")));
@@ -353,7 +353,18 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const sockDrawer = bundleMo("sock-drawer", { product: P["sock-drawer"], pricing: "tiers", price_rules: { tr: [[3, 3000], [6, 5500]], ex: {} }, allow_duplicates: true, steps: [step("st-socks", { label: "Pick 3 or 6 pairs", min_picks: 3, max_picks: 6, collection: collections.socks })] });
   R.anyN = await Promise.all([["Sharp and compact", "sharp"], ["Blue", "blue"]].map(async ([title, key]) => ({ title, layout: "product", product: "sock-drawer", place: "above", html: await builder("sock-drawer", sockDrawer, key) })));
 
-  return { features: F, recipes: R };
+  // Each feature's templates as its design page in the app lists them: demo design N shows template N
+  // (DEMO_TEMPLATES in app/lib/site.ts says how many; the build checks it).
+  const T = {
+    upsell: upsellD.UPSELL_PRESETS, cross_sell: crossD.CROSS_SELL_PRESETS, personalize: persD.PERSONALIZE_PRESETS,
+    cart_tools: toolsD.CART_TOOLS_PRESETS, cart_extras: extrasD.CART_EXTRAS_PRESETS,
+    reviews: reviewsD.REVIEW_PRESETS, product_reviews: reviewsD.PRODUCT_REVIEW_PRESETS, logos: logosD.LOGOS_PRESETS,
+    announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
+    quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
+    hero: heroD.HERO_PRESETS, videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
+    header: headerD.PRESETS, footer: footerD.FOOTER_PRESETS, track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
+  };
+  return { features: F, recipes: R, templates: T };
 }
 
 /** The boosters config with everything off except what a demo shows. */
