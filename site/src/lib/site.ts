@@ -19,6 +19,18 @@ export const SITE_NAME = "CRO Toolbox";
 /** Who runs the app (Shopify Partner organization). TODO(Omar): legal name and country. */
 export const OPERATOR = "OMC";
 
+/**
+ * Social profiles: the footer icons and the Organization schema's sameAs both read this. An empty
+ * address hides that icon (and leaves it out of sameAs). TODO(Omar): paste the real profile URLs.
+ */
+export const SOCIAL = {
+  youtube: "",
+  instagram: "",
+  facebook: "",
+  tiktok: "",
+};
+export type SocialKey = keyof typeof SOCIAL;
+
 export const NOTIFY_HREF = "/#get-notified";
 
 /**

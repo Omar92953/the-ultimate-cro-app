@@ -1,8 +1,16 @@
 ---
 import Logo from "./Logo.astro";
-import { FOOTER, OPERATOR } from "../lib/site";
+import { FOOTER, OPERATOR, SOCIAL, type SocialKey } from "../lib/site";
 import { BRAND_LINE } from "../lib/brand";
 const year = new Date().getFullYear();
+// 24x24 icon paths (simple monochrome marks). Names are used for the aria labels.
+const ICONS: Record<SocialKey, { label: string; path: string }> = {
+  youtube: { label: "YouTube", path: "M21.6 7.2a2.5 2.5 0 0 0-1.75-1.77C18.3 5 12 5 12 5s-6.3 0-7.85.43A2.5 2.5 0 0 0 2.4 7.2C2 8.76 2 12 2 12s0 3.24.4 4.8a2.5 2.5 0 0 0 1.75 1.77C5.7 19 12 19 12 19s6.3 0 7.85-.43a2.5 2.5 0 0 0 1.75-1.77C22 15.24 22 12 22 12s0-3.24-.4-4.8ZM10 15V9l5.2 3L10 15Z" },
+  instagram: { label: "Instagram", path: "M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3Zm0 1.8A2.7 2.7 0 0 0 4.8 7.5v9a2.7 2.7 0 0 0 2.7 2.7h9a2.7 2.7 0 0 0 2.7-2.7v-9a2.7 2.7 0 0 0-2.7-2.7h-9ZM12 7.6a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8Zm0 1.8a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Zm5-2.9a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1Z" },
+  facebook: { label: "Facebook", path: "M13.5 21v-7.2h2.4l.4-2.9h-2.8V9.1c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.1-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.1H8v2.9h2.5V21h3Z" },
+  tiktok: { label: "TikTok", path: "M16.6 3h-2.9v12.3a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.8a5.5 5.5 0 1 0 4.7 5.5V9a6.7 6.7 0 0 0 3.9 1.2V7.3A3.9 3.9 0 0 1 16.6 3Z" },
+};
+const socials = (Object.keys(SOCIAL) as SocialKey[]).filter((k) => SOCIAL[k]).map((k) => ({ ...ICONS[k], href: SOCIAL[k] }));
 ---
 
 <footer class="site-footer dark">
@@ -11,6 +19,19 @@ const year = new Date().getFullYear();
       <div class="brand">
         <Logo />
         <p class="muted">{BRAND_LINE} Works with any Online Store 2.0 theme.</p>
+        {
+          socials.length > 0 && (
+            <ul class="social" aria-label="Follow us">
+              {socials.map((s) => (
+                <li>
+                  <a href={s.href} target="_blank" rel="noopener" aria-label={`${s.label} (opens in a new tab)`}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d={s.path} /></svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
       </div>
       {
         FOOTER.map((col) => (
@@ -71,6 +92,22 @@ const year = new Date().getFullYear();
   }
   a:hover {
     color: var(--accent);
+  }
+  .social {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .social a {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #2f3039;
+  }
+  .social a:hover {
+    border-color: var(--accent);
   }
   .bottom {
     margin-top: 56px;
