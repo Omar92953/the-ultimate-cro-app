@@ -45,7 +45,7 @@ Run from the repo root:
 
 ## Deploying
 
-Any static host works, with **root directory `site`**, **build command `npm ci && npm run build`**,
-**output directory `dist`** and Node 22. Set `SITE_URL` to the site's address (for example
-`https://crotoolbox.app`) so canonical links and the sitemap use it. The host and domain are still to be
-chosen with Omar.
+Cloudflare Pages (free plan), domain crotoolbox.com, set up by Omar in the Cloudflare dashboard:
+project root = the repo root, build command `npm --prefix site ci && npm --prefix site run build`,
+output directory `site/dist`, Node 22. Every change to `main` deploys on its own. `SITE_URL` defaults to
+`https://crotoolbox.com` (set the `SITE_URL` env var for another address).

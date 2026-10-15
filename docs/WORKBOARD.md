@@ -19,7 +19,7 @@ Updated 2026-10-15.
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
-- [~] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36, open; to merge)
+- [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
 - [ ] PR 2: live demo pipeline and a demo page per feature
 - [ ] PR 3: bundles hub, features, use cases, comparisons
 - [ ] PR 4: blog (6 articles), help center, tutorials page
