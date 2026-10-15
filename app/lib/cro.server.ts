@@ -1364,6 +1364,8 @@ export function bundleBuilderLinks(shop: string, productHandle?: string | null, 
   return {
     product: `${base}?template=product&addAppBlockId=${block}&target=mainSection${productHandle ? `&previewPath=${encodeURIComponent(`/products/${productHandle}`)}` : ""}`,
     page: pageHandle ? `${base}?template=page&addAppBlockId=${block}&target=newAppsSection&previewPath=${encodeURIComponent(`/pages/${pageHandle}`)}` : null,
+    tray: `${base}?context=apps&activateAppId=${key}/${BLOCKS.bundle_tray}`,
+    button: `${base}?template=product&addAppBlockId=${key}/${BLOCKS.bundle_button}&target=mainSection`,
   };
 }
 

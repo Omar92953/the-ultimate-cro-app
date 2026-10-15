@@ -37,7 +37,7 @@ Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `
 | App server | Render web service **cro-toolbox**, https://cro-toolbox.onrender.com. Serves the admin pages that load inside Shopify admin, OAuth and webhooks. Not a public website. Auto-deploys on every merge to `main`. Env is managed by `render.yaml` (Blueprint). |
 | Database | Supabase project **cro-toolbox** (Postgres, sessions only via Prisma) |
 | Merchant data | The merchant's own store: `$app:*` metaobjects and metafields (no app database for settings) |
-| Shopify app | App handle `the-ultimate-cro-app`, client id in `shopify.app.toml`. Live version: **cro-toolbox-17** |
+| Shopify app | App handle `the-ultimate-cro-app`, client id in `shopify.app.toml`. Live version: **cro-toolbox-18** |
 | Test store | **Testing2** `testing2-j6mmnywm.myshopify.com` (dev store, password protected storefront, theme `test-data`) |
 | Live store | `ms6vwv-3n.myshopify.com` (Backrooms). **Never touch it or its themes.** |
 
@@ -184,7 +184,7 @@ Cloud accounts can't reach Shopify hosts: write the code and PR, and ask Omar to
 
 ## 10. Status (2026-10-15)
 
-Done and live (cro-toolbox-17): bundles overhaul Phases 0 to 5, Frequently bought together box
+Done and live (cro-toolbox-18): bundles overhaul Phases 0 to 5, Frequently bought together box
 designs, deal box redesign, fixes found while testing (kit options, refused saves wiping editors,
 bundle products offered as picks).
 
@@ -197,7 +197,9 @@ Phase 6 testing on Testing2:
 - [x] Recipe 4 growing discount on its own store page: app creates the hidden product and the page; the
       page link adds the block to the page template; 1 pick no discount, 2 picks 10%, 3 picks 15%,
       "Add 1 more to save" hints; cart matches to the cent
-- [ ] Recipe 5 build while browsing (tray embed)
+- [x] Recipe 5 build while browsing: tray embed turned on with the app's link; "+ Add to bundle" on the step's
+      collection page (not on bundle products); tray 1 pick no discount, 2 picks 10%, 3 picks 15%; picks show on the
+      bundle's store page; one cart line at $1,925.97; checkout 1 item, same price, no stacking (cro-toolbox-18)
 - [ ] Recipe 6 long collection, one price
 - [ ] Checkout: one bundle line at the bundle price; no discount stacking
 

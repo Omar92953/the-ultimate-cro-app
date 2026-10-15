@@ -35,7 +35,7 @@
 {%- endcapture -%}
 {%- if on and bundles != blank -%}
   <script type="application/json" id="ucro-bt-data">
-    {"mode":{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' | json }},"fmt":{{ shop.money_format | json }},"page":{{ request.page_type | json }},"col":{% if collection %}{{ collection.id }}{% else %}null{% endif %},"cls":{{ d.cls | default: '' | json }},"css":{{ d.css | default: '' | json }},"tp":{{ d.tp | default: 'bottom' | json }},"t":{"add":{{ d.ta | default: 'Add to bundle' | json }},"cart":{{ d.tc | default: 'Add bundle to cart' | json }},"go":{{ d.tk | default: 'Checkout' | json }},"more":{{ d.rem | default: 'Choose [remaining] more' | json }}},"b":[{{ bundles | strip | remove_last: ',' }}]}
+    {"mode":{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' | json }},"fmt":{{ shop.money_format | json }},"page":{{ request.page_type | json }},"col":{% if collection %}{{ collection.id }}{% else %}null{% endif %},"x":[{%- if collection -%}{%- for p in collection.products -%}{%- if p.tags contains 'cro-bundle' -%}{{ p.handle | json }},{%- endif -%}{%- endfor -%}{%- endif -%}""],"cls":{{ d.cls | default: '' | json }},"css":{{ d.css | default: '' | json }},"tp":{{ d.tp | default: 'bottom' | json }},"t":{"add":{{ d.ta | default: 'Add to bundle' | json }},"cart":{{ d.tc | default: 'Add bundle to cart' | json }},"go":{{ d.tk | default: 'Checkout' | json }},"more":{{ d.rem | default: 'Choose [remaining] more' | json }}},"b":[{{ bundles | strip | remove_last: ',' }}]}
   </script>
   <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
   <script src="{{ 'ucro-bundle-tray.js' | asset_url }}" defer></script>

@@ -39,6 +39,10 @@ async function placement(admin: Parameters<typeof getThemeStatus>[0], shop: stri
     known: !!status,
     product: files.some((f) => /^templates\/product(\.|$)/.test(f)),
     page: files.some((f) => /^templates\/page(\.|$)/.test(f)),
+    // Build while browsing: the Bundle tray embed (tray + "+" on collection cards) and the
+    // optional "Add to bundle" block on product pages.
+    tray: !!status?.installed.bundle_tray,
+    button: !!status?.installed.bundle_button,
   };
 }
 
@@ -307,6 +311,28 @@ export default function BundleEditor() {
                       </s-stack>
                     ) : null}
                   </s-stack>
+                ) : null}
+                {bundle.storeWide ? (
+                  <>
+                    <s-stack gap="small-100">
+                      <s-text type="strong">{placed.tray ? `${where === "both" ? 4 : 3}. Bundle tray ✓` : `${where === "both" ? 4 : 3}. Turn on the Bundle tray`}</s-text>
+                      <s-text color="subdued">Needed to build while browsing: it adds “+ Add to bundle” on the step’s collection page and the tray that follows the shopper. Turn it on once, then click Save in the theme editor.</s-text>
+                      <s-stack direction="inline">
+                        <Button variant={placed.tray ? "tertiary" : "primary"} href={links.tray} target="_top" icon="theme-edit">
+                          {placed.tray ? "Open in theme editor" : "Turn on"}
+                        </Button>
+                      </s-stack>
+                    </s-stack>
+                    <s-stack gap="small-100">
+                      <s-text type="strong">{placed.button ? `${where === "both" ? 5 : 4}. Add to bundle on product pages ✓` : `${where === "both" ? 5 : 4}. Add to bundle on product pages (optional)`}</s-text>
+                      <s-text color="subdued">A button on each item’s product page that adds it to the bundle.</s-text>
+                      <s-stack direction="inline">
+                        <Button variant="tertiary" href={links.button} target="_top" icon="theme-edit">
+                          {placed.button ? "Open in theme editor" : "Add to theme"}
+                        </Button>
+                      </s-stack>
+                    </s-stack>
+                  </>
                 ) : null}
                 {bundle.product ? (
                   <s-stack direction="inline">
