@@ -4,6 +4,8 @@ Everything about prices and limits lives in **`app/lib/plans.ts`** — change a 
 whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values were confirmed
 with Omar on 2026-10-14: Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial.
 
+Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; prices $5.99 / $59, $14.99 / $149, $24.99 / $249 a year; 14-day trials on the paid plans; every plan button opens Shopify's plan page (`target="_top"`); a failed plan check locks nothing.
+
 ## How it works
 
 - Billing is **Shopify App Pricing**: plans are created in the Partner Dashboard and Shopify shows
