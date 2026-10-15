@@ -1,5 +1,10 @@
 # Handoff to Omar's main account
 
+> **Update 2026-10-15 evening:** much of the "Where things stand" below is older than the repo. Current
+> state: Shopify **cro-toolbox-21** (countdown/cart drawer fix deployed), all 6 bundle recipes and
+> checkout verified, website live at https://crotoolbox.com with all 5 website PRs merged. Trust
+> `CLAUDE.md` and `docs/WORKBOARD.md` over this file.
+
 Written 2026-10-15 by the Claude session that ran the bundles overhaul, the bundle tests on Testing2
 and the website setup, for Omar's main Claude account taking over on his Mac.
 
