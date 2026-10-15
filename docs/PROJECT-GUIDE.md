@@ -200,7 +200,10 @@ Phase 6 testing on Testing2:
 - [x] Recipe 5 build while browsing: tray embed turned on with the app's link; "+ Add to bundle" on the step's
       collection page (not on bundle products); tray 1 pick no discount, 2 picks 10%, 3 picks 15%; picks show on the
       bundle's store page; one cart line at $1,925.97; checkout 1 item, same price, no stacking (cro-toolbox-18)
-- [ ] Recipe 6 long collection, one price
+- [x] Recipe 6 long collection, one price: 60 product test collection "Bundle test 60" (tag bundle-test);
+      builder shows 50, Show more loads the rest and hides itself, search finds items on page 2; 3 picks $207 worth
+      for $30; one cart line at $30; checkout 1 item $30. Fix: the bundle product starts at the lowest bundle price
+      instead of $0.00
 - [ ] Checkout: one bundle line at the bundle price; no discount stacking
 
 Known gaps: the theme editor ignores `previewPath` with `addAppBlockId` (the page link opens another page, the block still lands on the page template); the Add to theme link appends the builder below the theme's Add to cart button (merchant

@@ -132,7 +132,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const problems = validateBundle({ ...bundle, product: bundle.product ?? (create ? { id: "pending", title: create.title } : null) }, others);
     if (problems.length) return { ok: false, error: problems.join(" "), handle: null, upgrade: false };
     if (!bundle.product && create) {
-      const p = await createBundleProduct(admin, { title: create.title || bundle.name, price: create.price, imageUrl: create.imageUrl, hidden: where === "page" });
+      // No starting price entered: for "price by number of items" show the lowest bundle price, so the
+      // product page never says $0.00 (shoppers pay the tier price at checkout either way).
+      const tierPrices = bundle.pricing === "tiers" ? bundle.tiers.map((t) => t.price).filter((x) => x > 0) : [];
+      const price = create.price > 0 ? create.price : tierPrices.length ? Math.min(...tierPrices) : create.price;
+      const p = await createBundleProduct(admin, { title: create.title || bundle.name, price, imageUrl: create.imageUrl, hidden: where === "page" });
       bundle.product = { id: p.id, title: p.title, image: p.image, handle: p.handle };
     }
     if (where === "product") bundle.page = null;
@@ -379,7 +383,7 @@ export default function BundleEditor() {
               <TextField label="Product title" placeholder={bundle.name || "Build your own box"} value={create.title} onValue={(v) => setCreate((c) => ({ ...c, title: v }))} />
               <NumberField
                 label={bundle.pricing === "fixed" ? "Bundle price" : "Starting price"}
-                details={bundle.pricing === "fixed" ? "Shoppers pay this for the whole bundle, whatever they pick." : "Shown before anything is picked; shoppers pay what the pricing below gives."}
+                details={bundle.pricing === "fixed" ? "Shoppers pay this for the whole bundle, whatever they pick." : bundle.pricing === "tiers" ? "Shown before anything is picked. Leave it at 0 to show the lowest bundle price." : "Shown before anything is picked; shoppers pay what the pricing below gives."}
                 min={0}
                 step={0.01}
                 value={create.price}

@@ -7,8 +7,7 @@ Updated 2026-10-15.
 ## App
 
 - [x] Bundles overhaul Phases 0 to 5 (`docs/plans/bundles-overhaul.md`)
-- [ ] **Phase 6 testing on Testing2** (needs a session on the Mac): recipes 1 to 5 verified; left: recipe 6 long collection (needs about 60 test products;
-      ask Omar), checkout with no discount stacking. Status in `docs/PROJECT-GUIDE.md` §10.
+- [ ] **Phase 6 testing on Testing2** (needs a session on the Mac): recipes 1 to 6 verified; left: checkout with no discount stacking. Status in `docs/PROJECT-GUIDE.md` §10.
 - [ ] "Show live preview" buttons in the app, linking to the website demos (`demoUrl()`), after
       the website's demo pages exist (website PR 2)
 - [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
