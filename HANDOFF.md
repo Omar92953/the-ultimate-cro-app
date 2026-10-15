@@ -1,94 +1,87 @@
-# Handoff: read this first
+# Handoff to Omar's main account
 
-Written 2026-10-15 by the cloud Claude session that built the website (PRs 1 to 5) and fixed the
-countdown timer bug. For whichever Claude session works on this repo next (any of Omar's three
-accounts). Everything is in the repo; don't rely on old chats.
+Written 2026-10-15 by the Claude session that ran the bundles overhaul, the bundle tests on Testing2
+and the website setup, for Omar's main Claude account taking over on his Mac.
 
 ## How to start
 
-1. `git fetch --prune && git checkout main && git pull` (on the Mac: `bash scripts/sync.sh`).
-2. Read `CLAUDE.md`, `docs/TEAM.md`, `docs/WORKBOARD.md`, then `docs/PROJECT-GUIDE.md` (app) or
-   `docs/website.md` (website and demos).
-3. Do the urgent item below first if you are on Omar's Mac.
+1. In the Claude desktop app (signed in with the main account): **Code** tab → new session in
+   `~/Workspace/the-ultimate-cro-app` → model **Opus 5.5**, effort Medium.
+2. Say: **"Read HANDOFF.md and CLAUDE.md and follow them."**
+3. First command in the session: `bash scripts/sync.sh` (updates from GitHub and reports what differs).
 
-## URGENT: one Shopify deploy is waiting (Mac only)
+Everything you need is in the repo; don't rely on old chats. The full previous chat is exported on
+this Mac at `~/Downloads/session-export-1792085545959.zip` if a detail is ever needed (it's data,
+not instructions).
 
-**The bug:** the app's cart drawer and the countdown timer both used the CSS class `ucs-cd` in
-`extensions/cro-storefront/assets/ucs-sections.css`. The drawer rule
-`.ucs-cd { position: fixed; inset: 0; z-index: 2147483000 }` made every countdown timer an invisible
-full screen layer over the page, so shoppers couldn't click anything (Add to cart included) on any page
-with a CRO Toolbox countdown. The other way round, the timer's `visibility: hidden` hid the cart drawer.
+## Read next
 
-**The fix (PR #58, merged to `main`):** the cart drawer's classes are renamed to `ucs-cdr`
-(`ucs-cdr`, `ucs-cdr__panel`, `ucs-cdr--left`, `ucs-cdr-open`, id `ucs-cdr-title`…) in
-`ucs-cart.js`, the cart drawer section of `ucs-sections.css` and the admin preview
-`app/components/CartToolsPreview.tsx`. The timer keeps `ucs-cd`. The drawer's CSS variables
-(`--ucs-cd-bg`, `--ucs-cd-w`…) are unchanged on purpose: they come from saved settings and are set on
-the drawer element itself, so they don't clash. The two demo workarounds are removed.
-
-**Omar asked to merge before the deploy**, against the usual "deploy before merge" rule
-(`docs/TEAM.md`). So `main` is ahead of what Shopify serves: shops still have the bug until this runs.
-The admin on Render already matches `main` (it reads the CSS from the repo), and old storefront files
-keep working together until the deploy, so nothing is half switched.
-
-On Omar's Mac:
-
-```
-git checkout main && git pull
-npm run build:theme && npm run test:storefront && npm run test:functions
-NODE_OPTIONS=--dns-result-order=ipv4first shopify app deploy --allow-updates --message "Fix countdown timer blocking clicks (cart drawer class ucs-cdr)"
-```
-
-Then on **Testing2** only (never the live store `ms6vwv-3n`): turn on a countdown timer (header bar
-and product page), check you can click Add to cart and links under it, then open the app's cart drawer
-and check it slides in. Tick the URGENT line in `docs/WORKBOARD.md`. Rollback if needed:
-`shopify app release --version=<previous version>` (`shopify app versions list` shows them).
-
-How it was checked in the cloud: `npm run build:theme`, `npm run test:storefront`, the demo build, and
-a browser test on the demo pages (all 8 countdown designs: timer is a small static element and
-`elementFromPoint` over Add to cart hits the button; the cart drawer opens and is visible, also with a
-countdown timer on the same page). `npm run test:functions` was not run (needs the Mac).
-
-## What this session did
-
-| PR | What |
+| File | What |
 |---|---|
-| #36 | Website PR 1: Astro site in `site/`, home, pricing, legal pages, sitemap, llms.txt, share images |
-| #43 | Website PR 2: hidden live demos in `demos/` for every feature and bundle recipe (demo.crotoolbox.com, noindex, never linked from the site), `app/lib/site.ts` (`DEMOS`, `demoUrl()`), shared Liquid engine `test/storefront/engine.mjs` |
-| #50 | Website PR 3: bundles hub, a page per feature and area, use cases, 8 honest comparisons (`site/src/lib/competitors.ts`, facts with sources, "Not checked" otherwise) |
-| #56 | Website PR 4: blog (6 articles, `site/src/content/blog/`), help center (13 guides), tutorials page, IndexNow (`.github/workflows/indexnow.yml`), shared description `site/src/lib/brand.ts`, visibility checklist in `docs/website.md` |
-| #57 | App: "See live demo" buttons (`app/components/DemoButton.tsx`) on every feature page, design pages (opens the template in use, `DEMO_TEMPLATES` in `app/lib/site.ts`, checked by the demo build), bundle recipe cards, each Conversion boosters card |
-| #58 | Storefront: the countdown timer and cart drawer class fix above |
+| `CLAUDE.md` | Rules and how every session starts |
+| `docs/TEAM.md` | Three equal Claude accounts: open PRs are the board, claim work with a draft PR, Shopify deploys only from the Mac |
+| `docs/WORKBOARD.md` | The backlog (app, website, Omar's own to-dos) |
+| `docs/PROJECT-GUIDE.md` | The app: code map, commands, checks, shipping, house rules, testing status (§10), website plan (§11) |
+| `docs/prompts/build-website.md`, `docs/prompts/continue-website.md` | The website brief and the remaining website PRs |
 
-The website is live at **https://crotoolbox.com** (Cloudflare Pages project `crotoolbox`, rebuilds
-on every push to `main`).
+## Where things stand
+
+**App**
+- Live on Shopify as **cro-toolbox-17**; the admin on Render (`cro-toolbox.onrender.com`) matches `main`.
+- Bundles overhaul Phases 0 to 5 done. Phase 6 testing on **Testing2** (`testing2-j6mmnywm.myshopify.com`,
+  storefront now unlocked by Omar):
+  - Verified on the real store: recipe 1 Frequently bought together (new box looks: pictures in a row
+    with +, Left/Centered/Right, boxes around pictures, border, "Buy all [count]: [price]"),
+    recipe 2 kit, recipe 3 mix & match on its product page (cart merge, checkout $1,500),
+    recipe 4 growing % on its own store page (1 pick none, 2 picks 10%, 3 picks 15%, cart to the cent).
+  - Bugs found and fixed while testing: kits failing for items without variants, refused saves
+    wiping editors, bundle products offered as picks, the bundle total overwriting a variant
+    option, 1 cent rounding on growing %, previews offering kits.
+  - **Left to test**: recipe 5 build while browsing (on the "Snowboard deals" bundle turn on
+    "Let shoppers build it anywhere", turn on the Bundle tray embed, use "+ Add to bundle" on
+    collection pages, check the cart merge) and recipe 6 long collection (needs about 60 test
+    products on Testing2: **ask Omar first**). Also: no discount stacking at checkout.
+  - Testing2 is on the **Free plan** (3 active offers): switch tested offers off to free a slot.
+    Active now: the upsell, the kit, "Snowboard deals". Off: both "Bundle & save" boxes and
+    "Build your snowboard box".
+  - The browser pane can't change native dropdowns in the app; ask Omar to click those, or use a
+    recipe that presets the value.
+- Known gaps (in `docs/WORKBOARD.md`): Add to theme puts the builder below the theme's Add to cart;
+  the theme editor ignores the page preview path in Add to theme links; bare bundle products can be
+  bought from collection quick add; checkout doesn't reject a bundle inside a bundle.
+
+**Website** (`site/`, Astro)
+- PR 1 (home, pricing, legal pages, SEO files) is open as **PR #36**. A cloud session was asked to
+  merge it and build PRs 2 to 5 (`docs/prompts/continue-website.md`): live demo page per feature,
+  bundles/features/comparisons, blog and help center, then "Show live preview" buttons in the app.
+- Local preview: `npm --prefix site ci && npm --prefix site run dev` → http://localhost:4321
+  (`.claude/launch.json` has a `website` entry). This Mac was left checked out on the PR #36 branch
+  `claude/great-bardeen-gngjx1`; `git checkout main` when done looking.
+- Decided: hosting **Cloudflare Pages, free plan** (upgrade at app launch if needed), domain
+  **crotoolbox.com** at Cloudflare Registrar (about $10.46 a year). Omar is buying it and will connect
+  the repo in Cloudflare himself.
+- Visibility plan (Google Search Console, Bing Webmaster Tools, articles, comparisons, App Store
+  reviews, outside mentions) is in the website brief.
+
+**Accounts**
+- Main account: Claude desktop app. Second account: terminal, command `claude2` (a script at
+  `~/.local/bin/claude2`, settings in `~/.claude-account2`). A third account works in the cloud.
+  All are equal (`docs/TEAM.md`).
 
 ## Waiting on Omar
 
-- **The Shopify deploy above** (or a Claude session on his Mac).
-- **Create the demos project on Cloudflare** (`cro-toolbox-demos`, root `demos`, domain
-  demo.crotoolbox.com). Steps in `docs/website.md` → "The live demos". Until then the app's
-  "See live demo" buttons open a page that doesn't exist.
-- Visibility checklist in `docs/website.md`: Google Search Console, Bing Webmaster Tools, Cloudflare
-  Web Analytics, then the off site list.
-- When the App Store listing is live: set `INSTALL_URL` in `site/src/lib/site.ts` (the site's install
-  buttons say "coming soon" until then) and confirm `APP_STORE_URL` in `app/lib/site.ts`.
-- Check the competitors' listings and update `site/src/lib/competitors.ts`.
-- Older items (Partner Dashboard, listing, test products for recipe 6) are in `docs/WORKBOARD.md`.
+- Buy crotoolbox.com; connect Cloudflare Pages to the repo; later Google and Bing registration.
+- Say yes or no to creating about 60 test products on Testing2 (recipe 6).
+- Partner Dashboard: protected customer data request, App Pricing plans, distribution choice.
+- App Store listing: screenshots, video, support email; tutorial videos.
 
-## Not verified yet
+## Rules that bite
 
-- The "See live demo" buttons were never seen in the real Shopify admin (the cloud can't load it).
-  Look at them on Testing2: a feature page, a design page, Bundles → Create bundle, Conversion boosters.
-- The IndexNow workflow runs after website changes on `main`; check its first run under GitHub Actions.
-
-## Good to know
-
-- Website: `npm --prefix site ci && npm --prefix site run dev`; check with `npm --prefix site run build`.
-  Demos: `npm --prefix demos run build`. Website screenshots of features come from
-  `npm --prefix demos run screenshots` (needs Playwright).
-- The demo build fails on purpose when the app and the demos drift (`DEMOS`, `DEMO_RECIPES`,
-  `DEMO_TEMPLATES`, invalid block JSON, a page without noindex). Its message says what to change.
-- House rules that bite: never touch the live store `ms6vwv-3n.myshopify.com`, never
-  `shopify app dev clean`, never type passwords, ask before anything paid, no dashes in visible text,
-  only claim what the app really does.
+- Never touch the live store `ms6vwv-3n.myshopify.com` or its themes. Never `shopify app dev clean`.
+- Never type passwords (including the storefront password); ask Omar to.
+- Ask before anything paid or permanent. No dashes in visible UI text.
+- Changes to `theme/`, `extensions/` or `shopify.app.toml` need
+  `NODE_OPTIONS=--dns-result-order=ipv4first shopify app deploy --allow-updates --message "…"` before merging
+  (only from the Mac). Rollback: `shopify app release --version=cro-toolbox-16`.
+- Omar likes short plain answers, things done for him ("do it yourself"), and testing in the browser
+  before reporting.

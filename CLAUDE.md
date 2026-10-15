@@ -22,8 +22,8 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 - Bundles overhaul done: all 6 recipes and checkout verified on Testing2 (`docs/PROJECT-GUIDE.md` §10).
   Next: the known gaps in `docs/WORKBOARD.md`.
 - Website: PRs 1 to 5 done, live at https://crotoolbox.com; backlog in `docs/WORKBOARD.md`.
-- **Waiting: a Shopify deploy from the Mac** for the countdown timer fix (merged in PR #58). Steps in
-  `HANDOFF.md`.
+- **Waiting: a Shopify deploy from the Mac** for the countdown timer fix (PR #58, merged). Steps in
+  `docs/WORKBOARD.md` (the URGENT line).
 
 ## Website
 
