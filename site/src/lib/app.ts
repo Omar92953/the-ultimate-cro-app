@@ -39,7 +39,7 @@ export const featureTitle = (k: FeatureKey) => plain(FEATURES[k].title);
 export const featureAbout = (k: FeatureKey) => plain(FEATURES[k].about);
 export const planName = (k: PlanKey) => PLANS[k].name;
 
-/** Checkout features run inside Shopify checkout (no storefront demo; a visual mock instead). */
+/** Checkout features run inside Shopify checkout (they have no storefront widget). */
 export const CHECKOUT_ONLY: FeatureKey[] = ["payment_rules", "delivery_rules", "order_limits", "thank_you", "post_purchase"];
 
 /** The areas the site presents, in order. Analytics isn't a catalog area (it has no features to switch on). */

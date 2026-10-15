@@ -11,33 +11,26 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
+import { EXT, collectionOf, copyAssets, createEngine, defaults, readLocale } from "./engine.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ext = path.resolve(here, "../../extensions/cro-storefront");
+const ext = EXT;
 const out = path.join(here, "out");
-fs.mkdirSync(path.join(out, "assets"), { recursive: true });
-for (const f of fs.readdirSync(path.join(ext, "assets"))) fs.copyFileSync(path.join(ext, "assets", f), path.join(out, "assets", f));
+copyAssets(path.join(out, "assets"));
 
-const locale = JSON.parse(fs.readFileSync(path.join(ext, "locales/en.default.json"), "utf8"));
+const locale = readLocale();
 const MONEY_FORMAT = "LE {{amount}}";
-
-const engine = new Liquid({ root: [path.join(ext, "blocks"), path.join(ext, "snippets")], extname: ".liquid", strictFilters: true });
-engine.registerTag("schema", {
-  parse(token, remain) {
-    this.tpls = [];
-    const stream = this.liquid.parser.parseStream(remain);
-    stream.on("tag:endschema", () => stream.stop()).on("template", () => {}).on("end", () => { throw new Error("schema not closed"); });
-    stream.start();
-  },
-  *render() {},
-});
 const money = (cents) => `LE ${(Number(cents) / 100).toFixed(2)}`;
-engine.registerFilter("money", money);
-engine.registerFilter("image_url", (img, opts) => (img ? `${img.src || img}${String(img.src || img).includes("?") ? "&" : "?"}width=${720}` : ""));
-engine.registerFilter("image_tag", (url, ...args) => `<img src="${url}" alt="" loading="lazy" width="400" height="400">`);
-engine.registerFilter("placeholder_svg_tag", (name, cls) => `<svg class="${cls}" viewBox="0 0 10 10"></svg>`);
-engine.registerFilter("asset_url", (name) => `assets/${name}`);
-engine.registerFilter("t", (key) => key.split(".").reduce((o, k) => (o ? o[k] : undefined), locale) ?? key);
+// This harness keeps its own simpler filters (fixed image sizes, plain translations).
+const engine = createEngine(Liquid, {
+  money,
+  filters: {
+    image_url: (img, opts) => (img ? `${img.src || img}${String(img.src || img).includes("?") ? "&" : "?"}width=${720}` : ""),
+    image_tag: (url, ...args) => `<img src="${url}" alt="" loading="lazy" width="400" height="400">`,
+    placeholder_svg_tag: (name, cls) => `<svg class="${cls}" viewBox="0 0 10 10"></svg>`,
+    t: (key) => key.split(".").reduce((o, k) => (o ? o[k] : undefined), locale) ?? key,
+  },
+});
 
 // ---------------------------------------------------------------- mock data --
 const img = (n) => ({ src: `https://picsum.photos/seed/ucro${n}/400/400` });
@@ -90,7 +83,6 @@ P.frame.collections = [frames];
 
 const f = (value) => ({ value });
 const metaobject = (handle, fields) => ({ system: { handle }, ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, f(v)])) });
-const collectionOf = (items) => Object.assign(Object.fromEntries(items.map((m) => [m.system.handle, m])), { values: items });
 
 const rules = [
   metaobject("rule-cross-1", {
@@ -158,13 +150,6 @@ const sizeRule = metaobject("rule-size-tee", {
   kind: "upsell", active: true, priority: 1, trigger_type: "all", upsell_type: "variant", option_name: "Size",
   tiers: [{ value: "M", pct: 0 }, { value: "L", pct: 10, badge: "Best value" }, { value: "XL", pct: 20 }], placements: ["product"], headline: "Choose your size",
 });
-
-// Block settings = schema defaults (what a merchant gets right after adding the block).
-function defaults(name) {
-  const src = fs.readFileSync(path.join(ext, "blocks", `${name}.liquid`), "utf8");
-  const schema = JSON.parse(src.split("{% schema %}")[1].split("{% endschema %}")[0]);
-  return Object.fromEntries(schema.settings.filter((s) => s.id).map((s) => [s.id, s.default ?? (s.type === "checkbox" ? false : "")]));
-}
 
 async function block(name, ctx, overrides = {}, shopObj = shop) {
   const settings = { ...defaults(name), ...overrides };
