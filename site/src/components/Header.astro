@@ -9,13 +9,44 @@ const here = Astro.url.pathname;
   <div class="wrap bar">
     <a href="/" class="home" aria-label="CRO Toolbox home"><Logo /></a>
     <nav aria-label="Main" class="desktop">
-      {NAV.map((l) => <a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a>)}
+      {
+        NAV.map((l) =>
+          l.children ? (
+            <div class="menu" data-menu>
+              <button type="button" class="trigger" aria-expanded="false" aria-controls="menu-features" aria-haspopup="true">
+                {l.label}
+                <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </button>
+              <ul class="panel" id="menu-features">
+                {l.children.map((c) => (
+                  <li class={c.label === "All features" ? "all" : undefined}>
+                    <a href={c.href} aria-current={c.href === here ? "page" : undefined}>{c.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a>
+          )
+        )
+      }
     </nav>
     <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" label="Install free" /></div>
     <details class="mobile">
       <summary aria-label="Menu"><span></span><span></span></summary>
       <nav aria-label="Main mobile">
-        {NAV.map((l) => <a href={l.href}>{l.label}</a>)}
+        {
+          NAV.map((l) =>
+            l.children ? (
+              <div class="group" role="group" aria-label={l.label}>
+                <p class="group-title">{l.label}</p>
+                {l.children.map((c) => <a href={c.href} class="sub">{c.label}</a>)}
+              </div>
+            ) : (
+              <a href={l.href}>{l.label}</a>
+            )
+          )
+        }
         <InstallButton medium="header" campaign="mobile_menu" class="primary" />
       </nav>
     </details>
@@ -53,6 +84,86 @@ const here = Astro.url.pathname;
     font-size: 0.95rem;
     font-weight: 550;
     color: #34363f;
+  }
+  .menu {
+    position: relative;
+  }
+  .trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 550;
+    color: #34363f;
+    cursor: pointer;
+  }
+  .trigger svg {
+    transition: transform 0.15s;
+  }
+  .trigger:hover,
+  .trigger[aria-expanded="true"] {
+    background: var(--mist);
+    color: var(--ink);
+  }
+  .trigger[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+  /* The panel floats over the page (position absolute) and is hidden with visibility, so opening it never moves anything. */
+  .panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 60;
+    min-width: 230px;
+    margin: 6px 0 0;
+    padding: 8px;
+    list-style: none;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.12s, transform 0.12s, visibility 0s linear 0.12s;
+  }
+  .panel::before {
+    /* Bridges the gap so the pointer can travel from the button to the panel. */
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -8px;
+    height: 8px;
+  }
+  .menu.open .panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+  @media (hover: hover) {
+    .menu:hover .panel {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      transition-delay: 0s;
+    }
+  }
+  .panel li:nth-child(5),
+  .panel li:nth-child(13) {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--mist-2);
+  }
+  .panel a {
+    display: block;
+    border-radius: 8px;
   }
   .desktop a:hover,
   .desktop a[aria-current="page"] {
@@ -113,6 +224,24 @@ const here = Astro.url.pathname;
     text-decoration: none;
     border-bottom: 1px solid var(--mist-2);
   }
+  .mobile nav .group {
+    display: grid;
+    border-bottom: 1px solid var(--mist-2);
+    padding-bottom: 8px;
+  }
+  .mobile nav .group-title {
+    margin: 14px 4px 4px;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mobile nav a.sub {
+    padding: 10px 4px 10px 14px;
+    font-size: 1rem;
+    font-weight: 550;
+    border-bottom: 0;
+  }
   .mobile nav .btn {
     margin-top: 16px;
   }
@@ -126,3 +255,33 @@ const here = Astro.url.pathname;
     }
   }
 </style>
+
+<script>
+  // Features dropdown: opens on hover (mouse), on click or tap (touch), and with Enter or Space on the
+  // button. Escape or a click elsewhere closes it, and Tab out of it closes it too.
+  document.querySelectorAll<HTMLElement>("[data-menu]").forEach((menu) => {
+    const button = menu.querySelector<HTMLButtonElement>(".trigger")!;
+    const set = (open: boolean) => {
+      menu.classList.toggle("open", open);
+      button.setAttribute("aria-expanded", String(open));
+    };
+    button.addEventListener("click", () => set(button.getAttribute("aria-expanded") !== "true"));
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
+        set(false);
+        button.focus();
+      }
+      if (e.key === "ArrowDown" && document.activeElement === button) {
+        e.preventDefault();
+        set(true);
+        menu.querySelector<HTMLAnchorElement>(".panel a")?.focus();
+      }
+    });
+    menu.addEventListener("focusout", (e) => {
+      if (!menu.contains((e as FocusEvent).relatedTarget as Node | null)) set(false);
+    });
+    document.addEventListener("click", (e) => {
+      if (!menu.contains(e.target as Node)) set(false);
+    });
+  });
+</script>
