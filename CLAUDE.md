@@ -2,17 +2,33 @@
 
 # CRO Toolbox — read this first
 
-Omar's public Shopify app (offers, bundles, storefront widgets, cart drawer, checkout rules,
-analytics). **Full guide: `docs/PROJECT-GUIDE.md`** (what the app is, code map, commands, how to ship,
-house rules, testing, status, and the plan for the marketing website). Read it before working.
+This repo holds Omar's public Shopify app **and** its marketing website (`site/`). Omar manages both
+from **three Claude accounts at once**. All three are equal: any account can work on the app or the
+website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.md`).
+
+**Every session, before anything else:**
+1. `git fetch --prune && git checkout main && git pull` (taking over? read `HANDOFF.md` first)
+2. Read **`docs/TEAM.md`** (who does what, how not to collide, who deploys) and
+   **`docs/WORKBOARD.md`** (the backlog), then run `gh pr list` (work in progress).
+3. Read **`docs/PROJECT-GUIDE.md`** for the app (code map, commands, shipping, house rules, testing)
+   and **`docs/prompts/build-website.md`** for the website.
+4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
+   can't see it. Leave the state in the PR and the workboard.
 
 ## Status (2026-10-15)
 
-- Live: Shopify app version **cro-toolbox-15**, admin on Render (`https://cro-toolbox.onrender.com`,
+- Live: Shopify app version **cro-toolbox-17**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`). Test store: **Testing2** `testing2-j6mmnywm.myshopify.com`.
 - Active work: Phase 6 (end-to-end test of the 6 bundle recipes) of `docs/plans/bundles-overhaul.md`.
   Progress list in `docs/PROJECT-GUIDE.md` §10.
-- Next project: the marketing website for SEO/GEO (separate repo; plan in the guide §11).
+- Website: PR 1 of 5 open (#36); backlog in `docs/WORKBOARD.md`.
+
+## Website
+
+- `site/`: Astro static site, its own `package.json`. `npm --prefix site ci`, `npm --prefix site run dev`
+  (http://localhost:4321), check with `npm --prefix site run build`. Reads prices and features from
+  `app/lib/plans.ts`, `catalog.ts` and `bundle-recipes.ts`, so changing those changes the site too.
+- Hosting: Cloudflare Pages (free plan), domain crotoolbox.com. Deploys itself when `main` changes.
 
 ## Rules that matter most
 
@@ -22,7 +38,8 @@ house rules, testing, status, and the plan for the marketing website). Read it b
   secrets, never print `.env`.
 - One `claude/<topic>` branch per change → checks → PR → merge. If `extensions/`, `theme/` or
   `shopify.app.toml` changed, `shopify app deploy --allow-updates` before merging (prefix
-  `NODE_OPTIONS=--dns-result-order=ipv4first`).
+  `NODE_OPTIONS=--dns-result-order=ipv4first`). Only a session running on the Mac can deploy to
+  Shopify; cloud sessions add "Needs Shopify deploy" to such PR titles (`docs/TEAM.md`).
 - No dashes in UI text. Use `app/components/fields.tsx` wrappers, never raw `onChange` or boolean
   props on `s-*` elements. Never `slot="aside"` on a `large` page; editors use `EditorLayout`.
 - Storefront Liquid is edited in `theme/` and built with `npm run build:theme`; 30 of 30 theme blocks

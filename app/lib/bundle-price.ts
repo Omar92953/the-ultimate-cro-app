@@ -29,7 +29,8 @@ export function bundlePrice(pricing: PreviewPricing | undefined, bundlePriceCent
     const pct = kind === "percent_tiers";
     const reached = tiers.filter((t) => t.qty <= n).pop();
     const up = tiers.find((t) => t.qty > n);
-    const off = reached ? (pct ? Math.round((value * reached.price) / 100) : Math.round(reached.price * 100)) : 0;
+    // % tiers: round the final price, not the discount, the way checkout does (else a cent off).
+    const off = reached ? (pct ? value - Math.round((value * (100 - reached.price)) / 100) : Math.round(reached.price * 100)) : 0;
     return {
       value,
       price: Math.max(0, value - Math.min(off, value)),

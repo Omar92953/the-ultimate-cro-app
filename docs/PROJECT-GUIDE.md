@@ -1,5 +1,7 @@
 # CRO Toolbox: project guide
 
+> Several Claude accounts work on this repo at once: read `docs/TEAM.md` first.
+
 Everything a new Claude Code account (or developer) needs to work on the app and on its marketing
 website. Start with `CLAUDE.md` (short rules and current status), then this file. Updated 2026-10-15.
 
@@ -35,7 +37,7 @@ Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `
 | App server | Render web service **cro-toolbox**, https://cro-toolbox.onrender.com. Serves the admin pages that load inside Shopify admin, OAuth and webhooks. Not a public website. Auto-deploys on every merge to `main`. Env is managed by `render.yaml` (Blueprint). |
 | Database | Supabase project **cro-toolbox** (Postgres, sessions only via Prisma) |
 | Merchant data | The merchant's own store: `$app:*` metaobjects and metafields (no app database for settings) |
-| Shopify app | App handle `the-ultimate-cro-app`, client id in `shopify.app.toml`. Live version: **cro-toolbox-15** |
+| Shopify app | App handle `the-ultimate-cro-app`, client id in `shopify.app.toml`. Live version: **cro-toolbox-17** |
 | Test store | **Testing2** `testing2-j6mmnywm.myshopify.com` (dev store, password protected storefront, theme `test-data`) |
 | Live store | `ms6vwv-3n.myshopify.com` (Backrooms). **Never touch it or its themes.** |
 
@@ -82,6 +84,8 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `extensions/cro-bundles` | Cart Transform: merges bundle picks into one line at the bundle price |
 | `extensions/cro-discount` | Discount Function: offers and deals, skips bundle lines |
 | `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data |
+| `site/` | The marketing website (Astro). Brief: `docs/prompts/build-website.md` |
+| `scripts/sync.sh` | Brings the Mac copy up to date with GitHub and reports differences |
 | `docs/` | `README-merchant.md` (merchant guide), `testing-checklist.md`, `billing.md`, `hosting.md`, `scopes.md`, `listing.md`, `plans/bundles-overhaul.md`, `HANDOFF.md` |
 
 ## 5. Commands and checks
@@ -180,22 +184,24 @@ Cloud accounts can't reach Shopify hosts: write the code and PR, and ask Omar to
 
 ## 10. Status (2026-10-15)
 
-Done and live (cro-toolbox-15): bundles overhaul Phases 0 to 5, Frequently bought together box
+Done and live (cro-toolbox-17): bundles overhaul Phases 0 to 5, Frequently bought together box
 designs, deal box redesign, fixes found while testing (kit options, refused saves wiping editors,
 bundle products offered as picks).
 
 Phase 6 testing on Testing2:
 - [x] Recipe 1 Frequently bought together: editor, preview, box on the real product page
 - [x] Recipe 2 Kit: created, Active, published, picture, contents, prices; real product page
-- [~] Recipe 3 Mix & match: product created and published; Add to theme adds the block; builder shows.
-      Still to check: picking items, theme Add to cart, cart line and checkout price (needs the
-      storefront unlocked)
-- [ ] Recipe 4 growing discount (product page and store page)
+- [x] Recipe 3 Mix & match: product created and published; Add to theme adds the block; picks merge into
+      one cart line at the bundle price (`has_components`); checkout shows 1 item at $1,500; the theme's
+      Add to cart adds nothing until the bundle is complete
+- [x] Recipe 4 growing discount on its own store page: app creates the hidden product and the page; the
+      page link adds the block to the page template; 1 pick no discount, 2 picks 10%, 3 picks 15%,
+      "Add 1 more to save" hints; cart matches to the cent
 - [ ] Recipe 5 build while browsing (tray embed)
 - [ ] Recipe 6 long collection, one price
 - [ ] Checkout: one bundle line at the bundle price; no discount stacking
 
-Known gaps: the Add to theme link appends the builder below the theme's Add to cart button (merchant
+Known gaps: the theme editor ignores `previewPath` with `addAppBlockId` (the page link opens another page, the block still lands on the page template); the Add to theme link appends the builder below the theme's Add to cart button (merchant
 can drag it); a bare bundle product can still be bought alone through quick add buttons on collection
 cards; checkout doesn't reject a bundle product picked inside a bundle (the storefront prevents it).
 
@@ -224,6 +230,14 @@ features and sends people to the App Store listing.
   schema.org `SoftwareApplication`, `FAQPage` and `Article` markup, internal links.
 - **GEO**: plain factual statements (exact prices, limits, what each feature does, which themes),
   question headings with direct answers, an `llms.txt`, consistent naming "CRO Toolbox".
+- **Decided (2026-10-15)**: hosting on **Cloudflare Pages (free plan, upgrade at launch if needed)**,
+  domain **crotoolbox.com** from Cloudflare Registrar (about $10.46 a year; Omar buys it).
+- **Visibility plan** (how to get mentioned by AI assistants and found on Google and Bing): see
+  "Visibility plan" in `docs/prompts/build-website.md`. Short version: register the site in Google
+  Search Console and Bing Webmaster Tools (ChatGPT searches with Bing), one shared description
+  everywhere, 1 or 2 real articles a week, honest comparison pages, App Store reviews, and mentions on
+  other sites ("best bundle apps" lists, Reddit and Shopify Community answers, YouTube, Product Hunt,
+  G2/Capterra).
 - **Calls to action**: "Install on Shopify" buttons to the App Store listing with UTM tags
   (`?utm_source=site&utm_medium=<page>`), so installs per page can be measured. Until the listing is
   live, link to a "Coming soon" or waitlist form.
