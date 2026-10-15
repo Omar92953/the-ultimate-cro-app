@@ -19,11 +19,11 @@ Updated 2026-10-15.
 - [x] Checkout rejects a bundle product picked inside a bundle (PR #46, cro-toolbox-19)
 - [ ] Add to theme places the builder below the theme's Add to cart: the theme editor link can't
       choose a position (PR #47 adds a hint in the app)
-- [ ] URGENT, needs Shopify deploy: the cart drawer and the countdown timer share the CSS class `ucs-cd`
-      in `ucs-sections.css`. Every countdown timer becomes an invisible full screen layer
-      (`position: fixed; inset: 0`, top z-index) that blocks all clicks on the page, and the app's cart
-      drawer is hidden. Fix: give the cart drawer its own class names (ucs-cart.js + CSS), then remove
-      the two TODO workarounds in `demos/` (found 2026-10-15 while building the demos)
+- [ ] **URGENT: Shopify deploy from the Mac.** Fixed in code (PR #58, merged 2026-10-15 at Omar's request
+      before deploying): the cart drawer used the countdown timer's CSS class `ucs-cd`, so every
+      countdown timer was an invisible full screen layer that blocked all clicks, and the app's cart
+      drawer was hidden. The drawer is now `ucs-cdr`. Shops keep the bug until the next
+      `shopify app deploy` (see `HANDOFF.md`), then test on Testing2 and tick this.
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 

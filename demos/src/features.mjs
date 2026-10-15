@@ -102,8 +102,6 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const toolsOf = (key) => toolsD.toStorefrontCartTools(toolsD.applyCartToolsPreset(toolsD.withCartToolsDefaults({}), key));
   F.cart_tools = await Promise.all(toolsD.CART_TOOLS_PRESETS.map(async (p) => ({
     template: p.key, title: p.title, layout: "product", product: "daily-cream", minHeight: 720, cartSeed: seed, autoClick: "#cart-icon-bubble",
-    // TODO: remove once the countdown's ".ucs-cd { visibility: hidden }" no longer hides the app's cart drawer (same class) in ucs-sections.css.
-    head: "<style>.ucs-cd.ucs-cd--right,.ucs-cd.ucs-cd--left{visibility:visible;display:block}</style>",
     embeds: await block("ucs-cart", { shop: shopWith({ designs: { cart_tools: toolsOf(p.key) } }) }),
   })));
 
