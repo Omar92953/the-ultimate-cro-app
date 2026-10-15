@@ -266,39 +266,50 @@ export default function DealEditor() {
             <EditorSection n={3} title="Box look" summary={`“${fbt.heading || "No heading"}” · ${fbt.layout === "row" ? "pictures in a row" : fbt.images ? "list with pictures" : "list"}`} done open={open === 3} onToggle={() => setOpen((o) => (o === 3 ? 0 : 3))}>
               <s-stack gap="base">
                 <s-text color="subdued">Shared by every Frequently bought together box on your store.</s-text>
-                <Segmented
-                  label="Layout"
-                  value={fbt.layout}
-                  onChange={(v) => setFbt({ ...fbt, layout: v })}
-                  options={[
-                    { value: "row" as const, label: "Pictures in a row" },
-                    { value: "list" as const, label: "List" },
-                  ]}
-                />
-                {fbt.layout === "row" ? (
+                <s-stack gap="small-200">
+                  <s-text>Layout</s-text>
                   <Segmented
-                    label="Pictures"
-                    value={fbt.align}
-                    onChange={(v) => setFbt({ ...fbt, align: v })}
+                    label="Layout"
+                    value={fbt.layout}
+                    onChange={(v) => setFbt({ ...fbt, layout: v })}
                     options={[
-                      { value: "center" as const, label: "Centered" },
-                      { value: "start" as const, label: "Left" },
+                      { value: "row" as const, label: "Pictures in a row" },
+                      { value: "list" as const, label: "List" },
                     ]}
                   />
+                </s-stack>
+                {fbt.layout === "row" ? (
+                  <s-stack gap="small-200">
+                    <s-text>Pictures</s-text>
+                    <Segmented
+                      label="Pictures"
+                      value={fbt.align}
+                      onChange={(v) => setFbt({ ...fbt, align: v })}
+                      options={[
+                        { value: "start" as const, label: "Left" },
+                        { value: "center" as const, label: "Centered" },
+                        { value: "end" as const, label: "Right" },
+                      ]}
+                    />
+                  </s-stack>
                 ) : null}
+                {fbt.layout === "row" ? <Checkbox label="Boxes around the pictures" checked={fbt.tiles} onValue={(v) => setFbt({ ...fbt, tiles: v })} /> : null}
                 <Checkbox label="Border around the box" checked={fbt.border} onValue={(v) => setFbt({ ...fbt, border: v })} />
                 <TextField label="Heading" value={fbt.heading} maxLength={80} onValue={(v) => setFbt({ ...fbt, heading: v })} />
                 <TextField label="Button" details="[count] is the number of items and [price] the bundle price, e.g. Buy all [count]: [price]" value={fbt.button} maxLength={40} onValue={(v) => setFbt({ ...fbt, button: v })} />
                 <Checkbox label="Show product pictures" checked={fbt.images} onValue={(v) => setFbt({ ...fbt, images: v })} />
-                <Segmented
-                  label="Show the saving as"
-                  value={fbt.saving}
-                  onChange={(v) => setFbt({ ...fbt, saving: v })}
-                  options={[
-                    { value: "amount" as const, label: "An amount (Save $12)" },
-                    { value: "pct" as const, label: "A percentage (15% off)" },
-                  ]}
-                />
+                <s-stack gap="small-200">
+                  <s-text>Show the saving as</s-text>
+                  <Segmented
+                    label="Show the saving as"
+                    value={fbt.saving}
+                    onChange={(v) => setFbt({ ...fbt, saving: v })}
+                    options={[
+                      { value: "amount" as const, label: "An amount (Save $12)" },
+                      { value: "pct" as const, label: "A percentage (15% off)" },
+                    ]}
+                  />
+                </s-stack>
               </s-stack>
             </EditorSection>
           </EditorLayout>
@@ -526,11 +537,11 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
           <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: fbt.border ? 14 : "4px 0", border: fbt.border ? "1px solid #e3e3e3" : 0, borderRadius: 12 }}>
             {fbt.heading ? <strong style={{ fontSize: 16 }}>{fbt.heading}</strong> : null}
             {row && fbt.images ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: fbt.align === "center" ? "center" : "flex-start", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: fbt.align === "center" ? "center" : fbt.align === "end" ? "flex-end" : "flex-start", gap: 6 }}>
                 {items.map((i, n) => (
                   <Fragment key={i.product.id}>
                     {n ? <span style={{ fontSize: 22, opacity: 0.6 }}>+</span> : null}
-                    <span style={{ flex: "1 1 0", maxWidth: 140, aspectRatio: "1", borderRadius: 12, background: i.product.image ? `#f4f4f4 center / 84% no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
+                    <span style={{ flex: "1 1 0", maxWidth: 140, aspectRatio: "1", borderRadius: fbt.tiles ? 12 : 8, background: i.product.image ? `${fbt.tiles ? "#f4f4f4" : "transparent"} center / ${fbt.tiles ? "84%" : "cover"} no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
                   </Fragment>
                 ))}
               </div>

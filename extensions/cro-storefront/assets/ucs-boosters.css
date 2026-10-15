@@ -98,7 +98,10 @@ body.ucs-sticky-on .ucs-pop { bottom: 92px; }
 .ucs-deal__pics .ucs-deal__plus { flex: none; margin: 0; font-size: 1.4em; font-weight: 400; opacity: 0.6; }
 .ucs-deal--row .ucs-deal__items { gap: 6px; }
 .ucs-deal--center .ucs-deal__pics { justify-content: center; }
+.ucs-deal--end .ucs-deal__pics { justify-content: flex-end; }
 .ucs-deal--plain { padding-inline: 0; border: 0; border-radius: 0; }
+.ucs-deal--bare .ucs-deal__pic { border-radius: 8px; background: none; }
+.ucs-deal--bare .ucs-deal__pic img { padding: 0; object-fit: cover; mix-blend-mode: normal; }
 .ucs-deal__total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding-top: 12px; border-top: 1px solid var(--ucs-line); }
 .ucs-deal__price b { font-size: 1.2em; }
 .ucs-deal__price s { margin-left: 4px; opacity: 0.55; }
