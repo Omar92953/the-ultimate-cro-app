@@ -10,7 +10,12 @@
   endif
   # "<bundle product id>:<step>," for every step this product fits.
   assign fits = ''
-  if product != blank
+  # Bundle products (tag cro-bundle) can't go in a bundle.
+  assign ucro_is_bundle = false
+  if product != blank and product.tags contains 'cro-bundle'
+    assign ucro_is_bundle = true
+  endif
+  if product != blank and ucro_is_bundle == false
     for b in shop.metaobjects['$app:cro_bundle'].values
       if b.active.value != true or b.store_wide.value == false or b.product.value == blank or b.product.value.id == product.id
         continue

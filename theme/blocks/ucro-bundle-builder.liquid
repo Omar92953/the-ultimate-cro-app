@@ -111,6 +111,7 @@
         <ul class="ucro-bundle__grid" role="list">
           {%- for p in pool limit: 50 -%}
             {%- if hide_sold_out and p.available == false -%}{%- continue -%}{%- endif -%}
+            {%- if p.tags contains 'cro-bundle' -%}{%- continue -%}{%- endif -%}
             {%- assign pv = p.selected_or_first_available_variant -%}
             <li class="ucro-bundle__card{% unless p.available %} is-sold-out{% endunless %}" data-title="{{ p.title | escape }}" data-handle="{{ p.handle }}">
               <span class="ucro-bundle__img">

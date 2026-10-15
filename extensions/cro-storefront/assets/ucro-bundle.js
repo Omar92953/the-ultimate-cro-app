@@ -442,7 +442,9 @@
           var have = {};
           grid.querySelectorAll('.ucro-bundle__card').forEach((c) => (have[c.dataset.handle] = true));
           list.forEach((p) => {
-            if (!tpl || have[p.handle] || (this.hso && !p.variants.some((v) => v.available))) return;
+            // Bundle products (tag cro-bundle) can't be picked inside a bundle.
+            var tags = Array.isArray(p.tags) ? p.tags : String(p.tags || '').split(/,\s*/);
+            if (!tpl || have[p.handle] || tags.indexOf('cro-bundle') !== -1 || (this.hso && !p.variants.some((v) => v.available))) return;
             grid.appendChild(this.cardFrom(tpl, p));
           });
           if (list.length < 50 || s.page >= 40) s.done = true;

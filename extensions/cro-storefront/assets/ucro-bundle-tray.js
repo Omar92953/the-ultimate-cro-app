@@ -313,6 +313,7 @@
   /** Adds a product card's product: straight away with one variant, else a size/colour picker. */
   function addFromCard(handle, fits) {
     product(handle).then(function (p) {
+      if ((p.tags || []).indexOf('cro-bundle') !== -1) return toast('This is a bundle itself, so it can\'t go in a bundle.');
       var available = p.variants.filter(function (v) { return v.available; });
       if (!available.length) return toast('Sold out.');
       pickPlace(fits, function (f) {
