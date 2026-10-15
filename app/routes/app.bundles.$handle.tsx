@@ -19,6 +19,14 @@ import { Segmented } from "../components/ui";
 import type { MediaRef } from "../lib/sections";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { EditorLayout } from "../components/EditorLayout";
+import { EditorSection } from "../components/EditorSection";
+import { PreviewFrame } from "../components/DesignTabs";
+import { ThemeLook } from "../components/ThemeStyle";
+import { BundlePreview, SAMPLE_BUNDLE, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
+import { getBundleDesign } from "../lib/designs.server";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
+import { storefrontCss } from "../lib/storefront-css.server";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
@@ -36,7 +44,14 @@ async function placement(admin: Parameters<typeof getThemeStatus>[0], shop: stri
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [all, placed] = await Promise.all([listBundles(admin), placement(admin, session.shop)]);
+  const [all, placed, design, style] = await Promise.all([
+    listBundles(admin),
+    placement(admin, session.shop),
+    getBundleDesign(admin).then((d) => d.config),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
+  ]);
+  // The live preview: the store's own bundle design, theme look and the storefront stylesheet.
+  const look = { design, style, css: storefrontCss("ucro.css") };
   if (params.handle === "new") {
     const bundle: Bundle = {
       name: "",
@@ -62,12 +77,32 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     }
     if (recipe === "browse") Object.assign(bundle, { pricing: "percent", percentOff: 10, storeWide: true, steps: [{ ...blankStep(), label: "Choose 3 items", min: 3, max: 3 }] });
     if (recipe === "anyN") Object.assign(bundle, { pricing: "tiers", tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }], storeWide: false, steps: [{ ...blankStep(), label: "Choose 3 or 6 items", min: 3, max: 6 }] });
-    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop), where };
+    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop), where, ...look };
   }
   const bundle = all.find((b) => b.handle === params.handle);
   if (!bundle) throw new Response("Bundle not found", { status: 404 });
-  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle), where: (bundle.page ? "both" : "product") as "product" | "page" | "both" };
+  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle), where: (bundle.page ? "both" : "product") as "product" | "page" | "both", ...look };
 };
+
+const WHERE = { product: "Bundle product page", page: "Store page", both: "Product page and store page" } as const;
+
+/** One line for the closed "Price & discount" step. */
+function pricingSummary(b: Bundle) {
+  const rows = (unit: (n: number) => string) => [...b.tiers].sort((x, y) => x.qty - y.qty).map((t) => `${t.qty}: ${unit(t.price)}`).join(", ");
+  if (b.pricing === "percent") return `${b.percentOff}% off the picked items`;
+  if (b.pricing === "tiers") return `Price by number of items (${rows((n) => String(n))})`;
+  if (b.pricing === "percent_tiers") return `Bigger % off for more items (${rows((n) => `${n}%`)})`;
+  if (b.pricing === "amount_tiers") return `Bigger amount off for more items (${rows((n) => `${n} off`)})`;
+  return "One price: the bundle product's price";
+}
+
+/** The step a validation message belongs to, so a failed save opens it. */
+function sectionOf(problem: string) {
+  if (/name/i.test(problem) && !/product/i.test(problem)) return 1;
+  if (/product|store page/i.test(problem) && !/^Step/.test(problem)) return 2;
+  if (/^Step|step/.test(problem)) return 3;
+  return 4;
+}
 
 /** "Create it for me": the bundle product the app makes on save. */
 type NewProduct = { title: string; price: number; imageUrl: string | null };
@@ -106,7 +141,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function BundleEditor() {
-  const { bundle: initial, others, isNew, shop, placed, links, where: initialWhere } = useLoaderData<typeof loader>();
+  const { bundle: initial, others, isNew, shop, placed, links, where: initialWhere, design, style, css } = useLoaderData<typeof loader>();
+  // One step open at a time; a new bundle starts at step 1, an existing one shows its summary.
+  const [open, setOpen] = useState(isNew ? 1 : 0);
+  const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const [bundle, setBundle] = useState<Bundle>(initial);
   // "Create it for me" (new bundles start with it) or pick a product the store already has.
   const [create, setCreate] = useState<{ on: boolean; title: string; price: number; image: MediaRef | null }>({ on: !initial.product, title: "", price: 0, image: null });
@@ -143,7 +181,7 @@ export default function BundleEditor() {
   const problems = validateBundle({ ...bundle, product: bundle.product ?? (creating ? { id: "pending", title: create.title } : null) }, others);
   const save = () => {
     setTouched(true);
-    if (problems.length) return;
+    if (problems.length) return setOpen(Math.min(...problems.map(sectionOf)));
     fetcher.submit(
       {
         intent: "save",
@@ -154,6 +192,34 @@ export default function BundleEditor() {
       { method: "post" },
     );
   };
+  // Live preview: real pictures and prices of what's chosen (fetched as the steps change).
+  const previews = useFetcher<{ items: Record<string, PreviewItem[]>; currency: string }>();
+  const ids = [...(bundle.product ? [bundle.product.id] : []), ...bundle.steps.flatMap((s) => (s.collection ? [s.collection.id] : s.products.map((p) => p.id)))];
+  const idsKey = [...new Set(ids)].sort().join(",");
+  useEffect(() => {
+    if (idsKey) previews.load(`/app/bundles/preview-items?ids=${encodeURIComponent(idsKey)}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the chosen products change
+  }, [idsKey]);
+  const items = previews.data?.items ?? {};
+  const previewSteps = bundle.steps.map((s) => ({
+    label: s.label || "Choose your items",
+    min: s.required ? Math.max(1, s.min) : 0,
+    max: Math.max(1, s.max),
+    items: (s.collection ? items[s.collection.id] ?? [] : s.products.flatMap((p) => items[p.id] ?? [])).slice(0, 8),
+  }));
+  const usingSample = previewSteps.every((s) => !s.items.length);
+  const startCents = creating ? Math.round(create.price * 100) : bundle.product ? (items[bundle.product.id]?.[0]?.cents ?? 0) : 0;
+  const previewBundle: PreviewBundle = {
+    ...(usingSample ? SAMPLE_BUNDLE : { name: bundle.name, steps: previewSteps }),
+    name: bundle.name || "New bundle",
+    price: startCents || (usingSample ? SAMPLE_BUNDLE.price : 0),
+    pricing: { kind: bundle.pricing, percent: bundle.percentOff, tiers: bundle.tiers },
+  };
+  const previewKey = `${idsKey}|${bundle.steps.map((s) => `${s.min}-${s.max}`).join(",")}`;
+  const previewCurrency = previews.data?.currency ?? "USD";
+  const pageLook = previewTheme(style);
+  const blockLook = design.look.scheme ? previewTheme(style, design.look.scheme) : null;
+
   const remove = () => {
     if (!bundle.handle || !window.confirm(`Delete “${bundle.name}”? The bundle product itself is not deleted.`)) return;
     fetcher.submit({ intent: "delete", handle: bundle.handle }, { method: "post" });
@@ -190,7 +256,9 @@ export default function BundleEditor() {
       ) : null}
 
       <EditorLayout
+        preview
         side={
+          <>
             <s-section heading="Get it on your store">
               <s-stack gap="base">
                 <s-stack gap="small-100">
@@ -245,148 +313,73 @@ export default function BundleEditor() {
                 ) : null}
               </s-stack>
             </s-section>
+
+            <PreviewFrame
+              title={`Preview · ${bundle.name || "New bundle"}`}
+              tools={<Segmented label="Device" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />}
+            >
+              <ThemeLook style={style}>
+                <BundlePreview key={previewKey} config={design} bundle={previewBundle} currency={previewCurrency} phone={device === "phone"} page={pageLook} block={blockLook} />
+              </ThemeLook>
+            </PreviewFrame>
+            {usingSample ? <s-text color="subdued">Sample items until you choose the products in step 3.</s-text> : null}
+          </>
         }
       >
-          <s-section heading="Bundle">
+        <style dangerouslySetInnerHTML={{ __html: css }} />
+        <EditorSection n={1} title="Bundle" summary={`${bundle.name || "No name yet"} · ${bundle.active ? "Active" : "Paused"}`} done={!!bundle.name.trim()} open={open === 1} onToggle={() => setOpen((o) => (o === 1 ? 0 : 1))} onNext={() => setOpen(2)}>
+          <TextField label="Name" details="Only you see this." value={bundle.name} onValue={(v) => set("name", v)} />
+          <Switch label="Active" checked={bundle.active} onValue={(v) => set("active", v)} />
+        </EditorSection>
+        <EditorSection n={2} title="Where it shows" summary={`${bundle.product?.title ?? (creating ? `New product: ${create.title || bundle.name || "untitled"}` : "No product yet")} · ${WHERE[where]}`} done={!!bundle.product || creating} open={open === 2} onToggle={() => setOpen((o) => (o === 2 ? 0 : 2))} onNext={() => setOpen(3)}>
+          {!bundle.product ? (
+            <Segmented
+              label="Bundle product"
+              value={create.on ? "create" : "pick"}
+              onChange={(v) => setCreate((c) => ({ ...c, on: v === "create" }))}
+              options={[
+                { value: "create", label: "Create it for me" },
+                { value: "pick", label: "Use a product I have" },
+              ]}
+            />
+          ) : null}
+          {creating ? (
             <s-stack gap="base">
-              <TextField label="Name" details="Only you see this." value={bundle.name} onValue={(v) => set("name", v)} />
-              <Switch label="Active" checked={bundle.active} onValue={(v) => set("active", v)} />
-              {!bundle.product ? (
-                <Segmented
-                  label="Bundle product"
-                  value={create.on ? "create" : "pick"}
-                  onChange={(v) => setCreate((c) => ({ ...c, on: v === "create" }))}
-                  options={[
-                    { value: "create", label: "Create it for me" },
-                    { value: "pick", label: "Use a product I have" },
-                  ]}
-                />
-              ) : null}
-              {creating ? (
-                <s-stack gap="base">
-                  <s-text color="subdued">The bundle product is what shoppers open, and what the cart and the order show for the bundle. CRO Toolbox creates it, publishes it and keeps its stock untracked (the picked items&apos; stock goes down).</s-text>
-                  <TextField label="Product title" placeholder={bundle.name || "Build your own box"} value={create.title} onValue={(v) => setCreate((c) => ({ ...c, title: v }))} />
-                  <NumberField
-                    label={bundle.pricing === "fixed" ? "Bundle price" : "Starting price"}
-                    details={bundle.pricing === "fixed" ? "Shoppers pay this for the whole bundle, whatever they pick." : "Shown before anything is picked; shoppers pay what the pricing below gives."}
-                    min={0}
-                    step={0.01}
-                    value={create.price}
-                    onValue={(v) => setCreate((c) => ({ ...c, price: Math.max(0, v) }))}
-                  />
-                  <MediaPicker label="Picture (optional)" accept="image" alt={create.title || bundle.name} value={create.image} onValue={(v) => setCreate((c) => ({ ...c, image: v }))} />
-                </s-stack>
-              ) : (
-                <ResourceList
-                  type="product"
-                  multiple={false}
-                  label="Bundle product"
-                  details="The bundle as it shows on its page, in the cart and on the order (its title and picture)."
-                  value={bundle.product ? [bundle.product] : []}
-                  onChange={(v) => set("product", v[0] ?? null)}
-                />
-              )}
-              <Select
-                label="Where shoppers build it"
-                value={where}
-                onValue={(v) => setWhere(v === "page" || v === "both" ? v : "product")}
-                options={[
-                  { value: "product", label: "On the bundle product's page" },
-                  { value: "page", label: "On its own store page (/pages/…)" },
-                  { value: "both", label: "Both" },
-                ]}
-                details={where === "page" ? "The bundle product stays out of search; shoppers start on the store page." : undefined}
+              <s-text color="subdued">The bundle product is what shoppers open, and what the cart and the order show for the bundle. CRO Toolbox creates it, publishes it and keeps its stock untracked (the picked items&apos; stock goes down).</s-text>
+              <TextField label="Product title" placeholder={bundle.name || "Build your own box"} value={create.title} onValue={(v) => setCreate((c) => ({ ...c, title: v }))} />
+              <NumberField
+                label={bundle.pricing === "fixed" ? "Bundle price" : "Starting price"}
+                details={bundle.pricing === "fixed" ? "Shoppers pay this for the whole bundle, whatever they pick." : "Shown before anything is picked; shoppers pay what the pricing below gives."}
+                min={0}
+                step={0.01}
+                value={create.price}
+                onValue={(v) => setCreate((c) => ({ ...c, price: Math.max(0, v) }))}
               />
-              <Select
-                label="Bundle price"
-                value={bundle.pricing}
-                onValue={(v) => {
-                  const pricing = bundlePricing(v);
-                  // Switching kind starts from example tiers, since a tier means something else in each kind.
-                  const seed: Record<string, BundleTier[]> = {
-                    tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }],
-                    percent_tiers: [{ qty: 2, price: 10 }, { qty: 3, price: 15 }, { qty: 4, price: 20 }],
-                    amount_tiers: [{ qty: 2, price: 5 }, { qty: 3, price: 10 }],
-                  };
-                  setBundle((b) => ({ ...b, pricing, tiers: pricing === b.pricing ? b.tiers : (seed[pricing] ?? b.tiers) }));
-                }}
-                options={[
-                  { value: "fixed", label: "One price: the bundle product's price" },
-                  { value: "percent", label: "A percentage off the items shoppers pick" },
-                  { value: "percent_tiers", label: "A bigger % off for more items (e.g. 2 items 10%, 3 items 15%)" },
-                  { value: "amount_tiers", label: "A bigger amount off for more items (e.g. 2 items 5 off, 3 items 10 off)" },
-                  { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
-                ]}
-              />
-              {bundle.pricing === "percent" ? (
-                <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
-              ) : null}
-              {bundle.pricing === "tiers" || growingPricing(bundle.pricing) ? (
-                <s-stack gap="small-200">
-                  <s-text color="subdued">
-                    {bundle.pricing === "tiers"
-                      ? "Shoppers pick exactly one of these numbers of items, and the bundle costs that tier's price. Make the steps' maximum high enough for the biggest tier."
-                      : "Shoppers can pick any number of items; the biggest tier they reach applies, and the bundle shows what one more item would save."}
-                  </s-text>
-                  {bundle.tiers.map((t, i) => (
-                    <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
-                      <NumberField label={bundle.pricing === "tiers" ? "Items" : "Items or more"} min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
-                      <NumberField
-                        label={bundle.pricing === "percent_tiers" ? "Discount" : bundle.pricing === "amount_tiers" ? "Amount off" : "Price"}
-                        suffix={bundle.pricing === "percent_tiers" ? "%" : undefined}
-                        min={0}
-                        max={bundle.pricing === "percent_tiers" ? 90 : undefined}
-                        step={bundle.pricing === "percent_tiers" ? 1 : 0.01}
-                        value={t.price}
-                        onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))}
-                      />
-                      <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
-                        Remove
-                      </Button>
-                    </s-grid>
-                  ))}
-                  <s-stack direction="inline">
-                    <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + (bundle.pricing === "tiers" ? 3 : 1), price: 0 }])}>
-                      Add tier
-                    </Button>
-                  </s-stack>
-                </s-stack>
-              ) : null}
-              {bundle.pricing === "fixed" || bundle.pricing === "tiers" ? (
-                <s-stack gap="small-200">
-                  <s-text type="strong">Extra charge for pricier options (optional)</s-text>
-                  <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>
-                  {bundle.extras.map((x, i) => (
-                    <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
-                      <TextField label="Option value" placeholder="XL" value={x.value} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, value: v } : y)))} />
-                      <NumberField label="Extra per item" min={0} step={0.01} value={x.amount} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
-                      <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove extra charge ${i + 1}`} onClick={() => set("extras", bundle.extras.filter((_, j) => j !== i))}>
-                        Remove
-                      </Button>
-                    </s-grid>
-                  ))}
-                  <s-stack direction="inline">
-                    <Button variant="tertiary" icon="plus" onClick={() => set("extras", [...bundle.extras, { value: "", amount: 0 }])}>
-                      Add extra charge
-                    </Button>
-                  </s-stack>
-                </s-stack>
-              ) : null}
-              <Switch
-                label="Let shoppers build it anywhere in the store"
-                details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."
-                checked={bundle.storeWide}
-                onValue={(v) => set("storeWide", v)}
-              />
-              <Checkbox
-                label="Allow the same item more than once"
-                checked={bundle.allowDuplicates}
-                onValue={(v) => set("allowDuplicates", v)}
-              />
-              <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
+              <MediaPicker label="Picture (optional)" accept="image" alt={create.title || bundle.name} value={create.image} onValue={(v) => setCreate((c) => ({ ...c, image: v }))} />
             </s-stack>
-          </s-section>
-
+          ) : (
+            <ResourceList
+              type="product"
+              multiple={false}
+              label="Bundle product"
+              details="The bundle as it shows on its page, in the cart and on the order (its title and picture)."
+              value={bundle.product ? [bundle.product] : []}
+              onChange={(v) => set("product", v[0] ?? null)}
+            />
+          )}
+          <Select
+            label="Where shoppers build it"
+            value={where}
+            onValue={(v) => setWhere(v === "page" || v === "both" ? v : "product")}
+            options={[
+              { value: "product", label: "On the bundle product's page" },
+              { value: "page", label: "On its own store page (/pages/…)" },
+              { value: "both", label: "Both" },
+            ]}
+            details={where === "page" ? "The bundle product stays out of search; shoppers start on the store page." : undefined}
+          />
+        </EditorSection>
+        <EditorSection n={3} title="Products" summary={`${bundle.steps.length} step${bundle.steps.length === 1 ? "" : "s"}: ${bundle.steps.map((s) => s.label || "untitled").join(" · ")}`} done={bundle.steps.every((s) => s.label.trim() && (s.products.length || s.collection))} open={open === 3} onToggle={() => setOpen((o) => (o === 3 ? 0 : 3))} onNext={() => setOpen(4)}>
           <SortableList
             items={bundle.steps}
             keyOf={(_step, i) => String(i)}
@@ -473,12 +466,103 @@ export default function BundleEditor() {
             </s-section>
             )}
           />
-
-          <s-section>
+          <s-stack direction="inline">
             <Button icon="plus" disabled={bundle.steps.length >= 6} onClick={() => set("steps", [...bundle.steps, blankStep()])}>
               Add step
             </Button>
-          </s-section>
+          </s-stack>
+        </EditorSection>
+        <EditorSection n={4} title="Price & discount" summary={pricingSummary(bundle)} done={!growingPricing(bundle.pricing) && bundle.pricing !== "tiers" ? true : bundle.tiers.length > 0} open={open === 4} onToggle={() => setOpen((o) => (o === 4 ? 0 : 4))} onNext={() => setOpen(5)}>
+          <Select
+            label="Bundle price"
+            value={bundle.pricing}
+            onValue={(v) => {
+              const pricing = bundlePricing(v);
+              // Switching kind starts from example tiers, since a tier means something else in each kind.
+              const seed: Record<string, BundleTier[]> = {
+                tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }],
+                percent_tiers: [{ qty: 2, price: 10 }, { qty: 3, price: 15 }, { qty: 4, price: 20 }],
+                amount_tiers: [{ qty: 2, price: 5 }, { qty: 3, price: 10 }],
+              };
+              setBundle((b) => ({ ...b, pricing, tiers: pricing === b.pricing ? b.tiers : (seed[pricing] ?? b.tiers) }));
+            }}
+            options={[
+              { value: "fixed", label: "One price: the bundle product's price" },
+              { value: "percent", label: "A percentage off the items shoppers pick" },
+              { value: "percent_tiers", label: "A bigger % off for more items (e.g. 2 items 10%, 3 items 15%)" },
+              { value: "amount_tiers", label: "A bigger amount off for more items (e.g. 2 items 5 off, 3 items 10 off)" },
+              { value: "tiers", label: "Price by number of items (e.g. 3 for 30, 6 for 55)" },
+            ]}
+          />
+          {bundle.pricing === "percent" ? (
+            <NumberField label="Percent off" suffix="%" min={1} max={90} step={1} value={bundle.percentOff} onValue={(v) => set("percentOff", v)} />
+          ) : null}
+          {bundle.pricing === "tiers" || growingPricing(bundle.pricing) ? (
+            <s-stack gap="small-200">
+              <s-text color="subdued">
+                {bundle.pricing === "tiers"
+                  ? "Shoppers pick exactly one of these numbers of items, and the bundle costs that tier's price. Make the steps' maximum high enough for the biggest tier."
+                  : "Shoppers can pick any number of items; the biggest tier they reach applies, and the bundle shows what one more item would save."}
+              </s-text>
+              {bundle.tiers.map((t, i) => (
+                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                  <NumberField label={bundle.pricing === "tiers" ? "Items" : "Items or more"} min={1} step={1} value={t.qty} onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))} />
+                  <NumberField
+                    label={bundle.pricing === "percent_tiers" ? "Discount" : bundle.pricing === "amount_tiers" ? "Amount off" : "Price"}
+                    suffix={bundle.pricing === "percent_tiers" ? "%" : undefined}
+                    min={0}
+                    max={bundle.pricing === "percent_tiers" ? 90 : undefined}
+                    step={bundle.pricing === "percent_tiers" ? 1 : 0.01}
+                    value={t.price}
+                    onValue={(v) => set("tiers", bundle.tiers.map((x, j) => (j === i ? { ...x, price: v } : x)))}
+                  />
+                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove tier ${i + 1}`} onClick={() => set("tiers", bundle.tiers.filter((_, j) => j !== i))}>
+                    Remove
+                  </Button>
+                </s-grid>
+              ))}
+              <s-stack direction="inline">
+                <Button variant="tertiary" icon="plus" onClick={() => set("tiers", [...bundle.tiers, { qty: (bundle.tiers.at(-1)?.qty ?? 0) + (bundle.pricing === "tiers" ? 3 : 1), price: 0 }])}>
+                  Add tier
+                </Button>
+              </s-stack>
+            </s-stack>
+          ) : null}
+          {bundle.pricing === "fixed" || bundle.pricing === "tiers" ? (
+            <s-stack gap="small-200">
+              <s-text type="strong">Extra charge for pricier options (optional)</s-text>
+              <s-text color="subdued">For example XL +5: every XL item in the bundle adds 5 to the bundle price. Matches the option name as shown on the product (size, colour…).</s-text>
+              {bundle.extras.map((x, i) => (
+                <s-grid key={i} gridTemplateColumns="1fr 1fr auto" gap="small-200" alignItems="end">
+                  <TextField label="Option value" placeholder="XL" value={x.value} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, value: v } : y)))} />
+                  <NumberField label="Extra per item" min={0} step={0.01} value={x.amount} onValue={(v) => set("extras", bundle.extras.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
+                  <Button variant="tertiary" tone="critical" accessibilityLabel={`Remove extra charge ${i + 1}`} onClick={() => set("extras", bundle.extras.filter((_, j) => j !== i))}>
+                    Remove
+                  </Button>
+                </s-grid>
+              ))}
+              <s-stack direction="inline">
+                <Button variant="tertiary" icon="plus" onClick={() => set("extras", [...bundle.extras, { value: "", amount: 0 }])}>
+                  Add extra charge
+                </Button>
+              </s-stack>
+            </s-stack>
+          ) : null}
+        </EditorSection>
+        <EditorSection n={5} title="Options" summary={[bundle.storeWide ? "Build while browsing" : "", bundle.allowDuplicates ? "Same item twice" : "", bundle.hideSoldOut ? "Sold out hidden" : ""].filter(Boolean).join(" · ") || "None"} done={true} open={open === 5} onToggle={() => setOpen((o) => (o === 5 ? 0 : 5))}>
+          <Switch
+            label="Let shoppers build it anywhere in the store"
+            details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."
+            checked={bundle.storeWide}
+            onValue={(v) => set("storeWide", v)}
+          />
+          <Checkbox
+            label="Allow the same item more than once"
+            checked={bundle.allowDuplicates}
+            onValue={(v) => set("allowDuplicates", v)}
+          />
+          <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
+        </EditorSection>
       </EditorLayout>
     </s-page>
   );

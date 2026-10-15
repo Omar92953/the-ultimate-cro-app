@@ -431,7 +431,6 @@ export async function listDeals(admin: AdminClient): Promise<Deal[]> {
   return deals.sort((a, b) => a.position - b.position || String(a.handle).localeCompare(String(b.handle)));
 }
 
-/** The storefront copy of active deals ($app:cro_offers "main"), read by the boosters script. */
 /** The "Frequently bought together" box design ($app:cro_design "fbt"), with defaults. */
 export async function getFbtDesign(admin: AdminClient): Promise<FbtDesign> {
   const data = await gql(admin, `#graphql
@@ -443,6 +442,12 @@ export async function getFbtDesign(admin: AdminClient): Promise<FbtDesign> {
   }
 }
 
+/** Save the box design; the caller re-syncs the deals (syncDiscounts) so the store picks it up. */
+export async function saveFbtDesign(admin: AdminClient, fbt: unknown) {
+  await upsert(admin, "$app:cro_design", "fbt", { config: JSON.stringify(normalizeFbt(fbt)) });
+}
+
+/** The storefront copy of active deals ($app:cro_offers "main"), read by the boosters script. */
 async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
   const fbt = await getFbtDesign(admin).catch(() => normalizeFbt(null));
   const data = { deals: deals.filter((d) => d.active).map(toStorefrontDeal), t: DEAL_TEXT, fbt: fbtForStorefront(fbt) };

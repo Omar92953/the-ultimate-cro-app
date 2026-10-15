@@ -95,12 +95,18 @@ customer pays.
   pages"). The theme editor only places the section.
 
 ## Bundles
-1. In **Products**, create the product you'll sell as the bundle, with the **bundle price**, and
-   untick **Track quantity** for it.
-2. In the app → **Bundles** → Create bundle: choose that product, then add steps, e.g.
-   "Choose 2 posters" (min 2, max 2) and "Add a frame" (optional).
-3. In the theme editor, add the **Bundle builder** block to that product's page. A separate product
-   template for bundles works well. Turn off the express checkout ("Buy it now") buttons there.
+**Bundles → Create bundle** asks what you want to sell and opens the right editor: Frequently bought
+together, a kit sold as one product, mix & match on a product page, a growing discount (on a product
+page or its own store page), build while browsing, or any N from a long collection for one price.
+Every editor is a few numbered steps on the left with a **live preview** on the right (your real
+products and prices); a step with a problem opens itself when you save.
+1. **Mix & match:** the app creates and publishes the bundle product for you ("Create it for me"),
+   or you pick one you have. For a store page it also creates the page.
+2. Add steps, e.g. "Choose 2 posters" (min 2, max 2) and "Add a frame" (optional).
+3. Click **Add to theme** in the editor's "Get it on your store" card once; it ticks itself.
+- **Kits** (one product, one cart line): Items, Price, and a preview of the product page.
+- **Frequently bought together:** Items, Discount and **Box look** (heading, button, pictures, saving
+  as an amount or a percentage), shared by every box on your store.
 
 Customers pay exactly the bundle product's price. At checkout the bundle is split into the items
 they picked, so **each item's stock goes down** and the items appear on the order.

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- GraphQL node payloads */
+import { previewBundles } from "../lib/bundle-preview.server";
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
@@ -6,17 +7,16 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
-import { errorMessage, gql, type AdminClient } from "../lib/admin.server";
+import { errorMessage } from "../lib/admin.server";
 import { editorLinks, getThemeStatus, listBundles } from "../lib/cro.server";
 import { getBundleDesign, saveBundleDesign, saveDraft } from "../lib/designs.server";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { ThemeLook, ThemeStylePanel } from "../components/ThemeStyle";
 import { applyBundlePreset, BUNDLE_PRESETS, matchBundleTheme, toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "../lib/bundle-design";
-import type { Bundle } from "../lib/types";
 import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
-import { BundlePreview, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
+import { BundlePreview, type PreviewBundle } from "../components/BundlePreview";
 import { BundleCollectionPreview } from "../components/BundleCollectionPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker } from "../components/LookPicker";
@@ -27,48 +27,6 @@ import { slottedRoute } from "../lib/design-slot.server";
 import { remember } from "../lib/short-cache.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { SaveControls, changed } from "../components/SaveControls";
-
-/** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
-async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
-  const ids = [...new Set(bundles.flatMap((b) => [...(b.product ? [b.product.id] : []), ...b.steps.flatMap((s) => (s.products.length ? s.products.map((p) => p.id) : s.collection ? [s.collection.id] : []))]))];
-  if (!ids.length) return { list: [], currency: "USD" };
-  const PRODUCT = `id title handle featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
-  const data = await gql(
-    admin,
-    `#graphql
-    query CroBundlePreview($ids: [ID!]!) {
-      nodes(ids: $ids) {
-        ... on Product { ${PRODUCT} }
-        ... on Collection { id products(first: 8) { nodes { ${PRODUCT} } } }
-      }
-    }`,
-    { ids },
-  );
-  let currency = "USD";
-  const item = (p: any): PreviewItem => {
-    const m = p?.priceRangeV2?.minVariantPrice;
-    if (m?.currencyCode) currency = m.currencyCode;
-    return { title: p?.title ?? "", image: p?.featuredMedia?.preview?.image?.url ?? null, cents: Math.round(Number(m?.amount ?? 0) * 100) };
-  };
-  const byId = new Map<string, any>((data.nodes ?? []).filter(Boolean).map((n: any) => [n.id, n]));
-  const list = bundles
-    .filter((b) => b.steps.length)
-    .sort((a, b) => Number(b.active) - Number(a.active))
-    .slice(0, 10)
-    .map((b) => ({
-      name: b.name,
-      handle: b.product ? (byId.get(b.product.id)?.handle as string | undefined) : undefined,
-      pricing: { kind: b.pricing, percent: b.percentOff },
-      price: b.product ? item(byId.get(b.product.id)).cents : 0,
-      steps: b.steps.map((s) => ({
-        label: s.label,
-        min: s.required ? Math.max(1, s.min) : 0,
-        max: Math.max(1, s.max),
-        items: (s.products.length ? s.products.map((p) => byId.get(p.id)) : s.collection ? (byId.get(s.collection.id)?.products?.nodes ?? []) : []).filter(Boolean).slice(0, 8).map(item),
-      })),
-    }));
-  return { list, currency };
-}
 
 export const loader = slottedRoute(["bundles"], async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
