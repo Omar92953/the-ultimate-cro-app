@@ -300,7 +300,7 @@ const offersData = {
   t: { add_bundle: "Add bundle to cart", bundle_total: "Bundle price", save: "Save {amount}", tier: "Buy {qty}+", off: "{pct}% off", each: "{price} each", free: "free",
     bogo_same: "Add {n} to your cart: {y} of them {reward}", bogo: "Buy {x}, get {y} {reward}", gift_left: "Spend {amount} more to get {gift} free",
     gift_ok: "You've unlocked a free {gift}!", error: "Couldn't add the bundle. Please try again." },
-  fbt: { h: "Frequently bought together", img: true, btn: "Buy all [count]: [price]", sv: "amount", ly: "row" },
+  fbt: { h: "Frequently bought together", img: true, btn: "Buy all [count]: [price]", sv: "amount", ly: "row", al: "center", bd: false },
   deals: [
     { id: "d-bogo", t: "bogo", name: "Buy 2, get 1 free", buy: { type: "all", p: [], c: [] }, x: 2, get: { type: "all", p: [], c: [] }, y: 1, pct: 100 },
     { id: "d-vol", t: "volume", name: "Buy more, save more", target: { type: "collections", p: [], c: [500] }, tiers: [{ qty: 3, pct: 15 }, { qty: 2, pct: 10 }] },

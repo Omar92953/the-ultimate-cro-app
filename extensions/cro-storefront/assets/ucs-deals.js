@@ -113,7 +113,8 @@
    * "Frequently bought together" box (fixed bundles). Look and words: offers.fbt, set in the app
    * (Bundles → Design): h heading ("" = the bundle's name), img item pictures, btn button text,
    * sv saving style ("amount" = "Save $12", "pct" = "15% off"), ly layout ("row" = pictures side by
-   * side with + between, "list" = one item per line). The button may use [count] and [price].
+   * side with + between, "list" = one item per line), al pictures "center" or "start", bd border
+   * around the box. The button may use [count] and [price].
    */
   var FBT = offers.fbt || {};
 
@@ -165,6 +166,8 @@
       }).join('<span class="ucs-deal__plus">+</span>') + '</div>' : '';
       var heading = FBT.h != null && FBT.h !== '' ? FBT.h : d.name;
       if (row) el.classList.add('ucs-deal--row');
+      if (FBT.al !== 'start') el.classList.add('ucs-deal--center');
+      if (FBT.bd !== true) el.classList.add('ucs-deal--plain');
       el.innerHTML = '<p class="ucs-deal__name">' + esc(heading) + '</p>' + pics + '<ul class="ucs-deal__items" role="list">' + rows + '</ul>' +
         '<div class="ucs-deal__total"><span>' + esc(T.bundle_total) + '</span><span class="ucs-deal__price"></span></div>' +
         '<button type="button" class="ucs-deal__add"></button><p class="ucs-deal__err" role="alert" hidden></p>';

@@ -275,6 +275,18 @@ export default function DealEditor() {
                     { value: "list" as const, label: "List" },
                   ]}
                 />
+                {fbt.layout === "row" ? (
+                  <Segmented
+                    label="Pictures"
+                    value={fbt.align}
+                    onChange={(v) => setFbt({ ...fbt, align: v })}
+                    options={[
+                      { value: "center" as const, label: "Centered" },
+                      { value: "start" as const, label: "Left" },
+                    ]}
+                  />
+                ) : null}
+                <Checkbox label="Border around the box" checked={fbt.border} onValue={(v) => setFbt({ ...fbt, border: v })} />
                 <TextField label="Heading" value={fbt.heading} maxLength={80} onValue={(v) => setFbt({ ...fbt, heading: v })} />
                 <TextField label="Button" details="[count] is the number of items and [price] the bundle price, e.g. Buy all [count]: [price]" value={fbt.button} maxLength={40} onValue={(v) => setFbt({ ...fbt, button: v })} />
                 <Checkbox label="Show product pictures" checked={fbt.images} onValue={(v) => setFbt({ ...fbt, images: v })} />
@@ -511,10 +523,10 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
     <s-stack gap="base">
       <s-section heading="Preview">
         <s-stack gap="small-300">
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, border: "1px solid #e3e3e3", borderRadius: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: fbt.border ? 14 : "4px 0", border: fbt.border ? "1px solid #e3e3e3" : 0, borderRadius: 12 }}>
             {fbt.heading ? <strong style={{ fontSize: 16 }}>{fbt.heading}</strong> : null}
             {row && fbt.images ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: fbt.align === "center" ? "center" : "flex-start", gap: 6 }}>
                 {items.map((i, n) => (
                   <Fragment key={i.product.id}>
                     {n ? <span style={{ fontSize: 22, opacity: 0.6 }}>+</span> : null}
