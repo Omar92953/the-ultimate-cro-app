@@ -14,6 +14,7 @@
  */
 import { gql, numericId, AdminError, type AdminClient } from "./admin.server";
 import { remember } from "./short-cache.server";
+import { syncBundleGuard } from "./checkout-rules.server";
 
 import type {
   Ref,
@@ -1198,8 +1199,18 @@ async function setBundleMode(admin: AdminClient, mode: "merge" | "line") {
   await upsert(admin, "$app:cro_design", "bundle_mode", { config: JSON.stringify({ m: mode }) });
 }
 
+/** The checkout guard that refuses a bare bundle product. A failure here never blocks saving a bundle. */
+async function guardBundles(admin: AdminClient, productIds: string[]) {
+  try {
+    await syncBundleGuard(admin, productIds);
+  } catch (error) {
+    console.error("[bundle guard]", error);
+  }
+}
+
 export async function syncBundles(admin: AdminClient) {
-  const { value, vars } = await buildBundleConfig(admin, await listBundles(admin));
+  const bundles = await listBundles(admin);
+  const { value, vars } = await buildBundleConfig(admin, bundles);
   const data = await gql(
     admin,
     `#graphql
@@ -1210,6 +1221,7 @@ export async function syncBundles(admin: AdminClient) {
     // Custom install on a non-Plus plan: Shopify doesn't run custom-app Cart Transforms there.
     // Bundles then sell as one line at the bundle price with the picks listed; stock isn't split.
     await setBundleMode(admin, "line");
+    await guardBundles(admin, []);
     return null;
   }
   const metafields = [
@@ -1217,6 +1229,7 @@ export async function syncBundles(admin: AdminClient) {
     { namespace: "$app", key: "bundle_vars", type: "json", value: vars },
   ];
   await setBundleMode(admin, "merge");
+  await guardBundles(admin, Object.keys(JSON.parse(value).b));
   if (existing) {
     const set = await gql(
       admin,

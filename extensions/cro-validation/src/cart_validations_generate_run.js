@@ -8,6 +8,11 @@
  *               "value": 3, "products": [gid] (per-product rules; empty = every product), "message": "…" }] }
  * A broken rule blocks checkout with its message. {limit} in a message is replaced by the rule's value
  * and {product} by the product's name (per-product rules).
+ *
+ * The same function also runs as the "bundle guard" (a second validation made by the app when the
+ * store has mix and match bundles), configured with { "bundles": ["<bundle product id>", …] }: a line
+ * of a bundle product that is not a merged bundle (no picks under it) is refused, so a bundle product
+ * can't be bought alone, e.g. through a theme's quick add button.
  */
 
 /**
@@ -66,6 +71,21 @@ export function check(rules, cart) {
   return errors;
 }
 
+/** Errors for mix and match bundle products in the cart that have no picks under them. @param {any} bundles numeric product ids */
+export function checkBundles(bundles, cart) {
+  const ids = new Set(Array.isArray(bundles) ? bundles.map(String) : []);
+  if (!ids.size) return [];
+  const parents = new Set(cart.lines.map((/** @type {any} */ l) => l.parentRelationship?.parent?.id).filter(Boolean));
+  const errors = [];
+  for (const line of cart.lines) {
+    const m = /** @type {any} */ (line.merchandise);
+    if (m.__typename !== "ProductVariant" || !m.product) continue;
+    if (!ids.has(String(m.product.id).split("/").pop()) || parents.has(line.id)) continue;
+    errors.push(`${m.product.title || "This bundle"} is a bundle. Pick its items on its page, then add it to your cart.`.slice(0, 250));
+  }
+  return errors;
+}
+
 /**
  * @param {RunInput} input
  * @returns {RunResult}
@@ -74,8 +94,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  if (!rules.length) return EMPTY;
-  const errors = check(rules, input.cart);
+  const errors = [...checkBundles(config?.bundles, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }

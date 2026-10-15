@@ -313,6 +313,8 @@
     btn.setAttribute('aria-busy', 'true');
     product(btn.getAttribute('data-handle'))
       .then(function (p) {
+        // A bundle product is built on its own page, never bought alone from a card.
+        if ((p.tags || []).indexOf('cro-bundle') > -1) { btn.remove(); window.location.href = root + 'products/' + btn.getAttribute('data-handle'); return; }
         var available = p.variants.filter(function (v) { return v.available; });
         if (!available.length) {
           // Sold out since the page was drawn: say so, then take the button away.
