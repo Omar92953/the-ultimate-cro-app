@@ -48,6 +48,7 @@ bundles). He also reversed the plan limit: plans are limited by **orders per mon
 - [x] Phase 5: editors as sections + live preview
   - Done 2026-10-15: `EditorSection` (numbered, collapsible, summary, done tick) in `EditorLayout preview`. Mix & match: 5 sections + live `BundlePreview` with real prices (`/app/bundles/preview-items`, `lib/bundle-price.ts` mirrors checkout for every pricing kind). Kit: Items · Price + product page sketch. Fixed bundle: Items · Discount · Box look (saves `$app:cro_design` "fbt", then `syncDiscounts`) + box preview. Other deal kinds sit in `EditorLayout`. Not done: a "Frequently bought together box" page on the Design tab (the Box look step covers it).
 - [ ] Phase 6: release and end-to-end test of recipes 1 to 6
+  - In progress 2026-10-15: deployed (cro-toolbox-15), scopes live. Recipes 1 and 2 verified on Testing2; recipe 3 product + block verified. Checklist in `docs/PROJECT-GUIDE.md` §10.
 
 ## Phase 0: make the plan portable
 - Copy this plan to `docs/plans/bundles-overhaul.md`; add a "Current state / next steps" section to `docs/HANDOFF.md` pointing to it (and to "Handoff essentials" below). Branch `claude/bundles-plan`, PR, merge.

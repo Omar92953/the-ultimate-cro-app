@@ -36,7 +36,6 @@ _reference/
 /app/types
 
 # Private notes and store-specific docs (kept on this Mac, not published)
-CLAUDE.md
 docs/step1-inventory-and-architecture.md
 docs/theme-removal.md
 docs/carry-over-gaps.md

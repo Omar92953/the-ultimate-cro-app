@@ -3,7 +3,12 @@
 Written 2026-10-13 for a new Claude Code account taking over from the previous sessions. Read this
 first, then `AGENTS.md`, `docs/billing.md`, `docs/hosting.md`, `docs/scopes.md`, `docs/listing.md`.
 
-## Current state and next steps (updated 2026-10-14)
+## Current state and next steps (updated 2026-10-15)
+- **Start with `docs/PROJECT-GUIDE.md`**: the complete, current guide (code map, shipping, rules,
+  testing, status, website plan). Where it and this file disagree, the guide wins.
+- Live Shopify version is now **cro-toolbox-15**; Phase 6 testing is under way (guide §10).
+
+### Earlier notes (2026-10-14)
 - **Active work: the bundles overhaul.** Full plan, approved by Omar: `docs/plans/bundles-overhaul.md`.
   It has a Progress checklist; resume at the first unticked phase and tick it in the same PR that
   finishes it. Phases: 0 plan in repo · 1 orders limit + hidden-settings fix · 2 engine · 3 app creates
