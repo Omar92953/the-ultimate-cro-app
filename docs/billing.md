@@ -50,7 +50,23 @@ with Omar on 2026-10-14: Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-d
   customer data approval). Home's plan bar shows "N of 500 orders this month" with a meter, and a
   banner appears when it's passed; nothing is switched off.
 - Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
-- **Request a feature** (Growth and up): a card on Home opens an email to `SUPPORT_EMAIL` with the shop's name; we build the requested feature for them. Free and Starter stores see the card with an upgrade button.
+- **Request a feature** (Growth and up): a form on Home ("What should your store do?", optional "Where should it show?"). Each request is saved in the `FeatureRequest` table (shop, plan, text, place, status, createdAt), Home shows a "Request sent" toast and the shop's earlier requests with their status. Free and Starter stores see the card with an upgrade button; the server checks the plan too.
+
+### Reading the requests (Omar, Supabase SQL editor)
+
+```sql
+-- New requests, oldest first
+select id, shop, plan, "createdAt", text, place
+from "FeatureRequest"
+where status = 'new'
+order by "createdAt";
+
+-- Change a status (what the merchant sees: new = Received, planned = We're building it,
+-- done = Built, declined = Not planned)
+update "FeatureRequest" set status = 'planned' where id = 12;
+```
+
+Pro requests first: add `order by (plan = 'pro') desc, "createdAt"`.
 
 ## Partner Dashboard steps (Omar)
 

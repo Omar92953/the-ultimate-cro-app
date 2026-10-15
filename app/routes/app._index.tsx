@@ -5,6 +5,7 @@
  * and what's new. Features live in the hubs. One loader; reads run at once, remembered per shop.
  */
 import { useEffect, useState } from "react";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -19,7 +20,9 @@ import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
-import { Button } from "../components/fields";
+import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
+import { REQUEST_STATUS_LABEL, cleanRequest, MAX_PLACE, MAX_TEXT } from "../lib/feature-requests";
+import { Button, TextArea, TextField } from "../components/fields";
 import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
 import { UpgradeButton } from "../components/Upgrade";
 import { PlanBar } from "../components/PlanCard";
@@ -35,7 +38,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = session.shop;
   // Everything at once. The hub data is the same the Storefront hub uses (remembered for both);
   // orders are the slowest, so Home waits at most 3 s for them and fills in on the next visit.
-  const [plan, hub, extras, results] = await Promise.all([
+  const [plan, hub, extras, results, requests] = await Promise.all([
     getPlan(admin, shop),
     remember(shop, "hub", 30000, () => loadHub(admin, session), 300000),
     remember(shop, "home", 30000, () =>
@@ -48,6 +51,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         waitingEmails(shop).catch(() => []),
       ]), 300000),
     cachedResults(admin, shop),
+    listFeatureRequests(shop).catch(() => [] as FeatureRequestRow[]),
   ]);
   const [planState, homeState, offers, monthOrders, returns, waiting] = extras;
   const installed = hub.theme?.installed ?? null;
@@ -114,13 +118,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     attention,
     recommended,
     supportEmail: process.env.SUPPORT_EMAIL || "",
+    requests,
   };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   const intent = form.get("intent");
+  if (intent === "feature-request") {
+    // The plan gate is checked here too, not only by hiding the form.
+    const { plan } = await getPlan(admin, session.shop);
+    if (!atLeast(plan, EXTRA_PLAN.featureRequests)) return { ok: false, error: `Requests are included from the ${PLANS[EXTRA_PLAN.featureRequests].name} plan.`, requested: false };
+    const clean = cleanRequest(form.get("text"), form.get("place"));
+    if (!clean.ok) return { ok: false, error: clean.error, requested: false };
+    await createFeatureRequest(session.shop, plan, clean.text, clean.place);
+    return { ok: true, error: null, requested: true };
+  }
   if (intent === "dismiss" || intent === "restore") await setHomeState(admin, { dismissed: intent === "dismiss" });
   if (intent === "manual") {
     const step = String(form.get("step") ?? "");
@@ -312,7 +326,7 @@ export default function Home() {
             ) : null}
           </Card>
 
-          <FeatureRequestCard plan={data.plan.key} shop={data.shop} supportEmail={data.supportEmail} />
+          <FeatureRequestCard plan={data.plan.key} requests={data.requests} />
 
           <Card title="What's new">
             <ul className={styles.news}>
@@ -345,8 +359,16 @@ function Metric({ label, value, change, note }: { label: string; value: string; 
   );
 }
 
-function FeatureRequestCard({ plan, shop, supportEmail }: { plan: PlanKey; shop: string; supportEmail: string }) {
+function FeatureRequestCard({ plan, requests }: { plan: PlanKey; requests: FeatureRequestRow[] }) {
   const needs = EXTRA_PLAN.featureRequests;
+  const shopify = useAppBridge();
+  const fetcher = useFetcher<{ ok: boolean; error: string | null; requested: boolean }>();
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.requested) shopify.toast.show("Request sent");
+    else if (fetcher.data.error) shopify.toast.show(fetcher.data.error, { isError: true });
+  }, [fetcher.state, fetcher.data, shopify]);
+
   if (!atLeast(plan, needs)) {
     return (
       <Card title="Request a feature" badge={<Pill>{`${PLANS[needs].name} plan`}</Pill>} actions={<UpgradeButton to={needs} />}>
@@ -355,12 +377,36 @@ function FeatureRequestCard({ plan, shop, supportEmail }: { plan: PlanKey; shop:
     );
   }
   const first = atLeast(plan, EXTRA_PLAN.requestsFirst);
-  const mail = `mailto:${supportEmail}?subject=${encodeURIComponent(`Feature request from ${shop}`)}&body=${encodeURIComponent("What would you like your store to do?\n\nWhere should it show (page, cart, checkout…)?\n\nAn example or a link to a store that does it (optional):\n")}`;
   return (
-    <Card title="Request a feature" badge={<Pill tone="ok">{first ? "Built first" : "Included"}</Pill>} actions={supportEmail ? <Button href={mail} target="_blank">Request a feature</Button> : null}>
+    <Card title="Request a feature" badge={<Pill tone="ok">{first ? "Built first" : "Included"}</Pill>}>
       <CardText>{first ? "Tell us what you'd like your store to do. We build it for you, and Pro requests come first." : "Tell us what you'd like your store to do. We build it for you; it's included in your plan."}</CardText>
-      {supportEmail ? null : <CardText>Requests open as soon as our support email is set up.</CardText>}
+      {/* New key after a send (the list gets a new newest request), so the form empties itself. */}
+      <RequestForm key={requests[0]?.id ?? 0} sending={fetcher.state !== "idle"} onSend={(text, place) => fetcher.submit({ intent: "feature-request", text, place }, { method: "post" })} />
+      {requests.length ? (
+        <ul className={styles.news}>
+          {requests.map((r) => (
+            <li key={r.id}>
+              <span className={styles.newsDate}>{`${new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${REQUEST_STATUS_LABEL[r.status] ?? r.status}`}</span>
+              {r.text.length > 90 ? `${r.text.slice(0, 90)}…` : r.text}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </Card>
+  );
+}
+
+function RequestForm({ sending, onSend }: { sending: boolean; onSend: (text: string, place: string) => void }) {
+  const [text, setText] = useState("");
+  const [place, setPlace] = useState("");
+  return (
+    <s-stack gap="base">
+      <TextArea label="What should your store do?" value={text} onValue={setText} rows={3} maxLength={MAX_TEXT} />
+      <TextField label="Where should it show? (optional)" value={place} onValue={setPlace} placeholder="Product page, cart, checkout…" maxLength={MAX_PLACE} />
+      <div>
+        <Button variant="primary" onClick={() => onSend(text, place)} loading={sending} disabled={!text.trim()}>Send request</Button>
+      </div>
+    </s-stack>
   );
 }
 
