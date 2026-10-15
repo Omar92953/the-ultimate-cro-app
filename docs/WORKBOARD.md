@@ -19,6 +19,11 @@ Updated 2026-10-15.
 - [x] Checkout rejects a bundle product picked inside a bundle (PR #46, cro-toolbox-19)
 - [ ] Add to theme places the builder below the theme's Add to cart: the theme editor link can't
       choose a position (PR #47 adds a hint in the app)
+- [ ] URGENT, needs Shopify deploy: the cart drawer and the countdown timer share the CSS class `ucs-cd`
+      in `ucs-sections.css`. Every countdown timer becomes an invisible full screen layer
+      (`position: fixed; inset: 0`, top z-index) that blocks all clicks on the page, and the app's cart
+      drawer is hidden. Fix: give the cart drawer its own class names (ucs-cart.js + CSS), then remove
+      the two TODO workarounds in `demos/` (found 2026-10-15 while building the demos)
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
@@ -27,7 +32,8 @@ Updated 2026-10-15.
       no demo links on the website, `docs/website.md` (PR #43)
 - [x] PR 3: bundles hub, feature and area pages, use cases, comparisons (PR #50)
 - [ ] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
-- [~] PR 4: blog (6 articles), help center, tutorials page (in progress)
+- [x] PR 4: blog (6 articles), help center (13 guides), tutorials page, IndexNow, search engine
+      verification support, visibility checklist in `docs/website.md` (PR #56)
 - [ ] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
@@ -39,6 +45,7 @@ Updated 2026-10-15.
 
 - [x] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
 - [ ] Create the demos project on Cloudflare Pages (`docs/website.md`, "The live demos")
-- [ ] Google Search Console and Bing Webmaster Tools once the site is live
+- [ ] Google Search Console, Bing Webmaster Tools, Cloudflare Web Analytics (`docs/website.md`, "Visibility plan")
+- [ ] Off site visibility checklist (`docs/website.md`, "Off site work")
 - [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution
 - [ ] App Store listing: screenshots, video, support email; tutorial videos

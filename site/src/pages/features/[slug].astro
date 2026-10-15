@@ -15,6 +15,8 @@ import { FEATURE_PAGES, AREA_PAGES, MORE_PAGES, areaPath, featureSlug, planLine,
 import { FEATURE_COPY } from "../../lib/features";
 import { TEMPLATES } from "../../lib/templates";
 import { faqPage } from "../../lib/schema";
+import ArticleCard from "../../components/blog/ArticleCard.astro";
+import { articles, guides, guidePath, HELP_PAGE } from "../../lib/content";
 
 export function getStaticPaths() {
   return [
@@ -65,6 +67,9 @@ const steps = feature
     : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Storefront"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."]
   : [];
 const schema = faq.length ? [faqPage(faq)] : [];
+/** The help guide that covers this feature, and articles written about it. */
+const helpGuide = feature ? (await guides()).find((g) => g.data.features.includes(feature)) : undefined;
+const reading = feature ? (await articles()).filter((a) => a.data.feature === feature) : [];
 ---
 
 <Base page={page} crumbs={crumbs} schema={schema}>
@@ -117,6 +122,13 @@ const schema = faq.length ? [faqPage(faq)] : [];
                   </ul>
                 </>
               )}
+              <p class="help-link">
+                {helpGuide ? (
+                  <a class="link" href={guidePath(helpGuide)}>Step by step help: {helpGuide.data.title} →</a>
+                ) : (
+                  <a class="link" href={HELP_PAGE.path}>Help center →</a>
+                )}
+              </p>
             </div>
           </div>
         </section>
@@ -129,6 +141,19 @@ const schema = faq.length ? [faqPage(faq)] : [];
             <Faq items={faq} />
           </div>
         </section>
+
+        {reading.length > 0 && (
+          <section class="section tight">
+            <div class="wrap">
+              <h2 class="related-h">Guides about {featureTitle(feature)}</h2>
+              <div class="grid three">
+                {reading.map((a) => (
+                  <ArticleCard article={a} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section class="section tight mist">
           <div class="wrap">
@@ -249,6 +274,9 @@ const schema = faq.length ? [faqPage(faq)] : [];
     font-size: 0.86rem;
   }
   .note {
+    margin-top: 18px;
+  }
+  .help-link {
     margin-top: 18px;
   }
   .related-h {

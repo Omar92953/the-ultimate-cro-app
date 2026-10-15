@@ -22,6 +22,19 @@ export const OPERATOR = "OMC";
 export const NOTIFY_HREF = "/#get-notified";
 
 /**
+ * Search engine verification (Google Search Console, Bing Webmaster Tools): paste the content value
+ * of the meta tag each one gives you. Empty = no tag. Verifying through Cloudflare DNS also works.
+ */
+export const GOOGLE_SITE_VERIFICATION = "";
+export const BING_SITE_VERIFICATION = "";
+
+/**
+ * IndexNow key: tells Bing (and other IndexNow engines) about new pages within hours. The key file
+ * public/<key>.txt holds the same value; .github/workflows/indexnow.yml pings after each deploy.
+ */
+export const INDEXNOW_KEY = "6f1c2b9e4a7d4c8f9b3e5a1d7c2f8e40";
+
+/**
  * Where an Install button goes. `medium` is the page type (home, pricing…), `campaign` the
  * page slug, so installs per page can be measured in the listing's analytics.
  */
@@ -41,8 +54,8 @@ export const NAV: NavLink[] = [
   { label: "Features", href: "/features/" },
   { label: "Bundles", href: "/bundles/" },
   { label: "Use cases", href: "/use-cases/" },
-  { label: "Compare", href: "/compare/" },
   { label: "Pricing", href: "/pricing/" },
+  { label: "Guides", href: "/blog/" },
 ];
 
 export const FOOTER: { title: string; links: NavLink[] }[] = [
@@ -67,7 +80,9 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
   {
     title: "Help",
     links: [
-      { label: "FAQ", href: "/#faq" },
+      { label: "Help center", href: "/help/" },
+      { label: "Tutorials", href: "/tutorials/" },
+      { label: "Guides", href: "/blog/" },
       { label: "Support", href: "/support/" },
     ],
   },

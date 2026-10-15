@@ -6,10 +6,12 @@ import MiniDemo from "../components/MiniDemo.astro";
 import PlanCards from "../components/PlanCards.astro";
 import Faq, { type QA } from "../components/Faq.astro";
 import NotifyCta from "../components/NotifyCta.astro";
+import ArticleCard from "../components/blog/ArticleCard.astro";
 import { PAGES } from "../lib/pages";
 import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
 import { organization, website, softwareApplication, faqPage } from "../lib/schema";
 import { featurePath, areaPath } from "../lib/pages";
+import { articles, BLOG_PAGE } from "../lib/content";
 
 const page = PAGES.home;
 const free = PLANS.free;
@@ -41,11 +43,7 @@ const STEPS = [
   { title: "It shows in your theme", text: "Click Add to theme. The theme editor opens with the block ready: drag it where you want and save." },
 ];
 
-const GUIDES = [
-  { cat: "Bundles & AOV", title: "Mix and match bundles on Shopify: a complete guide" },
-  { cat: "Product pages", title: "How to add Frequently bought together to a Shopify theme" },
-  { cat: "Cart & checkout", title: "Cart drawer upsells that work" },
-];
+const latest = (await articles()).slice(0, 3);
 
 const paid = plans.filter((p) => p.monthly > 0);
 const faq: QA[] = [
@@ -281,19 +279,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="head">
         <span class="eyebrow">Guides</span>
         <h2>Learn what raises order value</h2>
-        <p class="lead">Practical how to guides for Shopify stores. The first ones are being written now.</p>
+        <p class="lead">Practical how to guides for Shopify stores, with real steps.</p>
       </div>
-      <div class="grid three">
-        {
-          GUIDES.map((g) => (
-            <article class="card guide">
-              <span class="pill">{g.cat}</span>
-              <h3>{g.title}</h3>
-              <p class="muted soon">Coming soon</p>
-            </article>
-          ))
-        }
-      </div>
+      <div class="grid three">{latest.map((a) => <ArticleCard article={a} />)}</div>
+      <p class="center-link"><a class="link" href={BLOG_PAGE.path}>Read all guides →</a></p>
     </div>
   </section>
 
@@ -542,14 +531,4 @@ const schema = [organization(), website(), softwareApplication(page.description)
     margin-top: 28px;
   }
 
-  .guide {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-  }
-  .soon {
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
 </style>

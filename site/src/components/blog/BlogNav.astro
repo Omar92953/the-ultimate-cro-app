@@ -1,0 +1,36 @@
+---
+/** Category links above the article lists. */
+import { CATEGORY_LIST } from "../../lib/content";
+interface Props {
+  current?: string;
+}
+const { current } = Astro.props;
+---
+
+<nav class="cats" aria-label="Categories">
+  <a href="/blog/" aria-current={current ? undefined : "page"}>All</a>
+  {CATEGORY_LIST.map((c) => <a href={c.path} aria-current={current === c.slug ? "page" : undefined}>{c.name}</a>)}
+</nav>
+
+<style>
+  .cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  a {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    background: #fff;
+  }
+  a[aria-current="page"] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+</style>

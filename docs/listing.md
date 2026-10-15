@@ -5,6 +5,12 @@ Storefront · Cart · Checkout · Analytics · Settings). Rules followed: no pro
 superlatives, no other apps' names, no prices or stats in screenshots, name identical to
 `shopify.app.toml`. Character limits are Shopify's.
 
+## Shared description (use word for word everywhere)
+CRO Toolbox is a Shopify app for bundles, upsells and cross sells.
+
+Same sentence as `site/src/lib/brand.ts` on the website. Use it on YouTube, social profiles and
+directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see one consistent line.
+
 ## Name (≤ 30)
 CRO Toolbox
 

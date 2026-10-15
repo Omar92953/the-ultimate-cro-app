@@ -1,0 +1,42 @@
+# Tells Bing, Yandex and other IndexNow search engines about the website's pages after each
+# website change reaches main. Cloudflare Pages builds and publishes the site on its own; this
+# waits until the new build is live, then sends every address from the sitemap.
+# The key must match INDEXNOW_KEY in site/src/lib/site.ts and the file site/public/<key>.txt.
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HOST: crotoolbox.com
+      KEY: 6f1c2b9e4a7d4c8f9b3e5a1d7c2f8e40
+    steps:
+      - name: Wait for the Cloudflare build
+        run: sleep 240
+      - name: Send the sitemap addresses
+        run: |
+          set -euo pipefail
+          test "$(curl -fsS "https://$HOST/$KEY.txt")" = "$KEY"
+          urls=$(curl -fsS "https://$HOST/sitemap-0.xml" | grep -o '<loc>[^<]*</loc>' | sed -e 's#<loc>##' -e 's#</loc>##')
+          count=$(printf '%s\n' "$urls" | grep -c .)
+          echo "Sending $count addresses"
+          body=$(printf '%s\n' "$urls" | jq -R . | jq -s --arg host "$HOST" --arg key "$KEY" \
+            '{host: $host, key: $key, keyLocation: "https://\($host)/\($key).txt", urlList: .}')
+          code=$(curl -sS -o /dev/stderr -w '%{http_code}' -X POST "https://api.indexnow.org/indexnow" \
+            -H 'Content-Type: application/json; charset=utf-8' --data "$body")
+          echo "IndexNow answered $code"
+          case "$code" in 200|202) ;; *) exit 1 ;; esac

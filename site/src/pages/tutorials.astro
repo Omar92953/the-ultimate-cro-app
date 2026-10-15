@@ -1,0 +1,108 @@
+---
+/** Video tutorials, read from the app's own list (app/lib/tutorials.ts): add a YouTube id there and it shows here too. */
+import Base from "../layouts/Base.astro";
+import Crumbs from "../components/Crumbs.astro";
+import NotifyCta from "../components/NotifyCta.astro";
+import { TUTORIALS } from "../../../app/lib/tutorials";
+import { TUTORIALS_PAGE, HELP_PAGE } from "../lib/content";
+import { featurePath } from "../lib/pages";
+import { featureTitle, plain } from "../lib/app";
+
+const page = TUTORIALS_PAGE;
+const crumbs = [{ name: "Tutorials", href: page.path }];
+const ready = TUTORIALS.filter((t) => t.youtubeId);
+const schema = ready.map((t) => ({
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  name: t.title,
+  description: plain(t.title),
+  thumbnailUrl: `https://i.ytimg.com/vi/${t.youtubeId}/hqdefault.jpg`,
+  embedUrl: `https://www.youtube-nocookie.com/embed/${t.youtubeId}`,
+  uploadDate: "2026-10-15",
+}));
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Tutorials</span>
+      <h1>Video tutorials</h1>
+      <p class="lead">Short videos for each step of setting up CRO Toolbox. Prefer reading? See the <a class="link" href={HELP_PAGE.path}>help center</a>.</p>
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">
+      {
+        TUTORIALS.map((t) => (
+          <article class="card tcard">
+            {t.youtubeId ? (
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(t.youtubeId)}?rel=0`}
+                title={plain(t.title)}
+                loading="lazy"
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              />
+            ) : (
+              <div class="soon" aria-hidden="true">
+                <span>▶</span>
+              </div>
+            )}
+            <h2>{plain(t.title)}</h2>
+            <p class="muted">
+              {t.youtubeId ? t.length : "Video coming soon"}
+              {t.feature && (
+                <>
+                  {" · "}
+                  <a class="link" href={featurePath(t.feature)}>
+                    {featureTitle(t.feature)}
+                  </a>
+                </>
+              )}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+  <NotifyCta campaign="tutorials" />
+</Base>
+
+<style>
+  .tcard {
+    padding: 0;
+    overflow: hidden;
+    display: grid;
+    align-content: start;
+  }
+  .tcard iframe,
+  .soon {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+  }
+  .soon {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #1b1c22, #2a2b33);
+  }
+  .soon span {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.12);
+    color: #fff;
+    font-size: 20px;
+  }
+  .tcard h2 {
+    font-size: 1.1rem;
+    padding: 16px 18px 4px;
+  }
+  .tcard p {
+    padding: 0 18px 18px;
+    font-size: 0.92rem;
+  }
+</style>

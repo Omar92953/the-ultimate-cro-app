@@ -5,11 +5,13 @@
 import { SITE_URL, SITE_NAME, INSTALL_URL } from "./site";
 import { PAGES, MORE_PAGES, FEATURE_PAGES, USE_CASE_PAGES, COMPARE_PAGES, planLine, type PageMeta } from "./pages";
 import { FEATURE_COPY } from "./features";
+import { BRAND_LINE } from "./brand";
+import { articles, guides, articleMeta, guideMeta, BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE } from "./content";
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
 
-const SUMMARY = `${SITE_NAME} is a Shopify app that brings upsells, cross sells, six kinds of bundles, discounts, a cart drawer, storefront widgets and sections, checkout rules and analytics into one app. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, a cart drawer, storefront widgets and sections, checkout rules and analytics into one app. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
 
 function pricing(): string[] {
   return plans.map((p) => {
@@ -20,7 +22,7 @@ function pricing(): string[] {
 
 const line = (p: PageMeta) => `- [${p.title.includes(SITE_NAME) ? "Home" : p.title}](${url(p.path)}): ${p.description}`;
 
-export function llmsTxt(): string {
+export async function llmsTxt(): Promise<string> {
   return [
     `# ${SITE_NAME}`,
     "",
@@ -41,6 +43,12 @@ export function llmsTxt(): string {
     "## Comparisons",
     "",
     ...COMPARE_PAGES.map(line),
+    "",
+    "## Guides and help",
+    "",
+    ...[BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE].map(line),
+    ...(await articles()).map(articleMeta).map(line),
+    ...(await guides()).map(guideMeta).map(line),
     ...(INSTALL_URL ? [`- [Shopify App Store listing](${INSTALL_URL})`] : []),
     "",
     "## Optional",
@@ -50,7 +58,7 @@ export function llmsTxt(): string {
   ].join("\n");
 }
 
-export function llmsFullTxt(): string {
+export async function llmsFullTxt(): Promise<string> {
   const out: string[] = [`# ${SITE_NAME}`, "", SUMMARY, "", `Website: ${SITE_URL}`];
   if (INSTALL_URL) out.push(`Install: ${INSTALL_URL}`);
   out.push("", "## Pricing", "", ...pricing(), "", `${GUARANTEE} Billing runs through Shopify. The orders limit counts all store orders in a calendar month and is soft: going over shows a reminder, nothing switches off. The ${PLANS.free.name} plan allows ${PLANS.free.limits.offerSlots} offers switched on at once; paid plans have unlimited offers.`);

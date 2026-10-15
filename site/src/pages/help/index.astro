@@ -1,0 +1,58 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { guides, guidePath, HELP_PAGE, TUTORIALS_PAGE } from "../../lib/content";
+
+const page = HELP_PAGE;
+const crumbs = [{ name: "Help center", href: page.path }];
+const list = await guides();
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Help center</span>
+      <h1>How to set up and use CRO Toolbox</h1>
+      <p class="lead">Start with Getting started, then open the guide for what you want to set up. Prefer video? See the <a class="link" href={TUTORIALS_PAGE.path}>tutorials</a>.</p>
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">
+      {
+        list.map((g) => (
+          <a class="card hcard" href={guidePath(g)}>
+            <h2>{g.data.title}</h2>
+            <p class="muted">{g.data.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="wrap">
+      <p class="muted">Can't find an answer? See <a class="link" href="/support/">support</a>.</p>
+    </div>
+  </section>
+  <NotifyCta campaign="help" />
+</Base>
+
+<style>
+  .hcard {
+    text-decoration: none;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .hcard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .hcard h2 {
+    font-size: 1.15rem;
+  }
+</style>

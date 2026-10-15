@@ -1,6 +1,7 @@
 /** schema.org structured data, built from the same sources as the visible page. */
 import { plans } from "./app";
 import { SITE_NAME, SITE_URL, INSTALL_URL } from "./site";
+import { BRAND_LINE } from "./brand";
 import type { QA } from "../components/Faq.astro";
 
 const strip = (html: string) => html.replace(/<[^>]+>/g, "");
@@ -9,6 +10,7 @@ export const organization = () => ({
   "@context": "https://schema.org",
   "@type": "Organization",
   name: SITE_NAME,
+  description: BRAND_LINE,
   url: SITE_URL,
   logo: `${SITE_URL}/favicon.svg`,
 });

@@ -63,6 +63,33 @@ with Chromium on your computer (see the top of `demos/screenshots.mjs`). Commit 
 - Comparisons: `site/src/lib/competitors.ts`. Only facts with a source and the date checked; anything
   else shows "Not checked". Check the listings yourself from time to time and update the file.
 
+### Adding an article (the blog at /blog/)
+
+One Markdown file in `site/src/content/blog/`. The file name is the address: `my-question.md` becomes
+`/blog/my-question/`. Copy an existing article and change the top block:
+
+```
+---
+title: "How to add frequently bought together to Shopify"   # the question people search for
+description: "One or two sentences, under 200 characters. Shown in Google and on the card."
+date: 2026-10-20
+category: "Bundles & AOV"   # Bundles & AOV, Product pages, Cart & checkout, Store design, Guides
+cover: "features/upsell"    # a picture from site/src/assets (features/<feature> or bundles/<recipe>)
+coverAlt: "What the picture shows"
+feature: "upsell"           # the app feature the call to action at the end points to
+---
+```
+
+Then write the article: answer the question in the first sentence, use `##` headings phrased as
+questions, give the real steps in the app, and only claim what the app really does. No dashes in the
+text. The table of contents, reading time, related articles, share image, sitemap and llms.txt entry
+are made for you. Check it with `npm --prefix site run dev` and open `http://localhost:4321/blog/`.
+The build (`npm --prefix site run build`) refuses a missing field or a wrong category.
+
+Help center guides are the same, in `site/src/content/help/` (fields: title, description, order,
+features). Tutorial videos come from `app/lib/tutorials.ts`: when a tutorial gets a `youtubeId`, it
+plays on `/tutorials/` too.
+
 ### Adding or changing a demo
 
 - A new feature: add it to `demos/src/features.mjs` (render its block with the app's templates, like
@@ -106,3 +133,47 @@ the demos stay `noindex` there too (the `_headers` file applies to every deploym
 - `https://demo.crotoolbox.com/robots.txt` says `Disallow: /`.
 - Response headers of any demo page include `X-Robots-Tag: noindex, nofollow`.
 - `https://crotoolbox.com/sitemap-index.xml` and `/llms.txt` don't mention demos.
+
+## Visibility plan (Omar, outside the code)
+
+AI assistants find apps through web search (ChatGPT uses Bing, Google's AI answers use Google) and
+through what other sites say about the app. Tick these off in `docs/WORKBOARD.md`.
+
+### Search engines (once, about 20 minutes)
+
+1. **Google Search Console**: search.google.com/search-console → **Add property** → **Domain** →
+   `crotoolbox.com`. Choose **Cloudflare** as the provider when asked and approve; Google adds the DNS
+   record for you. (If you prefer the HTML tag method, send Claude the `content` value and it goes in
+   `GOOGLE_SITE_VERIFICATION` in `site/src/lib/site.ts`.)
+2. In Search Console → **Sitemaps** → submit `https://crotoolbox.com/sitemap-index.xml`
+   (`/sitemap.xml` also works, it forwards there).
+3. **Bing Webmaster Tools**: bing.com/webmasters → sign in → **Import from Google Search Console**
+   (fastest), or add the site and verify by DNS. (Tag method: the value goes in
+   `BING_SITE_VERIFICATION`.) Submit the same sitemap.
+4. **IndexNow** is already set up: the key file `https://crotoolbox.com/6f1c2b9e4a7d4c8f9b3e5a1d7c2f8e40.txt`
+   and the GitHub workflow `.github/workflows/indexnow.yml`, which tells Bing about every page a few
+   minutes after each website change reaches `main`. Nothing to do; it shows under Actions on GitHub.
+5. **Cloudflare Web Analytics** (free, no cookies, no banner): Cloudflare dashboard → Workers & Pages →
+   `crotoolbox` → **Metrics** → **Web Analytics** → **Enable**. Look at referrers for chatgpt.com,
+   perplexity.ai and gemini.google.com. Install clicks carry UTM tags (`utm_medium` is the page type,
+   `utm_campaign` the page), which the App Store listing analytics shows.
+
+### The one shared description
+
+Use this sentence word for word everywhere (App Store, YouTube, social profiles, directories):
+
+> CRO Toolbox is a Shopify app for bundles, upsells and cross sells.
+
+It lives in `site/src/lib/brand.ts` (the website uses it) and in `docs/listing.md`.
+
+### Off site work (ongoing)
+
+- [ ] App Store listing: put the main words in the name line, for example "CRO Toolbox: Bundles & Upsell".
+- [ ] Ask happy merchants for a review (after a success, never pushy).
+- [ ] Write to authors of "best Shopify bundle apps" lists and ask to be considered.
+- [ ] Answer real questions on r/shopify and the Shopify Community when the app helps. No spam.
+- [ ] Short YouTube tutorials (they show up on `/tutorials/` once their ID is in `app/lib/tutorials.ts`).
+- [ ] Product Hunt on launch day.
+- [ ] Free profiles on G2, Capterra and SaaSworthy, with the shared description.
+- [ ] Once a month ask ChatGPT, Gemini and Perplexity "best Shopify bundle app" and note what they say.
+- [ ] 1 or 2 articles a week, each answering one real merchant question (see "Adding an article").
