@@ -12,7 +12,9 @@
  * The same function also runs as the "bundle guard" (a second validation made by the app when the
  * store has mix and match bundles), configured with { "bundles": ["<bundle product id>", …] }: a line
  * of a bundle product that is not a merged bundle (no picks under it) is refused, so a bundle product
- * can't be bought alone, e.g. through a theme's quick add button.
+ * can't be bought alone, e.g. through a theme's quick add button. It also refuses a bundle product
+ * (tag cro-bundle) added as a pick (a line with the `_bundle` property), which the builder never
+ * offers but a hand made request could.
  */
 
 /**
@@ -86,6 +88,17 @@ export function checkBundles(bundles, cart) {
   return errors;
 }
 
+/** Errors for bundle products used as picks inside a bundle. */
+export function checkNested(cart) {
+  const errors = [];
+  for (const line of cart.lines) {
+    const m = /** @type {any} */ (line.merchandise);
+    if (m.__typename !== "ProductVariant" || !m.product?.isBundle || !line.bundle?.value) continue;
+    errors.push(`${m.product.title || "A bundle"} is a bundle, so it can't be an item inside another bundle. Remove it from the cart.`.slice(0, 250));
+  }
+  return errors;
+}
+
 /**
  * @param {RunInput} input
  * @returns {RunResult}
@@ -94,7 +107,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkBundles(config?.bundles, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }

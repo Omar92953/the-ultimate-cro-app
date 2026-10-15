@@ -4,8 +4,9 @@ query CartValidationsGenerateRunInput {
     lines {
       id
       quantity
+      bundle: attribute(key: "_bundle") { value }
       parentRelationship { parent { id } }
-      merchandise { __typename ... on ProductVariant { product { id title } } }
+      merchandise { __typename ... on ProductVariant { product { id title isBundle: hasAnyTag(tags: ["cro-bundle"]) } } }
     }
   }
   validation {

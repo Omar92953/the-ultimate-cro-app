@@ -17,7 +17,8 @@
  * The property is written by the shopper's browser, so it is NOT trusted. Every pick must be in its
  * step's collection (checked by Shopify through inCollections, so collections of any size work) or
  * in its step's product list, and the counts must fit. Anything that doesn't validate is left
- * alone: the items stay separate at their normal prices.
+ * alone: the items stay separate at their normal prices. A pick that is itself a bundle product (tag
+ * cro-bundle) never validates; the validation Function (cro-validation) then blocks checkout.
  *
  * Config, from the dashboard, in this cart transform's `$app.bundles` metafield:
  * { "b": { "<bundle product id>": {
@@ -102,6 +103,7 @@ export function validGroup(picks, bundle) {
     if (!s || !merch || merch.__typename !== "ProductVariant") return false;
     const qty = Number(line.quantity) || 0;
     if (qty < 1) return false;
+    if (merch.product?.isBundle) return false; // a bundle product is never a pick
     if (!inStep(merch, s)) return false;
     counts[step] += qty;
     perVariant.set(merch.id, (perVariant.get(merch.id) || 0) + qty);

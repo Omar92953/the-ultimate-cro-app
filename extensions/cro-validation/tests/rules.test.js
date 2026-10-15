@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { cartValidationsGenerateRun, checkBundles } from "../src/cart_validations_generate_run.js";
+import { cartValidationsGenerateRun, checkBundles, checkNested } from "../src/cart_validations_generate_run.js";
 
 const line = (id, title, quantity) => ({ quantity, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${id}`, title } } });
 const run = (rules, total, lines) => cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: String(total) } }, lines }, validation: { metafield: { jsonValue: { rules } } } });
@@ -36,5 +36,15 @@ describe("bundle guard", () => {
   test("other products and an empty list pass", () => {
     expect(messages(guard([bl("b", 1, "Mug")]))).toEqual([]);
     expect(checkBundles([], { lines: [bl("a", 7, "Gift box")] })).toEqual([]);
+  });
+});
+
+describe("bundle product inside a bundle", () => {
+  const nl = (title, isBundle, bundle) => ({ id: title, quantity: 1, bundle: bundle ? { value: bundle } : null, merchandise: { __typename: "ProductVariant", product: { id: "gid://shopify/Product/1", title, isBundle } } });
+  test("a bundle product used as a pick is refused", () => {
+    expect(checkNested({ lines: [nl("Gift box", true, "7:abc:0")] })).toEqual(["Gift box is a bundle, so it can't be an item inside another bundle. Remove it from the cart."]);
+  });
+  test("a plain pick, or a bundle product on its own line, is not this error", () => {
+    expect(checkNested({ lines: [nl("Mug", false, "7:abc:0"), nl("Gift box", true, null)] })).toEqual([]);
   });
 });
