@@ -388,6 +388,8 @@
   }
   function decorateCards() {
     cards().forEach(function (x) {
+      // A bundle product (tag cro-bundle) can't go inside a bundle: no button on its card.
+      if ((D.x || []).indexOf(x.handle) !== -1) return;
       var fits = cardFits(x.handle);
       if (!fits.length) return;
       var btn = document.createElement('button');

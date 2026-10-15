@@ -108,6 +108,9 @@
         if (solid(cs.backgroundColor) && contrast(cs.backgroundColor, page) >= 1.6) chosen = cs.backgroundColor;
         else if (solid(cs.color) && contrast(cs.color, page) >= 1.6) chosen = cs.color;
       }
+      // No theme button to copy (a store page, a collection page): use the block's text colour.
+      // Leaving the accent to currentColor makes selected buttons white on white.
+      if (!chosen) chosen = getComputedStyle(el).color;
       if (chosen) el.style.setProperty('--ucro-accent', chosen);
     }
     if (chosen) {
