@@ -27,11 +27,12 @@ Updated 2026-10-15.
 - [ ] PR 3: bundles hub, features, use cases, comparisons
 - [ ] PR 4: blog (6 articles), help center, tutorials page
 - [ ] PR 5 (app): "Show live preview" buttons
-- [ ] Deploy on Cloudflare Pages (free plan) with crotoolbox.com (Omar buys the domain, connects the repo)
+- [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
+      NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
 
 ## Omar (outside the code)
 
-- [ ] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
+- [x] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
 - [ ] Google Search Console and Bing Webmaster Tools once the site is live
 - [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution
 - [ ] App Store listing: screenshots, video, support email; tutorial videos
