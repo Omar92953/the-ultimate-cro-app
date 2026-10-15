@@ -18,7 +18,7 @@ Offers are read from your own store data, and the app adds no calls to its serve
 
 ## Uninstalling
 
-Uninstalling removes the blocks from your storefront and stops the discounts and bundle splitting.
+Uninstalling removes the blocks from your storefront and stops the discounts and bundle splitting. Full steps: [uninstalling](/help/uninstalling/).
 
 ## Limits
 
