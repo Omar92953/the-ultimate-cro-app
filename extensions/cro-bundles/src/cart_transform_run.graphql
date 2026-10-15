@@ -19,6 +19,7 @@ query CartTransformRunInput($collections: [ID!]) {
           title
           product {
             id
+            isBundle: hasAnyTag(tags: ["cro-bundle"])
           }
           inCollections(ids: $collections) {
             collectionId
