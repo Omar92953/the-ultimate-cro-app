@@ -115,7 +115,9 @@ async function components(admin: AdminClient, items: KitItem[]) {
       query CroKitProductOptions($id: ID!) { product(id: $id) { id title options { id name optionValues { name } } } }`, { id: item.productId });
     const p = data.product;
     if (!p) throw new AdminError(`${item.title} no longer exists. Remove it from the bundle.`);
-    const options = (p.options ?? []).filter((o: any) => !(o.name === "Title" && o.optionValues?.length === 1 && o.optionValues[0].name === "Default Title"));
+    // Shopify needs every option mapped, even the hidden "Title: Default Title" of a product without
+    // variants (otherwise: "need to map all of the options of the product").
+    const options = p.options ?? [];
     out.push({
       productId: item.productId,
       quantity: item.qty,
