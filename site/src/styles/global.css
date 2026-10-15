@@ -216,10 +216,9 @@ p {
   }
 }
 
-/* A real tile (a link or a control): flat, thin border. Never use it only as decoration: use .block. */
+/* A real tile (a link or a control): flat, no border. Never use it only as decoration: use .block. */
 .card {
   background: var(--paper);
-  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 24px;
 }
@@ -230,7 +229,6 @@ p {
 }
 .dark .card {
   background: var(--ink-2);
-  border-color: #2a2b33;
   box-shadow: none;
 }
 
@@ -357,11 +355,11 @@ p {
   top: 0.3em;
   width: 18px;
   height: 18px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%230b7a45' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%230b0b0f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     center / 18px no-repeat;
 }
 .dark .check-list li::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%233ee08f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* ----------------------------------------------------------- prose pages */

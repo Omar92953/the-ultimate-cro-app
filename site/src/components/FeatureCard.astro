@@ -25,15 +25,14 @@ const img = all[`../assets/features/${featureSlug(feature)}.jpg`]?.default;
     display: flex;
     flex-direction: column;
     background: #fff;
-    border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
     text-decoration: none;
-    transition: border-color 0.15s ease;
     height: 100%;
   }
-  .fcard:hover {
-    border-color: var(--ink);
+  .fcard:hover b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .fcard :global(img) {
     width: 100%;
