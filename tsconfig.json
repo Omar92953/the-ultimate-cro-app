@@ -1,7 +1,7 @@
 {
   "include": ["env.d.ts", "**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
   // Checkout UI extensions bring their own JSX types (extensions/*/tsconfig.json); they clash with the admin's.
-  "exclude": ["node_modules", "build", "extensions/cro-thank-you"],
+  "exclude": ["node_modules", "build", "extensions/cro-thank-you", "site"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "strict": true,

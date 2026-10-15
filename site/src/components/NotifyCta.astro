@@ -1,0 +1,73 @@
+---
+/**
+ * The closing call to action. While the App Store listing isn't live (INSTALL_URL empty) it is the
+ * "Get notified" section every Install button points to.
+ */
+import InstallButton from "./InstallButton.astro";
+import { INSTALL_URL, SUPPORT_EMAIL } from "../lib/site";
+import { PLANS, trialDays } from "../lib/app";
+interface Props {
+  campaign: string;
+}
+const { campaign } = Astro.props;
+const live = Boolean(INSTALL_URL);
+const mail = SUPPORT_EMAIL ? `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Tell me when CRO Toolbox launches")}` : "";
+---
+
+<section class="section dark final" id={live ? "install" : "get-notified"}>
+  <div class="wrap inner">
+    {
+      live ? (
+        <>
+          <h2>Ready to sell more per order?</h2>
+          <p class="lead">Install CRO Toolbox free. Paid plans start with a {trialDays} day free trial.</p>
+          <div class="actions">
+            <InstallButton medium="cta" campaign={campaign} />
+            <a class="btn ghost" href="/demo/">See it live</a>
+          </div>
+        </>
+      ) : (
+        <>
+          <span class="pill">Coming soon to the Shopify App Store</span>
+          <h2>Be first to install CRO Toolbox</h2>
+          <p class="lead">
+            CRO Toolbox is on its way to the Shopify App Store. The install button on this site will go straight to the listing the day it's
+            live, with the {PLANS.free.name} plan and a {trialDays} day trial on every paid plan.
+          </p>
+          <div class="actions">
+            {mail && (
+              <a class="btn primary" href={mail}>
+                Email me at launch
+              </a>
+            )}
+            <a class="btn ghost" href="/demo/">
+              See it live meanwhile
+            </a>
+          </div>
+        </>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .final {
+    background:
+      radial-gradient(60% 80% at 50% 120%, rgb(62 224 143 / 0.22), transparent 70%),
+      var(--ink);
+  }
+  .inner {
+    text-align: center;
+    max-width: 760px;
+  }
+  h2 {
+    margin: 20px 0 16px;
+  }
+  .lead {
+    margin: 0 auto;
+  }
+  .actions {
+    justify-content: center;
+    margin-top: 32px;
+  }
+</style>

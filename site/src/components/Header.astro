@@ -1,0 +1,128 @@
+---
+import Logo from "./Logo.astro";
+import InstallButton from "./InstallButton.astro";
+import { NAV } from "../lib/site";
+const here = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="/" class="home" aria-label="CRO Toolbox home"><Logo /></a>
+    <nav aria-label="Main" class="desktop">
+      {NAV.map((l) => <a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a>)}
+    </nav>
+    <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" label="Install free" /></div>
+    <details class="mobile">
+      <summary aria-label="Menu"><span></span><span></span></summary>
+      <nav aria-label="Main mobile">
+        {NAV.map((l) => <a href={l.href}>{l.label}</a>)}
+        <InstallButton medium="header" campaign="mobile_menu" class="primary" />
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(255 255 255 / 0.86);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid rgb(11 11 15 / 0.06);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 68px;
+  }
+  .home {
+    text-decoration: none;
+  }
+  .desktop {
+    display: none;
+    gap: 4px;
+    margin-left: 16px;
+  }
+  .desktop a {
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 550;
+    color: #34363f;
+  }
+  .desktop a:hover,
+  .desktop a[aria-current="page"] {
+    background: var(--mist);
+    color: var(--ink);
+  }
+  .cta {
+    margin-left: auto;
+    display: none;
+  }
+  .mobile {
+    margin-left: auto;
+  }
+  .mobile summary {
+    list-style: none;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-content: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+  }
+  .mobile summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile summary span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+    transition: transform 0.2s;
+  }
+  .mobile[open] summary span:first-child {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .mobile[open] summary span:last-child {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  .mobile nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 68px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 12px var(--gutter) 24px;
+    display: grid;
+    gap: 4px;
+    box-shadow: var(--shadow-lg);
+  }
+  .mobile nav a:not(.btn) {
+    padding: 14px 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--mist-2);
+  }
+  .mobile nav .btn {
+    margin-top: 16px;
+  }
+  @media (min-width: 900px) {
+    .desktop,
+    .cta {
+      display: flex;
+    }
+    .mobile {
+      display: none;
+    }
+  }
+</style>

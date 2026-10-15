@@ -1,0 +1,202 @@
+---
+/**
+ * The four plan cards with a Monthly / Yearly switch. Every number comes from the app's plans.ts.
+ * The switch is a pair of radio buttons; CSS shows the matching prices (works without JS).
+ */
+import InstallButton from "./InstallButton.astro";
+import { plans, money, yearlySaving, ordersText, plain, GUARANTEE } from "../lib/app";
+interface Props {
+  medium: string;
+  campaign: string;
+}
+const { medium, campaign } = Astro.props;
+const best = Math.max(...plans.map(yearlySaving));
+const id = `billing-${campaign}`;
+---
+
+<div class="plans">
+  <div class="switch" role="radiogroup" aria-label="Billing period">
+    <input type="radio" name={id} id={`${id}-m`} value="monthly" checked />
+    <label for={`${id}-m`}>Monthly</label>
+    <input type="radio" name={id} id={`${id}-y`} value="yearly" />
+    <label for={`${id}-y`}>Yearly <span class="save">Save up to {best}%</span></label>
+  </div>
+
+  <div class="cards">
+    {
+      plans.map((p) => (
+        <article class:list={["plan", { featured: p.badge }]}>
+          {p.badge && <span class="badge">{p.badge}</span>}
+          <h3>{p.name}</h3>
+          <p class="job">{plain(p.job)}</p>
+          <div class="price m">
+            <b>{money(p.monthly)}</b>
+            <span>{p.monthly ? "/ month" : "forever"}</span>
+          </div>
+          <div class="price y">
+            <b>{money(p.yearly)}</b>
+            <span>{p.yearly ? "/ year" : "forever"}</span>
+            {p.yearly > 0 && <em>Save {yearlySaving(p)}%</em>}
+          </div>
+          <p class="orders">{ordersText(p)}</p>
+          <p class="trial">{p.trialDays ? `${p.trialDays} day free trial` : "No card needed"}</p>
+          <ul class="check-list">
+            {p.highlights.map((h) => (
+              <li>{plain(h)}</li>
+            ))}
+          </ul>
+          <InstallButton medium={medium} campaign={`${campaign}_${p.key}`} label={p.monthly ? `Start ${p.trialDays} day trial` : "Start free"} class={p.badge ? "primary" : "ghost"} />
+        </article>
+      ))
+    }
+  </div>
+  <p class="fine muted">{GUARANTEE} Billed by Shopify. The orders limit counts all store orders in a calendar month and is soft: you get a reminder, nothing switches off.</p>
+</div>
+
+<style>
+  .switch {
+    display: inline-flex;
+    position: relative;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--mist-2);
+    margin: 0 auto 32px;
+  }
+  .plans {
+    text-align: center;
+  }
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .switch label {
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-weight: 650;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .switch input:checked + label {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .switch input:focus-visible + label {
+    outline: 3px solid var(--accent-deep);
+    outline-offset: 2px;
+  }
+  .save {
+    font-size: 0.75rem;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .cards {
+    display: grid;
+    gap: 16px;
+    text-align: left;
+  }
+  @media (min-width: 640px) {
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1040px) {
+    .cards {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .plan {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 24px 24px;
+    box-shadow: var(--shadow);
+  }
+  .plan.featured {
+    border: 2px solid var(--ink);
+    box-shadow: var(--shadow-lg);
+  }
+  .badge {
+    position: absolute;
+    top: -13px;
+    left: 24px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+  .job {
+    color: var(--muted);
+    font-size: 0.93rem;
+    margin: 8px 0 18px;
+    min-height: 3em;
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .price b {
+    font-size: 2.6rem;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .price span {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .price em {
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .price.y {
+    display: none;
+  }
+  .plans:has(input[value="yearly"]:checked) .price.m {
+    display: none;
+  }
+  .plans:has(input[value="yearly"]:checked) .price.y {
+    display: flex;
+  }
+  .orders {
+    margin-top: 14px;
+    font-weight: 650;
+  }
+  .trial {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .check-list {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    flex: 1;
+  }
+  .plan :global(.btn) {
+    width: 100%;
+  }
+  .fine {
+    margin: 24px auto 0;
+    font-size: 0.88rem;
+    max-width: 720px;
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+import Doc from "../layouts/Doc.astro";
+import ContactLine from "../components/ContactLine.astro";
+import { PAGES } from "../lib/pages";
+import { OPERATOR } from "../lib/site";
+import { PLANS, trialDays, GUARANTEE } from "../lib/app";
+const page = PAGES.terms;
+---
+
+<Doc page={page} heading="Terms of service" intro="The terms for using the CRO Toolbox Shopify app and this website." updated="October 15, 2026">
+  <p>
+    These terms are an agreement between you (the merchant installing the app) and {OPERATOR} ("we"), who runs CRO Toolbox. By installing or using
+    the app you accept them. Shopify's own terms also apply to your use of Shopify.
+  </p>
+
+  <h2>1. The service</h2>
+  <p>
+    CRO Toolbox is a Shopify app that adds offers, bundles, storefront sections and widgets, a cart drawer, checkout rules and analytics to your store.
+    We may improve, change or remove features over time.
+  </p>
+
+  <h2>2. Plans, trials and billing</h2>
+  <ul>
+    <li>The {PLANS.free.name} plan is free. Paid plans are billed by Shopify, monthly or yearly, at the prices shown on our pricing page and in the app.</li>
+    <li>Paid plans start with a {trialDays} day free trial. If you cancel during the trial, you are not charged.</li>
+    <li>{GUARANTEE} Charges already billed by Shopify are not refunded, except where the law requires it.</li>
+    <li>Plans include monthly order limits. They are soft: if your store goes over, the app reminds you to move up a plan and nothing is switched off.</li>
+    <li>We may change prices with at least 30 days' notice in the app. Your current billing period is not affected.</li>
+  </ul>
+
+  <h2>3. Your responsibilities</h2>
+  <ul>
+    <li>You are responsible for the offers, prices, discounts, texts, images and reviews you publish with the app, and for checking them before they go live.</li>
+    <li>You are responsible for following the laws that apply to your store, including consumer, pricing and privacy laws, and for your own privacy policy towards your shoppers.</li>
+    <li>Use countdown timers, stock messages and similar features honestly. Don't show false urgency or fake reviews.</li>
+    <li>Don't misuse the app: no attempts to break, overload, copy or resell it.</li>
+  </ul>
+
+  <h2>4. Your data</h2>
+  <p>
+    Your store's data stays yours. We use it only to run the app, as described in our <a href="/privacy/">privacy policy</a>. Most app settings are
+    saved in your own store.
+  </p>
+
+  <h2>5. Availability</h2>
+  <p>
+    We work to keep the app running and fix problems quickly, but the app is provided "as is", without warranties of any kind. Parts of the app run on
+    Shopify, so Shopify outages and changes can affect it.
+  </p>
+
+  <h2>6. Liability</h2>
+  <p>
+    To the extent the law allows, we are not liable for indirect or consequential losses, such as lost sales or profits. Our total liability is limited
+    to the fees you paid us in the 12 months before the claim.
+  </p>
+
+  <h2>7. Ending</h2>
+  <p>
+    You can stop at any time by uninstalling the app. We may suspend or end access if these terms are seriously broken. After uninstalling, your data
+    is deleted as our privacy policy describes.
+  </p>
+
+  <h2>8. Changes to these terms</h2>
+  <p>We may update these terms. For important changes we tell you in the app at least 30 days before they apply.</p>
+
+  <h2>9. Contact</h2>
+  <p>Questions about these terms: <ContactLine />.</p>
+</Doc>

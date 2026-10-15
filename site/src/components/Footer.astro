@@ -1,0 +1,92 @@
+---
+import Logo from "./Logo.astro";
+import { FOOTER, OPERATOR } from "../lib/site";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer dark">
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <Logo />
+        <p class="muted">One Shopify app for upsells, bundles, a cart drawer, storefront widgets and checkout rules. Works with any Online Store 2.0 theme.</p>
+      </div>
+      {
+        FOOTER.map((col) => (
+          <nav aria-label={col.title}>
+            <h2>{col.title}</h2>
+            <ul>
+              {col.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+    <div class="bottom muted">
+      <p>© {year} CRO Toolbox by {OPERATOR}.</p>
+      <p>Shopify is a trademark of Shopify Inc. CRO Toolbox is an independent app.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding: 72px 0 40px;
+    font-size: 0.95rem;
+  }
+  .top {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .brand {
+    grid-column: 1 / -1;
+    max-width: 340px;
+  }
+  .brand p {
+    margin-top: 14px;
+  }
+  h2 {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    margin-bottom: 14px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  a {
+    text-decoration: none;
+    color: #e6e6ea;
+  }
+  a:hover {
+    color: var(--accent);
+  }
+  .bottom {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid #24252c;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 32px;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+  @media (min-width: 820px) {
+    .top {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+    .brand {
+      grid-column: auto;
+    }
+  }
+</style>
