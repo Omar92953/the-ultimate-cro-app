@@ -47,15 +47,33 @@ export function installHref(medium: string, campaign: string): string {
   return url.toString();
 }
 
-export type NavLink = { label: string; href: string };
+export type NavLink = { label: string; href: string; /** A dropdown (desktop) and a section (mobile menu). */ children?: NavLink[] };
+
+/** The Features dropdown: the five areas, then the main features, then everything. Header.astro shows it. */
+export const FEATURES_MENU: NavLink[] = [
+  { label: "Offers", href: "/features/offers/" },
+  { label: "Storefront", href: "/features/storefront/" },
+  { label: "Cart", href: "/features/cart/" },
+  { label: "Checkout", href: "/features/checkout/" },
+  { label: "Analytics", href: "/features/analytics/" },
+  { label: "Upsell", href: "/features/upsell/" },
+  { label: "Cross sell", href: "/features/cross-sell/" },
+  { label: "Bundles", href: "/features/bundles/" },
+  { label: "Discounts", href: "/features/discounts/" },
+  { label: "Cart drawer", href: "/features/cart-tools/" },
+  { label: "Reviews", href: "/features/reviews/" },
+  { label: "Countdown timers", href: "/features/countdown/" },
+  { label: "Sales pop ups", href: "/features/sales-pop/" },
+  { label: "All features", href: "/features/" },
+];
 
 /** Header menu. Pages are added here as they ship. */
 export const NAV: NavLink[] = [
-  { label: "Features", href: "/features/" },
+  { label: "Features", href: "/features/", children: FEATURES_MENU },
   { label: "Bundles", href: "/bundles/" },
   { label: "Use cases", href: "/use-cases/" },
   { label: "Pricing", href: "/pricing/" },
-  { label: "Guides", href: "/blog/" },
+  { label: "Blog", href: "/blog/" },
 ];
 
 export const FOOTER: { title: string; links: NavLink[] }[] = [
@@ -82,7 +100,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     links: [
       { label: "Help center", href: "/help/" },
       { label: "Tutorials", href: "/tutorials/" },
-      { label: "Guides", href: "/blog/" },
+      { label: "Blog", href: "/blog/" },
       { label: "Support", href: "/support/" },
     ],
   },
