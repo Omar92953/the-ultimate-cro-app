@@ -191,8 +191,8 @@ export const REFERRAL = {
 };
 
 /** The app's handle in the Partner Dashboard (used in the plan selection page URL). Can be
- * overridden with the CRO_APP_HANDLE env var. Confirm it in Partner Dashboard → App setup. */
-export const DEFAULT_APP_HANDLE = "cro-toolbox";
+ * overridden with the CRO_APP_HANDLE env var. Checked on Testing2 2026-10-16: the admin URL is apps/the-ultimate-cro-app. */
+export const DEFAULT_APP_HANDLE = "the-ultimate-cro-app";
 
 /* ------------------------------------------------------------- helpers -- */
 
