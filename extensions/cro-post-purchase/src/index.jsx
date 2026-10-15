@@ -65,7 +65,7 @@ render('Checkout::PostPurchase::Render', () => <App />);
 
 function changesOf(offer) {
   const change = { type: 'add_variant', variantId: numeric(offer.variantId), quantity: 1 };
-  if (offer.pct > 0) change.discount = { value: offer.pct, valueType: 'percentage', title: `${offer.pct}% off — after-purchase offer` };
+  if (offer.pct > 0) change.discount = { value: offer.pct, valueType: 'percentage', title: `${offer.pct}% off, after purchase offer` };
   return [change];
 }
 
