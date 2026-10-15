@@ -10,7 +10,7 @@ import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/o
  *
  * authenticate.webhook verifies the HMAC signature and answers 401 on a bad one, which the
  * App Store review checks. What the app keeps about customers: only the sales pop-up list
- * ($app:cro_recent) — product, purchase time, order id and, if the merchant turned it on, the
+ * ($app:cro_recent) — product, purchase time, a one-way fingerprint of the order id and, if the merchant turned it on, the
  * shipping city; and back-in-stock requests (StockAlert: the email a shopper typed and the variant
  * they want); and return requests (order number, email, items, reason). No names or addresses. So:
  *  - customers/data_request: count (never log) what's held for the listed orders and the customer's email
@@ -19,8 +19,18 @@ import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/o
  *    the shop's app-owned metaobjects go with the app
  * An error answers 500, so Shopify retries the delivery.
  */
+/** A request without a valid signature (a missing header too, which the library answers with 400) is a 401. */
+async function verified(request: Request) {
+  try {
+    return await authenticate.webhook(request);
+  } catch (error) {
+    if (error instanceof Response && error.status === 400) throw new Response("Unauthorized", { status: 401 });
+    throw error;
+  }
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop, topic, payload, admin } = await authenticate.webhook(request);
+  const { shop, topic, payload, admin } = await verified(request);
   console.log(`Received ${topic} compliance webhook for ${shop}`);
 
   switch (topic) {
