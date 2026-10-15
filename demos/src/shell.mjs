@@ -75,8 +75,6 @@ h1,h2,h3{line-height:1.15;letter-spacing:-.01em}
 .cart-items small{display:block;color:#777}
 .cart-footer{display:grid;gap:12px;justify-items:end;margin-top:16px}
 .cart-footer .button{width:auto;min-width:240px}
-/* TODO: remove once the cart drawer stops sharing the class ucs-cd with the countdown timer in ucs-sections.css (its position:fixed;inset:0 turns every timer into a full screen layer). */
-ucs-countdown.ucs-cd{position:static;inset:auto;z-index:auto}
 .cart-empty{color:#777;padding:12px 0}
 cart-drawer{position:fixed;inset:0 0 0 auto;width:min(380px,92vw);background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.15);transform:translateX(105%);transition:transform .25s ease;z-index:60;display:flex;flex-direction:column}
 cart-drawer.active{transform:none}

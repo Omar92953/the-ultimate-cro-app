@@ -74,46 +74,46 @@
   /* ---------- the drawer ---------- */
   var d = c.dr;
   var wrap = document.createElement('div');
-  wrap.className = 'ucs-cd ucs-cd--' + d.side;
+  wrap.className = 'ucs-cdr ucs-cdr--' + d.side;
   wrap.style.cssText = c.css || '';
   wrap.hidden = true;
-  wrap.innerHTML = '<div class="ucs-cd__overlay" data-close></div>' +
-    '<aside class="ucs-cd__panel" role="dialog" aria-modal="true" aria-labelledby="ucs-cd-title" tabindex="-1">' +
-    '<header class="ucs-cd__head"><h2 id="ucs-cd-title" class="ucs-cd__title">' + esc(d.title) + '</h2><button type="button" class="ucs-cd__x" data-close aria-label="Close">×</button></header>' +
-    '<div class="ucs-cd__body"></div><footer class="ucs-cd__foot"></footer></aside>';
+  wrap.innerHTML = '<div class="ucs-cdr__overlay" data-close></div>' +
+    '<aside class="ucs-cdr__panel" role="dialog" aria-modal="true" aria-labelledby="ucs-cdr-title" tabindex="-1">' +
+    '<header class="ucs-cdr__head"><h2 id="ucs-cdr-title" class="ucs-cdr__title">' + esc(d.title) + '</h2><button type="button" class="ucs-cdr__x" data-close aria-label="Close">×</button></header>' +
+    '<div class="ucs-cdr__body"></div><footer class="ucs-cdr__foot"></footer></aside>';
   document.body.appendChild(wrap);
-  var panel = wrap.querySelector('.ucs-cd__panel'), body = wrap.querySelector('.ucs-cd__body'), foot = wrap.querySelector('.ucs-cd__foot');
+  var panel = wrap.querySelector('.ucs-cdr__panel'), body = wrap.querySelector('.ucs-cdr__body'), foot = wrap.querySelector('.ucs-cdr__foot');
   var express = document.getElementById('ucs-cart-express');
   var opener = null;
 
   function draw(cart) {
     if (!cart.items.length) {
       var saved = store.get('ucs-cart-saved');
-      body.innerHTML = '<div class="ucs-cd__empty"><p>' + esc(d.empty) + '</p>' +
-        (c.sh && saved ? '<p class="ucs-cd__restore">' + esc(c.sh.restore) + '</p><button type="button" class="ucs-btn" data-restore>' + esc(d.title) + '</button>' : '') +
+      body.innerHTML = '<div class="ucs-cdr__empty"><p>' + esc(d.empty) + '</p>' +
+        (c.sh && saved ? '<p class="ucs-cdr__restore">' + esc(c.sh.restore) + '</p><button type="button" class="ucs-btn" data-restore>' + esc(d.title) + '</button>' : '') +
         '<button type="button" class="ucs-btn ucs-btn--outline" data-close>' + esc(d.continueText) + '</button></div>';
       foot.innerHTML = '';
       return;
     }
-    body.innerHTML = '<ul class="ucs-cd__items" role="list">' + cart.items.map(function (i) {
+    body.innerHTML = '<ul class="ucs-cdr__items" role="list">' + cart.items.map(function (i) {
       var img = i.image ? i.image + (i.image.indexOf('?') > -1 ? '&' : '?') + 'width=160' : '';
       var opts = (i.options_with_values || []).filter(function (o) { return o.value !== 'Default Title'; }).map(function (o) { return o.value; }).join(' / ');
       var props = Object.keys(i.properties || {}).filter(function (k) { return k.charAt(0) !== '_' && i.properties[k]; }).map(function (k) { return esc(k) + ': ' + esc(i.properties[k]); }).join('<br>');
-      return '<li class="ucs-cd__item" data-key="' + esc(i.key) + '">' +
-        (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span class="ucs-cd__ph"></span>') +
-        '<div class="ucs-cd__info"><a href="' + esc(i.url) + '">' + esc(i.product_title) + '</a>' + (opts ? '<small>' + esc(opts) + '</small>' : '') + (props ? '<small>' + props + '</small>' : '') +
-        '<span class="ucs-cd__qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><span aria-live="polite">' + i.quantity + '</span><button type="button" data-q="1" aria-label="More">+</button>' +
-        '<button type="button" class="ucs-cd__rm" data-q="0">Remove</button></span></div>' +
-        '<span class="ucs-cd__price">' + (i.original_line_price > i.final_line_price ? '<s>' + money(i.original_line_price, cart.currency) + '</s> ' : '') + money(i.final_line_price, cart.currency) + '</span></li>';
+      return '<li class="ucs-cdr__item" data-key="' + esc(i.key) + '">' +
+        (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span class="ucs-cdr__ph"></span>') +
+        '<div class="ucs-cdr__info"><a href="' + esc(i.url) + '">' + esc(i.product_title) + '</a>' + (opts ? '<small>' + esc(opts) + '</small>' : '') + (props ? '<small>' + props + '</small>' : '') +
+        '<span class="ucs-cdr__qty"><button type="button" data-q="-1" aria-label="Fewer">−</button><span aria-live="polite">' + i.quantity + '</span><button type="button" data-q="1" aria-label="More">+</button>' +
+        '<button type="button" class="ucs-cdr__rm" data-q="0">Remove</button></span></div>' +
+        '<span class="ucs-cdr__price">' + (i.original_line_price > i.final_line_price ? '<s>' + money(i.original_line_price, cart.currency) + '</s> ' : '') + money(i.final_line_price, cart.currency) + '</span></li>';
     }).join('') + '</ul>';
     var discounts = (cart.cart_level_discount_applications || []).map(function (a) { return esc(a.title) + ' −' + money(a.total_allocated_amount, cart.currency); }).join('<br>');
-    foot.innerHTML = (bestNote ? '<p class="ucs-cd__note">' + esc(bestNote) + '</p>' : '') + (discounts ? '<p class="ucs-cd__disc">' + discounts + '</p>' : '') +
-      '<p class="ucs-cd__sub"><span>' + esc(d.subtotal) + '</span><b>' + money(cart.total_price, cart.currency) + '</b></p>' +
-      '<p class="ucs-cd__tax">' + esc(d.taxes) + '</p>' +
-      '<a class="ucs-btn ucs-cd__go" href="' + root + 'checkout">' + esc(d.checkout) + '</a>' +
-      '<div class="ucs-cd__express"></div>' +
-      (c.sh ? '<button type="button" class="ucs-cd__share" data-share>' + esc(c.sh.button) + '</button><p class="ucs-cd__copied" role="status" hidden>' + esc(c.sh.copied) + '</p>' : '');
-    if (express && c.ex) { express.hidden = false; foot.querySelector('.ucs-cd__express').appendChild(express); }
+    foot.innerHTML = (bestNote ? '<p class="ucs-cdr__note">' + esc(bestNote) + '</p>' : '') + (discounts ? '<p class="ucs-cdr__disc">' + discounts + '</p>' : '') +
+      '<p class="ucs-cdr__sub"><span>' + esc(d.subtotal) + '</span><b>' + money(cart.total_price, cart.currency) + '</b></p>' +
+      '<p class="ucs-cdr__tax">' + esc(d.taxes) + '</p>' +
+      '<a class="ucs-btn ucs-cdr__go" href="' + root + 'checkout">' + esc(d.checkout) + '</a>' +
+      '<div class="ucs-cdr__express"></div>' +
+      (c.sh ? '<button type="button" class="ucs-cdr__share" data-share>' + esc(c.sh.button) + '</button><p class="ucs-cdr__copied" role="status" hidden>' + esc(c.sh.copied) + '</p>' : '');
+    if (express && c.ex) { express.hidden = false; foot.querySelector('.ucs-cdr__express').appendChild(express); }
     wrap._cart = cart;
   }
 
@@ -130,7 +130,7 @@
   function open() {
     opener = document.activeElement;
     wrap.hidden = false;
-    document.documentElement.classList.add('ucs-cd-open');
+    document.documentElement.classList.add('ucs-cdr-open');
     requestAnimationFrame(function () { wrap.classList.add('is-open'); panel.focus(); });
     // The theme's own drawer or notification stays closed.
     var td = document.querySelector('cart-drawer');
@@ -141,7 +141,7 @@
   }
   function close() {
     wrap.classList.remove('is-open');
-    document.documentElement.classList.remove('ucs-cd-open');
+    document.documentElement.classList.remove('ucs-cdr-open');
     setTimeout(function () { wrap.hidden = true; }, 250);
     if (opener && opener.focus) opener.focus();
   }
@@ -158,7 +158,7 @@
     }
     if (t.closest('[data-share]')) {
       var link = permalink(wrap._cart);
-      var shown = function () { var m = wrap.querySelector('.ucs-cd__copied'); if (m) m.hidden = false; };
+      var shown = function () { var m = wrap.querySelector('.ucs-cdr__copied'); if (m) m.hidden = false; };
       if (navigator.share) return navigator.share({ url: link }).catch(function () {});
       if (navigator.clipboard) return navigator.clipboard.writeText(link).then(shown, function () { window.prompt('', link); });
       return window.prompt('', link);
@@ -182,7 +182,7 @@
   // The cart icon opens the drawer instead of the cart page.
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href$="/cart"], a[href$="/cart/"], #cart-icon-bubble');
-    if (!a || a.closest('.ucs-cd') || e.metaKey || e.ctrlKey) return;
+    if (!a || a.closest('.ucs-cdr') || e.metaKey || e.ctrlKey) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     open();
