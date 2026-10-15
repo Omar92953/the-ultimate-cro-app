@@ -204,7 +204,9 @@ Phase 6 testing on Testing2:
       builder shows 50, Show more loads the rest and hides itself, search finds items on page 2; 3 picks $207 worth
       for $30; one cart line at $30; checkout 1 item $30. Fix: the bundle product starts at the lowest bundle price
       instead of $0.00
-- [ ] Checkout: one bundle line at the bundle price; no discount stacking
+- [x] Checkout: one bundle line at the bundle price; no discount stacking (cart with the "Pick any 3" bundle,
+      2 x Test item 01 and 2 x the kit, upsell "Buy more, save more" active on all products: only item 01 gets 10%;
+      bundle stays $30, kit gets no upsell; checkout $1,446.82 before, $1,444.62 after)
 
 Known gaps: the theme editor ignores `previewPath` with `addAppBlockId` (the page link opens another page, the block still lands on the page template); the Add to theme link appends the builder below the theme's Add to cart button (merchant
 can drag it); a bare bundle product can still be bought alone through quick add buttons on collection
