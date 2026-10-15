@@ -1,0 +1,62 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { USE_CASES } from "../../lib/usecases";
+import { MORE_PAGES } from "../../lib/pages";
+import { featureTitle } from "../../lib/app";
+
+const page = MORE_PAGES.useCases;
+const crumbs = [{ name: "Use cases", href: page.path }];
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Use cases</span>
+      <h1>What to set up for your store</h1>
+      <p class="lead">Start from a goal or from the kind of store you run. Each page lists the features to set up first and how.</p>
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">
+      {
+        USE_CASES.map((u) => (
+          <a class="card ucard" href={`/use-cases/${u.slug}/`}>
+            <span class="pill">{u.kind}</span>
+            <h2>{u.title}</h2>
+            <p class="muted">{u.lead}</p>
+            <p class="feats">{u.picks.map((p) => featureTitle(p.feature)).join(" · ")}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+  <NotifyCta campaign="use_cases" />
+</Base>
+
+<style>
+  .ucard {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .ucard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .ucard h2 {
+    font-size: 1.3rem;
+  }
+  .feats {
+    margin-top: auto;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+</style>

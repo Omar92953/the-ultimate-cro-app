@@ -1,0 +1,216 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { COMPETITORS, CAPABILITIES, OURS, CHECKED, type Competitor } from "../../lib/competitors";
+import { COMPARE_PAGES, MORE_PAGES } from "../../lib/pages";
+import { plans, money, ordersText, trialDays, PLANS } from "../../lib/app";
+import { faqPage } from "../../lib/schema";
+
+export function getStaticPaths() {
+  return COMPETITORS.map((c) => ({ params: { slug: `cro-toolbox-vs-${c.slug}` }, props: { c } }));
+}
+interface Props {
+  c: Competitor;
+}
+const { c } = Astro.props;
+const page = COMPARE_PAGES.find((p) => p.path === `/compare/cro-toolbox-vs-${c.slug}/`)!;
+const crumbs = [
+  { name: "Compare", href: MORE_PAGES.compare.path },
+  { name: `vs ${c.name}`, href: page.path },
+];
+const ourPricing = plans.map((p) => (p.monthly ? `${p.name} ${money(p.monthly)} a month (${ordersText(p).toLowerCase()})` : `${p.name}: ${ordersText(p).toLowerCase()}, ${p.limits.offerSlots} offers at once`));
+const levelText = c.level === "vendor" ? "from the app's own listing or website, found by a web search" : "from review sites, which are often out of date";
+const faq: QA[] = [
+  {
+    q: `What is the difference between CRO Toolbox and ${c.name}?`,
+    a: `CRO Toolbox is one app for offers, six kinds of bundles, storefront sections, a cart drawer and checkout rules. ${c.name} focuses on: ${c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}`,
+  },
+  {
+    q: `How much does CRO Toolbox cost compared with ${c.name}?`,
+    a: `CRO Toolbox has a ${PLANS.free.name} plan and paid plans from ${money(plans.find((p) => p.monthly)!.monthly)} a month, each with a ${trialDays} day trial. For ${c.name}, check its current listing; the prices we found are on this page with their source.`,
+  },
+];
+const others = COMPETITORS.filter((x) => x.slug !== c.slug);
+---
+
+<Base page={page} crumbs={crumbs} schema={[faqPage(faq)]}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Compare</span>
+      <h1>CRO Toolbox vs {c.name}</h1>
+      <p class="lead">
+        CRO Toolbox brings offers, bundles, storefront sections, a cart drawer and checkout rules into one app. {c.name} focuses on: {
+          c.focus.charAt(0).toLowerCase() + c.focus.slice(1)
+        }
+      </p>
+      <p class="note">
+        Facts about {c.name} are {levelText}, checked on {CHECKED}. Anything we could not check says so. Always confirm on <a href={c.listing} rel="nofollow noopener" target="_blank">the {c.name} listing on the Shopify App Store</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <h2 class="h2s">What each app covers</h2>
+      <div class="table-scroll">
+        <table class="cmp">
+          <caption class="sr-only">Features of CRO Toolbox and {c.name}</caption>
+          <thead><tr><th scope="col">Feature</th><th scope="col">CRO Toolbox</th><th scope="col">{c.name}</th></tr></thead>
+          <tbody>
+            {
+              CAPABILITIES.map((cap) => (
+                <tr>
+                  <th scope="row">{cap.label}</th>
+                  <td>{OURS[cap.key] ? <span class="yes">Yes</span> : "No"}</td>
+                  <td>{c.has[cap.key] ? <span class="yes">Yes, listed</span> : <span class="unk">Not checked</span>}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted">"Yes, listed" means the app's listing name or description says so. "Not checked" means we haven't confirmed it either way.</p>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap grid two">
+      <div class="card">
+        <h2 class="h2s">CRO Toolbox pricing</h2>
+        <ul class="check-list">{ourPricing.map((l) => <li>{l}</li>)}</ul>
+        <p class="small muted">Yearly billing is cheaper. Every paid plan has a {trialDays} day free trial. <a class="link" href="/pricing/">Full pricing</a></p>
+      </div>
+      <div class="card">
+        <h2 class="h2s">{c.name} pricing, as reported</h2>
+        <ul class="plain">{c.pricing.map((l) => <li>{l}</li>)}</ul>
+        <p class="small muted">
+          Source: {
+            c.sources.map((s, i) => (
+              <>
+                {i > 0 && ", "}
+                <a href={s.url} rel="nofollow noopener" target="_blank">
+                  {s.label}
+                </a>
+              </>
+            ))
+          }. Checked {CHECKED}; not verified on the listing by us.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap grid two">
+      <div class="card">
+        <h2 class="h2s">CRO Toolbox may suit you if</h2>
+        <ul class="check-list">
+          <li>You want offers, bundles, storefront sections and checkout rules in one app and one plan</li>
+          <li>You want to start on a free plan and move up as your store grows</li>
+          <li>You use an Online Store 2.0 theme and don't want to edit code</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2 class="h2s">{c.name} may suit you if</h2>
+        <ul class="plain">
+          <li>You only need what it focuses on and like its plans</li>
+          <li>You already use it and it works well for your store</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap">
+      <div class="head center"><h2>Questions</h2></div>
+      <Faq items={faq} />
+      <p class="center-actions"><InstallButton medium="compare" campaign={c.slug} /></p>
+      <h2 class="h2s more">Other comparisons</h2>
+      <ul class="others">{others.map((o) => <li><a class="btn ghost small" href={`/compare/cro-toolbox-vs-${o.slug}/`}>vs {o.name}</a></li>)}</ul>
+    </div>
+  </section>
+  <NotifyCta campaign={`compare_${c.slug}`} />
+</Base>
+
+<style>
+  .h2s {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+  .note {
+    margin-top: 20px;
+    max-width: 760px;
+  }
+  .note a {
+    color: var(--accent-deep);
+    font-weight: 600;
+  }
+  .cmp {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 0.95rem;
+  }
+  .table-scroll {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .cmp th,
+  .cmp td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--mist-2);
+    text-align: left;
+  }
+  .cmp thead th {
+    background: var(--mist);
+    font-weight: 750;
+  }
+  .cmp tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .cmp th[scope="row"] {
+    font-weight: 550;
+  }
+  .yes {
+    color: var(--accent-deep);
+    font-weight: 700;
+  }
+  .unk {
+    color: var(--muted);
+  }
+  .small {
+    font-size: 0.88rem;
+    margin-top: 12px;
+  }
+  .small a {
+    color: var(--accent-deep);
+  }
+  .plain {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+  }
+  .center-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+  }
+  .more {
+    margin-top: 48px;
+  }
+  .others {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>

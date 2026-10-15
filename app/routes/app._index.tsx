@@ -275,24 +275,23 @@ export default function Home() {
           </s-section>
         ) : null}
 
-        {/* Tutorials: cards without a video yet say "Coming soon" */}
-        <s-section heading="Tutorials">
-          <div className={styles.videos}>
-            {TUTORIALS.map((t) => {
-              const ready = !!t.youtubeId;
-              return (
-                <button key={t.title} type="button" className={styles.video} disabled={!ready} onClick={() => setPlaying(t)}>
+        {/* Tutorials: only the ones that have a video; the section is hidden until there is one */}
+        {TUTORIALS.some((t) => t.youtubeId) ? (
+          <s-section heading="Tutorials">
+            <div className={styles.videos}>
+              {TUTORIALS.filter((t) => t.youtubeId).map((t) => (
+                <button key={t.title} type="button" className={styles.video} onClick={() => setPlaying(t)}>
                   <span className={styles.thumb}>
-                    {ready ? <span className={styles.play} aria-hidden="true">▶</span> : <span className={styles.soon}>Coming soon</span>}
+                    <span className={styles.play} aria-hidden="true">▶</span>
                     <span className={styles.length}>{t.length}</span>
                   </span>
                   <span className={styles.videoTitle}>{t.title}</span>
                   <span className={styles.videoMeta}>{t.feature ? feature(t.feature).title : "Getting started"}</span>
                 </button>
-              );
-            })}
-          </div>
-        </s-section>
+              ))}
+            </div>
+          </s-section>
+        ) : null}
 
         <CardGrid cols={3}>
           <Card title="Help">

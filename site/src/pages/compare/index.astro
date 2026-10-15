@@ -1,0 +1,60 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { COMPETITORS, CHECKED } from "../../lib/competitors";
+import { MORE_PAGES } from "../../lib/pages";
+
+const page = MORE_PAGES.compare;
+const crumbs = [{ name: "Compare", href: page.path }];
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Compare</span>
+      <h1>How CRO Toolbox compares</h1>
+      <p class="lead">
+        Side by side with other Shopify apps for bundles, upsells and storefront tools. We only state what a source says, link the source and say when we
+        checked ({CHECKED}). Prices change: confirm on each app's listing.
+      </p>
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">
+      {
+        COMPETITORS.map((c) => (
+          <a class="card ccard" href={`/compare/cro-toolbox-vs-${c.slug}/`}>
+            <h2>CRO Toolbox vs {c.name}</h2>
+            <p class="muted">{c.focus}</p>
+            <span class="link">Compare →</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+  <NotifyCta campaign="compare" />
+</Base>
+
+<style>
+  .ccard {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .ccard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .ccard h2 {
+    font-size: 1.25rem;
+  }
+  .ccard .link {
+    margin-top: auto;
+  }
+</style>

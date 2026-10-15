@@ -3,7 +3,8 @@
  * same sources as the pages (plans.ts, catalog.ts, bundle-recipes.ts), so the facts always match.
  */
 import { SITE_URL, SITE_NAME, INSTALL_URL } from "./site";
-import { ALL_PAGES } from "./pages";
+import { PAGES, MORE_PAGES, FEATURE_PAGES, USE_CASE_PAGES, COMPARE_PAGES, planLine, type PageMeta } from "./pages";
+import { FEATURE_COPY } from "./features";
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
@@ -17,6 +18,8 @@ function pricing(): string[] {
   });
 }
 
+const line = (p: PageMeta) => `- [${p.title.includes(SITE_NAME) ? "Home" : p.title}](${url(p.path)}): ${p.description}`;
+
 export function llmsTxt(): string {
   return [
     `# ${SITE_NAME}`,
@@ -25,7 +28,19 @@ export function llmsTxt(): string {
     "",
     "## Pages",
     "",
-    ...ALL_PAGES.map((p) => `- [${p.title.includes(SITE_NAME) ? "Home" : p.title}](${url(p.path)}): ${p.description}`),
+    ...[...Object.values(PAGES), ...Object.values(MORE_PAGES)].map(line),
+    "",
+    "## Features",
+    "",
+    ...Object.values(FEATURE_PAGES).map(line),
+    "",
+    "## Use cases",
+    "",
+    ...USE_CASE_PAGES.map(line),
+    "",
+    "## Comparisons",
+    "",
+    ...COMPARE_PAGES.map(line),
     ...(INSTALL_URL ? [`- [Shopify App Store listing](${INSTALL_URL})`] : []),
     "",
     "## Optional",
@@ -42,9 +57,9 @@ export function llmsFullTxt(): string {
   out.push("", "## Features by area");
   for (const a of SITE_AREAS) {
     out.push("", `### ${a.title}`, "", a.intro);
-    for (const k of a.features) out.push(`- ${featureTitle(k)}: ${featureAbout(k)}`);
+    for (const k of a.features) out.push(`- ${featureTitle(k)} (${url(FEATURE_PAGES[k].path)}): ${featureAbout(k)} ${FEATURE_COPY[k].who} ${planLine(k)}.`);
   }
-  out.push("", "## Bundle types", "", "All six bundle types are included on every plan, within the plan's offer slots. Shopify applies bundle prices at checkout.", "");
+  out.push("", "## Bundle types", "", `All six bundle types are included on every plan, within the plan's offer slots. Shopify applies bundle prices at checkout. More: ${url(MORE_PAGES.bundles.path)}`, "");
   BUNDLE_RECIPES.forEach((r, i) => out.push(`${i + 1}. ${plain(r.title)}: ${plain(r.about)} ${plain(r.best)}.`));
   out.push(
     "",

@@ -1,0 +1,138 @@
+---
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Shot from "../../components/Shot.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { USE_CASES, type UseCase } from "../../lib/usecases";
+import { USE_CASE_PAGES, MORE_PAGES, featurePath, featureSlug } from "../../lib/pages";
+import { featureTitle } from "../../lib/app";
+
+export function getStaticPaths() {
+  return USE_CASES.map((u) => ({ params: { slug: u.slug }, props: { u } }));
+}
+interface Props {
+  u: UseCase;
+}
+const { u } = Astro.props;
+const page = USE_CASE_PAGES.find((p) => p.path === `/use-cases/${u.slug}/`)!;
+const crumbs = [
+  { name: "Use cases", href: MORE_PAGES.useCases.path },
+  { name: u.title, href: page.path },
+];
+const others = USE_CASES.filter((x) => x.slug !== u.slug);
+---
+
+<Base page={page} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">{u.kind}</span>
+      <h1>{u.title}</h1>
+      <p class="lead">{u.lead}</p>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <h2 class="h2s">What to set up</h2>
+      <ol class="picks">
+        {
+          u.picks.map((p, i) => (
+            <li class="pick">
+              <div>
+                <span class="num">{String(i + 1).padStart(2, "0")}</span>
+                <h3>
+                  <a href={featurePath(p.feature)}>{featureTitle(p.feature)}</a>
+                </h3>
+                <p>{p.how}</p>
+              </div>
+              <Shot name={`features/${featureSlug(p.feature)}`} alt={`${featureTitle(p.feature)} on a demo store`} sizes="(min-width: 980px) 420px, 100vw" />
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap grid two">
+      <div class="card">
+        <h2 class="h2s">Start in three steps</h2>
+        <ol class="steps">{u.steps.map((s) => <li>{s}</li>)}</ol>
+        <div class="actions"><InstallButton medium="use_case" campaign={u.slug} /></div>
+      </div>
+      <div class="card">
+        <h2 class="h2s">More ideas</h2>
+        <ul class="others">
+          {
+            others.map((o) => (
+              <li>
+                <a class="link" href={`/use-cases/${o.slug}/`}>{o.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+  <NotifyCta campaign={u.slug} />
+</Base>
+
+<style>
+  .h2s {
+    font-size: 1.5rem;
+    margin-bottom: 18px;
+  }
+  .picks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .pick {
+    display: grid;
+    gap: 20px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  @media (min-width: 860px) {
+    .pick {
+      grid-template-columns: 1fr 420px;
+      padding: 24px 28px;
+    }
+  }
+  .num {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--accent-deep);
+  }
+  .pick h3 {
+    font-size: 1.3rem;
+    margin: 4px 0 8px;
+  }
+  .pick h3 a {
+    text-decoration: none;
+  }
+  .pick h3 a:hover {
+    text-decoration: underline;
+  }
+  .steps {
+    margin: 0 0 20px;
+    padding-left: 20px;
+    display: grid;
+    gap: 10px;
+  }
+  .others {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+  }
+</style>
