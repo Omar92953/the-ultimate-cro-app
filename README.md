@@ -3,6 +3,7 @@
 Cross-sell, quantity upsell, shoppable video carousel and mix-and-match bundles for any Online Store
 2.0 theme. It's a public-distribution-ready Shopify app, built on the official React Router template.
 
+- **Working on the project (people and Claude):** [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)
 - **Merchant guide:** [docs/README-merchant.md](docs/README-merchant.md)
 - **Testing (Step 3):** [docs/testing-checklist.md](docs/testing-checklist.md)
 - **Hosting:** [docs/hosting.md](docs/hosting.md) · **Scopes:** [docs/scopes.md](docs/scopes.md) · **Plans & billing:** [docs/billing.md](docs/billing.md)
