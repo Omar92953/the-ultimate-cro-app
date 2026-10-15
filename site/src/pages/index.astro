@@ -397,14 +397,13 @@ const schema = [organization(), website(), softwareApplication(page.description)
     width: 100%;
     flex-direction: column;
     background: #fff;
-    border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
     text-decoration: none;
-    transition: border-color 0.15s ease;
   }
-  .feat:hover {
-    border-color: var(--ink);
+  .feat:hover h3 {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .feat-art {
     height: 200px;

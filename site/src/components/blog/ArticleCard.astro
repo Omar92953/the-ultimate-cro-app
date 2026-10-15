@@ -27,14 +27,13 @@ const date = a.data.date.toLocaleDateString("en-US", { year: "numeric", month: "
     flex-direction: column;
     height: 100%;
     background: #fff;
-    border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
     text-decoration: none;
-    transition: border-color 0.15s ease;
   }
-  .acard:hover {
-    border-color: var(--ink);
+  .acard:hover b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .acard :global(img) {
     width: 100%;
