@@ -1,0 +1,16 @@
+{
+  "name": "cro-toolbox-demos",
+  "private": true,
+  "type": "module",
+  "description": "Live demos for demo.crotoolbox.com (hidden from search; opened from the app). See docs/website.md.",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "python3 -m http.server -d dist 4322"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "liquidjs": "^10.29.0"
+  }
+}
