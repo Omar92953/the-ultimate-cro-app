@@ -4,6 +4,7 @@
  * the app's own defaults (app/lib/checkout-rules.ts, thank-you.ts, post-purchase.ts).
  */
 import { STORE_NAME } from "./shell.mjs";
+import { imgUrl } from "./data.mjs";
 
 const CSS = `<style>
 .co{background:#fff;color:#1a1a1a;font:14px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif}
@@ -53,7 +54,7 @@ const CSS = `<style>
 .pp__decline{display:block;width:100%;min-height:44px;border:0;background:none;color:#1773b0;font:inherit;margin-top:6px;text-decoration:underline}
 </style>`;
 
-const img = (h) => `/img/${h}.svg`;
+const img = (h) => imgUrl(h);
 const top = (label = "") => `<div class="co__top"><div class="page-width"><span class="co__brand">${STORE_NAME}</span><span class="co__bag">${label}</span></div></div>`;
 const LINES = [
   ["glow-serum", "Glow Serum", "30 ml", 1, 34],

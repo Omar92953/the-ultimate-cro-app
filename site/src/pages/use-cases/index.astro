@@ -43,13 +43,10 @@ const crumbs = [{ name: "Use cases", href: page.path }];
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .ucard:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--ink);
   }
   .ucard h2 {
     font-size: 1.3rem;

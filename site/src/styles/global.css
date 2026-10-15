@@ -216,12 +216,17 @@ p {
   }
 }
 
+/* A real tile (a link or a control): flat, thin border. Never use it only as decoration: use .block. */
 .card {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 28px;
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 24px;
+}
+/* Plain content group: a thin rule above, no box. */
+.block {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
 }
 .dark .card {
   background: var(--ink-2);
@@ -348,20 +353,18 @@ p {
   padding-left: 28px;
 }
 .check-list li::before {
+  /* Just the tick, no circle behind it. */
   content: "";
   position: absolute;
   left: 0;
-  top: 0.32em;
+  top: 0.3em;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
-  background: var(--accent-soft)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%230b7a45' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-    center / 14px no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%230b7a45' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 18px no-repeat;
 }
 .dark .check-list li::before {
-  background-color: rgb(62 224 143 / 0.14);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%233ee08f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%233ee08f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* ----------------------------------------------------------- prose pages */

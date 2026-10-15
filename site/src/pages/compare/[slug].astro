@@ -79,12 +79,12 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
 
   <section class="section tight">
     <div class="wrap grid two">
-      <div class="card">
+      <div class="block">
         <h2 class="h2s">CRO Toolbox pricing</h2>
         <ul class="check-list">{ourPricing.map((l) => <li>{l}</li>)}</ul>
         <p class="small muted">Yearly billing is cheaper. Every paid plan has a {trialDays} day free trial. <a class="link" href="/pricing/">Full pricing</a></p>
       </div>
-      <div class="card">
+      <div class="block">
         <h2 class="h2s">{c.name} pricing, as reported</h2>
         <ul class="plain">{c.pricing.map((l) => <li>{l}</li>)}</ul>
         <p class="small muted">
@@ -105,7 +105,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
 
   <section class="section tight mist">
     <div class="wrap grid two">
-      <div class="card">
+      <div class="block">
         <h2 class="h2s">CRO Toolbox may suit you if</h2>
         <ul class="check-list">
           <li>You want offers, bundles, storefront sections and checkout rules in one app and one plan</li>
@@ -113,7 +113,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
           <li>You use an Online Store 2.0 theme and don't want to edit code</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="block">
         <h2 class="h2s">{c.name} may suit you if</h2>
         <ul class="plain">
           <li>You only need what it focuses on and like its plans</li>
@@ -159,7 +159,6 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: #fff;
-    box-shadow: var(--shadow);
   }
   .cmp th,
   .cmp td {

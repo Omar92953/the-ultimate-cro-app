@@ -384,14 +384,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
     border-radius: var(--radius);
     overflow: hidden;
     text-decoration: none;
-    box-shadow: var(--shadow);
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .feat:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--ink);
   }
   .feat-art {
     height: 200px;
@@ -436,13 +432,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .recipe:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--ink);
   }
   .area h3 a,
   .chips a {
