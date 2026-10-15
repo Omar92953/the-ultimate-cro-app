@@ -6,6 +6,7 @@ import MiniDemo from "../components/MiniDemo.astro";
 import PlanCards from "../components/PlanCards.astro";
 import Faq, { type QA } from "../components/Faq.astro";
 import NotifyCta from "../components/NotifyCta.astro";
+import Shot from "../components/Shot.astro";
 import ArticleCard from "../components/blog/ArticleCard.astro";
 import { PAGES } from "../lib/pages";
 import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
@@ -19,21 +20,34 @@ const free = PLANS.free;
 /** The strip of feature cards, each with a small picture of what it adds to a store. */
 const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_tools", "reviews", "countdown", "shipping_bar", "sticky_atc", "sales_pop", "videos", "wishlist", "faq"];
 
+/**
+ * "Why CRO Toolbox" rows. `shot` = the app screenshot for the row: site/src/assets/app/<name>.png.
+ * TODO(Omar): send these three app screenshots; until then the closest feature picture (`fallback`) shows.
+ *   app/one-menu      the app's Home or menu with Offers, Storefront, Cart, Checkout, Analytics (fallback: features/upsell)
+ *   app/checkout-price an offer's preview next to the price at checkout (fallback: features/discounts)
+ *   app/theme-editor  the theme editor with a CRO Toolbox block being placed (fallback: features/hero)
+ */
 const VALUES = [
   {
     title: "One app instead of many",
     text: "Offers, bundles, a cart drawer, reviews, bars, timers and checkout rules share one menu, one design style and one plan.",
-    icon: "M4 6h7v7H4zM13 6h7v7h-7zM4 15h7v5H4zM13 15h7v5h-7z",
+    shot: "app/one-menu",
+    fallback: "features/upsell",
+    alt: "The CRO Toolbox menu: offers, storefront, cart, checkout and analytics",
   },
   {
     title: "Real discounts at checkout",
     text: "Shopify applies every offer and bundle price at checkout, so the price shoppers see on the offer is the price they pay.",
-    icon: "M4 12l5 5L20 6",
+    shot: "app/checkout-price",
+    fallback: "features/discounts",
+    alt: "An offer with its discount shown to the shopper",
   },
   {
     title: "Fits your theme, no code",
     text: "Sections and widgets are theme app blocks for any Online Store 2.0 theme. You place them in the theme editor; your theme's code is never edited.",
-    icon: "M8 7l-5 5 5 5M16 7l5 5-5 5",
+    shot: "app/theme-editor",
+    fallback: "features/hero",
+    alt: "A CRO Toolbox section placed in a store's theme",
   },
 ];
 
@@ -157,17 +171,17 @@ const schema = [organization(), website(), softwareApplication(page.description)
         <span class="eyebrow">Why CRO Toolbox</span>
         <h2>Everything a store adds one app at a time, in one place</h2>
       </div>
-      <div class="grid three">
+      <div class="rows">
         {
           VALUES.map((v) => (
-            <div class="card value">
-              <span class="ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d={v.icon} />
-                </svg>
-              </span>
-              <h3>{v.title}</h3>
-              <p class="muted">{v.text}</p>
+            <div class="row">
+              <div class="row-shot">
+                <Shot name={v.shot} fallback={v.fallback} alt={v.alt} />
+              </div>
+              <div class="row-text">
+                <h3>{v.title}</h3>
+                <p class="muted">{v.text}</p>
+              </div>
             </div>
           ))
         }
@@ -183,23 +197,27 @@ const schema = [organization(), website(), softwareApplication(page.description)
         <h2>Six ways to bundle, all on the {free.name} plan</h2>
         <p class="lead">Every bundle type is included on every plan, within your plan's offer slots. Bundles are priced at checkout by Shopify.</p>
       </div>
-      <div class="grid three recipes">
+      <ol class="recipes">
         {
           BUNDLE_RECIPES.map((r, i) => (
-            <a class="card recipe" href={`/bundles/#${r.key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`}>
-              <span class="num">{String(i + 1).padStart(2, "0")}</span>
-              <h3>{plain(r.title)}</h3>
-              <p class="muted">{plain(r.about)}</p>
-              <p class="best">{plain(r.best)}</p>
-            </a>
+            <li>
+              <a class="recipe" href={`/bundles/#${r.key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`}>
+                <span class="num">{String(i + 1).padStart(2, "0")}</span>
+                <span class="recipe-body">
+                  <h3>{plain(r.title)}</h3>
+                  <span class="muted">{plain(r.about)}</span>
+                  <span class="best">Best for: {plain(r.best).replace(/^best for\s*/i, "")}</span>
+                </span>
+              </a>
+            </li>
           ))
         }
-      </div>
+      </ol>
     </div>
   </section>
 
   <!-- Features by area -->
-  <section class="section dark" id="features">
+  <section class="section" id="features">
     <div class="wrap">
       <div class="head">
         <span class="eyebrow">Features</span>
@@ -209,32 +227,31 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="areas">
         {
           SITE_AREAS.map((a) => (
-            <div class={`card area area-${a.key}`}>
+            <div class={`area area-${a.key}`}>
               <h3>
                 <a href={areaPath(a.key)}>{a.title}</a>
               </h3>
               <p class="muted">{a.intro}</p>
-              {a.features.length > 0 && (
-                <ul class="chips">
-                  {a.features.map((k) => (
-                    <li>
-                      <a href={featurePath(k)}>{featureTitle(k)}</a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {a.key === "analytics" && (
-                <ul class="chips">
-                  <li>Sales from the app</li>
-                  <li>Results per offer</li>
-                  <li>Results per bundle</li>
-                  <li>Holdout test</li>
-                </ul>
-              )}
+              <ul class="flist">
+                {a.features.map((k) => (
+                  <li>
+                    <a href={featurePath(k)}>{featureTitle(k)}</a>
+                  </li>
+                ))}
+                {a.key === "analytics" && (
+                  <>
+                    <li>Sales from the app</li>
+                    <li>Results per offer</li>
+                    <li>Results per bundle</li>
+                    <li>Holdout test</li>
+                  </>
+                )}
+              </ul>
             </div>
           ))
         }
       </div>
+      <p class="all"><a class="btn ghost" href="/features/">See all features <span aria-hidden="true">→</span></a></p>
     </div>
   </section>
 
@@ -249,8 +266,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <ol class="steps">
         {
           STEPS.map((s, i) => (
-            <li class="card step">
-              <span class="step-n">{i + 1}</span>
+            <li class="step">
+              <span class="step-n">{i + 1}.</span>
               <h3>{s.title}</h3>
               <p class="muted">{s.text}</p>
             </li>
@@ -413,119 +430,163 @@ const schema = [organization(), website(), softwareApplication(page.description)
     margin-top: 8px;
   }
 
-  .value .ico {
+  /* Why CRO Toolbox: picture and text side by side, swapping sides row by row. */
+  .rows {
     display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: var(--ink);
-    color: var(--accent);
-    margin-bottom: 20px;
+    gap: clamp(48px, 7vw, 88px);
   }
-  .value svg {
-    width: 24px;
-    height: 24px;
+  .row {
+    display: grid;
+    gap: 24px;
+    align-items: center;
   }
-  .value h3 {
-    margin-bottom: 8px;
+  .row-text h3 {
+    font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+    margin-bottom: 12px;
   }
-
+  .row-text p {
+    font-size: 1.05rem;
+    max-width: 460px;
+  }
+  @media (min-width: 860px) {
+    .row {
+      grid-template-columns: 1.15fr 1fr;
+      gap: 64px;
+    }
+    .row:nth-child(even) .row-shot {
+      order: 2;
+    }
+  }
+  /* Bundles: a plain two column list, thin lines between the items. */
+  .recipes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 820px) {
+    .recipes {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 56px;
+    }
+  }
+  .recipes li {
+    border-bottom: 1px solid var(--line);
+  }
   .recipe {
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 40px 1fr;
     gap: 8px;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-  .recipe:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-  }
-  .area h3 a,
-  .chips a {
-    color: inherit;
+    padding: 24px 0;
     text-decoration: none;
+    color: inherit;
   }
-  .area h3 a:hover,
-  .chips a:hover {
+  .recipe:hover h3 {
     text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .recipe-body {
+    display: grid;
+    gap: 6px;
+  }
+  .recipe h3 {
+    font-size: 1.15rem;
   }
   .num {
-    font-weight: 800;
-    font-size: 0.85rem;
-    color: var(--accent-deep);
-    letter-spacing: 0.05em;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
   .best {
-    margin-top: auto;
-    padding-top: 10px;
+    padding-top: 4px;
     font-size: 0.9rem;
     font-weight: 600;
   }
-
+  /* Features by area: columns separated by thin rules, plain text links. */
   .areas {
     display: grid;
-    gap: 16px;
+    border-top: 1px solid var(--line);
   }
-  @media (min-width: 860px) {
+  @media (min-width: 900px) {
     .areas {
-      grid-template-columns: repeat(2, 1fr);
-      grid-auto-flow: dense;
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 48px;
     }
+  }
+  @media (min-width: 900px) {
     .area-storefront {
-      grid-column: 1 / -1;
+      grid-column: span 2;
     }
+    .area-storefront .flist {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 48px;
+    }
+  }
+  .area {
+    padding: 28px 0 32px;
+    border-bottom: 1px solid var(--line);
   }
   .area h3 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     margin-bottom: 8px;
   }
-  .chips {
+  .area h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .area h3 a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .area > p {
+    font-size: 0.95rem;
+  }
+  .flist {
     list-style: none;
     padding: 0;
-    margin: 20px 0 0;
-    display: flex;
-    flex-wrap: wrap;
+    margin: 18px 0 0;
+    display: grid;
     gap: 8px;
+    font-size: 0.95rem;
   }
-  .chips li {
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #2a2b33;
-    font-size: 0.88rem;
+  .flist a {
+    color: var(--ink);
+    text-decoration: none;
     font-weight: 550;
   }
-
+  .flist a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .all {
+    margin-top: 36px;
+  }
+  /* How it works: plain numbers, no cards. */
   .steps {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    gap: 20px;
-    counter-reset: step;
+    gap: 32px;
   }
   @media (min-width: 820px) {
     .steps {
       grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
     }
   }
   .step-n {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--accent);
-    font-weight: 800;
-    margin-bottom: 18px;
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 750;
+    color: var(--ink);
+    margin-bottom: 8px;
   }
   .step h3 {
     margin-bottom: 8px;
   }
-
   .center-link {
     text-align: center;
     margin-top: 28px;
