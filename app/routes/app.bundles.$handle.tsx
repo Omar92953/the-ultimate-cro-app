@@ -293,7 +293,7 @@ export default function BundleEditor() {
                 {where !== "page" ? (
                   <s-stack gap="small-100">
                     <s-text type="strong">{placed.product ? "2. Builder on the product page ✓" : "2. Add the builder to the product page"}</s-text>
-                    <s-text color="subdued">Opens the theme editor with the Bundle builder block added. Click Save there. It shows only on bundle products.</s-text>
+                    <s-text color="subdued">Opens the theme editor with the Bundle builder block added. Drag it above Add to cart, then click Save. It shows only on bundle products.</s-text>
                     <s-stack direction="inline">
                       <Button variant={placed.product ? "tertiary" : "primary"} href={links.product} target="_top" icon="theme-edit" disabled={!bundle.product && !isNew}>
                         {placed.product ? "Open in theme editor" : "Add to theme"}
