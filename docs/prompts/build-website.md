@@ -41,10 +41,12 @@ Copy the structure and the kinds of pages, never their text, images or brand. Wr
   lets the live demos reuse the real storefront code.
 - Use **Astro** (static output, content collections for articles, great for SEO). TypeScript. Plain
   CSS or Tailwind, your choice; keep pages fast (aim for Lighthouse 95+).
-- Hosting: a static host (Render static site, Cloudflare Pages, Netlify or Vercel) with root
-  directory `site/`. **Ask Omar** which one and which domain (suggested `crotoolbox.app`) before
-  buying or connecting anything. Until then, give him a local preview and a free preview URL if the
-  host offers one.
+- Hosting (decided with Omar, 2026-10-15): **Cloudflare Pages, free plan** (upgrade at app launch if
+  needed), domain **crotoolbox.com** bought by Omar at Cloudflare Registrar. Build command
+  `npm --prefix site ci && npm --prefix site run build`, output `site/dist`, root of the repo as the
+  project root. Omar connects the GitHub repo in the Cloudflare dashboard (he must click it; never
+  type his passwords). Until the domain is connected, use the free `*.pages.dev` preview URL.
+  Big videos (over 25 MB) go on YouTube and are embedded, not stored on the site.
 - Add `site` checks to your PRs: `npm --prefix site run build` must pass. Don't change the app's
   checks or `render.yaml` service for the app.
 
@@ -135,6 +137,37 @@ really working, with all its designs stacked like Section Store's section pages.
   key URLs, consistent naming "CRO Toolbox".
 - Speed: static HTML, optimized images (Astro image), minimal JS outside the live demos, lazy load
   demos below the fold.
+
+## Visibility plan (SEO + being recommended by AI assistants)
+
+AI assistants find apps through live web search (ChatGPT uses **Bing**, Google AI answers use
+**Google**, Perplexity its own) and through what the web says about the app. Mentions on other sites
+count more than our own pages. Build the site so all of this works:
+
+- **Search engine registration**: add `site/public/` verification support (a meta tag or file for
+  Google Search Console and Bing Webmaster Tools, values from Omar) and an **IndexNow** key file, and
+  ping IndexNow on deploy so Bing sees new pages within hours. Write a short step list for Omar in
+  `docs/website.md` (create both accounts, verify crotoolbox.com through Cloudflare DNS, submit
+  `https://crotoolbox.com/sitemap.xml`).
+- **One shared description**, used word for word everywhere (site meta, App Store, YouTube, social):
+  "CRO Toolbox is a Shopify app for bundles, upsells and cross-sells." Keep it in one constant
+  (`site/src/lib/brand.ts`) and in `docs/listing.md`.
+- **Articles**: 1 or 2 a week after launch, each answering one real merchant question; the question
+  as the H1/H2, a direct answer in the first sentence, exact facts, real screenshots. Never mass
+  generated thin articles.
+- **Comparison pages** ("CRO Toolbox vs <app>") with honest tables; AI is often asked "X vs Y".
+- **Structured data** and `llms.txt` as listed under SEO and GEO.
+- **Analytics**: Cloudflare Web Analytics (free, no cookie banner). Track installs per page with the
+  UTM tags below, and visits referred by chatgpt.com, perplexity.ai and gemini.google.com.
+- **Off site work for Omar** (write it as a checklist in `docs/website.md`, not code): App Store
+  listing with the main words in the name line (e.g. "CRO Toolbox: Bundles & Upsell"); ask happy
+  merchants for reviews; outreach to authors of "best Shopify bundle apps" lists; helpful answers on
+  r/shopify and the Shopify Community (no spam); short YouTube tutorials; Product Hunt on launch day;
+  free profiles on G2, Capterra and SaaSworthy; a monthly check asking ChatGPT, Gemini and Perplexity
+  "best Shopify bundle app".
+- **In the app** (separate PR, after launch): a gentle review request ("Enjoying CRO Toolbox?") shown
+  once after a success such as the first bundle sale, linking to the App Store review page; never
+  blocking, easy to dismiss.
 
 ## Calls to action
 
