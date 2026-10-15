@@ -9,7 +9,7 @@ plan), each as its own project.
 | Address | https://crotoolbox.com | https://demo.crotoolbox.com |
 | Public? | Yes: sitemap, robots.txt, llms.txt, made to rank | **No**: every page `noindex, nofollow`, robots.txt `Disallow: /`, no sitemap or list of demos, `/` redirects to crotoolbox.com |
 | Opened from | search, AI assistants, links | **only** the app's "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`) |
-| Cloudflare project | `cro-toolbox-site` | `cro-toolbox-demos` |
+| Cloudflare project | `crotoolbox` (live) | `cro-toolbox-demos` (to set up) |
 
 The website never links to the demos, and the demos don't link to each other or to the website pages
 (only the "Install CRO Toolbox" button to the App Store listing).
@@ -60,30 +60,25 @@ The demo build needs Node 22.18 or newer (it loads the app's TypeScript files di
 
 Never type passwords for Claude; these are clicks in your own Cloudflare account.
 
-### 1. The website (crotoolbox.com)
+### 1. The website (crotoolbox.com): live since 2026-10-15
 
-1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → choose
-   GitHub and the repo `Omar92953/the-ultimate-cro-app`.
-2. Project name `cro-toolbox-site`, production branch `main`.
-3. Build settings: Framework preset **None**; Build command
-   `npm --prefix site ci && npm --prefix site run build`; Build output directory `site/dist`;
-   Root directory empty (the repo root).
-4. Environment variables (Production and Preview): `NODE_VERSION` = `22.22.0`.
-5. **Save and Deploy.** The site is live at `cro-toolbox-site.pages.dev`.
-6. Project → **Custom domains** → **Set up a custom domain** → `crotoolbox.com` (and `www.crotoolbox.com`,
-   then a redirect from www). With the domain bought at Cloudflare, the DNS records are added for you.
+Cloudflare Pages project `crotoolbox`: root directory `site`, build command `npm run build`, output
+directory `dist`, environment variable `NODE_VERSION` = `22`, custom domains crotoolbox.com and
+www.crotoolbox.com. It rebuilds on every push to `main`.
 
-### 2. The live demos (demo.crotoolbox.com)
+### 2. The live demos (demo.crotoolbox.com): to set up
 
-1. **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → the same repo.
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → the repo
+   `Omar92953/the-ultimate-cro-app`.
 2. Project name `cro-toolbox-demos`, production branch `main`.
-3. Build settings: Framework preset **None**; Build command
-   `npm --prefix demos ci && npm --prefix demos run build`; Build output directory `demos/dist`;
-   Root directory empty.
-4. Environment variables (Production and Preview): `NODE_VERSION` = `22.22.0`.
+3. Build settings: Framework preset **None**; Root directory `demos`; Build command `npm run build`;
+   Build output directory `dist`.
+4. Environment variables (Production and Preview): `NODE_VERSION` = `22` (the build needs 22.18 or
+   newer; `22` gives the newest 22).
 5. **Save and Deploy.** Until the domain is ready the demos work at `cro-toolbox-demos.pages.dev`
    (for example `https://cro-toolbox-demos.pages.dev/upsell/`).
-6. Project → **Custom domains** → **Set up a custom domain** → `demo.crotoolbox.com`.
+6. Project → **Custom domains** → **Set up a custom domain** → `demo.crotoolbox.com`. The domain is at
+   Cloudflare, so the DNS record is added for you.
 7. Optional, saves build minutes: Settings → Builds → **Build watch paths**, include `demos/*`,
    `theme/*`, `extensions/cro-storefront/*`, `app/lib/*`, `test/storefront/*`, `site/src/lib/art.ts`.
 

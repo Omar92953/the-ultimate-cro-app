@@ -44,7 +44,7 @@ hidden from search. Full rules in `docs/prompts/build-website.md` ("Live demos")
   when `DEMOS` and the built demos differ.
 - The website (`site/`) has no links to the demos and no `/demo/` pages.
 - `docs/website.md`: how to build both, and the Cloudflare steps for Omar (second Pages project
-  `cro-toolbox-demos`, custom domain demo.crotoolbox.com).
+  `cro-toolbox-demos`, root `demos`, custom domain demo.crotoolbox.com).
 
 ## Step 2: PR 3, bundles hub, features, use cases, comparisons
 
