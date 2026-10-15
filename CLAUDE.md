@@ -7,7 +7,7 @@ from **three Claude accounts at once**. All three are equal: any account can wor
 website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.md`).
 
 **Every session, before anything else:**
-1. `git fetch --prune && git checkout main && git pull`
+1. `git fetch --prune && git checkout main && git pull` (taking over? read `HANDOFF.md` first)
 2. Read **`docs/TEAM.md`** (who does what, how not to collide, who deploys) and
    **`docs/WORKBOARD.md`** (the backlog), then run `gh pr list` (work in progress).
 3. Read **`docs/PROJECT-GUIDE.md`** for the app (code map, commands, shipping, house rules, testing)
