@@ -1,7 +1,13 @@
 /**
- * Tutorial videos on Home — the ONLY list of them. Placeholders until Omar records them:
- * set `youtubeId` (the part after watch?v=) when a video is ready, and its card starts working.
- * Cards without a video are not shown on Home (no "coming soon" cards).
+ * Tutorial videos on Home — the ONLY list of them. Placeholders until Omar records them.
+ *
+ * HOW TO ADD A VIDEO: upload it to YouTube, open it, and copy the ID from the address
+ * (youtube.com/watch?v=THIS_PART). Paste it as `youtubeId` on that tutorial below. Done: the card
+ * appears on Home, and the video plays on the website's tutorials page.
+ * Cards without a `youtubeId` are hidden on Home (no "coming soon" cards).
+ *
+ * The website's tutorials page (site/src/pages/tutorials.astro) reads THIS list, so both show the
+ * same titles. If you ever change how it is shown, update the other place too.
  */
 import type { FeatureKey } from "./catalog";
 

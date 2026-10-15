@@ -14,6 +14,8 @@ import type { FeatureKey } from "./catalog";
 import type { RecipeKey } from "./bundle-recipes";
 
 export const SITE_URL = "https://crotoolbox.com";
+/** The website's video tutorials page (same list as app/lib/tutorials.ts). */
+export const TUTORIALS_URL = `${SITE_URL}/tutorials/`;
 export const DEMO_URL = "https://demo.crotoolbox.com";
 /** The App Store listing. Placeholder until the listing is live (confirm the handle then). */
 export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";

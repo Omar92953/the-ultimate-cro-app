@@ -18,6 +18,7 @@ import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
+import { TUTORIALS_URL } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
 import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
@@ -302,6 +303,7 @@ export default function Home() {
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
+              <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li>
               <li><Link to="/app/settings">Settings and app embeds</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>
