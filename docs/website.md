@@ -48,6 +48,21 @@ The demo build needs Node 22.18 or newer (it loads the app's TypeScript files di
   `DEMOS`, or `DEMOS` lists something without a demo. It also fails on invalid JSON passed to a
   storefront script and on any page without `noindex`.
 
+### Screenshots for the website
+
+The website's feature, bundle and use case pages show pictures of the demos (it never links to them):
+`npm --prefix demos run build && npm --prefix demos run screenshots` writes
+`site/src/assets/features/<feature>.jpg` and `site/src/assets/bundles/<recipe>.jpg`. It needs Playwright
+with Chromium on your computer (see the top of `demos/screenshots.mjs`). Commit the pictures.
+
+## Website content
+
+- Feature pages: `site/src/lib/features.ts` (who it's for, what you can set, related features); the
+  one line description comes from `app/lib/catalog.ts`, the template names from the app's design files.
+- Use case and industry pages: `site/src/lib/usecases.ts`.
+- Comparisons: `site/src/lib/competitors.ts`. Only facts with a source and the date checked; anything
+  else shows "Not checked". Check the listings yourself from time to time and update the file.
+
 ### Adding or changing a demo
 
 - A new feature: add it to `demos/src/features.mjs` (render its block with the app's templates, like

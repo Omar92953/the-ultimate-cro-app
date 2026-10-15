@@ -1,0 +1,63 @@
+---
+/** A feature as a card linking to its page, with a small screenshot when there is one. */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { featureTitle, featureAbout, type FeatureKey } from "../lib/app";
+import { featurePath, featureSlug } from "../lib/pages";
+interface Props {
+  feature: FeatureKey;
+}
+const { feature } = Astro.props;
+const all = import.meta.glob<{ default: ImageMetadata }>("../assets/features/*.jpg", { eager: true });
+const img = all[`../assets/features/${featureSlug(feature)}.jpg`]?.default;
+---
+
+<a class="fcard" href={featurePath(feature)}>
+  {img && <Image src={img} alt="" widths={[360, 560]} sizes="(min-width: 980px) 280px, (min-width: 640px) 45vw, 100vw" loading="lazy" />}
+  <span class="fcard__text">
+    <b>{featureTitle(feature)}</b>
+    <span>{featureAbout(feature)}</span>
+  </span>
+</a>
+
+<style>
+  .fcard {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+    height: 100%;
+  }
+  .fcard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .fcard :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 760;
+    object-fit: cover;
+    object-position: top;
+    border-bottom: 1px solid var(--line);
+  }
+  .fcard__text {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px 18px;
+  }
+  .fcard__text b {
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+  .fcard__text span {
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+</style>

@@ -139,10 +139,12 @@ export async function buildFeatures({ block, shopWith, mo }) {
     title, layout, product, css: PAY_CSS, ...rest,
     embeds: await block("ucs-boosters", { page_type: layout === "collection" ? "collection" : "product", product: P[product], shop: shopWith({ meta: { "$app:cro_boosters": [mo("main", { config: boostersOnly(cfg) })], "$app:cro_recent": [mo("main", { purchases: recent(Date.UTC(2026, 9, 15, 12)) })] } }) }),
   });
+  // The demo purchases happened "a few minutes ago" whenever the page is opened.
+  const freshPurchases = `<script>(function(){var el=document.getElementById("ucs-boost");if(!el)return;var d=JSON.parse(el.textContent);(d.recent||[]).forEach(function(r,i){r.at=new Date(Date.now()-[4,11,26][i%3]*60000).toISOString()});el.textContent=JSON.stringify(d)})();</script>`;
   F.sales_pop = [
-    await boosterPage("Bottom left", { salesPop: { enabled: true, firstDelay: 1, gap: 6, position: "bottom-left" } }, { minHeight: 640 }),
-    await boosterPage("Bottom right, with the city", { salesPop: { enabled: true, firstDelay: 1, gap: 6, position: "bottom-right", showCity: true, text: "Someone in {city} bought {product}" } }, { minHeight: 640 }),
-  ];
+    { ...(await boosterPage("Bottom left", { salesPop: { enabled: true, firstDelay: 1, gap: 6, position: "bottom-left" } }, { minHeight: 640 })) },
+    { ...(await boosterPage("Bottom right, with the city", { salesPop: { enabled: true, firstDelay: 1, gap: 6, position: "bottom-right", showCity: true, text: "Someone in {city} bought {product}" } }, { minHeight: 640 })) },
+  ].map((d) => ({ ...d, embeds: d.embeds + freshPurchases }));
   F.trust_badges = [
     await boosterPage("Row with payment icons", { trust: { enabled: true, style: "row", showPayments: true } }),
     await boosterPage("Grid with a heading", { trust: { enabled: true, style: "grid", heading: "Shop with confidence", showPayments: false, badges: [{ key: "secure", label: "Secure checkout" }, { key: "returns", label: "Free 30 day returns" }, { key: "shipping", label: "Ships in 24 hours" }, { key: "warranty", label: "1 year warranty" }] } }),

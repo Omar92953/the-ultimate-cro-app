@@ -9,6 +9,7 @@ import NotifyCta from "../components/NotifyCta.astro";
 import { PAGES } from "../lib/pages";
 import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
 import { organization, website, softwareApplication, faqPage } from "../lib/schema";
+import { featurePath, areaPath } from "../lib/pages";
 
 const page = PAGES.home;
 const free = PLANS.free;
@@ -106,7 +107,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
         </p>
         <div class="actions">
           <InstallButton medium="home" campaign="hero" />
-          <a class="btn ghost" href="#features">See all features <span aria-hidden="true">→</span></a>
+          <a class="btn ghost" href="/features/">See all features <span aria-hidden="true">→</span></a>
         </div>
         <ul class="trust">
           <li>Built for any Online Store 2.0 theme</li>
@@ -132,20 +133,22 @@ const schema = [organization(), website(), softwareApplication(page.description)
     <ul class="strip" role="list">
       {
         STRIP.map((k) => (
-          <li class="feat">
-            <div class="feat-art">
-              <MiniDemo kind={k} />
-            </div>
-            <div class="feat-text">
-              <h3>{featureTitle(k)}</h3>
-              <p>{featureAbout(k)}</p>
-            </div>
+          <li>
+            <a class="feat" href={featurePath(k)}>
+              <div class="feat-art">
+                <MiniDemo kind={k} />
+              </div>
+              <div class="feat-text">
+                <h3>{featureTitle(k)}</h3>
+                <p>{featureAbout(k)}</p>
+              </div>
+            </a>
           </li>
         ))
       }
     </ul>
     <div class="wrap strip-foot">
-      <a class="link" href="#features">See every feature →</a>
+      <a class="link" href="/features/">See every feature →</a>
     </div>
   </section>
 
@@ -185,12 +188,12 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="grid three recipes">
         {
           BUNDLE_RECIPES.map((r, i) => (
-            <div class="card recipe">
+            <a class="card recipe" href={`/bundles/#${r.key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`}>
               <span class="num">{String(i + 1).padStart(2, "0")}</span>
               <h3>{plain(r.title)}</h3>
               <p class="muted">{plain(r.about)}</p>
               <p class="best">{plain(r.best)}</p>
-            </div>
+            </a>
           ))
         }
       </div>
@@ -209,12 +212,16 @@ const schema = [organization(), website(), softwareApplication(page.description)
         {
           SITE_AREAS.map((a) => (
             <div class={`card area area-${a.key}`}>
-              <h3>{a.title}</h3>
+              <h3>
+                <a href={areaPath(a.key)}>{a.title}</a>
+              </h3>
               <p class="muted">{a.intro}</p>
               {a.features.length > 0 && (
                 <ul class="chips">
                   {a.features.map((k) => (
-                    <li>{featureTitle(k)}</li>
+                    <li>
+                      <a href={featurePath(k)}>{featureTitle(k)}</a>
+                    </li>
                   ))}
                 </ul>
               )}
@@ -375,15 +382,27 @@ const schema = [organization(), website(), softwareApplication(page.description)
     scroll-padding: 0 max(var(--gutter), calc((100vw - var(--wrap)) / 2 + var(--gutter)));
     scrollbar-width: thin;
   }
-  .feat {
-    scroll-snap-align: start;
+  .strip > li {
     display: flex;
+    scroll-snap-align: start;
+  }
+  .feat {
+    display: flex;
+    width: 100%;
     flex-direction: column;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
+    text-decoration: none;
     box-shadow: var(--shadow);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .feat:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
   .feat-art {
     height: 200px;
@@ -424,9 +443,26 @@ const schema = [organization(), website(), softwareApplication(page.description)
   }
 
   .recipe {
+    text-decoration: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .recipe:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .area h3 a,
+  .chips a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .area h3 a:hover,
+  .chips a:hover {
+    text-decoration: underline;
   }
   .num {
     font-weight: 800;

@@ -1,0 +1,67 @@
+---
+/**
+ * A screenshot of a feature on a demo store (from demos/screenshots.mjs), in a soft browser frame.
+ * The website shows pictures only; it never links to the live demos.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+interface Props {
+  /** "features/<feature-slug>" or "bundles/<recipe-slug>". */
+  name: string;
+  alt: string;
+  caption?: string;
+  eager?: boolean;
+  sizes?: string;
+}
+const { name, alt, caption, eager = false, sizes = "(min-width: 1100px) 640px, 100vw" } = Astro.props;
+const all = import.meta.glob<{ default: ImageMetadata }>("../assets/**/*.jpg", { eager: true });
+const img = all[`../assets/${name}.jpg`]?.default;
+---
+
+{
+  img && (
+    <figure class="shot">
+      <div class="shot__bar" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+      <Image src={img} alt={alt} widths={[480, 800, 1200]} sizes={sizes} loading={eager ? "eager" : "lazy"} fetchpriority={eager ? "high" : undefined} />
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  )
+}
+
+<style>
+  .shot {
+    margin: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .shot__bar {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #f3f3f0;
+    border-bottom: 1px solid var(--line);
+  }
+  .shot__bar i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #d8d8d3;
+  }
+  .shot :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  figcaption {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+</style>

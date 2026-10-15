@@ -5,7 +5,8 @@
   "description": "Live demos for demo.crotoolbox.com (hidden from search; opened from the app). See docs/website.md.",
   "scripts": {
     "build": "node build.mjs",
-    "preview": "python3 -m http.server -d dist 4322"
+    "preview": "python3 -m http.server -d dist 4322",
+    "screenshots": "node screenshots.mjs"
   },
   "engines": {
     "node": ">=22.18"

@@ -1,0 +1,266 @@
+---
+/**
+ * /features/<feature>/ for every feature of the app's catalog, and /features/<area>/ for each area
+ * (offers, storefront, cart, checkout, analytics).
+ */
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Shot from "../../components/Shot.astro";
+import FeatureCard from "../../components/FeatureCard.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { FEATURE_KEYS, FEATURES, SITE_AREAS, CHECKOUT_ONLY, featureTitle, featureAbout, plain, type FeatureKey, type SiteArea } from "../../lib/app";
+import { FEATURE_PAGES, AREA_PAGES, MORE_PAGES, areaPath, featureSlug, planLine, type PageMeta } from "../../lib/pages";
+import { FEATURE_COPY } from "../../lib/features";
+import { TEMPLATES } from "../../lib/templates";
+import { faqPage } from "../../lib/schema";
+
+export function getStaticPaths() {
+  return [
+    ...FEATURE_KEYS.map((k) => ({ params: { slug: featureSlug(k) }, props: { feature: k } })),
+    ...SITE_AREAS.map((a) => ({ params: { slug: a.key }, props: { area: a.key } })),
+  ];
+}
+interface Props {
+  feature?: FeatureKey;
+  area?: SiteArea["key"];
+}
+const { feature, area } = Astro.props;
+
+const areaOf = (k: FeatureKey) => SITE_AREAS.find((a) => a.key === FEATURES[k].area)!;
+
+/** Where the feature lives in the app, for the setup steps. */
+const WHERE: Record<string, string> = {
+  offers: "Offers",
+  storefront: "Storefront",
+  cart: "Cart",
+  checkout: "Checkout",
+};
+let page: PageMeta;
+let crumbs: { name: string; href: string }[];
+let faq: QA[] = [];
+if (feature) {
+  page = FEATURE_PAGES[feature];
+  const a = areaOf(feature);
+  crumbs = [{ name: "Features", href: "/features/" }, { name: a.title, href: areaPath(a.key) }, { name: featureTitle(feature), href: page.path }];
+  const t = featureTitle(feature);
+  faq = [
+    { q: `What does ${t} do in CRO Toolbox?`, a: `${featureAbout(feature)} ${FEATURE_COPY[feature].who}` },
+    { q: `Which plan includes ${t}?`, a: `${planLine(feature)}. See <a href="/pricing/">pricing</a> for the limits of each plan.` },
+    CHECKOUT_ONLY.includes(feature)
+      ? { q: `Does ${t} work on every Shopify plan?`, a: "It runs inside Shopify checkout. Installed from the Shopify App Store, CRO Toolbox doesn't need Shopify Plus for it." }
+      : { q: `Does ${t} work with my theme?`, a: "Yes, with any Online Store 2.0 theme. You set it up in the app and place it in the theme editor; your theme's code is never edited." },
+  ];
+} else {
+  page = AREA_PAGES.find((p) => p.path === areaPath(area!))!;
+  crumbs = [{ name: "Features", href: "/features/" }, { name: SITE_AREAS.find((a) => a.key === area)!.title, href: page.path }];
+}
+const siteArea = area ? SITE_AREAS.find((a) => a.key === area)! : null;
+const copy = feature ? FEATURE_COPY[feature] : null;
+const templates = feature ? TEMPLATES[feature] : undefined;
+const steps = feature
+  ? CHECKOUT_ONLY.includes(feature)
+    ? ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE.checkout} → ${featureTitle(feature)} in the app and set it up.`, "Switch it on and check a test order at checkout."]
+    : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Storefront"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."]
+  : [];
+const schema = faq.length ? [faqPage(faq)] : [];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  {
+    feature && copy && (
+      <>
+        <section class="page-hero">
+          <div class="wrap fhero">
+            <div>
+              <Crumbs items={crumbs} />
+              <span class="eyebrow">{areaOf(feature).title}</span>
+              <h1>{featureTitle(feature)}</h1>
+              <p class="lead">{featureAbout(feature)}</p>
+              <p class="who">{copy.who}</p>
+              <p class="pill">{planLine(feature)}</p>
+              <div class="actions">
+                <InstallButton medium="feature" campaign={featureSlug(feature)} />
+                <a class="btn ghost" href="/pricing/">See pricing</a>
+              </div>
+            </div>
+            <Shot name={`features/${featureSlug(feature)}`} alt={`${featureTitle(feature)} on a demo store`} caption={CHECKOUT_ONLY.includes(feature) ? "Shopify checkout with this feature, on a demo store." : "On a demo store, made with the app's first template."} eager />
+          </div>
+        </section>
+
+        <section class="section tight mist">
+          <div class="wrap grid two">
+            <div class="card">
+              <h2 class="h3">What you can set</h2>
+              <ul class="check-list">
+                {copy.points.map((p) => (
+                  <li>{p}</li>
+                ))}
+              </ul>
+              {copy.note && <p class="note">{copy.note}</p>}
+            </div>
+            <div class="card">
+              <h2 class="h3">How to set it up</h2>
+              <ol class="steps">
+                {steps.map((s) => (
+                  <li>{s}</li>
+                ))}
+              </ol>
+              {templates && templates.length > 0 && (
+                <>
+                  <h3 class="sub">Ready made looks in the app</h3>
+                  <ul class="chips">
+                    {templates.map((t) => (
+                      <li>{plain(t)}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section class="section tight">
+          <div class="wrap">
+            <div class="head center">
+              <h2>Questions about {featureTitle(feature)}</h2>
+            </div>
+            <Faq items={faq} />
+          </div>
+        </section>
+
+        <section class="section tight mist">
+          <div class="wrap">
+            <h2 class="related-h">Works well with</h2>
+            <div class="grid three">
+              {copy.related.map((k) => (
+                <FeatureCard feature={k} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </>
+    )
+  }
+  {
+    siteArea && (
+      <>
+        <section class="page-hero">
+          <div class="wrap">
+            <Crumbs items={crumbs} />
+            <span class="eyebrow">Features</span>
+            <h1>{siteArea.title}</h1>
+            <p class="lead">{siteArea.intro}</p>
+          </div>
+        </section>
+        <section class="section tight mist">
+          <div class="wrap">
+            {siteArea.features.length > 0 ? (
+              <div class="grid three">
+                {siteArea.features.map((k) => (
+                  <FeatureCard feature={k} />
+                ))}
+              </div>
+            ) : (
+              <div class="card prose">
+                <h2>What Analytics shows</h2>
+                <ul>
+                  <li>Sales from the app's offers and widgets, last 30 days compared with the 30 days before.</li>
+                  <li>Results for each offer and each bundle.</li>
+                  <li>A holdout test: a share of shoppers sees no app widgets, so you can compare.</li>
+                </ul>
+                <p>Results for every offer and the holdout test are on the Growth plan and above. See <a href="/pricing/">pricing</a>.</p>
+              </div>
+            )}
+          </div>
+        </section>
+        <section class="section tight">
+          <div class="wrap">
+            <h2 class="related-h">Other areas</h2>
+            <ul class="area-links">
+              {SITE_AREAS.filter((a) => a.key !== siteArea.key).map((a) => (
+                <li>
+                  <a class="btn ghost small" href={areaPath(a.key)}>
+                    {a.title}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <a class="btn ghost small" href={MORE_PAGES.features.path}>
+                  All features
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </>
+    )
+  }
+  <NotifyCta campaign={feature ? featureSlug(feature) : area!} />
+</Base>
+
+<style>
+  .fhero {
+    display: grid;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .fhero {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  .who {
+    margin: 14px 0 18px;
+    color: #2b2d35;
+    max-width: 560px;
+  }
+  .actions {
+    margin-top: 24px;
+  }
+  .h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  .sub {
+    font-size: 0.95rem;
+    margin: 22px 0 10px;
+  }
+  .steps {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 10px;
+  }
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chips li {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--mist);
+    border: 1px solid var(--line);
+    font-size: 0.86rem;
+  }
+  .note {
+    margin-top: 18px;
+  }
+  .related-h {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  .area-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>
