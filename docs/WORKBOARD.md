@@ -26,6 +26,8 @@ Updated 2026-10-15.
       Add to cart and links under it, open the app's cart drawer. Needs the storefront unlocked
       (password is back on; Omar types it). Rollback: `shopify app release --version=cro-toolbox-20`.
 
+- [x] Blocks check 2026-10-16: build:theme 30 of 30 blocks, 86.3 KB of 100 KB Liquid; `shopify theme check` 37 files, no offenses; `npm run test:storefront` passes (every block and embed rendered). No fixes needed.
+
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
