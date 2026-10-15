@@ -200,7 +200,7 @@
       var calc = U.bundlePrice(this.rules, this.allPicks());
       var value = calc.value;
       var price = calc.price === null ? 0 : calc.price;
-      var priceEl = this.querySelector('[data-price]');
+      var priceEl = this.querySelector('[data-sum]'); // not [data-price]: the variant options carry that too
       if (priceEl && calc.price !== null && (this.total() || !this.variable)) priceEl.textContent = U.money(price, this.fmt);
       var valueEl = this.querySelector('[data-value]');
       var saveEl = this.querySelector('[data-save]');
