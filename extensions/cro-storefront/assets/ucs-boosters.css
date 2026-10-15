@@ -88,6 +88,12 @@ body.ucs-sticky-on .ucs-pop { bottom: 92px; }
 .ucs-deal__it a { color: inherit; font-weight: 600; text-decoration: none; }
 .ucs-deal__var { max-width: 220px; padding: 4px 8px; border: 1px solid rgba(127, 127, 127, 0.4); border-radius: 6px; background: transparent; color: inherit; font: inherit; font-size: 0.9em; }
 .ucs-deal__plus { margin: -2px 0 -2px 18px; font-weight: 700; opacity: 0.5; }
+.ucs-deal__pics { display: flex; align-items: center; gap: 6px; }
+.ucs-deal__pic { flex: 1 1 0; max-width: 132px; aspect-ratio: 1; overflow: hidden; border-radius: 10px; background: rgba(127, 127, 127, 0.1); }
+.ucs-deal__pic img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ucs-deal__pics .ucs-deal__plus { flex: none; margin: 0; font-size: 1.3em; opacity: 0.7; }
+.ucs-deal--row .ucs-deal__items { gap: 4px; font-size: 0.92em; }
+.ucs-deal--row .ucs-deal__add { border-radius: 999px; }
 .ucs-deal__total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px; padding-top: 8px; border-top: 1px solid rgba(127, 127, 127, 0.25); }
 .ucs-deal__price b { font-size: 1.15em; }
 .ucs-deal__price s { opacity: 0.6; }

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- App Bridge resource picker payloads are untyped */
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -263,11 +263,20 @@ export default function DealEditor() {
             <EditorSection n={2} title="Discount" summary={`${fixedCfg.pct}% off when bought together`} done={fixedCfg.pct > 0} open={open === 2} onToggle={() => setOpen((o) => (o === 2 ? 0 : 2))} onNext={() => setOpen(3)}>
               <NumberField label="Discount on the bundle" suffix="%" value={fixedCfg.pct} min={1} max={90} step={1} onValue={(v) => setConfig({ pct: v })} />
             </EditorSection>
-            <EditorSection n={3} title="Box look" summary={`“${fbt.heading || "No heading"}” · ${fbt.images ? "with pictures" : "no pictures"}`} done open={open === 3} onToggle={() => setOpen((o) => (o === 3 ? 0 : 3))}>
+            <EditorSection n={3} title="Box look" summary={`“${fbt.heading || "No heading"}” · ${fbt.layout === "row" ? "pictures in a row" : fbt.images ? "list with pictures" : "list"}`} done open={open === 3} onToggle={() => setOpen((o) => (o === 3 ? 0 : 3))}>
               <s-stack gap="base">
                 <s-text color="subdued">Shared by every Frequently bought together box on your store.</s-text>
+                <Segmented
+                  label="Layout"
+                  value={fbt.layout}
+                  onChange={(v) => setFbt({ ...fbt, layout: v })}
+                  options={[
+                    { value: "row" as const, label: "Pictures in a row" },
+                    { value: "list" as const, label: "List" },
+                  ]}
+                />
                 <TextField label="Heading" value={fbt.heading} maxLength={80} onValue={(v) => setFbt({ ...fbt, heading: v })} />
-                <TextField label="Button" value={fbt.button} maxLength={40} onValue={(v) => setFbt({ ...fbt, button: v })} />
+                <TextField label="Button" details="[count] is the number of items and [price] the bundle price, e.g. Buy all [count]: [price]" value={fbt.button} maxLength={40} onValue={(v) => setFbt({ ...fbt, button: v })} />
                 <Checkbox label="Show product pictures" checked={fbt.images} onValue={(v) => setFbt({ ...fbt, images: v })} />
                 <Segmented
                   label="Show the saving as"
@@ -495,16 +504,28 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
   };
   const total = cfg.items.reduce((n, i) => n + (found[i.product.id]?.[0]?.cents ?? 0) * i.qty, 0);
   const saving = Math.round((total * cfg.pct) / 100);
+  const row = fbt.layout === "row";
   const items = cfg.items.length ? cfg.items : [{ product: { id: "a", title: "First product", image: null, handle: "" }, qty: 1 }, { product: { id: "b", title: "Second product", image: null, handle: "" }, qty: 1 }];
+  const count = items.reduce((n, i) => n + i.qty, 0);
   return (
     <s-stack gap="base">
       <s-section heading="Preview">
         <s-stack gap="small-300">
           <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, border: "1px solid #e3e3e3", borderRadius: 12 }}>
             {fbt.heading ? <strong style={{ fontSize: 16 }}>{fbt.heading}</strong> : null}
+            {row && fbt.images ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {items.map((i, n) => (
+                  <Fragment key={i.product.id}>
+                    {n ? <span style={{ fontSize: 20, fontWeight: 700, opacity: 0.7 }}>+</span> : null}
+                    <span style={{ flex: "1 1 0", maxWidth: 132, aspectRatio: "1", borderRadius: 10, background: i.product.image ? `#f4f4f4 center / contain no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
+                  </Fragment>
+                ))}
+              </div>
+            ) : null}
             {items.map((i, n) => (
-              <div key={i.product.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {fbt.images ? (
+              <div key={i.product.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: row ? 13 : undefined }}>
+                {fbt.images && !row ? (
                   <span style={{ width: 48, height: 48, flex: "none", borderRadius: 8, background: i.product.image ? `center / cover no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=120)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
                 ) : null}
                 <span style={{ flex: 1, fontSize: 14 }}>{`${i.qty > 1 ? `${i.qty} × ` : ""}${i.product.title}`}</span>
@@ -515,7 +536,9 @@ function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }
               <span>{total ? <><strong>{money(total - saving)}</strong> <s style={{ color: "#8a8a8a" }}>{money(total)}</s></> : null}</span>
               <span style={{ color: "#1a7f37", fontWeight: 600 }}>{fbt.saving === "pct" ? `${cfg.pct}% off` : total ? `Save ${money(saving)}` : `Save ${cfg.pct}%`}</span>
             </div>
-            <span style={{ padding: "10px 12px", textAlign: "center", borderRadius: 8, background: "#303030", color: "#fff", fontWeight: 600, fontSize: 14 }}>{fbt.button}</span>
+            <span style={{ padding: "10px 12px", textAlign: "center", borderRadius: row ? 999 : 8, background: "#303030", color: "#fff", fontWeight: 600, fontSize: 14 }}>
+              {fbt.button.replace(/\[count\]/g, String(count)).replace(/\[price\]/g, total ? money(total - saving) : "$0.00")}
+            </span>
           </div>
           <s-text color="subdued">A sketch; on your store it takes your theme&apos;s fonts and colours.</s-text>
         </s-stack>

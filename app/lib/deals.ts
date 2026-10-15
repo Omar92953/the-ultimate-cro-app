@@ -99,8 +99,9 @@ export const DEAL_TYPES: Record<
  * pictures, button text and how the saving reads. Stored in $app:cro_design "fbt"; sent to the
  * storefront with the deals (offers.fbt, compact keys).
  */
-export type FbtDesign = { heading: string; images: boolean; button: string; saving: "amount" | "pct" };
-export const DEFAULT_FBT: FbtDesign = { heading: "Frequently bought together", images: true, button: "Add bundle to cart", saving: "amount" };
+export type FbtDesign = { heading: string; images: boolean; button: string; saving: "amount" | "pct"; layout: "row" | "list" };
+/** layout "row": the pictures side by side with + between (product + product); "list": one item per line. */
+export const DEFAULT_FBT: FbtDesign = { heading: "Frequently bought together", images: true, button: "Buy all [count]: [price]", saving: "amount", layout: "row" };
 export function normalizeFbt(v: unknown): FbtDesign {
   const o = (v && typeof v === "object" ? v : {}) as Partial<FbtDesign>;
   return {
@@ -108,9 +109,10 @@ export function normalizeFbt(v: unknown): FbtDesign {
     images: typeof o.images === "boolean" ? o.images : DEFAULT_FBT.images,
     button: typeof o.button === "string" && o.button.trim() ? o.button.slice(0, 40) : DEFAULT_FBT.button,
     saving: o.saving === "pct" ? "pct" : "amount",
+    layout: o.layout === "list" ? "list" : "row",
   };
 }
-export const fbtForStorefront = (f: FbtDesign) => ({ h: f.heading, img: f.images, btn: f.button, sv: f.saving });
+export const fbtForStorefront = (f: FbtDesign) => ({ h: f.heading, img: f.images, btn: f.button, sv: f.saving, ly: f.layout });
 
 /** Words the storefront widgets use (sent with the deals; {placeholders} are filled in there). */
 export const DEAL_TEXT = {

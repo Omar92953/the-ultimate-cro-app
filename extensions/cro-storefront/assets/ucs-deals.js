@@ -112,7 +112,8 @@
   /*
    * "Frequently bought together" box (fixed bundles). Look and words: offers.fbt, set in the app
    * (Bundles → Design): h heading ("" = the bundle's name), img item pictures, btn button text,
-   * sv saving style ("amount" = "Save $12", "pct" = "15% off").
+   * sv saving style ("amount" = "Save $12", "pct" = "15% off"), ly layout ("row" = pictures side by
+   * side with + between, "list" = one item per line). The button may use [count] and [price].
    */
   var FBT = offers.fbt || {};
 
@@ -149,26 +150,32 @@
       if (picks.some(function (v) { return !v; })) return; // a product is sold out: no bundle offer
       var el = card('fixed', '', d.id);
       if (!el) return;
+      var row = FBT.ly !== 'list';
       var rows = products.map(function (p, n) {
         var q = Number(d.items[n].q) || 1;
         var avail = p.variants.filter(function (v) { return v.available; });
         var select = avail.length > 1
           ? '<select class="ucs-deal__var" data-n="' + n + '" aria-label="' + esc(p.title) + '">' + avail.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select>'
           : '';
-        return '<li class="ucs-deal__item">' + (FBT.img === false ? '' : p.featured_image ? '<img src="' + esc(img(p.featured_image, 120)) + '" alt="" width="48" height="48" loading="lazy">' : '<span></span>') +
+        return '<li class="ucs-deal__item">' + (FBT.img === false || row ? '' : p.featured_image ? '<img src="' + esc(img(p.featured_image, 120)) + '" alt="" width="48" height="48" loading="lazy">' : '<span></span>') +
           '<span class="ucs-deal__it"><a href="' + esc(root + 'products/' + p.handle) + '">' + (q > 1 ? q + ' × ' : '') + esc(p.title) + '</a>' + select + '</span></li>';
-      }).join('<li class="ucs-deal__plus" aria-hidden="true">+</li>');
+      }).join(row ? '' : '<li class="ucs-deal__plus" aria-hidden="true">+</li>');
+      var pics = row && FBT.img !== false ? '<div class="ucs-deal__pics" aria-hidden="true">' + products.map(function (p) {
+        return '<span class="ucs-deal__pic">' + (p.featured_image ? '<img src="' + esc(img(p.featured_image, 300)) + '" alt="" loading="lazy">' : '') + '</span>';
+      }).join('<span class="ucs-deal__plus">+</span>') + '</div>' : '';
       var heading = FBT.h != null && FBT.h !== '' ? FBT.h : d.name;
-      el.innerHTML = '<p class="ucs-deal__name">' + esc(heading) + '</p><ul class="ucs-deal__items" role="list">' + rows + '</ul>' +
+      if (row) el.classList.add('ucs-deal--row');
+      el.innerHTML = '<p class="ucs-deal__name">' + esc(heading) + '</p>' + pics + '<ul class="ucs-deal__items" role="list">' + rows + '</ul>' +
         '<div class="ucs-deal__total"><span>' + esc(T.bundle_total) + '</span><span class="ucs-deal__price"></span></div>' +
         '<button type="button" class="ucs-deal__add"></button><p class="ucs-deal__err" role="alert" hidden></p>';
       var btn = el.querySelector('.ucs-deal__add');
-      btn.textContent = FBT.btn || T.add_bundle || 'Add bundle to cart';
       function paint() {
         var full = picks.reduce(function (n, v, i) { return n + v.price * (Number(d.items[i].q) || 1); }, 0);
         var cut = Math.round(full * (Number(d.pct) || 0) / 100);
         var saving = FBT.sv === 'pct' ? fill(esc(T.off || '{pct}% off'), { pct: Number(d.pct) || 0 }) : fill(esc(T.save), { amount: money(cut) });
         el.querySelector('.ucs-deal__price').innerHTML = '<b>' + money(full - cut) + '</b> <s>' + money(full) + '</s> <em>' + saving + '</em>';
+        var count = d.items.reduce(function (n, i) { return n + (Number(i.q) || 1); }, 0);
+        btn.innerHTML = esc(FBT.btn || T.add_bundle || 'Add bundle to cart').replace(/\[count\]/g, count).replace(/\[price\]/g, money(full - cut));
       }
       paint();
       Array.prototype.forEach.call(el.querySelectorAll('.ucs-deal__var'), function (s) {
