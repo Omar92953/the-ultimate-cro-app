@@ -155,6 +155,7 @@ export default function KitEditor() {
         ) : null}
 
         <EditorLayout
+          help="bundles"
           side={
             <>
               <s-section heading="On your store">

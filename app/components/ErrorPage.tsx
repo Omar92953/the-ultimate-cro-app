@@ -2,7 +2,9 @@
  * What a merchant sees when a page can't load: a calm card with what to do next, never a raw
  * "Unexpected Server Error". Used by the app frame's and the root's error boundaries.
  */
-export function ErrorPage({ title, text }: { title: string; text: string }) {
+import { helpUrl } from "../lib/site";
+
+export function ErrorPage({ title, text, help }: { title: string; text: string; help?: string }) {
   return (
     <div style={{ maxWidth: 560, margin: "48px auto", padding: "0 16px", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <div style={{ padding: 24, background: "#fff", borderRadius: 12, boxShadow: "0 1px 0 rgba(26,26,26,0.07), 0 0 0 1px rgba(26,26,26,0.08)" }}>
@@ -15,10 +17,15 @@ export function ErrorPage({ title, text }: { title: string; text: string }) {
         >
           Try again
         </button>
+        {help ? (
+          <a href={helpUrl(help)} target="_blank" rel="noreferrer" style={{ marginLeft: 16, fontSize: 13, color: "#005bd3" }}>
+            Read the help article
+          </a>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export const NOT_FOUND = { title: "This page doesn't exist", text: "It may have moved when the menu changed. Use the menu on the left to find what you need." };
-export const FAILED = { title: "This page couldn't load", text: "Shopify didn't answer in time or something went wrong on our side. Try again in a moment; if it keeps happening, email support from Settings." };
+export const NOT_FOUND = { title: "This page doesn't exist", text: "It may have moved when the menu changed. Use the menu on the left to find what you need.", help: "getting-started" };
+export const FAILED = { title: "This page couldn't load", text: "Shopify didn't answer in time or something went wrong on our side. Try again in a moment; if it keeps happening, email support from Settings.", help: "good-to-know" };
