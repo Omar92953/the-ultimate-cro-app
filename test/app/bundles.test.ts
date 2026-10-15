@@ -44,3 +44,11 @@ test("growing amount tiers: amounts above 0", () => {
   assert.deepEqual(validateBundle(base({ pricing: "amount_tiers", tiers: [{ qty: 2, price: 5 }, { qty: 3, price: 10 }] }), []), []);
   assert.match(validateBundle(base({ pricing: "amount_tiers", tiers: [{ qty: 2, price: 0 }] }), []).join(" "), /amount above 0/);
 });
+
+test("growing % tiers round the final price like checkout", async () => {
+  const { bundlePrice } = await import("../../app/lib/bundle-price");
+  const pricing = { kind: "percent_tiers" as const, percent: 0, tiers: [{ qty: 2, price: 10 }, { qty: 3, price: 15 }] };
+  // $600.00 + $629.95 at 10% = $1,106.955 → checkout charges $1,106.96.
+  assert.equal(bundlePrice(pricing, 0, [60000, 62995]).price, 110696);
+  assert.equal(bundlePrice(pricing, 0, [60000, 62995, 74995]).price, 168292);
+});

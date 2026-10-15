@@ -8,17 +8,20 @@ import type { Bundle } from "./types";
 import type { PreviewBundle, PreviewItem } from "../components/BundlePreview";
 
 /** The merchant's bundles with prices and pictures (collection steps: their first 8 products). */
+/** Bundle products (tag cro-bundle) are never offered as picks, on the store or in previews. */
+const notBundle = (p: any) => !(p?.tags ?? []).includes("cro-bundle");
+
 export async function previewBundles(admin: AdminClient, bundles: Bundle[]): Promise<{ list: PreviewBundle[]; currency: string }> {
   const ids = [...new Set(bundles.flatMap((b) => [...(b.product ? [b.product.id] : []), ...b.steps.flatMap((s) => (s.products.length ? s.products.map((p) => p.id) : s.collection ? [s.collection.id] : []))]))];
   if (!ids.length) return { list: [], currency: "USD" };
-  const PRODUCT = `id title handle featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
+  const PRODUCT = `id title handle tags featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
   const data = await gql(
     admin,
     `#graphql
     query CroBundlePreview($ids: [ID!]!) {
       nodes(ids: $ids) {
         ... on Product { ${PRODUCT} }
-        ... on Collection { id products(first: 8) { nodes { ${PRODUCT} } } }
+        ... on Collection { id products(first: 12) { nodes { ${PRODUCT} } } }
       }
     }`,
     { ids },
@@ -43,7 +46,7 @@ export async function previewBundles(admin: AdminClient, bundles: Bundle[]): Pro
         label: s.label,
         min: s.required ? Math.max(1, s.min) : 0,
         max: Math.max(1, s.max),
-        items: (s.products.length ? s.products.map((p) => byId.get(p.id)) : s.collection ? (byId.get(s.collection.id)?.products?.nodes ?? []) : []).filter(Boolean).slice(0, 8).map(item),
+        items: (s.products.length ? s.products.map((p) => byId.get(p.id)) : s.collection ? (byId.get(s.collection.id)?.products?.nodes ?? []).filter(notBundle) : []).filter(Boolean).slice(0, 8).map(item),
       })),
     }));
   return { list, currency };
@@ -58,14 +61,14 @@ export async function previewItems(admin: AdminClient, ids: string[]): Promise<{
   let currency = "USD";
   const unique = [...new Set(ids)].slice(0, 60);
   if (!unique.length) return { items: out, currency };
-  const PRODUCT = `id title featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
+  const PRODUCT = `id title tags featuredMedia { preview { image { url } } } priceRangeV2 { minVariantPrice { amount currencyCode } }`;
   const data = await gql(
     admin,
     `#graphql
     query CroBundleEditorPreview($ids: [ID!]!) {
       nodes(ids: $ids) {
         ... on Product { ${PRODUCT} }
-        ... on Collection { id products(first: 8) { nodes { ${PRODUCT} } } }
+        ... on Collection { id products(first: 12) { nodes { ${PRODUCT} } } }
       }
     }`,
     { ids: unique },
@@ -76,7 +79,7 @@ export async function previewItems(admin: AdminClient, ids: string[]): Promise<{
     return { title: p?.title ?? "", image: p?.featuredMedia?.preview?.image?.url ?? null, cents: Math.round(Number(m?.amount ?? 0) * 100) };
   };
   for (const n of (data.nodes ?? []).filter(Boolean)) {
-    out[n.id] = n.products ? n.products.nodes.map(item) : [item(n)];
+    out[n.id] = n.products ? n.products.nodes.filter(notBundle).slice(0, 8).map(item) : [item(n)];
   }
   return { items: out, currency };
 }
