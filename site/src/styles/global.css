@@ -401,6 +401,7 @@ p {
   padding: 10px 12px;
   border-bottom: 1px solid var(--line);
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 .prose th {
   background: var(--mist);
