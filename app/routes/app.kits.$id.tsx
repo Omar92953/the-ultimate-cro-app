@@ -59,9 +59,13 @@ export default function KitEditor() {
   const busy = fetcher.state !== "idle";
 
   const [loaded, setLoaded] = useState(initial);
+  // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
+  // actually changed (otherwise a refused save of a new item would wipe the form).
   if (loaded !== initial) {
     setLoaded(initial);
-    setKit(initial);
+    if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
+      setKit(initial);
+    }
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;

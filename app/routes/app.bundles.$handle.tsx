@@ -157,9 +157,13 @@ export default function BundleEditor() {
 
   // Reset the form when the loader returns fresh data (after a save or navigation).
   const [loaded, setLoaded] = useState(initial);
+  // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
+  // actually changed (otherwise a refused save of a new item would wipe the form).
   if (loaded !== initial) {
     setLoaded(initial);
-    setBundle(initial);
+    if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
+      setBundle(initial);
+    }
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
