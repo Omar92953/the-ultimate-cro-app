@@ -124,7 +124,8 @@ async function components(admin: AdminClient, items: KitItem[]) {
       optionSelections: options.map((o: any) => ({
         componentOptionId: o.id,
         // Unique per item, so two items with a "Size" each get their own selector.
-        name: `${p.title} ${o.name}`.slice(0, 255),
+        // ("Title" is Shopify's name for a product's only option: the product's name reads better.)
+        name: (o.name === "Title" ? p.title : `${p.title} ${o.name}`).slice(0, 255),
         values: o.optionValues.map((v: any) => v.name),
       })),
     });
