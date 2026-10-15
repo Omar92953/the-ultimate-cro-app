@@ -8,7 +8,7 @@ house rules, testing, status, and the plan for the marketing website). Read it b
 
 ## Status (2026-10-15)
 
-- Live: Shopify app version **cro-toolbox-15**, admin on Render (`https://cro-toolbox.onrender.com`,
+- Live: Shopify app version **cro-toolbox-17**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`). Test store: **Testing2** `testing2-j6mmnywm.myshopify.com`.
 - Active work: Phase 6 (end-to-end test of the 6 bundle recipes) of `docs/plans/bundles-overhaul.md`.
   Progress list in `docs/PROJECT-GUIDE.md` §10.
