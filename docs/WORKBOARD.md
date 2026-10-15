@@ -25,7 +25,7 @@ Updated 2026-10-15.
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
 - [x] PR 2: hidden live demos for every feature in `demos/` (demo.crotoolbox.com), `app/lib/site.ts`,
       no demo links on the website, `docs/website.md` (PR #43)
-- [ ] PR 3: bundles hub, features, use cases, comparisons
+- [~] PR 3: bundles hub, features, use cases, comparisons (in progress)
 - [ ] PR 4: blog (6 articles), help center, tutorials page
 - [ ] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
