@@ -11,7 +11,7 @@ Updated 2026-10-15.
 - [ ] "Show live preview" buttons in the app, linking to the website demos (`demoUrl()`), after
       the website's demo pages exist (website PR 2)
 - [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
-- [ ] Known gaps: Add to theme places the builder below the theme's Add to cart; a bare bundle
+- [~] Known gap, draft PR "App: refuse a bare bundle product at checkout" (2nd Claude account, Mac); other gaps follow in their own PRs: Add to theme places the builder below the theme's Add to cart; a bare bundle
       product can be bought through collection quick add buttons; checkout doesn't reject a bundle
       product picked inside a bundle
 
