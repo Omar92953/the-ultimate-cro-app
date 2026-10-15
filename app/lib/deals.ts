@@ -99,9 +99,9 @@ export const DEAL_TYPES: Record<
  * pictures, button text and how the saving reads. Stored in $app:cro_design "fbt"; sent to the
  * storefront with the deals (offers.fbt, compact keys).
  */
-export type FbtDesign = { heading: string; images: boolean; button: string; saving: "amount" | "pct"; layout: "row" | "list"; align: "center" | "start"; border: boolean };
+export type FbtDesign = { heading: string; images: boolean; button: string; saving: "amount" | "pct"; layout: "row" | "list"; align: "start" | "center" | "end"; border: boolean; tiles: boolean };
 /** layout "row": the pictures side by side with + between (product + product); "list": one item per line. */
-export const DEFAULT_FBT: FbtDesign = { heading: "Frequently bought together", images: true, button: "Buy all [count]: [price]", saving: "amount", layout: "row", align: "center", border: false };
+export const DEFAULT_FBT: FbtDesign = { heading: "Frequently bought together", images: true, button: "Buy all [count]: [price]", saving: "amount", layout: "row", align: "center", border: false, tiles: false };
 export function normalizeFbt(v: unknown): FbtDesign {
   const o = (v && typeof v === "object" ? v : {}) as Partial<FbtDesign>;
   return {
@@ -110,11 +110,12 @@ export function normalizeFbt(v: unknown): FbtDesign {
     button: typeof o.button === "string" && o.button.trim() ? o.button.slice(0, 40) : DEFAULT_FBT.button,
     saving: o.saving === "pct" ? "pct" : "amount",
     layout: o.layout === "list" ? "list" : "row",
-    align: o.align === "start" ? "start" : "center",
+    align: o.align === "start" || o.align === "end" ? o.align : "center",
     border: typeof o.border === "boolean" ? o.border : DEFAULT_FBT.border,
+    tiles: typeof o.tiles === "boolean" ? o.tiles : DEFAULT_FBT.tiles,
   };
 }
-export const fbtForStorefront = (f: FbtDesign) => ({ h: f.heading, img: f.images, btn: f.button, sv: f.saving, ly: f.layout, al: f.align, bd: f.border });
+export const fbtForStorefront = (f: FbtDesign) => ({ h: f.heading, img: f.images, btn: f.button, sv: f.saving, ly: f.layout, al: f.align, bd: f.border, tl: f.tiles });
 
 /** Words the storefront widgets use (sent with the deals; {placeholders} are filled in there). */
 export const DEAL_TEXT = {
