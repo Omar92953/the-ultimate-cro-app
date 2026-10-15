@@ -293,8 +293,9 @@ p {
   font-size: 0.93rem;
 }
 .btn .shopify {
-  width: 18px;
+  width: 16px;
   height: 18px;
+  flex: none;
 }
 .actions {
   display: flex;
@@ -320,19 +321,15 @@ p {
   color: var(--accent);
 }
 
+/* A small label above a heading or a card: plain text, no background. */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-deep);
+  display: inline-block;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--accent-deep);
 }
 .dark .pill {
-  background: rgb(62 224 143 / 0.12);
   color: var(--accent);
 }
 

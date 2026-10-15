@@ -2,14 +2,14 @@
 /**
  * The hero picture: a demo store's product page with several CRO Toolbox features on it
  * (announcement bar with countdown, reviews, quantity breaks, stock urgency, delivery estimate,
- * frequently bought together), plus a sales pop up and the cart drawer's free-shipping bar.
+ * frequently bought together), plus a sales pop up.
  * Plain HTML and CSS; the tiers can be clicked and the timer ticks.
  */
 import ProductArt from "./ProductArt.astro";
 ---
 
 <figure class="mock">
-  <figcaption class="sr-only">Example product page with CRO Toolbox features: announcement bar with a countdown, reviews, quantity breaks, stock urgency, a delivery estimate, frequently bought together, a sales pop up and the cart drawer's free shipping bar.</figcaption>
+  <figcaption class="sr-only">Example product page with CRO Toolbox features: announcement bar with a countdown, reviews, quantity breaks, stock urgency, a delivery estimate, frequently bought together, and a sales pop up.</figcaption>
   <div class="browser">
     <div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span>yourstore.com/products/glowserum</span></div>
     <div class="announce">Free shipping over $50 <span class="dot">•</span> Sale ends in <b data-countdown="8537">02:22:17</b></div>
@@ -45,11 +45,6 @@ import ProductArt from "./ProductArt.astro";
   <div class="float salespop" aria-hidden="true">
     <ProductArt kind="candle" />
     <div><b>Someone in Austin</b><br />bought Cedar Candle<small>2 minutes ago</small></div>
-  </div>
-  <div class="float cart" aria-hidden="true">
-    <div class="cart-h">Your cart <span>3</span></div>
-    <div class="ship">You unlocked <b>free shipping</b></div>
-    <div class="bar"><i></i></div>
   </div>
 </figure>
 
@@ -316,46 +311,6 @@ import ProductArt from "./ProductArt.astro";
     color: #888;
     font-size: 11px;
   }
-  .cart {
-    right: -32px;
-    top: -58px;
-    width: 196px;
-    padding: 12px 14px;
-    animation: rise 0.8s 0.9s both cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .cart-h {
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-  }
-  .cart-h span {
-    background: #16161a;
-    color: #fff;
-    border-radius: 999px;
-    padding: 0 7px;
-    font-size: 11px;
-  }
-  .ship {
-    margin: 8px 0 6px;
-    color: #444;
-  }
-  .ship b {
-    color: var(--accent-deep);
-  }
-  .bar {
-    height: 7px;
-    border-radius: 99px;
-    background: #eee;
-    overflow: hidden;
-  }
-  .bar i {
-    display: block;
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, #22c172, var(--accent));
-    border-radius: 99px;
-    animation: fill 1.6s 1.2s both ease-out;
-  }
   @keyframes rise {
     from {
       opacity: 0;
@@ -371,14 +326,8 @@ import ProductArt from "./ProductArt.astro";
     .salespop {
       left: 8px;
     }
-    .cart {
-      right: 8px;
-    }
   }
   @media (max-width: 519px) {
-    .cart {
-      display: none;
-    }
     .salespop {
       bottom: 0;
     }
