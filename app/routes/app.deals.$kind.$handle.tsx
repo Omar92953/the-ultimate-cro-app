@@ -126,10 +126,14 @@ export default function DealEditor() {
   const [fbt, setFbt] = useState<FbtDesign | null>(initialFbt);
   const fbtChanged = !!fbt && changed(fbt, initialFbt);
   const [loaded, setLoaded] = useState(initial);
+  // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
+  // actually changed (otherwise a refused save of a new item would wipe the form).
   if (loaded !== initial) {
     setLoaded(initial);
-    setDeal(initial);
-    setFbt(initialFbt);
+    if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
+      setDeal(initial);
+      setFbt(initialFbt);
+    }
   }
   // Fixed bundles: one step open at a time (a new one starts at 1).
   const [open, setOpen] = useState(isNew ? 1 : 0);

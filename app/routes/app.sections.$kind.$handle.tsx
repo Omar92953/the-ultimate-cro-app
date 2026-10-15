@@ -53,10 +53,14 @@ export default function SectionItemEditor() {
   const busy = fetcher.state !== "idle";
 
   const [loaded, setLoaded] = useState(initial);
+  // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
+  // actually changed (otherwise a refused save of a new item would wipe the form).
   if (loaded !== initial) {
     setLoaded(initial);
-    setItem(initial);
-    setTouched(false);
+    if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
+      setItem(initial);
+      setTouched(false);
+    }
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
