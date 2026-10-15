@@ -11,6 +11,7 @@ import { sectionLinks } from "../lib/sections.server";
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -77,6 +78,7 @@ export default function StockRequests() {
   return (
     <s-page heading="Back in stock & pre-order" inlineSize="large">
       <CategoryCrumb feature="stock" />
+      <DemoButton feature="stock" />
       <Button slot="primary-action" variant="primary" href="/app/designs/stock">
         Design
       </Button>

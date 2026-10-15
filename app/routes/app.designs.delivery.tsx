@@ -16,9 +16,10 @@ import { applyDeliveryPreset, DELIVERY_PRESETS, DELIVERY_SIZES, withDeliveryDefa
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { DeliveryPreview } from "../components/DeliveryPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
@@ -83,6 +84,7 @@ export default function DeliveryDesigner() {
   return (
     <s-page heading="Delivery estimate" inlineSize="large">
       <CategoryCrumb feature="delivery" />
+      <DemoButton feature="delivery" template={templateInUse(DELIVERY_PRESETS, cfg, applyDeliveryPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
         See it on my store

@@ -92,3 +92,6 @@
 .groupChips { display: flex; flex-wrap: wrap; gap: 6px; }
 .groupChip { padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 550; line-height: 18px; color: #4a4a4a; background: #f3f3f3; }
 .groupCardOpen { margin-top: auto; font-size: 13px; font-weight: 600; color: #303030; }
+.groupCardWrap { position: relative; display: flex; min-width: 0; }
+.groupCardWrap > .groupCard { flex: 1; }
+.groupCardAction { position: absolute; right: 12px; bottom: 12px; }

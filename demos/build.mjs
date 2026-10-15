@@ -23,7 +23,7 @@ const dist = path.join(here, "dist");
 const { artSvg } = await import("../site/src/lib/art.ts");
 const { FEATURES, FEATURE_KEYS } = await import("../app/lib/catalog.ts");
 const { BUNDLE_RECIPES } = await import("../app/lib/bundle-recipes.ts");
-const { DEMOS, DEMO_RECIPES, SITE_URL, APP_STORE_URL, demoPath, demoSlug, recipeSlug } = await import("../app/lib/site.ts");
+const { DEMOS, DEMO_RECIPES, DEMO_TEMPLATES, SITE_URL, APP_STORE_URL, demoPath, demoSlug, recipeSlug } = await import("../app/lib/site.ts");
 const { frame, productPage, collectionGrid, cartPage, STORE_ROOT } = await import("./src/shell.mjs");
 const data = await import("./src/data.mjs");
 const { buildFeatures } = await import("./src/features.mjs");
@@ -111,7 +111,7 @@ async function block(name, { settings = {}, shop = shopWith(), page_type = "inde
   return html;
 }
 
-const { features, recipes } = await buildFeatures({ block, shopWith, mo });
+const { features, recipes, templates } = await buildFeatures({ block, shopWith, mo });
 Object.assign(features, checkoutDesigns());
 
 // ------------------------------------------------------------------------ pages --
@@ -195,6 +195,14 @@ const problems = [
   ...diff(builtRecipes, DEMO_RECIPES).map((k) => `recipe "${k}" is missing from DEMO_RECIPES`),
   ...diff(DEMO_RECIPES, builtRecipes).map((k) => `DEMO_RECIPES lists "${k}", which has no demo`),
 ];
+// "See live demo" on a design page opens #design-N for the template in use, so the first designs must
+// be the app's templates in the app's order.
+for (const k of new Set([...Object.keys(templates), ...Object.keys(DEMO_TEMPLATES)])) {
+  const list = templates[k] ?? [];
+  let n = 0;
+  while (n < list.length && features[k]?.[n]?.template === list[n].key) n++;
+  if (n !== (DEMO_TEMPLATES[k] ?? 0)) problems.push(`DEMO_TEMPLATES.${k} in app/lib/site.ts should be ${n} (the demo's first ${n} designs are its templates in order)`);
+}
 if (problems.length) {
   console.error("✗ demos:\n  " + problems.join("\n  "));
   process.exit(1);

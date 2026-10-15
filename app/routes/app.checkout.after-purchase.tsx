@@ -12,6 +12,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getPostPurchase, refreshPostPurchaseUrl, savePostPurchase } from "../lib/post-purchase.server";
 import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { checkLimit } from "../lib/billing.server";
 import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
@@ -91,6 +92,7 @@ export default function AfterPurchase() {
   return (
     <s-page heading="After-purchase offer" inlineSize="large">
       <CategoryCrumb feature="post_purchase" />
+      <DemoButton feature="post_purchase" />
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setC(JSON.parse(fetcher.data?.ok ? sent : JSON.stringify(data.config)))} />
       <s-stack gap="base">
         <FeatureTabs feature="post_purchase" />

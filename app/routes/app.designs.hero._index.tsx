@@ -10,6 +10,7 @@ import { deleteHero, duplicateHero, listHeroes, reorderHeroes, type HeroItem } f
 import { Button } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -72,6 +73,7 @@ export default function HeroBanners() {
   return (
     <s-page heading="Hero banners" inlineSize="large">
       <CategoryCrumb feature="hero" />
+      <DemoButton feature="hero" />
       <Button slot="primary-action" variant="primary" href="/app/designs/hero/new">
         Add banner
       </Button>

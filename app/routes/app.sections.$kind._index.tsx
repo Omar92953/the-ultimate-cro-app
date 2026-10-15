@@ -10,6 +10,7 @@ import { SECTIONS, SOURCES, isKind, itemStatus, type MediaRef, type ProductRef, 
 import { Button, Checkbox } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
 import { SortableList, arrayMove } from "../components/Sortable";
 
@@ -129,6 +130,7 @@ export default function SectionList() {
   return (
     <s-page heading={cfg.title} inlineSize="large">
       <CategoryCrumb feature={featureKey} />
+      <DemoButton feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/sections/${data.kind}/new`}>
         {cfg.addLabel}
       </Button>

@@ -12,6 +12,7 @@ import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
 import { Button, Select, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -102,6 +103,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
   return (
     <s-page heading="Video carousel" inlineSize="large">
       <CategoryCrumb feature="videos" />
+      <DemoButton feature="videos" />
       <SaveControls dirty={changed(slides, props.slides)} saving={busy} onSave={() => save.submit({ slides: JSON.stringify(slides) }, { method: "post" })} onDiscard={() => setSlides(props.slides)} />
       <Button slot="secondary-actions" href={props.addBlock} target="_top" icon="theme-edit">
         Add to theme

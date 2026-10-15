@@ -14,6 +14,7 @@ import { createNextOrderCode, getThankYou, saveThankYou } from "../lib/thank-you
 import { checkCount } from "../lib/billing.server";
 import { MODULE_TYPES, newModule, type ModuleType, type ThankYouModule } from "../lib/thank-you";
 import { CategoryCrumb } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
@@ -77,6 +78,7 @@ export default function ThankYouPage() {
   return (
     <s-page heading="Thank-you page" inlineSize="large">
       <CategoryCrumb feature="thank_you" />
+      <DemoButton feature="thank_you" />
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "code"} saved={data.saved} onSave={save} onDiscard={() => setModules(JSON.parse(fetcher.data?.ok && fetcher.data.intent === "save" ? sent : JSON.stringify(data.config.modules)))} />
       <Button slot="secondary-actions" href={data.editor} target="_blank">
         Open checkout editor

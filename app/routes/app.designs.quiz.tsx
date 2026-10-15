@@ -16,9 +16,10 @@ import { applyQuizPreset, QUIZ_PRESETS, QUIZ_SIZES, withQuizDefaults, type QuizD
 import { Button, Checkbox, ColorField, NumberField, Select, TextField } from "../components/fields";
 import { QuizPreview } from "../components/QuizPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -76,6 +77,7 @@ export default function QuizDesigner() {
   return (
     <s-page heading="Product quiz" inlineSize="large">
       <CategoryCrumb feature="quiz" />
+      <DemoButton feature="quiz" template={templateInUse(QUIZ_PRESETS, cfg, applyQuizPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store

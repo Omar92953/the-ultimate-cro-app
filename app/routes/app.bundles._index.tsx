@@ -12,6 +12,7 @@ import { listOffers } from "../lib/offers.server";
 import { Button } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { BundleRecipes } from "../components/BundleRecipes";
 
 const TYPES = { bundle: "Mix & match", kit: "Kit (one product)", fixed: "Frequently bought together" } as const;
@@ -38,6 +39,7 @@ export default function BundleList() {
   return (
     <s-page heading="Bundles" inlineSize="large">
       <CategoryCrumb feature="bundles" />
+      <DemoButton feature="bundles" />
       <Button slot="primary-action" variant="primary" href="/app/bundles/create">
         Create bundle
       </Button>

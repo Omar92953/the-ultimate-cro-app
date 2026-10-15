@@ -18,7 +18,8 @@ import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Swi
 import { MediaPicker } from "../components/MediaPicker";
 import { HeroDesignPreview } from "../components/HeroDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
+import { DemoButton } from "../components/DemoButton";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { SizesSection } from "../components/SizesSection";
 import { HERO_SIZES } from "../lib/hero-design";
@@ -142,6 +143,7 @@ export default function HeroEditor() {
       <s-link slot="breadcrumb-actions" href="/app/designs/hero">
         Hero banners
       </s-link>
+      <DemoButton feature="hero" template={templateInUse(HERO_PRESETS, cfg, applyHeroPreset)} />
       <SaveControls dirty={changed(cfg, data.config) && !(fetcher.data?.ok && fetcher.data.created)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={!!data.handle} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store

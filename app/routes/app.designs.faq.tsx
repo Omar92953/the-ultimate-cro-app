@@ -38,7 +38,7 @@ import {
   type PreviewQuestion,
 } from "../components/FaqDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import {
   DesignTabs,
   Pane,
@@ -46,6 +46,7 @@ import {
   type DesignTab,
 } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { FAQ_SIZES } from "../lib/faq-design";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -140,6 +141,7 @@ export default function FaqDesigner() {
   return (
     <s-page heading="FAQ" inlineSize="large">
       <CategoryCrumb feature="faq" />
+      <DemoButton feature="faq" template={templateInUse(FAQ_PRESETS, cfg, applyFaqPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button
         slot="secondary-actions"

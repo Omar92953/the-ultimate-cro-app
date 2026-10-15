@@ -8,8 +8,8 @@ Updated 2026-10-15.
 
 - [x] Bundles overhaul Phases 0 to 5 (`docs/plans/bundles-overhaul.md`)
 - [x] **Phase 6 testing on Testing2**: recipes 1 to 6 and checkout (no stacking) verified (2026-10-15). Status in `docs/PROJECT-GUIDE.md` §10.
-- [ ] "See live demo" buttons in the app (`demoUrl()` and `DEMOS` in `app/lib/site.ts`), opening
-      the hidden demos on demo.crotoolbox.com (website PR 5)
+- [x] "See live demo" buttons in the app (`app/components/DemoButton.tsx`): every feature page, design
+      pages open the template in use, bundle recipe cards, each Conversion boosters card (website PR 5)
 - [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
 - [ ] Known gap: a bare mix and match bundle product can still be bought alone through a theme's own
       quick add (our quick add now opens its page). A checkout validation can't tell it apart: Shopify
@@ -34,7 +34,7 @@ Updated 2026-10-15.
 - [ ] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
 - [x] PR 4: blog (6 articles), help center (13 guides), tutorials page, IndexNow, search engine
       verification support, visibility checklist in `docs/website.md` (PR #56)
-- [ ] PR 5 (app): "See live demo" buttons
+- [x] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
 - [ ] Live demos on Cloudflare Pages: a second project `cro-toolbox-demos`, root `demos`, domain

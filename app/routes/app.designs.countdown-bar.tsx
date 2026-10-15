@@ -22,6 +22,8 @@ import { matchCountdown } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
 import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
+import { templateInUse } from "../components/LookPicker";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -104,6 +106,7 @@ export default function CountdownBarDesigner() {
   return (
     <s-page heading="Countdown timers" inlineSize="large">
       <CategoryCrumb feature="countdown" />
+      <DemoButton feature="countdown" template={data.place === "header" ? templateInUse(COUNTDOWN_BAR_PRESETS, cfg, applyCountdownBarPreset) : undefined} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : data.place === "cart" ? "/cart" : "/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `${designAction}&place=${data.place}` })}>
         See it on my store

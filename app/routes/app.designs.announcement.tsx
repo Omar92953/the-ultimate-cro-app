@@ -17,9 +17,10 @@ import { ANNOUNCEMENT_PRESETS, applyAnnouncementPreset, withAnnouncementDefaults
 import { Button, Checkbox, ColorField, NumberField, Select, Switch } from "../components/fields";
 import { AnnouncementDesignPreview, type AnnouncementMessage } from "../components/AnnouncementDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { ANNOUNCEMENT_SIZES } from "../lib/announcement-design";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -92,6 +93,7 @@ export default function AnnouncementDesigner() {
   return (
     <s-page heading="Announcement bar" inlineSize="large">
       <CategoryCrumb feature="announcements" />
+      <DemoButton feature="announcements" template={templateInUse(ANNOUNCEMENT_PRESETS, cfg, applyAnnouncementPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
         See it on my store

@@ -20,6 +20,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchPills } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { SizesSection } from "../components/SizesSection";
 import { PILLS_SIZES } from "../lib/collection-pills";
@@ -92,6 +93,7 @@ export default function CollectionPillsDesigner() {
   return (
     <s-page heading="Collection pills" inlineSize="large">
       <CategoryCrumb feature="collection_pills" />
+      <DemoButton feature="collection_pills" />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store

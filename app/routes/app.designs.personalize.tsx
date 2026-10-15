@@ -17,9 +17,10 @@ import { applyPersonalizePreset, PERSONALIZE_PRESETS, PERSONALIZE_SIZES, withPer
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { PersonalizePreview } from "../components/PersonalizePreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
@@ -99,6 +100,7 @@ export default function PersonalizeDesigner() {
   return (
     <s-page heading="Personalization" inlineSize="large">
       <CategoryCrumb feature="personalize" />
+      <DemoButton feature="personalize" template={templateInUse(PERSONALIZE_PRESETS, cfg, applyPersonalizePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
         See it on my store

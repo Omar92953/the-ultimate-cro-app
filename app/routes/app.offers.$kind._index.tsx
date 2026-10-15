@@ -8,6 +8,7 @@ import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { HELP } from "../lib/help";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { OFFER_FEATURE } from "../lib/catalog";
 
 
@@ -40,6 +41,7 @@ export default function RuleList() {
   return (
     <s-page heading={meta.title} inlineSize="large">
       <CategoryCrumb feature={featureKey} />
+      <DemoButton feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/offers/${kindSlug}/new`}>
         Create {meta.singular}
       </Button>

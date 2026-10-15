@@ -23,6 +23,7 @@ import { LookPicker } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { FONTS } from "../lib/designs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { slottedRoute } from "../lib/design-slot.server";
 import { remember } from "../lib/short-cache.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
@@ -103,6 +104,7 @@ export default function BundleDesigner() {
   return (
     <s-page heading="Bundle design" inlineSize="large">
       <CategoryCrumb feature="bundles" />
+      <DemoButton feature="bundles" />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
         See it on my store

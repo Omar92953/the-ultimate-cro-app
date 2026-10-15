@@ -21,6 +21,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchImageCarousel } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
@@ -76,6 +77,7 @@ export default function ImageCarouselDesigner() {
   return (
     <s-page heading="Image carousel" inlineSize="large">
       <CategoryCrumb feature="image_carousel" />
+      <DemoButton feature="image_carousel" />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
         See it on my store

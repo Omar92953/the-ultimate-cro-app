@@ -18,9 +18,10 @@ import { applyQuickAddPreset, QUICK_ADD_PRESETS, withQuickAddDefaults, type Quic
 import { Button, Checkbox, ColorField, NumberField, OptionalSetting, Select, Switch, TextField } from "../components/fields";
 import { QuickAddDesignPreview, type QuickAddProduct } from "../components/QuickAddDesignPreview";
 import ui from "../components/PageEditor.module.css";
-import { LookPicker } from "../components/LookPicker";
+import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { QUICK_ADD_SIZES } from "../lib/quick-add-design";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -89,6 +90,7 @@ export default function QuickAddDesigner() {
   return (
     <s-page heading="Quick add to cart" inlineSize="large">
       <CategoryCrumb feature="quick_add" />
+      <DemoButton feature="quick_add" template={templateInUse(QUICK_ADD_PRESETS, cfg, applyQuickAddPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2Fcollections%2Fall`} target="_blank" onClick={seeOnStore}>
         See it on my store

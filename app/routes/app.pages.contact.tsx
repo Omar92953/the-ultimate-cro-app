@@ -19,6 +19,7 @@ import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchContact } from "../lib/theme-match";
 import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { SaveControls, changed } from "../components/SaveControls";
 // The storefront's own stylesheet, so the preview matches the store exactly.
@@ -77,6 +78,7 @@ export default function ContactPage() {
   return (
     <s-page heading="Contact page" inlineSize="large">
       <CategoryCrumb feature="contact" />
+      <DemoButton feature="contact" />
       <SaveControls dirty={changed(cfg, data.config)} saving={busy && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/pages/contact")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
         See it on my store
