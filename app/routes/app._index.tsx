@@ -302,6 +302,7 @@ export default function Home() {
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
+              <li><a href="https://crotoolbox.com/help/" target="_blank" rel="noreferrer">Help center</a></li>
               <li><Link to="/app/settings">Settings and app embeds</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>
