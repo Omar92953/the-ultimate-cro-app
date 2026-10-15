@@ -2,7 +2,9 @@ query CartValidationsGenerateRunInput {
   cart {
     cost { subtotalAmount { amount } }
     lines {
+      id
       quantity
+      parentRelationship { parent { id } }
       merchandise { __typename ... on ProductVariant { product { id title } } }
     }
   }
