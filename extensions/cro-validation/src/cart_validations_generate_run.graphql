@@ -2,8 +2,11 @@ query CartValidationsGenerateRunInput {
   cart {
     cost { subtotalAmount { amount } }
     lines {
+      id
       quantity
-      merchandise { __typename ... on ProductVariant { product { id title } } }
+      bundle: attribute(key: "_bundle") { value }
+      parentRelationship { parent { id } }
+      merchandise { __typename ... on ProductVariant { product { id title isBundle: hasAnyTag(tags: ["cro-bundle"]) } } }
     }
   }
   validation {

@@ -19,8 +19,8 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 
 - Live: Shopify app version **cro-toolbox-18**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`). Test store: **Testing2** `testing2-j6mmnywm.myshopify.com`.
-- Active work: Phase 6 (end-to-end test of the 6 bundle recipes) of `docs/plans/bundles-overhaul.md`.
-  Progress list in `docs/PROJECT-GUIDE.md` §10.
+- Bundles overhaul done: all 6 recipes and checkout verified on Testing2 (`docs/PROJECT-GUIDE.md` §10).
+  Next: the known gaps in `docs/WORKBOARD.md`.
 - Website: PR 1 of 5 open (#36); backlog in `docs/WORKBOARD.md`.
 
 ## Website

@@ -42,7 +42,8 @@ export async function getCheckoutRules(admin: AdminClient): Promise<CheckoutRule
   );
   const apiKey = process.env.SHOPIFY_API_KEY;
   const ours = (nodes: Node[]) => nodes.find((x) => x.shopifyFunction?.app?.apiKey === apiKey) ?? null;
-  const p = ours(data.paymentCustomizations.nodes), d = ours(data.deliveryCustomizations.nodes), v = ours(data.validations.nodes);
+  // The bundle guard (see syncBundleGuard) is also one of our validations, but has no `rules`.
+  const p = ours(data.paymentCustomizations.nodes), d = ours(data.deliveryCustomizations.nodes), v = ours(data.validations.nodes.filter((x: Node) => x.title !== GUARD_TITLE));
   return {
     payment: { id: p?.id ?? null, enabled: p?.enabled ?? true, rules: cleanChangeRules(parse(p?.metafield?.value)) },
     delivery: { id: d?.id ?? null, enabled: d?.enabled ?? true, rules: cleanChangeRules(parse(d?.metafield?.value)) },
@@ -110,4 +111,47 @@ export async function saveCheckoutRules(admin: AdminClient, kind: CheckoutKind, 
     id = r.validationCreate.validation?.id ?? null;
   }
   return { id, enabled, rules };
+}
+
+const GUARD_TITLE = "CRO Toolbox bundle guard";
+
+/**
+ * Keeps the bundle guard validation (function cro-validation, `bundles` config) in step with the
+ * store's mix and match bundle products, so a bundle product can't be bought alone at checkout.
+ * Made only once there is a bundle; with no ids it stays and just lets everything through.
+ */
+export async function syncBundleGuard(admin: AdminClient, productIds: string[]) {
+  const data = await gql(
+    admin,
+    `#graphql
+    query CroBundleGuard { validations(first: 25) { nodes { id title enabled shopifyFunction { app { apiKey } } } } }`,
+  );
+  const apiKey = process.env.SHOPIFY_API_KEY;
+  const guard = (data.validations.nodes as Pick<Node, "id" | "title" | "enabled" | "shopifyFunction">[]).find((x) => x.title === GUARD_TITLE && x.shopifyFunction?.app?.apiKey === apiKey);
+  if (!guard && !productIds.length) return;
+  if (guard && !productIds.length) {
+    // Nothing to guard (or the guard is switched off): turn it off so it can't refuse anything.
+    if (guard.enabled) {
+      const r = await gql(admin, `#graphql
+        mutation CroGuardOff($id: ID!, $input: ValidationUpdateInput!) { validationUpdate(id: $id, validation: $input) { userErrors { field message } } }`, { id: guard.id, input: { enable: false, title: GUARD_TITLE } });
+      userErrors(r.validationUpdate.userErrors);
+    }
+    return;
+  }
+  const metafields = [{ namespace: "$app", key: "function-configuration", type: "json", value: JSON.stringify({ bundles: productIds }) }];
+  if (guard) {
+    const set = await gql(admin, `#graphql
+      mutation CroGuardSet($metafields: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $metafields) { userErrors { field message } } }`, { metafields: metafields.map((m) => ({ ...m, ownerId: guard.id })) });
+    userErrors(set.metafieldsSet.userErrors);
+    if (!guard.enabled) {
+      const r = await gql(admin, `#graphql
+        mutation CroGuardOn($id: ID!, $input: ValidationUpdateInput!) { validationUpdate(id: $id, validation: $input) { userErrors { field message } } }`, { id: guard.id, input: { enable: true, title: GUARD_TITLE } });
+      userErrors(r.validationUpdate.userErrors);
+    }
+    return;
+  }
+  // blockOnFailure false: if the Function ever errors, checkout goes ahead instead of being blocked.
+  const r = await gql(admin, `#graphql
+    mutation CroGuardCreate($input: ValidationCreateInput!) { validationCreate(validation: $input) { validation { id } userErrors { field message } } }`, { input: { functionHandle: "cro-validation", title: GUARD_TITLE, enable: true, blockOnFailure: false, metafields } });
+  userErrors(r.validationCreate.userErrors);
 }

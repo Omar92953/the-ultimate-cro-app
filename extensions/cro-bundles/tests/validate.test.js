@@ -9,6 +9,11 @@ const pick = (variant, step, { qty = 1, member = true, product = 10, title = "De
 const bundle = { pv: "1", d: 0, s: [{ n: 2, x: 3, c: "900" }, { n: 0, x: 1, p: [(7).toString(36)] }] };
 
 describe("bundle group validation (shopper-controlled property)", () => {
+  test("rejects a pick that is itself a bundle product", () => {
+    const bad = pick(2, 0);
+    bad.line.merchandise.product.isBundle = true;
+    expect(validGroup([pick(1, 0), bad], bundle)).toBe(false);
+  });
   test("accepts 2-3 picks from the collection plus an optional extra", () => {
     expect(validGroup([pick(1, 0), pick(2, 0)], bundle)).toBe(true);
     expect(validGroup([pick(1, 0), pick(2, 0), pick(3, 0), pick(4, 1, { product: 7 })], bundle)).toBe(true);
