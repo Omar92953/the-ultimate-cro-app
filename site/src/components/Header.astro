@@ -31,7 +31,7 @@ const here = Astro.url.pathname;
         )
       }
     </nav>
-    <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" label="Install free" /></div>
+    <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" /></div>
     <details class="mobile">
       <summary aria-label="Menu"><span></span><span></span></summary>
       <nav aria-label="Main mobile">
