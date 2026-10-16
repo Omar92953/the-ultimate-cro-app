@@ -99,7 +99,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 - [ ] Video carousel: add 2 videos from Files and 1 from a product's media. Reorder them, link products, add a caption, save and reload. The order is kept.
 - [ ] Bundles: create a bundle with the bundle product, step 1 "Choose 2 posters" (min 2, max 2) and step 2 "Add a frame" (optional, from a collection). Save. Home shows "Stock tracking on".
 - [ ] Bundles: choosing a bundle product that already has a bundle is refused with a message.
-- [ ] Editors (mix & match, kit, Frequently bought together): steps open one at a time, a collapsed step shows its summary, saving with a problem opens that step, and the preview on the right shows the real products and prices (growing tiers show "Add N more to save").
+- [ ] Editors (mix and match, fixed bundle, Frequently bought together): steps open one at a time, a collapsed step shows its summary, saving with a problem opens that step, and the preview on the right shows the real products and prices (growing tiers show "Add N more to save").
 - [ ] Frequently bought together → Box look: change the heading and button, save, and the box on a product page shows the new words.
 - [ ] Delete a rule and a bundle. They disappear, and the storefront stops showing them.
 - [ ] Home "Add to theme" buttons open the theme editor with the block ready to place.

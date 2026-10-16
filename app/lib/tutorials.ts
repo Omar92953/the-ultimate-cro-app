@@ -24,7 +24,7 @@ export type Tutorial = {
 export const TUTORIALS: Tutorial[] = [
   { title: "Set up CRO Toolbox in 5 steps", length: "5:00", feature: null, youtubeId: null },
   { title: "Create your first offer", length: "3:00", feature: "upsell", youtubeId: null },
-  { title: "Mix & match bundles and bundle products", length: "4:00", feature: "bundles", youtubeId: null },
+  { title: "Mix and match bundles and fixed bundles", length: "4:00", feature: "bundles", youtubeId: null },
   { title: "Add storefront sections to your theme", length: "3:00", feature: "reviews", youtubeId: null },
   { title: "Bars: announcement, countdown, free shipping", length: "2:30", feature: "announcements", youtubeId: null },
   { title: "Choose your cart and its modules", length: "3:30", feature: "cart_tools", youtubeId: null },

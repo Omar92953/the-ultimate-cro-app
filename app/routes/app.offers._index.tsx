@@ -10,6 +10,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
 import { OFFER_TYPES } from "../lib/offer-types";
+import { recipe } from "../lib/bundle-recipes";
 import { OFFER_GROUPS, area, type OfferGroupKey } from "../lib/catalog";
 import { PLANS, limitOf, planAbove } from "../lib/plans";
 import { Button, Select, TextField } from "../components/fields";
@@ -116,7 +117,7 @@ export default function OffersHub() {
                       <s-table-cell>
                         <s-link href={o.href}>{o.name}</s-link>
                       </s-table-cell>
-                      <s-table-cell>{OFFER_TYPES[o.type].title}</s-table-cell>
+                      <s-table-cell>{o.recipe ? recipe(o.recipe).short : OFFER_TYPES[o.type].title}</s-table-cell>
                       <s-table-cell>
                         <s-badge tone={o.active ? "success" : "neutral"}>{o.active ? "On" : "Off"}</s-badge>
                       </s-table-cell>

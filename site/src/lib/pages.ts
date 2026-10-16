@@ -113,7 +113,7 @@ export const MORE_PAGES = {
     path: "/bundles/",
     title: "Shopify bundles: six ways to sell more together",
     description:
-      "Frequently bought together, kits, mix and match boxes, growing discounts, build while browsing and any N for one price. All six bundle types in CRO Toolbox, priced by Shopify at checkout.",
+      "Frequently bought together, fixed bundles, mix and match, build your own bundle, tiered bundles and fixed price bundles. All six bundle types in CRO Toolbox, priced by Shopify at checkout.",
     ogTitle: "Six ways to bundle",
     ogKicker: "Bundles",
   },

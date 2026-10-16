@@ -5,7 +5,7 @@ order: 5
 features: ["bundles"]
 ---
 
-**Bundles → Create bundle** asks what you want to sell and opens the right editor: Frequently bought together, a kit sold as one product, mix and match on a product page, a growing discount (on a product page or its own store page), build while browsing, or any N from a long collection for one price. Every editor has numbered steps on the left and a live preview on the right with your real products and prices; a step with a problem opens itself when you save.
+**Bundles → Create bundle offer** asks what you want to sell and opens the right editor: Frequently bought together, Fixed bundle (sold as one product), Mix and match, Build your own bundle, Tiered bundle (buy more, save more, on a product page or its own store page) or Fixed price bundle (any 3 for $30, from a long collection). The Bundles page has one tab for each, with its list of bundles. Every editor has numbered steps on the left and a live preview on the right with your real products and prices; a step with a problem opens itself when you save.
 
 ## Mix and match
 
@@ -15,7 +15,7 @@ features: ["bundles"]
 
 **Bundle price:** one price (the bundle product's price), a percentage off the picks, or tiers.
 
-## Kits
+## Fixed bundle
 
 One product, one cart line: Items, Price, and a preview of the product page. The app creates the product with Shopify's own bundles, adds the picture and "What's inside", and Shopify tracks its stock from its items.
 
@@ -23,7 +23,7 @@ One product, one cart line: Items, Price, and a preview of the product page. The
 
 Items, Discount and **Box look**: layout (pictures in a row with a plus between, or a list), heading, button ("Buy all [count]: [price]"), pictures, and the saving as an amount or a percentage. Shared by every box on your store. The box is shown by the Conversion boosters app embed.
 
-## Build while browsing
+## Build your own bundle
 
 Shoppers add items from product pages (the **Add to bundle** block) and from each step's collection page ("+ Add to bundle" on every product card). The **bundle tray** follows them across pages with each step's progress and, once complete, **Add bundle to cart** or **Checkout**. Turn on the **Bundle tray** app embed and add the **Add to bundle** block (the Bundles page has both links).
 

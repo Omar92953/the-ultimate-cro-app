@@ -73,7 +73,7 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `app/lib/plans.ts`, `billing.server.ts` | Plans, limits, `checkLimit`, monthly orders |
 | `app/lib/catalog.ts` | Feature registry: menu, tabs, breadcrumbs, plan gates |
 | `app/lib/kits*.ts` | Kits (Shopify native bundle products via `productBundleCreate`) |
-| `app/lib/bundle-*.ts` | Mix & match: pricing math (`bundle-price.ts`, mirrors checkout), design, recipes, preview data, product and page creation (`bundle-product.server.ts`) |
+| `app/lib/bundle-*.ts` | Mix and match: pricing math (`bundle-price.ts`, mirrors checkout), design, recipes, preview data, product and page creation (`bundle-product.server.ts`) |
 | `app/lib/deals*.ts` | Discounts and the Frequently bought together box design (`FbtDesign`) |
 | `app/lib/validate.ts` | Validation shared by UI and server |
 | `app/components/fields.tsx` | **Always** use these wrappers for Polaris web components (see §8) |
@@ -119,11 +119,11 @@ Plan and decisions: `docs/plans/bundles-overhaul.md` (Phases 0 to 5 done, Phase 
 | # | Recipe | Built with | Shows | Notes |
 |---|---|---|---|---|
 | 1 | Frequently bought together | deal `fixed` | each item's product page via the Conversion boosters embed | Box look: layout (pictures in a row with + / list), pictures Left/Centered/Right, boxes around pictures, border, heading, button with `[count]` `[price]`, saving style. Default: row, centered, no boxes, no border, "Buy all [count]: [price]" |
-| 2 | Kit sold as one product | `productBundleCreate` | its own product page, one cart line | App creates, publishes, adds picture and "What's inside", tags `cro-bundle` |
-| 3 | Mix & match box | mix & match bundle | the bundle product's page | App creates the bundle product (untracked stock, tag `cro-bundle`); "Add to theme" deep link adds the Bundle builder block |
-| 4 | Build your bundle, save more | mix & match, growing tiers (% / amount / price by item count) | product page or its own store page (`/pages/...`, created by the app) | Highest tier with `minItems <= count` applies |
-| 5 | Build while browsing | mix & match, store wide | collection pages (+ Add to bundle), bundle tray embed | Picks shared between tray and builder (localStorage `ucro-bundle-tray`) |
-| 6 | Any N for one price | mix & match | product page | Builder loads whole collections (load more + search) |
+| 2 | Fixed bundle (sold as one product) | `productBundleCreate` | its own product page, one cart line | App creates, publishes, adds picture and "What's inside", tags `cro-bundle` |
+| 3 | Mix and match | mix and match bundle | the bundle product's page | App creates the bundle product (untracked stock, tag `cro-bundle`); "Add to theme" deep link adds the Bundle builder block |
+| 4 | Tiered bundle (buy more, save more), recipe key `growing` | mix and match, growing tiers (% / amount / price by item count) | product page or its own store page (`/pages/...`, created by the app) | Highest tier with `minItems <= count` applies |
+| 5 | Build your own bundle, recipe key `browse` | mix and match, store wide | collection pages (+ Add to bundle), bundle tray embed | Picks shared between tray and builder (localStorage `ucro-bundle-tray`) |
+| 6 | Fixed price bundle (any 3 for $30), recipe key `anyN` | mix and match | product page | Builder loads whole collections (load more + search) |
 
 Rules that keep checkout correct:
 - `ucro-bundle.js` (writes `_bundle_components`) and `extensions/cro-bundles/src/cart_transform_run.js`
@@ -193,7 +193,7 @@ bundle products offered as picks).
 Phase 6 testing on Testing2:
 - [x] Recipe 1 Frequently bought together: editor, preview, box on the real product page
 - [x] Recipe 2 Kit: created, Active, published, picture, contents, prices; real product page
-- [x] Recipe 3 Mix & match: product created and published; Add to theme adds the block; picks merge into
+- [x] Recipe 3 Mix and match: product created and published; Add to theme adds the block; picks merge into
       one cart line at the bundle price (`has_components`); checkout shows 1 item at $1,500; the theme's
       Add to cart adds nothing until the bundle is complete
 - [x] Recipe 4 growing discount on its own store page: app creates the hidden product and the page; the

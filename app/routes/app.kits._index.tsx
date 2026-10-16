@@ -4,5 +4,5 @@ import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { redirect } = await authenticate.admin(request);
-  return redirect("/app/bundles?type=kit");
+  return redirect("/app/bundles?tab=kit");
 };

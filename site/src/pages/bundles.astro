@@ -38,7 +38,7 @@ const GALLERY: { name: string; recipe: string; art: ArtKind; tint?: string; pric
 ];
 
 const faq: QA[] = [
-  { q: "How many kinds of bundles does CRO Toolbox have?", a: "Six: frequently bought together, a kit sold as one product, a mix and match box, build your bundle and save more, build while browsing, and any N for one price." },
+  { q: "How many kinds of bundles does CRO Toolbox have?", a: "Six: frequently bought together, fixed bundle (sold as one product), mix and match, build your own bundle, tiered bundle (buy more, save more), and fixed price bundle (any 3 for $30)." },
   { q: "Does the bundle price apply at checkout?", a: "Yes. Shopify prices the bundle at checkout, and in the cart the picked items merge into one bundle line at the bundle price." },
   { q: "Does stock go down for each item in a bundle?", a: "Yes. At checkout the bundle is split into the items the shopper picked, so each item's stock goes down and the items appear on the order." },
   { q: "Which plan includes bundles?", a: `Every bundle type is on the ${PLANS.free.name} plan, within its ${PLANS.free.limits.offerSlots} offer slots. Paid plans have unlimited offers. See <a href="/pricing/">pricing</a>.` },
@@ -58,7 +58,7 @@ const schema = [faqPage(faq)];
         editor with a live preview of your real products.
       </p>
       <nav class="jump" aria-label="Bundle types">
-        {BUNDLE_RECIPES.map((r, i) => <a class="btn ghost small" href={`#${recipeSlug(r.key)}`}>{i + 1}. {plain(r.title)}</a>)}
+        {BUNDLE_RECIPES.map((r, i) => <a class="btn ghost small" href={`#${recipeSlug(r.key)}`}>{i + 1}. {plain(r.short)}</a>)}
       </nav>
     </div>
   </section>

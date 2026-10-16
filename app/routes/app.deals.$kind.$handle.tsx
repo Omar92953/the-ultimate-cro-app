@@ -189,7 +189,7 @@ export default function DealEditor() {
 
   return (
     <s-page heading={isNew ? `New ${t.singular}` : deal.name} inlineSize="large">
-      <s-link slot="breadcrumb-actions" href={kind === "fixed" ? "/app/bundles?type=fixed" : `/app/deals/${kind}`}>
+      <s-link slot="breadcrumb-actions" href={kind === "fixed" ? "/app/bundles?tab=fbt" : `/app/deals/${kind}`}>
         {kind === "fixed" ? "Bundles" : t.title}
       </s-link>
       <SaveControls dirty={changed(deal, initial) || fbtChanged} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setFbt(initialFbt); setTouched(false); }} />

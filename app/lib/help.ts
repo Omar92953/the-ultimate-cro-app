@@ -16,7 +16,7 @@ export const HELP = {
     example: "Three 15-second clips on the home page: “Unboxing”, “How to style”, “In use”, each with Add to cart.",
   },
   bundles: {
-    what: "Mix-and-match bundles: the shopper builds a set from your products for one fixed price.",
+    what: "Mix and match bundles: the shopper builds a set from your products for one fixed price.",
     how: "You create a bundle product with the bundle price, then steps like “Choose 3 posters”. At checkout the bundle is split into the picked items, so each item's stock goes down.",
     example: "“Any 3 posters for 399”: the shopper picks 3 of 20 posters; the order shows the 3 posters and charges 399.",
   },

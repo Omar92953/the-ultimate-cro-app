@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { AREAS, FEATURES, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
 import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../../app/lib/offer-types";
 import { DEAL_KINDS } from "../../app/lib/deals";
-import { BUNDLE_RECIPES } from "../../app/lib/bundle-recipes";
+import { BUNDLE_RECIPES, recipeOfBundle } from "../../app/lib/bundle-recipes";
 import {
   EXTRA_PLAN,
   GUARANTEE,
@@ -134,7 +134,14 @@ test("offers sit in four groups, and every offer page shows its group's tabs", (
   assert.deepEqual(featuresForPath("/app/kits/new"), ["bundles"]);
   assert.deepEqual(featuresForPath("/app/bundles/create"), ["bundles"]);
   assert.equal(areaForPath("/app/kits/123"), "offers");
-  assert.deepEqual(FEATURES.bundles.tabs.map((t) => t.label), ["Bundles", "Design"]);
+  // One tab per recipe (first is the plain /app/bundles), then Design; every recipe has a tab.
+  assert.deepEqual(FEATURES.bundles.tabs.map((t) => t.label), ["Frequently bought together", "Fixed bundle", "Mix and match", "Build your own bundle", "Tiered bundle", "Fixed price bundle", "Design"]);
+  assert.deepEqual(featuresForPath("/app/bundles"), ["bundles"]);
+  assert.deepEqual(BUNDLE_RECIPES.map((r) => r.key), ["fbt", "kit", "mixmatch", "browse", "growing", "anyN"]);
+  assert.equal(recipeOfBundle({ pricing: "tiers", storeWide: false }), "anyN");
+  assert.equal(recipeOfBundle({ pricing: "percent_tiers", storeWide: false }), "growing");
+  assert.equal(recipeOfBundle({ pricing: "percent", storeWide: true }), "browse");
+  assert.equal(recipeOfBundle({ pricing: "fixed", storeWide: false }), "mixmatch");
   // The 6 recipes open real editors.
   assert.equal(BUNDLE_RECIPES.length, 6);
   for (const r of BUNDLE_RECIPES) assert.match(r.href, /^\/app\/(bundles\/new\?recipe=|kits\/new$|deals\/fixed\/new$)/, r.key);

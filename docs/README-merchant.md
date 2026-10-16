@@ -100,11 +100,11 @@ together, a kit sold as one product, mix & match on a product page, a growing di
 page or its own store page), build while browsing, or any N from a long collection for one price.
 Every editor is a few numbered steps on the left with a **live preview** on the right (your real
 products and prices); a step with a problem opens itself when you save.
-1. **Mix & match:** the app creates and publishes the bundle product for you ("Create it for me"),
+1. **Mix and match:** the app creates and publishes the bundle product for you ("Create it for me"),
    or you pick one you have. For a store page it also creates the page.
 2. Add steps, e.g. "Choose 2 posters" (min 2, max 2) and "Add a frame" (optional).
 3. Click **Add to theme** in the editor's "Get it on your store" card once; it ticks itself.
-- **Kits** (one product, one cart line): Items, Price, and a preview of the product page.
+- **Fixed bundle** (one product, one cart line): Items, Price, and a preview of the product page.
 - **Frequently bought together:** Items, Discount and **Box look**: layout (pictures in a row with +
   between, or a list), heading, button ("Buy all [count]: [price]"), pictures, saving as an amount
   or a percentage. Shared by every box on your store.
