@@ -15,7 +15,7 @@ import { BUNDLE_RECIPES } from "./bundle-recipes";
 export type AreaKey = "offers" | "storefront" | "checkout";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
-  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, cross sells, bundles and discounts." },
+  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, bundles, cross sells and discounts." },
   { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: the cart, reviews, bars, timers, product-page tools, sections and pages." },
   { key: "checkout", title: "Checkout", href: "/app/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
 ];
@@ -150,7 +150,6 @@ export const OFFER_GROUPS: OfferGroup[] = [
       design("/app/styles/upsell"),
     ],
   },
-  { key: "cross_sell", title: "Cross sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: [...FEATURES.cross_sell.tabs.filter((t) => t.label !== "Style"), design("/app/styles/cross_sell")] },
   {
     key: "bundles",
     title: "Bundles",
@@ -159,6 +158,7 @@ export const OFFER_GROUPS: OfferGroup[] = [
     tabs: [...FEATURES.bundles.tabs.filter((t) => t.label !== "Style"), design("/app/styles/bundles")],
     chips: BUNDLE_RECIPES.slice(0, 4).map((r) => r.short),
   },
+  { key: "cross_sell", title: "Cross sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: [...FEATURES.cross_sell.tabs.filter((t) => t.label !== "Style"), design("/app/styles/cross_sell")] },
   { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },
 ];
 /** Which feature a deal kind's pages belong to. */

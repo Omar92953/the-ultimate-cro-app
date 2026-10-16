@@ -37,7 +37,7 @@ export const tutorialWatchUrl = (t: Tutorial) => (t.youtubeId ? `https://www.you
 
 /** "What's new" on Home, newest first. Keep it to a few short lines. */
 export const WHATS_NEW: { date: string; text: string; href?: string }[] = [
-  { date: "Oct 2026", text: "Offers in four groups: Upsell, Cross sell, Bundles and Discounts.", href: "/app/offers" },
+  { date: "Oct 2026", text: "Offers in four groups: Upsell, Bundles, Cross sell and Discounts.", href: "/app/offers" },
   { date: "Oct 2026", text: "New plans: Free covers up to 50 orders a month.", href: "/app/plans" },
   { date: "Oct 2026", text: "A new menu: Offers, Storefront, Cart, Checkout and Analytics.", href: "/app/offers" },
   { date: "Oct 2026", text: "Bundle products, price tiers and option pricing.", href: "/app/offers/new" },
