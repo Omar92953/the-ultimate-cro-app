@@ -48,7 +48,11 @@ Updated 2026-10-15.
 
 - [x] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
 - [ ] Create the demos project on Cloudflare Pages (`docs/website.md`, "The live demos")
-- [ ] Google Search Console, Bing Webmaster Tools, Cloudflare Web Analytics (`docs/website.md`, "Visibility plan")
+- [x] Google Search Console: Domain property crotoolbox.com verified through Cloudflare DNS (keep the
+      `google-site-verification` TXT record), sitemap-index.xml submitted (2026-10-16)
+- [x] Bing Webmaster Tools: crotoolbox.com added, sitemap-index.xml submitted (2026-10-16); IndexNow runs from GitHub
+- [ ] Check both show the sitemap as Success (Google showed "Couldn't fetch" right after adding, normal for a new property)
+- [ ] Cloudflare Web Analytics (`docs/website.md`, "Visibility plan")
 - [ ] Off site visibility checklist (`docs/website.md`, "Off site work")
 - [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution
 - [ ] App Store listing: screenshots, video, support email; tutorial videos
