@@ -10,6 +10,9 @@ import { forgetShop } from "./lib/short-cache.server";
 import { getPlan, getPlanState } from "./lib/billing.server";
 import { pageLock } from "./lib/plan-gate";
 import { PLANS } from "./lib/plans";
+import { warnIfApiKeyDiffers } from "./lib/api-key-check.server";
+
+warnIfApiKeyDiffers();
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,

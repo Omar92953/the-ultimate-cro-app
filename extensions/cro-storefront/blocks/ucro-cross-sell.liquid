@@ -44,9 +44,6 @@ endif
 assign shown = 0
 if rule
 for p in rule.offered_products.value
-if p.available != true
-continue
-endif
 if product != blank and p.id == product.id
 continue
 endif
@@ -95,13 +92,14 @@ data-checked="false"
 data-label="{{ button_label | escape }}"
 data-money-format="{{ shop.money_format | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
+data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
 {{ block.shopify_attributes }}
->{%- if heading != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ heading | escape }}</h2>{%- endif -%}{%- if mode == 'rule' and rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<ul class="ucro-cross__list" role="list">{%- if mode == 'rule' -%}{%- for p in rule.offered_products.value -%}{%- if p.available != true -%}{%- continue -%}{%- endif -%}{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}{%- assign in_cart = false -%}{%- if placement == 'cart' -%}{%- for item in cart.items -%}{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}{%- endfor -%}{%- endif -%}{%- unless in_cart -%}{%- render 'ucro-offer-row', p: p, pct: pct, checked: false -%}{%- endunless -%}{%- endfor -%}{%- endif -%}</ul>
+>{%- if heading != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ heading | escape }}</h2>{%- endif -%}{%- if mode == 'rule' and rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<ul class="ucro-cross__list" role="list">{%- if mode == 'rule' -%}{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}{%- assign in_cart = false -%}{%- if placement == 'cart' -%}{%- for item in cart.items -%}{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}{%- endfor -%}{%- endif -%}{%- unless in_cart -%}{%- render 'ucro-offer-row', p: p, pct: pct, checked: false -%}{%- endunless -%}{%- endfor -%}{%- endif -%}</ul>
 <button type="button" class="ucro-btn ucro-cross__add" disabled>
 <span class="ucro-cross__label">{{ button_label | escape }}</span>
 </button>
 <p class="ucro__error" role="alert" hidden></p>
 </ucro-cross-sell>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Cross-sell is switched off in CRO Toolbox.{%- elsif rule -%}Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% elsif p.available != true %} {{ p.title | escape }} (sold out or not on the Online Store){% else %} {{ p.title | escape }} (already in the cart){% endif -%}{%- unless forloop.last -%};{%- endunless -%}{%- else %} its product list is empty or its products aren’t published to the Online Store.{%- endfor %}
+<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Cross-sell is switched off in CRO Toolbox.{%- elsif rule -%}Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% else %} {{ p.title | escape }} (already in the cart){% endif -%}{%- unless forloop.last -%};{%- endunless -%}{%- else %} its product list is empty or its products aren’t published to the Online Store.{%- endfor %}
 Only you see this note.{%- else -%}{%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on Shopify recommendations in CRO Toolbox → Cross-sell → Design. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}

@@ -101,11 +101,13 @@
           var select = document.createElement('select');
           select.className = 'ucro-offer__variant ucro-select';
           select.setAttribute('aria-label', p.title);
-          variants.forEach((v) => {
+          (p.variants || []).forEach((v) => {
             var o = document.createElement('option');
             o.value = v.id;
-            o.textContent = v.title;
+            o.disabled = !v.available;
+            o.textContent = v.available ? v.title : v.title + ' (' + (this.dataset.soldOutText || 'Sold out') + ')';
             o.dataset.price = U.money(v.price, fmt);
+            if (v.id === first.id) o.selected = true;
             select.appendChild(o);
           });
           li.appendChild(select);
@@ -193,11 +195,16 @@
         this.variantId = this.dataset.variantId;
         this.own = this.querySelector('.ucro-upsell__add');
         this.useOwn = this.dataset.ownButton === 'true' || !this.form;
-        this.perItem = this.dataset.perItem === 'true' && Array.isArray(this.data.items) && this.data.items.length > 1;
+        this.perItem = this.dataset.perItem === 'true' && Array.isArray(this.data.items) && this.data.items.filter((v) => v.av !== false).length > 1;
         if (this.own) this.own.hidden = !this.useOwn;
         this.selectedQty = 1;
         if (this.type === 'variant') this.indexVariants();
         U.decorate(this);
+        // Sold out product: the offers are only shown (disabled, with a "Sold out" note), nothing to choose.
+        if (this.dataset.soldOut === 'true') {
+          if (this.own) this.own.hidden = true;
+          return;
+        }
 
         this.onClick = (e) => {
           var tier = e.target.closest('.ucro-tier');
@@ -411,17 +418,23 @@
             row.className = 'ucro-item';
             var name = document.createElement('span');
             name.className = 'ucro-item__n';
-            name.textContent = String(this.dataset.itemLabel || '#[n]').replace('[n]', i + 1);
+            name.textContent = String(this.dataset.itemLabel || '[n]').replace(/\[n\]/g, i + 1);
             var sel = document.createElement('select');
             sel.className = 'ucro-select ucro-item__select';
             sel.setAttribute('aria-label', name.textContent);
             this.data.items.forEach((v) => {
               var o = document.createElement('option');
               o.value = v.id;
-              o.textContent = v.t;
+              // A sold out size stays in the list, greyed out, so shoppers see it exists.
+              o.disabled = v.av === false;
+              o.textContent = v.av === false ? v.t + ' (' + (this.dataset.soldOutText || 'Sold out') + ')' : v.t;
               sel.appendChild(o);
             });
-            if (this.data.items.some((v) => String(v.id) === String(this.variantId))) sel.value = this.variantId;
+            if (this.data.items.some((v) => String(v.id) === String(this.variantId) && v.av !== false)) sel.value = this.variantId;
+            else {
+              var firstAv = this.data.items.find((v) => v.av !== false);
+              if (firstAv) sel.value = firstAv.id;
+            }
             row.appendChild(name);
             row.appendChild(sel);
             box.appendChild(row);

@@ -50,14 +50,11 @@
     endif
   endif
 
-  # Offered products that can actually be bought here: in stock, not the product being
-  # viewed, and (on the cart page) not already in the cart.
+  # Offered products shown here: not the product being viewed and (on the cart page) not
+  # already in the cart. Sold out ones stay in the list, greyed out with a "Sold out" note.
   assign shown = 0
   if rule
     for p in rule.offered_products.value
-      if p.available != true
-        continue
-      endif
       if product != blank and p.id == product.id
         continue
       endif
@@ -112,6 +109,7 @@
     data-label="{{ button_label | escape }}"
     data-money-format="{{ shop.money_format | escape }}"
     data-error="{{ 'ucro.error' | t | escape }}"
+    data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
     {{ block.shopify_attributes }}
   >
     {%- if heading != blank -%}
@@ -124,7 +122,6 @@
     <ul class="ucro-cross__list" role="list">
       {%- if mode == 'rule' -%}
         {%- for p in rule.offered_products.value -%}
-          {%- if p.available != true -%}{%- continue -%}{%- endif -%}
           {%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}
           {%- assign in_cart = false -%}
           {%- if placement == 'cart' -%}
@@ -153,7 +150,7 @@
     {%- elsif rule -%}
       Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:
       {%- for p in rule.offered_products.value -%}
-        {%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% elsif p.available != true %} {{ p.title | escape }} (sold out or not on the Online Store){% else %} {{ p.title | escape }} (already in the cart){% endif -%}
+        {%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% else %} {{ p.title | escape }} (already in the cart){% endif -%}
         {%- unless forloop.last -%};{%- endunless -%}
       {%- else %} its product list is empty or its products aren’t published to the Online Store.
       {%- endfor %}

@@ -16,7 +16,6 @@ import {
   useExtensionInput,
   BlockStack,
   Button,
-  CalloutBanner,
   Heading,
   Image,
   Layout,
@@ -118,15 +117,18 @@ export function App() {
 
   return (
     <BlockStack spacing="loose">
-      <CalloutBanner title={offer.heading}>
-        {offer.text}
-        {offer.pct > 0 ? (
-          <Text emphasized>
-            {' '}
-            Get {offer.pct}% off {offer.title}.
-          </Text>
-        ) : null}
-      </CalloutBanner>
+      <TextContainer>
+        <Heading>{offer.heading}</Heading>
+        <TextBlock>
+          {offer.text}
+          {offer.pct > 0 ? (
+            <Text emphasized>
+              {' '}
+              Get {offer.pct}% off {offer.title}.
+            </Text>
+          ) : null}
+        </TextBlock>
+      </TextContainer>
       <Layout
         maxInlineSize={0.95}
         media={[

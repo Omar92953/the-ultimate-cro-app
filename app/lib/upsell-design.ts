@@ -28,7 +28,7 @@ export type UpsellDesign = {
 };
 
 export const DEFAULT_UPSELL: UpsellDesign = {
-  offers: { style: "cards", label: "Buy [quantity]", showSaving: true, saving: "Save [percent]%", perItem: true, itemLabel: "#[n]", ownButton: false, button: "Add to cart" },
+  offers: { style: "cards", label: "Buy [quantity]", showSaving: true, saving: "Save [percent]%", perItem: true, itemLabel: "[n]", ownButton: false, button: "Add to cart" },
   heading: { style: "heading", size: "medium", align: "left" },
   look: { themeColors: true, accent: "#111111", border: "#d4d4d4", badgeBg: "#111111", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#111111", themeRadius: true, radius: 12, scheme: "" },
   space: { gap: 12, top: 12, bottom: 12, devices: "all" },
@@ -72,7 +72,8 @@ export function withUpsellDefaults(raw: unknown): UpsellDesign {
       showSaving: bool(o.showSaving, d.offers.showSaving),
       saving: str(o.saving, d.offers.saving, 60) || d.offers.saving,
       perItem: bool(o.perItem, d.offers.perItem),
-      itemLabel: str(o.itemLabel, d.offers.itemLabel, 30) || d.offers.itemLabel,
+      // "#[n]" was the old default: shoppers now see just the number. Stored copies are migrated when read.
+      itemLabel: (str(o.itemLabel, d.offers.itemLabel, 30) || d.offers.itemLabel) === "#[n]" ? "[n]" : str(o.itemLabel, d.offers.itemLabel, 30) || d.offers.itemLabel,
       ownButton: bool(o.ownButton, d.offers.ownButton),
       button: str(o.button, d.offers.button, 40) || d.offers.button,
     },

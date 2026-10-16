@@ -106,7 +106,7 @@ export default function PersonalizeDesigner() {
       <CategoryCrumb feature="personalize" />
       <DemoButton feature="personalize" template={templateInUse(PERSONALIZE_PRESETS, cfg, applyPersonalizePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
+      <Button slot="secondary-actions" href={data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=product` : data.addLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">

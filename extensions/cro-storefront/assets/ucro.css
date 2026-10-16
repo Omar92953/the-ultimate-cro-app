@@ -777,3 +777,9 @@
 .ucro-bundle__search { display: block; box-sizing: border-box; width: 100%; margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(var(--color-foreground, 18, 18, 18), 0.25); border-radius: var(--ucro-radius, 8px); background: transparent; color: inherit; font: inherit; }
 .ucro-bundle__more { display: block; margin: 14px auto 0; }
 .ucro-bundle__more[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+
+/* Sold out offers stay visible, but cannot be chosen. */
+.ucro-upsell.is-sold-out .ucro-tier { opacity: 0.5; cursor: not-allowed; }
+.ucro__soldout, .ucro-offer__soldout { margin: 6px 0 0; font-size: 0.875em; font-weight: 600; opacity: 0.75; }
+.ucro-offer.is-sold-out { opacity: 0.6; }
+.ucro-offer.is-sold-out .ucro-offer__row { cursor: not-allowed; }
