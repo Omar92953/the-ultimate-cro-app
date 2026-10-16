@@ -1,6 +1,6 @@
 # App Store submission pack: CRO Toolbox
 
-Everything needed to fill in the Partner Dashboard listing and pass review. Updated 2026-10-15.
+Everything needed to fill in the Partner Dashboard listing and pass review. Updated 2026-10-16 (after Block D: cart drawer removed, new bundle names, Style tab).
 Rules followed (Shopify App Store requirements 4.x): no stats, guarantees, prices or superlatives in
 listing text, no other apps' names, name identical to `shopify.app.toml`, English only.
 Prices and limits live in `app/lib/plans.ts`; the Partner Dashboard plans must match them exactly.
@@ -21,18 +21,18 @@ directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see o
 **App introduction (100 max, 88 used):**
 `Build bundles, upsells and cart offers that apply as real Shopify discounts at checkout.`
 
-**App details (500 max, 471 used):**
+**App details (500 max, 470 used):**
 
 ```
-CRO Toolbox puts the tools stores usually add one by one into a single app. Create bundles, upsells, cross-sells and buy X get Y offers that apply as real Shopify discounts at checkout. Add reviews, announcement bars, countdowns, sticky add to cart, a wishlist and back in stock alerts to any Online Store 2.0 theme. Use the app's cart drawer or add offers to your theme's cart. Set payment and delivery rules and order limits, and see what each offer sells in Analytics.
+CRO Toolbox puts the tools stores usually add one by one into a single app. Create bundles, upsells, cross sells and buy X get Y offers that apply as real Shopify discounts at checkout. Add reviews, announcement bars, countdowns, sticky add to cart, a wishlist and back in stock alerts to any Online Store 2.0 theme. Add offers and a free shipping bar to your theme's own cart. Set payment and delivery rules and order limits, and see what each offer sells in Analytics.
 ```
 
 **Feature list (80 max each):**
 
-1. `Mix and match bundles, kits, buy X get Y, volume deals and free gifts` (69)
-2. `Upsell and cross-sell offers on product pages, in the cart and after payment` (76)
+1. `Mix and match, fixed and tiered bundles, buy X get Y, volume deals and gifts` (76)
+2. `Upsell and cross sell offers on product pages, in the cart and after payment` (76)
 3. `Discounts apply at checkout as real Shopify discounts, with bundle stock tracked` (80)
-4. `Cart offers, a free shipping bar and gift notes` (47)
+4. `Offers in your theme's cart, a free shipping bar and gift notes` (63)
 5. `Reviews, trust badges, announcement bars, countdowns and sticky add to cart` (75)
 6. `Hero banners, FAQ, logos, carousels, quiz, header and footer sections` (69)
 7. `Payment and delivery rules, order limits and thank-you page modules` (67)
@@ -46,7 +46,8 @@ paid plans. Prices go only in the pricing section, never in the text above or in
 **Other fields**
 - Requires the Online Store sales channel and an Online Store 2.0 theme (app blocks). Tick "merchant must have an online store".
 - Category: pick the closest one for upsell and bundles in the form. Language: English.
-- Privacy policy URL: `https://cro-toolbox.onrender.com/privacy` (live; matches what the app stores, see section 4).
+- Privacy policy URL: `https://crotoolbox.com/privacy/` (live; matches what the app stores, see section 4; the app's own copy is `https://cro-toolbox.onrender.com/privacy`).
+- Support URL: `https://crotoolbox.com/support/` (live).
 - Support: needs a support email and URL that do not contain "Shopify" (Omar decides, see section 6). The app shows the email on Home when `SUPPORT_EMAIL` is set in Render.
 - Emergency developer contact (email and phone) in the Partner Dashboard.
 
@@ -88,12 +89,12 @@ WHAT TO CLICK
   at the bundle price. Go to checkout: one item at the bundle price. Other recipes: Frequently
   bought together, Fixed bundle (sold as one product), Tiered bundle (buy more, save more), Build your own
   bundle (needs the "Bundle tray" app embed), Fixed price bundle (any 3 for $30).
-- Upsell and Cross-sell (Offers): create a rule, turn it on, open the product page. The offer
+- Upsell and Cross sell (Offers): create an offer, turn it on, open the product page. The offer
   shows under Add to cart; the discount appears in the cart and at checkout as a Shopify discount.
 - Discounts (Offers > Discounts): buy X get Y, volume, gift. Add the products to the cart; the
   discount shows in the cart and at checkout.
 - Storefront (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
-  Wishlist, FAQ, Logos, Hero banner, Quiz, Header, Footer. Each has a design page with a live
+  Wishlist, FAQ, Logos, Hero banner, Quiz, Header, Footer. Each has a Style tab with a live
   preview and an "Add to theme" button.
 - Storefront > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
   offers and the free shipping bar show in the cart.
@@ -124,7 +125,7 @@ password, the Partner Dashboard or `.env`.
 | 1:45 | Product page | Pick three items, show the summary, Add to cart. |
 | 2:15 | Cart and checkout | One bundle line at the bundle price. Go to checkout: one item, one price. |
 | 2:45 | Upsell | Create an upsell, show it under Add to cart and the discount at checkout. |
-| 3:30 | Storefront | Turn on Reviews and the Announcement bar; show the design page with its live preview, then the store. |
+| 3:30 | Storefront | Turn on Reviews and the Announcement bar; show the Style tab with its live preview, then the store. |
 | 4:15 | Cart offers | Turn on offers in your theme's cart, add a product, show the free shipping bar and offer. |
 | 4:45 | Checkout rules | Order limits: set a minimum, show checkout blocked with the message. |
 | 5:15 | Analytics and plans | Show Analytics and the Plans page (upgrade goes to Shopify's hosted page). |
@@ -149,28 +150,32 @@ Questions Shopify asks, and the answers:
 - **Privacy webhooks:** `customers/data_request`, `customers/redact` and `shop/redact` go to `/webhooks/compliance`, which verifies the HMAC and answers 401 for a bad or missing signature.
 - **Security:** HTTPS only; Shopify session token authentication; each shop's data is read only with that shop's token; hosted on Render with a managed Postgres database (Supabase) encrypted at rest; secrets only in Render environment variables.
 - **Third parties:** only the hosting services (Render and Supabase), as processors. No analytics or advertising services.
-- **Privacy policy:** `https://cro-toolbox.onrender.com/privacy`.
+- **Privacy policy:** `https://crotoolbox.com/privacy/` (same text as the app's `/privacy`).
 
 ## 5. Checks run before submitting
 
-Run on the Mac on 2026-10-15 (all pass):
-`npx tsc --noEmit`, `npm run lint` (needs PR "lint ignores site/"), `npm run test:app`,
-`npm run build`, `npm run graphql-codegen`, `npm run build:theme` (30 of 30 blocks, 86.3 KB of
-100 KB Liquid), `npm run test:storefront`, `npm run test:functions`, `shopify theme check` in
-`extensions/cro-storefront` (37 files, no offenses), `shopify app build`. Largest storefront JS:
-8.4 KB gzipped (`ucs-reviews.js`, limit 10 KB). Production: `/` and `/privacy` answer 200, a badly
-signed privacy webhook answers 401, and a request with no signature answers 401 once PR "privacy
-webhook answers 401 without a signature" is live.
+Run on the Mac on 2026-10-16 (after Block D, version cro-toolbox-22), all pass:
+`npm run typecheck`, `npm run lint`, `npm run test:app` (35), `npm run build`, `npm run graphql-codegen`,
+`npm run build:theme` (29 of 30 blocks, 86.9 KB of 100 KB Liquid), `npm run test:storefront`,
+`npm run test:functions` (71 tests in 5 Functions), `shopify theme check`. Production: `/` 200 in 0.5 s,
+`/privacy` 200, crotoolbox.com `/privacy/` and `/support/` 200; `/webhooks/compliance` and
+`/webhooks/app/uninstalled` answer 401 without a valid signature.
+Clicked through on Testing 3: plans (upgrade to Growth, trial, back to Free), feature request,
+offers lists and editors, Delete, Style tab, Storefront with the Cart group.
+
+**Blocker: `demo.crotoolbox.com` does not exist yet**, so every "See live demo" button in the app opens
+a dead page. Reviewers reject broken pages (2.1.1). Create the Cloudflare Pages project
+`cro-toolbox-demos` (`docs/website.md`, "The live demos") before submitting, or hide the buttons.
 
 ## 6. Only Omar can do these (Partner Dashboard and accounts)
 
 - [ ] Choose the **distribution method** (public, App Store). It is permanent.
 - [ ] Request **protected customer data** access (section 4 answers), then turn the `orders/create` subscription back on in `shopify.app.toml` and deploy.
-- [ ] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $14.99, $24.99; yearly; 14-day trial) and check the plan handles the app reads.
+- [x] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $14.99, $24.99; yearly; 14-day trial) and check the plan handles the app reads.
 - [ ] Set **SUPPORT_EMAIL** in Render and give a support email and URL for the listing (no "Shopify" in the address).
 - [ ] Add the **emergency developer contact** (email and phone).
 - [ ] Upload the **icon** (`branding/app-icon.png`, 1200 x 1200), 3 to 6 **screenshots**, the feature image or video, and the **screencast**.
 - [ ] Paste the listing text and test instructions from sections 1 and 2; type the storefront password into the form yourself, never into this repo.
 - [ ] Keep Render on a paid plan (a sleeping server fails webhooks and reviews) and the database on a plan that does not pause.
-- [ ] Optional: buy crotoolbox.com and use its privacy page and support page in the listing.
+- [x] crotoolbox.com bought; its privacy and support pages go in the listing (section 1).
 - [ ] Press "Submit for review".
