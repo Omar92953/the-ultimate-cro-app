@@ -10,6 +10,7 @@ import { checkLimit } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
 import { getDiscountStatus } from "../lib/cro.server";
 import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
+import { DeletedToast } from "../components/DeleteOffer";
 import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { dealFeature } from "../lib/catalog";
@@ -67,6 +68,7 @@ export default function DealList() {
       <Button slot="primary-action" variant="primary" href={`/app/deals/${kind}/new`}>
         {t.addLabel}
       </Button>
+      <DeletedToast />
       <s-stack gap="base">
         <FeatureTabs feature={featureKey} />
         {fetcher.data?.upgrade ? (

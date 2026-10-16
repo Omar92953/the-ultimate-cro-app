@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- App Bridge resource picker payloads are untyped */
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -34,22 +34,32 @@ import { EditorLayout } from "../components/EditorLayout";
 import { EditorSection } from "../components/EditorSection";
 import { Segmented } from "../components/ui";
 import type { PreviewItem } from "../components/BundlePreview";
+import { DealPreview } from "../components/DealPreview";
+import { PreviewFrame } from "../components/DesignTabs";
+import { ThemeLook } from "../components/ThemeStyle";
+import { DeleteOffer } from "../components/DeleteOffer";
+import { useFlash } from "../components/flash";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { storefrontCss } from "../lib/storefront-css.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const kind = params.kind;
   if (!isDealKind(kind)) throw new Response("Not found", { status: 404 });
-  const [{ engine }, shop, fbt] = await Promise.all([
+  const [{ engine }, shop, fbt, style] = await Promise.all([
     resolveDiscountEngine(admin),
     gql(admin, `#graphql
       query CroDealShop { shop { currencyCode } }`),
     kind === "fixed" ? getFbtDesign(admin).catch(() => normalizeFbt(null)) : Promise.resolve(null),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
+  const css = storefrontCss("ucs-boosters.css");
   const currency: string = shop.shop.currencyCode;
-  if (params.handle === "new") return { kind, deal: blankDeal(kind), isNew: true, engine, currency, fbt };
+  if (params.handle === "new") return { kind, deal: blankDeal(kind), isNew: true, engine, currency, fbt, style, css };
   const deal = (await listDeals(admin)).find((d) => d.handle === params.handle && d.kind === kind);
   if (!deal) throw new Response("Deal not found", { status: 404 });
-  return { kind, deal, isNew: false, engine, currency, fbt };
+  return { kind, deal, isNew: false, engine, currency, fbt, style, css };
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -57,8 +67,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
-      await deleteDeal(admin, String(form.get("id")));
-      return redirect(`/app/deals/${params.kind}`);
+      const done = await deleteDeal(admin, String(form.get("id")));
+      return redirect(params.kind === "fixed" ? `/app/bundles?tab=fbt&deleted=${done}` : `/app/deals/${params.kind}?deleted=${done}`);
     }
     const deal = JSON.parse(String(form.get("deal"))) as Deal;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a deal can always be saved off.
@@ -114,7 +124,7 @@ function TargetPicker(props: { label: string; value: Target; onChange: (t: Targe
 }
 
 export default function DealEditor() {
-  const { kind, deal: initial, isNew, engine, currency, fbt: initialFbt } = useLoaderData<typeof loader>();
+  const { kind, deal: initial, isNew, engine, currency, fbt: initialFbt, style, css } = useLoaderData<typeof loader>();
   const t = DEAL_TYPES[kind];
   const [deal, setDeal] = useState<Deal>(initial);
   const [touched, setTouched] = useState(false);
@@ -147,9 +157,43 @@ export default function DealEditor() {
     }
   }, [fetcher.state, fetcher.data, shopify, isNew, kind, navigate]);
 
+  const [flashed, flash] = useFlash();
   const config = deal.config as any;
   const fixedCfg = config as FixedConfig;
-  const setConfig = (patch: Record<string, unknown>) => setDeal((d) => ({ ...d, config: { ...d.config, ...patch } as Deal["config"] }));
+  // Editing a deal outlines its row in the preview for a moment (volume tiers and fixed items say which one).
+  const setConfig = (patch: Record<string, unknown>, row?: string) => {
+    setDeal((d) => ({ ...d, config: { ...d.config, ...patch } as Deal["config"] }));
+    flash(row ?? "item-0");
+  };
+
+  // Real pictures and prices of the products the deal uses (fetched as they change).
+  const prices = useFetcher<{ items: Record<string, PreviewItem[]>; currency: string }>();
+  const idsKey = (() => {
+    const c = deal.config as any;
+    const ids: string[] = [];
+    if (kind === "fixed") ids.push(...(c.items ?? []).map((i: { product: { id: string } }) => i.product.id));
+    if (kind === "volume" && c.target?.type === "products") ids.push(...c.target.products.slice(0, 1).map((p: { id: string }) => p.id));
+    if (kind === "upgrade") ids.push(...[c.from?.productId, c.to?.productId].filter(Boolean));
+    return [...new Set(ids)].sort().join(",");
+  })();
+  useEffect(() => {
+    if (idsKey) prices.load(`/app/bundles/preview-items?ids=${encodeURIComponent(idsKey)}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the products change
+  }, [idsKey]);
+  const side = (
+    <s-stack gap="base">
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <PreviewFrame title="Product page · this offer" width={600}>
+        <ThemeLook style={style} pad={20}>
+          <DealPreview deal={deal} fbt={fbt} found={prices.data?.items ?? {}} currency={prices.data?.currency ?? currency} highlight={flashed} />
+        </ThemeLook>
+      </PreviewFrame>
+      <s-text color="subdued">The real block with your store&apos;s look and your products&apos; pictures. Prices are examples until you choose products.</s-text>
+      <s-section heading="How it works">
+        <s-paragraph>{t.how}</s-paragraph>
+      </s-section>
+    </s-stack>
+  );
   const problems = validateDeal(deal);
   const save = () => {
     setTouched(true);
@@ -157,9 +201,14 @@ export default function DealEditor() {
     fetcher.submit({ intent: "save", deal: JSON.stringify(deal), ...(fbtChanged ? { fbt: JSON.stringify(fbt) } : {}) }, { method: "post" });
   };
   const remove = () => {
-    if (!deal.id || !window.confirm(`Delete “${deal.name}”? This can't be undone.`)) return;
+    if (!deal.id) return;
     fetcher.submit({ intent: "delete", id: deal.id }, { method: "post" });
   };
+  const deleteBlock = !isNew ? (
+    <DeleteOffer busy={busy} onDelete={remove}>
+      <s-paragraph>{`“${deal.name}” stops showing on your store and its checkout discount is removed. This cannot be undone.`}</s-paragraph>
+    </DeleteOffer>
+  ) : null;
 
   async function pickVariant(which: "from" | "to") {
     const selected: any = await shopify.resourcePicker({ type: "variant", multiple: false, action: "select" } as any);
@@ -193,11 +242,6 @@ export default function DealEditor() {
         {kind === "fixed" ? "Bundles" : t.title}
       </s-link>
       <SaveControls dirty={changed(deal, initial) || fbtChanged} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setFbt(initialFbt); setTouched(false); }} />
-      {!isNew ? (
-        <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
-          Delete
-        </Button>
-      ) : null}
 
       <s-stack gap="base">
         {fetcher.data?.error ? (
@@ -224,7 +268,7 @@ export default function DealEditor() {
         ) : null}
 
         {kind === "fixed" && fbt ? (
-          <EditorLayout help="bundles" side={<FbtSide deal={deal} fbt={fbt} how={t.how} />}>
+          <EditorLayout preview help="bundles" side={side}>
             <EditorSection
               n={1}
               title="Items"
@@ -242,14 +286,18 @@ export default function DealEditor() {
                   label="Products"
                   details="At least 2. The box shows on each of their product pages; the discount applies when all of them are in the cart."
                   value={fixedCfg.items.map((i) => i.product)}
-                  onChange={(v) =>
-                    setConfig({
-                      items: v.map((r) => ({
-                        product: toProduct(r),
-                        qty: fixedCfg.items.find((i) => i.product.id === r.id)?.qty ?? 1,
-                      })),
-                    })
-                  }
+                  onChange={(v) => {
+                    const added = v.findIndex((r) => !fixedCfg.items.some((i) => i.product.id === r.id));
+                    setConfig(
+                      {
+                        items: v.map((r) => ({
+                          product: toProduct(r),
+                          qty: fixedCfg.items.find((i) => i.product.id === r.id)?.qty ?? 1,
+                        })),
+                      },
+                      `item-${Math.max(0, added)}`,
+                    );
+                  }}
                 />
                 {fixedCfg.items.map((item, n) => (
                   <NumberField
@@ -259,7 +307,7 @@ export default function DealEditor() {
                     min={1}
                     max={10}
                     step={1}
-                    onValue={(v) => setConfig({ items: fixedCfg.items.map((x, j) => (j === n ? { ...x, qty: v } : x)) })}
+                    onValue={(v) => setConfig({ items: fixedCfg.items.map((x, j) => (j === n ? { ...x, qty: v } : x)) }, `item-${n}`)}
                   />
                 ))}
               </s-stack>
@@ -316,16 +364,10 @@ export default function DealEditor() {
                 </s-stack>
               </s-stack>
             </EditorSection>
+            {deleteBlock}
           </EditorLayout>
         ) : (
-          <EditorLayout
-            help={kind === "fixed" ? "bundles" : "discounts-addons-personalization"}
-            side={
-              <s-section heading="How it works">
-                <s-paragraph>{t.how}</s-paragraph>
-              </s-section>
-            }
-          >
+          <EditorLayout preview help={kind === "fixed" ? "bundles" : "discounts-addons-personalization"} side={side}>
             <s-stack gap="base">
           <s-section heading="Summary">
             <s-stack gap="base">
@@ -393,7 +435,7 @@ export default function DealEditor() {
                         min={2}
                         max={99}
                         step={1}
-                        onValue={(v) => setConfig({ tiers: (config as VolumeConfig).tiers.map((x, j) => (j === n ? { ...x, qty: v } : x)) })}
+                        onValue={(v) => setConfig({ tiers: (config as VolumeConfig).tiers.map((x, j) => (j === n ? { ...x, qty: v } : x)) }, `tier-${n}`)}
                       />
                       <NumberField
                         label="Discount"
@@ -402,7 +444,7 @@ export default function DealEditor() {
                         min={1}
                         max={90}
                         step={1}
-                        onValue={(v) => setConfig({ tiers: (config as VolumeConfig).tiers.map((x, j) => (j === n ? { ...x, pct: v } : x)) })}
+                        onValue={(v) => setConfig({ tiers: (config as VolumeConfig).tiers.map((x, j) => (j === n ? { ...x, pct: v } : x)) }, `tier-${n}`)}
                       />
                       <Button
                         variant="tertiary"
@@ -422,7 +464,7 @@ export default function DealEditor() {
                       onClick={() => {
                         const tiers = (config as VolumeConfig).tiers;
                         const last = tiers[tiers.length - 1];
-                        setConfig({ tiers: [...tiers, { qty: (last?.qty ?? 1) + 1, pct: Math.min(90, (last?.pct ?? 5) + 5) }] });
+                        setConfig({ tiers: [...tiers, { qty: (last?.qty ?? 1) + 1, pct: Math.min(90, (last?.pct ?? 5) + 5) }] }, `tier-${tiers.length}`);
                       }}
                     >
                       Add tier
@@ -505,76 +547,12 @@ export default function DealEditor() {
             </>
           ) : null}
 
+              {deleteBlock}
             </s-stack>
           </EditorLayout>
         )}
       </s-stack>
     </s-page>
-  );
-}
-
-/** The box as it shows on a product page, with the items' real prices. */
-function FbtSide({ deal, fbt, how }: { deal: Deal; fbt: FbtDesign; how: string }) {
-  const cfg = deal.config as FixedConfig;
-  const prices = useFetcher<{ items: Record<string, PreviewItem[]>; currency: string }>();
-  const idsKey = cfg.items.map((i) => i.product.id).sort().join(",");
-  useEffect(() => {
-    if (idsKey) prices.load(`/app/bundles/preview-items?ids=${encodeURIComponent(idsKey)}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the items change
-  }, [idsKey]);
-  const found = prices.data?.items ?? {};
-  const money = (cents: number) => {
-    try {
-      return new Intl.NumberFormat("en", { style: "currency", currency: prices.data?.currency ?? "USD" }).format(cents / 100);
-    } catch {
-      return (cents / 100).toFixed(2);
-    }
-  };
-  const total = cfg.items.reduce((n, i) => n + (found[i.product.id]?.[0]?.cents ?? 0) * i.qty, 0);
-  const saving = Math.round((total * cfg.pct) / 100);
-  const row = fbt.layout === "row";
-  const items = cfg.items.length ? cfg.items : [{ product: { id: "a", title: "First product", image: null, handle: "" }, qty: 1 }, { product: { id: "b", title: "Second product", image: null, handle: "" }, qty: 1 }];
-  const count = items.reduce((n, i) => n + i.qty, 0);
-  return (
-    <s-stack gap="base">
-      <s-section heading="Preview">
-        <s-stack gap="small-300">
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: fbt.border ? 14 : "4px 0", border: fbt.border ? "1px solid #e3e3e3" : 0, borderRadius: 12 }}>
-            {fbt.heading ? <strong style={{ fontSize: 16 }}>{fbt.heading}</strong> : null}
-            {row && fbt.images ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: fbt.align === "center" ? "center" : fbt.align === "end" ? "flex-end" : "flex-start", gap: 6 }}>
-                {items.map((i, n) => (
-                  <Fragment key={i.product.id}>
-                    {n ? <span style={{ fontSize: 22, opacity: 0.6 }}>+</span> : null}
-                    <span style={{ flex: "1 1 0", maxWidth: 140, aspectRatio: "1", borderRadius: fbt.tiles ? 12 : 8, background: i.product.image ? `${fbt.tiles ? "#f4f4f4" : "transparent"} center / ${fbt.tiles ? "84%" : "cover"} no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=300)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
-                  </Fragment>
-                ))}
-              </div>
-            ) : null}
-            {items.map((i, n) => (
-              <div key={i.product.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: row ? 13 : undefined }}>
-                {fbt.images && !row ? (
-                  <span style={{ width: 48, height: 48, flex: "none", borderRadius: 8, background: i.product.image ? `center / cover no-repeat url(${i.product.image}${i.product.image.includes("?") ? "&" : "?"}width=120)` : n % 2 ? "linear-gradient(145deg,#bde0fe,#6c9bd2)" : "linear-gradient(145deg,#ffd6a5,#f4a261)" }} />
-                ) : null}
-                <span style={{ flex: 1, fontSize: 14 }}>{`${i.qty > 1 ? `${i.qty} × ` : ""}${i.product.title}`}</span>
-                <span style={{ fontSize: 14 }}>{found[i.product.id]?.[0] ? money(found[i.product.id][0].cents * i.qty) : ""}</span>
-              </div>
-            ))}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-              <span>{total ? <><strong>{money(total - saving)}</strong> <s style={{ color: "#8a8a8a" }}>{money(total)}</s></> : null}</span>
-              <span style={{ padding: "2px 8px", borderRadius: 999, background: "#e3f1e6", color: "#1a7f37", fontWeight: 700, fontSize: 12 }}>{fbt.saving === "pct" ? `${cfg.pct}% off` : total ? `Save ${money(saving)}` : `Save ${cfg.pct}%`}</span>
-            </div>
-            <span style={{ padding: "10px 12px", textAlign: "center", borderRadius: 999, background: "#121212", color: "#fff", fontWeight: 600, fontSize: 14 }}>
-              {fbt.button.replace(/\[count\]/g, String(count)).replace(/\[price\]/g, total ? money(total - saving) : "$0.00")}
-            </span>
-          </div>
-          <s-text color="subdued">A sketch; on your store it takes your theme&apos;s fonts and colours.</s-text>
-        </s-stack>
-      </s-section>
-      <s-section heading="How it works">
-        <s-paragraph>{how}</s-paragraph>
-      </s-section>
-    </s-stack>
   );
 }
 

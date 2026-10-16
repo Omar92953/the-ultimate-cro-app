@@ -3,7 +3,7 @@
  * re-syncs the discount Function config and the storefront copy (syncDiscounts), so what shoppers
  * see and what checkout charges always come from the same save.
  */
-import { AdminError, type AdminClient } from "./admin.server";
+import { AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { listDeals, remove, slug, syncDiscounts, upsert } from "./cro.server";
 import { validateDeal, type Deal } from "./deals";
 
@@ -27,7 +27,7 @@ export async function saveDeal(admin: AdminClient, deal: Deal) {
 
 export async function deleteDeal(admin: AdminClient, id: string) {
   await remove(admin, id);
-  await syncDiscounts(admin);
+  return afterDelete(() => syncDiscounts(admin));
 }
 
 export async function setDealActive(admin: AdminClient, deal: Deal, active: boolean) {

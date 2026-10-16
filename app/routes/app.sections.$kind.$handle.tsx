@@ -12,6 +12,7 @@ import { Button, Checkbox, DateField, Select, TextArea, TextField } from "../com
 import { MediaPicker } from "../components/MediaPicker";
 import { Segmented } from "../components/ui";
 import { EditorLayout } from "../components/EditorLayout";
+import { DeleteOffer } from "../components/DeleteOffer";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -32,8 +33,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
-      await deleteItem(admin, kind, String(form.get("id")));
-      return redirect(`/app/sections/${kind}`);
+      const done = await deleteItem(admin, kind, String(form.get("id")));
+      return redirect(`/app/sections/${kind}?deleted=${done}`);
     }
     await saveItem(admin, kind, JSON.parse(String(form.get("item"))) as SectionItem);
     return { ok: true, error: null, next: String(form.get("next") || "list") };
@@ -81,7 +82,7 @@ export default function SectionItemEditor() {
     fetcher.submit({ item: JSON.stringify(item), next }, { method: "post" });
   };
   const remove = () => {
-    if (!item.id || !window.confirm(`Delete this ${cfg.singular}? This can't be undone.`)) return;
+    if (!item.id) return;
     fetcher.submit({ intent: "delete", id: item.id }, { method: "post" });
   };
   const title = isNew ? `New ${cfg.singular}` : String(item.values[cfg.titleKey] || cfg.singular);
@@ -96,11 +97,7 @@ export default function SectionItemEditor() {
         <Button slot="secondary-actions" onClick={() => save("another")} disabled={busy}>
           Save and add another
         </Button>
-      ) : (
-        <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
-          Delete
-        </Button>
-      )}
+      ) : null}
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading={`The ${cfg.singular} was not saved`}>
@@ -133,6 +130,11 @@ export default function SectionItemEditor() {
               })}
             </s-stack>
           </s-section>
+          {!isNew ? (
+            <DeleteOffer heading={`Delete this ${cfg.singular}?`} busy={busy} onDelete={remove}>
+              <s-paragraph>{`“${title}” is removed from your store. This cannot be undone.`}</s-paragraph>
+            </DeleteOffer>
+          ) : null}
       </EditorLayout>
     </s-page>
   );

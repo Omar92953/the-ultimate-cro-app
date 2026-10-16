@@ -5,6 +5,11 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { deleteRule, listRules, resolveDiscountEngine, saveRule } from "../lib/cro.server";
+import { getCrossSellDesign, getUpsellDesign } from "../lib/designs.server";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { firstProduct, productForRule } from "../lib/preview-products.server";
+import { storefrontCss } from "../lib/storefront-css.server";
+import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { validateRule } from "../lib/validate";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
@@ -13,7 +18,13 @@ import { LimitUpgrade } from "../components/Upgrade";
 import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
-import { CrossSellPreview, UpsellPreview } from "../components/FeaturePreview";
+import { UpsellDesignPreview } from "../components/UpsellDesignPreview";
+import { CrossSellDesignPreview } from "../components/CrossSellDesignPreview";
+import { PreviewFrame } from "../components/DesignTabs";
+import { ThemeLook } from "../components/ThemeStyle";
+import { DeleteOffer } from "../components/DeleteOffer";
+import { useFlash } from "../components/flash";
+import type { PreviewItem } from "../components/BundlePreview";
 import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -47,14 +58,32 @@ function blankRule(kind: RuleKind): Rule {
 }
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const meta = KINDS[params.kind ?? ""];
   if (!meta) throw new Response("Not found", { status: 404 });
-  const { engine } = await resolveDiscountEngine(admin);
-  if (params.handle === "new") return { kindSlug: params.kind!, meta, rule: blankRule(meta.kind), isNew: true, engine };
-  const rule = (await listRules(admin, meta.kind)).find((r) => r.handle === params.handle);
+  const [{ engine }, style, upsellDesign, crossDesign] = await Promise.all([
+    resolveDiscountEngine(admin),
+    getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
+    meta.kind === "upsell" ? getUpsellDesign(admin) : null,
+    meta.kind === "cross_sell" ? getCrossSellDesign(admin) : null,
+  ]);
+  const isNew = params.handle === "new";
+  const rule = isNew ? blankRule(meta.kind) : (await listRules(admin, meta.kind)).find((r) => r.handle === params.handle);
   if (!rule) throw new Response("Rule not found", { status: 404 });
-  return { kindSlug: params.kind!, meta, rule, isNew: false, engine };
+  // The preview shows the real block: the store's look, its stylesheet and a real product.
+  const product = (await productForRule(admin, rule, session.shop).catch(() => null)) ?? (await firstProduct(admin, session.shop).catch(() => null));
+  return {
+    kindSlug: params.kind!,
+    meta,
+    rule,
+    isNew,
+    engine,
+    style,
+    css: storefrontCss("ucro.css"),
+    upsellDesign: upsellDesign?.config ?? null,
+    crossDesign: crossDesign?.config ?? null,
+    product,
+  };
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -63,8 +92,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const intent = form.get("intent");
   try {
     if (intent === "delete") {
-      await deleteRule(admin, String(form.get("id")));
-      return redirect(`/app/offers/${params.kind}`);
+      const done = await deleteRule(admin, String(form.get("id")));
+      return redirect(`/app/offers/${params.kind}?deleted=${done}`);
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
     // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
@@ -78,7 +107,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function RuleEditor() {
-  const { kindSlug, meta, rule: initial, isNew, engine } = useLoaderData<typeof loader>();
+  const { kindSlug, meta, rule: initial, isNew, engine, style, css, upsellDesign, crossDesign, product } = useLoaderData<typeof loader>();
   const [rule, setRule] = useState<Rule>(initial);
   const [touched, setTouched] = useState(false);
   const fetcher = useFetcher<typeof action>();
@@ -86,6 +115,7 @@ export default function RuleEditor() {
   const navigate = useNavigate();
   const busy = fetcher.state !== "idle";
   const isUpsell = rule.kind === "upsell";
+  const [flashed, flash] = useFlash();
 
   // Reset the form when the loader returns fresh data (after a save or navigation).
   const [loaded, setLoaded] = useState(initial);
@@ -108,8 +138,24 @@ export default function RuleEditor() {
   }, [fetcher.state, fetcher.data, shopify, isNew, kindSlug, navigate]);
 
   const set = <K extends keyof Rule>(key: K, value: Rule[K]) => setRule((r) => ({ ...r, [key]: value }));
-  const setTier = (i: number, patch: Partial<Tier>) =>
+  const setTier = (i: number, patch: Partial<Tier>) => {
     set("tiers", rule.tiers.map((t, j) => (j === i ? { ...t, ...patch } : t)));
+    flash(`tier-${i}`);
+  };
+
+  // Real pictures and prices of the suggested products (fetched as they change).
+  const previews = useFetcher<{ items: Record<string, PreviewItem[]>; currency: string }>();
+  const idsKey = [...new Set(rule.offeredProducts.map((p) => p.id))].sort().join(",");
+  useEffect(() => {
+    if (idsKey) previews.load(`/app/bundles/preview-items?ids=${encodeURIComponent(idsKey)}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the chosen products change
+  }, [idsKey]);
+  const setOffered = (v: Rule["offeredProducts"]) => {
+    const old = rule.offeredProducts.map((p) => p.id);
+    const added = v.findIndex((p) => !old.includes(p.id));
+    set("offeredProducts", v);
+    if (added >= 0) flash(`item-${added}`);
+  };
   const togglePlacement = (p: Placement, on: boolean) =>
     set("placements", on ? [...new Set([...rule.placements, p])] : rule.placements.filter((x) => x !== p));
 
@@ -123,9 +169,13 @@ export default function RuleEditor() {
   };
   const remove = () => {
     if (!rule.id) return;
-    if (!window.confirm(`Delete “${rule.name}”? This can't be undone.`)) return;
     fetcher.submit({ intent: "delete", id: rule.id }, { method: "post" });
   };
+  const pageLook = previewTheme(style);
+  const scheme = (isUpsell ? upsellDesign?.look.scheme : "") ?? "";
+  const blockLook = scheme ? previewTheme(style, scheme) : null;
+  const items = previews.data?.items ?? {};
+  const crossItems = rule.offeredProducts.slice(0, 6).map((p) => ({ title: p.title, image: items[p.id]?.[0]?.image ?? p.image ?? null, cents: items[p.id]?.[0]?.cents ?? 0 }));
 
   return (
     <s-page heading={isNew ? `New ${meta.singular}` : rule.name} inlineSize="large">
@@ -133,11 +183,6 @@ export default function RuleEditor() {
         {meta.title}
       </s-link>
       <SaveControls dirty={changed(rule, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setRule(initial); setTouched(false); }} />
-      {!isNew ? (
-        <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
-          Delete
-        </Button>
-      ) : null}
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The offer was not saved">
@@ -158,42 +203,35 @@ export default function RuleEditor() {
       ) : null}
 
       <EditorLayout
+        preview
         help={meta.kind === "upsell" ? "upsell-offers" : "cross-sell-offers"}
         side={
           <>
-              <s-section heading="Status">
-                <s-stack gap="base">
-                  <Switch label={rule.active ? "Active: showing on your store" : "Paused: hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
-                  <TextField label="Offer name" placeholder={rule.headline} details="Only you see this." value={rule.name} onValue={(v) => set("name", v)} />
-                  <NumberField
-                    label="Priority"
-                    details="If several offers match the same product, the lowest number is shown."
-                    value={rule.priority}
-                    min={0}
-                    max={999}
-                    step={1}
-                    onValue={(v) => set("priority", v)}
-                  />
-                </s-stack>
-              </s-section>
-
-              <s-section heading="Preview">
-                <s-stack gap="small-200">
-                  <div style={{ height: 200, overflow: "hidden" }}>
-                    {isUpsell ? (
-                      <UpsellPreview heading={rule.headline} tiers={rule.tiers} variant={rule.upsellType === "variant"} />
-                    ) : (
-                      <CrossSellPreview
-                        heading={rule.headline}
-                        button={rule.buttonLabel}
-                        products={rule.offeredProducts.map((p) => p.title)}
-                        pct={rule.discountPercent}
-                      />
-                    )}
-                  </div>
-                  <s-text color="subdued">A sketch with sample prices. Colors and fonts follow your theme on the store.</s-text>
-                </s-stack>
-              </s-section>
+              <PreviewFrame title={isUpsell ? "Product page · this offer" : "Product page · these suggestions"}>
+                <ThemeLook style={style}>
+                  {isUpsell && upsellDesign ? (
+                    <UpsellDesignPreview
+                      config={upsellDesign}
+                      offer={{ headline: rule.headline, subheadline: rule.subheadline, variant: rule.upsellType === "variant", optionName: rule.optionName, tiers: rule.tiers }}
+                      product={product}
+                      currency={product?.currency}
+                      page={pageLook}
+                      block={blockLook}
+                      highlight={flashed}
+                    />
+                  ) : crossDesign ? (
+                    <CrossSellDesignPreview
+                      config={crossDesign}
+                      offer={{ headline: rule.headline, subheadline: rule.subheadline, button: rule.buttonLabel, pct: rule.discountPercent, items: crossItems.length ? crossItems : [{ title: "Pick products below", image: null, cents: 0 }] }}
+                      currency={previews.data?.currency ?? product?.currency}
+                      page={pageLook}
+                      block={blockLook}
+                      highlight={flashed}
+                    />
+                  ) : null}
+                </ThemeLook>
+              </PreviewFrame>
+              <s-text color="subdued">The real block with your store&apos;s look. Colors and fonts follow your theme.</s-text>
 
               <s-section heading="Discount at checkout">
                 <s-paragraph>
@@ -205,6 +243,22 @@ export default function RuleEditor() {
           </>
         }
       >
+        <style dangerouslySetInnerHTML={{ __html: css }} />
+        <s-section heading="Status">
+          <s-stack gap="base">
+            <Switch label={rule.active ? "Active: showing on your store" : "Paused: hidden"} checked={rule.active} onValue={(v) => set("active", v)} />
+            <TextField label="Offer name" placeholder={rule.headline} details="Only you see this." value={rule.name} onValue={(v) => set("name", v)} />
+            <NumberField
+              label="Show order"
+              details="When several offers match the same product, the lowest number shows first."
+              value={rule.priority}
+              min={0}
+              max={999}
+              step={1}
+              onValue={(v) => set("priority", v)}
+            />
+          </s-stack>
+        </s-section>
           {isUpsell ? (
             <>
               <s-section heading="1. Choose the offer">
@@ -379,7 +433,7 @@ export default function RuleEditor() {
                   label="Products to suggest"
                   details="Sold-out products, the product being viewed and products already in the cart are skipped automatically."
                   value={rule.offeredProducts}
-                  onChange={(v) => set("offeredProducts", v)}
+                  onChange={setOffered}
                 />
                 <s-text type="strong">Show them on</s-text>
                 <Checkbox label="Product page" checked={rule.placements.includes("product")} onValue={(v) => togglePlacement("product", v)} />
@@ -442,6 +496,11 @@ export default function RuleEditor() {
               ) : null}
             </s-stack>
           </s-section>
+          {!isNew ? (
+            <DeleteOffer busy={busy} onDelete={remove}>
+              <s-paragraph>{`“${rule.name || rule.headline}” stops showing on your store and its checkout discount is removed. This cannot be undone.`}</s-paragraph>
+            </DeleteOffer>
+          ) : null}
       </EditorLayout>
     </s-page>
   );

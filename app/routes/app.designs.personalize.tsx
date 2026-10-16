@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useLocation, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -18,8 +18,9 @@ import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, Te
 import { PersonalizePreview } from "../components/PersonalizePreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker, templateInUse } from "../components/LookPicker";
-import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
+import { Pane, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { Tabs } from "../components/ui";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
@@ -60,7 +61,10 @@ const TYPES: { value: PersonalizeField["type"]; label: string }[] = [
 export default function PersonalizeDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("looks");
+  // Opens on the items (Content); Style is its own tab (?tab=style), like the other offers.
+  const [params] = useSearchParams();
+  const { pathname } = useLocation();
+  const styleView = params.get("tab") === "style";
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
   const shopify = useAppBridge();
@@ -119,14 +123,14 @@ export default function PersonalizeDesigner() {
             </s-banner>
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
+        <Tabs items={[{ label: "Personalization", to: pathname }, { label: "Style", to: `${pathname}?tab=style` }]} />
           <div className={ui.layout}>
             <s-stack gap="base">
-              <Pane show={tab === "looks"}>
+              <Pane show={styleView}>
                 <LookPicker width={720} presets={PERSONALIZE_PRESETS} config={cfg} apply={applyPersonalizePreset} onPick={(key) => setCfg((c) => applyPersonalizePreset(c, key))} render={(c) => <PersonalizePreview config={c} image={data.image} />} />
               </Pane>
 
-              <Pane show={tab === "content"}>
+              <Pane show={!styleView}>
                 <s-section heading="Fields">
                   <s-stack gap="base">
                     <TextField label="Heading" value={cfg.heading} onValue={(v) => setCfg((c) => ({ ...c, heading: v }))} />
@@ -172,7 +176,7 @@ export default function PersonalizeDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "content"}>
+              <Pane show={!styleView}>
                 <s-section heading="Fee">
                   <s-stack gap="base">
                     <Switch label="Charge for personalization" details="Adds a product of your choice (e.g. “Engraving”, a hidden product with a price) to the cart with the item; removed with it." checked={cfg.fee.on} onValue={(v) => fee({ on: v })} />
@@ -189,7 +193,7 @@ export default function PersonalizeDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "content"}>
+              <Pane show={!styleView}>
                 <s-section heading="Which products">
                   <s-stack gap="base">
                     <Select label="Show on" value={cfg.where.mode} onValue={(v) => where({ mode: v as C["where"]["mode"] })} options={[{ value: "all", label: "Every product page with the block" }, { value: "products", label: "Chosen products" }, { value: "collections", label: "Products in chosen collections" }]} />
@@ -203,7 +207,7 @@ export default function PersonalizeDesigner() {
                 </s-section>
               </Pane>
 
-              <Pane show={tab === "design"}>
+              <Pane show={styleView}>
                 <s-section heading="Preview on the picture">
                   <s-stack gap="base">
                     <Switch label="Show a live preview" checked={cfg.preview.on} onValue={(v) => preview({ on: v })} />
@@ -221,7 +225,7 @@ export default function PersonalizeDesigner() {
                   </s-stack>
                 </s-section>
               </Pane>
-              <Pane show={tab === "design"}>
+              <Pane show={styleView}>
                 <s-section heading="Look">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Style" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "box", label: "In a soft box" }, { value: "plain", label: "Plain" }]} />
@@ -230,7 +234,7 @@ export default function PersonalizeDesigner() {
                   </s-grid>
                 </s-section>
               </Pane>
-              <Pane show={tab === "design"}>
+              <Pane show={styleView}>
                 <SizesSection specs={PERSONALIZE_SIZES} value={cfg.sizes} onChange={(sizes) => setCfg((c) => ({ ...c, sizes }))} />
               </Pane>
             </s-stack>

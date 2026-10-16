@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- App Bridge resource picker payloads are untyped */
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useLocation, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -18,8 +18,9 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook, ThemeMatch } from "../components/ThemeStyle";
 import { matchAddons } from "../lib/theme-match";
 import { firstProduct } from "../lib/preview-products.server";
-import { DesignTabs, Pane, type DesignTab, PreviewFrame } from "../components/DesignTabs";
+import { Pane, PreviewFrame } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { Tabs } from "../components/ui";
 import { DemoButton } from "../components/DemoButton";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
@@ -48,7 +49,10 @@ const numericId = (gid: string) => gid.split("/").pop() ?? "";
 export default function AddonsDesigner() {
   const data = useLoaderData<typeof loader>();
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("looks");
+  // Opens on the items (Content); Style is its own tab (?tab=style), like the other offers.
+  const [params] = useSearchParams();
+  const { pathname } = useLocation();
+  const styleView = params.get("tab") === "style";
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
   const shopify = useAppBridge();
@@ -120,11 +124,11 @@ export default function AddonsDesigner() {
 
         <div className={ui.layout}>
           <s-stack gap="base">
-        <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
-        <Pane show={tab === "looks"}>
+        <Tabs items={[{ label: "Add-ons", to: pathname }, { label: "Style", to: `${pathname}?tab=style` }]} />
+        <Pane show={styleView}>
           <ThemeMatch style={data.style} config={cfg} setConfig={setCfg} match={matchAddons} />
         </Pane>
-            <Pane show={tab === "content"}><s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
+            <Pane show={!styleView}><s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
               <s-stack gap="base">
                 <s-text color="subdued">
                   Each add-on is a product in your store, like “Gift wrapping”. Shoppers tick it and it goes into the cart with the product. Add-ons always start unticked: Shopify requires shoppers to choose paid extras themselves.{" "}
@@ -163,7 +167,7 @@ export default function AddonsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "content"}><s-section heading="Gift message">
+            <Pane show={!styleView}><s-section heading="Gift message">
               <s-stack gap="base">
                 <Switch label="Let shoppers write a message" details="Saved on the order line, next to the product." checked={cfg.message.on} onValue={(v) => message({ on: v })} />
                 {cfg.message.on ? (
@@ -179,7 +183,7 @@ export default function AddonsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "design"}><s-section heading="Where it shows">
+            <Pane show={styleView}><s-section heading="Where it shows">
               <s-stack gap="base">
                 <Select
                   label="Show on"
@@ -204,7 +208,7 @@ export default function AddonsDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "design"}><s-section heading="Look">
+            <Pane show={styleView}><s-section heading="Look">
               <s-stack gap="base">
                 <TextField label="Heading (optional)" value={cfg.heading} onValue={(v) => setCfg((c) => ({ ...c, heading: v }))} />
                 <Select label="Layout" value={cfg.style} onValue={(v) => setCfg((c) => ({ ...c, style: v as C["style"] }))} options={[{ value: "list", label: "List" }, { value: "cards", label: "Cards side by side" }]} />

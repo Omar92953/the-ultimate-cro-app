@@ -12,7 +12,7 @@
  *  - the automatic app discount's $app.function-configuration (+ $app.function-input)
  *  - the cart transform's $app.bundles
  */
-import { gql, numericId, AdminError, type AdminClient } from "./admin.server";
+import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { remember } from "./short-cache.server";
 import { syncBundleGuard } from "./checkout-rules.server";
 
@@ -294,7 +294,8 @@ export async function listRules(admin: AdminClient, kind?: RuleKind): Promise<Ru
   });
   return rules
     .filter((r) => !kind || r.kind === kind)
-    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
+    // Equal "show order" numbers go by name, a to z ignoring case: the storefront (ucro-match.liquid) does the same.
+    .sort((a, b) => a.priority - b.priority || (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0));
 }
 
 
@@ -332,9 +333,10 @@ export async function saveRule(admin: AdminClient, rule: Rule) {
   return saved;
 }
 
+/** Deletes the offer, then re-sends the discounts; "warn" = deleted, but the discount update failed. */
 export async function deleteRule(admin: AdminClient, id: string) {
   await remove(admin, id);
-  await syncDiscounts(admin);
+  return afterDelete(() => syncDiscounts(admin));
 }
 
 /* --------------------------------------------------- offer discount sync -- */
@@ -1101,11 +1103,11 @@ async function stepIds(admin: AdminClient, handle: string): Promise<string[]> {
 export async function deleteBundle(admin: AdminClient, handle: string) {
   const all = await listBundles(admin);
   const bundle = all.find((b) => b.handle === handle);
-  if (!bundle?.id) return;
+  if (!bundle?.id) return "ok" as const;
   const steps = await stepIds(admin, handle);
   await remove(admin, bundle.id);
   for (const id of steps) await remove(admin, id);
-  await syncBundles(admin);
+  return afterDelete(() => syncBundles(admin));
 }
 
 /**

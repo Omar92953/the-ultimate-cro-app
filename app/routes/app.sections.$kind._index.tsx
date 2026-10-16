@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { addProducts, deleteItem, listItems, reorder, sectionLinks, setShown } from "../lib/sections.server";
 import { SECTIONS, SOURCES, isKind, itemStatus, type MediaRef, type ProductRef, type SectionItem, type SectionKind } from "../lib/sections";
+import { DeletedToast } from "../components/DeleteOffer";
 import { Button, Checkbox } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
@@ -131,6 +132,7 @@ export default function SectionList() {
     <s-page heading={cfg.title} inlineSize="large">
       <CategoryCrumb feature={featureKey} />
       <DemoButton feature={featureKey} />
+      <DeletedToast />
       <Button slot="primary-action" variant="primary" href={`/app/sections/${data.kind}/new`}>
         {cfg.addLabel}
       </Button>

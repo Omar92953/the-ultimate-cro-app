@@ -6,6 +6,7 @@
 import { useState, type CSSProperties } from "react";
 import { upsellHeadingClass, upsellVars, type UpsellDesign } from "../lib/upsell-design";
 import type { PreviewTheme } from "../lib/theme-style";
+import { flashStyle } from "./flash";
 
 export type PreviewOffer = {
   headline: string;
@@ -31,7 +32,7 @@ export type PreviewProductLite = { title: string; image: string | null; cents: n
 const SAMPLE_PRODUCT: PreviewProductLite = { title: "Everyday tee", image: null, cents: 4000, variants: [] };
 
 /** page: the store's page look; block: the chosen colour scheme's look (null = none). */
-export function UpsellDesignPreview({ config: c, offer = SAMPLE_OFFER, product, currency = "USD", page, block }: { config: UpsellDesign; offer?: PreviewOffer; product?: PreviewProductLite | null; currency?: string; page: PreviewTheme; block: PreviewTheme | null }) {
+export function UpsellDesignPreview({ config: c, offer = SAMPLE_OFFER, product, currency = "USD", page, block, highlight = null }: { config: UpsellDesign; offer?: PreviewOffer; product?: PreviewProductLite | null; currency?: string; page: PreviewTheme; block: PreviewTheme | null; /** "tier-N": outline that offer for a moment (the editor edited it). */ highlight?: string | null }) {
   const [picked, setPicked] = useState(1);
   const p = product ?? SAMPLE_PRODUCT;
   const UNIT = p.cents / 100;
@@ -85,7 +86,7 @@ export function UpsellDesignPreview({ config: c, offer = SAMPLE_OFFER, product, 
         {offer.subheadline ? <p className="ucro__sub">{offer.subheadline}</p> : null}
         <div className="ucro-tiers" role="radiogroup" aria-label={offer.headline || "Offers"}>
           {rows.map((r, i) => (
-            <div key={i} className="ucro-tier-wrap">
+            <div key={i} className="ucro-tier-wrap" style={flashStyle(highlight === `tier-${i}`)}>
               <button type="button" className={`ucro-tier${i === selected ? " is-selected" : ""}`} role="radio" aria-checked={i === selected} onClick={() => setPicked(i)}>
                 <span className="ucro-tier__radio" aria-hidden="true" />
                 {list ? (

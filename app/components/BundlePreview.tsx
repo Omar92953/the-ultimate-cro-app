@@ -3,6 +3,7 @@
  * ucro-bundle-builder.liquid, with one of the merchant's bundles (or a sample). Picking items,
  * the counts, the summary and the button text behave like on the store.
  */
+import { flashStyle } from "./flash";
 import type { BundlePricing, BundleTier } from "../lib/types";
 import { bundlePrice } from "../lib/bundle-price";
 import { useState, type CSSProperties } from "react";
@@ -25,7 +26,7 @@ export const SAMPLE_BUNDLE: PreviewBundle = {
 const fill = (s: string, vars: Record<string, string | number>) => s.replace(/\[(\w+)\]/g, (m, k) => (k in vars ? String(vars[k]) : m));
 
 /** page: the store's page look; block: the chosen colour scheme's look (null = none). */
-export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", phone, page, block }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; phone?: boolean; page: PreviewTheme; block: PreviewTheme | null }) {
+export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "USD", phone, page, block, highlight = null }: { config: BundleDesign; bundle?: PreviewBundle; currency?: string; phone?: boolean; page: PreviewTheme; block: PreviewTheme | null; /** "step-N": outline that step for a moment (the editor changed it). */ highlight?: string | null }) {
   const [picked, setPicked] = useState<Record<string, boolean>>({ "0-0": true });
   const money = (cents: number) => {
     try {
@@ -68,7 +69,7 @@ export function BundlePreview({ config: c, bundle = SAMPLE_BUNDLE, currency = "U
         {c.text.heading ? <h2 className={`ucro__heading ucro__heading--${c.text.size}`}>{c.text.heading}</h2> : null}
         {c.text.sub ? <p className="ucro__sub">{c.text.sub}</p> : null}
         {steps.map((s, si) => (
-          <fieldset key={si} className="ucro-bundle__step">
+          <fieldset key={si} className="ucro-bundle__step" style={flashStyle(highlight === `step-${si}`)}>
             <legend className="ucro-bundle__legend">
               <span className="ucro-bundle__label">{s.label}</span>
               <span className="ucro-bundle__count">

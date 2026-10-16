@@ -2,7 +2,7 @@
 export const HELP = {
   upsell: {
     what: "Offers on the product page that reward buying more (“Buy 2, save 10%”) or choosing a bigger size.",
-    how: "The shopper picks an offer, it sets the quantity or size on your normal Add to cart, and the discount is applied at checkout automatically. If several offers match a product, the lowest priority number wins.",
+    how: "The shopper picks an offer, it sets the quantity or size on your normal Add to cart, and the discount is applied at checkout automatically. If several offers match a product, the lowest show order number wins.",
     example: "Hoodie at 500: Buy 1 = 500, Buy 2 = 900 (save 10%), Buy 3 = 1,275 (save 15%, “Most popular”).",
   },
   cross_sell: {

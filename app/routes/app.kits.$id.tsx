@@ -12,6 +12,8 @@ import { errorMessage, numericId } from "../lib/admin.server";
 import { deleteKit, listKits, saveKit } from "../lib/kits.server";
 import { blankKit, kitVariantPrice, productNumber, validateKit, type Kit } from "../lib/kits";
 import { EditorLayout } from "../components/EditorLayout";
+import { DeleteOffer } from "../components/DeleteOffer";
+import { flashStyle, useFlash } from "../components/flash";
 import { EditorSection } from "../components/EditorSection";
 import type { PreviewItem } from "../components/BundlePreview";
 import { checkLimit } from "../lib/billing.server";
@@ -57,6 +59,7 @@ export default function KitEditor() {
   const shopify = useAppBridge();
   const navigate = useNavigate();
   const busy = fetcher.state !== "idle";
+  const [flashed, flash] = useFlash();
 
   const [loaded, setLoaded] = useState(initial);
   // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
@@ -109,7 +112,7 @@ export default function KitEditor() {
   const picture = kit.items.find((i) => i.image)?.image ?? null;
 
   const remove = () => {
-    if (!kit.productId || !window.confirm(`Delete “${kit.title}”? Its product is deleted in Shopify too (the items themselves are not touched).`)) return;
+    if (!kit.productId) return;
     fetcher.submit({ intent: "delete", productId: kit.productId }, { method: "post" });
   };
 
@@ -122,11 +125,6 @@ export default function KitEditor() {
       {!isNew ? (
         <Button slot="secondary-actions" href={`shopify://admin/products/${productNumber(kit.productId ?? "")}`} target="_top">
           Photos, description and publishing
-        </Button>
-      ) : null}
-      {!isNew ? (
-        <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
-          Delete
         </Button>
       ) : null}
 
@@ -172,7 +170,7 @@ export default function KitEditor() {
                         What&apos;s inside:
                         <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
                           {kit.items.map((i) => (
-                            <li key={i.productId}>{`${i.qty > 1 ? `${i.qty} × ` : ""}${i.title}`}</li>
+                            <li key={i.productId} style={flashStyle(flashed === `item-${i.productId}`)}>{`${i.qty > 1 ? `${i.qty} × ` : ""}${i.title}`}</li>
                           ))}
                         </ul>
                       </div>
@@ -213,7 +211,11 @@ export default function KitEditor() {
               label="Items in the bundle"
               details="Up to 30. Each item's sizes, colours… become options on the bundle's page. Its stock comes from these items."
               value={kit.items.map((i) => ({ id: i.productId, title: i.title, image: i.image }))}
-              onChange={(v) => set("items", v.map((r) => kit.items.find((i) => i.productId === r.id) ?? { productId: r.id, title: r.title, image: r.image ?? null, qty: 1 }))}
+              onChange={(v) => {
+                const added = v.find((r) => !kit.items.some((i) => i.productId === r.id));
+                if (added) flash(`item-${added.id}`);
+                set("items", v.map((r) => kit.items.find((i) => i.productId === r.id) ?? { productId: r.id, title: r.title, image: r.image ?? null, qty: 1 }));
+              }}
             />
             {kit.items.length ? (
               <s-grid gridTemplateColumns="repeat(auto-fill, minmax(200px, 1fr))" gap="small-200">
@@ -225,7 +227,10 @@ export default function KitEditor() {
                     max={99}
                     step={1}
                     value={item.qty}
-                    onValue={(v) => set("items", kit.items.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)))}
+                    onValue={(v) => {
+                      flash(`item-${item.productId}`);
+                      set("items", kit.items.map((x, j) => (j === i ? { ...x, qty: Math.round(v) } : x)));
+                    }}
                   />
                 ))}
               </s-grid>
@@ -256,6 +261,11 @@ export default function KitEditor() {
             />
           </s-stack>
           </EditorSection>
+          {!isNew ? (
+            <DeleteOffer busy={busy} onDelete={remove}>
+              <s-paragraph>{`“${kit.title}” is deleted, and its product is deleted in Shopify too. The items themselves are not touched. This cannot be undone.`}</s-paragraph>
+            </DeleteOffer>
+          ) : null}
         </EditorLayout>
       </s-stack>
     </s-page>
