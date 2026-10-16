@@ -346,25 +346,6 @@ const cartFake = `<script>
   })();
 </script>`;
 pages["deals-cart.html"] = page("Deals in the cart", cartFake + '<form action="/cart" method="post" style="margin:24px 40px"><p>Cart: 1 × Classic watch — Silver</p></form>', (await block("ucs-boosters", {}, { page_type: "cart", shop: cartShop })) + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
-const { toStorefrontCartTools, withCartToolsDefaults } = await import("../../app/lib/cart-tools-design.ts");
-const ctShop = withDesign(mo("cart_tools", { config: toStorefrontCartTools(withCartToolsDefaults({ discount: { on: true, codes: "SAVE10, SAVE20" } })) }));
-const ctFake = `<script>
-  window.__ct = { items: [{ key: "a1", variant_id: 7701, product_title: "Classic watch", url: "/products/classic-watch", image: null, quantity: 1, final_line_price: 12900, original_line_price: 12900, options_with_values: [{ name: "Colour", value: "Silver" }], properties: {} }], disc: "" };
-  window.__calls = [];
-  (function () {
-    const res = (o) => Promise.resolve(new Response(JSON.stringify(o), { headers: { "Content-Type": "application/json" } }));
-    const cart = () => { const sub = __ct.items.reduce((n, i) => n + i.final_line_price, 0); const off = __ct.disc === "SAVE20" ? 0.2 : __ct.disc === "SAVE10" ? 0.1 : 0;
-      return { items: __ct.items, item_count: __ct.items.reduce((n, i) => n + i.quantity, 0), currency: "USD", total_price: Math.round(sub * (1 - off)), discount_codes: __ct.disc ? [{ code: __ct.disc, applicable: true }] : [], cart_level_discount_applications: off ? [{ title: __ct.disc, total_allocated_amount: Math.round(sub * off) }] : [] }; };
-    window.fetch = (u, o) => {
-      u = String(u); const body = o && o.body ? JSON.parse(o.body) : {};
-      if (u.includes("/cart/")) __calls.push(u.split("/cart/").pop() + " " + JSON.stringify(body));
-      if (u.includes("/cart/update")) { if ("discount" in body) __ct.disc = body.discount; return res(cart()); }
-      if (u.includes("/cart/change")) { __ct.items = __ct.items.map((i) => (i.key === body.id ? Object.assign(i, { quantity: body.quantity, final_line_price: 12900 * body.quantity, original_line_price: 12900 * body.quantity }) : i)).filter((i) => i.quantity > 0); return res(cart()); }
-      return res(cart());
-    };
-  })();
-</script>`;
-pages["cart-drawer.html"] = page("Cart drawer & checkout", ctFake + '<p style="margin:24px 40px"><a href="/cart" id="cart-icon-bubble">Cart (1)</a></p>', await block("ucs-cart", {}, { shop: ctShop }));
 const { toStorefrontWishlist, withWishlistDefaults } = await import("../../app/lib/wishlist-design.ts");
 const wlShop = withDesign(mo("wishlist", { config: toStorefrontWishlist(withWishlistDefaults({})) }));
 const wlFake = `<script>

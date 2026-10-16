@@ -17,9 +17,8 @@ customer pays.
     page (sticky add to cart, quick add, delivery estimate, back in stock), content (hero, carousels,
     FAQ, quiz, collection pills) and store pages (header, footer, contact, track order, returns).
     Filter by status (live, needs setup, off, not in my plan) or search.
-  - **Cart:** first choose your cart — keep your theme's cart and add offers to it, or use the app's
-    cart drawer — then its modules (offers, free-shipping bar, gift note & delivery date, express
-    checkout, best discount, share cart).
+  - **Storefront → Cart group** (first group): offers in your theme's cart, gift note & delivery
+    date. The free-shipping bar sits in Bars & urgency.
   - **Checkout:** payment rules, delivery rules, order limits, thank-you page, after-purchase offer.
   - **Analytics:** sales from the app (last 30 days vs the 30 before), each offer and bundle, and the
     holdout test.

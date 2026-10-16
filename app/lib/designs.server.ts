@@ -15,7 +15,6 @@ import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
 import { toStorefrontCartExtras, withCartExtrasDefaults, type CartExtrasDesign } from "./cart-extras-design";
-import { toStorefrontCartTools, withCartToolsDefaults, type CartToolsDesign } from "./cart-tools-design";
 import { toStorefrontWishlist, withWishlistDefaults, type WishlistDesign } from "./wishlist-design";
 import { toStorefrontQuiz, withQuizDefaults, type QuizDesign } from "./quiz-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
@@ -410,21 +409,6 @@ export async function saveCartExtras(admin: AdminClient, config: CartExtrasDesig
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_extras", { config: store });
   await upsert(admin, "$app:cro_design", "cart_extras_draft", { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_extras_editor", { config: JSON.stringify(clean) });
-  return clean;
-}
-
-/* ---------------------------------------------------- cart drawer & checkout -- */
-export async function getCartTools(admin: AdminClient): Promise<{ config: CartToolsDesign; saved: boolean }> {
-  const raw = await getDesign(admin, "cart_tools_editor");
-  return { config: withCartToolsDefaults(raw), saved: raw !== null };
-}
-
-export async function saveCartTools(admin: AdminClient, config: CartToolsDesign, draftOnly = false) {
-  const clean = withCartToolsDefaults(config);
-  const store = JSON.stringify(toStorefrontCartTools(clean));
-  if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_tools", { config: store });
-  await upsert(admin, "$app:cro_design", "cart_tools_draft", { config: store });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", "cart_tools_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 

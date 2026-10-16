@@ -26,7 +26,7 @@ const levelText = c.level === "vendor" ? "from the app's own listing or website,
 const faq: QA[] = [
   {
     q: `What is the difference between CRO Toolbox and ${c.name}?`,
-    a: `CRO Toolbox is one app for offers, six kinds of bundles, storefront sections, a cart drawer and checkout rules. ${c.name} focuses on: ${c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}`,
+    a: `CRO Toolbox is one app for offers, six kinds of bundles, storefront sections, cart offers and checkout rules. ${c.name} focuses on: ${c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}`,
   },
   {
     q: `How much does CRO Toolbox cost compared with ${c.name}?`,
@@ -43,7 +43,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
       <span class="eyebrow">Compare</span>
       <h1>CRO Toolbox vs {c.name}</h1>
       <p class="lead">
-        CRO Toolbox brings offers, bundles, storefront sections, a cart drawer and checkout rules into one app. {c.name} focuses on: {
+        CRO Toolbox brings offers, bundles, storefront sections, cart offers and checkout rules into one app. {c.name} focuses on: {
           c.focus.charAt(0).toLowerCase() + c.focus.slice(1)
         }
       </p>

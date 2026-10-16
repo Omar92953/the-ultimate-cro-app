@@ -14,11 +14,11 @@ const app = async (name) => import(`../../app/lib/${name}.ts`);
 
 const [
   upsellD, crossD, bundleD, videoD, reviewsD, faqD, logosD, annD, shipD, countD, quickD, deliveryD, stockD, wishD, heroD, carouselD, pillsD,
-  headerD, footerD, pagesD, orderD, persD, extrasD, toolsD, addonsD, quizD, deals, boostersD,
+  headerD, footerD, pagesD, orderD, persD, extrasD, addonsD, quizD, deals, boostersD,
 ] = await Promise.all([
   "upsell-design", "cross-sell-design", "bundle-design", "video-carousel-design", "reviews-design", "faq-design", "logos-design", "announcement-design",
   "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "hero-design", "image-carousel", "collection-pills",
-  "header", "footer-design", "pages", "order-pages", "personalize-design", "cart-extras-design", "cart-tools-design", "addons", "quiz-design", "deals", "boosters",
+  "header", "footer-design", "pages", "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters",
 ].map(app));
 
 const PAY_CSS = ["ucs-boosters.css"];
@@ -99,12 +99,6 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   // ------------------------------------------------------------------------------ Cart --
   const seed = { items: [{ key: "s1", id: P["glow-serum"].variants[0].id, quantity: 1, properties: {} }], attributes: {}, note: "", discount: "" };
-  const toolsOf = (key) => toolsD.toStorefrontCartTools(toolsD.applyCartToolsPreset(toolsD.withCartToolsDefaults({}), key));
-  F.cart_tools = await Promise.all(toolsD.CART_TOOLS_PRESETS.map(async (p) => ({
-    template: p.key, title: p.title, layout: "product", product: "daily-cream", minHeight: 720, cartSeed: seed, autoClick: "#cart-icon-bubble",
-    embeds: await block("ucs-cart", { shop: shopWith({ designs: { cart_tools: toolsOf(p.key) } }) }),
-  })));
-
   F.cart_offers = [
     {
       title: "In your theme's cart drawer", layout: "product", product: "glow-serum", minHeight: 720, cartSeed: seed, autoClick: "#cart-icon-bubble",
@@ -355,7 +349,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   // (DEMO_TEMPLATES in app/lib/site.ts says how many; the build checks it).
   const T = {
     upsell: upsellD.UPSELL_PRESETS, cross_sell: crossD.CROSS_SELL_PRESETS, personalize: persD.PERSONALIZE_PRESETS,
-    cart_tools: toolsD.CART_TOOLS_PRESETS, cart_extras: extrasD.CART_EXTRAS_PRESETS,
+    cart_extras: extrasD.CART_EXTRAS_PRESETS,
     reviews: reviewsD.REVIEW_PRESETS, product_reviews: reviewsD.PRODUCT_REVIEW_PRESETS, logos: logosD.LOGOS_PRESETS,
     announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
     quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,

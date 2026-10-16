@@ -27,7 +27,7 @@ export const TUTORIALS: Tutorial[] = [
   { title: "Mix and match bundles and fixed bundles", length: "4:00", feature: "bundles", youtubeId: null },
   { title: "Add storefront sections to your theme", length: "3:00", feature: "reviews", youtubeId: null },
   { title: "Bars: announcement, countdown, free shipping", length: "2:30", feature: "announcements", youtubeId: null },
-  { title: "Choose your cart and its modules", length: "3:30", feature: "cart_tools", youtubeId: null },
+  { title: "Cart offers, gift notes and the free shipping bar", length: "3:30", feature: "cart_offers", youtubeId: null },
   { title: "Payment and delivery rules", length: "3:00", feature: "payment_rules", youtubeId: null },
   { title: "Read your Analytics", length: "2:30", feature: null, youtubeId: null },
 ];

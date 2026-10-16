@@ -44,7 +44,6 @@ const LIMIT_ROWS: { key: LimitKey; label: string }[] = [
 ];
 
 const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
-  { label: "Cart drawer: express checkout, best discount, share cart", needs: EXTRA_PLAN.cartDrawerPro },
   { label: "Holdout test (measure what the app adds)", needs: EXTRA_PLAN.holdoutTest },
   { label: "Request any feature and we build it", needs: EXTRA_PLAN.featureRequests },
   { label: "Priority support", needs: EXTRA_PLAN.prioritySupport },

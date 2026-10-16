@@ -77,7 +77,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 0,
     trialDays: 0,
     limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: 50 },
-    highlights: ["3 offers on at once", "Cart drawer and announcement bars", "Reviews, FAQ and wishlist", "3 checkout rules", "Try 1 Starter feature free"],
+    highlights: ["3 offers on at once", "Cart offers and announcement bars", "Reviews, FAQ and wishlist", "3 checkout rules", "Try 1 Starter feature free"],
   },
   starter: {
     key: "starter",
@@ -88,7 +88,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 59,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
-    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Full cart drawer", "Quiz, carousels and store pages", "5 styles per section"],
+    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section"],
   },
   growth: {
     key: "growth",
@@ -128,8 +128,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   discounts: "free",
   addons: "starter",
   personalize: "starter",
-  // Cart
-  cart_tools: "free",
+  // Cart (these sit in the Storefront hub, group Cart)
   cart_offers: "free",
   cart_extras: "starter",
   // Storefront
@@ -171,8 +170,6 @@ export const EXTRA_PLAN = {
   /** "Request a feature" on Home: the merchant asks, we build it for them. */
   featureRequests: "growth",
   holdoutTest: "growth",
-  /** The cart drawer's express checkout, best-discount and share-cart modules. */
-  cartDrawerPro: "starter",
   prioritySupport: "pro",
   requestsFirst: "pro",
 } satisfies Record<string, PlanKey>;

@@ -19,21 +19,20 @@ export type Competitor = {
   has: Partial<Record<Capability, true>>;
 };
 
-export type Capability = "bundles" | "quantity" | "cross_sell" | "bogo" | "gift" | "cart_drawer" | "reviews" | "sections" | "checkout_rules" | "post_purchase";
+export type Capability = "bundles" | "quantity" | "cross_sell" | "bogo" | "gift" | "reviews" | "sections" | "checkout_rules" | "post_purchase";
 export const CAPABILITIES: { key: Capability; label: string }[] = [
   { key: "bundles", label: "Bundles (mix and match, kits, fixed sets)" },
   { key: "quantity", label: "Quantity breaks" },
   { key: "cross_sell", label: "Cross sells and upsells" },
   { key: "bogo", label: "Buy X get Y" },
   { key: "gift", label: "Free gift with purchase" },
-  { key: "cart_drawer", label: "Cart drawer" },
   { key: "reviews", label: "Product reviews" },
   { key: "sections", label: "Storefront sections (hero, FAQ, carousels…)" },
   { key: "checkout_rules", label: "Payment and delivery rules, order limits" },
   { key: "post_purchase", label: "One click offer after payment" },
 ];
 /** CRO Toolbox: every capability above is in the app today (catalog.ts). */
-export const OURS: Record<Capability, true> = { bundles: true, quantity: true, cross_sell: true, bogo: true, gift: true, cart_drawer: true, reviews: true, sections: true, checkout_rules: true, post_purchase: true };
+export const OURS: Record<Capability, true> = { bundles: true, quantity: true, cross_sell: true, bogo: true, gift: true, reviews: true, sections: true, checkout_rules: true, post_purchase: true };
 
 export const CHECKED = "October 15, 2026";
 
@@ -122,6 +121,6 @@ export const COMPETITORS: Competitor[] = [
     pricing: ["Free to install", "Most sections $0 to $9, paid once", "Section Store Plus $15 a month (bundles, quantity breaks, cart drawer)"],
     level: "vendor",
     sources: [{ label: "section.store", url: "https://section.store/" }],
-    has: { sections: true, bundles: true, quantity: true, cart_drawer: true },
+    has: { sections: true, bundles: true, quantity: true },
   },
 ];

@@ -27,9 +27,9 @@ export const PAGES = {
   home: {
     slug: "home",
     path: "/",
-    title: "CRO Toolbox: upsells, bundles, cart drawer and more for Shopify",
+    title: "CRO Toolbox: upsells, bundles, cart offers and more for Shopify",
     description:
-      `${BRAND_LINE} Six kinds of bundles, upsells, discounts, a cart drawer, reviews, countdowns and checkout rules for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
+      `${BRAND_LINE} Six kinds of bundles, upsells, discounts, cart offers, reviews, countdowns and checkout rules for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
     ogTitle: "Sell more per order, with one app",
     ogKicker: "Shopify app",
   },

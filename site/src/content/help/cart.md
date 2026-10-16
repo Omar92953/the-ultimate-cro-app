@@ -1,17 +1,13 @@
 ---
-title: "Your cart: drawer, offers, gift note and free shipping bar"
-description: "Choose your cart, then add offers, the free shipping bar, a gift note and a delivery date."
+title: "Your cart: offers, gift note and free shipping bar"
+description: "Add offers to your theme's cart, the free shipping bar, a gift note and a delivery date."
 order: 7
-features: ["cart_tools", "cart_extras", "shipping_bar"]
+features: ["cart_offers", "cart_extras", "shipping_bar"]
 ---
 
-## Choose your cart
+## Offers in your theme's cart
 
-In **Cart**, first choose: keep your theme's cart and add offers to it, or use the app's cart drawer. Then switch on its modules.
-
-## The app's cart drawer
-
-A slide out cart that opens on add to cart and from the cart icon, with quantities, the subtotal, express checkout buttons (Shop Pay, Apple Pay), the best discount from codes you list, a shareable cart link and a remembered cart.
+In **Storefront**, the **Cart** group has everything for the cart. Switch on **Offers in your theme's cart** to show cross sell offers inside your theme's own cart drawer (Dawn and Dawn based themes).
 
 ## Gift note and delivery date
 

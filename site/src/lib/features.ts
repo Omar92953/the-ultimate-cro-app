@@ -65,21 +65,16 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["Text fields with a live preview on the product picture", "Colour choices", "Required fields and a character limit", "An optional fee for personalization", "Saved on the order with the item"],
     related: ["addons", "cart_extras"],
   },
-  cart_tools: {
-    who: "For stores that want a slide out cart instead of a cart page.",
-    points: ["Opens on add to cart and from the cart icon", "Express checkout buttons like Shop Pay and Apple Pay", "Applies the best discount from codes you list", "A shareable cart link and a remembered cart", "Offers and the free shipping bar inside it"],
-    related: ["cart_offers", "shipping_bar", "cart_extras"],
-  },
   cart_offers: {
     who: "For stores that keep their theme's own cart drawer and want offers in it.",
     points: ["Cross sell offers inside the theme's cart drawer", "Shows when the cart has a trigger product", "Heading, number of products and button text are yours"],
-    related: ["cross_sell", "cart_tools"],
+    related: ["cross_sell", "cart_extras", "shipping_bar"],
     note: "Offers in the theme's own drawer work with Dawn and Dawn based themes.",
   },
   cart_extras: {
     who: "For gift shops and stores that deliver on a chosen day.",
     points: ["This is a gift, with a gift message", "A delivery date picker, with time slots if you want", "Everything saved on the order"],
-    related: ["addons", "cart_tools", "delivery"],
+    related: ["addons", "cart_offers", "delivery"],
   },
   reviews: {
     who: "For every store: proof from real customers next to your products.",
@@ -119,8 +114,8 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   shipping_bar: {
     who: "For stores with a free shipping threshold.",
-    points: ["Shows how much more to spend for free shipping", "In the cart drawer, on the cart page and at the top of the store", "Can create the matching automatic free shipping discount", "Extra reward tiers like a free gift or 10% off"],
-    related: ["cart_tools", "announcements", "discounts"],
+    points: ["Shows how much more to spend for free shipping", "In your theme's cart drawer, on the cart page and at the top of the store", "Can create the matching automatic free shipping discount", "Extra reward tiers like a free gift or 10% off"],
+    related: ["cart_offers", "announcements", "discounts"],
   },
   stock_urgency: {
     who: "For products that really run low.",
