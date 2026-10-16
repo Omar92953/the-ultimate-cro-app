@@ -8,9 +8,9 @@
   assign v = p.selected_or_first_available_variant
   assign now = v.price | times: keep | divided_by: 100.0 | round
 -%}
-<li class="ucro-offer">
+<li class="ucro-offer{% unless p.available %} is-sold-out{% endunless %}">
   <label class="ucro-offer__row">
-    <input type="checkbox" class="ucro-offer__check"{% if checked %} checked{% endif %}>
+    <input type="checkbox" class="ucro-offer__check"{% if checked and p.available %} checked{% endif %}{% unless p.available %} disabled{% endunless %}>
     <span class="ucro-offer__box" aria-hidden="true"></span>
     <span class="ucro-offer__img">
       {%- if p.featured_media -%}
@@ -27,19 +27,20 @@
           <s class="ucro-was" data-ucro-was>{{ v.price | money }}</s>
         {%- endif -%}
       </span>
+      {%- unless p.available -%}<span class="ucro-offer__soldout">{{ 'ucro.sold_out' | t }}</span>{%- endunless -%}
     </span>
   </label>
-  {%- if p.has_only_default_variant -%}
+  {%- if p.available != true -%}
+    {%- comment -%} Sold out: nothing to choose. {%- endcomment -%}
+  {%- elsif p.has_only_default_variant -%}
     <input type="hidden" class="ucro-offer__variant" value="{{ v.id }}">
   {%- else -%}
     <select class="ucro-offer__variant ucro-select" aria-label="{{ p.title | escape }}">
       {%- for variant in p.variants -%}
-        {%- if variant.available -%}
-          {%- assign v_now = variant.price | times: keep | divided_by: 100.0 | round -%}
-          <option value="{{ variant.id }}" data-price="{{ v_now | money | escape }}" data-was="{{ variant.price | money | escape }}"{% if variant.id == v.id %} selected{% endif %}>
-            {{- variant.title -}}
-          </option>
-        {%- endif -%}
+        {%- assign v_now = variant.price | times: keep | divided_by: 100.0 | round -%}
+        <option value="{{ variant.id }}" data-price="{{ v_now | money | escape }}" data-was="{{ variant.price | money | escape }}"{% if variant.id == v.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>
+          {{- variant.title -}}{%- unless variant.available %} ({{ 'ucro.sold_out' | t }}){% endunless -%}
+        </option>
       {%- endfor -%}
     </select>
   {%- endif -%}

@@ -237,6 +237,19 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
   const without = await block("ucro-upsell", teeCtx, {}, mk(quantityListRule));
   console.log("upsell own style:", JSON.stringify({ ownUsesStyle2: !withOwn.includes("ucro-upsell--list") && withOwn.includes("ucro__heading--large"), defaultUsesStyle1: without.includes("ucro-upsell--list") }));
 }
+// Sold out: the upsell still shows (offers disabled, "Sold out" note) and cross-sell rows keep the sold out product.
+{
+  const soldUpsell = await block("ucro-upsell", { product: { ...P.soldout, available: false, selected_or_first_available_variant: P.soldout.variants[0] }, page_type: "product" }, {}, shopWith([quantityListRule]));
+  const crossSold = await block("ucro-cross-sell", { product: P.batman, page_type: "product" });
+  console.log("sold out:", JSON.stringify({
+    upsellShown: soldUpsell.includes("ucro-upsell") && soldUpsell.includes("is-sold-out"),
+    upsellNote: soldUpsell.includes("ucro__soldout"),
+    upsellDisabled: /<button[^>]*class="ucro-tier"[^>]*disabled/.test(soldUpsell.replace(/\n\s*/g, " ")),
+    crossKeepsSoldOut: crossSold.includes("is-sold-out") && crossSold.includes("ucro-offer__soldout"),
+  }));
+  const itemLabel = await block("ucro-upsell", teeCtx, {}, shopWith([quantityListRule], listDesign));
+  console.log("item label:", JSON.stringify({ migrated: itemLabel.includes('data-item-label="[n]"') }));
+}
 // Bundles built anywhere: "Add to bundle" on a product page, "+" on the step collection's cards, the tray.
 {
   // Shopify adds an embed's schema stylesheet itself; the harness links it.

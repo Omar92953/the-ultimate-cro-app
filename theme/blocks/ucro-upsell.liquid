@@ -67,13 +67,25 @@
     assign d_ss = false
   endif
 
+  # "#[n]" was the old default; the item picker now shows just the number.
+  assign item_label = d.il | default: '[n]'
+  if item_label == '#[n]'
+    assign item_label = '[n]'
+  endif
+
   assign per_item = false
   if utype == 'quantity' and d_pi and product.has_only_default_variant == false
     assign per_item = true
   endif
 
+  # A sold out product still shows its offers, not selectable (is-sold-out), so shoppers see what they miss.
+  assign sold_out = false
+  if product.available == false
+    assign sold_out = true
+  endif
+
   assign renderable = false
-  if tiers != blank and tiers.size > 0 and product.available
+  if tiers != blank and tiers.size > 0
     if utype == 'quantity' or opt_pos > 0
       assign renderable = true
     endif
@@ -86,14 +98,16 @@
 
 {%- if renderable -%}
   <ucro-upsell
-    class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{{ d.cls }}"
+    class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if sold_out %} is-sold-out{% endif %}{{ d.cls }}"
     style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
     data-radius="{{ d.rad | default: 'theme' }}"
     data-type="{{ utype }}"
+    data-sold-out="{{ sold_out }}"
+    data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
     data-variant-id="{{ sv.id }}"
     data-own-button="{% if d.own %}true{% else %}false{% endif %}"
     data-per-item="{{ per_item }}"
-    data-item-label="{{ d.il | default: '#[n]' | escape }}"
+    data-item-label="{{ item_label | escape }}"
     data-error="{{ 'ucro.error' | t | escape }}"
     {{ block.shopify_attributes }}
   >
@@ -208,6 +222,9 @@
       {%- endfor -%}
     </div>
 
+    {%- if sold_out -%}
+      <p class="ucro__soldout">{{ 'ucro.sold_out' | t }}</p>
+    {%- endif -%}
     <button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ d.btn | default: 'Add to cart' | escape }}</button>
     <p class="ucro__error" role="alert" hidden></p>
 
@@ -275,9 +292,8 @@
             ,"items": [
               {%- assign first_i = true -%}
               {%- for variant in product.variants -%}
-                {%- unless variant.available -%}{%- continue -%}{%- endunless -%}
                 {%- unless first_i -%},{%- endunless -%}{%- assign first_i = false -%}
-                { "id": {{ variant.id }}, "t": {{ variant.title | json }} }
+                { "id": {{ variant.id }}, "t": {{ variant.title | json }}, "av": {{ variant.available | json }} }
               {%- endfor -%}
             ]
           {%- endif -%}
@@ -293,8 +309,6 @@
       Upsell is switched off in CRO Toolbox.
     {%- elsif product == blank -%}
       Upsell only works on product pages.
-    {%- elsif product.available == false -%}
-      Upsell is hidden because this product is sold out.
     {%- elsif rule and utype == 'variant' and opt_pos == 0 -%}
       Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.
     {%- else -%}

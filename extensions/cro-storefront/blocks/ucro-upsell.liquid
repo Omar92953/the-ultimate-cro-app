@@ -55,12 +55,20 @@ endif
 if d.ss == false
 assign d_ss = false
 endif
+assign item_label = d.il | default: '[n]'
+if item_label == '#[n]'
+assign item_label = '[n]'
+endif
 assign per_item = false
 if utype == 'quantity' and d_pi and product.has_only_default_variant == false
 assign per_item = true
 endif
+assign sold_out = false
+if product.available == false
+assign sold_out = true
+endif
 assign renderable = false
-if tiers != blank and tiers.size > 0 and product.available
+if tiers != blank and tiers.size > 0
 if utype == 'quantity' or opt_pos > 0
 assign renderable = true
 endif
@@ -70,14 +78,16 @@ if d.list
 assign list = true
 endif
 -%}{%- if renderable -%}<ucro-upsell
-class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{{ d.cls }}"
+class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if sold_out %} is-sold-out{% endif %}{{ d.cls }}"
 style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
 data-radius="{{ d.rad | default: 'theme' }}"
 data-type="{{ utype }}"
+data-sold-out="{{ sold_out }}"
+data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
 data-variant-id="{{ sv.id }}"
 data-own-button="{% if d.own %}true{% else %}false{% endif %}"
 data-per-item="{{ per_item }}"
-data-item-label="{{ d.il | default: '#[n]' | escape }}"
+data-item-label="{{ item_label | escape }}"
 data-error="{{ 'ucro.error' | t | escape }}"
 {{ block.shopify_attributes }}
 >{%- if rule.headline.value != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ rule.headline.value | escape }}</h2>{%- endif -%}{%- if rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<div class="ucro-tiers" role="radiogroup" aria-label="{{ rule.headline.value | default: rule.name.value | escape }}">{%- for tier in tiers -%}{%- liquid
@@ -152,8 +162,7 @@ data-qty="{{ qty }}"
 <span class="ucro-tier__price">
 <s class="ucro-was"{% if pct == 0 %} hidden{% endif %}>{{ was | money }}</s>
 <strong class="ucro-tier__total" data-ucro-price>{{ total | money }}</strong>
-</span>{%- endif -%}</button>{%- unless list -%}{%- if show_save or tier.badge != blank -%}<span class="ucro-tier__tags">{%- if show_save -%}<span class="ucro-tier__save">{{ save_text }}</span>{%- endif -%}{%- if tier.badge != blank -%}<span class="ucro-tier__badge">{{ tier.badge | escape }}</span>{%- endif -%}</span>{%- endif -%}{%- endunless -%}{%- if per_item and qty > 1 -%}<div class="ucro-tier__items" hidden></div>{%- endif -%}</div>{%- endfor -%}</div>
-<button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ d.btn | default: 'Add to cart' | escape }}</button>
+</span>{%- endif -%}</button>{%- unless list -%}{%- if show_save or tier.badge != blank -%}<span class="ucro-tier__tags">{%- if show_save -%}<span class="ucro-tier__save">{{ save_text }}</span>{%- endif -%}{%- if tier.badge != blank -%}<span class="ucro-tier__badge">{{ tier.badge | escape }}</span>{%- endif -%}</span>{%- endif -%}{%- endunless -%}{%- if per_item and qty > 1 -%}<div class="ucro-tier__items" hidden></div>{%- endif -%}</div>{%- endfor -%}</div>{%- if sold_out -%}<p class="ucro__soldout">{{ 'ucro.sold_out' | t }}</p>{%- endif -%}<button type="button" class="ucro-btn ucro-upsell__add" hidden>{{ d.btn | default: 'Add to cart' | escape }}</button>
 <p class="ucro__error" role="alert" hidden></p>
 <script type="application/json" data-ucro-prices>
 {
@@ -191,9 +200,9 @@ assign v_was = variant.price | times: v_qty
 assign v_total = v_was | times: v_keep | divided_by: 100.0 | round
 -%}
 { "was": {{ v_was | money | json }}, "total": {{ v_total | money | json }} }{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]
-}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}}{%- if per_item -%},"items": [{%- assign first_i = true -%}{%- for variant in product.variants -%}{%- unless variant.available -%}{%- continue -%}{%- endunless -%}{%- unless first_i -%},{%- endunless -%}{%- assign first_i = false -%}
-{ "id": {{ variant.id }}, "t": {{ variant.title | json }} }{%- endfor -%}]{%- endif -%}{%- endif -%}}
+}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}}{%- if per_item -%},"items": [{%- assign first_i = true -%}{%- for variant in product.variants -%}{%- unless first_i -%},{%- endunless -%}{%- assign first_i = false -%}
+{ "id": {{ variant.id }}, "t": {{ variant.title | json }}, "av": {{ variant.available | json }} }{%- endfor -%}]{%- endif -%}{%- endif -%}}
 </script>
 </ucro-upsell>
 <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif product.available == false -%}Upsell is hidden because this product is sold out.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.6"}]}{% endschema %}
+<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Upsell is switched off in CRO Toolbox.{%- elsif product == blank -%}Upsell only works on product pages.{%- elsif rule and utype == 'variant' and opt_pos == 0 -%}Upsell: rule “{{ rule.name.value | escape }}” offers {{ rule.option_name.value | escape }} tiers, but this product has no “{{ rule.option_name.value | escape }}” option. Only you see this note.{%- else -%}Upsell: no rule matches this product yet. Add one in CRO Toolbox. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Upsell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.6"}]}{% endschema %}

@@ -17,6 +17,7 @@ import { checkLimit } from "../lib/billing.server";
 import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
+import { EditorLayout } from "../components/EditorLayout";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -108,8 +109,34 @@ export default function AfterPurchase() {
           </s-link>
         </s-banner>
 
-        <s-grid gridTemplateColumns="minmax(0, 1.2fr) minmax(0, 1fr)" gap="base">
-          <s-stack gap="base">
+        <EditorLayout
+          preview
+          side={
+            <s-section heading="Preview">
+            <div style={{ background: "#fff", border: "1px solid #e3e3e3", borderRadius: 12, padding: 16, display: "grid", gap: 12, fontSize: 13, color: "#1a1a1a", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+              <div style={{ display: "grid", gap: 6 }}>
+                <b style={{ fontSize: 15 }}>{c.heading || "…"}</b>
+                <span>
+                  {c.text}
+                  {c.pct > 0 && c.product ? <b>{` Get ${c.pct}% off ${c.product.title}.`}</b> : null}
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
+                <div style={{ aspectRatio: "1", borderRadius: 8, background: c.product?.image ? `center / cover url(${c.product.image})` : "#eee" }} />
+                <div style={{ display: "grid", gap: 6 }}>
+                  <b style={{ fontSize: 15 }}>{c.product?.title ?? "Your product"}</b>
+                  <span>
+                    {c.pct > 0 && c.product ? <s style={{ color: "#707070", marginRight: 6 }}>{money(c.product.price)}</s> : null}
+                    <b style={{ color: "#b42318" }}>{c.product ? money(offerPrice) : "Pick a product"}</b>
+                  </span>
+                  <span style={{ display: "block", padding: "9px 0", borderRadius: 6, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now{c.product ? ` · ${money(offerPrice)}` : ""}</span>
+                  <span style={{ textAlign: "center", color: "#1773b0" }}>Decline this offer</span>
+                </div>
+              </div>
+            </div>
+            </s-section>
+          }
+        >
             <s-section>
               <Switch
                 label={c.on ? "Offer is on" : "Offer is off"}
@@ -157,31 +184,7 @@ export default function AfterPurchase() {
                 <s-text color="subdued">The product and discount are added after your text (“Get 15% off Travel case.”). The buttons always read “Pay now” and “Decline this offer”, and the shopper sees the price, shipping and taxes before paying. Those are Shopify’s rules for after-purchase offers.</s-text>
               </s-stack>
             </s-section>
-          </s-stack>
-          <s-box>
-            <div style={{ position: "sticky", top: 16, background: "#fff", border: "1px solid #e3e3e3", borderRadius: 12, padding: 16, display: "grid", gap: 12, fontSize: 13, color: "#1a1a1a", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
-              <div style={{ background: "#f1f6fe", border: "1px solid #c7dbf7", borderRadius: 8, padding: 12, display: "grid", gap: 4, textAlign: "center" }}>
-                <b style={{ fontSize: 15 }}>{c.heading || "…"}</b>
-                <span>
-                  {c.text}
-                  {c.pct > 0 && c.product ? <b>{` Get ${c.pct}% off ${c.product.title}.`}</b> : null}
-                </span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
-                <div style={{ aspectRatio: "1", borderRadius: 8, background: c.product?.image ? `center / cover url(${c.product.image})` : "#eee" }} />
-                <div style={{ display: "grid", gap: 6 }}>
-                  <b style={{ fontSize: 15 }}>{c.product?.title ?? "Your product"}</b>
-                  <span>
-                    {c.pct > 0 && c.product ? <s style={{ color: "#707070", marginRight: 6 }}>{money(c.product.price)}</s> : null}
-                    <b style={{ color: "#b42318" }}>{c.product ? money(offerPrice) : "Pick a product"}</b>
-                  </span>
-                  <span style={{ display: "block", padding: "9px 0", borderRadius: 6, background: "#1773b0", color: "#fff", textAlign: "center", fontWeight: 600 }}>Pay now{c.product ? ` · ${money(offerPrice)}` : ""}</span>
-                  <span style={{ textAlign: "center", color: "#1773b0" }}>Decline this offer</span>
-                </div>
-              </div>
-            </div>
-          </s-box>
-        </s-grid>
+        </EditorLayout>
       </s-stack>
     </s-page>
   );

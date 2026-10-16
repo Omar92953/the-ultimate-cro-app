@@ -86,7 +86,7 @@ export default function OrderPageDesigner() {
       <CategoryCrumb feature={feature} />
       <DemoButton feature={feature} template={templateInUse(ORDER_PAGE_PRESETS, cfg, applyOrderPagePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
-      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=page`} target="_blank" onClick={seeOnStore}>
+      <Button slot="secondary-actions" href={data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=page` : data.addLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
