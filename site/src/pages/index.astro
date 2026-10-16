@@ -9,7 +9,7 @@ import NotifyCta from "../components/NotifyCta.astro";
 import Shot from "../components/Shot.astro";
 import ArticleCard from "../components/blog/ArticleCard.astro";
 import { PAGES } from "../lib/pages";
-import { SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
+import { SITE_AREAS, OFFER_TYPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
 import { organization, website, softwareApplication, faqPage } from "../lib/schema";
 import { featurePath, areaPath } from "../lib/pages";
 import { articles, BLOG_PAGE } from "../lib/content";
@@ -27,6 +27,16 @@ const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_tools", "r
  *   app/checkout-price an offer's preview next to the price at checkout (fallback: features/discounts)
  *   app/theme-editor  the theme editor with a CRO Toolbox block being placed (fallback: features/hero)
  */
+/** Every kind of offer, grouped like the app's Offers menu, with where each one is explained on the site. */
+const OFFER_GROUPS: { title: string; types: { key: keyof typeof OFFER_TYPES; href: string }[] }[] = [
+  { title: "Upsell", types: [{ key: "upsell", href: featurePath("upsell") }, { key: "upgrade", href: featurePath("upsell") }, { key: "post_purchase", href: featurePath("post_purchase") }] },
+  { title: "Cross sell", types: [{ key: "cross_sell", href: featurePath("cross_sell") }] },
+  { title: "Bundles", types: [{ key: "fixed", href: "/bundles/#fbt" }, { key: "kit", href: "/bundles/#kit" }, { key: "bundle", href: "/bundles/#mixmatch" }] },
+  { title: "Discounts", types: [{ key: "bogo", href: featurePath("discounts") }, { key: "volume", href: featurePath("discounts") }, { key: "gift", href: featurePath("discounts") }] },
+];
+const offerCount = OFFER_GROUPS.reduce((n, g) => n + g.types.length, 0);
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+
 const VALUES = [
   {
     title: "One app instead of many",
@@ -169,7 +179,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
     <div class="wrap">
       <div class="head center">
         <span class="eyebrow">Why CRO Toolbox</span>
-        <h2>Everything a store adds one app at a time, in one place</h2>
+        <h2>Every CRO tool a store needs to increase AOV, in one app</h2>
       </div>
       <div class="rows">
         {
@@ -189,30 +199,34 @@ const schema = [organization(), website(), softwareApplication(page.description)
     </div>
   </section>
 
-  <!-- Bundles -->
-  <section class="section mist" id="bundles">
+  <!-- Offers -->
+  <section class="section mist" id="offers">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Bundles</span>
-        <h2>Six ways to bundle, all on the {free.name} plan</h2>
-        <p class="lead">Every bundle type is included on every plan, within your plan's offer slots. Bundles are priced at checkout by Shopify.</p>
+        <span class="eyebrow">Offers</span>
+        <h2>{COUNT_WORDS[offerCount] ? COUNT_WORDS[offerCount][0].toUpperCase() + COUNT_WORDS[offerCount].slice(1) : offerCount} kinds of offers, all on the {free.name} plan</h2>
+        <p class="lead">Upsells, cross sells, bundles and discounts are included on every plan, within your plan's offer slots. Prices and discounts are applied at checkout by Shopify.</p>
       </div>
-      <ol class="recipes">
+      <div class="ogroups">
         {
-          BUNDLE_RECIPES.map((r, i) => (
-            <li>
-              <a class="recipe" href={`/bundles/#${r.key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()}`}>
-                <span class="num">{String(i + 1).padStart(2, "0")}</span>
-                <span class="recipe-body">
-                  <h3>{plain(r.title)}</h3>
-                  <span class="muted">{plain(r.about)}</span>
-                  <span class="best">Best for: {plain(r.best).replace(/^best for\s*/i, "")}</span>
-                </span>
-              </a>
-            </li>
+          OFFER_GROUPS.map((g) => (
+            <div class="ogroup">
+              <h3>{g.title}</h3>
+              <ul>
+                {g.types.map((t) => (
+                  <li>
+                    <a class="otype" href={t.href}>
+                      <b>{plain(OFFER_TYPES[t.key].title)}</b>
+                      <span class="muted">{plain(OFFER_TYPES[t.key].about)}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))
         }
-      </ol>
+      </div>
+      <p class="all"><a class="link" href="/bundles/">See every bundle type →</a></p>
     </div>
   </section>
 
@@ -227,10 +241,11 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="areas">
         {
           SITE_AREAS.map((a) => (
-            <div class={`area area-${a.key}`}>
-              <h3>
-                <a href={areaPath(a.key)}>{a.title}</a>
-              </h3>
+            <details class={`area area-${a.key}`} open data-area>
+              <summary>
+                <h3>{a.title}</h3>
+                <span class="count">{a.key === "analytics" ? 4 : a.features.length}</span>
+              </summary>
               <p class="muted">{a.intro}</p>
               <ul class="flist">
                 {a.features.map((k) => (
@@ -247,7 +262,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
                   </>
                 )}
               </ul>
-            </div>
+              <a class="area-link" href={areaPath(a.key)}>All {a.title.toLowerCase()} features →</a>
+            </details>
           ))
         }
       </div>
@@ -452,52 +468,52 @@ const schema = [organization(), website(), softwareApplication(page.description)
       order: 2;
     }
   }
-  /* Bundles: a plain two column list, thin lines between the items. */
-  .recipes {
+  /* Offers: the four groups as columns, each a plain list with thin lines. */
+  .ogroups {
+    display: grid;
+    gap: 40px;
+  }
+  @media (min-width: 720px) {
+    .ogroups {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 48px;
+    }
+  }
+  @media (min-width: 1100px) {
+    .ogroups {
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 36px;
+    }
+  }
+  .ogroup h3 {
+    font-size: 1.2rem;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ogroup ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: grid;
-    border-top: 1px solid var(--line);
   }
-  @media (min-width: 820px) {
-    .recipes {
-      grid-template-columns: 1fr 1fr;
-      column-gap: 56px;
-    }
-  }
-  .recipes li {
+  .ogroup li {
     border-bottom: 1px solid var(--line);
   }
-  .recipe {
+  .otype {
     display: grid;
-    grid-template-columns: 40px 1fr;
-    gap: 8px;
-    padding: 24px 0;
-    text-decoration: none;
+    gap: 4px;
+    padding: 16px 0;
     color: inherit;
+    text-decoration: none;
   }
-  .recipe:hover h3 {
+  .otype b {
+    font-weight: 650;
+  }
+  .otype span {
+    font-size: 0.92rem;
+  }
+  .otype:hover b {
     text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-  .recipe-body {
-    display: grid;
-    gap: 6px;
-  }
-  .recipe h3 {
-    font-size: 1.15rem;
-  }
-  .num {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .best {
-    padding-top: 4px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    text-underline-offset: 3px;
   }
   /* Features by area: columns separated by thin rules, plain text links. */
   .areas {
@@ -523,17 +539,70 @@ const schema = [organization(), website(), softwareApplication(page.description)
     padding: 28px 0 32px;
     border-bottom: 1px solid var(--line);
   }
-  .area h3 {
-    font-size: 1.35rem;
+  .area > summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
     margin-bottom: 8px;
   }
-  .area h3 a {
-    color: inherit;
-    text-decoration: none;
+  .area > summary::-webkit-details-marker {
+    display: none;
   }
-  .area h3 a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  .area h3 {
+    font-size: 1.35rem;
+  }
+  .count {
+    display: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .area-link {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  /* Phones: each area folds into one row (title, number of features, chevron); tap to open. */
+  @media (max-width: 899px) {
+    .area {
+      padding: 0;
+    }
+    .area > summary {
+      cursor: pointer;
+      margin: 0;
+      padding: 20px 0;
+    }
+    .area > summary::after {
+      content: "";
+      margin-left: auto;
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      transform: rotate(45deg) translateY(-3px);
+      transition: transform 0.15s;
+    }
+    .area[open] > summary::after {
+      transform: rotate(225deg) translateY(-3px);
+    }
+    .count {
+      display: inline;
+    }
+    .area[open] {
+      padding-bottom: 24px;
+    }
+    .area .flist {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 16px;
+    }
+  }
+  @media (min-width: 900px) {
+    .area > summary {
+      pointer-events: none;
+    }
   }
   .area > p {
     font-size: 0.95rem;
@@ -588,3 +657,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
   }
 
 </style>
+
+<script>
+  // Features by area: all open on wide screens; on phones they start folded so the list stays short.
+  if (window.matchMedia("(max-width: 899px)").matches) {
+    document.querySelectorAll<HTMLDetailsElement>("details[data-area]").forEach((d) => (d.open = false));
+  }
+</script>

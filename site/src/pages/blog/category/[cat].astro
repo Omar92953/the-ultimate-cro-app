@@ -15,7 +15,7 @@ interface Props {
 const { c } = Astro.props;
 const page = categoryMeta(c);
 const crumbs = [
-  { name: "Blog", href: BLOG_PAGE.path },
+  { name: "Guides", href: BLOG_PAGE.path },
   { name: c.name, href: c.path },
 ];
 const list = (await articles()).filter((a) => a.data.category === c.name);

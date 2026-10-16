@@ -85,7 +85,7 @@ export const NAV: NavLink[] = [
   { label: "Bundles", href: "/bundles/" },
   { label: "Use cases", href: "/use-cases/" },
   { label: "Pricing", href: "/pricing/" },
-  { label: "Blog", href: "/blog/" },
+  { label: "Guides", href: "/blog/" },
 ];
 
 export const FOOTER: { title: string; links: NavLink[] }[] = [
@@ -112,7 +112,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     links: [
       { label: "Help center", href: "/help/" },
       { label: "Tutorials", href: "/tutorials/" },
-      { label: "Blog", href: "/blog/" },
+      { label: "Guides", href: "/blog/" },
       { label: "Support", href: "/support/" },
     ],
   },

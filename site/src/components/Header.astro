@@ -2,6 +2,8 @@
 import Logo from "./Logo.astro";
 import InstallButton from "./InstallButton.astro";
 import { NAV } from "../lib/site";
+/** The first items of the Features menu are the area pages; the rest are single features. */
+const AREA_COUNT = 5;
 const here = Astro.url.pathname;
 ---
 
@@ -33,22 +35,31 @@ const here = Astro.url.pathname;
     </nav>
     <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" /></div>
     <details class="mobile">
-      <summary aria-label="Menu"><span></span><span></span></summary>
-      <nav aria-label="Main mobile">
-        {
-          NAV.map((l) =>
-            l.children ? (
-              <div class="group" role="group" aria-label={l.label}>
-                <p class="group-title">{l.label}</p>
-                {l.children.map((c) => <a href={c.href} class="sub">{c.label}</a>)}
-              </div>
-            ) : (
-              <a href={l.href}>{l.label}</a>
+      <summary aria-label="Menu"><span></span><span></span><span></span></summary>
+      <div class="sheet">
+        <nav aria-label="Main mobile">
+          {
+            NAV.map((l) =>
+              l.children ? (
+                <details class="group">
+                  <summary>
+                    {l.label}
+                    <svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  </summary>
+                  <p class="group-title">By area</p>
+                  {l.children.slice(0, AREA_COUNT).map((c) => <a href={c.href} class="sub">{c.label}</a>)}
+                  <p class="group-title">Popular features</p>
+                  {l.children.slice(AREA_COUNT).map((c) => <a href={c.href} class="sub">{c.label}</a>)}
+                </details>
+              ) : (
+                <a href={l.href} class="top" aria-current={l.href === here ? "page" : undefined}>{l.label}</a>
+              )
             )
-          )
-        }
-        <InstallButton medium="header" campaign="mobile_menu" class="primary" />
-      </nav>
+          }
+          <a href="/help/" class="top" aria-current={here === "/help/" ? "page" : undefined}>Help</a>
+        </nav>
+        <div class="sheet-cta"><InstallButton medium="header" campaign="mobile_menu" class="primary" /></div>
+      </div>
     </details>
   </div>
 </header>
@@ -177,7 +188,7 @@ const here = Astro.url.pathname;
   .mobile {
     margin-left: auto;
   }
-  .mobile summary {
+  .mobile > summary {
     list-style: none;
     cursor: pointer;
     width: 44px;
@@ -185,65 +196,98 @@ const here = Astro.url.pathname;
     border-radius: 12px;
     display: grid;
     place-content: center;
-    gap: 6px;
-    border: 1px solid var(--line);
+    gap: 5px;
   }
   .mobile summary::-webkit-details-marker {
     display: none;
   }
-  .mobile summary span {
+  .mobile > summary span {
     display: block;
-    width: 18px;
+    width: 22px;
     height: 2px;
     background: var(--ink);
     border-radius: 2px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
   }
-  .mobile[open] summary span:first-child {
-    transform: translateY(4px) rotate(45deg);
+  .mobile[open] > summary span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
   }
-  .mobile[open] summary span:last-child {
-    transform: translateY(-4px) rotate(-45deg);
+  .mobile[open] > summary span:nth-child(2) {
+    opacity: 0;
   }
-  .mobile nav {
-    position: absolute;
+  .mobile[open] > summary span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+  /* Full height sheet under the header: scrolls on its own, the button stays at the bottom. */
+  .sheet {
+    position: fixed;
     left: 0;
     right: 0;
     top: 68px;
+    bottom: 0;
     background: #fff;
-    border-bottom: 1px solid var(--line);
-    padding: 12px var(--gutter) 24px;
-    display: grid;
-    gap: 4px;
-    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
   }
-  .mobile nav a:not(.btn) {
-    padding: 14px 4px;
+  .sheet nav {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px var(--gutter) 24px;
+    display: grid;
+    align-content: start;
+  }
+  .sheet a.top,
+  .sheet .group > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
     font-size: 1.1rem;
     font-weight: 600;
+    color: var(--ink);
     text-decoration: none;
     border-bottom: 1px solid var(--mist-2);
+    cursor: pointer;
+    list-style: none;
   }
-  .mobile nav .group {
-    display: grid;
+  .sheet .group[open] > summary svg {
+    transform: rotate(180deg);
+  }
+  .sheet .group > summary svg {
+    transition: transform 0.15s;
+  }
+  .sheet .group[open] {
     border-bottom: 1px solid var(--mist-2);
     padding-bottom: 8px;
   }
-  .mobile nav .group-title {
-    margin: 14px 4px 4px;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+  .sheet .group[open] > summary {
+    border-bottom: 0;
+  }
+  .sheet .group-title {
+    margin: 12px 0 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
   }
-  .mobile nav a.sub {
-    padding: 10px 4px 10px 14px;
+  .sheet a.sub {
+    display: block;
+    padding: 9px 0 9px 2px;
     font-size: 1rem;
-    font-weight: 550;
-    border-bottom: 0;
+    font-weight: 500;
+    color: #34363f;
+    text-decoration: none;
   }
-  .mobile nav .btn {
-    margin-top: 16px;
+  .sheet-cta {
+    padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--mist-2);
+    background: #fff;
+  }
+  .sheet-cta :global(.btn) {
+    width: 100%;
+    justify-content: center;
   }
   @media (min-width: 900px) {
     .desktop,
@@ -257,6 +301,21 @@ const here = Astro.url.pathname;
 </style>
 
 <script>
+  // Phone menu: the page behind it doesn't scroll while it is open; Escape or a link closes it.
+  const mobile = document.querySelector<HTMLDetailsElement>("details.mobile");
+  if (mobile) {
+    mobile.addEventListener("toggle", () => {
+      document.documentElement.style.overflow = mobile.open ? "hidden" : "";
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && mobile.open) {
+        mobile.open = false;
+        mobile.querySelector("summary")?.focus();
+      }
+    });
+    mobile.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => (mobile.open = false)));
+  }
+
   // Features dropdown: opens on hover (mouse), on click or tap (touch), and with Enter or Space on the
   // button. Escape or a click elsewhere closes it, and Tab out of it closes it too.
   document.querySelectorAll<HTMLElement>("[data-menu]").forEach((menu) => {
