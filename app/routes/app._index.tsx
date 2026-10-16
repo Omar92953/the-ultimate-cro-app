@@ -33,7 +33,7 @@ import { loadHub } from "../lib/hub.server";
 import styles from "../components/Home.module.css";
 
 /** Theme embeds that count as "the app is switched on in your theme". */
-const EMBED_KEYS = ["boosters", "drawer", "cart_tools", "announcements", "quick_add", "wishlist"] as const;
+const EMBED_KEYS = ["boosters", "drawer", "announcements", "quick_add", "wishlist"] as const;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -67,7 +67,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     cross_sell: !hub.counts.cross_sell,
     shipping_bar: !hub.shipBarSaved,
     reviews: !hub.sectionCounts.reviews.total,
-    cart_tools: installed ? !installed.cart_tools : false,
     sticky_atc: !hub.boosters.sticky.enabled,
     announcements: !hub.sectionCounts.announcements.total,
     payment_rules: hub.checkout ? hub.checkout.payment === 0 : false,
@@ -171,7 +170,7 @@ export default function Home() {
     {
       key: "embed",
       title: "Turn on the app embed",
-      text: `In your theme's App embeds${data.themeName ? ` (“${data.themeName}”)` : ""}, switch on “Conversion boosters” and save. Bars, pop-ups, discounts and the cart drawer run from it.`,
+      text: `In your theme's App embeds${data.themeName ? ` (“${data.themeName}”)` : ""}, switch on “Conversion boosters” and save. Bars, pop-ups and discounts run from it.`,
       done: data.steps.embed || manual.has("embed"),
       action: <Button href={data.embedLink} target="_top" variant="primary">Turn on</Button>,
     },

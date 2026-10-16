@@ -9,7 +9,7 @@
   <div data-ucs-ce hidden {{ block.shopify_attributes }}><script type="application/json">{{ d | json }}</script></div>
   <script src="{{ 'ucs-cart-extras.js' | asset_url }}" defer></script>
 {%- elsif request.design_mode -%}
-  <p {{ block.shopify_attributes }}>Set up the gift note and delivery date in the app: Cart → Gift note &amp; delivery date.</p>
+  <p {{ block.shopify_attributes }}>Set up the gift note and delivery date in the app: Storefront → Gift note &amp; delivery date.</p>
 {%- endif -%}
 
 {% schema %}
@@ -18,7 +18,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "paragraph", "content": "Add it to the cart page. Words, dates and look are set in the app: Cart → Gift note & delivery date." }
+    { "type": "paragraph", "content": "Add it to the cart page. Words, dates and look are set in the app: Storefront → Gift note & delivery date." }
   ]
 }
 {% endschema %}

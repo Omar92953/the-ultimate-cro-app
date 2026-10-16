@@ -16,11 +16,11 @@ Home in the app shows a setup guide with these steps; they tick themselves as yo
 
 ## Finding your way
 
-The menu is **Home · Offers · Storefront · Cart · Checkout · Analytics · Settings**.
+The menu is **Home · Offers · Storefront · Checkout · Analytics · Settings**.
 
 - **Offers:** every offer in one list: upsells, cross sells, bundles of all six types (frequently bought together, fixed, mix and match, build your own, tiered, fixed price), buy X get Y, volume discounts, free gifts, upgrades and the after purchase offer. Add ons and personalization are here too.
 - **Storefront:** every widget and section, grouped: social proof, bars and urgency, product page tools, sections, and store pages. Filter by status (live, needs setup, off, not in my plan) or search.
-- **Cart:** first choose your cart (your theme's cart with offers added, or the app's cart drawer), then its modules.
+- **Storefront → Cart:** offers in your theme's cart, the free shipping bar, gift note and delivery date.
 - **Checkout:** payment rules, delivery rules, order limits, the thank you page and the after purchase offer.
 - **Analytics:** sales from the app, each offer and bundle, and the holdout test.
 - **Settings:** app embeds and their status, checkout discounts, plan and billing, referral, help.

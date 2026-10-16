@@ -8,17 +8,16 @@ website. Start with `CLAUDE.md` (short rules and current status), then this file
 ## 1. What the app is
 
 **CRO Toolbox** is a public Shopify app (Partner org **OMC**, owner **Omar**, GitHub `Omar92953`)
-that raises a store's sales: offers and bundles, storefront widgets and sections, a cart drawer,
+that raises a store's sales: offers and bundles, storefront widgets and sections, cart offers,
 checkout rules and analytics. It replaces three features of Omar's Backrooms theme (upsell,
 cross-sell, video carousel) and rebuilds his earlier bundle-builder app.
 
-Admin menu: **Home · Offers · Storefront · Cart · Checkout · Analytics · Settings**.
+Admin menu: **Home · Offers · Storefront · Checkout · Analytics · Settings**.
 
 | Area | Features (registry: `app/lib/catalog.ts`) |
 |---|---|
 | Offers | Upsell (quantity tiers), Cross-sell, **Bundles** (6 recipes, see §6), Discounts (buy X get Y, volume, gift, upgrade), Add-ons, Personalization |
-| Storefront | Reviews, product page reviews, sales pop-ups, trust badges, logos, announcement bar, countdown timers, stock urgency, sticky add to cart, hero, image and video carousels, FAQ, quiz, header, footer, collection pills, quick add, wishlist, contact, delivery estimate, shipping bar |
-| Cart | App cart drawer, offers in the theme's cart, gift note and delivery date |
+| Storefront | Reviews, product page reviews, sales pop-ups, trust badges, logos, announcement bar, countdown timers, stock urgency, sticky add to cart, hero, image and video carousels, FAQ, quiz, header, footer, collection pills, quick add, wishlist, contact, delivery estimate, shipping bar; the first group is **Cart**: offers in the theme's cart, gift note and delivery date |
 | Checkout | Payment and delivery customizations, cart validation, thank-you and order-status modules, post-purchase offer |
 | Analytics | Sales from the app, per offer and per bundle stats |
 
@@ -47,7 +46,7 @@ Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `
 Admin (embedded, React Router + Polaris web components)     Storefront (any Online Store 2.0 theme)
 app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads ──▶ extensions/cro-storefront
                                      │                                  (theme app extension:
-                                     │                                   30 blocks and embeds)
+                                     │                                   29 blocks and embeds)
                                      ├─▶ discount metafield ──▶ extensions/cro-discount   (Discount Function)
                                      ├─▶ bundle metafield   ──▶ extensions/cro-bundles    (Cart Transform)
                                      └─▶ other configs      ──▶ cro-payment, cro-delivery, cro-validation,
@@ -167,7 +166,7 @@ Cloud accounts can't reach Shopify hosts: write the code and PR, and ask Omar to
   on `s-*` elements. `Segmented` (in `components/ui.tsx`) for small choices.
 - Prices and limits only in `plans.ts`; features only in `catalog.ts`; tutorials only in `tutorials.ts`.
 - Use `gql()` and `remember()`; new GraphQL must pass `npm run graphql-codegen`.
-- Theme extension: **30 of 30 blocks used**. New storefront features go into existing blocks or embeds.
+- Theme extension: **29 of 30 blocks used** (the CRO Toolbox cart drawer, block `ucs-cart`, was removed in Oct 2026 and freed one slot). New storefront features still go into existing blocks or embeds where possible.
   Liquid budget about 86 of 100 KB.
 - Don't run Prettier over the repo (it reformats hundreds of files).
 - Match the surrounding code's style and comment density.

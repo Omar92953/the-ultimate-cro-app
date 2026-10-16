@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Same map as the hubs and every page's breadcrumb: app/lib/catalog.ts (6 items: Shopify shows 7 before "View more"). */}
+      {/* Same map as the hubs and every page's breadcrumb: app/lib/catalog.ts (Home plus 5 items: Shopify shows 7 before "View more"). */}
       <s-app-nav>
         {/* rel="home": the app's name in the sidebar is Home, so no item lights up on every page (the typings lack rel). */}
         <s-link href="/app" {...({ rel: "home" } as object)}>

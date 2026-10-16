@@ -11,7 +11,7 @@ import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, m
 
 const url = (path: string) => `${SITE_URL}${path}`;
 
-const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, a cart drawer, storefront widgets and sections, checkout rules and analytics into one app. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart offers, storefront widgets and sections, checkout rules and analytics into one app. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
 
 function pricing(): string[] {
   return plans.map((p) => {

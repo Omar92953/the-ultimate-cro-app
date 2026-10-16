@@ -3,7 +3,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AREAS, FEATURES, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
+import { AREAS, FEATURES, GROUPS, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
 import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../../app/lib/offer-types";
 import { DEAL_KINDS } from "../../app/lib/deals";
 import { BUNDLE_RECIPES, recipeOfBundle } from "../../app/lib/bundle-recipes";
@@ -102,7 +102,13 @@ test("pages map to features, and locked pages say which plan they need", () => {
   assert.equal(areaForPath("/app/offers/upsell/new"), "offers");
   assert.equal(areaForPath("/app/designs/quiz"), "storefront");
   assert.equal(areaForPath("/app/checkout/limits"), "checkout");
-  assert.equal(areaForPath("/app/cart"), "cart");
+  // Cart is no longer a menu item: its features sit in Storefront, group Cart.
+  assert.equal(areaForPath("/app/cart"), null);
+  assert.equal(areaForPath("/app/designs/cart-extras"), "storefront");
+  assert.equal(AREAS.some((a) => (a.key as string) === "cart"), false);
+  assert.equal(FEATURES.cart_extras.group, "cart");
+  assert.equal(GROUPS[0].key, "cart");
+  assert.equal((FEATURES as Record<string, unknown>).cart_tools, undefined);
   assert.deepEqual(featuresForPath("/app/sections/reviews").sort(), ["product_reviews", "reviews"]);
   assert.equal(pageLock("free", "/app/offers/upsell/new"), null);
   assert.deepEqual(pageLock("free", "/app/designs/quiz"), { kind: "feature", feature: "quiz", needs: "starter" });
@@ -199,7 +205,6 @@ test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () 
   assert.equal(limitError("free", "thankYouModules", 1), null);
   assert.match(limitError("free", "thankYouModules", 2) ?? "", /Starter/);
   assert.equal(limitError("starter", "countdownPlaces", 9), null);
-  assert.equal(EXTRA_PLAN.cartDrawerPro, "starter");
 });
 
 test("plan cards: an orders line, then at least 3 short feature lines", () => {

@@ -12,20 +12,20 @@
 import { DEAL_TYPES, type DealKind } from "./deals";
 import { BUNDLE_RECIPES } from "./bundle-recipes";
 
-export type AreaKey = "offers" | "storefront" | "cart" | "checkout";
+export type AreaKey = "offers" | "storefront" | "checkout";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
-  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, cross-sells, bundles and discounts." },
-  { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: reviews, bars, timers, product-page tools, sections and pages." },
-  { key: "cart", title: "Cart", href: "/app/cart", intro: "The cart drawer and everything in it: offers, the free-shipping bar, gift notes and checkout buttons." },
+  { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, cross sells, bundles and discounts." },
+  { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: the cart, reviews, bars, timers, product-page tools, sections and pages." },
   { key: "checkout", title: "Checkout", href: "/app/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
 ];
 export const isArea = (v: unknown): v is AreaKey => AREAS.some((a) => a.key === v);
 export const area = (key: AreaKey) => AREAS.find((a) => a.key === key)!;
 
 /** Storefront groups, in the order the hub shows them. */
-export type GroupKey = "social" | "bars" | "product" | "content" | "pages";
+export type GroupKey = "cart" | "social" | "bars" | "product" | "content" | "pages";
 export const GROUPS: { key: GroupKey; title: string }[] = [
+  { key: "cart", title: "Cart" },
   { key: "social", title: "Social proof" },
   { key: "bars", title: "Bars & urgency" },
   { key: "product", title: "Product page" },
@@ -80,10 +80,9 @@ export const FEATURES = {
   },
   addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [design("/app/designs/add-ons")] },
   personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [design("/app/designs/personalize")] },
-  // Cart
-  cart_tools: { title: "Cart drawer", area: "cart", about: "A slide-out cart with Shop Pay / Apple Pay buttons, the best discount applied, and a shareable cart link.", tabs: [design("/app/designs/cart-tools")] },
-  cart_offers: { title: "Offers in your theme's cart", area: "cart", about: "Cross-sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
-  cart_extras: { title: "Gift note & delivery date", area: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
+  // Storefront · cart
+  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross-sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
+  cart_extras: { title: "Gift note & delivery date", area: "storefront", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "storefront", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
   product_reviews: { title: "Product page reviews", area: "storefront", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
@@ -93,7 +92,7 @@ export const FEATURES = {
   // Storefront · bars & urgency
   announcements: { title: "Announcement bar", area: "storefront", group: "bars", about: "Rotating messages at the top, with free-shipping progress.", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },
   countdown: { title: "Countdown timers", area: "storefront", group: "bars", about: "Timers for the header, footer, home page, product pages and cart page.", tabs: [design("/app/designs/countdown-bar")] },
-  shipping_bar: { title: "Free shipping bar", area: "storefront", group: "bars", also: ["cart"], about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
+  shipping_bar: { title: "Free shipping bar", area: "storefront", group: "bars", about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
   stock_urgency: { title: "Stock urgency", area: "storefront", group: "bars", about: "“Only 3 left” on product pages when stock is low.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   // Storefront · product page
   sticky_atc: { title: "Sticky add to cart", area: "storefront", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },

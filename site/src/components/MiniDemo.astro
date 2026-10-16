@@ -43,17 +43,6 @@ const { kind } = Astro.props;
     )
   }
   {
-    kind === "cart_tools" && (
-      <div class="drawer">
-        <div class="dh">Your cart</div>
-        <div class="ship">Free shipping unlocked</div>
-        <div class="bar"><i /></div>
-        <div class="xs"><ProductArt kind="tote" /><span>Canvas Tote<small>$24</small></span></div>
-        <div class="pay"><span>Shop Pay</span><span>Apple Pay</span></div>
-      </div>
-    )
-  }
-  {
     kind === "reviews" && (
       <div class="revs">
         <div class="rev"><div class="st">★★★★★</div><p>Smells amazing and lasts for weeks.</p><small>Maya R.</small></div>

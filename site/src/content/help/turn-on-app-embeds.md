@@ -4,7 +4,7 @@ description: "How to switch on CRO Toolbox in the theme editor, what each app em
 order: 14
 ---
 
-Some features (sales pop ups, the cart drawer, announcement bars, quick add and more) run from an **app embed**: a switch in your theme that loads the app on every page. You turn each embed on once. Sections like reviews or the video carousel are added differently: from the feature's page with **Add to theme**.
+Some features (sales pop ups, announcement bars, quick add and more) run from an **app embed**: a switch in your theme that loads the app on every page. You turn each embed on once. Sections like reviews or the video carousel are added differently: from the feature's page with **Add to theme**.
 
 ## Turn an embed on from the app (quickest)
 
@@ -23,7 +23,6 @@ Some features (sales pop ups, the cart drawer, announcement bars, quick add and 
 ## Which embeds there are
 
 - **Conversion boosters:** the main one. Sticky add to cart, trust badges, sales pop ups, stock urgency, wishlist hearts and the holdout test. Turn this on first.
-- **CRO Toolbox cart drawer:** the app's slide out cart.
 - **Offers in your theme's cart:** cross sell offers inside your theme's own cart drawer.
 - **Announcement bar:** messages at the top of every page.
 - **Quick add to cart:** a button on every product card.

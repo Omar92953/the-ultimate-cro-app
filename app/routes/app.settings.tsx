@@ -26,7 +26,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Every app embed (switched on once in the theme editor's App embeds).
     embeds: [
       { key: "boosters", title: "Conversion boosters", about: "Sticky add to cart, trust badges, sales pop-ups, stock urgency, wishlist hearts and the holdout test.", href: sl.boosters },
-      { key: "cart_tools", title: "CRO Toolbox cart drawer", about: "The app's slide-out cart.", href: sl.cart_tools },
       { key: "drawer", title: "Offers in your theme's cart", about: "Cross-sell offers inside your theme's own cart drawer.", href: links.drawer },
       { key: "announcements", title: "Announcement bar", about: "Messages at the top of every page.", href: sl.announcements },
       { key: "quick_add", title: "Quick add to cart", about: "A button on every product card.", href: sl.quick_add },

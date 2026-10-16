@@ -1,11 +1,11 @@
 ---
 title: "Cart drawer upsells that work"
-description: "What to offer in a Shopify cart drawer, how many offers to show, and how to set up cart upsells in your theme's drawer or the app's drawer."
+description: "What to offer in a Shopify cart drawer, how many offers to show, and how to set up cart upsells in your theme's own drawer."
 date: 2026-10-12
 category: "Cart & checkout"
-cover: "features/cart-tools"
+cover: "features/cart-offers"
 coverAlt: "A slide out cart drawer with one product and the checkout button"
-feature: "cart_tools"
+feature: "cart_offers"
 ---
 
 The cart drawer is a good place for an upsell because the shopper has already decided to buy. What works there is small: one or two inexpensive items that complete what's in the cart, shown with a clear add button and never added without asking. Here is how to choose those items and set them up on Shopify.
@@ -25,18 +25,13 @@ The drawer opens right after add to cart, when the shopper is looking at their o
 
 It can, but it doesn't have to. A small percentage off works when the item is often bought together with what's in the cart. In CRO Toolbox the cross sell discount applies at checkout while a trigger product is in the cart.
 
-## Theme drawer or app drawer?
+## Which drawer does it work in?
 
-You have two choices:
-
-1. **Keep your theme's cart drawer** and add offers to it with **Offers in your theme's cart**. This works with Dawn and Dawn based themes.
-2. **Use the app's cart drawer** (Cart drawer & checkout embed). It opens on add to cart and from the cart icon, and can include offers, the free shipping bar, express checkout buttons such as Shop Pay and Apple Pay, the best discount from codes you list, a gift note and delivery date, and a shareable cart link.
-
-Choose the app drawer if your theme's drawer is limited or you want the extras; keep your theme's drawer if you like it and only need offers.
+CRO Toolbox adds offers to **your theme's own cart drawer** with **Offers in your theme's cart**. This works with Dawn and Dawn based themes. If your theme's drawer is not supported, the same offers can show on the cart page.
 
 ## How do I set it up?
 
-1. In the app, open **Cart** and choose which cart you use.
+1. In the app, open **Storefront** and turn on **Offers in your theme's cart** (the Cart group).
 2. Create a cross sell offer (**Offers → Cross sell offers**) with the trigger products and the products to offer, and include the cart drawer in where it appears.
 3. Turn on the free shipping bar and set the goal a little above your typical order.
 4. Add something to the cart on your store and check the drawer.

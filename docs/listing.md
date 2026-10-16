@@ -32,7 +32,7 @@ CRO Toolbox puts the tools stores usually add one by one into a single app. Crea
 1. `Mix and match bundles, kits, buy X get Y, volume deals and free gifts` (69)
 2. `Upsell and cross-sell offers on product pages, in the cart and after payment` (76)
 3. `Discounts apply at checkout as real Shopify discounts, with bundle stock tracked` (80)
-4. `Cart drawer with offers, a free shipping bar and gift notes` (59)
+4. `Cart offers, a free shipping bar and gift notes` (47)
 5. `Reviews, trust badges, announcement bars, countdowns and sticky add to cart` (75)
 6. `Hero banners, FAQ, logos, carousels, quiz, header and footer sections` (69)
 7. `Payment and delivery rules, order limits and thank-you page modules` (67)
@@ -56,7 +56,7 @@ Take them on Testing2 with sample data, never on the live store.
 2. Offers: the list of every offer with type and status. Alt: "All offers in one list".
 3. A mix and match bundle in the editor with its live preview. Alt: "Bundle editor with a live preview".
 4. Storefront: the grouped feature cards. Alt: "Storefront widgets and sections".
-5. Cart: "Which cart?" and the drawer preview. Alt: "Choosing the cart drawer".
+5. Storefront, Cart group: offers in the theme's cart. Alt: "Cart offers".
 6. Checkout: payment rules. Alt: "Payment rules for checkout".
 
 Feature image (1600 x 900): the bundle builder on a product page on Testing2 (no prices).
@@ -95,8 +95,8 @@ WHAT TO CLICK
 - Storefront (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
   Wishlist, FAQ, Logos, Hero banner, Quiz, Header, Footer. Each has a design page with a live
   preview and an "Add to theme" button.
-- Cart (menu): choose "Use the app's cart drawer" (turn on its app embed) or "Keep my theme's
-  cart". Add a product: offers and the free shipping bar show in the cart.
+- Storefront > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
+  offers and the free shipping bar show in the cart.
 - Checkout (menu): Payment rules, Delivery rules, Order limits (blocks checkout with a message
   you write), Thank-you page modules, After-purchase offer. Test at the real checkout.
 - Analytics (menu): sales that came from the app's offers. Needs orders; "Holdout test" is
@@ -125,7 +125,7 @@ password, the Partner Dashboard or `.env`.
 | 2:15 | Cart and checkout | One bundle line at the bundle price. Go to checkout: one item, one price. |
 | 2:45 | Upsell | Create an upsell, show it under Add to cart and the discount at checkout. |
 | 3:30 | Storefront | Turn on Reviews and the Announcement bar; show the design page with its live preview, then the store. |
-| 4:15 | Cart | Choose the app's cart drawer, add a product, show the free shipping bar and offer. |
+| 4:15 | Cart offers | Turn on offers in your theme's cart, add a product, show the free shipping bar and offer. |
 | 4:45 | Checkout rules | Order limits: set a minimum, show checkout blocked with the message. |
 | 5:15 | Analytics and plans | Show Analytics and the Plans page (upgrade goes to Shopify's hosted page). |
 | 5:40 | Close | "On uninstall Shopify removes the app's data from the store." End. |

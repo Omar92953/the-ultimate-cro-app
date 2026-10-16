@@ -18,7 +18,7 @@ const page = PAGES.home;
 const free = PLANS.free;
 
 /** The strip of feature cards, each with a small picture of what it adds to a store. */
-const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_tools", "reviews", "countdown", "shipping_bar", "sticky_atc", "sales_pop", "videos", "wishlist", "faq"];
+const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_offers", "reviews", "countdown", "shipping_bar", "sticky_atc", "sales_pop", "videos", "wishlist", "faq"];
 
 /**
  * "Why CRO Toolbox" rows. `shot` = the app screenshot for the row: site/src/assets/app/<name>.png.
@@ -40,7 +40,7 @@ const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seve
 const VALUES = [
   {
     title: "One app instead of many",
-    text: "Offers, bundles, a cart drawer, reviews, bars, timers and checkout rules share one menu, one design style and one plan.",
+    text: "Offers, bundles, cart offers, reviews, bars, timers and checkout rules share one menu, one design style and one plan.",
     shot: "app/one-menu",
     fallback: "features/upsell",
     alt: "The CRO Toolbox menu: offers, storefront, cart, checkout and analytics",
@@ -73,7 +73,7 @@ const paid = plans.filter((p) => p.monthly > 0);
 const faq: QA[] = [
   {
     q: "What is CRO Toolbox?",
-    a: "CRO Toolbox is a Shopify app that brings upsells, cross sells, bundles, discounts, a cart drawer, storefront widgets and checkout rules into one app with one menu. It helps a store sell more per order and turn more visits into orders.",
+    a: "CRO Toolbox is a Shopify app that brings upsells, cross sells, bundles, discounts, cart offers, storefront widgets and checkout rules into one app with one menu. It helps a store sell more per order and turn more visits into orders.",
   },
   {
     q: "Which Shopify themes does CRO Toolbox work with?",
@@ -124,7 +124,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
         <span class="pill">Shopify app · Any Online Store 2.0 theme</span>
         <h1>Sell more on every order. <span class="soft">All in one Shopify app.</span></h1>
         <p class="lead">
-          Upsells, bundles, a cart drawer, reviews, countdowns and checkout rules. Set up in minutes with a live preview, added to your theme
+          Upsells, bundles, cart offers, reviews, countdowns and checkout rules. Set up in minutes with a live preview, added to your theme
           without code.
         </p>
         <div class="actions">

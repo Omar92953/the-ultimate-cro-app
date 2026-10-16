@@ -19,7 +19,6 @@ import { FOOTER_PRESETS } from "../../../app/lib/footer-design";
 import { ORDER_PAGE_PRESETS } from "../../../app/lib/order-pages";
 import { PERSONALIZE_PRESETS } from "../../../app/lib/personalize-design";
 import { CART_EXTRAS_PRESETS } from "../../../app/lib/cart-extras-design";
-import { CART_TOOLS_PRESETS } from "../../../app/lib/cart-tools-design";
 import { QUIZ_PRESETS } from "../../../app/lib/quiz-design";
 import type { FeatureKey } from "./app";
 
@@ -48,6 +47,5 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   returns: t(ORDER_PAGE_PRESETS),
   personalize: t(PERSONALIZE_PRESETS),
   cart_extras: t(CART_EXTRAS_PRESETS),
-  cart_tools: t(CART_TOOLS_PRESETS),
   quiz: t(QUIZ_PRESETS),
 };
