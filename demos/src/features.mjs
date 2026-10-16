@@ -328,18 +328,18 @@ export async function buildFeatures({ block, shopWith, mo }) {
     title, layout: "product", product: "cedar-candle", css: PAY_CSS,
     embeds: await block("ucs-boosters", { page_type: "product", product: P["cedar-candle"], shop: dealShop([fbtDeal], { ...deals.DEFAULT_FBT, ...patch }) }),
   })));
-  // 2. Kit sold as one product: Shopify's own bundle product, with "What's inside".
+  // 2. Fixed bundle (sold as one product): Shopify's own bundle product, with "What's inside".
   R.kit = [{
     title: "The kit's product page", layout: "product", product: "care-kit",
     description: `<p><strong>What's inside</strong></p><ul><li>1 × Cedar Candle</li><li>1 × Daily Cream</li><li>1 × Oat Soap</li></ul><p>Sold as one product: one line in the cart, and Shopify takes each item from stock.</p>`,
     html: "",
   }];
-  // 3. Mix & match box: every bundle look the app offers.
+  // 3. Mix and match: every bundle look the app offers.
   R.mixmatch = await Promise.all(bundleD.BUNDLE_PRESETS.map(async (p) => ({ title: p.title, layout: "product", product: "candle-box", place: "above", html: await builder("candle-box", candleBox, p.key) })));
-  // 4. Build your bundle, save more: % off that grows with the number of items.
+  // 4. Tiered bundle (buy more, save more): % off that grows with the number of items.
   const skinSet = bundleMo("skin-set", { product: P["skin-set"], pricing: "percent_tiers", price_rules: { tr: [], ex: {}, pt: [[2, 10], [3, 15], [4, 20]] }, steps: [step("st-skin", { label: "Pick 2 or more", min_picks: 2, max_picks: 6, collection: collections.skincare })], allow_duplicates: true });
   R.growing = await Promise.all([["Green", "green"], ["Big cards", "big"]].map(async ([title, key]) => ({ title, layout: "product", product: "skin-set", place: "above", html: await builder("skin-set", skinSet, key) })));
-  // 5. Build while browsing: "+ Add to bundle" on collection cards and product pages, and the tray.
+  // 5. Build your own bundle: "+ Add to bundle" on collection cards and product pages, and the tray.
   const browseBox = bundleMo("candle-box", { product: P["candle-box"], steps: [candleStep], pricing: "fixed", store_wide: true });
   const trayShop = shopWith({ designs: { bundles: bundleOf("green") }, meta: { "$app:cro_bundle": [browseBox] } });
   const tray = async (ctx) => '<link rel="stylesheet" href="/assets/ucro-bundle-tray.css">' + (await block("ucro-bundle-tray", { ...ctx, shop: trayShop }));
@@ -347,7 +347,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     { title: "On a collection page", layout: "collection", collection: "candles", minHeight: 680, embeds: await tray({ page_type: "collection", collection: collections.candles }) },
     { title: "On a product page", layout: "product", product: "fig-candle", minHeight: 680, place: "above", html: await block("ucro-add-to-bundle", { product: P["fig-candle"], page_type: "product", shop: trayShop }), embeds: await tray({ page_type: "product", product: P["fig-candle"] }) },
   ];
-  // 6. Any N for one price: any 3 for $30, any 6 for $55 from a long collection.
+  // 6. Fixed price bundle (any 3 for $30): any 3 for $30, any 6 for $55 from a long collection.
   const sockDrawer = bundleMo("sock-drawer", { product: P["sock-drawer"], pricing: "tiers", price_rules: { tr: [[3, 3000], [6, 5500]], ex: {} }, allow_duplicates: true, steps: [step("st-socks", { label: "Pick 3 or 6 pairs", min_picks: 3, max_picks: 6, collection: collections.socks })] });
   R.anyN = await Promise.all([["Sharp and compact", "sharp"], ["Blue", "blue"]].map(async ([title, key]) => ({ title, layout: "product", product: "sock-drawer", place: "above", html: await builder("sock-drawer", sockDrawer, key) })));
 

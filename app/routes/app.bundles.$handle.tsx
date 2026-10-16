@@ -39,7 +39,7 @@ async function placement(admin: Parameters<typeof getThemeStatus>[0], shop: stri
     known: !!status,
     product: files.some((f) => /^templates\/product(\.|$)/.test(f)),
     page: files.some((f) => /^templates\/page(\.|$)/.test(f)),
-    // Build while browsing: the Bundle tray embed (tray + "+" on collection cards) and the
+    // Build your own bundle: the Bundle tray embed (tray + "+" on collection cards) and the
     // optional "Add to bundle" block on product pages.
     tray: !!status?.installed.bundle_tray,
     button: !!status?.installed.bundle_button,
@@ -239,7 +239,7 @@ export default function BundleEditor() {
 
   return (
     <s-page heading={isNew ? "New bundle" : bundle.name} inlineSize="large">
-      <s-link slot="breadcrumb-actions" href="/app/bundles?type=bundle">
+      <s-link slot="breadcrumb-actions" href="/app/bundles">
         Bundles
       </s-link>
       <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
@@ -584,7 +584,7 @@ export default function BundleEditor() {
             </s-stack>
           ) : null}
         </EditorSection>
-        <EditorSection n={5} title="Options" summary={[bundle.storeWide ? "Build while browsing" : "", bundle.allowDuplicates ? "Same item twice" : "", bundle.hideSoldOut ? "Sold out hidden" : ""].filter(Boolean).join(" · ") || "None"} done={true} open={open === 5} onToggle={() => setOpen((o) => (o === 5 ? 0 : 5))}>
+        <EditorSection n={5} title="Options" summary={[bundle.storeWide ? "Build your own bundle" : "", bundle.allowDuplicates ? "Same item twice" : "", bundle.hideSoldOut ? "Sold out hidden" : ""].filter(Boolean).join(" · ") || "None"} done={true} open={open === 5} onToggle={() => setOpen((o) => (o === 5 ? 0 : 5))}>
           <Switch
             label="Let shoppers build it anywhere in the store"
             details="“Add to bundle” on product pages and “+” buttons on the step's collection page; a bundle tray follows the shopper until the bundle is complete. Off: only on the bundle product's page."

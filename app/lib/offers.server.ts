@@ -9,6 +9,7 @@ import { listKits } from "./kits.server";
 import { getPostPurchase } from "./post-purchase.server";
 import type { OfferRow } from "./offer-types";
 import type { DealKind } from "./deals";
+import { recipeOfBundle } from "./bundle-recipes";
 
 const DEAL_WHERE: Record<DealKind, string> = {
   fixed: "Product pages",
@@ -40,13 +41,13 @@ export async function listOffers(admin: AdminClient): Promise<OfferRow[]> {
     });
   }
   for (const b of bundles) {
-    rows.push({ id: b.id ?? b.handle ?? b.name, type: "bundle", name: b.name, active: b.active, where: b.storeWide ? "Bundle page and anywhere in the store" : "Bundle product page", href: `/app/bundles/${b.handle}` });
+    rows.push({ id: b.id ?? b.handle ?? b.name, type: "bundle", name: b.name, active: b.active, where: b.storeWide ? "Bundle page and anywhere in the store" : "Bundle product page", href: `/app/bundles/${b.handle}`, recipe: recipeOfBundle(b) });
   }
   for (const k of kits) {
-    rows.push({ id: k.productId, type: "kit", name: k.title, active: true, where: k.status === "ACTIVE" ? "Its own product page" : "Draft product (not on the store yet)", href: `/app/kits/${k.productId.split("/").pop()}` });
+    rows.push({ id: k.productId, type: "kit", name: k.title, active: true, where: k.status === "ACTIVE" ? "Its own product page" : "Draft product (not on the store yet)", href: `/app/kits/${k.productId.split("/").pop()}`, recipe: "kit" });
   }
   for (const d of deals) {
-    rows.push({ id: d.id ?? d.handle ?? d.name, type: d.kind, name: d.name, active: d.active, where: DEAL_WHERE[d.kind], href: `/app/deals/${d.kind}/${d.handle}` });
+    rows.push({ id: d.id ?? d.handle ?? d.name, type: d.kind, name: d.name, active: d.active, where: DEAL_WHERE[d.kind], href: `/app/deals/${d.kind}/${d.handle}`, recipe: d.kind === "fixed" ? "fbt" : undefined });
   }
   const pp = post?.config;
   if (pp && (pp.product || pp.on)) {

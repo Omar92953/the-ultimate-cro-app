@@ -10,6 +10,7 @@
  * Shared by client and server.
  */
 import { DEAL_TYPES, type DealKind } from "./deals";
+import { BUNDLE_RECIPES } from "./bundle-recipes";
 
 export type AreaKey = "offers" | "storefront" | "cart" | "checkout";
 
@@ -65,10 +66,10 @@ export const FEATURES = {
   bundles: {
     title: "Bundles",
     area: "offers",
-    about: "Mix-and-match bundles, bundles sold as their own product, and fixed “frequently bought together” bundles.",
+    about: "Frequently bought together, fixed bundles, mix and match, build your own, tiered and fixed price bundles.",
     // One list of every bundle (mix & match, bundle products, frequently bought together); their
     // editors keep their own addresses.
-    tabs: [{ label: "Bundles", href: "/app/bundles" }, design("/app/designs/bundles")],
+    tabs: [...BUNDLE_RECIPES.map((r, i) => ({ label: r.short, href: i === 0 ? "/app/bundles" : `/app/bundles?tab=${r.key}` })), design("/app/designs/bundles")],
     paths: ["/app/kits", "/app/deals/fixed"],
   },
   discounts: {
@@ -153,10 +154,10 @@ export const OFFER_GROUPS: OfferGroup[] = [
   {
     key: "bundles",
     title: "Bundles",
-    about: "Sets of products at one price: mix & match, bundles sold as their own product, and fixed “frequently bought together” bundles.",
+    about: "Sets of products at one price: frequently bought together, fixed, mix and match, build your own, tiered and fixed price bundles.",
     features: ["bundles"],
     tabs: FEATURES.bundles.tabs,
-    chips: ["Frequently bought together", "Kits", "Mix & match", "Build your bundle"],
+    chips: BUNDLE_RECIPES.slice(0, 4).map((r) => r.short),
   },
   { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },
 ];
@@ -176,7 +177,7 @@ export const OFFER_FEATURE: Record<string, FeatureKey> = { upsell: "upsell", "cr
 export function featuresForPath(pathname: string): FeatureKey[] {
   const path = pathname.replace(/\.data$/, "").replace(/\/+$/, "");
   const under = (href: string) => path === href || path.startsWith(`${href}/`);
-  return FEATURE_KEYS.filter((k) => FEATURES[k].tabs.some((t) => under(t.href)) || ((FEATURES[k] as Feature).paths ?? []).some(under));
+  return FEATURE_KEYS.filter((k) => FEATURES[k].tabs.some((t) => under(t.href.split("?")[0])) || ((FEATURES[k] as Feature).paths ?? []).some(under));
 }
 
 /** Which area (menu item) a page belongs to: its features' area, or the hub it is. */

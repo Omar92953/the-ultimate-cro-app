@@ -182,7 +182,7 @@ const FEATURES: {
     key: "bundles",
     setting: "bundles_enabled",
     title: "Bundles",
-    description: "Mix-and-match bundles at one price.",
+    description: "Mix and match bundles at one price.",
     href: "/app/bundles",
     createHref: "/app/bundles/new",
     createLabel: "Create a bundle",

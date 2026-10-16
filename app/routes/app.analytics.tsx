@@ -219,7 +219,7 @@ export default function Analytics() {
                 {teaser(r.bundles.hidden, "bundle")}
               </s-stack>
             ) : (
-              <s-paragraph>No bundles sold in the last 60 days. Mix & match bundles and bundle products show here with their sales, orders and average order value.</s-paragraph>
+              <s-paragraph>No bundles sold in the last 60 days. Mix and match bundles and fixed bundles show here with their sales, orders and average order value.</s-paragraph>
             )}
           </s-section>
         ) : null}

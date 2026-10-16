@@ -31,7 +31,7 @@ A good rule: the box should save a little against buying the items one by one, a
 
 ## How do I build one with CRO Toolbox?
 
-1. Open **Bundles → Create bundle** and choose **Mix & match box** (or **Build your bundle, save more** for growing discounts, or **Any 3 for one price** for tier prices).
+1. Open **Bundles → Create bundle offer** and choose **Mix and match** (or **Tiered bundle** for growing discounts, or **Fixed price bundle** for tier prices).
 2. Let the app **create the bundle product** for you, or pick one you already have. It is published and tagged so it never shows up as an item inside another bundle.
 3. Add **steps**. Each step has a label, a minimum and a maximum, and either a list of products or a whole collection. For example "Pick 3 candles" (min 3, max 3) from the Candles collection.
 4. Choose the **price**.
@@ -47,7 +47,7 @@ Bundle pricing at checkout runs when the app is installed from the Shopify App S
 
 ## Can shoppers build the bundle while browsing?
 
-Yes. With **Build while browsing**, shoppers add items with **+ Add to bundle** on collection pages and on product pages, and a small tray follows them across the store with each step's progress. When the box is full they add it to the cart or go straight to checkout.
+Yes. With **Build your own bundle**, shoppers add items with **+ Add to bundle** on collection pages and on product pages, and a small tray follows them across the store with each step's progress. When the box is full they add it to the cart or go straight to checkout.
 
 This suits stores with large collections, where scrolling a long builder on one page would be tiring.
 

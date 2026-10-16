@@ -41,7 +41,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   bundles: {
     who: "For stores that sell sets, gift boxes, multipacks or build your own boxes.",
     points: [
-      "Six ways to bundle: frequently bought together, a kit sold as one product, a mix and match box, a growing discount, build while browsing, and any N for one price",
+      "Six ways to bundle: frequently bought together, a fixed bundle sold as one product, mix and match, build your own bundle, a tiered bundle and a fixed price bundle",
       "Shopify prices the bundle at checkout and each picked item's stock goes down",
       "One price, a percentage off, or tiers by item count",
       "The app can create and publish the bundle product and its store page for you",

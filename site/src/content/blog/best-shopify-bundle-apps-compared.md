@@ -14,7 +14,7 @@ The best Shopify bundle app is the one that supports the bundles you actually se
 
 At minimum:
 
-- **The bundle types you need.** Fixed sets, kits sold as one product, mix and match boxes, tiered or growing discounts, any N for one price.
+- **The bundle types you need.** Fixed bundles sold as one product, mix and match, build your own bundle, tiered bundles, fixed price bundles.
 - **The right price at checkout.** The price on the page must be the price the shopper pays.
 - **Stock for each item.** When a bundle sells, each item's stock should go down.
 - **A builder that fits your theme.** Ideally without editing theme code.
@@ -42,7 +42,7 @@ We compared CRO Toolbox with eight apps. Each comparison lists only facts with a
 
 ## Where does CRO Toolbox fit?
 
-CRO Toolbox has all six bundle types (Frequently bought together, kits, mix and match boxes, growing discounts, build while browsing, any N for one price), plus quantity breaks, cross sells, discounts, a cart drawer, storefront sections and checkout rules in one app. Bundles split into their items at checkout, so each item's stock goes down.
+CRO Toolbox has all six bundle types (Frequently bought together, fixed bundle, mix and match, build your own bundle, tiered bundle, fixed price bundle), plus quantity breaks, cross sells, discounts, a cart drawer, storefront sections and checkout rules in one app. Bundles split into their items at checkout, so each item's stock goes down.
 
 Pricing is by plan: a Free plan with three offers on at once and up to 50 orders a month, then Starter, Growth and Pro. The orders limit is soft: going over shows a reminder and nothing switches off. See [pricing](/pricing/).
 

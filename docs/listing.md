@@ -83,11 +83,11 @@ Store: testing2-j6mmnywm.myshopify.com   Storefront password: [STOREFRONT PASSWO
 Open the app: https://admin.shopify.com/store/testing2-j6mmnywm/apps/the-ultimate-cro-app/app
 
 WHAT TO CLICK
-- Bundles (Offers > Bundles > Create bundle): pick "Mix & match box", add steps and products,
+- Bundles (Offers > Bundles > Create bundle offer): pick "Mix and match", add steps and products,
   Save, then "Add to theme". On the bundle product's page choose items; one cart line appears
   at the bundle price. Go to checkout: one item at the bundle price. Other recipes: Frequently
-  bought together, Kit sold as one product, Build your bundle and save more, Build while
-  browsing (needs the "Bundle tray" app embed), Any N for one price.
+  bought together, Fixed bundle (sold as one product), Tiered bundle (buy more, save more), Build your own
+  bundle (needs the "Bundle tray" app embed), Fixed price bundle (any 3 for $30).
 - Upsell and Cross-sell (Offers): create a rule, turn it on, open the product page. The offer
   shows under Add to cart; the discount appears in the cart and at checkout as a Shopify discount.
 - Discounts (Offers > Discounts): buy X get Y, volume, gift. Add the products to the cart; the
