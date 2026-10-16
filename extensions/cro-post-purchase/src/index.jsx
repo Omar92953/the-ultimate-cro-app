@@ -16,6 +16,7 @@ import {
   useExtensionInput,
   BlockStack,
   Button,
+  CalloutBanner,
   Heading,
   Image,
   Layout,
@@ -117,18 +118,16 @@ export function App() {
 
   return (
     <BlockStack spacing="loose">
-      <TextContainer>
-        <Heading>{offer.heading}</Heading>
-        <TextBlock>
-          {offer.text}
-          {offer.pct > 0 ? (
-            <Text emphasized>
-              {' '}
-              Get {offer.pct}% off {offer.title}.
-            </Text>
-          ) : null}
-        </TextBlock>
-      </TextContainer>
+      {/* App Store rule 5.8.7: exactly one CalloutBanner at the top, with intro text, the product name and the discount. */}
+      <CalloutBanner title={offer.heading}>
+        {offer.text}
+        {offer.pct > 0 ? (
+          <Text emphasized>
+            {' '}
+            Get {offer.pct}% off {offer.title}.
+          </Text>
+        ) : null}
+      </CalloutBanner>
       <Layout
         maxInlineSize={0.95}
         media={[
