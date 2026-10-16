@@ -105,6 +105,7 @@ export default function Plans() {
             <PlanCard key={k} plan={k} current={k === plan} yearly={yearly} action={choose(k)} />
           ))}
         </div>
+        <s-text color="subdued">You confirm the plan on Shopify&apos;s page. Development stores show $0.</s-text>
         <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
         <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>
 

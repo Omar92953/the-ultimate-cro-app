@@ -45,7 +45,7 @@ export const DEAL_TYPES: Record<
   fixed: {
     title: "Fixed bundles",
     singular: "fixed bundle",
-    addLabel: "Create fixed bundle",
+    addLabel: "Create bundle offer",
     what: "“Frequently bought together”: a set of specific products sold together with a discount, added to the cart with one button.",
     how: "Shoppers see the set on each of its products' pages with the total and the saving. The discount applies at checkout whenever the whole set is in the cart.",
     example: "“Camera kit”: instant camera + case + film, 15% off when bought together.",
@@ -55,7 +55,7 @@ export const DEAL_TYPES: Record<
   bogo: {
     title: "Buy X get Y",
     singular: "buy X get Y deal",
-    addLabel: "Create buy X get Y",
+    addLabel: "Create buy X get Y offer",
     what: "Buy a number of items, get others free or discounted: the classic BOGO.",
     how: "When the cart has enough “buy” items, the cheapest “get” items are discounted automatically at checkout. Qualifying product pages show the deal.",
     example: "“Buy 2 T-shirts, get 1 free”, or “Buy a camera, get the case 50% off”.",
@@ -65,7 +65,7 @@ export const DEAL_TYPES: Record<
   volume: {
     title: "Volume discounts",
     singular: "volume discount",
-    addLabel: "Create volume discount",
+    addLabel: "Create volume discount offer",
     what: "The more they buy from a group of products, the bigger the discount, counted across different products.",
     how: "Choose the products or collections and the tiers. Product pages show the tier table; checkout applies the best tier reached.",
     example: "Any 2 posters 10% off, any 3 posters 15% off.",
@@ -75,7 +75,7 @@ export const DEAL_TYPES: Record<
   gift: {
     title: "Gift with purchase",
     singular: "gift",
-    addLabel: "Create gift",
+    addLabel: "Create gift offer",
     what: "A free gift once the cart reaches an amount (or has a certain product).",
     how: "Shoppers see how far they are from the gift. When they qualify, the gift is added to the cart for free; if they drop below, it's removed.",
     example: "Free tote bag on orders over $50: “You're $12 away from your free tote”.",
@@ -85,7 +85,7 @@ export const DEAL_TYPES: Record<
   upgrade: {
     title: "Upgrades",
     singular: "upgrade",
-    addLabel: "Create upgrade",
+    addLabel: "Create upgrade offer",
     what: "Offer a better option in place of the one chosen (a bigger pack, a larger size, a premium version), with the price difference.",
     how: "On the product page (when that option is selected) and in the cart, shoppers see “Upgrade to … for … more”; one tap swaps it.",
     example: "“Upgrade to the 3-pack for EGP 150 more” when the 1-pack is selected.",

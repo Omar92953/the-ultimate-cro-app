@@ -41,7 +41,7 @@ export default function BundleList() {
       <CategoryCrumb feature="bundles" />
       <DemoButton feature="bundles" />
       <Button slot="primary-action" variant="primary" href="/app/bundles/create">
-        Create bundle
+        Create bundle offer
       </Button>
 
       <s-stack gap="base">

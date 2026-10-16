@@ -47,20 +47,21 @@ export function Toolbar({ children, note }: { children: ReactNode; note?: ReactN
 }
 
 /** Link tabs. `match` decides which is active (pathname + optional ?tab=). `side` tabs sit apart on the right (e.g. Design). */
-export function Tabs({ items }: { items: { label: string; to: string; side?: boolean }[] }) {
+export function Tabs({ items }: { items: { label: string; to: string; side?: boolean; locked?: boolean }[] }) {
   const location = useLocation();
   // While the next tab loads, show it as chosen straight away (with a thin loading bar).
   const pending = useNavigation().location;
   const { pathname, search } = pending ?? location;
   const loading = !!pending && items.some((t) => t.to.split("?")[0] === pending.pathname);
   const here = new URLSearchParams(search).get("tab");
-  const link = (t: { label: string; to: string }) => {
+  const link = (t: { label: string; to: string; locked?: boolean }) => {
     const [path, query] = t.to.split("?");
     const tab = new URLSearchParams(query ?? "").get("tab");
     const active = pathname === path && (tab ?? null) === (here ?? null);
     return (
       <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
         {t.label}
+        {t.locked ? <LockIcon /> : null}
       </Link>
     );
   };
@@ -121,9 +122,20 @@ export type LinkTile = {
   badge?: ReactNode;
   /** Shown before the arrow, e.g. a plan pill or "Create". */
   end?: ReactNode;
+  /** The plan doesn't include it: a small lock beside the title. */
+  locked?: boolean;
 };
 
-/** A list of soft grey tiles; each whole tile is the link. Use instead of rows of text links. */
+/** A small lock, shown next to anything the shop's plan doesn't include. */
+export function LockIcon() {
+  return (
+    <span className={styles.lock} role="img" aria-label="Locked on your plan">
+      <s-icon type="lock" size="small" />
+    </span>
+  );
+}
+
+/** A list of plain rows with thin dividers; each whole row is the link. Use instead of rows of text links. */
 export function LinkTiles({ items }: { items: LinkTile[] }) {
   return (
     <div className={styles.tiles}>
@@ -133,6 +145,7 @@ export function LinkTiles({ items }: { items: LinkTile[] }) {
             <span className={styles.tileText}>
               <span className={styles.tileTitle}>
                 {t.title}
+                {t.locked ? <LockIcon /> : null}
                 {t.badge}
               </span>
               {t.sub ? <span className={styles.tileSub}>{t.sub}</span> : null}
@@ -155,9 +168,9 @@ export function LinkTiles({ items }: { items: LinkTile[] }) {
   );
 }
 
-export type GroupCardItem = { key: string; title: string; about: string; href: string; icon: ReactNode; status?: ReactNode; chips?: string[]; /** A button at the card's bottom right, outside its link. */ action?: ReactNode };
+export type GroupCardItem = { key: string; title: string; about: string; href: string; locked?: boolean; status?: ReactNode; chips?: string[]; /** A button at the card's bottom right, outside its link. */ action?: ReactNode };
 
-/** Big clickable cards for a hub's groups (Offers: Upsell, Cross-sell, Bundles, Discounts). */
+/** Big clickable cards for a hub's groups (Offers: Upsell, Cross sell, Bundles, Discounts). */
 export function GroupCards({ items }: { items: GroupCardItem[] }) {
   return (
     <div className={styles.groupCards}>
@@ -165,10 +178,8 @@ export function GroupCards({ items }: { items: GroupCardItem[] }) {
         const card = (
           <Link key={g.key} to={g.href} prefetch="intent" className={styles.groupCard}>
             <span className={styles.groupCardHead}>
-              <span className={styles.groupIcon} aria-hidden="true">
-                {g.icon}
-              </span>
               <span className={styles.groupCardTitle}>{g.title}</span>
+              {g.locked ? <LockIcon /> : null}
               {g.status ? <span className={styles.groupCardStatus}>{g.status}</span> : null}
             </span>
             <span className={styles.groupCardAbout}>{g.about}</span>

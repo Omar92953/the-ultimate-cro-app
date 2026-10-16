@@ -10,6 +10,12 @@ export function canTry(plan: PlanKey, f: FeatureKey) {
   return PLANS[plan].limits.trialFeatures > 0 && planRank(FEATURE_PLAN[f]) === planRank(plan) + 1;
 }
 
+/** Does the plan lock this feature? The free trial feature (plans.ts `trialFeatures`) counts as unlocked. */
+export function isLocked(plan: PlanKey, f: FeatureKey, trial: FeatureKey | null = null) {
+  if (atLeast(plan, FEATURE_PLAN[f])) return false;
+  return !(trial === f && canTry(plan, f));
+}
+
 export type PageLock =
   | { kind: "feature"; feature: FeatureKey; needs: PlanKey }
   | { kind: "design"; slot: number; allowed: number; needs: PlanKey };

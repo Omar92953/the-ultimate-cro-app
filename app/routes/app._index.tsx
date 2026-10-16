@@ -18,14 +18,15 @@ import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, canUse, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
 import { REQUEST_STATUS_LABEL, cleanRequest, MAX_PLACE, MAX_TEXT } from "../lib/feature-requests";
 import { Button, TextArea, TextField } from "../components/fields";
 import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
-import { UpgradeButton } from "../components/Upgrade";
+import { UpgradeButton, usePlan } from "../components/Upgrade";
+import { isLocked } from "../lib/plan-gate";
 import { PlanBar } from "../components/PlanCard";
 import { SetupGuide, type GuideStep } from "../components/SetupGuide";
 import { loadHub } from "../lib/hub.server";
@@ -157,6 +158,7 @@ const change = (now: number, before: number) => (before > 0 ? Math.round(((now -
 
 export default function Home() {
   const data = useLoaderData<typeof loader>();
+  const { trial } = usePlan();
   const fetcher = useFetcher();
   const current = PLANS[data.plan.key];
   const [playing, setPlaying] = useState<Tutorial | null>(null);
@@ -178,7 +180,7 @@ export default function Home() {
       title: "Create your first offer",
       text: "An upsell (“Buy 2, save 10%”), a cross-sell, a bundle or a discount. Pick a group and fill in the offer.",
       done: data.steps.offer || manual.has("offer"),
-      action: <Button href="/app/offers/new" variant="primary">Create offer</Button>,
+      action: <Button href="/app/offers" variant="primary">Create offer</Button>,
     },
     {
       key: "place",
@@ -284,7 +286,8 @@ export default function Home() {
                 title: feature(k).title,
                 sub: feature(k).about,
                 href: featureHref(k),
-                end: canUse(data.plan.key, k) ? null : <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill>,
+                locked: isLocked(data.plan.key, k, trial),
+                end: isLocked(data.plan.key, k, trial) ? <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill> : null,
               }))}
             />
           </s-section>
