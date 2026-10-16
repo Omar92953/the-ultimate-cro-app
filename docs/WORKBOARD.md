@@ -45,8 +45,7 @@ Updated 2026-10-15.
 - [x] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
-- [ ] Live demos at crotoolbox.com/demo/: built by the website build (one Cloudflare project); after the next deploy run
-      `npm run check:links` (every demo page must be 200)
+- [x] Live demos at crotoolbox.com/demo/ (PR #96): `npm run check:links` on 2026-10-17, 59 pages, all 200
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
