@@ -7,10 +7,11 @@
 import { useEffect, useState } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useFetcher, useLoaderData } from "react-router";
+import { Link, useFetcher, useLoaderData, useRevalidator } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { timedLoader, timed } from "../lib/timing.server";
+import { EMBED_KEYS, themeSteps } from "../lib/setup-steps";
 import { cachedResults } from "../lib/value.server";
 import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
 import { listOffers } from "../lib/offers.server";
@@ -34,7 +35,6 @@ import { loadHub } from "../lib/hub.server";
 import styles from "../components/Home.module.css";
 
 /** Theme embeds that count as "the app is switched on in your theme". */
-const EMBED_KEYS = ["boosters", "drawer", "announcements", "quick_add", "wishlist"] as const;
 
 export const loader = timedLoader("app._index", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -98,10 +98,8 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
     dismissed: homeState.dismissed,
     manual: homeState.manual,
     steps: {
-      embed: installed ? EMBED_KEYS.some((k) => installed[k]) : false,
+      ...themeSteps(installed),
       offer: offerCount > 0,
-      // A block (offers, reviews…) placed in the theme, or the embed when offers run from it.
-      place: installed ? Object.entries(installed).some(([k, on]) => on && !(EMBED_KEYS as readonly string[]).includes(k)) : false,
       works: results ? results.bySource.length > 0 : false,
     },
     themeName: hub.theme?.themeName ?? null,
@@ -163,6 +161,13 @@ export default function Home() {
   const current = PLANS[data.plan.key];
   const [playing, setPlaying] = useState<Tutorial | null>(null);
   const pending = fetcher.formData?.get("intent");
+  // The setup guide ticks itself: the theme is re-read (fresh, not from the cache) when the tab comes back, and every
+  // 5 seconds for 2 minutes after "Turn on" is clicked; the rest of the page is reloaded too (useRevalidator).
+  const check = useFetcher<{ embed: boolean; place: boolean }>();
+  const revalidator = useRevalidator();
+  const [watchUntil, setWatchUntil] = useState(0);
+  const fresh = check.data;
+  const stepDone = { embed: data.steps.embed || !!fresh?.embed, place: data.steps.place || !!fresh?.place };
   const dismissed = pending === "dismiss" ? true : pending === "restore" ? false : data.dismissed;
   // Ticked by hand ("I've done it"), including the one being saved right now.
   const manual = new Set([...data.manual, ...(pending === "manual" ? [String(fetcher.formData?.get("step"))] : [])]);
@@ -172,8 +177,9 @@ export default function Home() {
       key: "embed",
       title: "Turn on the app embed",
       text: `In your theme's App embeds${data.themeName ? ` (“${data.themeName}”)` : ""}, switch on “Conversion boosters” and save. Bars, pop-ups and discounts run from it.`,
-      done: data.steps.embed || manual.has("embed"),
-      action: <Button href={data.embedLink} target="_top" variant="primary">Turn on</Button>,
+      done: stepDone.embed || manual.has("embed"),
+      // Opens in a new tab, so this page stays open and notices when the embed is on.
+      action: <Button href={data.embedLink} target="_blank" variant="primary" onClick={() => setWatchUntil(Date.now() + 120000)}>Turn on</Button>,
     },
     {
       key: "offer",
@@ -186,7 +192,7 @@ export default function Home() {
       key: "place",
       title: "Place it on your store",
       text: "Open the theme editor and add the offer's block to your product page (or the cart). Each offer page has an “Add to theme” button that opens the right spot.",
-      done: data.steps.place || manual.has("place"),
+      done: stepDone.place || manual.has("place"),
       action: <Button href={data.editorLink} target="_top" variant="primary">Open theme editor</Button>,
     },
     {
@@ -197,6 +203,28 @@ export default function Home() {
       action: <Button href={`https://${data.shop}`} target="_blank" variant="primary">View store</Button>,
     },
   ];
+
+  const guideOpen = !dismissed && steps.some((st) => !st.done);
+  const themePending = !stepDone.embed && !manual.has("embed") ? true : !stepDone.place && !manual.has("place");
+  useEffect(() => {
+    if (!guideOpen) return;
+    const run = () => {
+      if (document.visibilityState !== "visible") return;
+      if (themePending && check.state === "idle") check.load("/app/setup-check");
+      if (revalidator.state === "idle") revalidator.revalidate();
+    };
+    const onShow = () => run();
+    window.addEventListener("focus", onShow);
+    document.addEventListener("visibilitychange", onShow);
+    // After "Turn on": every 5 seconds for 2 minutes.
+    const timer = watchUntil > Date.now() ? setInterval(() => (Date.now() > watchUntil ? clearInterval(timer) : run()), 5000) : undefined;
+    return () => {
+      window.removeEventListener("focus", onShow);
+      document.removeEventListener("visibilitychange", onShow);
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetcher and revalidator objects change on every state; their state is read when it runs
+  }, [guideOpen, themePending, watchUntil]);
 
   // One banner at most: the most urgent one.
   const banner = data.plan.source === "error"

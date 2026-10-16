@@ -34,6 +34,11 @@ export function remember<T>(shop: string, name: string, ttlMs: number, load: () 
   return value;
 }
 
+/** Store a value that was just read fresh, so the next page uses it instead of reading again. */
+export function prime<T>(shop: string, name: string, value: T) {
+  store.set(`${shop}|${name}`, { at: Date.now(), value: Promise.resolve(value) });
+}
+
 /**
  * Forget what is remembered for this shop: everything, or only the entries whose name starts with
  * one of `names` (e.g. ["hub", "home"]). Which names a save clears: `namesToForget` below.
