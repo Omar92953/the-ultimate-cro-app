@@ -57,7 +57,7 @@ export default function ReturnRequests() {
       <CategoryCrumb feature="returns" />
       <DemoButton feature="returns" />
       <Button slot="primary-action" variant="primary" href="/app/pages/returns">
-        Design the page
+        Style the page
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to a page"}

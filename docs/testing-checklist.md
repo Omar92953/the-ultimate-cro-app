@@ -107,7 +107,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 ### Theme editor, each block on each theme
 - [ ] **Cross-sell** block: add it inside the product information (drag it where the old "Pairs well with" sat). Every setting in its panel changes the preview.
 - [ ] **Upsell** block: add it above the Add to cart button. The tiers show the LE amounts, and "Save 10%" and the badge sit on the card edges.
-- [ ] **Video carousel**: add it on the home page, then try the footer. In **Video carousel → Design → Display**, the "Only on" / "Everywhere except" pages and handle rules work.
+- [ ] **Video carousel**: add it on the home page, then try the footer. In **Video carousel → Style → Display**, the "Only on" / "Everywhere except" pages and handle rules work.
 - [ ] **Bundle builder**: on the bundle product (ideally its own product template), add the block, and turn off Dynamic checkout buttons on that template.
 - [ ] **Cart drawer offers**: App embeds → switch on. It shows only when the cart has a trigger product.
 - [ ] A misconfigured block shows the grey "Only you see this note" in the editor and **nothing** on the real storefront (check in an incognito window).
@@ -127,7 +127,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 ### Size upgrades, sizes per item, grouped list
 - [ ] Upsell rule type **Size upgrade** (option "Size", tiers M / L −10% / XL −20%) on a product with sizes: clicking a tier switches the theme's size picker and the price; checkout discounts only that size.
 - [ ] Quantity rule on a product with sizes: "Buy 2" shows two size pickers; choose M + L; the theme's Add to cart adds one of each; checkout gives the Buy 2 discount on both.
-- [ ] **Upsell offers → Design**: **Grouped list** and **Small caps label** (and each ready-made look) look right on both themes and on mobile.
+- [ ] **Upsell offers → Style**: **Grouped list** and **Small caps label** (and each ready-made look) look right on both themes and on mobile.
 - [x] Home → Checkout discounts → **Native Shopify discounts**: Discounts lists the app's native discounts; cart prices match; switching back to **Automatic** removes them and restores "CRO Toolbox offers". *(Done on the dev store: 2 units → 10%, 3–4 units → 15% only, not stacked; switching back restored "CRO Toolbox offers".)*
 
 ### Discounts at checkout (the part that costs money if wrong)

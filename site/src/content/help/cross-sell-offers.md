@@ -16,4 +16,4 @@ In the theme editor you can also choose **Shopify recommendations** for products
 
 ## Offers in your theme's cart
 
-Heading, how many products and the button text are on **Cross sell offers → Design** (Content tab). Offers in the theme's own cart drawer work with Dawn and Dawn based themes. If yours is different, use the app's cart drawer (Cart).
+Heading, how many products and the button text are on **Cross sell offers → Style** (Content tab). Offers in the theme's own cart drawer work with Dawn and Dawn based themes. If yours is different, use the app's cart drawer (Cart).

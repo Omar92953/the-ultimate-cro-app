@@ -80,7 +80,7 @@ export default function StockRequests() {
       <CategoryCrumb feature="stock" />
       <DemoButton feature="stock" />
       <Button slot="primary-action" variant="primary" href="/app/designs/stock">
-        Design
+        Style
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}

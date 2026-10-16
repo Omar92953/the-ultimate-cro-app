@@ -53,7 +53,7 @@ This suits stores with large collections, where scrolling a long builder on one 
 
 ## How do I make the builder look like my theme?
 
-**Bundles → Design** has ready made looks (My theme, Black and white, Fresh green, Blue, Big cards, Sharp and compact) and lets you change the heading, button words, columns, a sticky summary and colours. You can also use your theme's own Add to cart button instead of the builder's.
+**Bundles → Style** has ready made looks (My theme, Black and white, Fresh green, Blue, Big cards, Sharp and compact) and lets you change the heading, button words, columns, a sticky summary and colours. You can also use your theme's own Add to cart button instead of the builder's.
 
 ## Common mistakes
 

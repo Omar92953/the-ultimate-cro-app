@@ -33,4 +33,4 @@ Customers pay exactly the bundle's price. At checkout the bundle is split into t
 
 ## Design
 
-**Bundles → Design** sets how the builder looks (one design for all bundles), with a live preview where you can pick items: ready made looks, heading, button and summary words, columns, sticky summary, using your theme's Add to cart button, colour and corners.
+**Bundles → Style** sets how the builder looks (one design for all bundles), with a live preview where you can pick items: ready made looks, heading, button and summary words, columns, sticky summary, using your theme's Add to cart button, colour and corners.

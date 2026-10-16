@@ -76,10 +76,10 @@ customer pays.
 - **Upsell type → Size upgrade:** tiers are values of one option (e.g. Size: M / L −10% / XL −20%).
   Picking a tier switches the product to that size using your theme's own size picker, and the
   discount applies at checkout to that size.
-- **Quantity breaks on products with sizes:** in **Upsell offers → Design → Content** keep **Let shoppers
+- **Quantity breaks on products with sizes:** in **Upsell offers → Style → Content** keep **Let shoppers
   pick a size for each item** on. Choosing "Buy 2" then shows a size picker per item (e.g. M + L); your normal Add to
   cart adds each size, and the tier discount still applies.
-- **Upsell offers → Design** sets the whole look, with a live preview of your own offer: ready-made
+- **Upsell offers → Style** sets the whole look, with a live preview of your own offer: ready-made
   looks, Cards or **Grouped list** (one box, the selected row tinted with a bar on its edge), offer
   and saving wording, heading style (e.g. **Small caps label**), colours, corners, spacing and devices.
   The theme editor only places the block.
@@ -88,7 +88,7 @@ customer pays.
 - Upload videos in **Content → Files** (or to a product's media), then add them in the app, set the
   order, add captions and link each to a product.
 - Linked videos show the product name, price and an Add to cart button.
-- **Video carousel → Design** sets the look and where it shows, with a live preview of your videos
+- **Video carousel → Style** sets the look and where it shows, with a live preview of your videos
   (desktop and phone): ready-made looks, shape (9:16 and others), slides per row, corners, product
   name/price/button, arrows, and pages (e.g. put it in the footer and pick "Only on: All product
   pages"). The theme editor only places the section.
@@ -110,7 +110,7 @@ products and prices); a step with a problem opens itself when you save.
 
 Customers pay exactly the bundle product's price. At checkout the bundle is split into the items
 they picked, so **each item's stock goes down** and the items appear on the order.
-- **Bundles → Design** sets how the builder looks (one design for all bundles), with a live preview
+- **Bundles → Style** sets how the builder looks (one design for all bundles), with a live preview
   of your bundle where you can pick items: ready-made looks, heading, button and summary words,
   columns, sticky summary, using your theme's Add to cart button, colour and corners. The theme editor
   only places the block.
@@ -122,7 +122,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   step's progress, the picks (remove any), "Browse more" links and, once complete, **Add bundle to
   cart** or **Checkout**. In the cart the items merge into one bundle line at the bundle price.
   Turn on the **Bundle tray** app embed and add the **Add to bundle** block (Bundles page has both
-  links). Words, tray position and colours: **Bundles → Design** (preview: Bundle page / Collection page).
+  links). Words, tray position and colours: **Bundles → Style** (preview: Bundle page / Collection page).
 
 ## Free shipping bar
 - Set the goal and messages in **Storefront → Free shipping bar**. With **Give free shipping

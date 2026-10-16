@@ -400,7 +400,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             off: !on,
             menu: [
               { label: "Manage", href: f.href },
-              ...(f.key === "upsell" ? [{ label: "Design", href: "/app/designs/upsell" }] : f.key === "cross_sell" ? [{ label: "Design", href: "/app/designs/cross-sell" }] : f.key === "videos" ? [{ label: "Design", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Design", href: "/app/designs/bundles" }] : []),
+              ...(f.key === "upsell" ? [{ label: "Style", href: "/app/designs/upsell" }] : f.key === "cross_sell" ? [{ label: "Style", href: "/app/designs/cross-sell" }] : f.key === "videos" ? [{ label: "Style", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Style", href: "/app/designs/bundles" }] : []),
               ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
               { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
               editor(data.links[f.key], inTheme),
@@ -431,8 +431,8 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             open: manage ? { href: manage } : { href: c.embed ? themeHref : data.links.editor, external: true },
             previews: c.Previews,
             menu: [
-              ...(manage ? [{ label: c.key === "hero" ? "Banners" : c.app ? "Design" : "Manage", href: manage }] : []),
-              ...(c.list && SECTIONS[c.list].design ? [{ label: "Design", href: SECTIONS[c.list].design! }] : []),
+              ...(manage ? [{ label: c.key === "hero" ? "Banners" : c.app ? "Style" : "Manage", href: manage }] : []),
+              ...(c.list && SECTIONS[c.list].design ? [{ label: "Style", href: SECTIONS[c.list].design! }] : []),
               ...(c.list && counts?.total ? [{ label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }] : []),
               { ...editor(themeHref, inTheme), ...(c.embed && !inTheme ? { label: "Turn on in theme" } : {}) },
             ],
@@ -461,7 +461,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
         PAGE_CARDS.forEach((pg) => {
           const inTheme = installed ? (installed.contact ?? false) : null;
           let status: Status, next: Next | undefined;
-          if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: pg.href }];
+          if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: pg.href }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Designed" }, { label: "Add to page", href: data.links.contact, external: true }];
           else status = { tone: "success", text: "Live" };
           add({
@@ -473,7 +473,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             next,
             open: { href: pg.href },
             previews: pg.Previews,
-            menu: [{ label: "Design", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }],
+            menu: [{ label: "Style", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }],
           });
         });
 
@@ -481,7 +481,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
         {
           const inTheme = installed ? (installed.header ?? false) : null;
           let status: Status, next: Next | undefined;
-          if (!data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/header" }];
+          if (!data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: "/app/designs/header" }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Not on store" }, { label: "Add to header", href: data.sectionLinks.header, external: true }];
           else status = { tone: "success", text: "Live" };
           add({
@@ -493,11 +493,11 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             next,
             open: { href: "/app/designs/header" },
             previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
-            menu: [{ label: "Design", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
+            menu: [{ label: "Style", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
           });
           const footerIn = installed ? (installed.footer ?? false) : null;
           let fStatus: Status, fNext: Next | undefined;
-          if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs design" }, { label: "Design it", href: "/app/designs/footer" }];
+          if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: "/app/designs/footer" }];
           else if (footerIn === false) [fStatus, fNext] = [{ tone: "warning", text: "Not on store" }, { label: "Add to footer", href: data.sectionLinks.footer, external: true }];
           else fStatus = { tone: "success", text: "Live" };
           for (const page of [
@@ -514,7 +514,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
               next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
               open: { href: page.href },
               previews: [page.Preview],
-              menu: [{ label: page.key === "returns" ? "Requests" : "Design", href: page.href }, ...(page.key === "returns" ? [{ label: "Design", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
+              menu: [{ label: page.key === "returns" ? "Requests" : "Style", href: page.href }, ...(page.key === "returns" ? [{ label: "Style", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
             });
           }
           add({
@@ -526,7 +526,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             next: fNext,
             open: { href: "/app/designs/footer" },
             previews: [FooterShowcase],
-            menu: [{ label: "Design", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
+            menu: [{ label: "Style", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
           });
         }
 
@@ -591,7 +591,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             next: !data.counts.drawer ? { label: "Create a cross-sell", href: "/app/offers/cross-sell/new" } : embedOn === false ? { label: "Turn on", href: data.links.drawer, external: true } : undefined,
             open: { href: "/app/offers/cross-sell" },
             previews: [CrossSellCardsShowcase],
-            menu: [{ label: "Offers", href: "/app/offers/cross-sell" }, { label: "Design", href: "/app/designs/cross-sell" }, editor(data.links.drawer, embedOn)],
+            menu: [{ label: "Offers", href: "/app/offers/cross-sell" }, { label: "Style", href: "/app/designs/cross-sell" }, editor(data.links.drawer, embedOn)],
           });
         }
 

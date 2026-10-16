@@ -165,7 +165,7 @@ export default function FaqDesigner() {
           <DesignSlots base="faq" blockName="FAQ" />
           <s-text color="subdued">
             Questions and groups are in the Questions tab. Here you choose how
-            the FAQ looks and works; each copy of the section shows the design picked in its “Design” setting.
+            the FAQ looks and works; each copy of the section shows the design picked in its “Style” setting.
             In the theme editor each copy can still show only one group (e.g.
             Shipping) and have its own heading.
           </s-text>

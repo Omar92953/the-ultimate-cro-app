@@ -47,17 +47,17 @@ export function Toolbar({ children, note }: { children: ReactNode; note?: ReactN
 }
 
 /** Link tabs. `match` decides which is active (pathname + optional ?tab=). `side` tabs sit apart on the right (e.g. Design). */
-export function Tabs({ items }: { items: { label: string; to: string; side?: boolean; locked?: boolean }[] }) {
+export function Tabs({ items }: { items: { label: string; to: string; side?: boolean; locked?: boolean; /** Other pages that belong to this tab (it is shown as chosen on them). */ also?: string[] }[] }) {
   const location = useLocation();
   // While the next tab loads, show it as chosen straight away (with a thin loading bar).
   const pending = useNavigation().location;
   const { pathname, search } = pending ?? location;
   const loading = !!pending && items.some((t) => t.to.split("?")[0] === pending.pathname);
   const here = new URLSearchParams(search).get("tab");
-  const link = (t: { label: string; to: string; locked?: boolean }) => {
+  const link = (t: { label: string; to: string; locked?: boolean; also?: string[] }) => {
     const [path, query] = t.to.split("?");
     const tab = new URLSearchParams(query ?? "").get("tab");
-    const active = pathname === path && (tab ?? null) === (here ?? null);
+    const active = (pathname === path && (tab ?? null) === (here ?? null)) || !!t.also?.includes(pathname);
     return (
       <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
         {t.label}

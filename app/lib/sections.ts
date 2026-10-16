@@ -142,7 +142,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "Reviews and testimonials from your customers (text, photos or videos) with the icon of where they came from (WhatsApp, Instagram, TikTok…).",
-      how: "Add reviews here (only real customer feedback), choose how the section looks in “Design”, then place the “Customer reviews” section in the theme editor.",
+      how: "Add reviews here (only real customer feedback), choose how the section looks in “Style”, then place the “Customer reviews” section in the theme editor.",
       example: "A WhatsApp screenshot from Mariam in Cairo, 5 stars, linked to the Basic tee, shown on the home page and on the tee's page.",
     },
     empty: "No reviews yet. Add your first one. A WhatsApp message or an Instagram comment works great.",
@@ -167,7 +167,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "Answers to the questions customers ask before buying, as a tidy accordion with optional search and group buttons.",
-      how: "Add questions here, choose the look in “Design”, then add the “FAQ” section to any page in the theme editor. It also tells Google about your questions so they can appear in search results.",
+      how: "Add questions here, choose the look in “Style”, then add the “FAQ” section to any page in the theme editor. It also tells Google about your questions so they can appear in search results.",
       example: "Shipping: “How long does delivery take?” · Payment: “Can I pay cash on delivery?” · Returns: “What is your return policy?”",
     },
     empty: "No questions yet. Start with delivery time, payment methods and returns.",
@@ -191,7 +191,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
     ],
     help: {
       what: "A strip of logos or short texts (press that featured you, partners, or lines like “Free delivery”) that scrolls endlessly or sits in a grid.",
-      how: "Upload logos here, choose speed, size and grey-until-hover in “Design”, then add the “Scrolling logos and text” section in the theme editor.",
+      how: "Upload logos here, choose speed, size and grey-until-hover in “Style”, then add the “Scrolling logos and text” section in the theme editor.",
       example: "“As seen in” with five magazine logos scrolling slowly under the hero image.",
     },
     empty: "No logos yet. Upload a few: magazines, partners or brands you work with.",

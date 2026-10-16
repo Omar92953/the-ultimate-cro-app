@@ -23,7 +23,7 @@ Make banners in **Storefront → Hero banners**: a wide desktop image and a tall
 
 ## Image and video carousels
 
-Image carousel slides each have a picture, title, text, button and link. For the video carousel, upload videos in Content → Files (or to a product's media), add them in the app, set the order, add captions and link each to a product; linked videos show the product name, price and an Add to cart button. **Video carousel → Design** also sets the pages it shows on.
+Image carousel slides each have a picture, title, text, button and link. For the video carousel, upload videos in Content → Files (or to a product's media), add them in the app, set the order, add captions and link each to a product; linked videos show the product name, price and an Add to cart button. **Video carousel → Style** also sets the pages it shows on.
 
 ## Quiz and collection pills
 

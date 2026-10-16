@@ -19,6 +19,15 @@
     endif
   endif
 
+  # An offer with its own style (set in the app: Style tab) shows that style instead of the block's.
+  if rule and rule.design.value != blank
+    capture dk
+      render 'ucs-dk', key: 'upsell', pick: rule.design.value
+    endcapture
+    assign dk = dk | strip
+    assign dkd = dk | append: '_draft'
+  endif
+
   assign tiers = nil
   if rule
     assign tiers = rule.tiers.value

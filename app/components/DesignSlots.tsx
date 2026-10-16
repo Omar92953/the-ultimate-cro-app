@@ -19,7 +19,9 @@ export function useDesignSlot() {
 
 /** Where a design page posts its saves, so they go to the open design. */
 export function useDesignAction() {
-  return `?design=${useDesignSlot()}`;
+  const [params] = useSearchParams();
+  const offer = params.get("offer");
+  return `?design=${useDesignSlot()}${offer ? `&offer=${encodeURIComponent(offer)}` : ""}`;
 }
 
 export function DesignSlots({ base, blockName }: { base: string; blockName: string }) {

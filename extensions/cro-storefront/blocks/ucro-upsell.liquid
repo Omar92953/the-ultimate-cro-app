@@ -15,6 +15,13 @@ if rule_handle != blank
 assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
 endif
 endif
+if rule and rule.design.value != blank
+capture dk
+render 'ucs-dk', key: 'upsell', pick: rule.design.value
+endcapture
+assign dk = dk | strip
+assign dkd = dk | append: '_draft'
+endif
 assign tiers = nil
 if rule
 assign tiers = rule.tiers.value
