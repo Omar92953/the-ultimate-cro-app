@@ -32,7 +32,7 @@ export const BLOG_PAGE: PageMeta = {
   title: "Guides for Shopify stores: bundles, upsells and more",
   description: "Practical guides on bundles, upsells, product pages, the cart and checkout for Shopify stores, with real steps.",
   ogTitle: "Guides for Shopify stores",
-  ogKicker: "Blog",
+  ogKicker: "Guides",
 };
 export const categoryMeta = (c: (typeof CATEGORY_LIST)[number]): PageMeta => ({
   slug: `blog-cat-${c.slug}`,
@@ -40,7 +40,7 @@ export const categoryMeta = (c: (typeof CATEGORY_LIST)[number]): PageMeta => ({
   title: `${c.name}: guides for Shopify stores`,
   description: `Guides about ${c.name.toLowerCase()} for Shopify stores, from the CRO Toolbox team.`,
   ogTitle: c.name,
-  ogKicker: "Blog",
+  ogKicker: "Guides",
 });
 export const HELP_PAGE: PageMeta = {
   slug: "help",

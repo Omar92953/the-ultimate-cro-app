@@ -23,7 +23,7 @@ const { Content, headings } = await render(a);
 const page = articleMeta(a);
 const cat = CATEGORY_LIST.find((c) => c.name === a.data.category)!;
 const crumbs = [
-  { name: "Blog", href: BLOG_PAGE.path },
+  { name: "Guides", href: BLOG_PAGE.path },
   { name: cat.name, href: cat.path },
   { name: a.data.title, href: page.path },
 ];
