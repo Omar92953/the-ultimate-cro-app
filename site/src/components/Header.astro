@@ -95,11 +95,13 @@ const here = Astro.url.pathname;
     font-size: 0.95rem;
     font-weight: 550;
     color: #34363f;
+    white-space: nowrap;
   }
   .menu {
     position: relative;
   }
   .trigger {
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -289,7 +291,8 @@ const here = Astro.url.pathname;
     width: 100%;
     justify-content: center;
   }
-  @media (min-width: 900px) {
+  /* The full menu needs about 1050 px on one line (logo, 5 links, install button); below that the phone menu shows. */
+  @media (min-width: 1120px) {
     .desktop,
     .cta {
       display: flex;
