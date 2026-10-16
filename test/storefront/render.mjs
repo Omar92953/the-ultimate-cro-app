@@ -247,6 +247,7 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
     upsellDisabled: /<button[^>]*class="ucro-tier"[^>]*disabled/.test(soldUpsell.replace(/\n\s*/g, " ")),
     crossKeepsSoldOut: crossSold.includes("is-sold-out") && crossSold.includes("ucro-offer__soldout"),
   }));
+  fs.writeFileSync(path.join(out, "sold-out.html"), page("Sold out: upsell and cross sell", P.soldout.id, 401, soldUpsell + (await block("ucro-cross-sell", { product: P.batman, page_type: "product" }))));
   const itemLabel = await block("ucro-upsell", teeCtx, {}, shopWith([quantityListRule], listDesign));
   console.log("item label:", JSON.stringify({ migrated: itemLabel.includes('data-item-label="[n]"') }));
 }
