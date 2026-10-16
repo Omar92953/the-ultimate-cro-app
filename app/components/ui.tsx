@@ -57,7 +57,7 @@ export function Tabs({ items }: { items: { label: string; to: string; side?: boo
   const link = (t: { label: string; to: string; locked?: boolean; also?: string[] }) => {
     const [path, query] = t.to.split("?");
     const tab = new URLSearchParams(query ?? "").get("tab");
-    const active = (pathname === path && (tab ?? null) === (here ?? null)) || !!t.also?.includes(pathname);
+    const active = (pathname === path && (tab ?? null) === (here ?? null)) || !!t.also?.some((a) => pathname === a || pathname.startsWith(`${a}/`));
     return (
       <Link key={t.to} to={t.to} prefetch="intent" className={`${styles.pageTab} ${active ? styles.pageTabActive : ""}`} aria-current={active ? "page" : undefined}>
         {t.label}

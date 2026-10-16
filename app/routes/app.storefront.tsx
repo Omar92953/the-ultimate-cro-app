@@ -204,13 +204,13 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "logos", title: "Scrolling logos and text", description: "Logos or short texts in a scrolling strip or a grid.", list: "logos", embed: false, Previews: [LogosShowcase, LogosOneLineShowcase, LogosGridShowcase] },
   { key: "announcements", title: "Announcement bar", description: "Rotating messages at the top, with free-shipping progress.", list: "announcements", embed: true, cat: "boosters", Previews: [AnnouncementShowcase, AnnouncementShippingShowcase, AnnouncementStyleShowcase] },
   { key: "cart_extras", title: "Gift note & delivery date", description: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", list: null, embed: false, app: "/app/designs/cart-extras", cat: "offers", Previews: [CartExtrasShowcase] },
-  { key: "personalize", title: "Personalization", description: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", list: null, embed: false, app: "/app/designs/personalize", cat: "offers", Previews: [PersonalizeShowcase] },
+  { key: "personalize", title: "Personalization", description: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", list: null, embed: false, app: "/app/offers/personalization", cat: "offers", Previews: [PersonalizeShowcase] },
   { key: "wishlist", title: "Wishlist", description: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", list: null, embed: true, app: "/app/designs/wishlist", cat: "boosters", Previews: [WishlistShowcase] },
   { key: "delivery", title: "Delivery estimate", description: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", list: null, embed: false, app: "/app/designs/delivery", cat: "boosters", Previews: [DeliveryShowcase] },
   { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
-  { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/designs/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
+  { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/offers/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
   { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarCartShowcase, ShippingBarShowcase, ShippingBarCardShowcase] },
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
@@ -401,7 +401,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             off: !on,
             menu: [
               { label: "Manage", href: f.href },
-              ...(f.key === "upsell" ? [{ label: "Style", href: "/app/designs/upsell" }] : f.key === "cross_sell" ? [{ label: "Style", href: "/app/designs/cross-sell" }] : f.key === "videos" ? [{ label: "Style", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Style", href: "/app/designs/bundles" }] : []),
+              ...(f.key === "upsell" ? [{ label: "Style", href: "/app/styles/upsell" }] : f.key === "cross_sell" ? [{ label: "Style", href: "/app/styles/cross_sell" }] : f.key === "videos" ? [{ label: "Style", href: "/app/designs/video-carousel" }] : f.key === "bundles" ? [{ label: "Style", href: "/app/designs/bundles" }] : []),
               ...(count ? [{ label: f.createLabel, href: f.createHref }] : []),
               { label: on ? "Turn off" : "Turn on", onClick: () => fetcher.submit({ key: f.setting, value: String(!on) }, { method: "post" }) },
               editor(data.links[f.key], inTheme),
@@ -592,7 +592,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             next: !data.counts.drawer ? { label: "Create a cross sell", href: "/app/offers/cross-sell/new" } : embedOn === false ? { label: "Turn on", href: data.links.drawer, external: true } : undefined,
             open: { href: "/app/offers/cross-sell" },
             previews: [CrossSellCardsShowcase],
-            menu: [{ label: "Offers", href: "/app/offers/cross-sell" }, { label: "Style", href: "/app/designs/cross-sell" }, editor(data.links.drawer, embedOn)],
+            menu: [{ label: "Offers", href: "/app/offers/cross-sell" }, { label: "Style", href: "/app/styles/cross_sell" }, editor(data.links.drawer, embedOn)],
           });
         }
 

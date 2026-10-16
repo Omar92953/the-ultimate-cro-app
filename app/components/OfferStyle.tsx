@@ -13,13 +13,13 @@ export function useStyledOffer() {
 
 export function OfferStyleBanner({ group, title }: { group: "upsell" | "cross_sell" | "bundles"; title: string }) {
   const offer = useStyledOffer();
-  const list = useFetcher<{ offers: { handle: string; name: string }[] }>();
+  const list = useFetcher<{ sections: { key: string; rows: { key: string; title: string }[] }[] }>();
   useEffect(() => {
     if (offer) list.load(`/app/styles/${group}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per offer
   }, [offer, group]);
   if (!offer) return null;
-  const name = list.data?.offers.find((o) => o.handle === offer)?.name;
+  const name = list.data?.sections.find((x) => x.key === "offers")?.rows.find((r) => r.key === offer)?.title;
   return (
     <s-banner tone="info" heading={name ? `You are styling “${name}”` : "You are styling one offer"}>
       <s-stack gap="small-200">

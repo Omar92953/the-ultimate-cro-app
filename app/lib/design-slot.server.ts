@@ -39,3 +39,8 @@ export function slottedRoute<A extends { request: Request }, R>(bases: string[],
     return store.run({ bases, slot: slotOf(args.request), copy: url.searchParams.get("copy") === "1" }, () => fn(args));
   };
 }
+
+/** Runs `fn` as if design `slot` of these sections was open (for work that spans several designs). */
+export function inSlot<T>(bases: string[], slot: number, fn: () => Promise<T>) {
+  return store.run({ bases, slot, copy: false }, fn);
+}

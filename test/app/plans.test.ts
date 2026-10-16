@@ -151,8 +151,14 @@ test("offers sit in four groups, and every offer page shows its group's tabs", (
   // The 6 recipes open real editors.
   assert.equal(BUNDLE_RECIPES.length, 6);
   for (const r of BUNDLE_RECIPES) assert.match(r.href, /^\/app\/(bundles\/new\?recipe=|kits\/new$|deals\/fixed\/new$)/, r.key);
+  // Style pages: the group page is open, but the Add-ons and Personalization styles need their own plan.
+  assert.equal(pageLock("free", "/app/styles/upsell"), null);
+  assert.equal(pageLock("free", "/app/styles/upsell/addons")?.kind, "feature");
+  assert.deepEqual(featuresForPath("/app/styles/upsell/addons"), ["addons"]);
+  assert.deepEqual(featuresForPath("/app/offers/personalization"), ["personalize"]);
+  assert.equal(pageLock("free", "/app/styles/bundles/fbt"), null);
   // Add-ons stay a Starter feature inside the Upsell group.
-  assert.deepEqual(pageLock("free", "/app/designs/add-ons"), { kind: "feature", feature: "addons", needs: "starter" });
+  assert.deepEqual(pageLock("free", "/app/offers/add-ons"), { kind: "feature", feature: "addons", needs: "starter" });
 });
 
 test("designs 2–5 need a plan with more designs per section", () => {
@@ -194,9 +200,9 @@ test("Free tries 1 Starter feature: its pages open, others stay locked", () => {
   assert.equal(canTry("free", "upsell"), false); // already free
   assert.equal(canTry("starter", "addons"), false); // already included
   assert.equal(canTry("starter", "payment_rules"), false); // Starter has no trial slot
-  assert.equal(pageLock("free", "/app/designs/add-ons")?.kind, "feature");
+  assert.equal(pageLock("free", "/app/offers/add-ons")?.kind, "feature");
   assert.equal(pageLock("free", "/app/designs/add-ons", "", "addons"), null);
-  assert.equal(pageLock("free", "/app/designs/personalize", "", "addons")?.kind, "feature");
+  assert.equal(pageLock("free", "/app/offers/personalization", "", "addons")?.kind, "feature");
 });
 
 test("countdown places and thank-you modules: Free 1 and 2, then unlimited", () => {

@@ -21,9 +21,9 @@ export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
 /** The feature's pages as tabs (an offer group's pages for offers); nothing when there's only one page. */
 /** A group's Style tab also stays chosen on the style editors it leads to. */
 const STYLE_EDITORS: Record<string, string[]> = {
-  "/app/styles/upsell": ["/app/designs/upsell"],
-  "/app/styles/cross_sell": ["/app/designs/cross-sell"],
-  "/app/styles/bundles": ["/app/designs/bundles"],
+  "/app/styles/upsell": ["/app/designs/upsell", "/app/styles/upsell"],
+  "/app/styles/cross_sell": ["/app/designs/cross-sell", "/app/styles/cross_sell"],
+  "/app/styles/bundles": ["/app/designs/bundles", "/app/styles/bundles"],
 };
 
 export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
