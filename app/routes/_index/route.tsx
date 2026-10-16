@@ -13,7 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 const FEATURES = [
-  ["Offers", "Upsells, cross-sells, mix & match bundles, bundle products, buy X get Y, volume discounts, free gifts and an after-purchase offer."],
+  ["Offers", "Upsells, cross sells, mix & match bundles, bundle products, buy X get Y, volume discounts, free gifts and an after-purchase offer."],
   ["Storefront", "Reviews, sales pop-ups, trust badges, announcement, free-shipping and countdown bars, sticky add to cart, wishlist, back in stock, page sections and pages."],
   ["Cart", "Offers inside your theme's own cart, a free-shipping bar and a gift note."],
   ["Checkout", "Payment and delivery rules, order limits, thank-you page modules and an after-purchase offer."],

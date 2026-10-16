@@ -157,7 +157,7 @@ const FEATURES: {
   {
     key: "cross_sell",
     setting: "cross_sell_enabled",
-    title: "Cross-sell offers",
+    title: "Cross sell offers",
     description: "“Pairs well with” products shoppers tick and add in one click.",
     href: "/app/offers/cross-sell",
     createHref: "/app/offers/cross-sell/new",
@@ -336,7 +336,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
       ) : null}
       {hasDiscountedOffers && !discountActive && !data.loadError ? (
         <s-banner tone="warning" heading="Discounts aren't active yet">
-          Open any upsell or cross-sell offer and click Save to switch its discount on at checkout.
+          Open any upsell or cross sell offer and click Save to switch its discount on at checkout.
         </s-banner>
       ) : null}
 
@@ -578,7 +578,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
           menu: [{ label: "Offer", href: "/app/checkout/after-purchase" }],
         });
 
-        // Cross-sell offers inside the theme's own cart drawer (the "Cart drawer offers" app embed).
+        // Cross sell offers inside the theme's own cart drawer (the "Cart drawer offers" app embed).
         {
           const embedOn = installed ? (installed.drawer ?? false) : null;
           add({
@@ -589,7 +589,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
               : embedOn === false
                 ? { tone: "warning", text: "Off in theme" }
                 : { tone: "success", text: `Live · ${plural(data.counts.drawer, "offer")}` },
-            next: !data.counts.drawer ? { label: "Create a cross-sell", href: "/app/offers/cross-sell/new" } : embedOn === false ? { label: "Turn on", href: data.links.drawer, external: true } : undefined,
+            next: !data.counts.drawer ? { label: "Create a cross sell", href: "/app/offers/cross-sell/new" } : embedOn === false ? { label: "Turn on", href: data.links.drawer, external: true } : undefined,
             open: { href: "/app/offers/cross-sell" },
             previews: [CrossSellCardsShowcase],
             menu: [{ label: "Offers", href: "/app/offers/cross-sell" }, { label: "Style", href: "/app/designs/cross-sell" }, editor(data.links.drawer, embedOn)],

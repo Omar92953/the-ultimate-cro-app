@@ -3,7 +3,7 @@
  * CRO Toolbox — all merchant configuration lives in Shopify, never in our database.
  *
  *  - $app:cro_settings  (handle "settings")  feature switches
- *  - $app:cro_rule                              cross-sell / upsell rules
+ *  - $app:cro_rule                              cross sell / upsell rules
  *  - $app:cro_slide + $app:cro_carousel ("main") video carousel
  *  - $app:cro_bundle + $app:cro_bundle_step     mix-and-match bundles
  *
@@ -583,8 +583,8 @@ function triggerItems(r: Rule): Record<string, unknown> {
 /**
  * Maps rules onto Shopify's own discount types:
  *  - upsell tier (qty ≥ n → x%)  → "Amount off products", minimum quantity n
- *  - cross-sell with triggers     → "Buy X get Y": buy a trigger, x% off the offered products
- *  - cross-sell for all products  → "Amount off products" on the offered products (no trigger:
+ *  - cross sell with triggers     → "Buy X get Y": buy a trigger, x% off the offered products
+ *  - cross sell for all products  → "Amount off products" on the offered products (no trigger:
  *    Shopify's Buy X get Y needs specific products or collections)
  * Product discounts don't combine with each other, so Shopify applies the best one per cart.
  */

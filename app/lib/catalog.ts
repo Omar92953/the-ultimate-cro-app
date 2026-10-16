@@ -63,7 +63,7 @@ export const FEATURES = {
     tabs: [{ label: "Quantity & sizes", href: "/app/offers/upsell" }, { label: DEAL_TYPES.upgrade.title, href: "/app/deals/upgrade" }, design("/app/designs/upsell")],
     paths: ["/app/styles/upsell"],
   },
-  cross_sell: { title: "Cross-sell offers", area: "offers", about: "“Pairs well with” products shoppers tick and add in one click.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")], paths: ["/app/styles/cross_sell"] },
+  cross_sell: { title: "Cross sell offers", area: "offers", about: "“Pairs well with” products shoppers tick and add in one click.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")], paths: ["/app/styles/cross_sell"] },
   bundles: {
     title: "Bundles",
     area: "offers",
@@ -82,7 +82,7 @@ export const FEATURES = {
   addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [design("/app/designs/add-ons")] },
   personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [design("/app/designs/personalize")] },
   // Storefront · cart
-  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross-sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
+  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
   cart_extras: { title: "Gift note & delivery date", area: "storefront", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "storefront", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
@@ -93,7 +93,7 @@ export const FEATURES = {
   // Storefront · bars & urgency
   announcements: { title: "Announcement bar", area: "storefront", group: "bars", about: "Rotating messages at the top, with free-shipping progress.", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },
   countdown: { title: "Countdown timers", area: "storefront", group: "bars", about: "Timers for the header, footer, home page, product pages and cart page.", tabs: [design("/app/designs/countdown-bar")] },
-  shipping_bar: { title: "Free shipping bar", area: "storefront", group: "bars", about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
+  shipping_bar: { title: "Free shipping bar", area: "storefront", group: "cart", about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
   stock_urgency: { title: "Stock urgency", area: "storefront", group: "bars", about: "“Only 3 left” on product pages when stock is low.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   // Storefront · product page
   sticky_atc: { title: "Sticky add to cart", area: "storefront", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },

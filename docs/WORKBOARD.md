@@ -28,6 +28,11 @@ Updated 2026-10-15.
 
 - [x] Blocks check 2026-10-16: build:theme 30 of 30 blocks, 86.3 KB of 100 KB Liquid; `shopify theme check` 37 files, no offenses; `npm run test:storefront` passes (every block and embed rendered). No fixes needed.
 
+- [ ] After launch: own style for every offer type (D5 did upsell, cross sell and mix and match bundles; the
+      other types still share one style per group, and plans cap styles at 5). Omar agreed to ship as is.
+- [ ] Next Shopify deploy: theme editor texts still say "Cross-sell" and "Design" (theme/blocks/ucro-cart-offers.liquid
+      and others); change to "Cross sell" and "Style".
+
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)

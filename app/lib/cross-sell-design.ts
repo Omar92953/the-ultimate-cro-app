@@ -1,6 +1,6 @@
 /**
- * Cross-sell offers, designed in the app (moved out of the theme editor). The offers themselves
- * (which products, headline, discount) are still the Cross-sell rules; this is how the block shows
+ * Cross sell offers, designed in the app (moved out of the theme editor). The offers themselves
+ * (which products, headline, discount) are still the Cross sell rules; this is how the block shows
  * them. Products are never ticked in advance (App Store rule: shoppers choose extras themselves).
  * Stored in $app:cro_design "cross_sell" (storefront) and "cross_sell_editor". Shared by client and server.
  */

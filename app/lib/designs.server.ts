@@ -259,7 +259,7 @@ export async function saveBundleDesign(admin: AdminClient, config: BundleDesign)
   return clean;
 }
 
-/* ------------------------------------------------------------- cross-sell -- */
+/* ------------------------------------------------------------- cross sell -- */
 export async function getCrossSellDesign(admin: AdminClient): Promise<{ config: CrossSellDesign; saved: boolean }> {
   const raw = await getDesign(admin, "cross_sell_editor");
   return { config: withCrossSellDefaults(raw), saved: raw !== null };

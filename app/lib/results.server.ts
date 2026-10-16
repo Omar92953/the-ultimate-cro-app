@@ -16,7 +16,7 @@ export const DEFAULT_EXPERIMENT: Experiment = { on: false, holdout: 10, since: n
 
 export const SOURCE_LABELS: Record<string, string> = {
   quick_add: "Quick add to cart",
-  cross_sell: "Cross-sell offers",
+  cross_sell: "Cross sell offers",
   upsell: "Upsell offers",
   bundle_builder: "Bundle builder",
   bundle_tray: "Bundle tray",

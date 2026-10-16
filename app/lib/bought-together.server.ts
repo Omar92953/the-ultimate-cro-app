@@ -2,7 +2,7 @@
  * "Frequently bought together" learned from the store's own orders: for each product, the products
  * most often in the same order. Score = how often they're bought with it (confidence), with lift
  * (how much more than chance) breaking ties; a pair needs at least 2 shared orders. The top 4 per
- * product are stored as handles in $app:cro_design "bought_together", which the Cross-sell block reads.
+ * product are stored as handles in $app:cro_design "bought_together", which the Cross sell block reads.
  */
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
@@ -53,7 +53,7 @@ export async function getBoughtTogether(admin: AdminClient): Promise<Omit<Bought
   }
 }
 
-/** Recomputed when older than a week (called from the Cross-sell design page). */
+/** Recomputed when older than a week (called from the Cross sell design page). */
 export async function refreshIfOld(admin: AdminClient) {
   const now = await getBoughtTogether(admin).catch(() => null);
   if (now && Date.now() - Date.parse(now.at) < 7 * 86_400_000) return now;

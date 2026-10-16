@@ -1,5 +1,5 @@
 /**
- * Live preview of the Cross-sell offers block: the same markup and stylesheet (ucro.css) as
+ * Live preview of the Cross sell offers block: the same markup and stylesheet (ucro.css) as
  * ucro-cross-sell.liquid / ucro-offer-row.liquid, with one of the merchant's rules (real products
  * and prices) or a sample. Ticking works like on the store; nothing starts ticked.
  */
