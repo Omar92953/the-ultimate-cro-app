@@ -114,7 +114,7 @@ export default function CrossSellDesigner() {
   const blockLook = cfg.scheme ? previewTheme(data.style, cfg.scheme) : null;
 
   return (
-    <s-page heading="Cross-sell offers" inlineSize="large">
+    <s-page heading="Cross sell offers" inlineSize="large">
       <CategoryCrumb feature="cross_sell" />
       <DemoButton feature="cross_sell" template={templateInUse(CROSS_SELL_PRESETS, cfg, applyCrossSellPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
@@ -127,9 +127,9 @@ export default function CrossSellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="cross_sell" />
-          {styledOffer ? <OfferStyleBanner group="cross_sell" title="Cross sell" /> : <DesignSlots base="cross_sell" blockName="Cross-sell offers" />}
+          {styledOffer ? <OfferStyleBanner group="cross_sell" title="Cross sell" /> : <DesignSlots base="cross_sell" blockName="Cross sell offers" />}
           <s-text color="subdued">
-            Products, headline and discount come from your Cross-sell offers. Here you choose how they look. In the theme editor you only place the “Cross-sell offers” block (product or cart page).
+            Products, headline and discount come from your Cross sell offers. Here you choose how they look. In the theme editor you only place the “Cross sell offers” block (product or cart page).
           </s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">

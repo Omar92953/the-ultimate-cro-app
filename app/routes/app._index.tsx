@@ -58,7 +58,7 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
   ]);
   const [planState, homeState, offers, monthOrders, returns, waiting] = extras;
   const installed = hub.theme?.installed ?? null;
-  // Any offer of any type that's switched on (upsells, cross-sells, bundles, deals…).
+  // Any offer of any type that's switched on (upsells, cross sells, bundles, deals…).
   const offerCount = offers.filter((o) => o.active).length || hub.counts.upsell + hub.counts.cross_sell + hub.counts.bundles;
 
   // What to try next: features not set up yet, in the order they usually pay off.
@@ -77,7 +77,7 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
   // Needs your attention: things the merchant should do now, each with its link.
   const attention: { text: string; href: string; external?: boolean; action: string }[] = [];
   if (installed && !EMBED_KEYS.some((k) => installed[k])) attention.push({ text: "The app is switched off in your theme", href: hub.sectionLinks.boosters, external: true, action: "Turn on" });
-  for (const [k, title, link] of [["upsell", "Upsell offers", hub.links.upsell], ["cross_sell", "Cross-sell offers", hub.links.cross_sell], ["bundles", "Bundles", hub.links.bundles]] as const) {
+  for (const [k, title, link] of [["upsell", "Upsell offers", hub.links.upsell], ["cross_sell", "Cross sell offers", hub.links.cross_sell], ["bundles", "Bundles", hub.links.bundles]] as const) {
     if (installed && hub.counts[k] > 0 && !installed[k]) attention.push({ text: `${title} are ready but not on your store`, href: link, external: true, action: "Add to theme" });
   }
   const discountActive = hub.discount.engine === "native" ? hub.discount.nativeCount > 0 : hub.discount.status === "ACTIVE";
@@ -184,7 +184,7 @@ export default function Home() {
     {
       key: "offer",
       title: "Create your first offer",
-      text: "An upsell (“Buy 2, save 10%”), a cross-sell, a bundle or a discount. Pick a group and fill in the offer.",
+      text: "An upsell (“Buy 2, save 10%”), a cross sell, a bundle or a discount. Pick a group and fill in the offer.",
       done: data.steps.offer || manual.has("offer"),
       action: <Button href="/app/offers" variant="primary">Create offer</Button>,
     },

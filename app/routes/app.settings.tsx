@@ -26,7 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Every app embed (switched on once in the theme editor's App embeds).
     embeds: [
       { key: "boosters", title: "Conversion boosters", about: "Sticky add to cart, trust badges, sales pop-ups, stock urgency, wishlist hearts and the holdout test.", href: sl.boosters },
-      { key: "drawer", title: "Offers in your theme's cart", about: "Cross-sell offers inside your theme's own cart drawer.", href: links.drawer },
+      { key: "drawer", title: "Offers in your theme's cart", about: "Cross sell offers inside your theme's own cart drawer.", href: links.drawer },
       { key: "announcements", title: "Announcement bar", about: "Messages at the top of every page.", href: sl.announcements },
       { key: "quick_add", title: "Quick add to cart", about: "A button on every product card.", href: sl.quick_add },
       { key: "bundle_tray", title: "Bundle tray", about: "Build mix & match bundles from any page.", href: links.bundle_tray },
@@ -119,10 +119,10 @@ export default function SettingsPage() {
               what="Everything you set in the app is saved in your own Shopify store and read by your theme directly."
               how={
                 discount?.engine === "native"
-                  ? "Discounts are real Shopify discounts: the app creates one automatic discount per upsell tier and cross-sell offer. You'll see them under Discounts; edit them here, not there."
+                  ? "Discounts are real Shopify discounts: the app creates one automatic discount per upsell tier and cross sell offer. You'll see them under Discounts; edit them here, not there."
                   : "Discounts are real Shopify discounts, applied at checkout by one automatic discount called “CRO Toolbox offers” (under Discounts)."
               }
-              example="Native mode differences: an upsell's minimum quantity counts all its products together, and an “All products” cross-sell discounts the offered products even when bought alone."
+              example="Native mode differences: an upsell's minimum quantity counts all its products together, and an “All products” cross sell discounts the offered products even when bought alone."
             />
           </s-stack>
         </s-section>

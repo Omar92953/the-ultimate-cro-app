@@ -23,7 +23,7 @@ export const PLAN_KEYS: PlanKey[] = ["free", "starter", "growth", "pro"];
  * Starter gets 6 checkout rules and per-offer results for its top 3 offers, and so on.
  */
 export type Limits = {
-  /** Offers switched on at the same time, any type: upsells, cross-sells, bundles, bundle products, deals, the after-purchase offer. */
+  /** Offers switched on at the same time, any type: upsells, cross sells, bundles, bundle products, deals, the after-purchase offer. */
   offerSlots: number | null;
   /** Checkout rules switched on: payment + delivery + order limits together. */
   checkoutRules: number | null;

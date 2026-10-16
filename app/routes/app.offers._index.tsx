@@ -35,7 +35,7 @@ function SlotMeter({ used }: { used: number }) {
         <s-stack gap="small-100">
           <s-text type="strong">{`${Math.min(used, slots)} of ${slots} offer slots used`}</s-text>
           <s-text color="subdued">
-            {`Any offer that's on fills a slot: upsells, cross-sells, bundles, discounts and the after-purchase offer. Switch one off to free its slot.${next ? ` ${PLANS[next].name} has unlimited offers.` : ""}`}
+            {`Any offer that's on fills a slot: upsells, cross sells, bundles, discounts and the after-purchase offer. Switch one off to free its slot.${next ? ` ${PLANS[next].name} has unlimited offers.` : ""}`}
           </s-text>
         </s-stack>
         {next ? <UpgradeButton to={next} variant={used >= slots ? "primary" : "secondary"} /> : null}

@@ -489,7 +489,7 @@ export default function RuleEditor() {
               ) : null}
               {engine === "native" && !isUpsell && rule.triggerType === "all" && rule.discountPercent > 0 ? (
                 <s-banner tone="warning" heading="Discount applies without a trigger">
-                  With native discounts, an “All products” cross-sell can’t require a trigger product, so the offered products
+                  With native discounts, an “All products” cross sell can’t require a trigger product, so the offered products
                   get this discount even when bought on their own. Choose specific products or collections as the trigger to
                   require one.
                 </s-banner>
