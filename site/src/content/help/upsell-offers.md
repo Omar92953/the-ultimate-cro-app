@@ -19,8 +19,8 @@ Set **Upsell type** to **Size upgrade**. The tiers are values of one option (for
 
 ## Sizes per item
 
-In **Upsell offers → Design → Content** keep **Let shoppers pick a size for each item** on. Choosing "Buy 2" then shows a size picker per item (for example M and L); your normal Add to cart adds each size, and the tier discount still applies.
+In **Upsell offers → Style → Content** keep **Let shoppers pick a size for each item** on. Choosing "Buy 2" then shows a size picker per item (for example M and L); your normal Add to cart adds each size, and the tier discount still applies.
 
 ## Design
 
-**Upsell offers → Design** sets the whole look with a live preview of your own offer: ready made looks, cards or a grouped list, offer and saving wording, heading style, colours, corners, spacing and devices. The theme editor only places the block.
+**Upsell offers → Style** sets the whole look with a live preview of your own offer: ready made looks, cards or a grouped list, offer and saving wording, heading style, colours, corners, spacing and devices. The theme editor only places the block.

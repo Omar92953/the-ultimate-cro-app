@@ -272,7 +272,7 @@ export default function CountdownBarDesigner() {
               </s-stack>
             </s-section></Pane>
 
-            <Pane show={tab === "design"}><s-section heading="Design">
+            <Pane show={tab === "design"}><s-section heading="Style">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                 <Select label="Numbers" value={t.style} onValue={(v) => timer({ style: v as C["timer"]["style"] })} options={NUMBER_STYLES} />
                 <Select label="Font" value={cfg.look.font} onValue={(v) => look({ font: v as C["look"]["font"] })} options={FONTS.map((f) => ({ value: f.value, label: f.label }))} />

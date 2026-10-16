@@ -118,7 +118,7 @@ export default function FooterDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="footer" />
           <s-text color="subdued">
-            Design your store’s footer here; in the theme editor you only place the “Footer” block in the Footer area. Menus come from{" "}
+            Style your store’s footer here; in the theme editor you only place the “Footer” block in the Footer area. Menus come from{" "}
             <s-link href={data.navLink} target="_top">
               Online Store → Navigation
             </s-link>

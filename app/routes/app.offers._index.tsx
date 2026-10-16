@@ -75,7 +75,7 @@ export default function OffersHub() {
               href: g.tabs[0].href,
               locked: g.features.every((f) => isLocked(plan, f, trial)),
               status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
-              chips: g.chips ?? g.tabs.filter((t) => t.label !== "Design").map((t) => t.label),
+              chips: g.chips ?? g.tabs.filter((t) => t.label !== "Style").map((t) => t.label),
             };
           })}
         />

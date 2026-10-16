@@ -100,7 +100,7 @@ export default function HeaderDesigner() {
         <FeatureTabs feature="header" />
         {data.embedOn === false ? (
           <s-banner tone="info" heading="Add the header to your theme">
-            Design it here and click Save, then click “Add to header”: it’s added to your theme’s Header area. Save there. Your theme’s own header is hidden while it’s on, and comes back if you switch it off.
+            Style it here and click Save, then click “Add to header”: it’s added to your theme’s Header area. Save there. Your theme’s own header is hidden while it’s on, and comes back if you switch it off.
           </s-banner>
         ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}

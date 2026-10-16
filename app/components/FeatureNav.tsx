@@ -19,6 +19,13 @@ export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
 }
 
 /** The feature's pages as tabs (an offer group's pages for offers); nothing when there's only one page. */
+/** A group's Style tab also stays chosen on the style editors it leads to. */
+const STYLE_EDITORS: Record<string, string[]> = {
+  "/app/styles/upsell": ["/app/designs/upsell"],
+  "/app/styles/cross_sell": ["/app/designs/cross-sell"],
+  "/app/styles/bundles": ["/app/designs/bundles"],
+};
+
 export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
   const { plan, trial } = usePlan();
   const tabs = offerGroupOf(key)?.tabs ?? feature(key).tabs;
@@ -27,6 +34,6 @@ export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
     const fs = featuresForPath(href.split("?")[0]);
     return fs.length > 0 && fs.every((f) => isLocked(plan, f, trial));
   };
-  // Design is set apart from the feature's content (offers, reviews, messages…).
-  return tabs.length > 1 ? <Tabs items={tabs.map((t) => ({ label: t.label, to: t.href, side: t.label === "Design", locked: locked(t.href) }))} /> : null;
+  // Style is set apart from the feature's content (offers, reviews, messages…).
+  return tabs.length > 1 ? <Tabs items={tabs.map((t) => ({ label: t.label, to: t.href, side: t.label === "Style", locked: locked(t.href), also: STYLE_EDITORS[t.href] }))} /> : null;
 }

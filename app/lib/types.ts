@@ -27,6 +27,8 @@ export type Rule = {
   buttonLabel: string;
   discountPercent: number;
   discountLabel: string;
+  /** The block style (2 to 5) this offer uses; 0 or missing = the group's default style. */
+  design?: number;
 };
 
 export type Settings = {
@@ -92,6 +94,8 @@ export type Bundle = {
   extras: BundleExtra[];
   /** Shoppers can also build it from product and collection pages (Add to bundle + bundle tray). */
   storeWide: boolean;
+  /** The builder style (2 to 5) this bundle uses; 0 or missing = the default style. */
+  design?: number;
   /** Optional store page (/pages/…) that shows the builder too; the bundle product stays the checkout parent. */
   page?: { id: string; title: string; handle: string } | null;
 };

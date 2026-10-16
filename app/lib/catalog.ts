@@ -50,7 +50,7 @@ export type Feature = {
   paths?: string[];
 };
 
-const design = (href: string): FeatureTab => ({ label: "Design", href });
+const design = (href: string): FeatureTab => ({ label: "Style", href });
 /** The deal kinds the Discounts feature holds (fixed bundles sit in Bundles, upgrades in Upsell). */
 const DISCOUNT_KINDS: DealKind[] = ["bogo", "volume", "gift"];
 
@@ -61,8 +61,9 @@ export const FEATURES = {
     area: "offers",
     about: "“Buy 2, save 10%”, bigger sizes and upgrades to a better option.",
     tabs: [{ label: "Quantity & sizes", href: "/app/offers/upsell" }, { label: DEAL_TYPES.upgrade.title, href: "/app/deals/upgrade" }, design("/app/designs/upsell")],
+    paths: ["/app/styles/upsell"],
   },
-  cross_sell: { title: "Cross-sell offers", area: "offers", about: "“Pairs well with” products shoppers tick and add in one click.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
+  cross_sell: { title: "Cross-sell offers", area: "offers", about: "“Pairs well with” products shoppers tick and add in one click.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")], paths: ["/app/styles/cross_sell"] },
   bundles: {
     title: "Bundles",
     area: "offers",
@@ -70,7 +71,7 @@ export const FEATURES = {
     // One list of every bundle (mix & match, bundle products, frequently bought together); their
     // editors keep their own addresses.
     tabs: [...BUNDLE_RECIPES.map((r, i) => ({ label: r.short, href: i === 0 ? "/app/bundles" : `/app/bundles?tab=${r.key}` })), design("/app/designs/bundles")],
-    paths: ["/app/kits", "/app/deals/fixed"],
+    paths: ["/app/kits", "/app/deals/fixed", "/app/styles/bundles"],
   },
   discounts: {
     title: "Discounts",
@@ -142,20 +143,20 @@ export const OFFER_GROUPS: OfferGroup[] = [
     about: "Sell more of the same: quantity breaks, bigger sizes, upgrades, add-ons and a one-click offer after payment.",
     features: ["upsell", "addons", "personalize", "post_purchase"],
     tabs: [
-      ...FEATURES.upsell.tabs.filter((t) => t.label !== "Design"),
+      ...FEATURES.upsell.tabs.filter((t) => t.label !== "Style"),
       { label: "Add-ons", href: featureHref("addons") },
       { label: "Personalization", href: featureHref("personalize") },
       { label: "After purchase", href: featureHref("post_purchase") },
-      design("/app/designs/upsell"),
+      design("/app/styles/upsell"),
     ],
   },
-  { key: "cross_sell", title: "Cross sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
+  { key: "cross_sell", title: "Cross sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: [...FEATURES.cross_sell.tabs.filter((t) => t.label !== "Style"), design("/app/styles/cross_sell")] },
   {
     key: "bundles",
     title: "Bundles",
     about: "Sets of products at one price: frequently bought together, fixed, mix and match, build your own, tiered and fixed price bundles.",
     features: ["bundles"],
-    tabs: FEATURES.bundles.tabs,
+    tabs: [...FEATURES.bundles.tabs.filter((t) => t.label !== "Style"), design("/app/styles/bundles")],
     chips: BUNDLE_RECIPES.slice(0, 4).map((r) => r.short),
   },
   { key: "discounts", title: "Discounts", about: "Buy X get Y, volume discounts and a free gift once the cart reaches an amount.", features: ["discounts"], tabs: FEATURES.discounts.tabs },

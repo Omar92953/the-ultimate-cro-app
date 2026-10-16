@@ -228,6 +228,15 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
   const [live, editor] = [await render(false), await render(true)];
   console.log("upsell draft:", JSON.stringify({ liveIsList: live.includes("ucro-upsell--list"), liveNoScheme: !live.includes("ucro-scheme"), editorScheme: editor.includes("ucro-scheme color-accent-2"), editorCards: !editor.includes("ucro-upsell--list") }));
 }
+// Per-offer style: a rule with `design: 2` shows style 2 ("upsell_2"), a rule without it the default.
+{
+  const own = metaobject("rule-own-style", { ...Object.fromEntries(Object.entries(quantityListRule).filter(([k]) => k !== "system").map(([k, v]) => [k, v.value])), design: 2 });
+  const designs = collectionOf([metaobject("upsell", { config: listDesign }), metaobject("upsell_2", { config: { ...listDesign, list: false, hc: "ucro__heading--large" } })]);
+  const mk = (rule) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_rule": collectionOf([rule]), "$app:cro_design": designs } });
+  const withOwn = await block("ucro-upsell", teeCtx, {}, mk(own));
+  const without = await block("ucro-upsell", teeCtx, {}, mk(quantityListRule));
+  console.log("upsell own style:", JSON.stringify({ ownUsesStyle2: !withOwn.includes("ucro-upsell--list") && withOwn.includes("ucro__heading--large"), defaultUsesStyle1: without.includes("ucro-upsell--list") }));
+}
 // Bundles built anywhere: "Add to bundle" on a product page, "+" on the step collection's cards, the tray.
 {
   // Shopify adds an embed's schema stylesheet itself; the harness links it.

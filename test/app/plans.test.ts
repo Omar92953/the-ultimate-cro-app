@@ -141,7 +141,7 @@ test("offers sit in four groups, and every offer page shows its group's tabs", (
   assert.deepEqual(featuresForPath("/app/bundles/create"), ["bundles"]);
   assert.equal(areaForPath("/app/kits/123"), "offers");
   // One tab per recipe (first is the plain /app/bundles), then Design; every recipe has a tab.
-  assert.deepEqual(FEATURES.bundles.tabs.map((t) => t.label), ["Frequently bought together", "Fixed bundle", "Mix and match", "Build your own bundle", "Tiered bundle", "Fixed price bundle", "Design"]);
+  assert.deepEqual(FEATURES.bundles.tabs.map((t) => t.label), ["Frequently bought together", "Fixed bundle", "Mix and match", "Build your own bundle", "Tiered bundle", "Fixed price bundle", "Style"]);
   assert.deepEqual(featuresForPath("/app/bundles"), ["bundles"]);
   assert.deepEqual(BUNDLE_RECIPES.map((r) => r.key), ["fbt", "kit", "mixmatch", "browse", "growing", "anyN"]);
   assert.equal(recipeOfBundle({ pricing: "tiers", storeWide: false }), "anyN");

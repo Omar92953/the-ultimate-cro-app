@@ -25,6 +25,8 @@ import { FONTS } from "../lib/designs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { slottedRoute } from "../lib/design-slot.server";
+import { linkFromRequest } from "../lib/offer-style.server";
+import { OfferStyleBanner, useStyledOffer } from "../components/OfferStyle";
 import { remember } from "../lib/short-cache.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -48,6 +50,7 @@ export const action = slottedRoute(["bundles"], async ({ request }: ActionFuncti
       return { ok: true, draft: true, error: null, config: null };
     }
     const config = await saveBundleDesign(admin, clean);
+    if (!(form.get("intent") === "draft")) await linkFromRequest(admin, request, "bundles");
     return { ok: true, draft: false, error: null, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
@@ -77,6 +80,7 @@ export default function BundleDesigner() {
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
+  const styledOffer = useStyledOffer();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -115,7 +119,7 @@ export default function BundleDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="bundles" />
-          <DesignSlots base="bundles" blockName="Bundle builder" />
+          {styledOffer ? <OfferStyleBanner group="bundles" title="Bundles" /> : <DesignSlots base="bundles" blockName="Bundle builder" />}
           <s-text color="subdued">
             Create bundles, their steps and products on the Bundles tabs. Here you choose how the builder looks on the bundle product’s page. One design for all your bundles. In the theme editor you only place the “Bundle builder” block.
           </s-text>

@@ -34,6 +34,22 @@
     endif
   endif
 
+  # An offer with its own style (set in the app: Style tab) shows that style instead of the block's.
+  if rule and rule.design.value != blank
+    capture dk
+      render 'ucs-dk', key: 'cross_sell', pick: rule.design.value
+    endcapture
+    assign dk = dk | strip
+    assign dkd = dk | append: '_draft'
+    assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+    if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+      assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+    endif
+    if d
+      assign rec_heading = d.rh
+    endif
+  endif
+
   # Offered products that can actually be bought here: in stock, not the product being
   # viewed, and (on the cart page) not already in the cart.
   assign shown = 0

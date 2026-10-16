@@ -24,6 +24,8 @@ import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { CROSS_SELL_SIZES } from "../lib/cross-sell-design";
 import { slottedRoute } from "../lib/design-slot.server";
+import { linkFromRequest } from "../lib/offer-style.server";
+import { OfferStyleBanner, useStyledOffer } from "../components/OfferStyle";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { computeBoughtTogether, refreshIfOld } from "../lib/bought-together.server";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -69,6 +71,7 @@ export const action = slottedRoute(["cross_sell"], async ({ request }: ActionFun
   try {
     const draft = form.get("intent") === "draft";
     const config = await saveCrossSellDesign(admin, withCrossSellDefaults(JSON.parse(String(form.get("config")))), draft);
+    if (!(form.get("intent") === "draft")) await linkFromRequest(admin, request, "cross_sell");
     // Learn "bought together" from the orders now (the design is saved even if this fails).
     if (!draft && config.products.fallback === "bought") await computeBoughtTogether(admin).catch(() => null);
     return { ok: true, draft, error: null, config };
@@ -86,6 +89,7 @@ export default function CrossSellDesigner() {
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
+  const styledOffer = useStyledOffer();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -123,7 +127,7 @@ export default function CrossSellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="cross_sell" />
-          <DesignSlots base="cross_sell" blockName="Cross-sell offers" />
+          {styledOffer ? <OfferStyleBanner group="cross_sell" title="Cross sell" /> : <DesignSlots base="cross_sell" blockName="Cross-sell offers" />}
           <s-text color="subdued">
             Products, headline and discount come from your Cross-sell offers. Here you choose how they look. In the theme editor you only place the “Cross-sell offers” block (product or cart page).
           </s-text>

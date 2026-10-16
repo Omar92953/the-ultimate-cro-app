@@ -180,6 +180,12 @@ access.storefront = "public_read"
   name = "Checkout discount label"
   type = "single_line_text_field"
 
+  # Which style of its block this offer uses (2 to 5; empty = the group's default style, style 1).
+  # The app links an offer to its own style on the first edit of its Style page.
+  [metaobjects.app.cro_rule.fields.design]
+  name = "Style"
+  type = "number_integer"
+
 # One carousel slide.
 [metaobjects.app.cro_slide]
 name = "CRO video slide"
@@ -295,6 +301,11 @@ access.storefront = "public_read"
   [metaobjects.app.cro_bundle.fields.store_wide]
   name = "Build it anywhere in the store"
   type = "boolean"
+
+  # Which style of the bundle builder this bundle uses (2 to 5; empty = the default style, style 1).
+  [metaobjects.app.cro_bundle.fields.design]
+  name = "Style"
+  type = "number_integer"
 
   # Optional store page (/pages/…) that shows the builder, besides the bundle product's own page.
   [metaobjects.app.cro_bundle.fields.page]

@@ -290,6 +290,7 @@ export async function listRules(admin: AdminClient, kind?: RuleKind): Promise<Ru
       buttonLabel: f.button_label?.value || "",
       discountPercent: num(f.discount_percent, 0),
       discountLabel: f.discount_label?.value || "",
+      design: num(f.design, 0),
     };
   });
   return rules
@@ -328,6 +329,8 @@ export async function saveRule(admin: AdminClient, rule: Rule) {
     button_label: rule.buttonLabel,
     discount_percent: String(rule.kind === "cross_sell" ? Number(rule.discountPercent) || 0 : 0),
     discount_label: rule.discountLabel,
+    // Only written once an offer has its own style, so stores before the field exists keep saving.
+    ...(rule.design && rule.design > 1 ? { design: String(Math.round(rule.design)) } : {}),
   });
   await syncDiscounts(admin);
   return saved;
@@ -978,6 +981,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
             percent_off: field(key: "percent_off") { key value }
             price_rules: field(key: "price_rules") { key value }
             store_wide: field(key: "store_wide") { key value }
+            design: field(key: "design") { key value }
             page: field(key: "page") { key value reference { ... on Page { id title handle } } }
             steps: field(key: "steps") {
               key
@@ -1013,7 +1017,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
   }
   const products = await refsByIds(admin, [...productIds]);
   return nodes.map((node: any) => {
-    const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "price_rules", "store_wide", "steps"]));
+    const f = fieldsOf(aliased(node, ["name", "active", "product", "allow_duplicates", "hide_sold_out", "pricing", "percent_off", "price_rules", "store_wide", "design", "steps"]));
     const rules = fromPriceRules(json<any>(f.price_rules, null));
     return {
       id: node.id,
@@ -1028,6 +1032,7 @@ export async function listBundles(admin: AdminClient): Promise<Bundle[]> {
       tiers: rules.tiers,
       extras: rules.extras,
       storeWide: bool(f.store_wide, true),
+      design: num(f.design, 0),
       page: node.page?.reference?.id ? { id: node.page.reference.id, title: node.page.reference.title, handle: node.page.reference.handle } : null,
       steps: (f.steps?.references?.nodes ?? []).map((s: any) => {
         const sf = fieldsOf(aliased(s, ["label", "required", "min_picks", "max_picks", "collection", "products"]));
@@ -1079,6 +1084,7 @@ export async function saveBundle(admin: AdminClient, bundle: Bundle) {
     percent_off: String(Math.min(90, Math.max(0, Number(bundle.percentOff) || 0))),
     price_rules: JSON.stringify(toPriceRules(bundle)),
     store_wide: String(bundle.storeWide !== false),
+    ...(bundle.design && bundle.design > 1 ? { design: String(Math.round(bundle.design)) } : {}),
     page: bundle.page?.id ?? "",
   });
   for (const id of oldSteps) await remove(admin, id);

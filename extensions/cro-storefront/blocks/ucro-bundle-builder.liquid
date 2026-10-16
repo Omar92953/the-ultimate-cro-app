@@ -21,6 +21,13 @@ break
 endif
 endfor
 endif
+if bundle and bundle.design.value != blank
+capture dk
+render 'ucs-dk', key: 'bundles', pick: bundle.design.value
+endcapture
+assign dk = dk | strip
+assign dkd = dk | append: '_draft'
+endif
 assign bv = bp.selected_or_first_available_variant
 assign hide_sold_out = false
 if bundle and bundle.hide_sold_out.value == true

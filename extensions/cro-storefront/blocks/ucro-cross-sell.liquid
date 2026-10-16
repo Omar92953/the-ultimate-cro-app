@@ -27,6 +27,20 @@ if rule_handle != blank
 assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
 endif
 endif
+if rule and rule.design.value != blank
+capture dk
+render 'ucs-dk', key: 'cross_sell', pick: rule.design.value
+endcapture
+assign dk = dk | strip
+assign dkd = dk | append: '_draft'
+assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+endif
+if d
+assign rec_heading = d.rh
+endif
+endif
 assign shown = 0
 if rule
 for p in rule.offered_products.value

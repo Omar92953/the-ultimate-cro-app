@@ -26,6 +26,15 @@
     endfor
   endif
 
+  # An offer with its own style (set in the app: Style tab) shows that style instead of the block's.
+  if bundle and bundle.design.value != blank
+    capture dk
+      render 'ucs-dk', key: 'bundles', pick: bundle.design.value
+    endcapture
+    assign dk = dk | strip
+    assign dkd = dk | append: '_draft'
+  endif
+
   assign bv = bp.selected_or_first_available_variant
   assign hide_sold_out = false
   if bundle and bundle.hide_sold_out.value == true

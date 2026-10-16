@@ -24,6 +24,8 @@ import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { UPSELL_SIZES } from "../lib/upsell-design";
 import { slottedRoute } from "../lib/design-slot.server";
+import { linkFromRequest } from "../lib/offer-style.server";
+import { OfferStyleBanner, useStyledOffer } from "../components/OfferStyle";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -64,6 +66,7 @@ export const action = slottedRoute(["upsell"], async ({ request }: ActionFunctio
       return { ok: true, draft: true, error: null, config: null };
     }
     const config = await saveUpsellDesign(admin, clean);
+    if (!(form.get("intent") === "draft")) await linkFromRequest(admin, request, "upsell");
     return { ok: true, draft: false, error: null, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };
@@ -86,6 +89,7 @@ export default function UpsellDesigner() {
   const [which, setWhich] = useState(0);
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
+  const styledOffer = useStyledOffer();
   const shopify = useAppBridge();
   const [loaded, setLoaded] = useState(data.config);
   if (loaded !== data.config) {
@@ -124,7 +128,7 @@ export default function UpsellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="upsell" />
-          <DesignSlots base="upsell" blockName="Upsell offers" />
+          {styledOffer ? <OfferStyleBanner group="upsell" title="Upsell" /> : <DesignSlots base="upsell" blockName="Upsell offers" />}
           <s-text color="subdued">
             The offers, prices and discounts come from your Upsell offers. Here you choose how they look on the product page. In the theme editor you only place the “Upsell offers” block.
           </s-text>
