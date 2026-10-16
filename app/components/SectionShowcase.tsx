@@ -19,7 +19,7 @@ function Go(props: Target & { className: string; children: ReactNode; label?: st
       {props.children}
     </a>
   ) : (
-    <Link className={props.className} to={props.href} aria-label={props.label}>
+    <Link className={props.className} to={props.href} prefetch="intent" aria-label={props.label}>
       {props.children}
     </Link>
   );

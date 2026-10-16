@@ -37,6 +37,12 @@ reads the session from the database — so the server should sit next to Shopify
 database. Measured in development (server on a laptop in Egypt, through a tunnel): ~0.5 s per
 Shopify call; from US East it's ~0.1 s.
 
+Checked 2026-10-16 (repo only): `render.yaml` sets `region: virginia`, and this page asks for Supabase
+`us-east-1`, so on paper both are US East. The Supabase project's actual region is only visible in its
+dashboard (Project settings → General), and Render's in the service's Settings, so **Omar: confirm both
+say US East (N. Virginia)**. Loaders log their time per request (`[timing] route Nms auth=… plan=… hub=… theme=…`,
+`app/lib/timing.server.ts`; `CRO_TIMING=off` silences it), so a slow region shows up in the Render logs.
+
 ## Supabase (Postgres for sessions)
 
 - **Free plan: 500 MB database, 2 projects, and projects pause after 1 week of inactivity.**

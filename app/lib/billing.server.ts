@@ -18,6 +18,7 @@
 import { gql, type AdminClient } from "./admin.server";
 import { listBundles, listDeals, listRules, syncBundles, syncDiscounts, upsert } from "./cro.server";
 import { forgetShop, remember } from "./short-cache.server";
+import { timed } from "./timing.server";
 import { listKitIds } from "./kits.server";
 import { listOffers } from "./offers.server";
 import { getPostPurchase } from "./post-purchase.server";
@@ -101,9 +102,12 @@ async function fromAdminApi(admin: AdminClient): Promise<Omit<PlanInfo, "planUrl
 }
 
 /**
- * The shop's plan. Remembered for a minute per shop (short-cache.server.ts). Pass `fresh` right
+ * The shop's plan. Remembered for 5 minutes per shop (short-cache.server.ts). Pass `fresh` right
  * after Shopify sends the merchant back from the plan selection page (?plan_handle=… on the URL).
  */
+/** The plan is read from Shopify once per 5 minutes per shop; coming back from the plan page (?plan_handle) reads it again. */
+const PLAN_MS = 5 * 60000;
+
 export function getPlan(admin: AdminClient, shop: string, fresh = false): Promise<PlanInfo> {
   const planUrl = planPageUrl(shop, appHandle());
   const forced = override();
@@ -119,7 +123,7 @@ export function getPlan(admin: AdminClient, shop: string, fresh = false): Promis
   };
   // Back from the plan page: everything remembered for the shop may depend on the old plan.
   if (fresh) forgetShop(shop);
-  return remember(shop, "plan", 60000, load);
+  return timed("plan", () => remember(shop, "plan", PLAN_MS, load));
 }
 
 /**

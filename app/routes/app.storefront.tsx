@@ -4,6 +4,7 @@ import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { timedLoader, timed } from "../lib/timing.server";
 import {
   setSavedSections,
   setSetting,
@@ -91,12 +92,12 @@ import { canTry } from "../lib/plan-gate";
 import { remember } from "../lib/short-cache.server";
 import { loadHub } from "../lib/hub.server";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = timedLoader("app.storefront", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   // Fresh for 30 s, then answered from memory while it refreshes (up to 5 min); any save in the
   // app clears it (short-cache.server.ts).
-  return remember(session.shop, "hub", 30000, () => loadHub(admin, session), 300000);
-};
+  return timed("hub", () => remember(session.shop, "hub", 30000, () => loadHub(admin, session), 300000));
+});
 
 /** Changing the filters only changes the address: no need to reload everything. */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl, formMethod, defaultShouldRevalidate }) =>

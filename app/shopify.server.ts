@@ -6,11 +6,12 @@ import {
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import { forgetShop } from "./lib/short-cache.server";
+import { forgetShop, namesToForget } from "./lib/short-cache.server";
 import { getPlan, getPlanState } from "./lib/billing.server";
 import { pageLock } from "./lib/plan-gate";
 import { PLANS } from "./lib/plans";
 import { warnIfApiKeyDiffers } from "./lib/api-key-check.server";
+import { timed } from "./lib/timing.server";
 
 warnIfApiKeyDiffers();
 
@@ -41,10 +42,13 @@ export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
  * request). Plans: lib/plans.ts.
  */
 const admin: typeof shopify.authenticate.admin = async (request) => {
-  const result = await shopify.authenticate.admin(request);
+  const result = await timed("auth", () => shopify.authenticate.admin(request));
   if (request.method !== "GET" && request.method !== "HEAD") {
-    forgetShop(result.session.shop);
     const url = new URL(request.url);
+    // Only what this save can change is forgotten (short-cache.server.ts namesToForget).
+    const small = (request.headers.get("content-type") ?? "").includes("application/x-www-form-urlencoded");
+    const intent = small ? (await request.clone().formData().catch(() => null))?.get("intent") : null;
+    forgetShop(result.session.shop, namesToForget(url.pathname, typeof intent === "string" ? intent : null));
     const { plan } = await getPlan(result.admin, result.session.shop);
     const trial = PLANS[plan].limits.trialFeatures ? (await getPlanState(result.admin).catch(() => null))?.trial ?? null : null;
     const lock = pageLock(plan, url.pathname, url.search, trial);
