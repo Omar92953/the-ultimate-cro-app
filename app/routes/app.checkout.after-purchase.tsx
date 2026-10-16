@@ -114,7 +114,8 @@ export default function AfterPurchase() {
           side={
             <s-section heading="Preview">
             <div style={{ background: "#fff", border: "1px solid #e3e3e3", borderRadius: 12, padding: 16, display: "grid", gap: 12, fontSize: 13, color: "#1a1a1a", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
-              <div style={{ display: "grid", gap: 6 }}>
+              {/* Shopify's CalloutBanner (rule 5.8.7: one banner at the top with intro text, product and discount). */}
+              <div style={{ background: "#f1f6fe", border: "1px solid #c7dbf7", borderRadius: 8, padding: 12, display: "grid", gap: 4, textAlign: "center" }}>
                 <b style={{ fontSize: 15 }}>{c.heading || "…"}</b>
                 <span>
                   {c.text}
