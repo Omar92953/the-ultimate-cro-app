@@ -52,13 +52,16 @@ paid plans. Prices go only in the pricing section, never in the text above or in
 - Emergency developer contact (email and phone) in the Partner Dashboard.
 
 **Screenshots (3 to 6, 1600 x 900, no browser chrome, no prices, reviews or stats; add alt text):**
-Take them on Testing2 with sample data, never on the live store.
-1. Home: the setup guide. Alt: "CRO Toolbox home with the setup steps".
-2. Offers: the list of every offer with type and status. Alt: "All offers in one list".
-3. A mix and match bundle in the editor with its live preview. Alt: "Bundle editor with a live preview".
-4. Storefront: the grouped feature cards. Alt: "Storefront widgets and sections".
-5. Storefront, Cart group: offers in the theme's cart. Alt: "Cart offers".
-6. Checkout: payment rules. Alt: "Payment rules for checkout".
+Ready in `branding/screenshots/listing/` (real captures of the app on Testing 3, 2026-10-17, taken at
+2x and scaled to 1600 x 900; the 2x originals are in `branding/screenshots/hires/`). Upload in this order:
+1. `1-create-offer.png`. Alt: "Create offer: upsells, bundles, cross sells and discounts in one list".
+2. `2-bundle-editor.png`. Alt: "Mix and match bundle editor with a live preview".
+3. `3-upsell-editor.png`. Alt: "Upsell offer editor with the real block preview".
+4. `4-storefront.png`. Alt: "Storefront widgets grouped, cart first".
+5. `5-upsell-offers.png`. Alt: "Upsell offers list with status and show order".
+6. `6-checkout.png`. Alt: "Checkout rules, thank-you page and after purchase offer".
+Not for the listing: `05-upsell-style.png` (plan banner) and `07-home.png` (plan bar and figures, rules 4.2.2 and 4.3.4).
+To retake: the capture script used `screencapture` on Omar's Chrome (window 1292 pt wide, page area 1292 x 727 pt).
 
 Feature image (1600 x 900): the bundle builder on a product page on Testing2 (no prices).
 
