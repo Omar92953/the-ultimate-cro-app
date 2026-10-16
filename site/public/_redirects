@@ -3,3 +3,5 @@
 /features/cart/ /features/storefront/ 301
 /features/cart-tools /features/cart-offers/ 301
 /features/cart-tools/ /features/cart-offers/ 301
+/demo / 302
+/demo/ / 302

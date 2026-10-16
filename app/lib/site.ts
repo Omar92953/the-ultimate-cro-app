@@ -1,12 +1,13 @@
 /**
  * The app's outside addresses: the marketing website and the live demos.
  *
- * The live demos (demos/ in this repo, deployed to demo.crotoolbox.com) are not part of the public
- * website: nothing links to them and search engines are told to skip them. They open only from the
+ * The live demos (demos/ in this repo) are served by the website project at https://crotoolbox.com/demo/,
+ * but are not part of the public website: nothing links to them and search engines are told to skip them. They open only from the
  * app's "See live demo" buttons, through demoUrl().
  *
  * Demo addresses: a feature's key with underscores as hyphens (cross_sell → /cross-sell/), its
- * designs as #design-1, #design-2…, bundle recipes under /bundles/<recipe>/ (anyN → any-n).
+ * designs as #design-1, #design-2…, bundle recipes under /bundles/<recipe>/ (anyN → any-n), all under
+ * DEMO_URL (/demo).
  * Shared by client and server; the demo build reads DEMOS and DEMO_RECIPES and fails when they don't
  * match what it builds.
  */
@@ -24,7 +25,7 @@ export const TUTORIALS_URL = `${SITE_URL}/tutorials/`;
 export const helpUrl = (slug?: string) => `${SITE_URL}/help/${slug ? `${slug}/` : ""}`;
 /** Every help slug the app links to (checked by scripts/check-links.mjs). */
 export const HELP_SLUGS_USED = ["getting-started", "plans-and-billing", "good-to-know", "upsell-offers", "cross-sell-offers", "bundles", "storefront-sections", "discounts-addons-personalization"];
-export const DEMO_URL = "https://demo.crotoolbox.com";
+export const DEMO_URL = `${SITE_URL}/demo`;
 /** The App Store listing. Placeholder until the listing is live (confirm the handle then). */
 export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";
 

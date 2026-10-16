@@ -3,13 +3,14 @@
  * reviews, questions, logos and announcements. Names, prices and texts are made up for the demo.
  */
 import { STORE_ROOT } from "./shell.mjs";
+import { BASE } from "./base.mjs";
 
 const { productImage } = await import("../../site/src/lib/art.ts");
 /** Product picture address: a real file from site/public/products when there is one (by handle, then by art kind), else the drawn SVG. */
 const KIND_OF = {};
 export const imgUrl = (handle) => {
   const real = productImage(handle, KIND_OF[handle] ?? "");
-  return `/img/${handle}.${real ? real.ext : "svg"}`;
+  return `${BASE}/img/${handle}.${real ? real.ext : "svg"}`;
 };
 const IMG = imgUrl;
 

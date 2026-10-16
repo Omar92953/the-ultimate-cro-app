@@ -84,7 +84,7 @@ app/routes/app.*.tsx ── saves ──▶ $app metaobjects ── Liquid reads
 | `extensions/cro-discount` | Discount Function: offers and deals, skips bundle lines |
 | `test/app` | Node unit tests; `test/storefront` renders the blocks with mock data (`engine.mjs`: the Liquid engine shared with `demos/`) |
 | `site/` | The marketing website (Astro), crotoolbox.com. Content in `site/src/lib/`: `features.ts` (feature pages), `usecases.ts`, `competitors.ts` (comparisons, with sources), `pages.ts` (titles), `brand.ts` (the shared one line description); articles and help guides are Markdown in `site/src/content/blog` and `site/src/content/help`; `.github/workflows/indexnow.yml` tells Bing about new pages; screenshots in `site/src/assets` (from `npm --prefix demos run screenshots`). Brief: `docs/prompts/build-website.md`; how to run and deploy: `docs/website.md` |
-| `demos/` | The hidden live demos (demo.crotoolbox.com, noindex, opened only from the app): renders every feature's real blocks with demo data. `docs/website.md` |
+| `demos/` | The hidden live demos (crotoolbox.com/demo, noindex, opened only from the app): renders every feature's real blocks with demo data. `docs/website.md` |
 | `app/lib/site.ts` | Website and demo addresses: `SITE_URL`, `DEMO_URL`, `demoUrl()`, `DEMOS` (the demo build checks it) |
 | `scripts/sync.sh` | Brings the Mac copy up to date with GitHub and reports differences |
 | `docs/` | `README-merchant.md` (merchant guide), `testing-checklist.md`, `billing.md`, `hosting.md`, `scopes.md`, `listing.md`, `plans/bundles-overhaul.md`, `HANDOFF.md` |
@@ -227,7 +227,7 @@ features and sends people to the App Store listing.
 - The website lives in `site/` (Astro, static), separate from the app build. Not on
   `cro-toolbox.onrender.com` (that host is the app server).
 - **Live demos** (decided 2026-10-15): a separate static build in `demos/`, deployed to
-  **demo.crotoolbox.com** and hidden from search (noindex everywhere, robots.txt `Disallow: /`, no
+  **crotoolbox.com/demo** and hidden from search (noindex everywhere, robots.txt `Disallow: /`, no
   list of demos, `/` redirects to the website). They reuse the real storefront code (`theme/`,
   `extensions/cro-storefront/assets`, `test/storefront/engine.mjs`) and open only from the app's
   "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`). The website never links to them.

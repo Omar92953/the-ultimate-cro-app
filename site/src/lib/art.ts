@@ -1,7 +1,7 @@
 /**
  * Product pictures for the demo store, drawn as SVG: no stock photos needed, sharp at any size, a
  * few hundred bytes each. Used by the site's components (ProductArt.astro) and written as files for
- * the live demos (demos/build.mjs, demo.crotoolbox.com), so both show the same products.
+ * the live demos (demos/build.mjs, crotoolbox.com/demo), so both show the same products.
  *
  * Real product photos win over the drawings: drop files in site/public/products/ (README.md there
  * lists the names). `productImage()` finds them; ProductArt.astro and demos/build.mjs both use it.

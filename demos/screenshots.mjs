@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(here, "dist");
+const root = path.join(dist, "demo");
 const out = path.join(here, "../site/src/assets");
 const { chromium } = await import("playwright").catch(() => import("playwright-core"));
 
@@ -41,13 +42,13 @@ const LOOK = {
 
 const browser = await chromium.launch(process.env.PLAYWRIGHT_CHROMIUM ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM } : {});
 const shots = [];
-for (const dir of fs.readdirSync(dist)) {
-  if (!fs.existsSync(path.join(dist, dir, "design-1.html")) || dir === "bundles") continue;
-  shots.push({ key: dir.replace(/-/g, "_"), url: `/${dir}/design-1.html`, file: path.join(out, "features", `${dir}.jpg`) });
+for (const dir of fs.readdirSync(root)) {
+  if (!fs.existsSync(path.join(root, dir, "design-1.html")) || dir === "bundles") continue;
+  shots.push({ key: dir.replace(/-/g, "_"), url: `/demo/${dir}/design-1.html`, file: path.join(out, "features", `${dir}.jpg`) });
 }
-for (const dir of fs.readdirSync(path.join(dist, "bundles"))) {
-  if (!fs.existsSync(path.join(dist, "bundles", dir, "design-1.html"))) continue;
-  shots.push({ key: `bundles/${dir}`, url: `/bundles/${dir}/design-1.html`, file: path.join(out, "bundles", `${dir}.jpg`) });
+for (const dir of fs.readdirSync(path.join(root, "bundles"))) {
+  if (!fs.existsSync(path.join(root, "bundles", dir, "design-1.html"))) continue;
+  shots.push({ key: `bundles/${dir}`, url: `/demo/bundles/${dir}/design-1.html`, file: path.join(out, "bundles", `${dir}.jpg`) });
 }
 for (const s of shots) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 760 }, deviceScaleFactor: 1 });

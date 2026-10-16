@@ -19,11 +19,11 @@ test("DEMO_RECIPES lists every bundle recipe", () => {
 });
 
 test("demoUrl", () => {
-  assert.equal(DEMO_URL, "https://demo.crotoolbox.com");
-  assert.equal(demoUrl("upsell"), "https://demo.crotoolbox.com/upsell/");
-  assert.equal(demoUrl("cross_sell", 2), "https://demo.crotoolbox.com/cross-sell/#design-2");
-  assert.equal(demoUrl("bundles", undefined, "anyN"), "https://demo.crotoolbox.com/bundles/any-n/");
-  assert.equal(demoUrl("bundles", 3, "mixmatch"), "https://demo.crotoolbox.com/bundles/mixmatch/#design-3");
+  assert.equal(DEMO_URL, "https://crotoolbox.com/demo");
+  assert.equal(demoUrl("upsell"), "https://crotoolbox.com/demo/upsell/");
+  assert.equal(demoUrl("cross_sell", 2), "https://crotoolbox.com/demo/cross-sell/#design-2");
+  assert.equal(demoUrl("bundles", undefined, "anyN"), "https://crotoolbox.com/demo/bundles/any-n/");
+  assert.equal(demoUrl("bundles", 3, "mixmatch"), "https://crotoolbox.com/demo/bundles/mixmatch/#design-3");
   assert.equal(hasDemo("faq"), true);
 });
 

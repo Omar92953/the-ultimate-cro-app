@@ -25,10 +25,10 @@ into it, run `npm --prefix site ci && npm --prefix site run build` and the app c
 (`npx tsc --noEmit`, `npm run lint`, `npm run test:app`, `npm run build`), fix anything, push, then
 `gh pr merge 36 --merge --delete-branch`. If it was already merged, skip this.
 
-## Step 1: PR 2, live demos on demo.crotoolbox.com (hidden)
+## Step 1: PR 2, live demos on crotoolbox.com/demo (hidden)
 
 Changed by Omar on 2026-10-15: the live demos are **not part of the public website**. They live on
-their own subdomain, demo.crotoolbox.com, open only from the app's "See live demo" buttons, and are
+their own subdomain, crotoolbox.com/demo, open only from the app's "See live demo" buttons, and are
 hidden from search. Full rules in `docs/prompts/build-website.md` ("Live demos") and `docs/website.md`.
 
 - A separate static build in `demos/` (output `demos/dist`) that renders the **real storefront
@@ -44,7 +44,7 @@ hidden from search. Full rules in `docs/prompts/build-website.md` ("Live demos")
   when `DEMOS` and the built demos differ.
 - The website (`site/`) has no links to the demos and no `/demo/` pages.
 - `docs/website.md`: how to build both, and the Cloudflare steps for Omar (second Pages project
-  `cro-toolbox-demos`, root `demos`, custom domain demo.crotoolbox.com).
+  `cro-toolbox-demos`, root `demos`, custom domain crotoolbox.com/demo).
 
 ## Step 2: PR 3, bundles hub, features, use cases, comparisons
 

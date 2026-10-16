@@ -31,9 +31,10 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
   (http://localhost:4321), check with `npm --prefix site run build`. Reads prices and features from
   `app/lib/plans.ts`, `catalog.ts` and `bundle-recipes.ts`, so changing those changes the site too.
 - Hosting: Cloudflare Pages (free plan), domain crotoolbox.com. Deploys itself when `main` changes.
-- `demos/`: the live demos for demo.crotoolbox.com, a separate build (`npm --prefix demos run build`),
-  hidden from search and opened only from the app ("See live demo", `app/lib/site.ts`). The website
-  never links to them. Details: `docs/website.md`.
+- `demos/`: the live demos, served at https://crotoolbox.com/demo/ by the website build
+  (`npm --prefix site run build` builds them and copies them into `site/dist/demo/`), hidden from
+  search and opened only from the app ("See live demo", `app/lib/site.ts`). The website never links to
+  them. Details: `docs/website.md`.
 
 ## Rules that matter most
 
