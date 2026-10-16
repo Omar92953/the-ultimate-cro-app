@@ -149,7 +149,7 @@ export const OFFER_GROUPS: OfferGroup[] = [
       design("/app/designs/upsell"),
     ],
   },
-  { key: "cross_sell", title: "Cross-sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
+  { key: "cross_sell", title: "Cross sell", about: "“Pairs well with” products shoppers tick and add in one click, on the product page or in the cart.", features: ["cross_sell"], tabs: FEATURES.cross_sell.tabs },
   {
     key: "bundles",
     title: "Bundles",

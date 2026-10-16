@@ -13,7 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function CreateBundle() {
   return (
-    <s-page heading="Create bundle" inlineSize="large">
+    <s-page heading="Create bundle offer" inlineSize="large">
       <s-link slot="breadcrumb-actions" href="/app/bundles">
         Bundles
       </s-link>

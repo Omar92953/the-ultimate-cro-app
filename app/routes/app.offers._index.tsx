@@ -9,14 +9,13 @@ import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
-import type { ReactNode } from "react";
 import { OFFER_TYPES } from "../lib/offer-types";
 import { OFFER_GROUPS, area, type OfferGroupKey } from "../lib/catalog";
 import { PLANS, limitOf, planAbove } from "../lib/plans";
 import { Button, Select, TextField } from "../components/fields";
 import { GroupCards, Pill } from "../components/ui";
-import { BundleIcon, CrossSellIcon, DiscountIcon, UpsellIcon } from "../components/icons";
 import { UpgradeButton, usePlan } from "../components/Upgrade";
+import { isLocked } from "../lib/plan-gate";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -44,10 +43,9 @@ function SlotMeter({ used }: { used: number }) {
   );
 }
 
-const ICONS: Record<OfferGroupKey, ReactNode> = { upsell: <UpsellIcon />, cross_sell: <CrossSellIcon />, bundles: <BundleIcon />, discounts: <DiscountIcon /> };
-
 export default function OffersHub() {
   const { offers } = useLoaderData<typeof loader>();
+  const { plan, trial } = usePlan();
   const [group, setGroup] = useState<"all" | OfferGroupKey>("all");
   const [status, setStatus] = useState<"all" | "on" | "off">("all");
   const [query, setQuery] = useState("");
@@ -74,7 +72,7 @@ export default function OffersHub() {
               title: g.title,
               about: g.about,
               href: g.tabs[0].href,
-              icon: ICONS[g.key],
+              locked: g.features.every((f) => isLocked(plan, f, trial)),
               status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
               chips: g.chips ?? g.tabs.filter((t) => t.label !== "Design").map((t) => t.label),
             };

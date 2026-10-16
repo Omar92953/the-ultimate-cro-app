@@ -6,9 +6,9 @@
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "./fields";
 import { Card, CardText, Pill } from "./ui";
-import { CategoryCrumb } from "./FeatureNav";
+import { CategoryCrumb, FeatureTabs } from "./FeatureNav";
 import { PlanFeatures } from "./PlanCard";
-import { feature, type FeatureKey } from "../lib/catalog";
+import { feature, featuresForPath, offerGroupOf, type FeatureKey } from "../lib/catalog";
 import { GUARANTEE, PLANS, price, type PlanKey } from "../lib/plans";
 import { canTry, type PageLock } from "../lib/plan-gate";
 import type { loader as appLoader } from "../routes/app";
@@ -47,14 +47,34 @@ export function UpgradeCard({ needs, title, text }: { needs: PlanKey; title: str
   );
 }
 
+/**
+ * The top of a locked page: for an offer, the group's tabs and a link back to the group the
+ * merchant came from (Upsell, Cross sell, Bundles, Discounts); otherwise the usual category crumb.
+ */
+function LockedTop({ feature: key, pathname }: { feature: FeatureKey; pathname: string }) {
+  const group = offerGroupOf(key);
+  if (!group) return <CategoryCrumb feature={key} />;
+  const back = group.tabs[0].href;
+  // On the group's first tab itself a link back to it would go nowhere: use the Offers hub.
+  const here = pathname.replace(/\/+$/, "") === back;
+  return (
+    <s-link slot="breadcrumb-actions" href={here ? "/app/offers" : back}>
+      {here ? "Offers" : group.title}
+    </s-link>
+  );
+}
+
 /** Shown by the app frame instead of a page the plan doesn't include — never an error page. */
 export function LockedPage({ lock }: { lock: PageLock }) {
   const { plan } = usePlan();
   const { pathname } = useLocation();
   if (lock.kind === "design") {
+    const owner = featuresForPath(pathname)[0];
     return (
       <s-page heading={`Style ${lock.slot}`} inlineSize="large">
+        {owner ? <LockedTop feature={owner} pathname={pathname} /> : null}
         <s-stack gap="base">
+          {owner ? <FeatureTabs feature={owner} /> : null}
           <UpgradeCard
             needs={lock.needs}
             title="More styles for this section"
@@ -70,8 +90,9 @@ export function LockedPage({ lock }: { lock: PageLock }) {
   const f = feature(lock.feature);
   return (
     <s-page heading={f.title} inlineSize="large">
-      <CategoryCrumb feature={lock.feature} />
+      <LockedTop feature={lock.feature} pathname={pathname} />
       <s-stack gap="base">
+        <FeatureTabs feature={lock.feature} />
         {canTry(plan, lock.feature) ? <TryCard feature={lock.feature} /> : null}
         <UpgradeCard
           needs={lock.needs}

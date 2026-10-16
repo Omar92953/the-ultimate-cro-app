@@ -43,7 +43,7 @@ export default function RuleList() {
       <CategoryCrumb feature={featureKey} />
       <DemoButton feature={featureKey} />
       <Button slot="primary-action" variant="primary" href={`/app/offers/${kindSlug}/new`}>
-        Create {meta.singular}
+        {meta.addLabel}
       </Button>
       <Button slot="secondary-actions" href={addBlock} target="_top" icon="theme-edit">
         Add to theme
@@ -85,7 +85,7 @@ export default function RuleList() {
               <s-heading>No {meta.singular}s yet</s-heading>
               <s-paragraph>Create your first offer, then add the block to your theme.</s-paragraph>
               <Button variant="primary" href={`/app/offers/${kindSlug}/new`}>
-                Create {meta.singular}
+                {meta.addLabel}
               </Button>
             </s-stack>
           </s-box>
