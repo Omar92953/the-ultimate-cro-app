@@ -30,8 +30,8 @@ const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_offers", "
 /** Every kind of offer, grouped like the app's Offers menu, with where each one is explained on the site. */
 const OFFER_GROUPS: { title: string; types: { key: keyof typeof OFFER_TYPES; href: string }[] }[] = [
   { title: "Upsell", types: [{ key: "upsell", href: featurePath("upsell") }, { key: "upgrade", href: featurePath("upsell") }, { key: "post_purchase", href: featurePath("post_purchase") }] },
-  { title: "Cross sell", types: [{ key: "cross_sell", href: featurePath("cross_sell") }] },
   { title: "Bundles", types: [{ key: "fixed", href: "/bundles/#fbt" }, { key: "kit", href: "/bundles/#kit" }, { key: "bundle", href: "/bundles/#mixmatch" }] },
+  { title: "Cross sell", types: [{ key: "cross_sell", href: featurePath("cross_sell") }] },
   { title: "Discounts", types: [{ key: "bogo", href: featurePath("discounts") }, { key: "volume", href: featurePath("discounts") }, { key: "gift", href: featurePath("discounts") }] },
 ];
 const offerCount = OFFER_GROUPS.reduce((n, g) => n + g.types.length, 0);
@@ -205,7 +205,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
       <div class="head">
         <span class="eyebrow">Offers</span>
         <h2>{COUNT_WORDS[offerCount] ? COUNT_WORDS[offerCount][0].toUpperCase() + COUNT_WORDS[offerCount].slice(1) : offerCount} kinds of offers, all on the {free.name} plan</h2>
-        <p class="lead">Upsells, cross sells, bundles and discounts are included on every plan, within your plan's offer slots. Prices and discounts are applied at checkout by Shopify.</p>
+        <p class="lead">Upsells, bundles, cross sells and discounts are included on every plan, within your plan's offer slots. Prices and discounts are applied at checkout by Shopify.</p>
       </div>
       <div class="ogroups">
         {

@@ -124,7 +124,7 @@ test("pages map to features, and locked pages say which plan they need", () => {
 });
 
 test("offers sit in four groups, and every offer page shows its group's tabs", () => {
-  assert.deepEqual(OFFER_GROUPS.map((g) => g.key), ["upsell", "cross_sell", "bundles", "discounts"]);
+  assert.deepEqual(OFFER_GROUPS.map((g) => g.key), ["upsell", "bundles", "cross_sell", "discounts"]);
   // Every offer type and every deal kind lands in a group.
   for (const k of OFFER_TYPE_KEYS) assert.ok(OFFER_GROUPS.some((g) => g.key === OFFER_TYPES[k].group), k);
   for (const k of DEAL_KINDS) assert.ok(offerGroupOf(dealFeature(k)), k);
