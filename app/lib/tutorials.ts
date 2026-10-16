@@ -3,8 +3,8 @@
  *
  * HOW TO ADD A VIDEO: upload it to YouTube, open it, and copy the ID from the address
  * (youtube.com/watch?v=THIS_PART). Paste it as `youtubeId` on that tutorial below. Done: the card
- * appears on Home, and the video plays on the website's tutorials page.
- * Cards without a `youtubeId` are hidden on Home (no "coming soon" cards).
+ * plays on Home, and the video plays on the website's tutorials page.
+ * Cards without a `youtubeId` show on Home as "Coming soon" (Omar, 2026-10-17).
  *
  * The website's tutorials page (site/src/pages/tutorials.astro) reads THIS list, so both show the
  * same titles. If you ever change how it is shown, update the other place too.
