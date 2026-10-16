@@ -13,6 +13,7 @@
  *  - the cart transform's $app.bundles
  */
 import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
+import { timed } from "./timing.server";
 import { remember } from "./short-cache.server";
 import { syncBundleGuard } from "./checkout-rules.server";
 
@@ -1326,7 +1327,7 @@ export type ThemeStatus = {
 /** Which blocks/embeds the MAIN theme uses; with `shop`, fresh for 20 s, then answered from memory
  * (refreshed in the background) for 10 min (see short-cache.server.ts). */
 export function getThemeStatus(admin: AdminClient, shop?: string): Promise<ThemeStatus> {
-  return shop ? remember(shop, "status", 20000, () => readThemeStatus(admin), 600000) : readThemeStatus(admin);
+  return timed("theme", () => (shop ? remember(shop, "status", 20000, () => readThemeStatus(admin), 600000) : readThemeStatus(admin)));
 }
 
 async function readThemeStatus(admin: AdminClient): Promise<ThemeStatus> {

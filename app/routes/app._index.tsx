@@ -10,6 +10,7 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { Link, useFetcher, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { timedLoader, timed } from "../lib/timing.server";
 import { cachedResults } from "../lib/value.server";
 import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
 import { listOffers } from "../lib/offers.server";
@@ -35,14 +36,14 @@ import styles from "../components/Home.module.css";
 /** Theme embeds that count as "the app is switched on in your theme". */
 const EMBED_KEYS = ["boosters", "drawer", "announcements", "quick_add", "wishlist"] as const;
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = timedLoader("app._index", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
   // Everything at once. The hub data is the same the Storefront hub uses (remembered for both);
   // orders are the slowest, so Home waits at most 3 s for them and fills in on the next visit.
   const [plan, hub, extras, results, requests] = await Promise.all([
     getPlan(admin, shop),
-    remember(shop, "hub", 30000, () => loadHub(admin, session), 300000),
+    timed("hub", () => remember(shop, "hub", 30000, () => loadHub(admin, session), 300000)),
     remember(shop, "home", 30000, () =>
       Promise.all([
         getPlanState(admin).catch(() => ({ plan: null, paused: [], at: null })),
@@ -121,7 +122,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     supportEmail: process.env.SUPPORT_EMAIL || "",
     requests,
   };
-};
+});
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -321,7 +322,7 @@ export default function Home() {
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
-              <li><Link to="/app/settings">Settings and app embeds</Link></li>
+              <li><Link to="/app/settings" prefetch="intent">Settings and app embeds</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>
             {dismissed ? (
@@ -338,7 +339,7 @@ export default function Home() {
               {WHATS_NEW.slice(0, 4).map((n) => (
                 <li key={n.text}>
                   <span className={styles.newsDate}>{n.date}</span>
-                  {n.href ? <Link to={n.href}>{n.text}</Link> : n.text}
+                  {n.href ? <Link to={n.href} prefetch="intent">{n.text}</Link> : n.text}
                 </li>
               ))}
             </ul>

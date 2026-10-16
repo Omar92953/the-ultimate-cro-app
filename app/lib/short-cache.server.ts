@@ -34,7 +34,29 @@ export function remember<T>(shop: string, name: string, ttlMs: number, load: () 
   return value;
 }
 
-/** Forget everything remembered for this shop (called after every save). */
-export function forgetShop(shop: string) {
-  for (const key of store.keys()) if (key.startsWith(`${shop}|`)) store.delete(key);
+/**
+ * Forget what is remembered for this shop: everything, or only the entries whose name starts with
+ * one of `names` (e.g. ["hub", "home"]). Which names a save clears: `namesToForget` below.
+ */
+export function forgetShop(shop: string, names?: string[]) {
+  for (const key of store.keys()) {
+    if (!key.startsWith(`${shop}|`)) continue;
+    if (!names || names.some((n) => key.slice(shop.length + 1).startsWith(n))) store.delete(key);
+  }
+}
+
+/**
+ * What a save (a non-GET request to this page) makes old. Unknown pages clear everything, so a page
+ * never shows old data after a save; known ones clear only what they can change:
+ *   "See on store" drafts      nothing (a draft changes no page of the app)
+ *   offers, deals, bundles     the overview counts (hub, home) and the bundle previews
+ *   designs, pages, sections   the overview's "saved" flags and counts (hub, home)
+ * The theme (status, style), the plan and product pictures are left alone: a save in the app does
+ * not change them (plan changes clear the plan themselves).
+ */
+export function namesToForget(pathname: string, intent?: string | null): string[] | undefined {
+  if (intent === "draft") return [];
+  if (/^\/app\/(offers|deals|bundles|kits|checkout\/after-purchase)(\/|$)/.test(pathname)) return ["hub", "home", "bundlepreview"];
+  if (/^\/app\/(designs|pages|sections|videos|stock|returns|boosters)(\/|$)/.test(pathname)) return ["hub", "home"];
+  return undefined;
 }

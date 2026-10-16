@@ -1,10 +1,11 @@
 import { AREAS } from "../lib/catalog";
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { Outlet, isRouteErrorResponse, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
+import { timedLoader } from "../lib/timing.server";
 import { getPlan, getPlanState, keepWithinPlan } from "../lib/billing.server";
 import { remember } from "../lib/short-cache.server";
 import { PLANS } from "../lib/plans";
@@ -13,7 +14,7 @@ import { LockedPage } from "../components/Upgrade";
 import frame from "../components/AppFrame.module.css";
 import { ErrorPage, FAILED, NOT_FOUND } from "../components/ErrorPage";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = timedLoader("app", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   // Shopify adds ?plan_handle=… when it sends the merchant back from the plan selection page.
   const info = await getPlan(admin, session.shop, new URL(request.url).searchParams.has("plan_handle"));
@@ -24,6 +25,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "", plan: info.plan, planUrl: info.planUrl, trial };
+});
+
+/**
+ * The frame only needs the plan (and the free trial feature). It is read again only when the plan can
+ * have changed: coming back from Shopify's plan page (?plan_handle) or after the trial/plan actions.
+ * Saves, filters and tab clicks no longer reload it.
+ */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl, formAction }) => {
+  if (nextUrl.searchParams.has("plan_handle") && !currentUrl.searchParams.has("plan_handle")) return true;
+  return !!formAction && /\/app\/(plan-trial|plans)(\/|$|\?)/.test(formAction);
 };
 
 export default function App() {

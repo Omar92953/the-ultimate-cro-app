@@ -159,7 +159,7 @@ export function LinkTiles({ items }: { items: LinkTile[] }) {
             {inner}
           </a>
         ) : (
-          <Link key={t.key} to={t.href} className={styles.tile}>
+          <Link key={t.key} to={t.href} prefetch="intent" className={styles.tile}>
             {inner}
           </Link>
         );
