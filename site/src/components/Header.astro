@@ -156,14 +156,6 @@ const here = Astro.url.pathname;
     transform: none;
     transition-delay: 0s;
   }
-  @media (hover: hover) {
-    .menu:hover .panel {
-      visibility: visible;
-      opacity: 1;
-      transform: none;
-      transition-delay: 0s;
-    }
-  }
   .panel li:nth-child(5),
   .panel li:nth-child(13) {
     margin-bottom: 8px;
@@ -323,7 +315,7 @@ const here = Astro.url.pathname;
     mobile.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => (mobile.open = false)));
   }
 
-  // Features dropdown: opens on hover (mouse), on click or tap (touch), and with Enter or Space on the
+  // Features dropdown: opens on hover (mouse), on click or tap, and with Enter or Space on the
   // button. Escape or a click elsewhere closes it, and Tab out of it closes it too.
   document.querySelectorAll<HTMLElement>("[data-menu]").forEach((menu) => {
     const button = menu.querySelector<HTMLButtonElement>(".trigger")!;
@@ -331,7 +323,27 @@ const here = Astro.url.pathname;
       menu.classList.toggle("open", open);
       button.setAttribute("aria-expanded", String(open));
     };
-    button.addEventListener("click", () => set(button.getAttribute("aria-expanded") !== "true"));
+    // Hover opens it on a mouse (the script sets the state, so the arrow and aria-expanded follow).
+    // A click right after hover opened it keeps it open instead of closing it again.
+    let hoverOpenedAt = 0;
+    let leaveTimer: number | undefined;
+    if (window.matchMedia("(hover: hover)").matches) {
+      menu.addEventListener("mouseenter", () => {
+        clearTimeout(leaveTimer);
+        if (button.getAttribute("aria-expanded") !== "true") {
+          hoverOpenedAt = Date.now();
+          set(true);
+        }
+      });
+      menu.addEventListener("mouseleave", () => {
+        leaveTimer = window.setTimeout(() => set(false), 150);
+      });
+    }
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") === "true";
+      if (open && Date.now() - hoverOpenedAt < 600) return;
+      set(!open);
+    });
     menu.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
         set(false);
