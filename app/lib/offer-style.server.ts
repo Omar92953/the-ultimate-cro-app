@@ -13,15 +13,9 @@ import { gql, type AdminClient } from "./admin.server";
 import { listBundles, listRules, upsert } from "./cro.server";
 import { MAX_DESIGNS } from "./design-slot.server";
 
-export type StyleGroup = "upsell" | "cross_sell" | "bundles";
-export const STYLE_GROUPS: Record<StyleGroup, { title: string; base: string; design: string; noun: string }> = {
-  upsell: { title: "Upsell", base: "upsell", design: "/app/designs/upsell", noun: "upsell offer" },
-  cross_sell: { title: "Cross sell", base: "cross_sell", design: "/app/designs/cross-sell", noun: "cross sell offer" },
-  bundles: { title: "Bundles", base: "bundles", design: "/app/designs/bundles", noun: "bundle" },
-};
-export const isStyleGroup = (v: unknown): v is StyleGroup => typeof v === "string" && v in STYLE_GROUPS;
+import type { StyleGroup, StyleOffer } from "./offer-style";
 
-export type StyleOffer = { handle: string; name: string; active: boolean; design: number };
+export { STYLE_GROUPS, isStyleGroup, type StyleGroup, type StyleOffer } from "./offer-style";
 
 /** The group's offers that can have their own style, active ones first. */
 export async function styleOffers(admin: AdminClient, group: StyleGroup): Promise<StyleOffer[]> {
