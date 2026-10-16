@@ -1,8 +1,11 @@
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { useEffect, useState } from "react";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { editorLinks, listRules } from "../lib/cro.server";
+import { deleteRule, editorLinks, listRules } from "../lib/cro.server";
+import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
 import { Button } from "../components/fields";
 import { Explainer } from "../components/ui";
@@ -10,6 +13,7 @@ import { HELP } from "../lib/help";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { OFFER_FEATURE } from "../lib/catalog";
+import { DeletedToast } from "../components/DeleteOffer";
 
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -20,9 +24,34 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   return { kindSlug: params.kind!, meta, rules, addBlock: editorLinks(session.shop)[meta.kind] };
 };
 
+export const action = async ({ request, params }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+  const meta = KINDS[params.kind ?? ""];
+  if (!meta) throw new Response("Not found", { status: 404 });
+  const form = await request.formData();
+  try {
+    // Only the id comes from the page; it must be one of this kind's offers.
+    const rule = (await listRules(admin, meta.kind)).find((r) => r.id === String(form.get("id")));
+    if (!rule?.id) throw new Error("This offer no longer exists. Reload the page.");
+    const done = await deleteRule(admin, rule.id);
+    return { ok: true, error: null, warn: done === "warn" };
+  } catch (e) {
+    return { ok: false, error: errorMessage(e), warn: false };
+  }
+};
+
 export default function RuleList() {
   const { kindSlug, meta, rules, addBlock } = useLoaderData<typeof loader>();
   const featureKey = OFFER_FEATURE[kindSlug] ?? "upsell";
+  const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+  const [confirming, setConfirming] = useState<string | null>(null);
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (!fetcher.data.ok) shopify.toast.show(fetcher.data.error || "Something went wrong", { isError: true });
+    else if (fetcher.data.warn) shopify.toast.show("Deleted, but the checkout discounts could not be updated. Save any offer to try again.", { isError: true, duration: 8000 });
+    else shopify.toast.show("Deleted");
+  }, [fetcher.state, fetcher.data, shopify]);
 
   const trigger = (r: (typeof rules)[number]) =>
     r.triggerType === "all"
@@ -49,6 +78,7 @@ export default function RuleList() {
         Add to theme
       </Button>
 
+      <DeletedToast />
       <s-stack gap="base">
         <FeatureTabs feature={featureKey} />
         <Explainer {...HELP[meta.kind]} />
@@ -61,7 +91,8 @@ export default function RuleList() {
               <s-table-header>Status</s-table-header>
               <s-table-header>Shown on</s-table-header>
               <s-table-header>Offer</s-table-header>
-              <s-table-header format="numeric">Priority</s-table-header>
+              <s-table-header format="numeric">Show order</s-table-header>
+              <s-table-header>Actions</s-table-header>
             </s-table-header-row>
             <s-table-body>
               {rules.map((r) => (
@@ -75,6 +106,24 @@ export default function RuleList() {
                   <s-table-cell>{trigger(r)}</s-table-cell>
                   <s-table-cell>{offer(r)}</s-table-cell>
                   <s-table-cell>{r.priority}</s-table-cell>
+                  <s-table-cell>
+                    <s-stack direction="inline" gap="small-200" justifyContent="end">
+                      {confirming === r.id ? (
+                        <>
+                          <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ id: r.id ?? "" }, { method: "post" }); }}>
+                            Delete
+                          </Button>
+                          <Button variant="tertiary" onClick={() => setConfirming(null)}>
+                            Keep
+                          </Button>
+                        </>
+                      ) : (
+                        <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(r.id ?? null)}>
+                          Delete
+                        </Button>
+                      )}
+                    </s-stack>
+                  </s-table-cell>
                 </s-table-row>
               ))}
             </s-table-body>
@@ -94,7 +143,7 @@ export default function RuleList() {
 
       <s-section heading="Which offer is shown?">
         <s-paragraph>
-          If several active offers match the same product, the one with the lowest priority number is shown. The
+          If several active offers match the same product, the one with the lowest show order number is shown. The
           checkout discount follows the same order.
         </s-paragraph>
       </s-section>

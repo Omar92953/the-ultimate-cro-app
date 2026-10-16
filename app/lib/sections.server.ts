@@ -3,7 +3,7 @@
  * Admin API side of the store-section lists (reviews, FAQ, logos, announcements): read, save,
  * reorder, show/hide and delete the app-owned metaobjects, plus file picking and uploads.
  */
-import { gql, AdminError, type AdminClient } from "./admin.server";
+import { gql, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { remove, slug, upsert } from "./cro.server";
 import {
   SECTIONS,
@@ -206,7 +206,7 @@ export async function syncList(admin: AdminClient, kind: SectionKind) {
 
 export async function deleteItem(admin: AdminClient, kind: SectionKind, id: string) {
   await remove(admin, id);
-  await syncList(admin, kind);
+  return afterDelete(() => syncList(admin, kind));
 }
 
 async function updateFields(admin: AdminClient, updates: { id: string; fields: Record<string, string> }[]) {

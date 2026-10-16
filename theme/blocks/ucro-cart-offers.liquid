@@ -41,6 +41,7 @@
           {%- unless first_rule -%},{%- endunless -%}{%- assign first_rule = false -%}
           {
             "p": {{ r.priority.value | default: 100 | json }},
+            "n": {{ r.name.value | default: 'Untitled rule' | downcase | json }},
             "t": {{ ttype | json }},
             "ids": [
               {%- if ttype == 'products' -%}

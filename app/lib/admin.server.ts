@@ -11,6 +11,20 @@ export type AdminClient = {
   ) => Promise<Response>;
 };
 
+/**
+ * Follow-up work after a delete (re-sending the discounts to the store). The delete itself already
+ * happened, so a failure here must not look like the delete failed: it is reported as "warn".
+ */
+export async function afterDelete(work: () => Promise<unknown>): Promise<"ok" | "warn"> {
+  try {
+    await work();
+    return "ok";
+  } catch (e) {
+    console.error("Follow-up after delete failed:", e);
+    return "warn";
+  }
+}
+
 export class AdminError extends Error {}
 
 export async function gql<T = any>(

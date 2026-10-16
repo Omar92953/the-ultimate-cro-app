@@ -5,6 +5,7 @@
  */
 import { useState, type CSSProperties } from "react";
 import { crossSellClass, crossSellVars, drawerVars, type CrossSellDesign } from "../lib/cross-sell-design";
+import { flashStyle } from "./flash";
 import type { PreviewTheme } from "../lib/theme-style";
 
 export type CrossSellItem = { title: string; image: string | null; cents: number };
@@ -23,7 +24,7 @@ export const SAMPLE_CROSS_SELL: CrossSellOffer = {
   ],
 };
 
-export function CrossSellDesignPreview({ config: c, offer = SAMPLE_CROSS_SELL, currency = "USD", page, block }: { config: CrossSellDesign; offer?: CrossSellOffer; currency?: string; page: PreviewTheme; block: PreviewTheme | null }) {
+export function CrossSellDesignPreview({ config: c, offer = SAMPLE_CROSS_SELL, currency = "USD", page, block, highlight = null }: { config: CrossSellDesign; offer?: CrossSellOffer; currency?: string; page: PreviewTheme; block: PreviewTheme | null; /** "item-N": outline that product for a moment (the editor changed it). */ highlight?: string | null }) {
   const [ticked, setTicked] = useState<Record<number, boolean>>({});
   const money = (cents: number) => {
     try {
@@ -51,7 +52,7 @@ export function CrossSellDesignPreview({ config: c, offer = SAMPLE_CROSS_SELL, c
           {offer.items.map((it, i) => {
             const now = Math.round(it.cents * (1 - offer.pct / 100));
             return (
-              <li key={i} className="ucro-offer">
+              <li key={i} className="ucro-offer" style={flashStyle(highlight === `item-${i}`)}>
                 <label className="ucro-offer__row">
                   <input type="checkbox" className="ucro-offer__check" checked={!!ticked[i]} onChange={(e) => setTicked((t) => ({ ...t, [i]: e.target.checked }))} />
                   <span className="ucro-offer__box" aria-hidden="true" />

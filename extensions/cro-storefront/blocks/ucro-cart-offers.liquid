@@ -25,6 +25,7 @@ assign ttype = r.trigger_type.value | default: 'all'
 -%}{%- unless first_rule -%},{%- endunless -%}{%- assign first_rule = false -%}
 {
 "p": {{ r.priority.value | default: 100 | json }},
+"n": {{ r.name.value | default: 'Untitled rule' | downcase | json }},
 "t": {{ ttype | json }},
 "ids": [{%- if ttype == 'products' -%}{%- for tp in r.trigger_products.value -%}{{ tp.id }}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}{%- elsif ttype == 'collections' -%}{%- assign first_id = true -%}{%- for tc in r.trigger_collections.value -%}{%- for cp in tc.products limit: 50 -%}{%- unless first_id -%},{%- endunless -%}{%- assign first_id = false -%}{{ cp.id }}{%- endfor -%}{%- endfor -%}{%- endif -%}],
 "h": {{ r.headline.value | default: heading | json }},

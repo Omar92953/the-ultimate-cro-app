@@ -16,7 +16,7 @@
     return;
   }
   if (!data.rules || !data.rules.length) return;
-  data.rules.sort(function (a, b) { return a.p - b.p; });
+  data.rules.sort(function (a, b) { return a.p - b.p || (a.n < b.n ? -1 : a.n > b.n ? 1 : 0); });
 
   var drawer = document.querySelector('cart-drawer');
   if (!drawer) return; // not a Dawn-family drawer: stay silent

@@ -21,6 +21,8 @@ import { SortableList, arrayMove } from "../components/Sortable";
 import { EditorLayout } from "../components/EditorLayout";
 import { EditorSection } from "../components/EditorSection";
 import { PreviewFrame } from "../components/DesignTabs";
+import { DeleteOffer } from "../components/DeleteOffer";
+import { useFlash } from "../components/flash";
 import { ThemeLook } from "../components/ThemeStyle";
 import { BundlePreview, SAMPLE_BUNDLE, type PreviewBundle, type PreviewItem } from "../components/BundlePreview";
 import { getBundleDesign } from "../lib/designs.server";
@@ -118,8 +120,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     if (form.get("intent") === "delete") {
-      await deleteBundle(admin, String(form.get("handle")));
-      return redirect("/app/bundles");
+      const done = await deleteBundle(admin, String(form.get("handle")));
+      return redirect(`/app/bundles?deleted=${done}`);
     }
     const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
     const create = form.get("create") ? (JSON.parse(String(form.get("create"))) as NewProduct) : null;
@@ -184,7 +186,12 @@ export default function BundleEditor() {
   }, [fetcher.state, fetcher.data, shopify, isNew, navigate]);
 
   const set = <K extends keyof Bundle>(key: K, value: Bundle[K]) => setBundle((b) => ({ ...b, [key]: value }));
-  const setStep = (i: number, patch: Partial<BundleStep>) =>
+  const [flashed, flash] = useFlash();
+  const setStep = (i: number, patch: Partial<BundleStep>) => {
+    flash(`step-${i}`);
+    return setStepRaw(i, patch);
+  };
+  const setStepRaw = (i: number, patch: Partial<BundleStep>) =>
     set("steps", bundle.steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   const moveStep = (from: number, to: number) => set("steps", arrayMove(bundle.steps, from, to));
 
@@ -233,7 +240,7 @@ export default function BundleEditor() {
   const blockLook = design.look.scheme ? previewTheme(style, design.look.scheme) : null;
 
   const remove = () => {
-    if (!bundle.handle || !window.confirm(`Delete “${bundle.name}”? The bundle product itself is not deleted.`)) return;
+    if (!bundle.handle) return;
     fetcher.submit({ intent: "delete", handle: bundle.handle }, { method: "post" });
   };
 
@@ -243,11 +250,6 @@ export default function BundleEditor() {
         Bundles
       </s-link>
       <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
-      {!isNew ? (
-        <Button slot="secondary-actions" tone="critical" onClick={remove} disabled={busy}>
-          Delete
-        </Button>
-      ) : null}
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The bundle was not saved">
@@ -354,7 +356,7 @@ export default function BundleEditor() {
               tools={<Segmented label="Device" value={device} options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]} onChange={setDevice} />}
             >
               <ThemeLook style={style}>
-                <BundlePreview key={previewKey} config={design} bundle={previewBundle} currency={previewCurrency} phone={device === "phone"} page={pageLook} block={blockLook} />
+                <BundlePreview key={previewKey} config={design} bundle={previewBundle} currency={previewCurrency} phone={device === "phone"} page={pageLook} block={blockLook} highlight={flashed} />
               </ThemeLook>
             </PreviewFrame>
             {usingSample ? <s-text color="subdued">Sample items until you choose the products in step 3.</s-text> : null}
@@ -598,6 +600,11 @@ export default function BundleEditor() {
           />
           <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
         </EditorSection>
+        {!isNew ? (
+          <DeleteOffer busy={busy} onDelete={remove}>
+            <s-paragraph>{`“${bundle.name}” stops showing on your store. The bundle product itself is not deleted. This cannot be undone.`}</s-paragraph>
+          </DeleteOffer>
+        ) : null}
       </EditorLayout>
     </s-page>
   );

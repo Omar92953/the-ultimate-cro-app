@@ -9,6 +9,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { editorLinks, getThemeStatus, listBundles } from "../lib/cro.server";
 import { listOffers } from "../lib/offers.server";
+import { DeletedToast } from "../components/DeleteOffer";
 import { Button } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
@@ -48,6 +49,7 @@ export default function BundleList() {
         Create bundle offer
       </Button>
 
+      <DeletedToast />
       <s-stack gap="base">
         <FeatureTabs feature="bundles" />
 
