@@ -36,7 +36,7 @@ Updated 2026-10-15.
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
-- [x] PR 2: hidden live demos for every feature in `demos/` (demo.crotoolbox.com), `app/lib/site.ts`,
+- [x] PR 2: hidden live demos for every feature in `demos/` (crotoolbox.com/demo), `app/lib/site.ts`,
       no demo links on the website, `docs/website.md` (PR #43)
 - [x] PR 3: bundles hub, feature and area pages, use cases, comparisons (PR #50)
 - [ ] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
@@ -45,14 +45,13 @@ Updated 2026-10-15.
 - [x] PR 5 (app): "See live demo" buttons
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
-- [ ] Live demos on Cloudflare Pages: a second project `cro-toolbox-demos`, root `demos`, domain
-      demo.crotoolbox.com (Omar connects it; steps in `docs/website.md`)
+- [ ] Live demos at crotoolbox.com/demo/: built by the website build (one Cloudflare project); after the next deploy run
+      `npm run check:links` (every demo page must be 200)
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
 
 - [x] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
-- [ ] Create the demos project on Cloudflare Pages (`docs/website.md`, "The live demos")
 - [x] Google Search Console: Domain property crotoolbox.com verified through Cloudflare DNS (keep the
       `google-site-verification` TXT record), sitemap-index.xml submitted (2026-10-16)
 - [x] Bing Webmaster Tools: crotoolbox.com added, sitemap-index.xml submitted (2026-10-16); IndexNow runs from GitHub

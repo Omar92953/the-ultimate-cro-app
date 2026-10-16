@@ -163,9 +163,9 @@ Run on the Mac on 2026-10-16 (after Block D, version cro-toolbox-22), all pass:
 Clicked through on Testing 3: plans (upgrade to Growth, trial, back to Free), feature request,
 offers lists and editors, Delete, Style tab, Storefront with the Cart group.
 
-**Blocker: `demo.crotoolbox.com` does not exist yet**, so every "See live demo" button in the app opens
-a dead page. Reviewers reject broken pages (2.1.1). Create the Cloudflare Pages project
-`cro-toolbox-demos` (`docs/website.md`, "The live demos") before submitting, or hide the buttons.
+**Blocker until the website deploy with the demos is live**: every "See live demo" button in the app opens
+`crotoolbox.com/demo/…`, built by the website build (`docs/website.md`). Run `npm run check:links` after the
+deploy; reviewers reject broken pages (2.1.1).
 
 ## 6. Only Omar can do these (Partner Dashboard and accounts)
 

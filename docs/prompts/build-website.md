@@ -92,7 +92,7 @@ Copy the structure and the kinds of pages, never their text, images or brand. Wr
 
 ## Live demos (hidden, opened from the app: "See live demo")
 
-Decided by Omar on 2026-10-15: the live demos live on their own subdomain, **demo.crotoolbox.com**,
+Decided by Omar on 2026-10-15: the live demos live on their own subdomain, **crotoolbox.com/demo**,
 and are **not part of the public website**. Nobody finds them by browsing or searching; they open
 only when a merchant clicks "See live demo" inside the app. Built in `demos/` (see `docs/website.md`).
 
@@ -112,14 +112,14 @@ only when a merchant clicks "See live demo" inside the app. Built in `demos/` (s
 - Hidden: every page `<meta name="robots" content="noindex, nofollow">`, a Cloudflare `_headers` file
   adding `X-Robots-Tag: noindex, nofollow` to all paths, robots.txt `Disallow: /`. No sitemap, no
   llms.txt entry, no index page or list of demos (no index.json): `/` redirects to crotoolbox.com.
-- The website (`site/`) has **no links** to demo.crotoolbox.com and no `/demo/` pages; its sitemap and
+- The website (`site/`) has **no links** to crotoolbox.com/demo and no `/demo/` pages; its sitemap and
   llms.txt don't mention demos.
 - Deployed as a second Cloudflare Pages project (`cro-toolbox-demos`) from this repo with the custom
-  domain demo.crotoolbox.com; until then its `*.pages.dev` address works. Steps for Omar in
+  domain crotoolbox.com/demo; until then its `*.pages.dev` address works. Steps for Omar in
   `docs/website.md`.
 
 **In the app**: `app/lib/site.ts` has `SITE_URL` (`https://crotoolbox.com`), `DEMO_URL`
-(`https://demo.crotoolbox.com`), `demoUrl(featureKey, design?, recipe?)` and `DEMOS` (the keys with a
+(`https://crotoolbox.com/demo`), `demoUrl(featureKey, design?, recipe?)` and `DEMOS` (the keys with a
 demo; the demo build fails if a catalog feature has no demo or a demo has no catalog feature).
 A **"See live demo"** button (new tab) on each feature's main page, each design page (opens that
 design's `#design-N`) and each bundle recipe card in Bundles → Create bundle, shown only for keys in

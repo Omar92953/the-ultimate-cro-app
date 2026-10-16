@@ -1,12 +1,15 @@
 /**
- * Builds the live demos for demo.crotoolbox.com into demos/dist (a static site of its own, NOT part
- * of the public website: every page is noindex, robots.txt disallows everything, / redirects to the
- * website, and there is no list of demos anywhere). The app's "See live demo" buttons open them.
+ * Builds the live demos for https://crotoolbox.com/demo/ into demos/dist/demo (dist is laid out like
+ * the website's root). The website build copies that folder into site/dist (site/scripts/with-demos.mjs).
+ * Every demo page is noindex, /demo/ redirects to the website's home page, robots.txt and _headers
+ * (site/public) keep /demo/ out of search, and there is no list of demos anywhere. The app's "See live
+ * demo" buttons open them. Every absolute address starts with BASE (demos/src/base.mjs), so none can
+ * land on a page of the website (e.g. /bundles/ is the website's, /demo/bundles/<recipe>/ is a demo).
  *
- *   /<feature>/                 the feature's designs, stacked (#design-1, #design-2…)
- *   /<feature>/design-N.html    one design on a demo store page (shown in an iframe)
- *   /bundles/<recipe>/          a bundle recipe's designs
- *   /assets/  /img/  /store/    the extension's real JS and CSS, product pictures, demo cart pages
+ *   /demo/<feature>/               the feature's designs, stacked (#design-1, #design-2…)
+ *   /demo/<feature>/design-N.html  one design on a demo store page (shown in an iframe)
+ *   /demo/bundles/<recipe>/        a bundle recipe's designs
+ *   /demo/assets/ img/ store/      the extension's real JS and CSS, product pictures, demo cart pages
  *
  * Addresses come from app/lib/site.ts (demoPath); the build fails when its DEMOS or DEMO_RECIPES
  * don't match the features and recipes built here.
@@ -15,11 +18,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
+import { BASE } from "./src/base.mjs";
 import { EXT, collectionOf, copyAssets, createEngine, defaults, mo, resolveTsImports } from "../test/storefront/engine.mjs";
 
 resolveTsImports();
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(here, "dist");
+const root = path.join(dist, BASE);
 const { artSvg } = await import("../site/src/lib/art.ts");
 const { FEATURES, FEATURE_KEYS } = await import("../app/lib/catalog.ts");
 const { BUNDLE_RECIPES } = await import("../app/lib/bundle-recipes.ts");
@@ -33,29 +38,26 @@ const { viewerPage } = await import("./src/viewer.mjs");
 /** House rule: no dashes in visible text ("Add-ons" → "Add ons"). */
 const plain = (s) => s.replace(/(\w)-(\w)/g, "$1 $2").replace(/[“”]/g, '"');
 const write = (rel, content) => {
-  const file = path.join(dist, rel);
+  const file = path.join(root, rel);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, content);
 };
 
 fs.rmSync(dist, { recursive: true, force: true });
-copyAssets(path.join(dist, "assets"));
-fs.copyFileSync(path.join(here, "../site/public/favicon.svg"), path.join(dist, "favicon.svg"));
+copyAssets(path.join(root, "assets"));
+fs.copyFileSync(path.join(here, "../site/public/favicon.svg"), path.join(root, "favicon.svg"));
 
 // ------------------------------------------------------------------------ hidden from the public --
-write("robots.txt", "User-agent: *\nDisallow: /\n");
-write("_headers", "/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: strict-origin-when-cross-origin\n");
-write("_redirects", `/ ${SITE_URL} 302\n`);
-write("index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta http-equiv="refresh" content="0; url=${SITE_URL}"><title>CRO Toolbox</title></head><body><script>location.replace(${JSON.stringify(SITE_URL)})</script><a href="${SITE_URL}">CRO Toolbox</a></body></html>`);
-write("404.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta http-equiv="refresh" content="0; url=${SITE_URL}"><title>CRO Toolbox</title></head><body><a href="${SITE_URL}">CRO Toolbox</a></body></html>`);
+// robots.txt, X-Robots-Tag and the /demo redirect live in the website (site/public); every page also says noindex.
+write("index.html", `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta http-equiv="refresh" content="0; url=${SITE_URL}/"><title>CRO Toolbox</title></head><body><script>location.replace(${JSON.stringify(SITE_URL + "/")})</script><a href="${SITE_URL}/">CRO Toolbox</a></body></html>`);
 
 // ------------------------------------------------------------------------ pictures --
 // A real picture (site/public/products/<handle>.* or <kind>.*) is copied as it is; otherwise the drawn SVG.
 const { productImage } = await import("../site/src/lib/art.ts");
-fs.mkdirSync(path.join(dist, "img"), { recursive: true });
+fs.mkdirSync(path.join(root, "img"), { recursive: true });
 for (const a of data.ART) {
   const real = productImage(a.handle, a.kind);
-  if (real) fs.copyFileSync(real.file, path.join(dist, `img/${a.handle}.${real.ext}`));
+  if (real) fs.copyFileSync(real.file, path.join(root, `img/${a.handle}.${real.ext}`));
   else write(`img/${a.handle}.svg`, artSvg(a.kind, { id: "a", tint: a.tint ?? undefined, size: 800 }));
 }
 /** The hero banner: products on a shelf, as one picture. */
@@ -69,7 +71,7 @@ write("img/hero-desktop.svg", shelf(2400, 1000, [["candle", null, 1250, 330, 520
 write("img/hero-mobile.svg", shelf(1000, 1250, [["candle", null, 80, 620, 420], ["serum", null, 420, 600, 440], ["plant", null, 600, 520, 480]]));
 
 // ------------------------------------------------------------------------ rendering --
-const engine = createEngine(Liquid, { filters: { asset_url: (name) => `/assets/${name}` } });
+const engine = createEngine(Liquid, { filters: { asset_url: (name) => `${BASE}/assets/${name}` } });
 const reviewMo = (r, i) => mo(`r${i}`, r);
 const baseShop = {
   name: "Lumen Goods",
@@ -115,7 +117,8 @@ async function block(name, { settings = {}, shop = shopWith(), page_type = "inde
   const locals = { block: { id: `${name}-${++blockN}`, settings: { ...defaults(name, EXT), ...settings }, shopify_attributes: "" }, product, collection, page };
   const html = await engine.renderFile(name, locals, { globals });
   if (/Liquid error/.test(html)) throw new Error(`${name}: ${html.match(/Liquid error[^<]*/)[0]}`);
-  return html;
+  // The blocks write the store's own addresses (/contact, /pages/contact): keep them inside the demo store.
+  return html.replace(/\b(href|action)="\/((?:pages\/)?contact)"/g, `$1="${STORE_ROOT}$2"`).replace(/"\/collections\/all"/g, `"${STORE_ROOT}collections/all"`);
 }
 
 const { features, recipes, templates } = await buildFeatures({ block, shopWith, mo });
@@ -157,7 +160,7 @@ function designPages(dir, title, designs) {
       header: d.layout !== "raw" && d.layout !== undefined,
     });
     write(`${dir}/design-${n}.html`, html);
-    return { n, id, title: d.title, src: `/${dir}/design-${n}.html`, minHeight: d.minHeight ?? null, scroll: d.scroll ?? null };
+    return { n, id, title: d.title, src: `${BASE}/${dir}/design-${n}.html`, minHeight: d.minHeight ?? null, scroll: d.scroll ?? null };
   });
 }
 const CHECKOUT_TIP = "Checkout runs inside Shopify, so this is a picture of it with what the app changes marked.";
@@ -190,6 +193,11 @@ for (const r of BUNDLE_RECIPES) {
 // The demo store's cart and checkout (the storefront scripts send shoppers there).
 const storePage = (rel, title, body) => write(`store/${rel}/index.html`, frame({ title, frameId: `store-${rel}`, body, catalog: data.catalog, collections: data.collectionHandles, orderJson: data.order }));
 storePage("cart", "Cart", cartPage());
+// Every demo store address the pages link to: collections and products.
+for (const [handle, c] of Object.entries(data.collections)) storePage(`collections/${handle}`, c.title, collectionGrid(c.title, c.products.filter((p) => !p.tags.includes("cro-bundle"))));
+storePage("collections/all", "All products", collectionGrid("All products", Object.values(data.products).filter((p) => !p.tags.includes("cro-bundle"))));
+for (const [handle, p] of Object.entries(data.products)) storePage(`products/${handle}`, p.title, productPage(p, "", {}));
+storePage("pages/contact", "Contact", `<div class="page-width demo-pad demo-narrow"><h1>Contact</h1><p>On a real store this is your own contact page.</p><p><a class="button" href="javascript:history.back()" style="width:auto">Back to the demo</a></p></div>`);
 storePage("checkout", "Checkout", `<div class="page-width demo-pad demo-narrow"><h1>Checkout</h1><p>This is where Shopify's own checkout takes over. Offer and bundle discounts, payment and delivery rules and order limits all run inside it.</p><p><a class="button" href="javascript:history.back()" style="width:auto">Back to the demo</a></p></div>`);
 
 // ------------------------------------------------------------------------ in sync with the app --
@@ -214,10 +222,10 @@ if (problems.length) {
   console.error("✗ demos:\n  " + problems.join("\n  "));
   process.exit(1);
 }
-const pages = fs.readdirSync(dist, { recursive: true }).filter((f) => String(f).endsWith(".html"));
+const pages = fs.readdirSync(root, { recursive: true }).filter((f) => String(f).endsWith(".html"));
 // The blocks pass their settings to the storefront scripts as JSON, which fail silently on bad JSON.
 for (const f of pages) {
-  const html = fs.readFileSync(path.join(dist, f), "utf8");
+  const html = fs.readFileSync(path.join(root, f), "utf8");
   for (const m of html.matchAll(/<script type="application\/(?:ld\+)?json"[^>]*>([\s\S]*?)<\/script>/g)) {
     try {
       JSON.parse(m[1]);
@@ -230,9 +238,19 @@ if (problems.length) {
   console.error("✗ demos:\n  " + problems.join("\n  "));
   process.exit(1);
 }
-const unhidden = pages.filter((f) => !fs.readFileSync(path.join(dist, f), "utf8").includes('content="noindex, nofollow"'));
+// No page may point at an address outside BASE (it would open a page of the website, or a 404).
+const stray = [];
+for (const f of pages) {
+  const html = fs.readFileSync(path.join(root, f), "utf8");
+  for (const m of html.matchAll(/\b(?:href|src|action)="(\/[^"]*)"/g)) if (!m[1].startsWith(`${BASE}/`) && m[1] !== `${BASE}` && !m[1].startsWith("//")) stray.push(`${f}: ${m[1]}`);
+}
+if (stray.length) {
+  console.error("✗ demos: addresses outside " + BASE + ":\n  " + [...new Map(stray.map((x) => [x.split(": ")[1], x])).values()].join("\n  "));
+  process.exit(1);
+}
+const unhidden = pages.filter((f) => !fs.readFileSync(path.join(root, f), "utf8").includes('content="noindex, nofollow"'));
 if (unhidden.length) {
   console.error(`✗ demos: pages without noindex: ${unhidden.join(", ")}`);
   process.exit(1);
 }
-console.log(`✓ demos: ${built.length} features, ${builtRecipes.length} bundle recipes, ${pages.length} pages → demos/dist`);
+console.log(`✓ demos: ${built.length} features, ${builtRecipes.length} bundle recipes, ${pages.length} pages → demos/dist/demo`);

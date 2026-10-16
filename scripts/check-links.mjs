@@ -4,8 +4,8 @@
  * Fetches each with a browser user agent; anything but 200 fails the run.
  *
  * Run: node --experimental-strip-types --no-warnings scripts/check-links.mjs
- * (or: npm run check:links). Demo pages missing on demo.crotoolbox.com are listed at the end
- * under "Demo pages missing": they are built by the demos project, not fixed here.
+ * (or: npm run check:links). Demo pages (crotoolbox.com/demo/…) that are missing are listed at the end
+ * under "Demo pages missing": they come from the demos build, which the website build runs.
  */
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -76,5 +76,5 @@ for (const url of entries) {
   }
 }
 console.log(`\n${entries.length} pages checked from ${links.length} links, ${bad} not 200.`);
-if (missingDemos.length) console.log(`\nDemo pages missing (for the demos project, not built here):\n${missingDemos.map((m) => `  ${m}`).join("\n")}`);
+if (missingDemos.length) console.log(`\nDemo pages missing (built by the demos build inside the website build):\n${missingDemos.map((m) => `  ${m}`).join("\n")}`);
 process.exit(bad ? 1 : 0);

@@ -1,7 +1,7 @@
 # Product pictures for the website and the live demos
 
 Drop real product photos in this folder. The website (`ProductArt.astro`) and the live demos
-(`demos/build.mjs`, demo.crotoolbox.com) both read it, so adding a file here changes both.
+(`demos/build.mjs`, crotoolbox.com/demo) both read it, so adding a file here changes both.
 Without a file, the drawn pictures (`site/src/lib/art.ts`) are used.
 
 ## File names

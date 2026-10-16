@@ -1,18 +1,24 @@
 # Website and live demos
 
-Two separate static sites live in this repo, next to the app. Both deploy on Cloudflare Pages (free
-plan), each as its own project.
+The website and the live demos are built together and deployed as **one** Cloudflare Pages project
+(`crotoolbox`, free plan). The demos are served under `/demo/`.
 
 | | Website | Live demos |
 |---|---|---|
 | Folder | `site/` (Astro) | `demos/` (Node script, renders the real theme blocks) |
-| Address | https://crotoolbox.com | https://demo.crotoolbox.com |
-| Public? | Yes: sitemap, robots.txt, llms.txt, made to rank | **No**: every page `noindex, nofollow`, robots.txt `Disallow: /`, no sitemap or list of demos, `/` redirects to crotoolbox.com |
+| Address | https://crotoolbox.com | https://crotoolbox.com/demo/ |
+| Public? | Yes: sitemap, robots.txt, llms.txt, made to rank | **No**: every page `noindex, nofollow`, `X-Robots-Tag` header and `Disallow: /demo/` in robots.txt, not in the sitemap or llms.txt, `/demo/` redirects to `/` |
 | Opened from | search, AI assistants, links | **only** the app's "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`) |
-| Cloudflare project | `crotoolbox` (live) | `cro-toolbox-demos` (to set up) |
+| Counted in analytics | yes | yes (same domain, so Cloudflare Web Analytics sees the visits) |
+
+`npm --prefix site run build` runs `astro build`, then `site/scripts/with-demos.mjs`, which builds the demos
+(`npm --prefix demos ci && run build`) and copies `demos/dist/demo` into `site/dist/demo`. If the demos build
+fails (or is out of sync with the app, see below), the website build fails too.
 
 The website never links to the demos, and the demos don't link to each other or to the website pages
-(only the "Install CRO Toolbox" button to the App Store listing).
+(only the "Install CRO Toolbox" button to the App Store listing). Every address the demos write starts
+with `/demo` (`demos/src/base.mjs`, the build fails on any other absolute address), so a demo never
+resolves to a website page (`/bundles/` is the website's, `/demo/bundles/<recipe>/` is a demo).
 
 ## Run and check locally
 
@@ -22,8 +28,9 @@ From the repo root:
 npm --prefix site ci && npm --prefix site run dev          # website at http://localhost:4321
 npm --prefix site run build                                 # must pass before merging (type check + build)
 
-npm --prefix demos ci && npm --prefix demos run build       # demos into demos/dist (fails if out of sync, see below)
-npm --prefix demos run preview                              # http://localhost:4322/upsell/ etc.
+npm --prefix demos ci && npm --prefix demos run build       # demos only, into demos/dist/demo (fails if out of sync, see below)
+npm --prefix demos run preview                              # http://localhost:4322/demo/upsell/ etc.
+python3 -m http.server -d site/dist 4323                    # the website with the demos, after the site build: http://localhost:4323/demo/upsell/
 ```
 
 The demo build needs Node 22.18 or newer (it loads the app's TypeScript files directly).
@@ -113,31 +120,20 @@ Cloudflare Pages project `crotoolbox`: root directory `site`, build command `npm
 directory `dist`, environment variable `NODE_VERSION` = `22`, custom domains crotoolbox.com and
 www.crotoolbox.com. It rebuilds on every push to `main`.
 
-### 2. The live demos (demo.crotoolbox.com): to set up
+The live demos need **no second project**: the same project builds and serves them at
+https://crotoolbox.com/demo/. Needed in that one project: `NODE_VERSION` = `22` (the demos build needs
+22.18 or newer; `22` gives the newest 22). If a `cro-toolbox-demos` project was created before, delete it.
 
-1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → the repo
-   `Omar92953/the-ultimate-cro-app`.
-2. Project name `cro-toolbox-demos`, production branch `main`.
-3. Build settings: Framework preset **None**; Root directory `demos`; Build command `npm run build`;
-   Build output directory `dist`.
-4. Environment variables (Production and Preview): `NODE_VERSION` = `22` (the build needs 22.18 or
-   newer; `22` gives the newest 22).
-5. **Save and Deploy.** Until the domain is ready the demos work at `cro-toolbox-demos.pages.dev`
-   (for example `https://cro-toolbox-demos.pages.dev/upsell/`).
-6. Project → **Custom domains** → **Set up a custom domain** → `demo.crotoolbox.com`. The domain is at
-   Cloudflare, so the DNS record is added for you.
-7. Optional, saves build minutes: Settings → Builds → **Build watch paths**, include `demos/*`,
-   `theme/*`, `extensions/cro-storefront/*`, `app/lib/*`, `test/storefront/*`, `site/src/lib/art.ts`.
+Build watch paths (optional, saves build minutes): the website now also depends on `demos/*`, `theme/*`,
+`extensions/cro-storefront/*`, `app/lib/*`, `test/storefront/*`, so leave the default (build on every push).
 
-Both projects rebuild on every merge to `main`. Branch previews also get `*.pages.dev` addresses;
-the demos stay `noindex` there too (the `_headers` file applies to every deployment).
+### Check after the deploy
 
-### Check after the first deploy
-
-- `https://demo.crotoolbox.com/` goes to crotoolbox.com.
-- `https://demo.crotoolbox.com/robots.txt` says `Disallow: /`.
+- `https://crotoolbox.com/demo/` goes to `https://crotoolbox.com/`.
+- `https://crotoolbox.com/robots.txt` has `Disallow: /demo/`.
 - Response headers of any demo page include `X-Robots-Tag: noindex, nofollow`.
 - `https://crotoolbox.com/sitemap-index.xml` and `/llms.txt` don't mention demos.
+- `npm run check:links` shows every demo page 200.
 
 ## Visibility plan (Omar, outside the code)
 

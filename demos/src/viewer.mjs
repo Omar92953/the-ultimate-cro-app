@@ -3,6 +3,8 @@
  * Desktop/Phone, Install CRO Toolbox) and every design of the feature stacked (#design-1,
  * #design-2…), each a demo store page in an iframe. No navigation to other demos or the website.
  */
+import { BASE } from "./base.mjs";
+
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 const MARK = `<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="currentColor"><rect x="10" y="60" width="20" height="30" rx="5"/><rect x="40" y="42" width="20" height="48" rx="5"/><path d="M70 34 H64 L80 10 L96 34 H90 V85 Q90 90 85 90 H75 Q70 90 70 85 Z"/></g></svg>`;
@@ -48,7 +50,7 @@ export function viewerPage({ title, about, installUrl, designs, tip = "" }) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><meta name="referrer" content="strict-origin-when-cross-origin">
-<title>${esc(title)}: live demo | CRO Toolbox</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><style>${CSS}</style></head>
+<title>${esc(title)}: live demo | CRO Toolbox</title><link rel="icon" href="${BASE}/favicon.svg" type="image/svg+xml"><style>${CSS}</style></head>
 <body>
 <header class="bar">
   <div class="bar__name">${MARK}<span>${esc(title)}<small>Live demo</small></span></div>

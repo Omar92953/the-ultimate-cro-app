@@ -7,6 +7,7 @@
  * A design is { title, layout, product?, html, embeds?, css?, …frame options } (see build.mjs).
  */
 import { resolveTsImports } from "../../test/storefront/engine.mjs";
+import { BASE } from "./base.mjs";
 import { imgUrl, products, collections, collectionHandles, reviews, faq, logos, announcements, recent } from "./data.mjs";
 
 resolveTsImports();
@@ -213,8 +214,8 @@ export async function buildFeatures({ block, shopWith, mo }) {
   })));
 
   // Hero banners: the demo store's banner picture.
-  const heroImg = { media_type: "image", src: "/img/hero-desktop.svg", width: 2400, height: 1000, aspect_ratio: 2.4, alt: "Candles and skincare on a shelf" };
-  const heroImgM = { media_type: "image", src: "/img/hero-mobile.svg", width: 1000, height: 1250, aspect_ratio: 0.8, alt: "Candles and skincare on a shelf" };
+  const heroImg = { media_type: "image", src: `${BASE}/img/hero-desktop.svg`, width: 2400, height: 1000, aspect_ratio: 2.4, alt: "Candles and skincare on a shelf" };
+  const heroImgM = { media_type: "image", src: `${BASE}/img/hero-mobile.svg`, width: 1000, height: 1250, aspect_ratio: 0.8, alt: "Candles and skincare on a shelf" };
   F.hero = await Promise.all(heroD.HERO_PRESETS.map(async (p) => {
     const cfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "Our story" } }), p.key));
     const banner = mo("hero-demo", { name: "Demo", config: cfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
@@ -267,7 +268,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     top: await block("ucs-collection-pills", { collection: collections.candles, page_type: "collection", shop: shopWith({ designs: { collection_pills: pillsOf(look, layout) } }) }),
   })));
 
-  const menu = (titles) => ({ links: titles.map((t, i) => ({ title: t, url: `/store/pages/${t.toLowerCase().replace(/ /g, "-")}`, active: i === 0, object: null, links: [] })) });
+  const menu = (titles) => ({ links: titles.map((t, i) => ({ title: t, url: `${BASE}/store/pages/${t.toLowerCase().replace(/ /g, "-")}`, active: i === 0, object: null, links: [] })) });
   const linklists = { "main-menu": menu(["Shop", "Candles", "Skincare", "Gifts", "About"]), footer: menu(["Search", "Shipping", "Returns", "Contact"]) };
   F.header = await Promise.all(headerD.PRESETS.map(async (p) => {
     const cfg = headerD.toStorefrontHeader(headerD.applyPreset(headerD.withHeaderDefaults({ logo: { text: "Lumen Goods" }, button: { text: "Shop now" } }), p.key), null);
@@ -336,7 +337,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   // 5. Build your own bundle: "+ Add to bundle" on collection cards and product pages, and the tray.
   const browseBox = bundleMo("candle-box", { product: P["candle-box"], steps: [candleStep], pricing: "fixed", store_wide: true });
   const trayShop = shopWith({ designs: { bundles: bundleOf("green") }, meta: { "$app:cro_bundle": [browseBox] } });
-  const tray = async (ctx) => '<link rel="stylesheet" href="/assets/ucro-bundle-tray.css">' + (await block("ucro-bundle-tray", { ...ctx, shop: trayShop }));
+  const tray = async (ctx) => `<link rel="stylesheet" href="${BASE}/assets/ucro-bundle-tray.css">` + (await block("ucro-bundle-tray", { ...ctx, shop: trayShop }));
   R.browse = [
     { title: "On a collection page", layout: "collection", collection: "candles", minHeight: 680, embeds: await tray({ page_type: "collection", collection: collections.candles }) },
     { title: "On a product page", layout: "product", product: "fig-candle", minHeight: 680, place: "above", html: await block("ucro-add-to-bundle", { product: P["fig-candle"], page_type: "product", shop: trayShop }), embeds: await tray({ page_type: "product", product: P["fig-candle"] }) },

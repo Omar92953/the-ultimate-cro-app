@@ -1,5 +1,5 @@
 /**
- * "See live demo": opens the feature's demo store page on demo.crotoolbox.com in a new tab (a design
+ * "See live demo": opens the feature's demo store page on crotoolbox.com/demo in a new tab (a design
  * page opens the demo of the template in use, a bundle recipe its own demo). Nothing when the feature
  * has no demo. Addresses: lib/site.ts.
  */

@@ -3,12 +3,14 @@
  * a product page, a cart page or a collection grid, a theme cart drawer, and a fake store backend
  * that answers the storefront scripts' requests (/cart/add.js, /cart.js, /products/<handle>.js…)
  * from the demo catalog. The cart lives in sessionStorage, so it is shared by every demo in the tab
- * and by the demo cart page (/store/cart/).
+ * and by the demo cart page (/demo/store/cart/).
  *
  * Each demo page runs in an iframe on the website and tells its parent its height.
  */
+import { BASE } from "./base.mjs";
+
 export const STORE_NAME = "Lumen Goods";
-export const STORE_ROOT = "/store/";
+export const STORE_ROOT = `${BASE}/store/`;
 
 const CSS = `
 :root{--color-foreground:18,18,18;--color-background:255,255,255;--color-button:18,18,18;--color-button-text:255,255,255;--buttons-radius:999px;--product-card-corner-radius:14px;--page-width:1120px;--font-body-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -404,13 +406,13 @@ export const cartPage = (body = "") => `<div class="page-width cart-page"><h1>Yo
  * stylesheets the blocks need.
  */
 export function frame({ title, frameId, body, top = "", embeds = "", css = [], catalog, collections, orderJson, header = true, cartSeed = null, head = "" }) {
-  const links = ["ucro.css", "ucs-sections.css", ...css].map((f) => `<link rel="stylesheet" href="/assets/${f}">`).join("");
+  const links = ["ucro.css", "ucs-sections.css", ...css].map((f) => `<link rel="stylesheet" href="${BASE}/assets/${f}">`).join("");
   const seed = cartSeed
     ? `<script>try{if(!sessionStorage.getItem("lumen-demo-cart"))sessionStorage.setItem("lumen-demo-cart",${JSON.stringify(JSON.stringify(cartSeed))})}catch(e){}</script>`
     : "";
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow">
-<title>${esc(title)} | ${STORE_NAME} demo store</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>${esc(title)} | ${STORE_NAME} demo store</title><link rel="icon" href="${BASE}/favicon.svg" type="image/svg+xml">
 <style>${CSS}</style>${links}${seed}${backendScript({ catalog, collections, frameId, orderJson })}${head}
 </head><body class="template-demo">
 ${top}${header ? storeHeader() : ""}
