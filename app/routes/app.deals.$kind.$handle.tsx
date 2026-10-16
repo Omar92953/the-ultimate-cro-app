@@ -6,7 +6,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
-import { getFbtDesign, resolveDiscountEngine, saveFbtDesign, syncDiscounts } from "../lib/cro.server";
+import { getFbtDesign, resolveDiscountEngine } from "../lib/cro.server";
 import { deleteDeal, listDeals, saveDeal } from "../lib/deals.server";
 import { checkLimit } from "../lib/billing.server";
 import { LimitUpgrade } from "../components/Upgrade";
@@ -32,7 +32,6 @@ import { ResourceList } from "../components/ResourceList";
 import { SaveControls, changed } from "../components/SaveControls";
 import { EditorLayout } from "../components/EditorLayout";
 import { EditorSection } from "../components/EditorSection";
-import { Segmented } from "../components/ui";
 import type { PreviewItem } from "../components/BundlePreview";
 import { DealPreview } from "../components/DealPreview";
 import { PreviewFrame } from "../components/DesignTabs";
@@ -75,11 +74,6 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     const over = await checkLimit(admin, session.shop, "offerSlots", deal);
     if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
     const saved = await saveDeal(admin, deal);
-    // The box look is shared by every fixed bundle; saving it re-sends the deals to the store.
-    if (form.get("fbt")) {
-      await saveFbtDesign(admin, JSON.parse(String(form.get("fbt"))));
-      await syncDiscounts(admin);
-    }
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
     return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
@@ -133,8 +127,8 @@ export default function DealEditor() {
   const navigate = useNavigate();
   const busy = fetcher.state !== "idle";
 
-  const [fbt, setFbt] = useState<FbtDesign | null>(initialFbt);
-  const fbtChanged = !!fbt && changed(fbt, initialFbt);
+  // The box look is read only here: it is set in the Style tab (Bundles → Style).
+  const fbt: FbtDesign | null = initialFbt;
   const [loaded, setLoaded] = useState(initial);
   // A reload after a save brings a new copy of the same data: keep the merchant's edits unless it
   // actually changed (otherwise a refused save of a new item would wipe the form).
@@ -142,7 +136,6 @@ export default function DealEditor() {
     setLoaded(initial);
     if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
       setDeal(initial);
-      setFbt(initialFbt);
     }
   }
   // Fixed bundles: one step open at a time (a new one starts at 1).
@@ -198,7 +191,7 @@ export default function DealEditor() {
   const save = () => {
     setTouched(true);
     if (problems.length) return setOpen(1);
-    fetcher.submit({ intent: "save", deal: JSON.stringify(deal), ...(fbtChanged ? { fbt: JSON.stringify(fbt) } : {}) }, { method: "post" });
+    fetcher.submit({ intent: "save", deal: JSON.stringify(deal)}, { method: "post" });
   };
   const remove = () => {
     if (!deal.id) return;
@@ -241,7 +234,7 @@ export default function DealEditor() {
       <s-link slot="breadcrumb-actions" href={kind === "fixed" ? "/app/bundles?tab=fbt" : `/app/deals/${kind}`}>
         {kind === "fixed" ? "Bundles" : t.title}
       </s-link>
-      <SaveControls dirty={changed(deal, initial) || fbtChanged} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setFbt(initialFbt); setTouched(false); }} />
+      <SaveControls dirty={changed(deal, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setTouched(false); }} />
 
       <s-stack gap="base">
         {fetcher.data?.error ? (
@@ -314,55 +307,6 @@ export default function DealEditor() {
             </EditorSection>
             <EditorSection n={2} title="Discount" summary={`${fixedCfg.pct}% off when bought together`} done={fixedCfg.pct > 0} open={open === 2} onToggle={() => setOpen((o) => (o === 2 ? 0 : 2))} onNext={() => setOpen(3)}>
               <NumberField label="Discount on the bundle" suffix="%" value={fixedCfg.pct} min={1} max={90} step={1} onValue={(v) => setConfig({ pct: v })} />
-            </EditorSection>
-            <EditorSection n={3} title="Box look" summary={`“${fbt.heading || "No heading"}” · ${fbt.layout === "row" ? "pictures in a row" : fbt.images ? "list with pictures" : "list"}`} done open={open === 3} onToggle={() => setOpen((o) => (o === 3 ? 0 : 3))}>
-              <s-stack gap="base">
-                <s-text color="subdued">Shared by every Frequently bought together box on your store.</s-text>
-                <s-stack gap="small-200">
-                  <s-text>Layout</s-text>
-                  <Segmented
-                    label="Layout"
-                    value={fbt.layout}
-                    onChange={(v) => setFbt({ ...fbt, layout: v })}
-                    options={[
-                      { value: "row" as const, label: "Pictures in a row" },
-                      { value: "list" as const, label: "List" },
-                    ]}
-                  />
-                </s-stack>
-                {fbt.layout === "row" ? (
-                  <s-stack gap="small-200">
-                    <s-text>Pictures</s-text>
-                    <Segmented
-                      label="Pictures"
-                      value={fbt.align}
-                      onChange={(v) => setFbt({ ...fbt, align: v })}
-                      options={[
-                        { value: "start" as const, label: "Left" },
-                        { value: "center" as const, label: "Centered" },
-                        { value: "end" as const, label: "Right" },
-                      ]}
-                    />
-                  </s-stack>
-                ) : null}
-                {fbt.layout === "row" ? <Checkbox label="Boxes around the pictures" checked={fbt.tiles} onValue={(v) => setFbt({ ...fbt, tiles: v })} /> : null}
-                <Checkbox label="Border around the box" checked={fbt.border} onValue={(v) => setFbt({ ...fbt, border: v })} />
-                <TextField label="Heading" value={fbt.heading} maxLength={80} onValue={(v) => setFbt({ ...fbt, heading: v })} />
-                <TextField label="Button" details="[count] is the number of items and [price] the bundle price, e.g. Buy all [count]: [price]" value={fbt.button} maxLength={40} onValue={(v) => setFbt({ ...fbt, button: v })} />
-                <Checkbox label="Show product pictures" checked={fbt.images} onValue={(v) => setFbt({ ...fbt, images: v })} />
-                <s-stack gap="small-200">
-                  <s-text>Show the saving as</s-text>
-                  <Segmented
-                    label="Show the saving as"
-                    value={fbt.saving}
-                    onChange={(v) => setFbt({ ...fbt, saving: v })}
-                    options={[
-                      { value: "amount" as const, label: "An amount (Save $12)" },
-                      { value: "pct" as const, label: "A percentage (15% off)" },
-                    ]}
-                  />
-                </s-stack>
-              </s-stack>
             </EditorSection>
             {deleteBlock}
           </EditorLayout>

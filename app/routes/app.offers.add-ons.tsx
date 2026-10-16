@@ -1,0 +1,221 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- App Bridge resource picker payloads are untyped */
+import { useEffect, useState } from "react";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { boundary } from "@shopify/shopify-app-react-router/server";
+import { authenticate } from "../shopify.server";
+import { storefrontCss } from "../lib/storefront-css.server";
+import { errorMessage } from "../lib/admin.server";
+import { editorLinks, getThemeStatus } from "../lib/cro.server";
+import { getAddons, saveAddons } from "../lib/designs.server";
+import { withAddonsDefaults, type AddonItem, type AddonsConfig } from "../lib/addons";
+import { Button, NumberField, Select, Switch, TextField } from "../components/fields";
+import { AddonsPreview } from "../components/AddonsPreview";
+import ui from "../components/PageEditor.module.css";
+import { getThemeStyle } from "../lib/theme-style.server";
+import { FALLBACK_STYLE } from "../lib/theme-style";
+import { ThemeLook } from "../components/ThemeStyle";
+import { firstProduct } from "../lib/preview-products.server";
+import { PreviewFrame } from "../components/DesignTabs";
+import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { DemoButton } from "../components/DemoButton";
+import { slottedRoute } from "../lib/design-slot.server";
+import { shareAddonsContent } from "../lib/style-content.server";
+import { SaveControls, changed } from "../components/SaveControls";
+
+export const loader = slottedRoute(["addons"], async ({ request }: LoaderFunctionArgs) => {
+  const { admin, session } = await authenticate.admin(request);
+  const [{ config, saved }, theme] = await Promise.all([getAddons(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
+  return { style: await getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE), domain: session.shop, sample: await firstProduct(admin, session.shop).catch(() => null), config, saved, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.addons : null, addLink: editorLinks(session.shop).addons, shop: session.shop };
+});
+
+export const action = slottedRoute(["addons"], async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+  const form = await request.formData();
+  try {
+    const draft = form.get("intent") === "draft";
+    const clean = withAddonsDefaults(JSON.parse(String(form.get("config"))));
+    const config = await saveAddons(admin, clean, draft);
+    // The items apply to every style of the block (their looks stay as they are).
+    if (!draft) await shareAddonsContent(admin, clean);
+    return { ok: true, draft, error: null, config };
+  } catch (e) {
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
+  }
+});
+
+type C = AddonsConfig;
+const numericId = (gid: string) => gid.split("/").pop() ?? "";
+
+export default function AddonsDesigner() {
+  const data = useLoaderData<typeof loader>();
+  const [cfg, setCfg] = useState<C>(data.config);
+  const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+  const [loaded, setLoaded] = useState(data.config);
+  if (loaded !== data.config) {
+    setLoaded(data.config);
+    setCfg(data.config);
+  }
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show("Saved and live");
+    else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
+  }, [fetcher.state, fetcher.data, shopify]);
+
+  const item = (i: number, patch: Partial<AddonItem>) => setCfg((c) => ({ ...c, items: c.items.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
+  const message = (patch: Partial<C["message"]>) => setCfg((c) => ({ ...c, message: { ...c.message, ...patch } }));
+  const where = (patch: Partial<C["where"]>) => setCfg((c) => ({ ...c, where: { ...c.where, ...patch } }));
+  const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" });
+
+  async function addProducts() {
+    const selected: any = await shopify.resourcePicker({ type: "product", multiple: 6 - cfg.items.length, action: "add" } as any);
+    if (!selected?.length) return;
+    const added: AddonItem[] = selected.map((p: any) => {
+      const variants = (p.variants ?? []).map((v: any) => ({ id: numericId(v.id), title: v.title, price: String(v.price ?? "") }));
+      return {
+        productId: p.id,
+        handle: p.handle,
+        title: p.title,
+        image: p.images?.[0]?.originalSrc ?? null,
+        variantId: variants[0]?.id ?? "",
+        variants,
+        label: "",
+        text: "",
+        checked: false,
+      };
+    });
+    setCfg((c) => ({ ...c, items: [...c.items, ...added.filter((a) => a.variantId)].slice(0, 6) }));
+  }
+
+  async function pickTargets(kind: "products" | "collections") {
+    const selected: any = await shopify.resourcePicker({ type: kind === "products" ? "product" : "collection", multiple: true, action: "select" } as any);
+    if (!selected) return;
+    where({ [kind]: selected.map((x: any) => ({ handle: x.handle, title: x.title })) });
+  }
+
+  return (
+    <s-page heading="Add-ons" inlineSize="large">
+      <CategoryCrumb feature="addons" />
+      <DemoButton feature="addons" />
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.sample ? `/products/${data.sample.handle}` : "/collections/all")}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" })}>
+        See it on my store
+      </Button>
+      <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
+        {data.inTheme ? "Open in theme editor" : "Add to product page"}
+      </Button>
+      <div className={ui.shell}>
+      <s-stack gap="base">
+        <FeatureTabs feature="addons" />
+        <s-text color="subdued">
+          Items and settings are here. Colours, layout and look are in the <s-link href="/app/styles/upsell">Style tab</s-link>.
+        </s-text>
+        {data.inTheme === false ? (
+          <s-banner tone="info" heading="Place the add-ons on your product page">
+            Click “Add to product page”, drag the “Add-ons” block under the Add to cart button and save. Everything else is set here.
+          </s-banner>
+        ) : null}
+        {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
+
+        <div className={ui.layout}>
+          <s-stack gap="base">
+            <><s-section heading={`Add-ons (${cfg.items.length} of 6)`}>
+              <s-stack gap="base">
+                <s-text color="subdued">
+                  Each add-on is a product in your store, like “Gift wrapping”. Shoppers tick it and it goes into the cart with the product. Add-ons always start unticked: Shopify requires shoppers to choose paid extras themselves.{" "}
+                  <s-link href={`https://${data.shop}/admin/products/new`} target="_top">
+                    Create a product
+                  </s-link>{" "}
+                  if you don’t have one yet.
+                </s-text>
+                {cfg.items.map((a, i) => (
+                  <s-box key={`${a.productId}-${i}`} padding="base" borderWidth="base" borderRadius="base">
+                    <s-stack gap="base">
+                      <s-stack direction="inline" gap="base" alignItems="center">
+                        <s-thumbnail src={a.image ?? undefined} alt={a.title} size="small" />
+                        <s-text type="strong">{a.title}</s-text>
+                      </s-stack>
+                      {a.variants.length > 1 ? (
+                        <Select label="Option" value={a.variantId} onValue={(v) => item(i, { variantId: v })} options={a.variants.map((v) => ({ value: v.id, label: `${v.title}${v.price ? ` · ${v.price}` : ""}` }))} />
+                      ) : null}
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        <TextField label="Name shown" placeholder={a.title} value={a.label} onValue={(v) => item(i, { label: v })} />
+                        <TextField label="Short note" placeholder="Wrapped by hand in recycled paper" value={a.text} onValue={(v) => item(i, { text: v })} />
+                      </s-grid>
+                      <s-box>
+                        <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setCfg((c) => ({ ...c, items: c.items.filter((_, j) => j !== i) }))}>
+                          Remove
+                        </Button>
+                      </s-box>
+                    </s-stack>
+                  </s-box>
+                ))}
+                <s-box>
+                  <Button icon="plus" disabled={cfg.items.length >= 6} onClick={addProducts}>
+                    Add an add-on
+                  </Button>
+                </s-box>
+              </s-stack>
+            </s-section></>
+
+            <><s-section heading="Gift message">
+              <s-stack gap="base">
+                <Switch label="Let shoppers write a message" details="Saved on the order line, next to the product." checked={cfg.message.on} onValue={(v) => message({ on: v })} />
+                {cfg.message.on ? (
+                  <>
+                    <TextField label="Tick box text" value={cfg.message.label} onValue={(v) => message({ label: v })} />
+                    <TextField label="Placeholder" value={cfg.message.placeholder} onValue={(v) => message({ placeholder: v })} />
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <TextField label="Name on the order" details="What you see in the order, e.g. Gift message." value={cfg.message.name} onValue={(v) => message({ name: v })} />
+                      <NumberField label="Longest message" suffix="letters" min={20} max={500} step={10} value={cfg.message.max} onValue={(v) => message({ max: v })} />
+                    </s-grid>
+                  </>
+                ) : null}
+              </s-stack>
+            </s-section></>
+
+            <><s-section heading="Where it shows">
+              <s-stack gap="base">
+                <Select
+                  label="Show on"
+                  value={cfg.where.mode}
+                  onValue={(v) => where({ mode: v as C["where"]["mode"] })}
+                  options={[
+                    { value: "all", label: "Every product page" },
+                    { value: "products", label: "Only some products" },
+                    { value: "collections", label: "Products in some collections" },
+                  ]}
+                />
+                {cfg.where.mode !== "all" ? (
+                  <s-stack gap="small-200">
+                    <s-text>
+                      {(cfg.where.mode === "products" ? cfg.where.products : cfg.where.collections).map((x) => x.title).join(", ") || "None chosen yet"}
+                    </s-text>
+                    <s-box>
+                      <Button onClick={() => pickTargets(cfg.where.mode as "products" | "collections")}>{cfg.where.mode === "products" ? "Choose products" : "Choose collections"}</Button>
+                    </s-box>
+                  </s-stack>
+                ) : null}
+              </s-stack>
+            </s-section></>
+
+          </s-stack>
+
+          <style dangerouslySetInnerHTML={{ __html: data.css }} />
+          <PreviewFrame title="Product page">
+              <ThemeLook style={data.style}><AddonsPreview config={cfg} /></ThemeLook>
+          </PreviewFrame>
+        </div>
+      </s-stack>
+      </div>
+    </s-page>
+  );
+}
+
+/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
+
+export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

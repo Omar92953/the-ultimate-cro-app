@@ -79,10 +79,10 @@ export const FEATURES = {
     about: "Buy X get Y, volume discounts and a gift with purchase, applied at checkout.",
     tabs: DISCOUNT_KINDS.map((k) => ({ label: DEAL_TYPES[k].title, href: `/app/deals/${k}` })),
   },
-  addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [design("/app/designs/add-ons")] },
-  personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [design("/app/designs/personalize")] },
+  addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [{ label: "Add-ons", href: "/app/offers/add-ons" }], paths: ["/app/styles/upsell/addons"] },
+  personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [{ label: "Personalization", href: "/app/offers/personalization" }], paths: ["/app/styles/upsell/personalize"] },
   // Storefront · cart
-  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/designs/cross-sell")] },
+  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
   cart_extras: { title: "Gift note & delivery date", area: "storefront", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "storefront", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
@@ -177,7 +177,12 @@ export const OFFER_FEATURE: Record<string, FeatureKey> = { upsell: "upsell", "cr
 export function featuresForPath(pathname: string): FeatureKey[] {
   const path = pathname.replace(/\.data$/, "").replace(/\/+$/, "");
   const under = (href: string) => path === href || path.startsWith(`${href}/`);
-  return FEATURE_KEYS.filter((k) => FEATURES[k].tabs.some((t) => under(t.href.split("?")[0])) || ((FEATURES[k] as Feature).paths ?? []).some(under));
+  // How well a feature's pages match: the longest address that contains this page. When one feature owns a
+  // more specific address (Add-ons' style under the Upsell group's), only the most specific ones count.
+  const depth = (k: FeatureKey) => Math.max(0, ...[...FEATURES[k].tabs.map((t) => t.href.split("?")[0]), ...((FEATURES[k] as Feature).paths ?? [])].filter(under).map((h) => h.length));
+  const hits = FEATURE_KEYS.map((k) => [k, depth(k)] as const).filter(([, n]) => n > 0);
+  const best = Math.max(0, ...hits.map(([, n]) => n));
+  return hits.filter(([, n]) => n === best).map(([k]) => k);
 }
 
 /** Which area (menu item) a page belongs to: its features' area, or the hub it is. */

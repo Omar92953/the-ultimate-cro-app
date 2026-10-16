@@ -13,7 +13,7 @@ import { gql, type AdminClient } from "./admin.server";
 import { listBundles, listRules, upsert } from "./cro.server";
 import { MAX_DESIGNS } from "./design-slot.server";
 
-import type { StyleGroup, StyleOffer } from "./offer-style";
+import { STYLE_GROUPS, type StyleGroup, type StyleOffer } from "./offer-style";
 
 export { STYLE_GROUPS, isStyleGroup, type StyleGroup, type StyleOffer } from "./offer-style";
 
@@ -56,4 +56,57 @@ export async function linkFromRequest(admin: AdminClient, request: Request, grou
   const offer = url.searchParams.get("offer");
   const slot = Number(url.searchParams.get("design"));
   if (offer && slot > 1) await linkOfferStyle(admin, group, offer, slot);
+}
+
+/** The styles (1 to 5) a block has in the store, with their names (design-slots names). */
+export async function styleSlots(admin: AdminClient, base: string): Promise<{ slot: number; name: string }[]> {
+  const [have, namesData] = await Promise.all([
+    existingSlots(admin, base),
+    gql(admin, `#graphql
+      query CroStyleNames { metaobjectByHandle(handle: { type: "$app:cro_design", handle: "design_names" }) { field(key: "config") { value } } }`).catch(() => null),
+  ]);
+  let names: Record<string, string> = {};
+  try {
+    names = JSON.parse(namesData?.metaobjectByHandle?.field?.value ?? "{}")?.[base] ?? {};
+  } catch {
+    names = {};
+  }
+  return [1, ...[...have].sort((a, b) => a - b)].map((slot) => ({ slot, name: names[String(slot)] || `Style ${slot}` }));
+}
+
+/** What the Style page of an offer group lists: one section per kind of thing with a look. */
+export type StyleRow = { key: string; title: string; sub: string; href: string; pill: "Default style" | "Own style" | "Style" | "New style" | "All offers" };
+export type StyleSection = { key: string; title: string; /** The feature whose plan unlocks it (lock icon and upgrade card). */ feature: string; rows: StyleRow[] };
+
+export async function styleSections(admin: AdminClient, group: StyleGroup, allowed: number): Promise<StyleSection[]> {
+  const meta = STYLE_GROUPS[group];
+  const offers = await styleOffers(admin, group);
+  const offerRows = (): StyleRow[] => [
+    { key: "default", title: "Default style", sub: `Used by every ${meta.noun} that has no style of its own`, href: meta.design, pill: "All offers" },
+    ...offers.map((o) => ({ key: o.handle, title: o.name, sub: o.active ? "Active" : "Paused", href: allowed > 1 ? `/app/styles/${group}/${o.handle}` : meta.design, pill: (o.design > 1 ? "Own style" : "Default style") as StyleRow["pill"] })),
+  ];
+  const slotRows = async (base: string, path: string, noun: string): Promise<StyleRow[]> => {
+    const slots = await styleSlots(admin, base);
+    const used = new Set(slots.map((x) => x.slot));
+    const next = [2, 3, 4, 5].find((n) => !used.has(n) && n <= allowed);
+    return [
+      ...slots.map((x) => ({ key: `${base}-${x.slot}`, title: x.name, sub: x.slot === 1 ? `The default look of ${noun}` : `Pick it in the theme editor with the block's Style setting`, href: x.slot === 1 ? path : `${path}?design=${x.slot}`, pill: "Style" as const })),
+      ...(next ? [{ key: `${base}-new`, title: "New style", sub: "Starts as a copy of the default style", href: `${path}?design=${next}&copy=1`, pill: "New style" as const }] : []),
+    ];
+  };
+  if (group === "upsell")
+    return [
+      { key: "offers", title: "Quantity & sizes", feature: "upsell", rows: offerRows() },
+      { key: "addons", title: "Add-ons", feature: "addons", rows: await slotRows("addons", "/app/styles/upsell/addons", "add-ons") },
+      { key: "personalize", title: "Personalization", feature: "personalize", rows: await slotRows("personalize", "/app/styles/upsell/personalize", "personalization") },
+    ];
+  if (group === "cross_sell")
+    return [
+      { key: "offers", title: "Cross sell offers", feature: "cross_sell", rows: offerRows() },
+      { key: "cart", title: "Offers in your theme's cart", feature: "cart_offers", rows: [{ key: "cart-offers", title: "Cart drawer offers", sub: "The “Cart drawer” part of the default style", href: meta.design, pill: "Style" }] },
+    ];
+  return [
+    { key: "offers", title: "Mix and match, build your own, tiered and fixed price bundles", feature: "bundles", rows: offerRows() },
+    { key: "fbt", title: "Frequently bought together", feature: "bundles", rows: [{ key: "fbt-box", title: "Frequently bought together box", sub: "Shared by every Frequently bought together box on your store", href: "/app/styles/bundles/fbt", pill: "Style" }] },
+  ];
 }
