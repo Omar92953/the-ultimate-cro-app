@@ -12,7 +12,7 @@ export const OFFER_TYPES: Record<OfferTypeKey, { title: string; group: OfferGrou
   upsell: { title: "Quantity & size offer", group: "upsell", about: "“Buy 2, save 10%” or a bigger size, picked on the product page.", create: "/app/offers/upsell/new", list: "/app/offers/upsell" },
   upgrade: { title: DEAL_TYPES.upgrade.title.replace(/s$/, ""), group: "upsell", about: DEAL_TYPES.upgrade.what, create: "/app/deals/upgrade/new", list: "/app/deals/upgrade" },
   post_purchase: { title: "After-purchase offer", group: "upsell", about: "A one-click offer right after payment, added to the same order.", create: "/app/checkout/after-purchase", list: "/app/checkout/after-purchase" },
-  cross_sell: { title: "Cross-sell", group: "cross_sell", about: "“Pairs well with” products, on the product page, cart page or cart drawer.", create: "/app/offers/cross-sell/new", list: "/app/offers/cross-sell" },
+  cross_sell: { title: "Cross sell", group: "cross_sell", about: "“Pairs well with” products, on the product page, the cart page or in your theme's cart.", create: "/app/offers/cross-sell/new", list: "/app/offers/cross-sell" },
   bundle: { title: "Mix and match", group: "bundles", about: "Shoppers build a set from your products at one price, or by number of items.", create: "/app/bundles/new", list: "/app/bundles" },
   kit: { title: "Fixed bundle", group: "bundles", about: "A set sold as its own product, with its own page, price and stock from its items.", create: "/app/kits/new", list: "/app/kits" },
   fixed: { title: DEAL_TYPES.fixed.title.replace(/s$/, ""), group: "bundles", about: DEAL_TYPES.fixed.what, create: "/app/deals/fixed/new", list: "/app/deals/fixed" },
