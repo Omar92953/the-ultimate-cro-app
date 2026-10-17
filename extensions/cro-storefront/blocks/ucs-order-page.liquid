@@ -1,5 +1,25 @@
 {%- liquid
-assign kind = block.settings.page | default: 'track'
+assign pages = shop.metaobjects['$app:cro_design']['order_pages'].config.value
+assign kind = block.settings.page | default: 'auto'
+assign show = true
+if kind == 'auto'
+assign kind = ''
+if pages.trackHandle != blank and page.handle == pages.trackHandle
+assign kind = 'track'
+elsif pages.returnsHandle != blank and page.handle == pages.returnsHandle
+assign kind = 'returns'
+endif
+if kind == ''
+assign show = false
+endif
+comment
+Stores that set the block up before the app made the pages have no handles saved: the block keeps showing Track order, as it always did.
+endcomment
+unless pages
+assign kind = 'track'
+assign show = true
+endunless
+endif
 assign base = 'track_page'
 if kind == 'returns'
 assign base = 'returns_page'
@@ -9,8 +29,8 @@ assign d = shop.metaobjects['$app:cro_design'][dk].config.value
 if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
 assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
 endif
--%}{%- if kind == 'wishlist' -%}<div data-ucs-orders="wishlist" {{ block.shopify_attributes }}>{%- if request.design_mode -%}<p style="padding:24px;text-align:center">The wishlist shows here (turn on the Conversion boosters embed and set up Boosters → Wishlist in the app).</p>{%- endif -%}</div>{%- else -%}<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="{{ kind }}" data-root="{{ routes.root_url }}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
+-%}{%- if show == false -%}{%- if request.design_mode -%}<p {{ block.shopify_attributes }} style="padding:16px;text-align:center">Order pages block: it shows here only on the pages made in the app (CRO Toolbox → Tracking & Returns). It is hidden on every other page.</p>{%- endif -%}{%- elsif kind == 'wishlist' -%}<div data-ucs-orders="wishlist" {{ block.shopify_attributes }}>{%- if request.design_mode -%}<p style="padding:24px;text-align:center">The wishlist shows here (turn on the Conversion boosters embed and set up Boosters → Wishlist in the app).</p>{%- endif -%}</div>{%- else -%}<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="{{ kind }}" data-root="{{ routes.root_url }}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
 <script type="application/json">{{ d | json | default: 'null' }}</script>
 <noscript><p class="ucs-op__t">Please turn on JavaScript to use this page.</p></noscript>
 </div>
-<script src="{{ 'ucs-orders.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Order & wishlist pages","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"select","id":"page","label":"Page","default":"track","options":[{"value":"track","label":"Track order"},{"value":"returns","label":"Returns"},{"value":"wishlist","label":"Wishlist"}]},{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.u"}]}{% endschema %}
+<script src="{{ 'ucs-orders.js' | asset_url }}" defer></script>{%- endif -%}{% schema %}{"name":"Order & wishlist pages","target":"section","stylesheet":"ucs-sections.css","settings":[{"type":"select","id":"page","label":"Page","default":"auto","options":[{"value":"auto","label":"t:s.u"},{"value":"track","label":"Track order"},{"value":"returns","label":"Returns"},{"value":"wishlist","label":"Wishlist"}]},{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.v"}]}{% endschema %}

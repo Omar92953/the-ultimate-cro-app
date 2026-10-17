@@ -13,7 +13,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getReturn, listReturns, updateReturn } from "../lib/orders-lookup.server";
 import { approveReturn, attachLabel, closeReturn, declineReturn, refundReturn, syncReturns } from "../lib/shopify-returns.server";
 import { getThemeStatus } from "../lib/cro.server";
-import { sectionLinks } from "../lib/sections.server";
+import { orderPageContext } from "../lib/order-page-setup.server";
 import { RETURN_STATES, returnState } from "../lib/return-rules";
 import { Button, TextField } from "../components/fields";
 import { Explainer, Pill } from "../components/ui";
@@ -24,7 +24,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   await syncReturns(admin, session.shop).catch(() => null);
   const [returns, theme] = await Promise.all([listReturns(session.shop).catch(() => []), getThemeStatus(admin, session.shop).catch(() => null)]);
-  return { returns, shop: session.shop, inTheme: theme ? theme.installed.returns : null, addLink: sectionLinks(session.shop).returns };
+  const ctx = await orderPageContext(admin, session.shop, theme);
+  return { returns, shop: session.shop, inTheme: theme ? ctx.inPageTemplate && !!ctx.pages.returns : null, addLink: ctx.links.returns };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

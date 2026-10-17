@@ -150,6 +150,7 @@ async function block(name, overrides = {}, ctx = {}) {
     routes: { root_url: "/", all_products_collection_url: "/collections/all" },
     cart: { total_price: ctx.cartTotal ?? 45000, items: [] },
     product: ctx.product,
+    page: ctx.page,
     linklists: ctx.linklists ?? {},
   };
   return engine.renderFile(name, { block: { id: `${name}-${Math.random().toString(36).slice(2, 7)}`, settings, shopify_attributes: "" } }, { globals });
@@ -301,6 +302,11 @@ const sgShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withS
 ] })) }));
 pages["size-guide.html"] = page("Size guide",
   label("product page: tagged Tees, in the collection mens, so the second chart") + '<div style="max-width:440px;margin:0 40px"><p>Size: S M L</p>' + (await block("ucs-size-guide", {}, { page_type: "product", product: { handle: "classic-tee", tags: ["Summer"], collections: [{ handle: "mens" }] }, shop: sgShop })) + "</div>");
+// The Order pages block on "Automatic": the pages the app made show Track and Returns, every other page shows nothing.
+const opShop = withDesign(mo("order_pages", { config: { trackHandle: "track-your-order", returnsHandle: "returns" } }));
+const opAuto = async (handle, shop) => block("ucs-order-page", {}, { page_type: "page", page: { handle }, shop });
+pages["order-pages-auto.html"] = page("Order pages, automatic",
+  label("page track-your-order") + (await opAuto("track-your-order", opShop)) + label("page returns") + (await opAuto("returns", opShop)) + label("page about-us (nothing)") + (await opAuto("about-us", opShop)) + label("store without saved pages: shows Track as before") + (await opAuto("anything", shop)));
 pages["delivery.html"] = page("Delivery estimate",
   label("product page (Egypt)") + '<div style="max-width:440px;margin:0 40px">' + (await block("ucs-delivery", {}, { page_type: "product", shop: deliveryShop })) + "</div>");
 // Tiered rewards bar: free shipping 300, free gift 600, 10% off 900; cart at 450.
@@ -397,6 +403,11 @@ const productReviews = (() => {
 })();
 check(productReviews === 2, `product page should pass only the tee's 2 reviews (got ${productReviews})`);
 check((idx.match(/class="ucs-faq__item"/g) || []).length === 4, "FAQ should show the 4 shown questions");
+{
+  const auto = pages["order-pages-auto.html"];
+  const kinds = [...auto.matchAll(/data-ucs-orders="(\w+)"/g)].map((m) => m[1]);
+  check(JSON.stringify(kinds) === JSON.stringify(["track", "returns", "track"]), `automatic order pages should show track, returns, nothing, then track for an old store (got ${kinds})`);
+}
 check(pages["holdout.html"].includes("data-cro-group"), "holdout script should render when the test is on");
 check(pages["deals.html"].includes("ucs-deals.js") && !pages["boosters.html"].includes("ucs-deals.js"), "deals script should load only when the shop has deals");
 check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "product collection ids should reach the deals script");

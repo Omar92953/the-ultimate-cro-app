@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
-import { sectionLinks } from "../lib/sections.server";
+import { orderPageContext } from "../lib/order-page-setup.server";
 import { getOrderPage, saveOrderPage } from "../lib/designs.server";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
@@ -33,8 +33,8 @@ export const loader = slottedRoute(["track_page", "returns_page"], async ({ requ
   const { admin, session } = await authenticate.admin(request);
   const kind = kindOf(request);
   const [{ config, saved }, theme, style] = await Promise.all([getOrderPage(admin, kind), getThemeStatus(admin, session.shop).catch(() => null), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
-  const links = sectionLinks(session.shop);
-  return { kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed[kind === "track" ? "track" : "returns"] : false, addLink: kind === "track" ? links.track : links.returns };
+  const ctx = await orderPageContext(admin, session.shop, theme);
+  return { kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
 });
 
 export const action = slottedRoute(["track_page", "returns_page"], async ({ request }: ActionFunctionArgs) => {
@@ -86,11 +86,11 @@ export default function OrderPageDesigner() {
       <CategoryCrumb feature={feature} />
       <DemoButton feature={feature} template={templateInUse(ORDER_PAGE_PRESETS, cfg, applyOrderPagePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
-      <Button slot="secondary-actions" href={data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=page` : data.addLink} target="_blank" onClick={seeOnStore}>
+      <Button slot="secondary-actions" href={data.seeLink} target="_blank" onClick={seeOnStore}>
         See it on my store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
-        {data.inTheme ? "Open in theme editor" : "Add to a page"}
+        {data.inTheme ? "Open in theme editor" : data.pageMade ? "Add the block" : "Open the theme editor"}
       </Button>
       <div className={ui.shell}>
         <s-stack gap="base">
