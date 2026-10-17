@@ -10,8 +10,10 @@ import { articles, guides, articleMeta, guideMeta, BLOG_PAGE, HELP_PAGE, TUTORIA
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
+/** The build date: AI assistants weigh how fresh a source is. */
+const UPDATED = new Date().toISOString().slice(0, 10);
 
-const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart offers, storefront widgets and sections, checkout rules and analytics into one app. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart and after purchase offers, storefront widgets and sections, an order tracking page and returns, checkout rules and analytics into one app, to raise average order value (AOV) and conversion rate. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
 
 function pricing(): string[] {
   return plans.map((p) => {
@@ -25,6 +27,8 @@ const line = (p: PageMeta) => `- [${p.title.includes(SITE_NAME) ? "Home" : p.tit
 export async function llmsTxt(): Promise<string> {
   return [
     `# ${SITE_NAME}`,
+    "",
+    `Updated: ${UPDATED}`,
     "",
     `> ${SUMMARY} Plans: ${plans.map((p) => p.monthly ? `${p.name} ${money(p.monthly)}/month` : `${p.name} (free)`).join(", ")}. Every paid plan has a ${trialDays} day free trial.`,
     "",
@@ -59,7 +63,7 @@ export async function llmsTxt(): Promise<string> {
 }
 
 export async function llmsFullTxt(): Promise<string> {
-  const out: string[] = [`# ${SITE_NAME}`, "", SUMMARY, "", `Website: ${SITE_URL}`];
+  const out: string[] = [`# ${SITE_NAME}`, "", `Updated: ${UPDATED}`, "", SUMMARY, "", `Website: ${SITE_URL}`];
   if (INSTALL_URL) out.push(`Install: ${INSTALL_URL}`);
   out.push("", "## Pricing", "", ...pricing(), "", `${GUARANTEE} Billing runs through Shopify. The orders limit counts all store orders in a calendar month and is soft: going over shows a reminder, nothing switches off. The ${PLANS.free.name} plan allows ${PLANS.free.limits.offerSlots} offers switched on at once; paid plans have unlimited offers.`);
   out.push("", "## Features by area");
