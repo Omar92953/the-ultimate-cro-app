@@ -13,7 +13,7 @@ import { getPostPurchase, refreshPostPurchaseUrl, savePostPurchase } from "../li
 import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
-import { checkLimit } from "../lib/billing.server";
+import { requireOfferSlot } from "../lib/rules.server";
 import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
 import { Explainer } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
@@ -33,8 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const { shopId } = await getPostPurchase(admin);
     const next = JSON.parse(String(form.get("config") ?? "{}")) as PostPurchaseConfig;
     // Switched on, it fills an offer slot like any other offer (plans.ts offerSlots).
-    const over = await checkLimit(admin, session.shop, "offerSlots", { active: !!next.on, id: "post_purchase" });
-    if (over) return { ok: false as const, error: over.error, config: null };
+    await requireOfferSlot(admin, session.shop, { active: !!next.on, id: "post_purchase" });
     const config = await savePostPurchase(admin, shopId, next);
     return { ok: true as const, error: null, config };
   } catch (e) {

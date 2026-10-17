@@ -7,9 +7,8 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 import { forgetShop, namesToForget } from "./lib/short-cache.server";
-import { getPlan, getPlanState } from "./lib/billing.server";
-import { pageLock } from "./lib/plan-gate";
-import { PLANS } from "./lib/plans";
+import { planContext } from "./lib/rules.server";
+import { requirePage } from "./lib/rules";
 import { warnIfApiKeyDiffers } from "./lib/api-key-check.server";
 import { timed } from "./lib/timing.server";
 
@@ -49,10 +48,12 @@ const admin: typeof shopify.authenticate.admin = async (request) => {
     const small = (request.headers.get("content-type") ?? "").includes("application/x-www-form-urlencoded");
     const intent = small ? (await request.clone().formData().catch(() => null))?.get("intent") : null;
     forgetShop(result.session.shop, namesToForget(url.pathname, typeof intent === "string" ? intent : null));
-    const { plan } = await getPlan(result.admin, result.session.shop);
-    const trial = PLANS[plan].limits.trialFeatures ? (await getPlanState(result.admin).catch(() => null))?.trial ?? null : null;
-    const lock = pageLock(plan, url.pathname, url.search, trial);
-    if (lock) throw new Response(`This needs the ${PLANS[lock.needs].name} plan.`, { status: 403 });
+    const { plan, trial } = await planContext(result.admin, result.session.shop);
+    try {
+      requirePage(plan, url.pathname, url.search, trial);
+    } catch (e) {
+      throw new Response(e instanceof Error ? e.message : "This needs a higher plan.", { status: 403 });
+    }
   }
   return result;
 };

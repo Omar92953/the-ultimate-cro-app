@@ -23,6 +23,7 @@ import {
   withSizeGuideDefaults, type Chart, type SizeGuideDesign, type SizeRow,
 } from "../lib/size-guide";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
+import { requireSizeGuide } from "../lib/rules";
 import { MediaPicker } from "../components/MediaPicker";
 import { SizeGuidePreview } from "../components/SizeGuidePreview";
 import ui from "../components/PageEditor.module.css";
@@ -48,7 +49,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     const draft = form.get("intent") === "draft";
-    const config = await saveSizeGuide(admin, withSizeGuideDefaults(JSON.parse(String(form.get("config")))), draft);
+    const raw = JSON.parse(String(form.get("config")));
+    requireSizeGuide(raw);
+    const config = await saveSizeGuide(admin, withSizeGuideDefaults(raw), draft);
     return { ok: true, draft, error: null, config };
   } catch (e) {
     return { ok: false, draft: false, error: errorMessage(e), config: null };

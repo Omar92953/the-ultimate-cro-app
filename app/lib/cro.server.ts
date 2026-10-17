@@ -12,6 +12,7 @@
  *  - the automatic app discount's $app.function-configuration (+ $app.function-input)
  *  - the cart transform's $app.bundles
  */
+import { FUNCTION_METAFIELD_LIMIT as RULES_FUNCTION_LIMIT } from "./rules";
 import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { timed } from "./timing.server";
 import { remember } from "./short-cache.server";
@@ -39,7 +40,7 @@ export * from "./types";
 export { validateBundle, validateRule };
 
 /* Shopify silently ignores Function metafields over 10,000 bytes; keep a margin. */
-const FUNCTION_METAFIELD_LIMIT = 9500;
+const FUNCTION_METAFIELD_LIMIT = RULES_FUNCTION_LIMIT;
 /* Function list variables are capped at 100 elements. */
 const FUNCTION_LIST_LIMIT = 100;
 

@@ -8,7 +8,8 @@ import { authenticate } from "../shopify.server";
 import { bundleBuilderLinks, deleteBundle, getThemeStatus, listBundles, saveBundle } from "../lib/cro.server";
 import { SCOPE_MESSAGE, createBundlePage, createBundleProduct, isScopeError } from "../lib/bundle-product.server";
 import { validateBundle } from "../lib/validate";
-import { checkLimit } from "../lib/billing.server";
+import { requireOfferSlot } from "../lib/rules.server";
+import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import { bundlePricing, growingPricing, type Bundle, type BundleStep, type BundleTier } from "../lib/types";
@@ -129,8 +130,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const create = form.get("create") ? (JSON.parse(String(form.get("create"))) as NewProduct) : null;
     const where = (["product", "page", "both"].includes(String(form.get("where"))) ? String(form.get("where")) : "product") as Where;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a bundle can always be saved off.
-    const over = await checkLimit(admin, session.shop, "offerSlots", bundle);
-    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    await requireOfferSlot(admin, session.shop, bundle);
     // Check everything else first, so a product or page is never created for a bundle that won't save.
     const others = await listBundles(admin);
     const problems = validateBundle({ ...bundle, product: bundle.product ?? (create ? { id: "pending", title: create.title } : null) }, others);
@@ -148,7 +148,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const saved = await saveBundle(admin, bundle);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: isScopeError(e) ? SCOPE_MESSAGE : errorMessage(e), handle: null, upgrade: false };
+    return { ok: false, error: isScopeError(e) ? SCOPE_MESSAGE : errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
   }
 };
 

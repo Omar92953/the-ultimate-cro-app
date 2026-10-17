@@ -11,7 +11,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { getCheckoutRules, saveCheckoutRules } from "../lib/checkout-rules.server";
-import { checkCheckoutRules } from "../lib/billing.server";
+import { requireCheckoutRules } from "../lib/rules.server";
+import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { CUSTOMERS, LIMIT_KINDS, describeChange, emptyWhen, newChangeRule, newLimitRule, type ChangeRule, type CheckoutKind, type LimitRule, type Picked } from "../lib/checkout-rules";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
@@ -45,12 +46,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   try {
     const rules = JSON.parse(String(form.get("rules") ?? "[]")) as { on?: boolean }[];
     // Checkout rules count together across payment, delivery and order limits (plans.ts checkoutRules).
-    const limit = await checkCheckoutRules(admin, session.shop, KIND[page], rules.filter((r) => r.on).length);
-    if (limit) return { ok: false as const, error: limit.error, saved: null, upgrade: true };
+    await requireCheckoutRules(admin, session.shop, KIND[page], rules.filter((r) => r.on).length);
     const saved = await saveCheckoutRules(admin, KIND[page], rules, form.get("enabled") !== "false");
     return { ok: true as const, error: null, saved, upgrade: false };
   } catch (e) {
-    return { ok: false as const, error: errorMessage(e), saved: null, upgrade: false };
+    return { ok: false as const, error: errorMessage(e), saved: null, upgrade: isRuleError(e) && e.upgrade };
   }
 };
 
