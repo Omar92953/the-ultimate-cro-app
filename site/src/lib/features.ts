@@ -73,7 +73,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   cart_extras: {
     who: "For gift shops and stores that deliver on a chosen day.",
-    points: ["This is a gift, with a gift message", "A delivery date picker, with time slots if you want", "Everything saved on the order"],
+    points: ["This is a gift, with a gift message", "A delivery date picker, with time slots if you want", "A discount code box on the cart page and in the cart drawer, with applied codes and an error for codes that do not work", "Gift and date details saved on the order"],
     related: ["addons", "cart_offers", "delivery"],
   },
   reviews: {

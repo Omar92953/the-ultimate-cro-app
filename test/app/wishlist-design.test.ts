@@ -15,3 +15,14 @@ test("shopper texts have defaults, no dashes, and are kept short", () => {
   for (const t of [p.failed, p.soldOut, p.empty, p.heading]) assert.doesNotMatch(t, /[—–]/);
   assert.equal(p.soldOut, "Sold out");
 });
+
+import { toStorefrontCartExtras, withCartExtrasDefaults } from "../../app/lib/cart-extras-design";
+
+test("the discount code box is off until chosen, and its texts reach the store copy", () => {
+  assert.equal(withCartExtrasDefaults({}).code.on, false);
+  assert.equal(toStorefrontCartExtras(withCartExtrasDefaults({})).c, null);
+  const c = toStorefrontCartExtras(withCartExtrasDefaults({ code: { on: true, button: "Use code" }, look: { codeLayout: "stacked" } }));
+  assert.equal(c.c?.button, "Use code");
+  assert.match(c.cls, /ucs-ce--stack/);
+  assert.match(c.c?.applied ?? "", /\{code\}/);
+});

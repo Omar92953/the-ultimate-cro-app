@@ -307,9 +307,9 @@ pages["personalize.html"] = page("Personalization",
   '<div class="shopify-section" style="max-width:440px;margin:24px 40px"><form action="/cart/add" method="post"><input type="hidden" name="id" value="501"><button type="submit">Add to cart</button></form>' +
   (await block("ucs-personalize", {}, { page_type: "product", product: pzProduct, shop: pzShop })) + "</div>");
 const { toStorefrontCartExtras, withCartExtrasDefaults } = await import("../../app/lib/cart-extras-design.ts");
-const ceShop = withDesign(mo("cart_extras", { config: toStorefrontCartExtras(withCartExtrasDefaults({ date: { required: true, slots: "10–2 pm\n2–6 pm" } })) }));
+const ceShop = withDesign(mo("cart_extras", { config: toStorefrontCartExtras(withCartExtrasDefaults({ code: { on: true }, date: { required: true, slots: "10–2 pm\n2–6 pm" } })) }));
 pages["cart-extras.html"] = page("Gift note & delivery date",
-  '<script>window.__upd=[];const cf=window.fetch;window.fetch=async(u,o)=>{u=String(u);if(u.endsWith("cart.js"))return new Response(JSON.stringify({attributes:{},note:""}));if(u.includes("cart/update")){window.__upd.push(o.body);return new Response("{}")}return cf(u,o)};</script>' +
+  '<script>window.__upd=[];window.__codes=[];const cf=window.fetch;window.fetch=async(u,o)=>{u=String(u);if(u.endsWith("cart.js"))return new Response(JSON.stringify({attributes:{},note:"",discount_codes:window.__codes}));if(u.includes("cart/update")){window.__upd.push(o.body);const b=JSON.parse(o.body);if("discount" in b)window.__codes=b.discount.split(",").filter(Boolean).map(c=>({code:c,applicable:c==="SAVE10"}));return new Response(JSON.stringify({discount_codes:window.__codes}))}return cf(u,o)};</script>' +
   '<div style="max-width:420px;margin:24px 40px">' + (await block("ucs-cart-extras", {}, { page_type: "cart", shop: ceShop })) + '<button name="checkout" type="button">Check out</button></div>');
 // Cart page: an upgrade for a line in the cart, and "add 1 more" for a volume deal on that product.
 const cartOffers = { ...offersData, t: { ...offersData.t, more: "Add {n} more to get {pct}% off", more_btn: "Add {n} more" },

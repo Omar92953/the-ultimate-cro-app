@@ -84,7 +84,7 @@ export const FEATURES = {
   personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [{ label: "Personalization", href: "/app/offers/personalization" }], paths: ["/app/styles/upsell/personalize"] },
   // Storefront · cart
   cart_offers: { title: "Offers in your theme's cart", area: "cart", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
-  cart_extras: { title: "Gift note & delivery date", area: "cart", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
+  cart_extras: { title: "Gift note & delivery date", area: "cart", group: "cart", about: "“This is a gift”, a gift message, a delivery date and a discount code box in the cart. Gift and date details are saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "library", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
   product_reviews: { title: "Product page reviews", area: "library", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },

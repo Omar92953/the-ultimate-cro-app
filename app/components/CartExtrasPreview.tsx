@@ -7,6 +7,8 @@ import { cartExtrasClass, cartExtrasVars, type CartExtrasDesign } from "../lib/c
 
 export function CartExtrasPreview({ config: c }: { config: CartExtrasDesign }) {
   const [gift, setGift] = useState(true);
+  const [code, setCode] = useState("");
+  const [applied, setApplied] = useState("");
   const days: string[] = [];
   const off = new Set(c.date.daysOff);
   for (let i = c.date.minDays; days.length < 5 && i <= c.date.maxDays; i++) {
@@ -32,6 +34,29 @@ export function CartExtrasPreview({ config: c }: { config: CartExtrasDesign }) {
             <span>{c.note.label}</span>
             <textarea rows={3} maxLength={c.note.max} placeholder={c.note.placeholder} />
           </label>
+        ) : null}
+        {c.code.on ? (
+          <div className="ucs-ce__code">
+            <label className="ucs-ce__field">
+              <span>{c.code.label}</span>
+              <span className="ucs-ce__codeRow">
+                <input type="text" placeholder={c.code.placeholder} value={code} onChange={(e) => setCode(e.target.value)} />
+                <button type="button" className="ucs-btn" onClick={() => code.trim() && (setApplied(code.trim().toUpperCase()), setCode(""))}>
+                  {c.code.button}
+                </button>
+              </span>
+            </label>
+            {applied ? (
+              <ul className="ucs-ce__applied">
+                <li className="ucs-ce__tag">
+                  <span>{c.code.applied.replace("{code}", applied)}</span>
+                  <button type="button" className="ucs-ce__rm" onClick={() => setApplied("")}>
+                    {c.code.remove}
+                  </button>
+                </li>
+              </ul>
+            ) : null}
+          </div>
         ) : null}
         {c.date.on ? (
           <div className="ucs-ce__row">
