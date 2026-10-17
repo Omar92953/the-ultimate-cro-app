@@ -2,8 +2,8 @@
  * The map of the app, in one place. The side menu, the hub pages, every page's breadcrumb, the
  * tabs at the top of each feature and the plan locks all come from here, so they always agree:
  *
- *   Menu:     (Home) · Offers · Storefront · Cart · Checkout · Analytics · Settings
- *   A hub:    Offers, Storefront, Cart and Checkout list their features (Storefront by group)
+ *   Menu:     (Home) · Offers · Tracking & Returns · Section library · Cart & Checkout · Analytics · Settings
+ *   A hub:    every area lists its features (the Section library and Cart & Checkout by group)
  *   A page:   breadcrumb = its area's hub · heading = the feature · tabs = the feature's pages
  *             (e.g. Customer reviews: Reviews | Design)
  *
@@ -12,25 +12,26 @@
 import { DEAL_TYPES, type DealKind } from "./deals";
 import { BUNDLE_RECIPES } from "./bundle-recipes";
 
-export type AreaKey = "offers" | "tracking" | "storefront" | "checkout";
+export type AreaKey = "offers" | "tracking" | "library" | "cart";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, bundles, cross sells and discounts." },
   { key: "tracking", title: "Tracking & Returns", href: "/app/tracking-returns", intro: "Let shoppers track their orders and ask for returns on your store, and handle the returns here: approve, send a label, refund." },
-  { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: the cart, reviews, bars, timers, product-page tools, sections and pages." },
-  { key: "checkout", title: "Checkout", href: "/app/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
+  { key: "library", title: "Section library", href: "/app/library", intro: "Ready-made sections for your store: reviews, banners, bars, timers, product-page tools and more. Pick one, preview it, add it to your theme." },
+  { key: "cart", title: "Cart & Checkout", href: "/app/cart-checkout", intro: "The cart first (cart offers, free shipping bar, gift note), then inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
 ];
 export const isArea = (v: unknown): v is AreaKey => AREAS.some((a) => a.key === v);
 export const area = (key: AreaKey) => AREAS.find((a) => a.key === key)!;
 
-/** Storefront groups, in the order the hub shows them. */
-export type GroupKey = "cart" | "social" | "bars" | "product" | "content";
-export const GROUPS: { key: GroupKey; title: string }[] = [
-  { key: "cart", title: "Cart" },
-  { key: "social", title: "Social proof" },
-  { key: "bars", title: "Bars & urgency" },
-  { key: "product", title: "Product page" },
-  { key: "content", title: "Sections" },
+/** Hub groups, in the order each hub shows them: the Cart group, then the Checkout group on Cart & Checkout; the rest on the Section library. */
+export type GroupKey = "cart" | "checkout" | "social" | "bars" | "product" | "content";
+export const GROUPS: { key: GroupKey; title: string; area: AreaKey }[] = [
+  { key: "cart", title: "Cart", area: "cart" },
+  { key: "checkout", title: "Checkout", area: "cart" },
+  { key: "social", title: "Social proof", area: "library" },
+  { key: "bars", title: "Bars & urgency", area: "library" },
+  { key: "product", title: "Product page", area: "library" },
+  { key: "content", title: "Sections", area: "library" },
 ];
 
 export type FeatureTab = { label: string; href: string };
@@ -82,41 +83,41 @@ export const FEATURES = {
   addons: { title: "Add-ons", area: "offers", about: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", tabs: [{ label: "Add-ons", href: "/app/offers/add-ons" }], paths: ["/app/styles/upsell/addons"] },
   personalize: { title: "Personalization", area: "offers", about: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", tabs: [{ label: "Personalization", href: "/app/offers/personalization" }], paths: ["/app/styles/upsell/personalize"] },
   // Storefront · cart
-  cart_offers: { title: "Offers in your theme's cart", area: "storefront", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
-  cart_extras: { title: "Gift note & delivery date", area: "storefront", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
+  cart_offers: { title: "Offers in your theme's cart", area: "cart", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
+  cart_extras: { title: "Gift note & delivery date", area: "cart", group: "cart", about: "“This is a gift”, a gift message and a delivery date picked in the cart, all saved on the order.", tabs: [design("/app/designs/cart-extras")] },
   // Storefront · social proof
-  reviews: { title: "Customer reviews", area: "storefront", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
-  product_reviews: { title: "Product page reviews", area: "storefront", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
-  sales_pop: { title: "Sales pop-ups", area: "storefront", group: "social", about: "Small pop-ups with recent purchases from your store.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
-  trust_badges: { title: "Trust badges", area: "storefront", group: "social", about: "Payment, shipping and guarantee badges under Add to cart.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
-  logos: { title: "Scrolling logos and text", area: "storefront", group: "social", about: "Logos or short texts in a scrolling strip or a grid.", tabs: [{ label: "Logos", href: "/app/sections/logos" }, design("/app/designs/logos")] },
+  reviews: { title: "Customer reviews", area: "library", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
+  product_reviews: { title: "Product page reviews", area: "library", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
+  sales_pop: { title: "Sales pop-ups", area: "library", group: "social", about: "Small pop-ups with recent purchases from your store.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
+  trust_badges: { title: "Trust badges", area: "library", group: "social", about: "Payment, shipping and guarantee badges under Add to cart.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
+  logos: { title: "Scrolling logos and text", area: "library", group: "social", about: "Logos or short texts in a scrolling strip or a grid.", tabs: [{ label: "Logos", href: "/app/sections/logos" }, design("/app/designs/logos")] },
   // Storefront · bars & urgency
-  announcements: { title: "Announcement bar", area: "storefront", group: "bars", about: "Rotating messages at the top, with free-shipping progress.", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },
-  countdown: { title: "Countdown timers", area: "storefront", group: "bars", about: "Timers for the header, footer, home page, product pages and cart page.", tabs: [design("/app/designs/countdown-bar")] },
-  shipping_bar: { title: "Free shipping bar", area: "storefront", group: "cart", about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
-  stock_urgency: { title: "Stock urgency", area: "storefront", group: "bars", about: "“Only 3 left” on product pages when stock is low.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
+  announcements: { title: "Announcement bar", area: "library", group: "bars", about: "Rotating messages at the top, with free-shipping progress.", tabs: [{ label: "Messages", href: "/app/sections/announcements" }, design("/app/designs/announcement")] },
+  countdown: { title: "Countdown timers", area: "library", group: "bars", about: "Timers for the header, footer, home page, product pages and cart page.", tabs: [design("/app/designs/countdown-bar")] },
+  shipping_bar: { title: "Free shipping bar", area: "cart", group: "cart", about: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", tabs: [design("/app/designs/shipping-bar")] },
+  stock_urgency: { title: "Stock urgency", area: "library", group: "bars", about: "“Only 3 left” on product pages when stock is low.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   // Storefront · product page
-  sticky_atc: { title: "Sticky add to cart", area: "storefront", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
-  quick_add: { title: "Quick add to cart", area: "storefront", group: "product", about: "A button on every product card; sizes open a small picker.", tabs: [design("/app/designs/quick-add")] },
-  delivery: { title: "Delivery estimate", area: "storefront", group: "product", about: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", tabs: [design("/app/designs/delivery")] },
-  stock: { title: "Back in stock & pre-order", area: "storefront", group: "product", about: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
-  wishlist: { title: "Wishlist", area: "storefront", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
+  sticky_atc: { title: "Sticky add to cart", area: "library", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
+  quick_add: { title: "Quick add to cart", area: "library", group: "product", about: "A button on every product card; sizes open a small picker.", tabs: [design("/app/designs/quick-add")] },
+  delivery: { title: "Delivery estimate", area: "library", group: "product", about: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", tabs: [design("/app/designs/delivery")] },
+  stock: { title: "Back in stock & pre-order", area: "library", group: "product", about: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
+  wishlist: { title: "Wishlist", area: "library", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
   // Storefront · sections
-  hero: { title: "Hero banners", area: "storefront", group: "content", about: "A banner with separate desktop and mobile images.", tabs: [{ label: "Banners", href: "/app/designs/hero" }] },
-  image_carousel: { title: "Image carousel", area: "storefront", group: "content", about: "Pictures that scroll, each with an optional title, text, button and link.", tabs: [design("/app/designs/image-carousel")] },
-  videos: { title: "Video carousel", area: "storefront", group: "content", about: "Shoppable videos, each linked to a product.", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
-  faq: { title: "FAQ", area: "storefront", group: "content", about: "Questions and answers with search and group buttons.", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },
-  quiz: { title: "Product quiz", area: "storefront", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
-  collection_pills: { title: "Collection pills", area: "storefront", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
+  hero: { title: "Hero banners", area: "library", group: "content", about: "A banner with separate desktop and mobile images.", tabs: [{ label: "Banners", href: "/app/designs/hero" }] },
+  image_carousel: { title: "Image carousel", area: "library", group: "content", about: "Pictures that scroll, each with an optional title, text, button and link.", tabs: [design("/app/designs/image-carousel")] },
+  videos: { title: "Video carousel", area: "library", group: "content", about: "Shoppable videos, each linked to a product.", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
+  faq: { title: "FAQ", area: "library", group: "content", about: "Questions and answers with search and group buttons.", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },
+  quiz: { title: "Product quiz", area: "library", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
+  collection_pills: { title: "Collection pills", area: "library", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
   // Storefront · header & pages
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, from the tracking Shopify has.", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
   // Checkout
-  payment_rules: { title: "Payment rules", area: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
-  delivery_rules: { title: "Delivery rules", area: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },
-  order_limits: { title: "Order limits", area: "checkout", about: "Minimum and maximum order amounts and quantities at checkout.", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
-  thank_you: { title: "Thank-you page", area: "checkout", about: "Extra modules on the thank-you page after checkout.", tabs: [{ label: "Modules", href: "/app/checkout/thank-you" }] },
-  post_purchase: { title: "After-purchase offer", area: "offers", also: ["checkout"], about: "A one-click offer shoppers can add right after paying.", tabs: [{ label: "Offer", href: "/app/checkout/after-purchase" }] },
+  payment_rules: { title: "Payment rules", area: "cart", group: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
+  delivery_rules: { title: "Delivery rules", area: "cart", group: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },
+  order_limits: { title: "Order limits", area: "cart", group: "checkout", about: "Minimum and maximum order amounts and quantities at checkout.", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
+  thank_you: { title: "Thank-you page", area: "cart", group: "checkout", about: "Extra modules on the thank-you page after checkout.", tabs: [{ label: "Modules", href: "/app/checkout/thank-you" }] },
+  post_purchase: { title: "After-purchase offer", area: "offers", group: "checkout", also: ["cart"], about: "A one-click offer shoppers can add right after paying.", tabs: [{ label: "Offer", href: "/app/checkout/after-purchase" }] },
 } satisfies Record<string, Feature>;
 
 export type FeatureKey = keyof typeof FEATURES;

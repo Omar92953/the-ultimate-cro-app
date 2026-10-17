@@ -45,7 +45,7 @@ Often, yes:
 
 ## How do I set up an honest countdown?
 
-1. In CRO Toolbox open **Storefront → Countdown timers** and choose the place (for example the header).
+1. In CRO Toolbox open **Section library → Countdown timers** and choose the place (for example the header).
 2. Pick the mode that matches your deadline and set it.
 3. Write text that names the deadline: "Weekend sale ends in", not "Hurry!".
 4. Pick a look: boxes, circles, flip cards or plain numbers.

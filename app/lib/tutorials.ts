@@ -42,6 +42,6 @@ export const WHATS_NEW: { date: string; text: string; href?: string }[] = [
   { date: "Oct 2026", text: "A new menu: Offers, Storefront, Cart, Checkout and Analytics.", href: "/app/offers" },
   { date: "Oct 2026", text: "Bundle products, price tiers and option pricing.", href: "/app/offers/new" },
   { date: "Oct 2026", text: "After-purchase offer: a one-click offer right after payment.", href: "/app/checkout/after-purchase" },
-  { date: "Sep 2026", text: "Thank-you page modules and checkout order limits.", href: "/app/checkout" },
+  { date: "Sep 2026", text: "Thank-you page modules and checkout order limits.", href: "/app/cart-checkout?cat=checkout" },
   { date: "Sep 2026", text: "Analytics: see what the app's offers sell, and run a holdout test.", href: "/app/analytics" },
 ];

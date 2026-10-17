@@ -419,3 +419,14 @@
 .fsbItem img { width: 3.6em; height: 3.6em; object-fit: cover; border-radius: 0.5em; }
 .fsbItem > span { display: flex; flex-direction: column; gap: 0.15em; min-width: 0; }
 .fsbFoot { display: flex; flex-direction: column; gap: 0.8em; margin-top: auto; padding-top: 1em; border-top: 0.08em solid #ececec; }
+
+/* detail drawer (the "i" button on a card) */
+.veil { position: fixed; inset: 0; z-index: 600; display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.35); }
+.drawer { display: flex; flex-direction: column; gap: 12px; width: min(440px, 100%); height: 100%; padding: 16px; overflow-y: auto; background: #fff; box-shadow: -4px 0 24px rgba(0, 0, 0, 0.18); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; color: #303030; }
+.drawerHead { display: flex; align-items: center; justify-content: space-between; font-size: 16px; }
+.drawerStage { position: relative; flex: none; aspect-ratio: 16 / 10; overflow: hidden; background: #f4f4f5; border-radius: 12px; container-type: inline-size; }
+.drawerAbout { margin: 0; font-size: 14px; line-height: 1.5; }
+.drawerMeta { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: #616161; }
+.drawerActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.drawerPrimary { padding: 7px 14px; font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; background: #303030; border-radius: 8px; }
+.drawerLink { padding: 7px 12px; font: inherit; font-size: 13px; color: #303030; text-decoration: none; cursor: pointer; background: #f1f1f1; border: 0; border-radius: 8px; }

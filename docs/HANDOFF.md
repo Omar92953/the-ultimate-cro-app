@@ -79,7 +79,7 @@ only run on the Mac.
   gets a taste of the next. "Cancel or change your plan anytime" on paid plans.
 - Bundles matching Simple Bundles: bundle products (native fixed bundles, stock from items), price tiers,
   option pricing, auto compare-at (`products/update` webhook), per-bundle analytics. Scope `write_products`.
-- Reorganisation: menu Home · Offers · Storefront · Cart · Checkout · Analytics · Settings; hubs;
+- Reorganisation: menu (since G5) Home · Offers · Tracking & Returns · Section library · Cart & Checkout · Analytics · Settings; hubs;
   new Home (setup guide, metrics, attention list); Analytics tabs; Plans page with pricing cards in
   Omar's reference style (bold "Features", ✓ per line); Cart "Which cart?" choice; Settings (embeds,
   discounts, plan & referral, help); Shopify save bar on all 36 editors; "Style 1–5" naming.
