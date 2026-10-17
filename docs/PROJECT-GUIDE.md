@@ -262,3 +262,9 @@ features and sends people to the App Store listing.
 - Code: `app/lib/mcp/` (`auth.server.ts` grants and tokens, `limits.server.ts` audit and rate limits, `server.server.ts` protocol, `tools.server.ts` tools, `registry.server.ts` which designs can be read and built). Tables McpClient, McpRequest, McpGrant, McpAudit (SQLite and Postgres migrations `20261018000000_mcp`).
 - A new tool: add it to `tools.server.ts` (or `registerTools`), say what it needs (`read`, `build`, `publish`), call the same lib functions as the admin and the rules in `app/lib/rules.ts`. Test it in `test/app/mcp-auth.test.ts`.
 
+
+## Live tracking (Track page)
+
+- Where tracking comes from is per store (`TrackingConfig`): Shopify data (default), live tracking (Pro, 500 shipments a month, our own account key `TRACKING_PROVIDER_KEY`), the merchant's own key (stored AES-256-GCM encrypted with `TRACKING_KEY_SECRET`, shown as last 4), or a webhook link (`/tracking/hook/<shop>/<secret>`). Chosen at `/app/tracking-source` (setup step 1 in Tracking & Returns).
+- Code: `app/lib/tracking.ts` (shape, statuses, source order, cache freshness), `app/lib/tracking/` (`provider.server.ts` provider interface and the first adapter, `tracking.server.ts` settings, cache, usage, webhook and `resolveTracking`, `secret.server.ts`). `proxy.track.tsx` resolves each shipment; `ucs-orders.js` draws the status, latest place and timeline. To add a service: implement `Provider` and add it to `PROVIDERS`.
+- Never name the service in the UI. Only the tracking number is sent. It is a subprocessor in `/privacy` and the site privacy page.

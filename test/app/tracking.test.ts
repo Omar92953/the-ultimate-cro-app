@@ -1,0 +1,159 @@
+/** Tracking sources, the shared shape, the cache rules, keys and the webhook (docs/research/tracking-returns.md §9). Run: npm run test:app */
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { after, before, test } from "node:test";
+import { PrismaClient } from "@prisma/client";
+import { buildTracking, cleanEvents, fromShopifyEvent, isFresh, sourcesToTry } from "../../app/lib/tracking";
+import { fromTrackInfo } from "../../app/lib/tracking/provider.server";
+import { decrypt, encrypt, last4, sameSecret } from "../../app/lib/tracking/secret.server";
+
+// The database is set before anything that imports it.
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), "track-test-"));
+const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(dir, "t.db")}` } } });
+(globalThis as unknown as { prismaGlobal: PrismaClient }).prismaGlobal = prisma;
+type T = typeof import("../../app/lib/tracking/tracking.server");
+let T: T;
+before(async () => {
+  const sql = fs.readFileSync("prisma/migrations/20261019000000_tracking/migration.sql", "utf8");
+  for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  T = await import("../../app/lib/tracking/tracking.server");
+});
+after(async () => {
+  await prisma.$disconnect();
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("Shopify's event statuses become ours", () => {
+  assert.equal(fromShopifyEvent("DELIVERED"), "delivered");
+  assert.equal(fromShopifyEvent("out_for_delivery"), "out");
+  assert.equal(fromShopifyEvent("IN_TRANSIT"), "transit");
+  assert.equal(fromShopifyEvent("FAILURE"), "problem");
+  assert.equal(fromShopifyEvent("LABEL_PRINTED"), "info");
+  assert.equal(fromShopifyEvent(null), "info");
+});
+
+test("events are cleaned, newest first, and delivered always wins", () => {
+  const events = cleanEvents([
+    { status: "transit", city: "Cairo", country: "EG", message: "Left the hub", at: "2026-10-12T08:00:00Z" },
+    { status: "delivered", city: "Giza", message: "Delivered", at: "2026-10-14T10:00:00Z" },
+    { status: "weird", message: "x".repeat(500), at: "2026-10-11T08:00:00Z" },
+    { status: "info", at: "not a date" },
+  ]);
+  assert.equal(events.length, 3);
+  assert.equal(events[0].status, "delivered");
+  assert.equal(events[2].status, "info");
+  assert.equal(events[2].message.length, 200);
+  const t = buildTracking({ events, estimated: "2026-10-13T00:00:00Z" });
+  assert.equal(t.status, "delivered");
+  assert.equal(t.delivered, "2026-10-14T10:00:00.000Z");
+  assert.equal(t.place, "Giza");
+  assert.equal(buildTracking({ events: [] }).status, "info");
+});
+
+test("Shopify's own data: events, or at least when it left and its status", async () => {
+  const { shopifyTracking } = await import("../../app/lib/orders-lookup.server");
+  const f = { displayStatus: "IN_TRANSIT", deliveredAt: null, inTransitAt: "2026-10-10T09:00:00Z", estimatedDeliveryAt: "2026-10-15T00:00:00Z", trackingInfo: [], events: { nodes: [{ status: "IN_TRANSIT", city: "Leeds", province: "ENG", country: "GB", message: "Arrived at depot", happenedAt: "2026-10-11T12:00:00Z" }] } };
+  const t = shopifyTracking(f)!;
+  assert.equal(t.status, "transit");
+  assert.equal(t.place, "Leeds, ENG, GB");
+  assert.equal(t.estimated, "2026-10-15T00:00:00.000Z");
+  const bare = shopifyTracking({ ...f, events: { nodes: [] } })!;
+  assert.equal(bare.events.length, 1);
+  assert.equal(shopifyTracking({ displayStatus: null, deliveredAt: null, estimatedDeliveryAt: null, trackingInfo: [] }), null);
+});
+
+test("the sources are tried in the agreed order", () => {
+  assert.deepEqual(sourcesToTry("webhook"), ["webhook", "own", "live", "shopify"]);
+  assert.deepEqual(sourcesToTry("own"), ["own", "live", "shopify"]);
+  assert.deepEqual(sourcesToTry("live"), ["live", "shopify"]);
+  assert.deepEqual(sourcesToTry("shopify"), ["shopify"]);
+});
+
+test("cached answers: fresh for 6 hours, final once delivered, left alone after 60 days", () => {
+  const now = Date.parse("2026-10-18T12:00:00Z");
+  const h = (n: number) => new Date(now - n * 3_600_000).toISOString();
+  assert.equal(isFresh({ checkedAt: h(2), status: "transit", createdAt: h(48) }, now), true);
+  assert.equal(isFresh({ checkedAt: h(7), status: "transit", createdAt: h(48) }, now), false);
+  assert.equal(isFresh({ checkedAt: h(100), status: "delivered", createdAt: h(200) }, now), true);
+  assert.equal(isFresh({ checkedAt: h(100), status: "transit", createdAt: h(61 * 24) }, now), true);
+});
+
+test("a tracking service's answer becomes our shape", () => {
+  const t = fromTrackInfo({
+    latest_status: { status: "OutForDelivery" },
+    time_metrics: { estimated_delivery_date: { from: "2026-10-18T00:00:00Z", to: "2026-10-19T00:00:00Z" } },
+    tracking: { providers: [{ events: [
+      { time_iso: "2026-10-18T07:00:00Z", description: "Out for delivery", stage: "OutForDelivery", address: { city: "Berlin", state: "BE", country: "DE" } },
+      { time_iso: "2026-10-16T07:00:00Z", description: "Arrived", stage: "InTransit", address: { city: "Hamburg", state: "", country: "DE" } },
+    ] }] },
+  })!;
+  assert.equal(t.status, "out");
+  assert.equal(t.place, "Berlin, BE, DE");
+  assert.equal(t.estimated, "2026-10-19T00:00:00.000Z");
+  assert.equal(t.events.length, 2);
+  assert.equal(fromTrackInfo({}), null);
+  assert.equal(fromTrackInfo(null), null);
+});
+
+test("keys are encrypted, never shown whole, and compared safely", () => {
+  const c = encrypt("sk_live_1234567890abcd");
+  assert.ok(!c.includes("1234567890"));
+  assert.equal(decrypt(c), "sk_live_1234567890abcd");
+  assert.equal(decrypt(c.slice(0, -3) + "AAA"), null);
+  assert.equal(decrypt("garbage"), null);
+  assert.equal(last4("sk_live_1234567890abcd"), "abcd");
+  assert.equal(sameSecret("abc", "abc"), true);
+  assert.equal(sameSecret("abc", "abd"), false);
+  assert.equal(sameSecret("", ""), false);
+});
+
+const shopifyData = buildTracking({ events: [{ status: "transit", message: "Shopify says", at: "2026-10-10T00:00:00Z" }] });
+
+test("live tracking is a Pro setting; the webhook gets a secret link", async () => {
+  await assert.rejects(T.saveSource("a.myshopify.com", "growth", "live"), /Pro plan/);
+  await assert.rejects(T.saveSource("a.myshopify.com", "growth", "own"), /Paste and test/);
+  await T.saveSource("a.myshopify.com", "pro", "live");
+  assert.equal((await T.getTrackingConfig("a.myshopify.com", "pro")).source, "live");
+  // Downgraded: it shows as Shopify's data again.
+  assert.equal((await T.getTrackingConfig("a.myshopify.com", "growth")).source, "shopify");
+  await T.saveSource("b.myshopify.com", "growth", "webhook");
+  const cfg = await T.getTrackingConfig("b.myshopify.com", "growth");
+  assert.match(cfg.webhookUrl, /\/tracking\/hook\/b\.myshopify\.com\/[\w-]{20,}$/);
+  const before = cfg.webhookUrl;
+  await T.regenerateSecret("b.myshopify.com");
+  assert.notEqual((await T.getTrackingConfig("b.myshopify.com", "growth")).webhookUrl, before);
+});
+
+test("a pushed update shows on the Track page, from the right link only", async () => {
+  const secret = (await T.getTrackingConfig("b.myshopify.com", "growth")).webhookUrl.split("/").pop()!;
+  const body = { number: "RR1", status: "out", estimated: "2026-10-20T00:00:00Z", events: [{ status: "out", city: "Oslo", country: "NO", message: "Out for delivery", at: "2026-10-18T06:00:00Z" }] };
+  assert.equal(await T.ingestPush("b.myshopify.com", "wrong", body), false);
+  assert.equal(await T.ingestPush("c.myshopify.com", secret, body), false);
+  assert.equal(await T.ingestPush("b.myshopify.com", secret, { nothing: true }), false);
+  assert.equal(await T.ingestPush("b.myshopify.com", secret, body), true);
+  const r = await T.resolveTracking("b.myshopify.com", "growth", { number: "RR1", carrier: "", country: "" }, shopifyData);
+  assert.equal(r.via, "webhook");
+  assert.equal(r.tracking?.place, "Oslo, NO");
+  // A number nothing pushed falls back to Shopify's data.
+  const other = await T.resolveTracking("b.myshopify.com", "growth", { number: "RR2", carrier: "", country: "" }, shopifyData);
+  assert.equal(other.via, "shopify");
+  assert.equal(other.tracking?.events[0].message, "Shopify says");
+});
+
+test("the default is Shopify's data, and live tracking without our key falls back to it", async () => {
+  const r = await T.resolveTracking("new.myshopify.com", "pro", { number: "X1", carrier: "", country: "" }, shopifyData);
+  assert.equal(r.via, "shopify");
+  delete process.env.TRACKING_PROVIDER_KEY;
+  await T.saveSource("d.myshopify.com", "pro", "live");
+  const live = await T.resolveTracking("d.myshopify.com", "pro", { number: "X2", carrier: "", country: "" }, shopifyData);
+  assert.equal(live.via, "shopify");
+  assert.equal((await prisma.trackingUsage.count()), 0, "nothing counted when nothing was sent");
+});
+
+test("uninstall removes the store's tracking settings and cache", async () => {
+  await T.removeShopTracking("b.myshopify.com");
+  assert.equal((await T.getTrackingConfig("b.myshopify.com", "growth")).chosen, false);
+  assert.equal(await prisma.trackingCache.count({ where: { shop: "b.myshopify.com" } }), 0);
+});

@@ -2,6 +2,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { removeShopMcp } from "../lib/mcp/auth.server";
+import { removeShopTracking } from "../lib/tracking/tracking.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, session, topic } = await authenticate.webhook(request);
@@ -15,6 +16,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
   // Assistants connected to this store lose access at once (docs/plans/mcp-server.md §6).
   await removeShopMcp(shop);
+  await removeShopTracking(shop);
 
   return new Response();
 };

@@ -27,6 +27,13 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "delivered", label: "“Delivered”", def: "Delivered", group: "Result" },
     { key: "estimated", label: "“Expected”", def: "Expected", group: "Result" },
     { key: "again", label: "Look up another order", def: "Track another order", group: "Result" },
+    { key: "statusInfo", label: "Status: info received", def: "Info received", group: "Tracking" },
+    { key: "statusTransit", label: "Status: in transit", def: "In transit", group: "Tracking" },
+    { key: "statusOut", label: "Status: out for delivery", def: "Out for delivery", group: "Tracking" },
+    { key: "statusDelivered", label: "Status: delivered", def: "Delivered", group: "Tracking" },
+    { key: "statusProblem", label: "Status: problem", def: "Delivery problem", group: "Tracking" },
+    { key: "where", label: "“Latest place”", def: "Latest update", group: "Tracking" },
+    { key: "history", label: "Timeline heading", def: "Tracking history", group: "Tracking" },
     { key: "carrierOnly", label: "Live updates are on the carrier's page", def: "Live updates are on the carrier's page. Open the tracking link.", long: true, group: "Result" },
   ],
   returns: [
