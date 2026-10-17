@@ -32,7 +32,7 @@ export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";
 /** Features with a live demo: every feature of catalog.ts today. */
 export const DEMOS: FeatureKey[] = [
   "upsell", "cross_sell", "bundles", "discounts", "addons", "personalize",
-  "cart_offers", "cart_extras",
+  "ab_tests", "cart_offers", "cart_extras",
   "reviews", "product_reviews", "sales_pop", "trust_badges", "logos",
   "announcements", "countdown", "shipping_bar", "stock_urgency",
   "sticky_atc", "quick_add", "delivery", "size_guide", "stock", "wishlist",

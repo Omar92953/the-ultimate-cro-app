@@ -184,3 +184,14 @@ model TrackingUsage {
 
   @@id([shop, month])
 }
+
+/// A/B tests for offers (Pro): shoppers who saw version A or B of a test, per day. Orders and revenue are read from the store's orders.
+model AbView {
+  shop  String
+  test  String
+  grp   String
+  day   String
+  count Int    @default(0)
+
+  @@id([shop, test, grp, day])
+}

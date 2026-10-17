@@ -237,6 +237,32 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
   const without = await block("ucro-upsell", teeCtx, {}, mk(quantityListRule));
   console.log("upsell own style:", JSON.stringify({ ownUsesStyle2: !withOwn.includes("ucro-upsell--list") && withOwn.includes("ucro__heading--large"), defaultUsesStyle1: without.includes("ucro-upsell--list") }));
 }
+// A/B test (Pro): both versions are on the page, B carries the test's words, tiers and discount, the script keeps one.
+{
+  const ab = metaobject("ab_tests", { config: {
+    "rule-qty-tee": { id: "ab1", b: { headline: "Stock up and save", subheadline: "Version B", button_label: "", discount_percent: null, discount_label: "", design: 0, tiers: [{ qty: 1, pct: 0 }, { qty: 2, pct: 20, badge: "Best deal" }, { qty: 3, pct: 30 }] } },
+    "rule-cross-1": { id: "ab2", b: { headline: "You might like", subheadline: "B cross", button_label: "Grab them", discount_percent: 25, discount_label: "", design: 0, tiers: [] } },
+  } });
+  const withAb = { ...shopWith([quantityListRule, ...rules.filter((r) => r.system.handle === "rule-cross-1")], listDesign), };
+  withAb.metaobjects["$app:cro_design"] = collectionOf([metaobject("upsell", { config: listDesign }), ab]);
+  const up = await block("ucro-upsell", teeCtx, {}, withAb);
+  const cr = await block("ucro-cross-sell", { product: P.batman, page_type: "product" }, {}, withAb);
+  const count = (h, needle) => h.split(needle).length - 1;
+  const norm = (h) => h.replace(/\s+/g, " ");
+  console.log("ab:", JSON.stringify({
+    upsellCopies: [count(up, 'data-ab-g="A"'), count(up, 'data-ab-g="B"')],
+    upsellBHidden: /data-ab-g="B"[^>]*hidden/.test(up),
+    upsellAHead: up.includes("Buy more, save more"), upsellBHead: up.includes("Stock up and save"), upsellBSub: up.includes("Version B"),
+    upsellBTiers: /"pct": 30|"pct":30/.test(up) || up.includes("30"),
+    upsellScriptOnce: [count(up, "ucro-core.js"), count(up, "ucs-ab-")],
+    crossCopies: [count(cr, 'data-ab-g="A"'), count(cr, 'data-ab-g="B"')],
+    crossBLabel: cr.includes("Grab them"), crossBHead: cr.includes("You might like"), crossAHead: cr.includes("Pairs well with"),
+    crossScriptOnce: count(cr, "ucro-core.js"),
+    noTestNoWrapper: !(await block("ucro-upsell", teeCtx, {}, shopWith([quantityListRule], listDesign))).includes("data-ab"),
+  }));
+  fs.writeFileSync(path.join(out, "ab-upsell.html"), page("A/B upsell", P.tee.id, teeSv.id, sizePicker + up + teeScript));
+  fs.writeFileSync(path.join(out, "ab-cross.html"), page("A/B cross sell", P.batman.id, P.batman.variants[0].id, cr));
+}
 // Sold out: the upsell still shows (offers disabled, "Sold out" note) and cross-sell rows keep the sold out product.
 {
   const soldUpsell = await block("ucro-upsell", { product: { ...P.soldout, available: false, selected_or_first_available_variant: P.soldout.variants[0] }, page_type: "product" }, {}, shopWith([quantityListRule]));

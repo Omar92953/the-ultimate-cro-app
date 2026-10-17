@@ -118,6 +118,7 @@ export const FEATURES = {
   delivery_rules: { title: "Delivery rules", area: "cart", group: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },
   order_limits: { title: "Order limits", area: "cart", group: "checkout", about: "Minimum and maximum order amounts and quantities at checkout.", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },
   thank_you: { title: "Thank-you page", area: "cart", group: "checkout", about: "Extra modules on the thank-you page after checkout.", tabs: [{ label: "Modules", href: "/app/checkout/thank-you" }] },
+  ab_tests: { title: "A/B tests", area: "offers", about: "Show half of your shoppers another version of an upsell or cross sell (words, discount, style) and see which earns more.", tabs: [{ label: "Tests", href: "/app/offers/tests" }] },
   post_purchase: { title: "After-purchase offer", area: "offers", group: "checkout", also: ["cart"], about: "A one-click offer shoppers can add right after paying.", tabs: [{ label: "Offer", href: "/app/checkout/after-purchase" }] },
 } satisfies Record<string, Feature>;
 

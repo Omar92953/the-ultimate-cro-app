@@ -1,0 +1,168 @@
+{%- comment -%}The cross sell block's content (shared by the block's two A/B versions). Called by blocks/ucro-cross-sell.liquid.{%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'cross_sell', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- liquid
+  # Look and wording are designed in the app (Cross-sell → Design): $app:cro_design "cross_sell".
+  assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+  if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+    assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+  endif
+  assign rec_heading = 'Pairs well with'
+  if d
+    assign rec_heading = d.rh
+  endif
+
+  assign rule = nil
+  if enabled and rule_handle != blank
+    assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
+  endif
+
+  # What the offer says. Version B of an A/B test (ab == 'B') shows the test's values instead.
+  assign r_head = rule.headline.value
+  assign r_sub = rule.subheadline.value
+  assign r_btn = rule.button_label.value
+  assign r_design = rule.design.value
+  assign r_pct = rule.discount_percent.value
+  if ab == 'B' and rule
+    assign r_head = ab_test.b.headline
+    assign r_sub = ab_test.b.subheadline
+    assign r_btn = ab_test.b.button_label
+    assign r_pct = ab_test.b.discount_percent
+    assign r_design = ab_test.b.design
+    if ab_test.b.design == 0
+      assign r_design = nil
+    endif
+  endif
+
+  # An offer with its own style (set in the app: Style tab) shows that style instead of the block's.
+  if rule and r_design != blank
+    capture dk
+      render 'ucs-dk', key: 'cross_sell', pick: r_design
+    endcapture
+    assign dk = dk | strip
+    assign dkd = dk | append: '_draft'
+    assign d = shop.metaobjects['$app:cro_design'][dk].config.value
+    if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
+      assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
+    endif
+    if d
+      assign rec_heading = d.rh
+    endif
+  endif
+
+  # Offered products shown here: not the product being viewed and (on the cart page) not
+  # already in the cart. Sold out ones stay in the list, greyed out with a "Sold out" note.
+  assign shown = 0
+  if rule
+    for p in rule.offered_products.value
+      if product != blank and p.id == product.id
+        continue
+      endif
+      assign in_cart = false
+      if placement == 'cart'
+        for item in cart.items
+          if item.product_id == p.id
+            assign in_cart = true
+            break
+          endif
+        endfor
+      endif
+      unless in_cart
+        assign shown = shown | plus: 1
+      endunless
+    endfor
+  endif
+
+  assign mode = ''
+  if shown > 0
+    assign mode = 'rule'
+  elsif enabled and d.fb == 'recommendations' and product != blank
+    assign mode = 'recommend'
+  elsif enabled and d.fb == 'bought' and product != blank
+    # Bought together in the store's orders (the app learns it); else Shopify's recommendations.
+    assign mode = 'recommend'
+    assign pid = product.id | append: ''
+    assign bought = shop.metaobjects['$app:cro_design']['bought_together'].config.value.map[pid] | join: ','
+  endif
+
+  assign pct = 0
+  if rule
+    assign pct = r_pct | default: 0
+  endif
+  assign heading = rec_heading
+  assign button_label = d.btn | default: 'Add selected to cart'
+  if mode == 'rule'
+    assign heading = r_head | default: rec_heading
+    assign button_label = r_btn | default: button_label
+  endif
+-%}
+
+{%- if mode != blank -%}
+  {%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab == 'B' %} hidden{% endif %}>{%- endif -%}
+  <ucro-cross-sell
+    class="ucro ucro-cross{% if d %}{{ d.cls }}{% else %} ucro-cross--panel{% endif %}"
+    style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
+    data-radius="{{ d.rad | default: 'theme' }}"
+    data-mode="{{ mode }}"
+    data-product-id="{{ product.id }}"{% if bought != blank %} data-bought="{{ bought | escape }}"{% endif %}
+    data-limit="{{ d.rl | default: 4 }}"
+    data-checked="false"
+    data-label="{{ button_label | escape }}"
+    data-money-format="{{ shop.money_format | escape }}"
+    data-error="{{ 'ucro.error' | t | escape }}"
+    data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
+    {{ block.shopify_attributes }}
+  >
+    {%- if heading != blank -%}
+      <h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ heading | escape }}</h2>
+    {%- endif -%}
+    {%- if mode == 'rule' and r_sub != blank -%}
+      <p class="ucro__sub">{{ r_sub | escape }}</p>
+    {%- endif -%}
+
+    <ul class="ucro-cross__list" role="list">
+      {%- if mode == 'rule' -%}
+        {%- for p in rule.offered_products.value -%}
+          {%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}
+          {%- assign in_cart = false -%}
+          {%- if placement == 'cart' -%}
+            {%- for item in cart.items -%}
+              {%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+          {%- unless in_cart -%}
+            {%- render 'ucro-offer-row', p: p, pct: pct, checked: false -%}
+          {%- endunless -%}
+        {%- endfor -%}
+      {%- endif -%}
+    </ul>
+
+    <button type="button" class="ucro-btn ucro-cross__add" disabled>
+      <span class="ucro-cross__label">{{ button_label | escape }}</span>
+    </button>
+    <p class="ucro__error" role="alert" hidden></p>
+  </ucro-cross-sell>
+  {%- if ab != blank -%}</div>{%- endif -%}
+  {%- if scripts -%}
+    <script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
+    <script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>
+  {%- endif -%}
+{%- elsif request.design_mode -%}
+  <div class="ucro-note" {{ block.shopify_attributes }}>
+    {%- if enabled == false -%}
+      Cross-sell is switched off in CRO Toolbox.
+    {%- elsif rule -%}
+      Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:
+      {%- for p in rule.offered_products.value -%}
+        {%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% else %} {{ p.title | escape }} (already in the cart){% endif -%}
+        {%- unless forloop.last -%};{%- endunless -%}
+      {%- else %} its product list is empty or its products aren’t published to the Online Store.
+      {%- endfor %}
+      Only you see this note.
+    {%- else -%}
+      {%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}
+      Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on Shopify recommendations in CRO Toolbox → Cross-sell → Design. Only you see this note.
+    {%- endif -%}
+  </div>
+{%- endif -%}
+

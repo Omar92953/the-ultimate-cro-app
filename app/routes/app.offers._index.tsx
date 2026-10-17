@@ -82,6 +82,16 @@ export default function OffersHub() {
           })}
         />
 
+        <s-section heading="A/B tests">
+          <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+            <s-text color="subdued">Show half of your shoppers another version of an upsell or cross sell and see which earns more.</s-text>
+            <s-stack direction="inline" gap="small-200" alignItems="center">
+              {isLocked(plan, "ab_tests", trial) ? <Pill>Pro plan</Pill> : null}
+              <Button href="/app/offers/tests">{isLocked(plan, "ab_tests", trial) ? "See how it works" : "Open A/B tests"}</Button>
+            </s-stack>
+          </s-stack>
+        </s-section>
+
         <s-section heading="All offers" padding="none">
           {offers.length ? (
             <s-stack gap="none">
