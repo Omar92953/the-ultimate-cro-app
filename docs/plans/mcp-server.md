@@ -63,6 +63,10 @@ call one function (see section 5).
   offers are created **inactive** (draft) with the same validators and the offer slot check as the admin.
 - `create_custom_section(name, html, css)`: see section 7.
 - `discard_draft(feature)`.
+- `request_feature(what, where)`: when no tool can do what the merchant asked, the assistant sends it as a
+  feature request through the existing Request a feature system (`FeatureRequest` table, same plan rule:
+  Growth and Pro) and tells the merchant it was sent; Pro requests come first. Starter gets a message with the
+  upgrade link instead. Rate limit 5 a day per shop.
 
 **Place and preview**
 - `get_preview_link(feature)`: the theme editor deep link with the draft active (the links from
@@ -190,3 +194,5 @@ MCP specification (streamable HTTP and authorization, modelcontextprotocol.io).
 5. **Render** is already on the paid Starter instance (`render.yaml` `plan: starter`), so it doesn't sleep.
 
 Build in the order of section 8.
+
+6. **Added (Omar)**: `request_feature` tool, so "Claude, add X" is either done with the app's tools or sent to the CRO Toolbox team as a feature request.
