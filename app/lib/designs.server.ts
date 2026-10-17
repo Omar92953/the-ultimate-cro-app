@@ -13,6 +13,7 @@ import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
 import { toStorefrontCartExtras, withCartExtrasDefaults, type CartExtrasDesign } from "./cart-extras-design";
+import { toStorefrontSizeGuide, withSizeGuideDefaults, type SizeGuideDesign } from "./size-guide";
 import { toStorefrontWishlist, withWishlistDefaults, type WishlistDesign } from "./wishlist-design";
 import { toStorefrontQuiz, withQuizDefaults, type QuizDesign } from "./quiz-design";
 import { toStorefrontOrderPage, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "./order-pages";
@@ -381,6 +382,21 @@ export async function saveWishlist(admin: AdminClient, config: WishlistDesign, d
   if (!draftOnly) await upsert(admin, "$app:cro_design", "wishlist", { config: store });
   await upsert(admin, "$app:cro_design", "wishlist_draft", { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", "wishlist_editor", { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* ----------------------------------------------------------------- size guide -- */
+export async function getSizeGuide(admin: AdminClient): Promise<{ config: SizeGuideDesign; saved: boolean }> {
+  const raw = await getDesign(admin, "size_guide_editor");
+  return { config: withSizeGuideDefaults(raw), saved: raw !== null };
+}
+
+export async function saveSizeGuide(admin: AdminClient, config: SizeGuideDesign, draftOnly = false) {
+  const clean = withSizeGuideDefaults(config);
+  const store = JSON.stringify(toStorefrontSizeGuide(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "size_guide", { config: store });
+  await upsert(admin, "$app:cro_design", "size_guide_draft", { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "size_guide_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 

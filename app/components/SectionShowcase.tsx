@@ -1573,6 +1573,30 @@ export function DeliveryShowcase() {
   );
 }
 
+/** Size guide: two links by the size picker and a size chart window. */
+export function SizeGuideShowcase() {
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 7, width: "78%", fontSize: 11 }}>
+        <span style={{ display: "flex", gap: 12, fontSize: 10 }}>
+          <u>Size chart</u>
+          <u>Size recommendation</u>
+        </span>
+        <span style={{ display: "grid", gap: 6, padding: 10, borderRadius: 8, background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,0.12)" }}>
+          <b>Size guide</b>
+          <span style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 3, textAlign: "center" }}>
+            {["Size", "Chest", "Waist", "Length", "S", "88", "74", "68", "M", "94", "80", "70", "L", "100", "86", "72"].map((x, i) => (
+              <span key={i} style={{ padding: "3px 0", borderBottom: "1px solid #ddd", fontWeight: i < 4 ? 700 : 400 }}>
+                {x}
+              </span>
+            ))}
+          </span>
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
 /** Personalization: a name field with the text drawn on the product picture. */
 export function PersonalizeShowcase() {
   return (

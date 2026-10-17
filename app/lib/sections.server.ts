@@ -360,6 +360,7 @@ export function sectionLinks(shop: string) {
     cart_extras: block("ucs-cart-extras", "cart"),
     personalize: `${base}?template=product&addAppBlockId=${key}/ucs-personalize&target=mainSection`,
     delivery: `${base}?template=product&addAppBlockId=${key}/ucs-delivery&target=mainSection`,
+    size_guide: `${base}?template=product&addAppBlockId=${key}/ucs-size-guide&target=mainSection`,
     stock: `${base}?template=product&addAppBlockId=${key}/ucs-stock&target=mainSection`,
     product_reviews: `${base}?template=product&addAppBlockId=${key}/ucs-product-reviews&target=mainSection`,
     faq: block(SECTIONS.faq.block),

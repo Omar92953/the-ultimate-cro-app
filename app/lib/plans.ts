@@ -144,6 +144,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   sticky_atc: "free",
   quick_add: "free",
   delivery: "starter",
+  size_guide: "starter",
   stock: "free",
   wishlist: "free",
   hero: "free",

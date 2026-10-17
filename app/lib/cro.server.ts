@@ -1300,6 +1300,7 @@ export const BLOCKS = {
   addons: "ucs-addons",
   stock: "ucs-stock",
   delivery: "ucs-delivery",
+  size_guide: "ucs-size-guide",
   personalize: "ucs-personalize",
   cart_extras: "ucs-cart-extras",
   quiz: "ucs-quiz",

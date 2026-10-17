@@ -11,6 +11,7 @@ import { SHIPPING_BAR_PRESETS } from "../../../app/lib/shipping-bar";
 import { COUNTDOWN_BAR_PRESETS } from "../../../app/lib/designs";
 import { QUICK_ADD_PRESETS } from "../../../app/lib/quick-add-design";
 import { DELIVERY_PRESETS } from "../../../app/lib/delivery-design";
+import { SIZE_GUIDE_PRESETS } from "../../../app/lib/size-guide";
 import { STOCK_PRESETS } from "../../../app/lib/stock-design";
 import { WISHLIST_PRESETS } from "../../../app/lib/wishlist-design";
 import { HERO_PRESETS } from "../../../app/lib/hero-design";
@@ -36,6 +37,7 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   countdown: t(COUNTDOWN_BAR_PRESETS),
   quick_add: t(QUICK_ADD_PRESETS),
   delivery: t(DELIVERY_PRESETS),
+  size_guide: t(SIZE_GUIDE_PRESETS),
   stock: t(STOCK_PRESETS),
   wishlist: t(WISHLIST_PRESETS),
   hero: t(HERO_PRESETS),

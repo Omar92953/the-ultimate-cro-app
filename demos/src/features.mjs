@@ -15,11 +15,11 @@ const app = async (name) => import(`../../app/lib/${name}.ts`);
 
 const [
   upsellD, crossD, bundleD, videoD, reviewsD, faqD, logosD, annD, shipD, countD, quickD, deliveryD, stockD, wishD, heroD, carouselD, pillsD,
-  orderD, persD, extrasD, addonsD, quizD, deals, boostersD,
+  orderD, persD, extrasD, addonsD, quizD, deals, boostersD, sizeD,
 ] = await Promise.all([
   "upsell-design", "cross-sell-design", "bundle-design", "video-carousel-design", "reviews-design", "faq-design", "logos-design", "announcement-design",
   "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "hero-design", "image-carousel", "collection-pills",
-  "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters",
+  "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters", "size-guide",
 ].map(app));
 
 const PAY_CSS = ["ucs-boosters.css"];
@@ -201,6 +201,12 @@ export async function buildFeatures({ block, shopWith, mo }) {
     html: await block("ucs-delivery", { page_type: "product", product: P["studio-tee"], shop: shopWith({ designs: { delivery: deliveryOf(p.key) } }) }),
   })));
 
+  const sizeOf = (key) => sizeD.toStorefrontSizeGuide(sizeD.applySizeGuidePreset(sizeD.withSizeGuideDefaults({}), key));
+  F.size_guide = await Promise.all(sizeD.SIZE_GUIDE_PRESETS.map(async (p) => ({
+    template: p.key, title: p.title, layout: "product", product: "studio-tee",
+    html: await block("ucs-size-guide", { page_type: "product", product: P["studio-tee"], shop: shopWith({ designs: { size_guide: sizeOf(p.key) } }) }),
+  })));
+
   const stockOf = (key) => stockD.toStorefrontStock(stockD.applyStockPreset(stockD.withStockDefaults({}), key));
   F.stock = await Promise.all(stockD.STOCK_PRESETS.map(async (p) => ({
     template: p.key, title: p.title, layout: "product", product: "rose-candle",
@@ -326,7 +332,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     cart_extras: extrasD.CART_EXTRAS_PRESETS,
     reviews: reviewsD.REVIEW_PRESETS, product_reviews: reviewsD.PRODUCT_REVIEW_PRESETS, logos: logosD.LOGOS_PRESETS,
     announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
-    quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
+    quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, size_guide: sizeD.SIZE_GUIDE_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
     hero: heroD.HERO_PRESETS, videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
     track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
   };

@@ -294,6 +294,13 @@ pages["orders.html"] = page("Track order & Returns", mockOrders +
   label("returns page") + (await block("ucs-order-page", { page: "returns" }, { page_type: "page" })));
 const { toStorefrontDelivery, withDeliveryDefaults } = await import("../../app/lib/delivery-design.ts");
 const deliveryShop = withDesign(mo("delivery", { config: toStorefrontDelivery(withDeliveryDefaults({ rules: { zones: [{ countries: "SA", min: 5, max: 7 }] } })) }));
+const { toStorefrontSizeGuide, withSizeGuideDefaults, SAMPLE_CHART } = await import("../../app/lib/size-guide.ts");
+const sgShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withSizeGuideDefaults({ charts: [
+  { ...SAMPLE_CHART, id: "p", name: "Pants", match: { all: false, products: [], collections: [], tags: "Pants" }, columns: ["Waist"], rows: [{ size: "30", values: ["76"], height: [null, null], weight: [null, null] }] },
+  { ...SAMPLE_CHART, id: "t", name: "Tees", match: { all: false, products: [], collections: [{ handle: "mens", title: "Men" }], tags: "" } },
+] })) }));
+pages["size-guide.html"] = page("Size guide",
+  label("product page: tagged Tees, in the collection mens, so the second chart") + '<div style="max-width:440px;margin:0 40px"><p>Size: S M L</p>' + (await block("ucs-size-guide", {}, { page_type: "product", product: { handle: "classic-tee", tags: ["Summer"], collections: [{ handle: "mens" }] }, shop: sgShop })) + "</div>");
 pages["delivery.html"] = page("Delivery estimate",
   label("product page (Egypt)") + '<div style="max-width:440px;margin:0 40px">' + (await block("ucs-delivery", {}, { page_type: "product", shop: deliveryShop })) + "</div>");
 // Tiered rewards bar: free shipping 300, free gift 600, 10% off 900; cart at 450.
