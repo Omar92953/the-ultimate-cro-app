@@ -25,6 +25,44 @@ function Go(props: Target & { className: string; children: ReactNode; label?: st
   );
 }
 
+/**
+ * The looks of one feature as a small scrolling stage (the same picture as on a hub card, without the
+ * card's name and menu): used where a feature is shown but not opened, such as the locked page.
+ */
+export function PreviewStage(props: { title: string; previews: ReactNode[] }) {
+  const [index, setIndex] = useState(0);
+  const count = props.previews.length;
+  const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
+  return (
+    <div className={s.card} style={{ maxWidth: 560 }}>
+      <div className={s.stage}>
+        <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} role="img" aria-label={`${props.title}, how it looks`}>
+          {props.previews.map((preview, i) => (
+            <span key={i} className={s.canvas} aria-hidden="true">
+              {preview}
+            </span>
+          ))}
+        </span>
+        {count > 1 ? (
+          <>
+            <button type="button" className={`${s.arrow} ${s.arrowPrev}`} aria-label="Previous look" onClick={() => go(-1)}>
+              ‹
+            </button>
+            <button type="button" className={`${s.arrow} ${s.arrowNext}`} aria-label="Next look" onClick={() => go(1)}>
+              ›
+            </button>
+            <span className={s.dots}>
+              {props.previews.map((_, i) => (
+                <button key={i} type="button" className={`${s.dot} ${i === index ? s.dotOn : ""}`} aria-label={`Look ${i + 1} of ${count}`} aria-current={i === index} onClick={() => setIndex(i)} />
+              ))}
+            </span>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export type CardMenuItem = (Target & { label: string }) | { label: string; onClick: () => void };
 
 export function SectionCard(props: {

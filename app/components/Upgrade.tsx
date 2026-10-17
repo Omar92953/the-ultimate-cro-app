@@ -7,6 +7,9 @@ import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "./fields";
 import { Card, CardText, Pill } from "./ui";
 import { CategoryCrumb, FeatureTabs } from "./FeatureNav";
+import { DemoButton } from "./DemoButton";
+import { PreviewStage } from "./SectionShowcase";
+import { SHOWCASES } from "./showcases";
 import { PlanFeatures } from "./PlanCard";
 import { feature, featuresForPath, offerGroupOf, type FeatureKey } from "../lib/catalog";
 import { GUARANTEE, PLANS, price, type PlanKey } from "../lib/plans";
@@ -93,6 +96,7 @@ export function LockedPage({ lock }: { lock: PageLock }) {
       <LockedTop feature={lock.feature} pathname={pathname} />
       <s-stack gap="base">
         <FeatureTabs feature={lock.feature} />
+        <LockedPreview feature={lock.feature} />
         {canTry(plan, lock.feature) ? <TryCard feature={lock.feature} /> : null}
         <UpgradeCard
           needs={lock.needs}
@@ -101,6 +105,22 @@ export function LockedPage({ lock }: { lock: PageLock }) {
         />
       </s-stack>
     </s-page>
+  );
+}
+
+/** What the locked feature looks like (its showcase pictures) and its live demo, above the upgrade card. */
+function LockedPreview({ feature: key }: { feature: FeatureKey }) {
+  const looks = SHOWCASES[key];
+  if (!looks?.length) return <DemoButton feature={key} slot="" variant="secondary" />;
+  return (
+    <s-section heading="What it looks like">
+      <s-stack gap="base">
+        <PreviewStage title={feature(key).title} previews={looks.map((L, i) => <L key={i} />)} />
+        <s-stack direction="inline">
+          <DemoButton feature={key} slot="" variant="secondary" />
+        </s-stack>
+      </s-stack>
+    </s-section>
   );
 }
 
