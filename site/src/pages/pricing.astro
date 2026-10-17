@@ -17,6 +17,7 @@ import {
   trialDays,
   yearlySaving,
   GUARANTEE,
+  REQUESTS_FIRST_TEXT,
   type Limits,
   type PlanKey,
 } from "../lib/app";
@@ -41,9 +42,9 @@ const limitCell = (p: PlanKey, k: keyof Limits) => {
 
 /** Extras inside pages that need a plan (EXTRA_PLAN in plans.ts). */
 const EXTRAS: { key: keyof typeof EXTRA_PLAN; label: string }[] = [
-  { key: "holdoutTest", label: "Holdout test" },
-  { key: "featureRequests", label: "Features built on request" },
   { key: "requestsFirst", label: "Your requests built first" },
+  { key: "featureRequests", label: "Features built on request" },
+  { key: "holdoutTest", label: "Holdout test" },
   { key: "prioritySupport", label: "Priority support" },
 ];
 
@@ -70,6 +71,10 @@ const faq: QA[] = [
   {
     q: "What is an offer slot?",
     a: `An offer switched on: an upsell, cross sell, bundle, bundle product, discount or after purchase offer. The ${PLANS.free.name} plan has ${PLANS.free.limits.offerSlots} at a time; switch one off to free its slot. Paid plans have unlimited offers.`,
+  },
+  {
+    q: "What does \"requests built first\" mean on Pro?",
+    a: REQUESTS_FIRST_TEXT,
   },
   {
     q: "How does billing work?",

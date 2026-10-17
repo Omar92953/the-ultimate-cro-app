@@ -42,7 +42,7 @@ CRO Toolbox puts the tools stores usually add one by one into a single app. Crea
 Free (50 orders a month, 3 offers on at once); Starter $5.99 a month (500 orders); Growth $14.99 a
 month (1,000 orders); Pro $24.99 a month (unlimited); yearly $59 / $149 / $249; 14-day trial on
 paid plans. Prices go only in the pricing section, never in the text above or in screenshots.
-What each plan adds (keep in step with `highlights` in `plans.ts`; list only what works): Pro includes A/B tests for upsells and cross sells, your feature requests built first and priority support.
+What each plan adds (keep in step with `highlights` in `plans.ts`; list only what works): Pro includes your requests built first ("Requests from Pro stores are built before everyone else's", no dates promised), A/B tests for upsells and cross sells, return saving rules (store credit, exchanges), your feature requests built first and priority support.
 
 **Other fields**
 - Requires the Online Store sales channel and an Online Store 2.0 theme (app blocks). Tick "merchant must have an online store".

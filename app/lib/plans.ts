@@ -88,7 +88,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 59,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
-    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section"],
+    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section", "Connect Claude to your store"],
   },
   growth: {
     key: "growth",
@@ -106,12 +106,13 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "pro",
     name: "Pro",
     handle: "pro",
-    job: "Priority: no limits, and we're first in line for you.",
+    job: "Your requests come first, with no limits.",
     monthly: 24.99,
     yearly: 249,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Return saving rules", "Your requests built first", "Priority support"],
+        badge: "Requests first",
+    highlights: ["Everything in Growth", "Your requests built first", "A/B tests for upsells and cross sells", "Return saving rules", "Priority support"],
   },
 };
 
@@ -164,6 +165,9 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   ab_tests: "pro",
   return_saving: "pro",
 };
+
+/** What "built first" means, said the same everywhere (the Plans page, Home, the website, the App Store listing). No dates are promised. */
+export const REQUESTS_FIRST_TEXT = "Requests from Pro stores are built before everyone else's. We do not promise dates: we tell you when yours is planned and when it is built.";
 
 /** Things inside a page that need a plan (the page itself stays open). */
 export const EXTRA_PLAN = {
