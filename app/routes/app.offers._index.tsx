@@ -83,8 +83,9 @@ export default function OffersHub() {
         <s-section heading="All offers" padding="none">
           {offers.length ? (
             <s-stack gap="none">
-              <s-box padding="small-300">
-                <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)" gap="small-200" alignItems="end">
+              {/* Same padding as the heading above (16px) and room before the table, like the other offer lists. */}
+              <s-box padding="base base large-100 base">
+                <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
                   <TextField label="Search" placeholder="Search offers" value={query} onValue={setQuery} />
                   <Select
                     label="Group"
