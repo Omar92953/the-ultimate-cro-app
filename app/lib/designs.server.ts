@@ -9,8 +9,6 @@ import { COUNTDOWN_PLACES, toStorefrontCountdownBar, withCountdownBarDefaults, t
 import { toStorefrontReviews, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "./reviews-design";
 import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
-import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
-import { toStorefrontFooter, withFooterDefaults, type FooterDesign } from "./footer-design";
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
@@ -122,47 +120,6 @@ export async function saveAddons(admin: AdminClient, config: AddonsConfig, draft
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("addons"), { config: JSON.stringify(toStorefrontAddons(clean)) });
   await upsert(admin, "$app:cro_design", slotted("addons_draft"), { config: JSON.stringify(toStorefrontAddons(clean)) });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("addons_editor"), { config: JSON.stringify(clean) });
-  return clean;
-}
-
-/* -------------------------------------------------------------------- header -- */
-export async function getHeader(admin: AdminClient): Promise<{ config: HeaderConfig; saved: boolean }> {
-  const raw = await getDesign(admin, "header_editor");
-  return { config: withHeaderDefaults(raw), saved: raw !== null };
-}
-
-/* -------------------------------------------------------------- footer -- */
-export async function getFooter(admin: AdminClient): Promise<{ config: FooterDesign; saved: boolean }> {
-  const raw = await getDesign(admin, "footer_editor");
-  return { config: withFooterDefaults(raw), saved: raw !== null };
-}
-
-export async function saveFooter(admin: AdminClient, config: FooterDesign, draftOnly = false) {
-  const clean = withFooterDefaults(config);
-  const logo = clean.logo.image ? (await imageFiles(admin, [clean.logo.image.id])).get(clean.logo.image.id) : undefined;
-  clean.logo.url = logo?.url ?? null;
-  const store = JSON.stringify(toStorefrontFooter(clean));
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("footer"), { config: store });
-  await upsert(admin, "$app:cro_design", slotted("footer_draft"), { config: store });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("footer_editor"), { config: JSON.stringify(clean) });
-  return clean;
-}
-
-/** The store's menus (Online Store → Navigation), for choosing a footer column's menu. */
-export type StoreMenu = { handle: string; title: string; items: { title: string; url: string }[] };
-export async function listMenus(admin: AdminClient): Promise<StoreMenu[]> {
-  const data = await gql(admin, `#graphql
-    query CroMenus { menus(first: 25) { nodes { handle title items { title url } } } }`);
-  return (data.menus?.nodes ?? []).map((m: { handle: string; title: string; items: { title: string; url: string | null }[] }) => ({ handle: m.handle, title: m.title, items: m.items.map((i) => ({ title: i.title, url: i.url ?? "#" })) }));
-}
-
-export async function saveHeader(admin: AdminClient, config: HeaderConfig, draftOnly = false) {
-  const clean = withHeaderDefaults(config);
-  const logo = clean.logo.image ? (await imageFiles(admin, [clean.logo.image.id])).get(clean.logo.image.id) : undefined;
-  clean.logo.url = logo?.url ?? null;
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("header"), { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
-  await upsert(admin, "$app:cro_design", slotted("header_draft"), { config: JSON.stringify(toStorefrontHeader(clean, clean.logo.url)) });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("header_editor"), { config: JSON.stringify(clean) });
   return clean;
 }
 

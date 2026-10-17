@@ -14,8 +14,6 @@ import { DELIVERY_PRESETS } from "../../../app/lib/delivery-design";
 import { STOCK_PRESETS } from "../../../app/lib/stock-design";
 import { WISHLIST_PRESETS } from "../../../app/lib/wishlist-design";
 import { HERO_PRESETS } from "../../../app/lib/hero-design";
-import { PRESETS as HEADER_PRESETS } from "../../../app/lib/header";
-import { FOOTER_PRESETS } from "../../../app/lib/footer-design";
 import { ORDER_PAGE_PRESETS } from "../../../app/lib/order-pages";
 import { PERSONALIZE_PRESETS } from "../../../app/lib/personalize-design";
 import { CART_EXTRAS_PRESETS } from "../../../app/lib/cart-extras-design";
@@ -41,8 +39,6 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   stock: t(STOCK_PRESETS),
   wishlist: t(WISHLIST_PRESETS),
   hero: t(HERO_PRESETS),
-  header: t(HEADER_PRESETS),
-  footer: t(FOOTER_PRESETS),
   track: t(ORDER_PAGE_PRESETS),
   returns: t(ORDER_PAGE_PRESETS),
   personalize: t(PERSONALIZE_PRESETS),

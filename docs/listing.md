@@ -34,7 +34,7 @@ CRO Toolbox puts the tools stores usually add one by one into a single app. Crea
 3. `Discounts apply at checkout as real Shopify discounts, with bundle stock tracked` (80)
 4. `Offers in your theme's cart, a free shipping bar and gift notes` (63)
 5. `Reviews, trust badges, announcement bars, countdowns and sticky add to cart` (75)
-6. `Hero banners, FAQ, logos, carousels, quiz, header and footer sections` (69)
+6. `Hero banners, FAQ, logos, carousels, quiz and collection pills` (60)
 7. `Payment and delivery rules, order limits and thank-you page modules` (67)
 8. `Analytics per offer and bundle, with an optional holdout test` (61)
 
@@ -97,7 +97,7 @@ WHAT TO CLICK
 - Discounts (Offers > Discounts): buy X get Y, volume, gift. Add the products to the cart; the
   discount shows in the cart and at checkout.
 - Storefront (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
-  Wishlist, FAQ, Logos, Hero banner, Quiz, Header, Footer. Each has a Style tab with a live
+  Wishlist, FAQ, Logos, Hero banner, Quiz. Each has a Style tab with a live
   preview and an "Add to theme" button.
 - Storefront > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
   offers and the free shipping bar show in the cart.
