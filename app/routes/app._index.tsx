@@ -23,6 +23,7 @@ import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, PLAN_KEYS, atLeast, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
+import { requireFeatureRequests } from "../lib/rules";
 import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
 import { REQUEST_STATUS_LABEL, cleanRequest, MAX_PLACE, MAX_TEXT } from "../lib/feature-requests";
 import { Button, TextArea, TextField } from "../components/fields";
@@ -129,7 +130,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (intent === "feature-request") {
     // The plan gate is checked here too, not only by hiding the form.
     const { plan } = await getPlan(admin, session.shop);
-    if (!atLeast(plan, EXTRA_PLAN.featureRequests)) return { ok: false, error: `Requests are included from the ${PLANS[EXTRA_PLAN.featureRequests].name} plan.`, requested: false };
+    try {
+      requireFeatureRequests(plan);
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Requests need a higher plan.", requested: false };
+    }
     const clean = cleanRequest(form.get("text"), form.get("place"));
     if (!clean.ok) return { ok: false, error: clean.error, requested: false };
     await createFeatureRequest(session.shop, plan, clean.text, clean.place);
