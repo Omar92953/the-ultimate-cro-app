@@ -6,7 +6,7 @@
  */
 import type { FeatureKey } from "./catalog";
 import { isLocked, pageLock } from "./plan-gate";
-import { FEATURE_PLAN, PLANS, limitOf, planAbove, type PlanKey } from "./plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, planAbove, type PlanKey } from "./plans";
 import { MAX_CHARTS, MAX_COLUMNS, MAX_ROWS } from "./size-guide";
 
 /** "plan": needs a higher plan. "limit": a counted limit is reached. "input": the values are not allowed. */
@@ -39,6 +39,11 @@ export function requireFeature(plan: PlanKey, f: FeatureKey, trial: FeatureKey |
 export function requirePage(plan: PlanKey, pathname: string, search = "", trial: FeatureKey | null = null) {
   const lock = pageLock(plan, pathname, search, trial);
   if (lock) throw new RuleError(needsPlan(lock.needs), "plan");
+}
+
+/** Sending a feature request is included from one plan up (plans.ts EXTRA_PLAN). */
+export function requireFeatureRequests(plan: PlanKey) {
+  if (!atLeast(plan, EXTRA_PLAN.featureRequests)) throw new RuleError(`Requests are included from the ${PLANS[EXTRA_PLAN.featureRequests].name} plan.`, "plan");
 }
 
 /** Styles 2 to 5 of a section need a plan with more styles per section (plans.ts designsPerSection). */
