@@ -89,6 +89,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     return json({ ok: true, approved, ...(approved ? { after } : {}) });
   } catch (e) {
+    console.error(`[proxy/returns] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: e instanceof Error && /^[A-Z]/.test(e.message) && e.message.length < 140 && !/gid:|graphql|userErrors/i.test(e.message) ? e.message : "Returns aren't available right now." }, 500);
   }
 };

@@ -20,7 +20,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!order) return json({ ok: false, notFound: true });
     // Everything except the internal order id.
     return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments: order.shipments } });
-  } catch {
+  } catch (e) {
+    console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);
   }
 };
