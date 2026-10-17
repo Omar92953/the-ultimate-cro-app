@@ -68,8 +68,6 @@ import {
   CartExtrasShowcase,
   WishlistShowcase,
   QuizShowcase,
-  TrackShowcase,
-  ReturnsShowcase,
   PaymentRulesShowcase,
   DeliveryRulesShowcase,
   OrderLimitsShowcase,
@@ -450,25 +448,6 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             menu: [{ label: "Open boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
           });
         });
-        // Order pages: the track and returns pages are blocks the merchant puts on a page.
-        for (const page of [
-          { key: "track" as const, title: "Track order page", href: "/app/pages/track", Preview: TrackShowcase },
-          { key: "returns" as const, title: "Returns page", href: "/app/returns", Preview: ReturnsShowcase },
-        ]) {
-          const on = installed ? (installed[page.key] ?? false) : null;
-          add({
-            key: page.key,
-            cat: "design",
-            title: page.title,
-            onStore: on === true,
-            status: on === false ? { tone: "warning", text: "Not on store" } : on ? { tone: "success", text: "Live" } : { tone: "neutral", text: "Set up in theme editor" },
-            next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
-            open: { href: page.href },
-            previews: [page.Preview],
-            menu: [{ label: page.key === "returns" ? "Requests" : "Style", href: page.href }, ...(page.key === "returns" ? [{ label: "Style", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
-          });
-        }
-
         // Checkout: rules run by the app's Functions inside Shopify checkout (nothing to add to the theme).
         for (const c of [
           { key: "checkout_payment", title: "Payment rules", n: data.checkout?.payment, href: "/app/checkout/payment", Previews: [PaymentRulesShowcase] },

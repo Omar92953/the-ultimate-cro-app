@@ -152,8 +152,8 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   faq: "free",
   quiz: "starter",
   collection_pills: "starter",
-  track: "starter",
-  returns: "starter",
+  track: "growth",
+  returns: "growth",
   // Checkout (Free: within the checkout-rule and thank-you limits)
   payment_rules: "free",
   delivery_rules: "free",

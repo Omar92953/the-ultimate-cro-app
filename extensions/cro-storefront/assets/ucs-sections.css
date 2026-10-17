@@ -678,3 +678,8 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-qz__item { display: grid; gap: 6px; align-content: start; }
 .ucs-qz__item a { display: grid; gap: 6px; color: inherit; text-decoration: none; }
 .ucs-qz__item img, .ucs-qz__ph { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--ucs-qz-r, 12px); background: rgba(127, 127, 127, 0.15); }
+
+/* Returns page: the shopper's existing returns and what to do after approval. */
+.ucs-op__rets { margin: 0 0 12px; padding-left: 1.1em; }
+.ucs-op__after { margin: 12px 0; padding: 12px; border-radius: var(--ucs-op-r, 12px); background: rgba(127, 127, 127, 0.08); }
+.ucs-op__after p { margin: 0 0 6px; }

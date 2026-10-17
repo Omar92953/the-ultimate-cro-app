@@ -1,10 +1,10 @@
-/* Track order & Returns pages (app: Header & pages → Track order / Returns).
+/* Track order & Returns pages (app: Tracking & Returns).
    The shopper enters their order number and email; the app (via /apps/ucro/…) finds the order. */
 (function () {
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var DEF = {
-    track: { heading: 'Track your order', sub: 'Enter your order number and the email you used at checkout.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Track order', notFound: "We couldn't find an order with that number and email. Please check both.", placed: 'Placed on', shipped: 'Tracking number', trackLink: 'Track the parcel', noTracking: "Your order is being prepared. You'll get tracking details as soon as it ships.", delivered: 'Delivered', estimated: 'Expected', again: 'Track another order' },
-    returns: { heading: 'Request a return', sub: 'Enter your order number and the email you used at checkout, then choose what you would like to return.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Find my order', notFound: "We couldn't find an order with that number and email. Please check both.", pick: 'Which items would you like to return?', reason: 'Reason', reasons: 'Wrong size\nNot as expected\nArrived damaged\nChanged my mind\nOther', note: 'Anything else we should know? (optional)', send: 'Send return request', thanks: "Thanks! We've received your request and will email you the next steps.", already: "You've already sent a return request for this order. We'll be in touch soon.", tooLate: 'This order is outside our return window.' }
+    track: { heading: 'Track your order', sub: 'Enter your order number and the email you used at checkout.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Track order', notFound: "We couldn't find an order with that number and email. Please check both.", placed: 'Placed on', shipped: 'Tracking number', trackLink: 'Track the parcel', noTracking: "Your order is being prepared. You'll get tracking details as soon as it ships.", delivered: 'Delivered', estimated: 'Expected', again: 'Track another order', carrierOnly: "Live updates are on the carrier's page. Open the tracking link." },
+    returns: { heading: 'Request a return', sub: 'Enter your order number and the email you used at checkout, then choose what you would like to return.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Find my order', notFound: "We couldn't find an order with that number and email. Please check both.", pick: 'Which items would you like to return?', reason: 'Reason', reasons: 'Wrong size\nNot as expected\nArrived damaged\nChanged my mind\nOther', note: 'Anything else we should know? (optional)', send: 'Send return request', thanks: "Thanks! We've received your request and will email you the next steps.", already: "You've already sent a return request for this order. We'll be in touch soon.", tooLate: 'This order is outside our return window.', thanksApproved: 'Your return is approved. Here is how to send it back.', yourReturns: 'Your returns for this order', sendTo: 'Send the items to', shopperPays: 'You pay for the return shipping.', merchantPays: 'We will email you a return label.', nothing: 'Nothing in this order can be returned.' }
   };
   var STATUS = { FULFILLED: 'Shipped', UNFULFILLED: 'Being prepared', PARTIALLY_FULFILLED: 'Partly shipped', IN_PROGRESS: 'Being prepared', ON_HOLD: 'On hold', SCHEDULED: 'Scheduled', RESTOCKED: 'Returned', PAID: 'Paid', PENDING: 'Payment pending', REFUNDED: 'Refunded', PARTIALLY_REFUNDED: 'Partly refunded', AUTHORIZED: 'Payment authorised', VOIDED: 'Cancelled', DELIVERED: 'Delivered', IN_TRANSIT: 'In transit', OUT_FOR_DELIVERY: 'Out for delivery', ATTEMPTED_DELIVERY: 'Delivery attempted', READY_FOR_PICKUP: 'Ready for pickup', CONFIRMED: 'Confirmed', LABEL_PRINTED: 'Label printed', LABEL_PURCHASED: 'Label created', FAILURE: 'Delivery problem', CANCELED: 'Cancelled', NOT_DELIVERED: 'Not delivered' };
   var nice = function (s) { return STATUS[String(s || '').toUpperCase().replace(/ /g, '_')] || String(s || '').replace(/_/g, ' ').toLowerCase().replace(/^./, function (c) { return c.toUpperCase(); }); };
@@ -45,7 +45,7 @@
         msg.textContent = '';
         post(kind, { intent: 'find', order: last.order, email: last.email }).then(function (d) {
           btn.disabled = false;
-          if (d.ok) return kind === 'track' ? showOrder(d.order) : chooseItems(d.order);
+          if (d.ok) return kind === 'track' ? showOrder(d.order) : chooseItems(d.order, d);
           msg.textContent = d.notFound ? t.notFound : d.tooLate ? t.tooLate : d.error || t.notFound;
         });
       });
@@ -70,6 +70,7 @@
         return '<div class="ucs-op__ship"><span class="ucs-op__pill">' + esc(s.delivered ? t.delivered : nice(s.status)) + '</span>' +
           (s.number ? '<p class="ucs-op__t">' + esc(t.shipped) + ': <b>' + esc(s.number) + '</b>' + (s.company ? ' · ' + esc(s.company) : '') + '</p>' : '') +
           (s.delivered ? '<p class="ucs-op__t">' + esc(t.delivered) + ': ' + esc(day(s.delivered)) + '</p>' : s.estimated ? '<p class="ucs-op__t">' + esc(t.estimated) + ': ' + esc(day(s.estimated)) + '</p>' : '') +
+          (s.url && !s.delivered && /^(shipped|fulfilled)$/i.test(nice(s.status)) ? '<p class="ucs-op__t">' + esc(t.carrierOnly) + '</p>' : '') +
           (s.url ? '<a class="ucs-btn ucs-btn--outline" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(t.trackLink) + '</a>' : '') + '</div>';
       }).join('') : '<p class="ucs-op__t">' + esc(t.noTracking) + '</p>';
       host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card">' +
@@ -81,15 +82,27 @@
       host.querySelector('.ucs-op__again').addEventListener('click', lookupForm);
     };
 
-    var chooseItems = function (o) {
+    var afterText = function (a) {
+      if (!a) return '';
+      return '<div class="ucs-op__after">' +
+        (a.address ? '<p class="ucs-op__t"><b>' + esc(t.sendTo) + '</b><br>' + esc(a.address).replace(/\n/g, '<br>') + '</p>' : '') +
+        '<p class="ucs-op__t">' + esc(a.shipping === 'merchant' ? t.merchantPays : t.shopperPays) + '</p>' +
+        (a.instructions ? '<p class="ucs-op__t">' + esc(a.instructions) + '</p>' : '') + '</div>';
+    };
+
+    var chooseItems = function (o, d) {
+      d = d || {};
       var reasons = String(t.reasons || '').split('\n').map(function (r) { return r.trim(); }).filter(Boolean);
-      host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card">' +
-        '<h2 class="ucs-op__h">' + esc(o.name) + '</h2><p class="ucs-op__t"><b>' + esc(t.pick) + '</b></p>' +
-        '<form class="ucs-op__form" novalidate>' + items(o.items, true) +
+      var mine = (d.returns || []).length ? '<p class="ucs-op__t"><b>' + esc(t.yourReturns) + '</b></p><ul class="ucs-op__rets">' + d.returns.map(function (r) { return '<li>' + esc(r.name) + ': ' + esc(r.say) + '</li>'; }).join('') + '</ul>' + afterText(d.after) : '';
+      var form = !o.items.length ? '<p class="ucs-op__t">' + esc(t.nothing) + '</p>' :
+        '<p class="ucs-op__t"><b>' + esc(t.pick) + '</b></p><form class="ucs-op__form" novalidate>' + items(o.items, true) +
         '<label class="ucs-op__field"><span>' + esc(t.reason) + '</span><select name="reason" required><option value=""></option>' + reasons.map(function (r) { return '<option>' + esc(r) + '</option>'; }).join('') + '</select></label>' +
         '<label class="ucs-op__field"><span>' + esc(t.note) + '</span><textarea name="note" rows="3" maxlength="1000"></textarea></label>' +
-        '<p class="ucs-op__msg" role="alert"></p><button type="submit" class="ucs-btn">' + esc(t.send) + '</button></form></div></div>';
-      var f = host.querySelector('form'), msg = f.querySelector('.ucs-op__msg'), btn = f.querySelector('button');
+        '<p class="ucs-op__msg" role="alert"></p><button type="submit" class="ucs-btn">' + esc(t.send) + '</button></form>';
+      host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card"><h2 class="ucs-op__h">' + esc(o.name) + '</h2>' + mine + form + '</div></div>';
+      var f = host.querySelector('form');
+      if (!f) return;
+      var msg = f.querySelector('.ucs-op__msg'), btn = f.querySelector('button');
       f.addEventListener('submit', function (e) {
         e.preventDefault();
         var chosen = Array.prototype.map.call(f.querySelectorAll('input[name="item"]:checked'), function (c) {
@@ -99,13 +112,13 @@
         if (!chosen.length) { msg.textContent = t.pick; return; }
         if (!f.reason.value) { msg.textContent = t.reason; return; }
         btn.disabled = true;
-        post('returns', { intent: 'send', order: last.order, email: last.email, items: chosen, reason: f.reason.value, note: f.note.value }).then(function (d) {
-          if (d.ok || d.already) {
-            host.querySelector('.ucs-op__card').innerHTML = '<h2 class="ucs-op__h">' + esc(o.name) + '</h2><p class="ucs-op__t" role="status">' + esc(d.ok ? t.thanks : t.already) + '</p>';
+        post('returns', { intent: 'send', order: last.order, email: last.email, items: chosen, reason: f.reason.value, note: f.note.value }).then(function (r) {
+          if (r.ok || r.already) {
+            host.querySelector('.ucs-op__card').innerHTML = '<h2 class="ucs-op__h">' + esc(o.name) + '</h2><p class="ucs-op__t" role="status">' + esc(r.ok ? (r.approved ? t.thanksApproved : t.thanks) : t.already) + '</p>' + (r.approved ? afterText(r.after) : '');
             return;
           }
           btn.disabled = false;
-          msg.textContent = d.notFound ? t.notFound : d.tooLate ? t.tooLate : d.error || 'Something went wrong. Please try again.';
+          msg.textContent = r.notFound ? t.notFound : r.tooLate ? t.tooLate : r.error || 'Something went wrong. Please try again.';
         });
       });
     };

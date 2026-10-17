@@ -68,11 +68,24 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
 /* ------------------------------------------------------------------ returns -- */
 export type ReturnItem = { id: string; title: string; variant: string; quantity: number };
 
-export async function addReturn(shop: string, r: { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string }) {
-  const open = await db.returnRequest.findFirst({ where: { shop, orderId: r.orderId, status: "pending" } });
-  if (open) return { duplicate: true } as const;
-  await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note } });
-  return { duplicate: false } as const;
+/** The Shopify returns already on an order (read separately: it needs the returns scope, which a store gets after it approves the update). */
+export async function orderReturns(admin: AdminClient, orderId: string): Promise<{ id: string; name: string; status: string }[]> {
+  try {
+    const data = await gql(admin, `#graphql
+      query CroOrderReturns($id: ID!) { order(id: $id) { returns(first: 5) { nodes { id name status } } } }`, { id: orderId });
+    return data.order?.returns?.nodes ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export type NewReturn = { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string; returnId: string; returnName: string; status: string };
+
+export async function addReturn(shop: string, r: NewReturn) {
+  const open = await db.returnRequest.findFirst({ where: { shop, orderId: r.orderId, status: { in: ["requested", "pending", "approved"] } } });
+  if (open) return { duplicate: true, id: open.id } as const;
+  const row = await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note, returnId: r.returnId, returnName: r.returnName, status: r.status } });
+  return { duplicate: false, id: row.id } as const;
 }
 
 export async function listReturns(shop: string) {
@@ -84,15 +97,44 @@ export async function listReturns(shop: string) {
     } catch {
       items = [];
     }
-    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString() };
+    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString(), returnId: r.returnId, returnName: r.returnName, labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl, declineNote: r.declineNote, refundedAt: r.refundedAt?.toISOString() ?? null };
   });
 }
 
-export async function setReturnStatus(shop: string, id: number, status: "pending" | "approved" | "declined" | "done") {
-  await db.returnRequest.updateMany({ where: { shop, id }, data: { status } });
+export type ReturnRow = Awaited<ReturnType<typeof listReturns>>[number];
+
+export async function getReturn(shop: string, id: number) {
+  return db.returnRequest.findFirst({ where: { shop, id } });
+}
+
+export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null }) {
+  await db.returnRequest.updateMany({ where: { shop, id }, data });
 }
 
 /* Privacy webhooks */
 export const returnsForEmail = (shop: string, email: string) => db.returnRequest.findMany({ where: { shop, email: email.toLowerCase() } });
 export const redactReturnsEmail = (shop: string, email: string) => db.returnRequest.deleteMany({ where: { shop, email: email.toLowerCase() } });
 export const redactReturnsShop = (shop: string) => db.returnRequest.deleteMany({ where: { shop } });
+
+/* --------------------------------------------------------- shipments overview -- */
+export type ShipmentOverview = { total: number; inTransit: number; delivered: number; delayed: number };
+
+/** The last 30 days of shipped orders, counted by what Shopify knows (no carrier API): in transit, delivered, past the estimated date. */
+export async function shipmentOverview(admin: AdminClient): Promise<ShipmentOverview> {
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+  const data = await gql(admin, `#graphql
+    query CroShipments($q: String!) { orders(first: 100, query: $q, sortKey: CREATED_AT, reverse: true) { nodes { fulfillments(first: 5) { displayStatus deliveredAt estimatedDeliveryAt } } } }`, { q: `created_at:>=${since} fulfillment_status:shipped` });
+  const out: ShipmentOverview = { total: 0, inTransit: 0, delivered: 0, delayed: 0 };
+  const now = Date.now();
+  for (const o of data.orders?.nodes ?? []) {
+    for (const f of o.fulfillments as { displayStatus: string | null; deliveredAt: string | null; estimatedDeliveryAt: string | null }[]) {
+      out.total++;
+      if (f.deliveredAt || f.displayStatus === "DELIVERED") out.delivered++;
+      else {
+        out.inTransit++;
+        if (f.estimatedDeliveryAt && Date.parse(f.estimatedDeliveryAt) < now - 86_400_000) out.delayed++;
+      }
+    }
+  }
+  return out;
+}

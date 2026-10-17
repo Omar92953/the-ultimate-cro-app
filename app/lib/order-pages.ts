@@ -27,6 +27,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "delivered", label: "“Delivered”", def: "Delivered", group: "Result" },
     { key: "estimated", label: "“Expected”", def: "Expected", group: "Result" },
     { key: "again", label: "Look up another order", def: "Track another order", group: "Result" },
+    { key: "carrierOnly", label: "Live updates are on the carrier's page", def: "Live updates are on the carrier's page. Open the tracking link.", long: true, group: "Result" },
   ],
   returns: [
     { key: "heading", label: "Heading", def: "Request a return", group: "Form" },
@@ -43,6 +44,12 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "thanks", label: "After sending", def: "Thanks! We've received your request and will email you the next steps.", long: true, group: "After" },
     { key: "already", label: "Already requested", def: "You've already sent a return request for this order. We'll be in touch soon.", long: true, group: "After" },
     { key: "tooLate", label: "Too late", def: "This order is outside our return window.", long: true, group: "After" },
+    { key: "thanksApproved", label: "After sending, approved at once", def: "Your return is approved. Here is how to send it back.", long: true, group: "After" },
+    { key: "yourReturns", label: "“Your returns”", def: "Your returns for this order", group: "After" },
+    { key: "sendTo", label: "“Send the items to”", def: "Send the items to", group: "After" },
+    { key: "shopperPays", label: "Shopper pays shipping", def: "You pay for the return shipping.", long: true, group: "After" },
+    { key: "merchantPays", label: "We send a label", def: "We will email you a return label.", long: true, group: "After" },
+    { key: "nothing", label: "Nothing to return", def: "Nothing in this order can be returned.", long: true, group: "After" },
   ],
 };
 

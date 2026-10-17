@@ -12,12 +12,13 @@ that raises a store's sales: offers and bundles, storefront widgets and sections
 checkout rules and analytics. It replaces three features of Omar's Backrooms theme (upsell,
 cross-sell, video carousel) and rebuilds his earlier bundle-builder app.
 
-Admin menu: **Home · Offers · Storefront · Checkout · Analytics · Settings**.
+Admin menu: **Home · Offers · Tracking & Returns · Storefront · Checkout · Analytics · Settings**.
 
 | Area | Features (registry: `app/lib/catalog.ts`) |
 |---|---|
 | Offers | Upsell (quantity tiers), Cross-sell, **Bundles** (6 recipes, see §6), Discounts (buy X get Y, volume, gift, upgrade), Add-ons, Personalization |
 | Storefront | Reviews, product page reviews, sales pop-ups, trust badges, logos, announcement bar, countdown timers, stock urgency, sticky add to cart, hero, image and video carousels, FAQ, quiz, header, footer, collection pills, quick add, wishlist, contact, delivery estimate, shipping bar; the first group is **Cart**: offers in the theme's cart, gift note and delivery date |
+| Tracking & Returns | Track order page (Shopify shipment data only), Returns as real Shopify returns (approve or decline, label upload, refund, rules), setup checklist; Growth plan |
 | Checkout | Payment and delivery customizations, cart validation, thank-you and order-status modules, post-purchase offer |
 | Analytics | Sales from the app, per offer and per bundle stats |
 
