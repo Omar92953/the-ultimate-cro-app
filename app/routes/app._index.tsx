@@ -20,7 +20,7 @@ import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, PLAN_KEYS, atLeast, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
 import { TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
@@ -410,7 +410,7 @@ function FeatureRequestCard({ plan, requests }: { plan: PlanKey; requests: Featu
   if (!atLeast(plan, needs)) {
     return (
       <Card title="Request a feature" badge={<Pill>{`${PLANS[needs].name} plan`}</Pill>} actions={<UpgradeButton to={needs} />}>
-        <CardText>{`Need something the app doesn't do yet? On ${PLANS[needs].name} and up, ask for any feature and we build it for you.`}</CardText>
+        <CardText>{`Need something the app doesn't do yet? On the ${PLAN_KEYS.filter((k) => atLeast(k, needs)).map((k) => PLANS[k].name).join(" and ")} plans, ask for any feature and we build it for you.`}</CardText>
       </Card>
     );
   }
