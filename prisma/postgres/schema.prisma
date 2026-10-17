@@ -80,6 +80,9 @@ model ReturnRequest {
   creditAmount Float   @default(0)
   creditBonus Int      @default(0)
   creditedAt  DateTime?
+  /// Exchanges: what the shopper asked for (JSON lines) and the fulfillment holds we placed until the items arrive.
+  exchange    String   @default("")
+  holds       String   @default("")
 
   @@index([shop, status])
 }

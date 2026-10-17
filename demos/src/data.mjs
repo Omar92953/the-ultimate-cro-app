@@ -175,8 +175,8 @@ export const order = {
   payment: "PAID",
   fulfillment: "FULFILLED",
   items: [
-    { key: "11", title: "Glow Serum", variant: "30 ml", quantity: 1, image: IMG("glow-serum"), price: 34 },
-    { key: "12", title: "Cedar Candle", variant: null, quantity: 2, image: IMG("cedar-candle"), price: 22 },
+    { key: "11", title: "Glow Serum", variant: "30 ml", quantity: 1, image: IMG("glow-serum"), price: 34, swaps: [{ id: "101", title: "50 ml", price: 46 }] },
+    { key: "12", title: "Cedar Candle", variant: null, quantity: 2, image: IMG("cedar-candle"), price: 22, swaps: [{ id: "201", title: "Fig", price: 22 }, { id: "202", title: "Amber", price: 22 }] },
   ],
   shipments: [{ status: "IN_TRANSIT", company: "UPS", number: "1Z999AA10123456784", url: "#", delivered: null, estimated: "2026-10-16T00:00:00Z" }],
 };

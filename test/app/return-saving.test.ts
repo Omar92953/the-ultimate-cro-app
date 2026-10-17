@@ -20,7 +20,7 @@ Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOP
 type S = typeof import("../../app/lib/return-saving.server");
 let S: S;
 before(async () => {
-  for (const m of ["20261010130000_return_requests", "20261017000000_shopify_returns", "20261021000000_return_saving"]) {
+  for (const m of ["20261010130000_return_requests", "20261017000000_shopify_returns", "20261021000000_return_saving", "20261022000000_return_exchanges"]) {
     for (const stmt of fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8").split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
   S = await import("../../app/lib/return-saving.server");

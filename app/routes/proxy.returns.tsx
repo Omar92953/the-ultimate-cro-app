@@ -8,9 +8,10 @@
  */
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import { addReturn, creditsForOrder, findOrder, orderReturns, readLookup } from "../lib/orders-lookup.server";
+import { addReturn, creditsForOrder, exchangesForOrder, findOrder, orderReturns, readLookup } from "../lib/orders-lookup.server";
 import { getPlan } from "../lib/billing.server";
 import { approveAndSettle } from "../lib/return-saving.server";
+import { priceDifference, type ExchangeLine } from "../lib/return-exchange";
 import { atLeast } from "../lib/plans";
 import { getReturnRules, requestReturn, returnableItems } from "../lib/shopify-returns.server";
 import { DEFAULT_SAVING, excludedTags, matchesAutoRule, withSaving } from "../lib/return-rules";
@@ -53,13 +54,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (!noAccess(e)) throw e;
       legacy = true; // returns scopes not approved yet: the old list of items and an app-only request
     }
-    const choices = legacy ? order.items.map((i) => ({ key: i.id.split("/").pop() ?? "", title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })) : returnable.map((i) => ({ key: i.key, title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.price }));
-    const existing = legacy ? [] : (await orderReturns(admin, order.id)).map((r) => ({ name: r.name, status: r.status, say: SAY[r.status] ?? r.status }));
+    const choices = legacy ? order.items.map((i) => ({ key: i.id.split("/").pop() ?? "", title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })) : returnable.map((i) => ({ key: i.key, title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.price, swaps: i.swaps.filter((v) => v.available && v.id !== i.variantId).map((v) => ({ id: v.id.split("/").pop() ?? "", title: v.title, price: v.price })) }));
+    const existing = legacy ? [] : [...(await orderReturns(admin, order.id)), ...(await exchangesForOrder(session.shop, order.id, q.email))].map((r) => ({ name: r.name, status: r.status, say: SAY[r.status] ?? r.status }));
     const approvedHere = existing.some((r) => r.status === "OPEN");
     const after = { address: rules.address, instructions: rules.instructions, shipping: rules.shipping };
     const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
     // How the shopper can be paid back: a refund always; store credit when the merchant (Pro) switched it on.
-    const options = { credit: saving.credit.on && !legacy ? { bonus: saving.credit.bonus } : null };
+    const options = { credit: saving.credit.on && !legacy ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
     if (body.intent !== "send") {
       const credits = legacy ? [] : await creditsForOrder(session.shop, order.id, q.email);
       return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
@@ -78,17 +79,33 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!reason) return json({ ok: false, error: "Please choose a reason." }, 400);
     const note = clean(body.note, 1000);
 
-    const resolution = body.resolution === "credit" && options.credit ? ("credit" as const) : ("refund" as const);
+    const resolution = body.resolution === "exchange" && options.exchange ? ("exchange" as const) : body.resolution === "credit" && options.credit ? ("credit" as const) : ("refund" as const);
+    // Exchange: each item changes to another variant of the same product, in stock; one that costs more only when the merchant allows it.
+    let exchange: { lines: ExchangeLine[]; diff: number } | null = null;
+    if (resolution === "exchange") {
+      const asked = Array.isArray(body.exchange) ? (body.exchange as { key?: unknown; variantId?: unknown }[]) : [];
+      const lines: ExchangeLine[] = [];
+      for (const p of picked) {
+        const item = returnable.find((i) => i.key === p.key);
+        const want = asked.find((a) => String(a.key) === p.key);
+        const swap = item?.swaps.find((v) => v.available && v.id !== item.variantId && v.id.split("/").pop() === String(want?.variantId));
+        if (!item || !swap) return json({ ok: false, error: "Please choose what you would like instead for each item." }, 400);
+        lines.push({ key: p.key, fli: item.fulfillmentLineItemId, qty: p.quantity, title: item.title, from: item.variant, to: swap.title, variantId: swap.id, oldPrice: item.price, newPrice: swap.price });
+      }
+      const diff = priceDifference(lines);
+      if (diff > 0 && !options.exchange?.extra) return json({ ok: false, error: "That costs more than what you are returning. Please choose one at the same price or less." }, 400);
+      exchange = { lines, diff };
+    }
     const quote = Math.round(picked.reduce((n, p) => n + (priceOf.get(p.key) ?? 0) * p.quantity, 0) * 100) / 100;
     let returnId = "", returnName = "";
     const status = "requested";
-    if (!legacy) {
+    if (!legacy && !exchange) {
       const gids = new Map(returnable.map((i) => [i.key, i.fulfillmentLineItemId]));
       const made = await requestReturn(admin, order.id, picked.map((p) => ({ fulfillmentLineItemId: gids.get(p.key)!, quantity: p.quantity })), reason, note);
       returnId = made.id;
       returnName = made.name;
     }
-    const r = await addReturn(session.shop, { orderId: order.id, orderName: order.name, email: q.email, items: picked.map((p) => ({ id: p.key, title: p.title, variant: p.variant, quantity: p.quantity })), reason, note, returnId, returnName, status, resolution, quote, currency: order.currency, creditBonus: resolution === "credit" ? saving.credit.bonus : 0 });
+    const r = await addReturn(session.shop, { orderId: order.id, orderName: order.name, email: q.email, items: picked.map((p) => ({ id: p.key, title: p.title, variant: p.variant, quantity: p.quantity })), reason, note, returnId, returnName, status, resolution, quote, currency: order.currency, creditBonus: resolution === "credit" ? saving.credit.bonus : 0, exchange: exchange ? JSON.stringify(exchange) : "" });
     if (r.duplicate) return json({ ok: false, already: true });
     // Approved at once: the reasons the merchant ticked (Growth), or a Pro rule (reason, product tag, order value, days since delivery).
     const delivered = order.shipments.map((s) => s.delivered).filter((d): d is string => !!d).sort().pop();
@@ -101,7 +118,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const reasonOk = rules.autoApprove.on && rules.autoApprove.reasons.some((x) => x.toLowerCase() === reason.toLowerCase());
     let approved = false;
     let credit: Awaited<ReturnType<typeof approveAndSettle>>["credit"] = null;
-    if (returnId && (reasonOk || matchesRule)) {
+    if ((returnId || exchange) && (reasonOk || matchesRule)) {
       try {
         const out = await approveAndSettle(admin, session.shop, r.id, rules, pro);
         approved = true;

@@ -104,12 +104,12 @@ export async function orderReturns(admin: AdminClient, orderId: string): Promise
   }
 }
 
-export type NewReturn = { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string; returnId: string; returnName: string; status: string; resolution?: "refund" | "credit"; quote?: number; currency?: string; creditBonus?: number };
+export type NewReturn = { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string; returnId: string; returnName: string; status: string; resolution?: "refund" | "credit" | "exchange"; exchange?: string; quote?: number; currency?: string; creditBonus?: number };
 
 export async function addReturn(shop: string, r: NewReturn) {
   const open = await db.returnRequest.findFirst({ where: { shop, orderId: r.orderId, status: { in: ["requested", "pending", "approved"] } } });
   if (open) return { duplicate: true, id: open.id } as const;
-  const row = await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note, returnId: r.returnId, returnName: r.returnName, status: r.status, resolution: r.resolution ?? "refund", quote: r.quote ?? 0, currency: r.currency ?? "", creditBonus: r.creditBonus ?? 0 } });
+  const row = await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note, returnId: r.returnId, returnName: r.returnName, status: r.status, resolution: r.resolution ?? "refund", exchange: r.exchange ?? "", quote: r.quote ?? 0, currency: r.currency ?? "", creditBonus: r.creditBonus ?? 0 } });
   return { duplicate: false, id: row.id } as const;
 }
 
@@ -122,7 +122,7 @@ export async function listReturns(shop: string) {
     } catch {
       items = [];
     }
-    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString(), returnId: r.returnId, returnName: r.returnName, labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl, declineNote: r.declineNote, refundedAt: r.refundedAt?.toISOString() ?? null, resolution: r.resolution, quote: r.quote, currency: r.currency, creditKind: r.creditKind, creditCode: r.creditCode, creditAmount: r.creditAmount, creditBonus: r.creditBonus, creditedAt: r.creditedAt?.toISOString() ?? null };
+    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString(), returnId: r.returnId, returnName: r.returnName, labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl, declineNote: r.declineNote, refundedAt: r.refundedAt?.toISOString() ?? null, resolution: r.resolution, quote: r.quote, currency: r.currency, creditKind: r.creditKind, creditCode: r.creditCode, creditAmount: r.creditAmount, creditBonus: r.creditBonus, creditedAt: r.creditedAt?.toISOString() ?? null, exchange: r.exchange, holds: r.holds };
   });
 }
 
@@ -132,9 +132,21 @@ export async function listReturns(shop: string) {
  */
 export async function returnSavings(shop: string, days = 30) {
   const since = new Date(Date.now() - days * 86_400_000);
-  const rows = await db.returnRequest.findMany({ where: { shop, OR: [{ refundedAt: { gte: since } }, { creditedAt: { gte: since } }] }, select: { quote: true, creditAmount: true, creditBonus: true, refundedAt: true, creditedAt: true, currency: true } });
-  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0 } };
+  const rows = await db.returnRequest.findMany({ where: { shop, OR: [{ refundedAt: { gte: since } }, { creditedAt: { gte: since } }, { resolution: "exchange", status: { in: ["approved", "exchanged"] }, createdAt: { gte: since } }] }, select: { quote: true, creditAmount: true, creditBonus: true, refundedAt: true, creditedAt: true, currency: true, resolution: true, exchange: true } });
+  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0 }, exchanges: { count: 0, value: 0 } };
   for (const r of rows) {
+    if (r.resolution === "exchange") {
+      // What the shopper took instead: the new items' price.
+      let value = 0;
+      try {
+        value = (JSON.parse(r.exchange).lines as { qty: number; newPrice: number }[]).reduce((n, l) => n + l.qty * l.newPrice, 0);
+      } catch {
+        value = r.quote;
+      }
+      out.exchanges.count += 1;
+      out.exchanges.value += value;
+      continue;
+    }
     if (r.creditedAt) {
       out.credit.count += 1;
       out.credit.value += r.creditAmount;
@@ -148,7 +160,14 @@ export async function returnSavings(shop: string, days = 30) {
   out.refunds.value = round(out.refunds.value);
   out.credit.value = round(out.credit.value);
   out.credit.bonus = round(out.credit.bonus);
+  out.exchanges.value = round(out.exchanges.value);
   return out;
+}
+
+/** Exchange requests the shopper made on this order that have no Shopify return yet (it is created when the merchant approves). */
+export async function exchangesForOrder(shop: string, orderId: string, email: string) {
+  const rows = await db.returnRequest.findMany({ where: { shop, orderId, email: email.toLowerCase(), resolution: "exchange", returnId: "" }, orderBy: { createdAt: "desc" }, take: 5 });
+  return rows.map((r) => ({ name: `Exchange ${r.orderName}`, status: r.status === "declined" ? "DECLINED" : "REQUESTED" }));
 }
 
 /** The credit given for this order's returns (what the Returns page shows the shopper). */
@@ -163,7 +182,7 @@ export async function getReturn(shop: string, id: number) {
   return db.returnRequest.findFirst({ where: { shop, id } });
 }
 
-export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null; creditKind?: string; creditCode?: string; creditAmount?: number; creditedAt?: Date | null }) {
+export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null; creditKind?: string; creditCode?: string; creditAmount?: number; creditedAt?: Date | null; holds?: string; returnId?: string; returnName?: string }) {
   await db.returnRequest.updateMany({ where: { shop, id }, data });
 }
 

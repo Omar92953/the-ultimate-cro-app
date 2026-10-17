@@ -32,13 +32,13 @@ export async function saveReturnRules(admin: AdminClient, raw: unknown) {
 }
 
 /* ---------------------------------------------------------- what can be returned -- */
-export type ReturnableItem = { fulfillmentLineItemId: string; key: string; title: string; variant: string; quantity: number; image: string | null; tags: string[]; /** What one unit was paid, after discounts, in the shop currency. */ price: number };
+export type ReturnableItem = { fulfillmentLineItemId: string; key: string; title: string; variant: string; quantity: number; image: string | null; tags: string[]; /** What one unit was paid, after discounts, in the shop currency. */ price: number; /** The variant bought, and the variants of the same product it could be exchanged for. */ variantId: string; swaps: { id: string; title: string; price: number; available: boolean }[] };
 
 /** The fulfilled items of an order that can still be returned (Shopify takes out items already returned). */
 export async function returnableItems(admin: AdminClient, orderId: string): Promise<ReturnableItem[]> {
   const data = await gql(admin, `#graphql
-    query CroReturnable($orderId: ID!) { returnableFulfillments(orderId: $orderId, first: 10) { nodes { id returnableFulfillmentLineItems(first: 50) { nodes { quantity fulfillmentLineItem { id lineItem { id title variantTitle discountedUnitPriceSet { shopMoney { amount } } image { url } product { tags } } } } } } } }`, { orderId });
-  type Node = { quantity: number; fulfillmentLineItem: { id: string; lineItem: { id: string; title: string; variantTitle: string | null; discountedUnitPriceSet: { shopMoney: { amount: string } } | null; image: { url: string } | null; product: { tags: string[] } | null } } };
+    query CroReturnable($orderId: ID!) { returnableFulfillments(orderId: $orderId, first: 10) { nodes { id returnableFulfillmentLineItems(first: 50) { nodes { quantity fulfillmentLineItem { id lineItem { id title variantTitle discountedUnitPriceSet { shopMoney { amount } } image { url } variant { id } product { tags variants(first: 40) { nodes { id title price availableForSale } } } } } } } } } }`, { orderId });
+  type Node = { quantity: number; fulfillmentLineItem: { id: string; lineItem: { id: string; title: string; variantTitle: string | null; discountedUnitPriceSet: { shopMoney: { amount: string } } | null; image: { url: string } | null; variant: { id: string } | null; product: { tags: string[]; variants: { nodes: { id: string; title: string; price: string; availableForSale: boolean }[] } } | null } } };
   return (data.returnableFulfillments?.nodes ?? []).flatMap((f: { returnableFulfillmentLineItems: { nodes: Node[] } }) =>
     f.returnableFulfillmentLineItems.nodes.map((n) => ({
       fulfillmentLineItemId: n.fulfillmentLineItem.id,
@@ -49,6 +49,8 @@ export async function returnableItems(admin: AdminClient, orderId: string): Prom
       image: n.fulfillmentLineItem.lineItem.image?.url ?? null,
       tags: (n.fulfillmentLineItem.lineItem.product?.tags ?? []).map((t) => t.toLowerCase()),
       price: Number(n.fulfillmentLineItem.lineItem.discountedUnitPriceSet?.shopMoney.amount) || 0,
+      variantId: n.fulfillmentLineItem.lineItem.variant?.id ?? "",
+      swaps: (n.fulfillmentLineItem.lineItem.product?.variants.nodes ?? []).map((v) => ({ id: v.id, title: v.title, price: Number(v.price) || 0, available: v.availableForSale })),
     })),
   );
 }
@@ -155,7 +157,8 @@ export async function grantedScopes(admin: AdminClient): Promise<string[]> {
 /** Brings the app's list in line with Shopify (the merchant may approve or close a return in the Shopify admin too). */
 export async function syncReturns(admin: AdminClient, shop: string): Promise<void> {
   const { listReturns, updateReturn } = await import("./orders-lookup.server");
-  const rows = (await listReturns(shop)).filter((r) => r.returnId && ["requested", "pending", "approved"].includes(r.status));
+  // Exchanges are tracked by the app (their Shopify return is processed at once), so Shopify's status does not close them.
+  const rows = (await listReturns(shop)).filter((r) => r.returnId && r.resolution !== "exchange" && ["requested", "pending", "approved"].includes(r.status));
   if (!rows.length) return;
   const now = await returnStatuses(admin, rows.map((r) => r.returnId)).catch(() => ({}) as Record<string, string>);
   for (const r of rows) {

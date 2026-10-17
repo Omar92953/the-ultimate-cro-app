@@ -214,7 +214,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   return_saving: {
     who: "For stores that want to keep the sale when a shopper returns something.",
-    points: ["Shoppers choose store credit instead of a refund, with an optional bonus", "Credit as Shopify store credit, a gift card or a single use discount code, whichever your store supports", "Approve returns by rule: reason, product tag, order value, days since delivery", "Put returned items back in stock at your location", "Refunds to the original payment stay available"],
+    points: ["Shoppers choose store credit instead of a refund, with an optional bonus", "Exchanges for another size or colour, with the new shipment held until the items arrive", "Credit as Shopify store credit, a gift card or a single use discount code, whichever your store supports", "Approve returns by rule: reason, product tag, order value, days since delivery", "Put returned items back in stock at your location", "Refunds to the original payment stay available"],
     related: ["returns", "track"],
   },
   ab_tests: {
