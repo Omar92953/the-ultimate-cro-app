@@ -5,6 +5,7 @@
  */
 import db from "../db.server";
 import { gql, type AdminClient } from "./admin.server";
+import { buildTracking, fromShopifyEvent, type Tracking } from "./tracking";
 
 export type OrderSummary = {
   id: string;
@@ -14,7 +15,7 @@ export type OrderSummary = {
   payment: string;
   fulfillment: string;
   items: { id: string; title: string; variant: string; quantity: number; image: string | null }[];
-  shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null }[];
+  shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null; /** What Shopify knows: its fulfillment events, dates and status. */ tracking: Tracking | null }[];
 };
 
 const clean = (v: unknown, max: number) =>
@@ -32,6 +33,25 @@ export function readLookup(body: Record<string, unknown>) {
   return { number, email } as const;
 }
 
+type FulfillmentNode = {
+  displayStatus: string | null;
+  deliveredAt: string | null;
+  inTransitAt?: string | null;
+  estimatedDeliveryAt: string | null;
+  trackingInfo: { company: string | null; number: string | null; url: string | null }[];
+  events?: { nodes: { status: string | null; city: string | null; province: string | null; country: string | null; message: string | null; happenedAt: string }[] };
+};
+
+/** What Shopify itself knows about a fulfillment: its events (newest first), the dates and the status. Null when it knows nothing yet. */
+export function shopifyTracking(f: FulfillmentNode): Tracking | null {
+  const events = (f.events?.nodes ?? []).map((e) => ({ status: fromShopifyEvent(e.status), city: e.city ?? "", province: e.province ?? "", country: e.country ?? "", message: e.message ?? "", at: e.happenedAt }));
+  // A fulfillment with no events still says when it left (inTransitAt) and its overall status.
+  if (!events.length && f.inTransitAt) events.push({ status: "transit", city: "", province: "", country: "", message: "", at: f.inTransitAt });
+  if (!events.length && !f.deliveredAt && !f.estimatedDeliveryAt && !f.displayStatus) return null;
+  const t = buildTracking({ events, estimated: f.estimatedDeliveryAt, delivered: f.deliveredAt, status: events.length ? undefined : fromShopifyEvent(f.displayStatus) });
+  return t;
+}
+
 export async function findOrder(admin: AdminClient, number: string, email: string): Promise<OrderSummary | null> {
   const data = await gql(
     admin,
@@ -41,7 +61,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
         nodes {
           id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus
           lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } } }
-          fulfillments(first: 10) { displayStatus deliveredAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } }
+          fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }
       }
     }`,
@@ -59,8 +79,8 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     items: order.lineItems.nodes
       .filter((l: { currentQuantity: number }) => l.currentQuantity > 0)
       .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null }) => ({ id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null })),
-    shipments: order.fulfillments.flatMap((f: { displayStatus: string | null; deliveredAt: string | null; estimatedDeliveryAt: string | null; trackingInfo: { company: string | null; number: string | null; url: string | null }[] }) =>
-      (f.trackingInfo.length ? f.trackingInfo : [{ company: null, number: null, url: null }]).map((t) => ({ status: f.displayStatus ?? "", company: t.company, number: t.number, url: t.url, delivered: f.deliveredAt, estimated: f.estimatedDeliveryAt })),
+    shipments: order.fulfillments.flatMap((f: FulfillmentNode) =>
+      (f.trackingInfo.length ? f.trackingInfo : [{ company: null, number: null, url: null }]).map((t) => ({ status: f.displayStatus ?? "", company: t.company, number: t.number, url: t.url, delivered: f.deliveredAt, estimated: f.estimatedDeliveryAt, tracking: shopifyTracking(f) })),
     ),
   };
 }

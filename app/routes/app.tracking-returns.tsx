@@ -13,6 +13,8 @@ import { authenticate } from "../shopify.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import { createOrderPage, orderPageContext, pageAdminUrl, type OrderPageKind } from "../lib/order-page-setup.server";
+import { planContext } from "../lib/rules.server";
+import { getTrackingConfig } from "../lib/tracking/tracking.server";
 import { listReturns, shipmentOverview } from "../lib/orders-lookup.server";
 import { getReturnRules, grantedScopes, syncReturns } from "../lib/shopify-returns.server";
 import { remember } from "../lib/short-cache.server";
@@ -33,6 +35,8 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
     grantedScopes(admin).catch(() => [] as string[]),
     remember(session.shop, "shipments", 5 * 60000, () => shipmentOverview(admin)).catch(() => null),
   ]);
+  const pctx = await planContext(admin, session.shop);
+  const tracking = await getTrackingConfig(session.shop, pctx.plan).catch(() => null);
   const ctx = await orderPageContext(admin, session.shop, theme);
   const links = ctx.links;
   const inPageTemplate = ctx.inPageTemplate;
@@ -48,6 +52,7 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
       refunded: returns.filter((r) => r.refundedAt && Date.parse(r.refundedAt) >= monthStart.getTime()).length,
     },
     shipments,
+    tracking: tracking ? { chosen: tracking.chosen, source: tracking.source, used: tracking.live.used, limit: tracking.live.limit } : null,
     inTheme: theme ? { track: inPageTemplate, returns: inPageTemplate } : null,
     pages: { track: ctx.pages.track ? { handle: ctx.pages.track.handle, admin: pageAdminUrl(session.shop, ctx.pages.track) } : null, returns: ctx.pages.returns ? { handle: ctx.pages.returns.handle, admin: pageAdminUrl(session.shop, ctx.pages.returns) } : null },
     links: { track: links.track, returns: links.returns },
@@ -98,7 +103,9 @@ export default function TrackingReturns() {
   const pagesDone = !!d.pages.track && !!d.pages.returns;
   type Check = { done: boolean; title: string; text: string; action?: { label: string; href?: string; external?: boolean; onClick?: () => void; loading?: boolean } };
   // Numbered, in the order to do them; each turns green when the app can see it is done.
+  const sourceName = { shopify: "Shopify's tracking data", live: "Live tracking", own: "Your own key", webhook: "Webhook link" }[d.tracking?.source ?? "shopify"];
   const checks: Check[] = [
+    { done: !!d.tracking?.chosen, title: "Where should tracking come from?", text: d.tracking?.chosen ? `In use: ${sourceName}${d.tracking.source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Shopify's data is the default and is free. Pro stores can use live tracking, or you can use your own key or a webhook link.", action: { label: d.tracking?.chosen ? "Change" : "Choose", href: "/app/tracking-source" } },
     { done: d.scopes.returns, title: "Approve the returns permission", text: "Open the app from Shopify's Apps list and approve the update. Returns need it to create, approve and refund Shopify returns.", action: d.scopes.returns ? undefined : { label: "Open Apps", href: `https://admin.shopify.com/store/${d.shop.replace(".myshopify.com", "")}/settings/apps`, external: true } },
     { done: pagesDone, title: "Make the two pages", text: pagesDone ? `Your pages are /pages/${d.pages.track!.handle} and /pages/${d.pages.returns!.handle}.` : "The app makes the “Track your order” and “Returns” pages in your store for you.", action: pagesDone ? undefined : { label: "Make the pages", onClick: () => fetcher.submit({ which: "both" }, { method: "post" }), loading: fetcher.state !== "idle" } },
     { done: !!d.inTheme?.track, title: "Add the block to your page template", text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on the two pages above (Page: Automatic), so your other pages stay as they are. Then add the two pages to your menu or footer.", action: d.inTheme?.track ? undefined : { label: "Open the theme editor", href: d.links.track, external: true } },

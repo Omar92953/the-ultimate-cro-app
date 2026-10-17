@@ -150,3 +150,39 @@ model McpAudit {
   @@index([shop, createdAt])
   @@index([grantId, createdAt])
 }
+
+/// Where a store's Track page gets its tracking from (docs/research/tracking-returns.md §9). Keys are stored encrypted.
+model TrackingConfig {
+  shop          String   @id
+  source        String   @default("shopify")
+  keyCipher     String   @default("")
+  keyLast4      String   @default("")
+  provider      String   @default("")
+  webhookSecret String   @default("")
+  updatedAt     DateTime @default(now())
+}
+
+/// The last answer for one tracking number, so the shopper's page reads the cache and the provider is asked a few times a day.
+model TrackingCache {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  number    String
+  carrier   String   @default("")
+  via       String
+  status    String   @default("info")
+  data      String
+  createdAt DateTime @default(now())
+  checkedAt DateTime @default(now())
+
+  @@unique([shop, number])
+  @@index([checkedAt])
+}
+
+/// Shipments registered with our own live tracking account, per store and month (Pro includes 500 a month).
+model TrackingUsage {
+  shop  String
+  month String
+  count Int    @default(0)
+
+  @@id([shop, month])
+}

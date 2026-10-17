@@ -646,3 +646,14 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-op__rets { margin: 0 0 12px; padding-left: 1.1em; }
 .ucs-op__after { margin: 12px 0; padding: 12px; border-radius: var(--ucs-op-r, 12px); background: rgba(127, 127, 127, 0.08); }
 .ucs-op__after p { margin: 0 0 6px; }
+
+/* Track page timeline */
+.ucs-op__tl { margin: 4px 0 12px; padding: 0 0 0 18px; list-style: none; border-left: 2px solid rgba(127, 127, 127, 0.3); }
+.ucs-op__ev { position: relative; display: grid; gap: 2px; padding: 0 0 12px 12px; }
+.ucs-op__ev::before { content: ""; position: absolute; left: -24px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: rgba(127, 127, 127, 0.5); }
+.ucs-op__ev:first-child::before { background: var(--ucs-accent, #121212); }
+.ucs-op__ev--delivered::before { background: #1a7f37; }
+.ucs-op__ev--problem::before { background: #b42318; }
+.ucs-op__evh { font-weight: 600; }
+.ucs-op__evh small { font-weight: 400; opacity: 0.7; }
+.ucs-op__evt { opacity: 0.8; font-size: 0.92em; }

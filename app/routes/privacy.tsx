@@ -40,7 +40,7 @@ const SECTIONS: [string, string[]][] = [
   [
     "How we use it",
     [
-      "Only to provide the app's features to the merchant who installed it. We don't sell information, use it for advertising, or share it with anyone except the services that host the app (application hosting and a managed database), which process it on our behalf.",
+      "Only to provide the app's features to the merchant who installed it. We don't sell information, use it for advertising, or share it with anyone except the services that host the app (application hosting and a managed database), which process it on our behalf. If a store turns on live tracking, the tracking number of a shipment is also sent to our tracking data provider, 17TRACK, to get its delivery events; nothing else about the order or the shopper is sent.",
     ],
   ],
   [

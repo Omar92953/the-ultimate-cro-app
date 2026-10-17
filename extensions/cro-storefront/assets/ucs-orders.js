@@ -3,7 +3,7 @@
 (function () {
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var DEF = {
-    track: { heading: 'Track your order', sub: 'Enter your order number and the email you used at checkout.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Track order', notFound: "We couldn't find an order with that number and email. Please check both.", placed: 'Placed on', shipped: 'Tracking number', trackLink: 'Track the parcel', noTracking: "Your order is being prepared. You'll get tracking details as soon as it ships.", delivered: 'Delivered', estimated: 'Expected', again: 'Track another order', unavailable: "Order lookup isn't available right now. Please try again in a moment.", carrierOnly: "Live updates are on the carrier's page. Open the tracking link." },
+    track: { heading: 'Track your order', sub: 'Enter your order number and the email you used at checkout.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Track order', notFound: "We couldn't find an order with that number and email. Please check both.", placed: 'Placed on', shipped: 'Tracking number', trackLink: 'Track the parcel', noTracking: "Your order is being prepared. You'll get tracking details as soon as it ships.", delivered: 'Delivered', estimated: 'Expected', again: 'Track another order', unavailable: "Order lookup isn't available right now. Please try again in a moment.", carrierOnly: "Live updates are on the carrier's page. Open the tracking link.", statusInfo: 'Info received', statusTransit: 'In transit', statusOut: 'Out for delivery', statusDelivered: 'Delivered', statusProblem: 'Delivery problem', where: 'Latest update', history: 'Tracking history' },
     returns: { heading: 'Request a return', sub: 'Enter your order number and the email you used at checkout, then choose what you would like to return.', unavailable: "Order lookup isn't available right now. Please try again in a moment.", order: 'Order number (e.g. 1001)', email: 'Email', button: 'Find my order', notFound: "We couldn't find an order with that number and email. Please check both.", pick: 'Which items would you like to return?', reason: 'Reason', reasons: 'Wrong size\nNot as expected\nArrived damaged\nChanged my mind\nOther', note: 'Anything else we should know? (optional)', send: 'Send return request', thanks: "Thanks! We've received your request and will email you the next steps.", already: "You've already sent a return request for this order. We'll be in touch soon.", tooLate: 'This order is outside our return window.', thanksApproved: 'Your return is approved. Here is how to send it back.', yourReturns: 'Your returns for this order', sendTo: 'Send the items to', shopperPays: 'You pay for the return shipping.', merchantPays: 'We will email you a return label.', nothing: 'Nothing in this order can be returned.' }
   };
   var STATUS = { FULFILLED: 'Shipped', UNFULFILLED: 'Being prepared', PARTIALLY_FULFILLED: 'Partly shipped', IN_PROGRESS: 'Being prepared', ON_HOLD: 'On hold', SCHEDULED: 'Scheduled', RESTOCKED: 'Returned', PAID: 'Paid', PENDING: 'Payment pending', REFUNDED: 'Refunded', PARTIALLY_REFUNDED: 'Partly refunded', AUTHORIZED: 'Payment authorised', VOIDED: 'Cancelled', DELIVERED: 'Delivered', IN_TRANSIT: 'In transit', OUT_FOR_DELIVERY: 'Out for delivery', ATTEMPTED_DELIVERY: 'Delivery attempted', READY_FOR_PICKUP: 'Ready for pickup', CONFIRMED: 'Confirmed', LABEL_PRINTED: 'Label printed', LABEL_PURCHASED: 'Label created', FAILURE: 'Delivery problem', CANCELED: 'Cancelled', NOT_DELIVERED: 'Not delivered' };
@@ -69,11 +69,27 @@
 
     var showOrder = function (o) {
       var ships = o.shipments.filter(function (s) { return s.number || s.url || s.delivered; });
+      var STEP = { info: t.statusInfo, transit: t.statusTransit, out: t.statusOut, delivered: t.statusDelivered, problem: t.statusProblem };
+      var when = function (s) { try { return new Date(s).toLocaleString(locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return s; } };
+      var place = function (e) { return [e.city, e.province, e.country].filter(Boolean).join(', '); };
+      // The timeline: the newest update first, where it happened and what the carrier said.
+      var timeline = function (k) {
+        if (!k || !k.events || !k.events.length) return '';
+        return '<p class="ucs-op__t"><b>' + esc(t.history) + '</b></p><ol class="ucs-op__tl">' + k.events.map(function (e) {
+          return '<li class="ucs-op__ev ucs-op__ev--' + esc(e.status) + '"><span class="ucs-op__evh">' + esc(STEP[e.status] || '') + ' <small>' + esc(when(e.at)) + '</small></span>' +
+            (e.message || place(e) ? '<span class="ucs-op__evt">' + esc([e.message, place(e)].filter(Boolean).join(' · ')) + '</span>' : '') + '</li>';
+        }).join('') + '</ol>';
+      };
       var tracking = ships.length ? ships.map(function (s) {
-        return '<div class="ucs-op__ship"><span class="ucs-op__pill">' + esc(s.delivered ? t.delivered : nice(s.status)) + '</span>' +
+        var k = s.tracking;
+        var delivered = (k && k.delivered) || s.delivered, estimated = (k && k.estimated) || s.estimated;
+        var label = k ? STEP[k.status] : (s.delivered ? t.delivered : nice(s.status));
+        return '<div class="ucs-op__ship"><span class="ucs-op__pill">' + esc(delivered ? t.delivered : label) + '</span>' +
           (s.number ? '<p class="ucs-op__t">' + esc(t.shipped) + ': <b>' + esc(s.number) + '</b>' + (s.company ? ' · ' + esc(s.company) : '') + '</p>' : '') +
-          (s.delivered ? '<p class="ucs-op__t">' + esc(t.delivered) + ': ' + esc(day(s.delivered)) + '</p>' : s.estimated ? '<p class="ucs-op__t">' + esc(t.estimated) + ': ' + esc(day(s.estimated)) + '</p>' : '') +
-          (s.url && !s.delivered && /^(shipped|fulfilled)$/i.test(nice(s.status)) ? '<p class="ucs-op__t">' + esc(t.carrierOnly) + '</p>' : '') +
+          (delivered ? '<p class="ucs-op__t">' + esc(t.delivered) + ': ' + esc(day(delivered)) + '</p>' : estimated ? '<p class="ucs-op__t">' + esc(t.estimated) + ': ' + esc(day(estimated)) + '</p>' : '') +
+          (k && k.place && !delivered ? '<p class="ucs-op__t">' + esc(t.where) + ': <b>' + esc(k.place) + '</b></p>' : '') +
+          timeline(k) +
+          (s.url && !delivered && !(k && k.events && k.events.length) && /^(shipped|fulfilled)$/i.test(nice(s.status)) ? '<p class="ucs-op__t">' + esc(t.carrierOnly) + '</p>' : '') +
           (s.url ? '<a class="ucs-btn ucs-btn--outline" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(t.trackLink) + '</a>' : '') + '</div>';
       }).join('') : '<p class="ucs-op__t">' + esc(t.noTracking) + '</p>';
       host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card">' +
