@@ -35,3 +35,10 @@ test("demoDesign: template N of a design page is demo design N, within what the 
   assert.equal(demoDesign("contact", 0), undefined);
   for (const k of Object.keys(DEMO_TEMPLATES)) assert.ok(DEMOS.includes(k as (typeof DEMOS)[number]), k);
 });
+
+test("every feature a plan locks has a live demo (the locked page shows its See live demo button)", async () => {
+  const { FEATURE_KEYS } = await import("../../app/lib/catalog");
+  const { FEATURE_PLAN } = await import("../../app/lib/plans");
+  const { hasDemo } = await import("../../app/lib/site");
+  for (const k of FEATURE_KEYS) if (FEATURE_PLAN[k] !== "free") assert.ok(hasDemo(k), `${k} is locked on a plan but has no demo`);
+});
