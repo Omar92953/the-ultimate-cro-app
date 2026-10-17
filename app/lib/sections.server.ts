@@ -344,7 +344,9 @@ export async function finishUpload(admin: AdminClient, input: { resourceUrl: str
 
 /* ---------------------------------------------------------- theme editor -- */
 /** One-click links: add a section block to a template, or switch on an app embed. */
-export function sectionLinks(shop: string) {
+export function sectionLinks(shop: string, pages: { trackHandle?: string; returnsHandle?: string } = {}) {
+  const trackHandle = pages.trackHandle || "track-your-order";
+  const returnsHandle = pages.returnsHandle || "returns";
   const key = process.env.SHOPIFY_API_KEY;
   const base = `https://${shop}/admin/themes/current/editor`;
   const block = (handle: string, template = "index") => `${base}?template=${template}&addAppBlockId=${key}/${handle}&target=newAppsSection`;
@@ -353,8 +355,10 @@ export function sectionLinks(shop: string) {
   const headerBlock = (handle: string) => `${base}?template=index&addAppBlockId=${key}/${handle}&target=sectionGroup:header`;
   return {
     reviews: block(SECTIONS.reviews.block),
-    track: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
-    returns: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection`,
+    // One block in the page template serves both pages (it picks Track or Returns from the page's handle).
+    // previewPath opens the editor on the page the app made, so the merchant sees the result.
+    track: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection&previewPath=${encodeURIComponent(`/pages/${trackHandle}`)}`,
+    returns: `${base}?template=page&addAppBlockId=${key}/ucs-order-page&target=newAppsSection&previewPath=${encodeURIComponent(`/pages/${returnsHandle}`)}`,
     quiz: block("ucs-quiz"),
     wishlist: embed("ucs-boosters"),
     cart_extras: block("ucs-cart-extras", "cart"),

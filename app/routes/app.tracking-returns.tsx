@@ -4,12 +4,15 @@
  * requests. Tracking uses what Shopify knows about each shipment (no carrier service); returns are real
  * Shopify returns (app/lib/shopify-returns.server.ts). Plan: Growth (plans.ts).
  */
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { useEffect } from "react";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { getThemeStatus } from "../lib/cro.server";
-import { sectionLinks } from "../lib/sections.server";
+import { errorMessage } from "../lib/admin.server";
+import { createOrderPage, orderPageContext, pageAdminUrl, type OrderPageKind } from "../lib/order-page-setup.server";
 import { listReturns, shipmentOverview } from "../lib/orders-lookup.server";
 import { getReturnRules, grantedScopes, syncReturns } from "../lib/shopify-returns.server";
 import { remember } from "../lib/short-cache.server";
@@ -30,7 +33,9 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
     grantedScopes(admin).catch(() => [] as string[]),
     remember(session.shop, "shipments", 5 * 60000, () => shipmentOverview(admin)).catch(() => null),
   ]);
-  const links = sectionLinks(session.shop);
+  const ctx = await orderPageContext(admin, session.shop, theme);
+  const links = ctx.links;
+  const inPageTemplate = ctx.inPageTemplate;
   const monthStart = new Date();
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
@@ -43,13 +48,27 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
       refunded: returns.filter((r) => r.refundedAt && Date.parse(r.refundedAt) >= monthStart.getTime()).length,
     },
     shipments,
-    inTheme: theme ? { track: theme.installed.track, returns: theme.installed.returns } : null,
+    inTheme: theme ? { track: inPageTemplate, returns: inPageTemplate } : null,
+    pages: { track: ctx.pages.track ? { handle: ctx.pages.track.handle, admin: pageAdminUrl(session.shop, ctx.pages.track) } : null, returns: ctx.pages.returns ? { handle: ctx.pages.returns.handle, admin: pageAdminUrl(session.shop, ctx.pages.returns) } : null },
     links: { track: links.track, returns: links.returns },
     rulesSaved: !!rules?.saved,
     hasAddress: !!rules?.rules.address,
     scopes: { returns: scopes.includes("write_returns") && scopes.includes("read_returns"), allOrders: scopes.includes("read_all_orders") },
   };
 });
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+  const form = await request.formData();
+  try {
+    const which = String(form.get("which"));
+    const kinds: OrderPageKind[] = which === "track" ? ["track"] : which === "returns" ? ["returns"] : ["track", "returns"];
+    for (const k of kinds) await createOrderPage(admin, k);
+    return { ok: true, error: null };
+  } catch (e) {
+    return { ok: false, error: errorMessage(e) };
+  }
+};
 
 function Tile({ label, value, note, href }: { label: string; value: number | string; note?: string; href?: string }) {
   const body = (
@@ -68,11 +87,21 @@ function Tile({ label, value, note, href }: { label: string; value: number | str
 
 export default function TrackingReturns() {
   const d = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.ok) shopify.toast.show("Pages ready");
+    else shopify.toast.show(fetcher.data.error || "Could not make the pages", { isError: true });
+  }, [fetcher.state, fetcher.data, shopify]);
   const intro = area("tracking").intro;
-  const checks: { done: boolean; title: string; text: string; action?: { label: string; href: string; external?: boolean } }[] = [
+  const pagesDone = !!d.pages.track && !!d.pages.returns;
+  type Check = { done: boolean; title: string; text: string; action?: { label: string; href?: string; external?: boolean; onClick?: () => void; loading?: boolean } };
+  // Numbered, in the order to do them; each turns green when the app can see it is done.
+  const checks: Check[] = [
     { done: d.scopes.returns, title: "Approve the returns permission", text: "Open the app from Shopify's Apps list and approve the update. Returns need it to create, approve and refund Shopify returns.", action: d.scopes.returns ? undefined : { label: "Open Apps", href: `https://admin.shopify.com/store/${d.shop.replace(".myshopify.com", "")}/settings/apps`, external: true } },
-    { done: !!d.inTheme?.track, title: "Put the Track order page on a page", text: "In the theme editor, add the Track order block to a page and save.", action: d.inTheme?.track ? undefined : { label: "Add to a page", href: d.links.track, external: true } },
-    { done: !!d.inTheme?.returns, title: "Put the Returns page on a page", text: "Add the Returns block to its own page and link it from your menu or footer.", action: d.inTheme?.returns ? undefined : { label: "Add to a page", href: d.links.returns, external: true } },
+    { done: pagesDone, title: "Make the two pages", text: pagesDone ? `Your pages are /pages/${d.pages.track!.handle} and /pages/${d.pages.returns!.handle}.` : "The app makes the “Track your order” and “Returns” pages in your store for you.", action: pagesDone ? undefined : { label: "Make the pages", onClick: () => fetcher.submit({ which: "both" }, { method: "post" }), loading: fetcher.state !== "idle" } },
+    { done: !!d.inTheme?.track, title: "Add the block to your page template", text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on the two pages above (Page: Automatic), so your other pages stay as they are. Then add the two pages to your menu or footer.", action: d.inTheme?.track ? undefined : { label: "Open the theme editor", href: d.links.track, external: true } },
     { done: d.rulesSaved && d.hasAddress, title: "Set your return rules and address", text: "The return window, products that can't be returned and the address shoppers send items to.", action: d.rulesSaved && d.hasAddress ? undefined : { label: "Open rules", href: "/app/returns/rules" } },
     { done: d.scopes.allOrders, title: "Orders older than 60 days", text: "Shopify only lets the app see the last 60 days of orders until it approves access to all orders (requested in the Partner Dashboard). Until then older orders can't be found on these pages." },
   ];
@@ -99,12 +128,18 @@ export default function TrackingReturns() {
           <s-section heading="Track order page">
             <s-stack gap="small-200">
               <s-text color="subdued">Shoppers enter their order number and email and see its delivery status, tracking number and carrier link. It shows what Shopify knows about the shipment; live carrier updates are on the carrier&apos;s own page.</s-text>
-              <Pill tone={d.inTheme?.track ? "ok" : "warn"}>{d.inTheme?.track ? "On your store" : "Not on a page yet"}</Pill>
+              <Pill tone={d.pages.track && d.inTheme?.track ? "ok" : "warn"}>{!d.pages.track ? "Page not made yet" : d.inTheme?.track ? "On your store" : "Block not added yet"}</Pill>
               <s-stack direction="inline" gap="small-200">
                 <Button href="/app/pages/track">Style the page</Button>
-                <Button variant="tertiary" href={d.links.track} target="_top" icon="theme-edit">
-                  {d.inTheme?.track ? "Open in theme editor" : "Add to a page"}
-                </Button>
+                {d.pages.track ? (
+                  <Button variant="tertiary" href={d.links.track} target="_top" icon="theme-edit">
+                    {d.inTheme?.track ? "Open in theme editor" : "Add the block"}
+                  </Button>
+                ) : (
+                  <Button variant="tertiary" loading={fetcher.state !== "idle"} onClick={() => fetcher.submit({ which: "track" }, { method: "post" })}>
+                    Make the page
+                  </Button>
+                )}
                 <DemoButton feature="track" slot="" variant="tertiary" />
               </s-stack>
             </s-stack>
@@ -112,15 +147,21 @@ export default function TrackingReturns() {
           <s-section heading="Returns page">
             <s-stack gap="small-200">
               <s-text color="subdued">Shoppers choose the items and a reason. It becomes a Shopify return you approve (or approve automatically for the reasons you pick), add a label to and refund.</s-text>
-              <Pill tone={d.inTheme?.returns ? "ok" : "warn"}>{d.inTheme?.returns ? "On your store" : "Not on a page yet"}</Pill>
+              <Pill tone={d.pages.returns && d.inTheme?.returns ? "ok" : "warn"}>{!d.pages.returns ? "Page not made yet" : d.inTheme?.returns ? "On your store" : "Block not added yet"}</Pill>
               <s-stack direction="inline" gap="small-200">
                 <Button href="/app/pages/returns">Style the page</Button>
                 <Button variant="tertiary" href="/app/returns/rules">
                   Return rules
                 </Button>
-                <Button variant="tertiary" href={d.links.returns} target="_top" icon="theme-edit">
-                  {d.inTheme?.returns ? "Open in theme editor" : "Add to a page"}
-                </Button>
+                {d.pages.returns ? (
+                  <Button variant="tertiary" href={d.links.returns} target="_top" icon="theme-edit">
+                    {d.inTheme?.returns ? "Open in theme editor" : "Add the block"}
+                  </Button>
+                ) : (
+                  <Button variant="tertiary" loading={fetcher.state !== "idle"} onClick={() => fetcher.submit({ which: "returns" }, { method: "post" })}>
+                    Make the page
+                  </Button>
+                )}
               </s-stack>
             </s-stack>
           </s-section>
@@ -128,17 +169,17 @@ export default function TrackingReturns() {
 
         <s-section heading={`Setup: ${doneCount} of ${checks.length} done`}>
           <s-stack gap="base">
-            {checks.map((c) => (
+            {checks.map((c, n) => (
               <s-stack key={c.title} direction="inline" gap="small-200" alignItems="start" justifyContent="space-between">
                 <s-stack gap="small-100">
                   <s-stack direction="inline" gap="small-200" alignItems="center">
                     <Pill tone={c.done ? "ok" : "warn"}>{c.done ? "Done" : "To do"}</Pill>
-                    <s-text type="strong">{c.title}</s-text>
+                    <s-text type="strong">{`${n + 1}. ${c.title}`}</s-text>
                   </s-stack>
                   <s-text color="subdued">{c.text}</s-text>
                 </s-stack>
                 {c.action ? (
-                  <Button variant="secondary" href={c.action.href} target={c.action.external ? "_top" : undefined}>
+                  <Button variant="secondary" href={c.action.href} onClick={c.action.onClick} loading={c.action.loading} target={c.action.external ? "_top" : undefined}>
                     {c.action.label}
                   </Button>
                 ) : null}
