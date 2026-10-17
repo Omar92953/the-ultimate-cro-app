@@ -270,21 +270,6 @@ const qaPage = `<style>.media{display:block;overflow:hidden}.media > *:not(.zoom
 <script>(function(){const P=${JSON.stringify(qaProducts)};const res=(o)=>Promise.resolve(new Response(JSON.stringify(o),{headers:{"Content-Type":"application/json"}}));window.fetch=(u,o)=>{u=String(u);if(u.includes("/products/"))return res(P[u.split("/products/")[1].split(".js")[0]]);if(u.includes("/cart/add"))return res({items:[{key:"k1",id:7801,quantity:1}]});return res({});};})();</script>`;
 pages["quick-add.html"] = page("Quick add", qaPage, (await block("ucs-quick-add", { after: "toast", autohide: 0 })) + '<link rel="stylesheet" href="assets/ucs-quick-add.css">');
 
-// Contact page (Pages → Contact page in the app): the app's own defaults, made storefront-ready the
-// way the app saves them, with the contact details panel on.
-const { DEFAULT_CONTACT, toStorefrontContact, withContactDefaults } = await import("../../app/lib/pages.ts");
-const contactCfg = toStorefrontContact(withContactDefaults({ ...DEFAULT_CONTACT, info: { ...DEFAULT_CONTACT.info, show: true, email: "hello@example.com", phone: "+20 100 123 4567", whatsapp: "+20 100 123 4567", address: "12 Nile St, Cairo", hours: "Sat–Thu, 10am–8pm" } }));
-const contactShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_page": collectionOf([mo("contact", { config: contactCfg })]) } };
-// Footer designed in the app, with two menus from Navigation, the newsletter form and social links.
-const { toStorefrontFooter, withFooterDefaults, applyFooterPreset } = await import("../../app/lib/footer-design.ts");
-const menuOf = (titles) => ({ links: titles.map((t) => ({ title: t, url: `/pages/${t.toLowerCase().replace(/ /g, "-")}` })) });
-const linklists = { "main-menu": menuOf(["Home", "Catalog", "Contact"]), footer: menuOf(["Search", "Shipping", "Returns", "Privacy"]) };
-const footerShop = (raw) => ({ ...withDesign(mo("footer", { config: toStorefrontFooter(withFooterDefaults(raw)) })), enabled_payment_types: ["visa", "master", "apple_pay", "paypal"], policies: [{ title: "Refund policy", url: "/policies/refund-policy" }], name: "Harness shop" });
-const social = { instagram: "https://instagram.com/x", tiktok: "https://tiktok.com/@x", whatsapp: "https://wa.me/201000000000" };
-pages["footer.html"] = page("Footer",
-  label("footer: dark columns (default)") + (await block("ucs-footer", {}, { shop: footerShop({ social }), linklists })) +
-  label("footer: centred and simple") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "centered"), social }), linklists })) +
-  label("footer: newsletter first, own sizes") + (await block("ucs-footer", {}, { shop: footerShop({ ...applyFooterPreset(withFooterDefaults({}), "newsletter"), social, sizes: { own: true, v: { heading: 20, links: 16, social: 28 } } }), linklists })));
 // Several designs per section: a block set to Design 2 reads "faq_2"; Design 3 isn't made, so it shows design 1.
 const shopTwoFaqs = withDesign(mo("faq_2", { config: toStorefrontFaq(withFaqDefaults({ text: { heading: "Design two heading" }, look: { style: "cards" } })) }));
 pages["designs.html"] = page("Several designs",
@@ -372,7 +357,6 @@ pages["quiz.html"] = page("Product quiz", quizFake + (await block("ucs-quiz", {}
 // Holdout test: the boosters embed splits shoppers; a holdout shopper gets no app widgets.
 const xpShop = withDesign(mo("experiment", { config: { on: true, holdout: 10, since: "2026-10-11T00:00:00Z" } }));
 pages["holdout.html"] = page("Holdout test", '<script>try{localStorage.setItem("ucs-xp-2026-10-11T00:00:00Z","holdout")}catch(e){}window.__calls=[];const hf=window.fetch;window.fetch=(u,o)=>{window.__calls.push(String(u)+(o&&o.body?" "+o.body:""));return Promise.resolve(new Response(JSON.stringify({attributes:{}})))};</script><div class="ucs" style="margin:24px 40px">An app widget</div>', await block("ucs-boosters", {}, { shop: xpShop }));
-pages["contact.html"] = page("Contact page", await block("ucs-contact", {}, { shop: contactShop, page_type: "page" }), '<link rel="stylesheet" href="assets/ucs-contact.css">');
 
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 

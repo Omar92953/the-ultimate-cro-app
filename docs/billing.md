@@ -103,7 +103,7 @@ Set `CRO_PLAN_OVERRIDE` in `.env` (ignored when `NODE_ENV=production`) and resta
 CRO_PLAN_OVERRIDE=free      # or starter, growth, pro
 ```
 
-Check on Free: Home shows Free as current; opening Wishlist, Header, Checkout → Payment shows the
+Check on Free: Home shows Free as current; opening Wishlist, Quiz, Checkout → Payment shows the
 upgrade card; saving a second active upsell shows the limit message; "New design" on a design
 page becomes "More designs on Starter"; Results' holdout test shows the upgrade card. Then switch
 to `starter` and open Home: anything switched off on Free comes back on.

@@ -61,11 +61,6 @@ import {
   TrustShowcase,
   UrgencyLastShowcase,
   UrgencyShowcase,
-  ContactShowcase,
-  ContactInfoShowcase,
-  HeaderGlassShowcase,
-  HeaderRoundedShowcase,
-  FooterShowcase,
   ProductReviewsShowcase,
   StockShowcase,
   DeliveryShowcase,
@@ -217,11 +212,6 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", cat: "boosters", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
 ];
 
-/** Pages designed in the app (Contact page now; the others are coming). */
-const PAGE_CARDS: { key: string; title: string; href: string; Previews: (() => JSX.Element)[] }[] = [
-  { key: "page_contact", title: "Contact page", href: "/app/pages/contact", Previews: [ContactShowcase, ContactInfoShowcase] },
-];
-
 /** The four boosters live in one app embed; each is switched on and edited on the Conversion boosters page. */
 const BOOSTER_CARDS: { key: keyof BoostersConfig; title: string; Previews: (() => JSX.Element)[] }[] = [
   { key: "sticky", title: "Sticky add to cart", Previews: [StickyShowcase, StickyMobileShowcase] },
@@ -240,7 +230,6 @@ const REGISTRY: Record<string, RegistryKey> = {
   urgency: "stock_urgency",
   trust: "trust_badges",
   salesPop: "sales_pop",
-  page_contact: "contact",
   checkout_payment: "payment_rules",
   checkout_delivery: "delivery_rules",
   checkout_limits: "order_limits",
@@ -459,75 +448,22 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             menu: [{ label: "Open boosters", href: "/app/boosters" }, { ...editor(data.sectionLinks.boosters, embedOn), ...(!embedOn ? { label: "Turn on in theme" } : {}) }],
           });
         });
-        PAGE_CARDS.forEach((pg) => {
-          const inTheme = installed ? (installed.contact ?? false) : null;
-          let status: Status, next: Next | undefined;
-          if (!data.contactSaved) [status, next] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: pg.href }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Designed" }, { label: "Add to page", href: data.links.contact, external: true }];
-          else status = { tone: "success", text: "Live" };
+        // Order pages: the track and returns pages are blocks the merchant puts on a page.
+        for (const page of [
+          { key: "track" as const, title: "Track order page", href: "/app/pages/track", Preview: TrackShowcase },
+          { key: "returns" as const, title: "Returns page", href: "/app/returns", Preview: ReturnsShowcase },
+        ]) {
+          const on = installed ? (installed[page.key] ?? false) : null;
           add({
-            key: pg.key,
+            key: page.key,
             cat: "design",
-            title: pg.title,
-            onStore: inTheme === true,
-            status,
-            next,
-            open: { href: pg.href },
-            previews: pg.Previews,
-            menu: [{ label: "Style", href: pg.href }, { ...editor(data.links.contact, inTheme), ...(!inTheme ? { label: "Add to page" } : {}) }],
-          });
-        });
-
-        // Headers and footers: the header is designed in the app and switched on as an app embed.
-        {
-          const inTheme = installed ? (installed.header ?? false) : null;
-          let status: Status, next: Next | undefined;
-          if (!data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: "/app/designs/header" }];
-          else if (inTheme === false) [status, next] = [{ tone: "warning", text: "Not on store" }, { label: "Add to header", href: data.sectionLinks.header, external: true }];
-          else status = { tone: "success", text: "Live" };
-          add({
-            key: "header",
-            cat: "design",
-            title: "Header",
-            onStore: inTheme === true,
-            status,
-            next,
-            open: { href: "/app/designs/header" },
-            previews: [HeaderGlassShowcase, HeaderRoundedShowcase],
-            menu: [{ label: "Style", href: "/app/designs/header" }, { ...editor(data.sectionLinks.header, inTheme), ...(!inTheme ? { label: "Add to header" } : {}) }],
-          });
-          const footerIn = installed ? (installed.footer ?? false) : null;
-          let fStatus: Status, fNext: Next | undefined;
-          if (!data.footerSaved) [fStatus, fNext] = [{ tone: "warning", text: "Needs style" }, { label: "Style it", href: "/app/designs/footer" }];
-          else if (footerIn === false) [fStatus, fNext] = [{ tone: "warning", text: "Not on store" }, { label: "Add to footer", href: data.sectionLinks.footer, external: true }];
-          else fStatus = { tone: "success", text: "Live" };
-          for (const page of [
-            { key: "track" as const, title: "Track order page", href: "/app/pages/track", Preview: TrackShowcase },
-            { key: "returns" as const, title: "Returns page", href: "/app/returns", Preview: ReturnsShowcase },
-          ]) {
-            const on = installed ? (installed[page.key] ?? false) : null;
-            add({
-              key: page.key,
-              cat: "design",
-              title: page.title,
-              onStore: on === true,
-              status: on === false ? { tone: "warning", text: "Not on store" } : on ? { tone: "success", text: "Live" } : { tone: "neutral", text: "Set up in theme editor" },
-              next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
-              open: { href: page.href },
-              previews: [page.Preview],
-              menu: [{ label: page.key === "returns" ? "Requests" : "Style", href: page.href }, ...(page.key === "returns" ? [{ label: "Style", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
-            });
-          }
-          add({
-            key: "footer",
-            cat: "design",
-            title: "Footer",
-            onStore: footerIn === true,
-            status: fStatus,
-            next: fNext,
-            open: { href: "/app/designs/footer" },
-            previews: [FooterShowcase],
-            menu: [{ label: "Style", href: "/app/designs/footer" }, { ...editor(data.sectionLinks.footer, footerIn), ...(!footerIn ? { label: "Add to footer" } : {}) }],
+            title: page.title,
+            onStore: on === true,
+            status: on === false ? { tone: "warning", text: "Not on store" } : on ? { tone: "success", text: "Live" } : { tone: "neutral", text: "Set up in theme editor" },
+            next: on === false ? { label: "Add to a page", href: data.sectionLinks[page.key], external: true } : undefined,
+            open: { href: page.href },
+            previews: [page.Preview],
+            menu: [{ label: page.key === "returns" ? "Requests" : "Style", href: page.href }, ...(page.key === "returns" ? [{ label: "Style", href: "/app/pages/returns" }] : []), { ...editor(data.sectionLinks[page.key], on), ...(!on ? { label: "Add to a page" } : {}) }],
           });
         }
 

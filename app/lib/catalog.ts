@@ -30,7 +30,7 @@ export const GROUPS: { key: GroupKey; title: string }[] = [
   { key: "bars", title: "Bars & urgency" },
   { key: "product", title: "Product page" },
   { key: "content", title: "Sections" },
-  { key: "pages", title: "Header & pages" },
+  { key: "pages", title: "Order pages" },
 ];
 
 export type FeatureTab = { label: string; href: string };
@@ -109,9 +109,6 @@ export const FEATURES = {
   quiz: { title: "Product quiz", area: "storefront", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
   collection_pills: { title: "Collection pills", area: "storefront", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
   // Storefront · header & pages
-  header: { title: "Header", area: "storefront", group: "pages", about: "Your store's header, designed in the app.", tabs: [design("/app/designs/header")] },
-  footer: { title: "Footer", area: "storefront", group: "pages", about: "Your store's footer, designed in the app.", tabs: [design("/app/designs/footer")] },
-  contact: { title: "Contact page", area: "storefront", group: "pages", about: "A contact page with a form and your store's details.", tabs: [design("/app/pages/contact")] },
   track: { title: "Track order page", area: "storefront", group: "pages", about: "A page where shoppers look up their order and its delivery status.", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns page", area: "storefront", group: "pages", about: "A page where shoppers ask for a return, and the requests in one list.", tabs: [{ label: "Requests", href: "/app/returns" }, design("/app/pages/returns")] },
   // Checkout

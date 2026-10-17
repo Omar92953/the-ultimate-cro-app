@@ -37,7 +37,7 @@ export const DEMOS: FeatureKey[] = [
   "announcements", "countdown", "shipping_bar", "stock_urgency",
   "sticky_atc", "quick_add", "delivery", "stock", "wishlist",
   "hero", "image_carousel", "videos", "faq", "quiz", "collection_pills",
-  "header", "footer", "contact", "track", "returns",
+  "track", "returns",
   "payment_rules", "delivery_rules", "order_limits", "thank_you", "post_purchase",
 ];
 /** Bundle recipes with their own live demo page. */
@@ -51,7 +51,7 @@ export const DEMO_TEMPLATES: Partial<Record<FeatureKey, number>> = {
   upsell: 6, cross_sell: 6, personalize: 4, cart_extras: 4,
   reviews: 6, product_reviews: 3, logos: 6, announcements: 6, countdown: 6, shipping_bar: 6,
   quick_add: 5, delivery: 4, stock: 4, wishlist: 4, hero: 5, videos: 6, faq: 6, quiz: 4,
-  header: 6, footer: 5, track: 4, returns: 4,
+  track: 4, returns: 4,
 };
 
 export const hasDemo = (key: FeatureKey) => DEMOS.includes(key);

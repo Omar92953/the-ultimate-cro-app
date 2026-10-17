@@ -32,6 +32,6 @@ test("demoDesign: template N of a design page is demo design N, within what the 
   assert.equal(demoDesign("countdown", 5), 6);
   assert.equal(demoDesign("countdown", 6), undefined);
   assert.equal(demoDesign("upsell", -1), undefined);
-  assert.equal(demoDesign("contact", 0), undefined);
+  assert.equal(demoDesign("wishlist", 9), undefined);
   for (const k of Object.keys(DEMO_TEMPLATES)) assert.ok(DEMOS.includes(k as (typeof DEMOS)[number]), k);
 });

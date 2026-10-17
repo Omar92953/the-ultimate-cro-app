@@ -108,7 +108,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   countdown: {
     who: "For real deadlines: a sale end, a daily order cut off, a launch.",
-    points: ["Timers for the header, footer, home page, product pages and the cart", "A fixed end date, a daily cut off, or a timer per visitor", "Boxes, circles, flip cards or plain numbers"],
+    points: ["Timers for the top of the page, the bottom, the home page, product pages and the cart", "A fixed end date, a daily cut off, or a timer per visitor", "Boxes, circles, flip cards or plain numbers"],
     related: ["announcements", "delivery", "stock_urgency"],
     note: "Use real deadlines only. A timer that resets for every visitor should match a real offer.",
   },
@@ -150,7 +150,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   hero: {
     who: "For the first thing visitors see.",
     points: ["Separate desktop and phone images", "Heading, text and up to two buttons", "Where the text sits, colours, overlay and height", "Load only when scrolled to, for banners lower on the page"],
-    related: ["image_carousel", "header", "logos"],
+    related: ["image_carousel", "announcements", "logos"],
   },
   image_carousel: {
     who: "For collections, lookbooks and categories as scrolling pictures.",
@@ -165,7 +165,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   faq: {
     who: "For answering common questions before shoppers write to you.",
     points: ["Questions grouped with buttons, and a search box", "Lines or cards, icon left or right", "FAQ data for Google, on or off"],
-    related: ["contact", "track", "returns"],
+    related: ["track", "returns"],
   },
   quiz: {
     who: "For stores with many products and shoppers who need a nudge.",
@@ -175,32 +175,17 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   collection_pills: {
     who: "For moving between collections quickly.",
     points: ["A row of buttons to your collections", "The current one highlighted", "Scroll or wrap, outline or filled"],
-    related: ["quick_add", "header"],
-  },
-  header: {
-    who: "For a header that looks designed without editing theme code.",
-    points: ["Glass, rounded, classic, minimal and bold looks", "Your menu with dropdowns or mega menus", "Search, cart count and an optional button", "Sticky, and over the hero on the home page if you want"],
-    related: ["footer", "hero", "announcements"],
-  },
-  footer: {
-    who: "For a clean footer with your menus, newsletter and social links.",
-    points: ["Columns from your menus", "Newsletter sign up and social icons", "Payment icons and policies", "Dark, light, centred and other looks"],
-    related: ["header", "contact"],
-  },
-  contact: {
-    who: "For a contact page that answers first and then takes messages.",
-    points: ["A form and your store's details", "Email, phone, WhatsApp, address and hours"],
-    related: ["faq", "track", "returns"],
+    related: ["quick_add", "hero"],
   },
   track: {
     who: "For fewer where is my order messages.",
     points: ["Shoppers look up their order with the order number and email", "Delivery status and tracking links"],
-    related: ["returns", "contact", "faq"],
+    related: ["returns", "faq"],
   },
   returns: {
     who: "For handling returns without email back and forth.",
     points: ["Shoppers ask for a return with the order number and email", "They choose the items and a reason", "Requests listed in the app"],
-    related: ["track", "contact"],
+    related: ["track", "faq"],
   },
   payment_rules: {
     who: "For hiding or renaming payment methods for some orders.",

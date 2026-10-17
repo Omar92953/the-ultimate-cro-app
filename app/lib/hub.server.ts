@@ -8,8 +8,7 @@ import { editorLinks, getDiscountStatus, getSavedSections, getSettings, getSlide
 import type { DiscountMode } from "./types";
 import { listItems, sectionLinks } from "./sections.server";
 import { getBoosters } from "./boosters.server";
-import { getContact } from "./pages.server";
-import { getAddons, getFooter, getHeader, getImageCarousel, getPills, getShippingBar } from "./designs.server";
+import { getAddons, getImageCarousel, getPills, getShippingBar } from "./designs.server";
 import { DEFAULT_BOOSTERS } from "./boosters";
 import { SECTION_KINDS, itemStatus, type SectionKind } from "./sections";
 import { getCheckoutRules } from "./checkout-rules.server";
@@ -35,18 +34,15 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     Promise.allSettled(SECTION_KINDS.map((k) => listItems(admin, k))),
     getBoosters(admin).catch(() => DEFAULT_BOOSTERS),
     getSavedSections(admin).catch(() => [] as string[]),
-    getContact(admin).catch(() => ({ saved: false })),
     getImageCarousel(admin).catch(() => null),
     getAddons(admin).catch(() => null),
-    getHeader(admin).catch(() => null),
     getPills(admin).catch(() => null),
     getShippingBar(admin).catch(() => null),
-    getFooter(admin).catch(() => null),
     getCheckoutRules(admin).catch(() => null),
     getThankYou(admin).catch(() => null),
     getPostPurchase(admin).catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, contact, carousel, addons, header, pills, shipBar, footer, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -57,9 +53,6 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
   return {
     boosters,
     saved,
-    contactSaved: contact.saved,
-    headerSaved: !!header?.saved,
-    footerSaved: !!footer?.saved,
     // null: the store hasn't granted the checkout scopes yet (or the read failed).
     checkout: checkout
       ? {

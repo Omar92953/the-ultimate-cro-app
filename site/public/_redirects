@@ -5,3 +5,11 @@
 /features/cart-tools/ /features/cart-offers/ 301
 /demo / 302
 /demo/ / 302
+/help/header-footer-pages /help/track-and-returns-pages/ 301
+/help/header-footer-pages/ /help/track-and-returns-pages/ 301
+/features/header /features/ 301
+/features/header/ /features/ 301
+/features/footer /features/ 301
+/features/footer/ /features/ 301
+/features/contact /features/ 301
+/features/contact/ /features/ 301
