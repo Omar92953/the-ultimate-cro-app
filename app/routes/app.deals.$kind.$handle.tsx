@@ -8,7 +8,8 @@ import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { getFbtDesign, resolveDiscountEngine } from "../lib/cro.server";
 import { deleteDeal, listDeals, saveDeal } from "../lib/deals.server";
-import { checkLimit } from "../lib/billing.server";
+import { requireOfferSlot } from "../lib/rules.server";
+import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import {
   DEAL_TYPES,
@@ -73,12 +74,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
     const deal = JSON.parse(String(form.get("deal"))) as Deal;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a deal can always be saved off.
-    const over = await checkLimit(admin, session.shop, "offerSlots", deal);
-    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    await requireOfferSlot(admin, session.shop, deal);
     const saved = await saveDeal(admin, deal);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
+    return { ok: false, error: errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
   }
 };
 

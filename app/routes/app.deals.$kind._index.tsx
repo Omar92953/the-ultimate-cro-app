@@ -6,7 +6,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { deleteDeal, listDeals, setDealActive } from "../lib/deals.server";
-import { checkLimit } from "../lib/billing.server";
+import { requireOfferSlot } from "../lib/rules.server";
+import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { getDiscountStatus } from "../lib/cro.server";
 import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
@@ -38,13 +39,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (form.get("intent") === "delete") await deleteDeal(admin, deal.id!);
     else {
       const active = form.get("active") === "true";
-      const over = await checkLimit(admin, session.shop, "offerSlots", { ...deal, active });
-      if (over) return { ok: false, error: over.error, intent: "active", upgrade: true };
+      await requireOfferSlot(admin, session.shop, { ...deal, active });
       await setDealActive(admin, deal, active);
     }
     return { ok: true, error: null, intent: String(form.get("intent")), upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), intent: String(form.get("intent")), upgrade: false };
+    return { ok: false, error: errorMessage(e), intent: String(form.get("intent")), upgrade: isRuleError(e) && e.upgrade };
   }
 };
 

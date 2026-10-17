@@ -13,7 +13,8 @@ import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { validateRule } from "../lib/validate";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
-import { checkLimit } from "../lib/billing.server";
+import { requireOfferSlot } from "../lib/rules.server";
+import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
@@ -98,12 +99,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
     // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
-    const over = await checkLimit(admin, session.shop, "offerSlots", rule);
-    if (over) return { ok: false, error: over.error, handle: null, upgrade: true };
+    await requireOfferSlot(admin, session.shop, rule);
     const saved = await saveRule(admin, rule);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), handle: null, upgrade: false };
+    return { ok: false, error: errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
   }
 };
 
