@@ -126,6 +126,23 @@ export default function CartExtrasDesigner() {
                 </s-section>
               </Pane>
               <Pane show={tab === "content"}>
+                <s-section heading="Discount code">
+                  <s-stack gap="base">
+                    <Switch label="Show a discount code box" details="Shoppers type a code and it is applied to the cart (page and drawer). Invalid codes show your message." checked={cfg.code.on} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, on: v } }))} />
+                    {cfg.code.on ? (
+                      <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                        <TextField label="Label" value={cfg.code.label} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, label: v } }))} />
+                        <TextField label="Hint in the box" value={cfg.code.placeholder} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, placeholder: v } }))} />
+                        <TextField label="Button" value={cfg.code.button} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, button: v } }))} />
+                        <TextField label="Applied code" details="{code} = the code" value={cfg.code.applied} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, applied: v } }))} />
+                        <TextField label="Remove link" value={cfg.code.remove} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, remove: v } }))} />
+                        <TextField label="Message for a code that doesn't work" value={cfg.code.invalid} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, invalid: v } }))} />
+                      </s-grid>
+                    ) : null}
+                  </s-stack>
+                </s-section>
+              </Pane>
+              <Pane show={tab === "content"}>
                 <s-section heading="Delivery date">
                   <s-stack gap="base">
                     <Switch label="Let shoppers pick a delivery date" checked={cfg.date.on} onValue={(v) => date({ on: v })} />
@@ -164,8 +181,9 @@ export default function CartExtrasDesigner() {
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Style" value={cfg.look.style} onValue={(v) => look({ style: v as C["look"]["style"] })} options={[{ value: "box", label: "In a soft box" }, { value: "plain", label: "Plain" }]} />
                     {cfg.look.style === "box" ? <ColorField label="Box" value={cfg.look.bg} onValue={(v) => look({ bg: v })} /> : <span />}
-                    <ColorField label="Tick box" value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
+                    <ColorField label="Tick box and button" value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
                     <NumberField label="Corners" suffix="px" min={0} max={30} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
+                    <Select label="Discount code button" value={cfg.look.codeLayout} onValue={(v) => look({ codeLayout: v as C["look"]["codeLayout"] })} options={[{ value: "inline", label: "Next to the box" }, { value: "stacked", label: "Under the box" }]} />
                   </s-grid>
                 </s-section>
               </Pane>

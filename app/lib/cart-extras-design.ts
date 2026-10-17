@@ -1,6 +1,6 @@
 /**
- * Gift note & delivery date in the cart (Offers & bundles → Gift note & delivery date): "This is a gift",
- * a gift message (the order note) and a delivery date (+ time slot) the shopper picks. Saved on the cart
+ * Gift note, delivery date and discount code in the cart (Cart & Checkout → Gift note & delivery date): "This is a gift",
+ * a gift message (the order note), a delivery date (+ time slot) the shopper picks and a discount code box (applied to the cart with cart/update.js). Saved on the cart
  * as attributes, so they arrive on the order. On the cart page (block) and, optionally, inside the
  * theme's cart drawer (through the Conversion boosters embed). Stored in $app:cro_design "cart_extras".
  */
@@ -19,9 +19,10 @@ export type CartExtrasDesign = {
   heading: string;
   gift: { on: boolean; label: string; attr: string };
   note: { on: boolean; label: string; placeholder: string; max: number; onlyGift: boolean };
+  code: { on: boolean; label: string; placeholder: string; button: string; applied: string; invalid: string; remove: string };
   date: { on: boolean; label: string; attr: string; minDays: number; maxDays: number; daysOff: number[]; required: boolean; requiredText: string; slots: string; slotLabel: string; slotAttr: string };
   where: { page: boolean; drawer: boolean };
-  look: { style: "box" | "plain"; bg: string; accent: string; radius: number };
+  look: { style: "box" | "plain"; bg: string; accent: string; radius: number; codeLayout: "inline" | "stacked" };
   sizes: Sizes;
 };
 
@@ -30,9 +31,10 @@ export const DEFAULT_CART_EXTRAS: CartExtrasDesign = {
   heading: "Gift and delivery",
   gift: { on: true, label: "This is a gift", attr: "Gift" },
   note: { on: true, label: "Gift message", placeholder: "Write a message and we'll add it to a card", max: 250, onlyGift: true },
+  code: { on: false, label: "Discount code", placeholder: "Enter your code", button: "Apply", applied: "{code} applied", invalid: "This code can't be used on your cart", remove: "Remove" },
   date: { on: true, label: "Delivery date", attr: "Delivery date", minDays: 2, maxDays: 30, daysOff: [5], required: false, requiredText: "Please choose a delivery date", slots: "", slotLabel: "Time", slotAttr: "Delivery time" },
   where: { page: true, drawer: true },
-  look: { style: "box", bg: "#f6f6f6", accent: "#121212", radius: 10 },
+  look: { style: "box", bg: "#f6f6f6", accent: "#121212", radius: 10, codeLayout: "inline" },
   sizes: defaultSizes(CART_EXTRAS_SIZES),
 };
 
@@ -55,13 +57,22 @@ const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fa
 export function withCartExtrasDefaults(raw: unknown): CartExtrasDesign {
   const r = obj(raw);
   const d = DEFAULT_CART_EXTRAS;
-  const g = obj(r.gift), n = obj(r.note), dt = obj(r.date), w = obj(r.where), k = obj(r.look);
+  const g = obj(r.gift), n = obj(r.note), cd = obj(r.code), dt = obj(r.date), w = obj(r.where), k = obj(r.look);
   const minDays = num(dt.minDays, 0, 60, d.date.minDays);
   return {
     scheme: schemeId(r.scheme),
     heading: str(r.heading, d.heading, 80),
     gift: { on: bool(g.on, d.gift.on), label: str(g.label, d.gift.label, 60), attr: str(g.attr, d.gift.attr, 40) || d.gift.attr },
     note: { on: bool(n.on, d.note.on), label: str(n.label, d.note.label, 60), placeholder: str(n.placeholder, d.note.placeholder, 120), max: num(n.max, 20, 1000, d.note.max), onlyGift: bool(n.onlyGift, d.note.onlyGift) },
+    code: {
+      on: bool(cd.on, d.code.on),
+      label: str(cd.label, d.code.label, 60),
+      placeholder: str(cd.placeholder, d.code.placeholder, 60),
+      button: str(cd.button, d.code.button, 30),
+      applied: str(cd.applied, d.code.applied, 60),
+      invalid: str(cd.invalid, d.code.invalid, 120),
+      remove: str(cd.remove, d.code.remove, 30),
+    },
     date: {
       on: bool(dt.on, d.date.on),
       label: str(dt.label, d.date.label, 60),
@@ -76,7 +87,7 @@ export function withCartExtrasDefaults(raw: unknown): CartExtrasDesign {
       slotAttr: str(dt.slotAttr, d.date.slotAttr, 40) || d.date.slotAttr,
     },
     where: { page: bool(w.page, d.where.page), drawer: bool(w.drawer, d.where.drawer) },
-    look: { style: pick(k.style, ["box", "plain"] as const, d.look.style), bg: color(k.bg, d.look.bg), accent: color(k.accent, d.look.accent), radius: num(k.radius, 0, 30, d.look.radius) },
+    look: { style: pick(k.style, ["box", "plain"] as const, d.look.style), bg: color(k.bg, d.look.bg), accent: color(k.accent, d.look.accent), radius: num(k.radius, 0, 30, d.look.radius), codeLayout: pick(k.codeLayout, ["inline", "stacked"] as const, d.look.codeLayout) },
     sizes: withSizes(r.sizes, CART_EXTRAS_SIZES),
   };
 }
@@ -87,7 +98,7 @@ export function cartExtrasVars(c: CartExtrasDesign): Record<string, string> {
   return v;
 }
 
-export const cartExtrasClass = (c: CartExtrasDesign) => `ucs ucs-ce ucs-ce--${c.look.style}`;
+export const cartExtrasClass = (c: CartExtrasDesign) => `ucs ucs-ce ucs-ce--${c.look.style}${c.look.codeLayout === "stacked" ? " ucs-ce--stack" : ""}`;
 
 /** The storefront copy, read by ucs-cart-extras.js (cart page block and cart drawer). */
 export function toStorefrontCartExtras(c: CartExtrasDesign) {
@@ -99,6 +110,7 @@ export function toStorefrontCartExtras(c: CartExtrasDesign) {
     h: c.heading,
     g: c.gift.on ? c.gift : null,
     n: c.note.on ? c.note : null,
+    c: c.code.on ? c.code : null,
     d: c.date.on ? { ...c.date, slots: c.date.slots.split(/\n|,/).map((s) => s.trim()).filter(Boolean) } : null,
     page: c.where.page,
     drawer: c.where.drawer,

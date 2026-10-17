@@ -10,3 +10,12 @@
 .ucs-ce__field select, .ucs-ce__field textarea { min-height: var(--ucs-ce-in, 40px); padding: 6px 10px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-ce-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
 .ucs-ce__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 .ucs-ce__msg { margin: 0; color: #b42318; font-size: 0.9em; }
+.ucs-ce__codeRow { display: flex; gap: 8px; }
+.ucs-ce__codeRow input { flex: 1; min-width: 0; height: var(--ucs-ce-in, 40px); padding: 0 12px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: var(--ucs-ce-r, 10px); font: inherit; background: #fff; color: #121212; }
+.ucs-ce__codeRow .ucs-btn { height: var(--ucs-ce-in, 40px); padding: 0 16px; border: 0; border-radius: var(--ucs-ce-r, 10px); background: var(--ucs-ce-accent, #121212); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.ucs-ce__codeRow .ucs-btn:disabled { opacity: 0.6; cursor: default; }
+.ucs-ce__applied { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ucs-ce__applied:empty { display: none; }
+.ucs-ce__tag { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(127, 127, 127, 0.14); font-size: 0.9em; }
+.ucs-ce__rm { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 0.9em; text-decoration: underline; opacity: 0.75; cursor: pointer; }
+.ucs-ce--stack .ucs-ce__codeRow { flex-direction: column; }
