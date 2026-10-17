@@ -202,3 +202,47 @@ prepaid label purchase, exchanges and store credit, branded email and SMS, retur
 - **Labels: the merchant uploads them** (or the shopper ships to the return address). No label provider in v1.
 
 G4 builds section 7's v1 with these choices.
+
+## 9. Live tracking decisions (2026-10-17, replaces "Shopify data only" in section 8)
+
+Omar wants the Track page to show the delivery date and where the package is now, for every country,
+with an easy setup. Decisions:
+
+1. **Setup step 1 asks where tracking comes from** (changeable later in Tracking & Returns settings):
+   - **Shopify data** (default, every plan, every country, free): fulfillment status, `estimatedDeliveryAt`,
+     `inTransitAt`, `deliveredAt` and fulfillment `events` (status, city, province, country, message, time).
+   - **Live tracking, included on Pro** with a monthly limit per store (start with 500 shipments a month,
+     shown in the app as "x of 500 used"). We hold one tracking data provider account. Over the limit, or
+     if the provider fails, the page falls back to Shopify data.
+   - **Your own key**: the merchant pastes an API key from their shipping company or tracking service.
+     No limit from us. Any plan with Tracking & Returns.
+   - **Webhook link**: for carriers that push status updates; we give a per shop URL with a secret.
+2. **White label.** The app and the store never name the provider: the merchant sees "CRO Toolbox live
+   tracking", the shopper sees the store's own Track page. Conditions:
+   - pick a provider whose terms allow white label use inside our product (check the ToS before signing up);
+   - list it as a subprocessor in the privacy policy (crotoolbox.com/privacy and `/privacy`), as the App
+     Store and data rules require; the UI stays unbranded;
+   - send only the tracking number, carrier and destination country, never names, emails or addresses.
+3. **No list of companies in the UI.** One set of generic steps ("Sign in to your shipping company or
+   tracking service, open Settings → API or Developers, create a key, paste it here"). The app tests the
+   key against each supported service and shows "Connected" or a clear error. Carrier is detected from
+   the tracking number and Shopify's carrier name.
+4. **Data order:** webhook updates, then own key, then included live tracking (Pro), then Shopify data. One
+   format for all: status (Info received, In transit, Out for delivery, Delivered, Problem), current place,
+   estimated delivery and the full timeline, translated to the store's language. The carrier link is
+   always shown too.
+5. **Polling, not live calls:** register each new fulfillment with the provider (push/webhook where the
+   provider has it), cache events in our DB, refresh at most a few times a day; the shopper's page reads the
+   cache. Stop after delivery or 60 days. Keys stored encrypted, shown as last 4 characters only.
+
+### Provider prices found (third party pages, confirm on each vendor's own page before signing up)
+
+| Provider | API on free plan | Entry API price | Note |
+|---|---|---|---|
+| 17TRACK | no | reportedly $119 a year for 5,000 numbers (about 2.4 cents each) | prepaid yearly packs, no rollover; cheapest for "included on Pro" |
+| Ship24 | no (10 shipments) | $39 a month for 1,000 shipments, $0.045 over | monthly, per shipment |
+| TrackingMore | no | reportedly $74 Pro | |
+| AfterShip | unclear | from $29 a month, API maybe on a higher plan | |
+
+Cost to us at 500 shipments a month per Pro store: about $12 a month at most at 17TRACK's pack price,
+usually less. Revisit the limit once real volumes are known.
