@@ -14,8 +14,9 @@ import { getThemeStatus } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import { createOrderPage, orderPageContext, pageAdminUrl, type OrderPageKind } from "../lib/order-page-setup.server";
 import { planContext } from "../lib/rules.server";
+import { atLeast } from "../lib/plans";
 import { getTrackingConfig } from "../lib/tracking/tracking.server";
-import { listReturns, shipmentOverview } from "../lib/orders-lookup.server";
+import { listReturns, returnSavings, shipmentOverview } from "../lib/orders-lookup.server";
 import { getReturnRules, grantedScopes, syncReturns } from "../lib/shopify-returns.server";
 import { remember } from "../lib/short-cache.server";
 import { timedLoader } from "../lib/timing.server";
@@ -28,12 +29,13 @@ import { DemoButton } from "../components/DemoButton";
 export const loader = timedLoader("app.tracking-returns", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   await syncReturns(admin, session.shop).catch(() => null);
-  const [returns, theme, rules, scopes, shipments] = await Promise.all([
+  const [returns, theme, rules, scopes, shipments, savings] = await Promise.all([
     listReturns(session.shop).catch(() => []),
     getThemeStatus(admin, session.shop).catch(() => null),
     getReturnRules(admin).catch(() => null),
     grantedScopes(admin).catch(() => [] as string[]),
     remember(session.shop, "shipments", 5 * 60000, () => shipmentOverview(admin)).catch(() => null),
+    returnSavings(session.shop).catch(() => null),
   ]);
   const pctx = await planContext(admin, session.shop);
   const tracking = await getTrackingConfig(session.shop, pctx.plan).catch(() => null);
@@ -52,6 +54,8 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
       refunded: returns.filter((r) => r.refundedAt && Date.parse(r.refundedAt) >= monthStart.getTime()).length,
     },
     shipments,
+    savings,
+    pro: atLeast(pctx.plan, "pro"),
     tracking: tracking ? { chosen: tracking.chosen, source: tracking.source, used: tracking.live.used, limit: tracking.live.limit } : null,
     inTheme: theme ? { track: inPageTemplate, returns: inPageTemplate } : null,
     pages: { track: ctx.pages.track ? { handle: ctx.pages.track.handle, admin: pageAdminUrl(session.shop, ctx.pages.track) } : null, returns: ctx.pages.returns ? { handle: ctx.pages.returns.handle, admin: pageAdminUrl(session.shop, ctx.pages.returns) } : null },
@@ -130,6 +134,21 @@ export default function TrackingReturns() {
             <Tile label="Shipments in transit" value={d.shipments ? d.shipments.inTransit : "No data yet"} note={d.shipments ? `${d.shipments.delayed} past the expected date, ${d.shipments.delivered} delivered (last 30 days)` : undefined} />
           </s-grid>
         </s-section>
+
+        {d.savings && (d.savings.credit.count || d.savings.refunds.count || d.pro) ? (
+          <s-section heading="Return saving, last 30 days">
+            <s-stack gap="small-200">
+              <s-grid gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="base">
+                <Tile label="Kept as store credit" value={`${d.savings.credit.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.credit.count} return${d.savings.credit.count === 1 ? "" : "s"}${d.savings.credit.bonus ? `, ${d.savings.credit.bonus.toFixed(2)} of it bonus` : ""}`} />
+                <Tile label="Refunded" value={`${d.savings.refunds.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.refunds.count} return${d.savings.refunds.count === 1 ? "" : "s"}, value of the items`} />
+              </s-grid>
+              <s-text color="subdued">Credit stays in your store as a sale to come. {d.pro ? "" : "Return saving rules are on the Pro plan."}</s-text>
+              <s-stack direction="inline">
+                <Button variant="tertiary" href="/app/returns/saving">Return saving rules</Button>
+              </s-stack>
+            </s-stack>
+          </s-section>
+        ) : null}
 
         <s-grid gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap="base">
           <s-section heading="Track order page">

@@ -288,6 +288,8 @@ export async function buildFeatures({ block, shopWith, mo }) {
   });
   F.track = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("track")));
   F.returns = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("returns")));
+  // Return saving rules (Pro): the same Returns page, where the shopper can choose store credit (the demo backend offers it with a 10% bonus).
+  F.return_saving = (await Promise.all(orderD.ORDER_PAGE_PRESETS.slice(0, 2).map(orderPage("returns")))).map((x, i) => ({ ...x, title: i ? "Store credit, plain" : "Store credit with a bonus" }));
 
   // ---------------------------------------------------------------------------- Bundles --
   const step = (h, fields) => mo(h, { required: true, products: null, collection: null, ...fields });

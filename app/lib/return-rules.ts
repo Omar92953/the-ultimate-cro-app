@@ -4,7 +4,32 @@
  * $app:cro_design "return_rules". The words the shopper sees on the Returns page (reasons, thanks…) are
  * the page's own text (order-pages.ts). Shared by client and server.
  */
+/**
+ * Return saving rules (Pro): ways to keep the sale before a refund, and approving by rule. A rule matches when every
+ * condition it sets holds; a return that matches any rule is approved at once.
+ */
+export type AutoRule = {
+  /** Reasons (as on the Returns page); none = any reason. */
+  reasons: string[];
+  /** Product tags: any item with one of these tags (comma separated); none = any product. */
+  tags: string;
+  /** Up to this order value (shop currency, 0 = any). */
+  maxValue: number;
+  /** Up to this many days after the order was delivered (0 = any). */
+  maxDays: number;
+};
+export type Saving = {
+  /** The ways a shopper can be paid back. Refund to the original payment is always possible. */
+  credit: { on: boolean; /** Extra credit on top of the refund value, in percent. */ bonus: number; /** Days the store credit lasts (0 = never). */ expiryDays: number };
+  /** Put returned items back in stock when they are processed. */
+  restock: boolean;
+  rules: AutoRule[];
+};
+export const DEFAULT_SAVING: Saving = { credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] };
+
 export type ReturnRules = {
+  /** Pro: store credit instead of a refund, auto approve rules, restocking. */
+  saving: Saving;
   /** How many days after the order a return can be asked for (0 = no limit). */
   days: number;
   /** Products with one of these tags can't be returned (e.g. final-sale), comma separated. */
@@ -20,6 +45,7 @@ export type ReturnRules = {
 };
 
 export const DEFAULT_RETURN_RULES: ReturnRules = {
+  saving: DEFAULT_SAVING,
   days: 30,
   excludeTags: "",
   autoApprove: { on: false, reasons: [] },
@@ -31,12 +57,53 @@ export const DEFAULT_RETURN_RULES: ReturnRules = {
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 const text = (v: unknown, max: number, fallback = "") => (typeof v === "string" ? Array.from(v).filter((c) => c === "\n" || c.charCodeAt(0) >= 32).join("").trim().slice(0, max) : fallback);
 
+const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+};
+
+export function withSaving(raw: unknown): Saving {
+  const r = obj(raw), c = obj(r.credit);
+  return {
+    credit: { on: c.on === true, bonus: clampInt(c.bonus, 0, 100, 0), expiryDays: clampInt(c.expiryDays, 0, 3650, 0) },
+    restock: r.restock === true,
+    rules: (Array.isArray(r.rules) ? r.rules : []).slice(0, 10).map((x) => {
+      const o = obj(x);
+      return {
+        reasons: (Array.isArray(o.reasons) ? o.reasons : []).map((v) => text(v, 80)).filter(Boolean).slice(0, 10),
+        tags: text(o.tags, 200).toLowerCase(),
+        maxValue: Math.min(1_000_000, Math.max(0, Math.round(Number(o.maxValue) * 100) / 100 || 0)),
+        maxDays: clampInt(o.maxDays, 0, 365, 0),
+      };
+    }),
+  };
+}
+
+/** What a return looks like to the rules. `daysSinceDelivery` is null when the delivery date is unknown. */
+export type RuleContext = { reason: string; tags: string[]; orderValue: number; daysSinceDelivery: number | null };
+
+/** Is this return approved by one of the rules? A condition that is set but cannot be checked (no delivery date) does not match. */
+export function matchesAutoRule(rules: AutoRule[], c: RuleContext): boolean {
+  return rules.some((r) => {
+    if (r.reasons.length && !r.reasons.some((x) => x.toLowerCase() === c.reason.toLowerCase())) return false;
+    const tags = r.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    if (tags.length && !tags.some((t) => c.tags.includes(t))) return false;
+    if (r.maxValue > 0 && c.orderValue > r.maxValue) return false;
+    if (r.maxDays > 0 && (c.daysSinceDelivery === null || c.daysSinceDelivery > r.maxDays)) return false;
+    return true;
+  });
+}
+
+/** The credit for returned items worth `amount`: the bonus on top, rounded to cents. */
+export const creditFor = (amount: number, bonusPct: number) => Math.round(amount * (1 + bonusPct / 100) * 100) / 100;
+
 export function withReturnRulesDefaults(raw: unknown): ReturnRules {
   const r = obj(raw);
   const a = obj(r.autoApprove);
   const d = DEFAULT_RETURN_RULES;
   const days = Math.round(Number(r.days));
   return {
+    saving: withSaving(r.saving),
     days: Number.isFinite(days) ? Math.min(365, Math.max(0, days)) : d.days,
     excludeTags: text(r.excludeTags, 300),
     autoApprove: { on: a.on === true, reasons: (Array.isArray(a.reasons) ? a.reasons : []).map((x) => text(x, 80)).filter(Boolean).slice(0, 10) },
@@ -64,13 +131,14 @@ export function reasonCode(words: string): ShopifyReason {
 }
 
 /** The live status words the app shows for a return. */
-export type ReturnState = "requested" | "approved" | "declined" | "refunded" | "closed";
+export type ReturnState = "requested" | "approved" | "declined" | "refunded" | "credited" | "closed";
 export const RETURN_STATES: Record<ReturnState, { text: string; tone: "ok" | "warn" | "muted" }> = {
   requested: { text: "New", tone: "warn" },
   approved: { text: "Approved, waiting for the items", tone: "ok" },
   declined: { text: "Declined", tone: "muted" },
   refunded: { text: "Refunded", tone: "ok" },
+  credited: { text: "Store credit given", tone: "ok" },
   closed: { text: "Closed", tone: "muted" },
 };
 /** Old rows used pending/approved/declined/done. */
-export const returnState = (s: string): ReturnState => (s === "pending" ? "requested" : s === "done" ? "closed" : (["requested", "approved", "declined", "refunded", "closed"].includes(s) ? (s as ReturnState) : "requested"));
+export const returnState = (s: string): ReturnState => (s === "pending" ? "requested" : s === "done" ? "closed" : (["requested", "approved", "declined", "refunded", "credited", "closed"].includes(s) ? (s as ReturnState) : "requested"));

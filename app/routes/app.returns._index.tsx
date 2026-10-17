@@ -11,7 +11,10 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getReturn, listReturns, updateReturn } from "../lib/orders-lookup.server";
-import { approveReturn, attachLabel, closeReturn, declineReturn, refundReturn, syncReturns } from "../lib/shopify-returns.server";
+import { attachLabel, closeReturn, declineReturn, getReturnRules, refundReturn, syncReturns } from "../lib/shopify-returns.server";
+import { approveAndSettle } from "../lib/return-saving.server";
+import { planContext } from "../lib/rules.server";
+import { atLeast } from "../lib/plans";
 import { getThemeStatus } from "../lib/cro.server";
 import { orderPageContext } from "../lib/order-page-setup.server";
 import { RETURN_STATES, returnState } from "../lib/return-rules";
@@ -39,8 +42,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Requests made before returns became Shopify returns have no Shopify return: they only get marked.
     const shopifyId = row.returnId;
     if (intent === "approve") {
-      if (shopifyId) await approveReturn(admin, shopifyId);
-      await updateReturn(session.shop, id, { status: "approved" });
+      // Approves; when the shopper chose store credit (Pro), gives it and processes the return.
+      const { plan } = await planContext(admin, session.shop);
+      const { rules } = await getReturnRules(admin);
+      await approveAndSettle(admin, session.shop, id, rules, atLeast(plan, "pro"));
     } else if (intent === "decline") {
       const note = String(form.get("note") ?? "").trim();
       if (shopifyId) await declineReturn(admin, shopifyId, note);
@@ -56,7 +61,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await updateReturn(session.shop, id, { labelUrl, tracking, trackingUrl });
     } else if (intent === "refund") {
       if (!shopifyId) throw new Error("Refund it in the Shopify admin: this request was made before returns used Shopify.");
-      await refundReturn(admin, shopifyId);
+      const { rules } = await getReturnRules(admin);
+      await refundReturn(admin, shopifyId, { restock: rules.saving.restock });
       await closeReturn(admin, shopifyId).catch(() => null);
       await updateReturn(session.shop, id, { status: "refunded", refundedAt: new Date() });
     } else if (intent === "close") {
@@ -69,7 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
-const DONE: Record<string, string> = { approve: "Approved. Shopify emailed the shopper.", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
+const DONE: Record<string, string> = { approve: "Approved. Shopify emailed the shopper (credit is given if they chose it).", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
 
 function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string }) {
   const fetcher = useFetcher<typeof action>();
@@ -152,7 +158,7 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
                 </Button>
               </>
             ) : null}
-            {state === "refunded" ? (
+            {state === "refunded" || state === "credited" ? (
               <Button variant="tertiary" onClick={() => send("close")}>
                 Close
               </Button>
@@ -162,6 +168,13 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
         <s-text>
           {r.items.map((i) => `${i.quantity} × ${i.title}${i.variant ? ` (${i.variant})` : ""}`).join(", ")}: <b>{r.reason}</b>
         </s-text>
+        {r.resolution === "credit" ? (
+          <s-text color="subdued">
+            {r.creditKind
+              ? `Paid back with ${r.creditKind === "store_credit" ? "store credit" : r.creditKind === "gift_card" ? "a gift card" : "a discount code"}: ${r.creditAmount.toFixed(2)} ${r.currency}${r.creditCode ? ` (${r.creditCode})` : ""}.`
+              : `The shopper chose store credit${r.quote ? ` (about ${r.quote.toFixed(2)} ${r.currency} of items${r.creditBonus ? `, plus a ${r.creditBonus}% bonus` : ""})` : ""}. It is given when you approve.`}
+          </s-text>
+        ) : null}
         {r.note ? <s-text color="subdued">“{r.note}”</s-text> : null}
         {r.declineNote ? <s-text color="subdued">Declined: {r.declineNote}</s-text> : null}
         {!r.returnId ? <s-text color="subdued">Made before returns used Shopify. Arrange the return and refund in the Shopify admin.</s-text> : null}

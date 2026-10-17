@@ -69,6 +69,15 @@ model ReturnRequest {
   trackingUrl String   @default("")
   declineNote String   @default("")
   refundedAt  DateTime?
+  /// What the shopper chose: "refund", "credit" or "exchange"; the amount we quoted (the items' price), and how credit was given.
+  resolution  String   @default("refund")
+  quote       Float    @default(0)
+  currency    String   @default("")
+  creditKind  String   @default("")
+  creditCode  String   @default("")
+  creditAmount Float   @default(0)
+  creditBonus Int      @default(0)
+  creditedAt  DateTime?
 
   @@index([shop, status])
 }

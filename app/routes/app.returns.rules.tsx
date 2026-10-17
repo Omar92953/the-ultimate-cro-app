@@ -13,7 +13,7 @@ import { errorMessage } from "../lib/admin.server";
 import { getOrderPage } from "../lib/designs.server";
 import { getReturnRules, saveReturnRules } from "../lib/shopify-returns.server";
 import { withReturnRulesDefaults, type ReturnRules } from "../lib/return-rules";
-import { Checkbox, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
+import { Button, Checkbox, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -60,6 +60,9 @@ export default function ReturnRulesPage() {
     <s-page heading="Return rules" inlineSize="large">
       <CategoryCrumb feature="returns" />
       <DemoButton feature="returns" />
+      <Button slot="secondary-actions" href="/app/returns/saving">
+        Return saving rules (Pro)
+      </Button>
       <SaveControls dirty={changed(rules, data.rules)} saving={fetcher.state !== "idle"} saved={data.saved} onSave={() => fetcher.submit({ rules: JSON.stringify(clean) }, { method: "post" })} onDiscard={() => setRules(data.rules)} />
       <s-stack gap="base">
         <FeatureTabs feature="returns" />

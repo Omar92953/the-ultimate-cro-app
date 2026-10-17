@@ -32,13 +32,13 @@ export async function saveReturnRules(admin: AdminClient, raw: unknown) {
 }
 
 /* ---------------------------------------------------------- what can be returned -- */
-export type ReturnableItem = { fulfillmentLineItemId: string; key: string; title: string; variant: string; quantity: number; image: string | null; tags: string[] };
+export type ReturnableItem = { fulfillmentLineItemId: string; key: string; title: string; variant: string; quantity: number; image: string | null; tags: string[]; /** What one unit was paid, after discounts, in the shop currency. */ price: number };
 
 /** The fulfilled items of an order that can still be returned (Shopify takes out items already returned). */
 export async function returnableItems(admin: AdminClient, orderId: string): Promise<ReturnableItem[]> {
   const data = await gql(admin, `#graphql
-    query CroReturnable($orderId: ID!) { returnableFulfillments(orderId: $orderId, first: 10) { nodes { id returnableFulfillmentLineItems(first: 50) { nodes { quantity fulfillmentLineItem { id lineItem { id title variantTitle image { url } product { tags } } } } } } } }`, { orderId });
-  type Node = { quantity: number; fulfillmentLineItem: { id: string; lineItem: { id: string; title: string; variantTitle: string | null; image: { url: string } | null; product: { tags: string[] } | null } } };
+    query CroReturnable($orderId: ID!) { returnableFulfillments(orderId: $orderId, first: 10) { nodes { id returnableFulfillmentLineItems(first: 50) { nodes { quantity fulfillmentLineItem { id lineItem { id title variantTitle discountedUnitPriceSet { shopMoney { amount } } image { url } product { tags } } } } } } } }`, { orderId });
+  type Node = { quantity: number; fulfillmentLineItem: { id: string; lineItem: { id: string; title: string; variantTitle: string | null; discountedUnitPriceSet: { shopMoney: { amount: string } } | null; image: { url: string } | null; product: { tags: string[] } | null } } };
   return (data.returnableFulfillments?.nodes ?? []).flatMap((f: { returnableFulfillmentLineItems: { nodes: Node[] } }) =>
     f.returnableFulfillmentLineItems.nodes.map((n) => ({
       fulfillmentLineItemId: n.fulfillmentLineItem.id,
@@ -48,6 +48,7 @@ export async function returnableItems(admin: AdminClient, orderId: string): Prom
       quantity: n.quantity,
       image: n.fulfillmentLineItem.lineItem.image?.url ?? null,
       tags: (n.fulfillmentLineItem.lineItem.product?.tags ?? []).map((t) => t.toLowerCase()),
+      price: Number(n.fulfillmentLineItem.lineItem.discountedUnitPriceSet?.shopMoney.amount) || 0,
     })),
   );
 }
@@ -108,7 +109,7 @@ export async function attachLabel(admin: AdminClient, returnId: string, label: {
 }
 
 /** Refunds the items still unprocessed, the way Shopify suggests (back to the original payment), and tells the shopper. */
-export async function refundReturn(admin: AdminClient, returnId: string) {
+export async function refundReturn(admin: AdminClient, returnId: string, opts: { restock?: boolean } = {}) {
   const d = await detail(admin, returnId);
   const lines = d.returnLineItems.nodes.map((l) => ({ id: l.id, quantity: l.quantity - l.processedQuantity })).filter((l) => l.quantity > 0);
   if (!lines.length) throw new AdminError("Everything in this return was already refunded.");
@@ -117,9 +118,15 @@ export async function refundReturn(admin: AdminClient, returnId: string) {
   const tx: { amountSet: { shopMoney: { amount: string; currencyCode: string } }; parentTransaction: { id: string } | null }[] = out.return?.suggestedFinancialOutcome?.financialTransfer?.suggestedTransactions ?? [];
   const orderTransactions = tx.filter((t) => t.parentTransaction?.id && Number(t.amountSet.shopMoney.amount) > 0).map((t) => ({ parentId: t.parentTransaction!.id, transactionAmount: { amount: t.amountSet.shopMoney.amount, currencyCode: t.amountSet.shopMoney.currencyCode } }));
   if (!orderTransactions.length) throw new AdminError("Shopify could not suggest a refund for this order (for example it was paid with a gift card or in cash). Refund it in the Shopify admin.");
+  // Put the items back in stock when the merchant asked for it (Pro, return rules).
+  let disp = new Map<string, unknown[]>();
+  if (opts.restock) {
+    const saving = await import("./return-saving.server");
+    disp = await saving.restockDispositions(admin, await saving.detailForCredit(admin, returnId), lines);
+  }
   const data = await gql(admin, `#graphql
     mutation CroProcess($input: ReturnProcessInput!) { returnProcess(input: $input) { return { id status } userErrors { field message } } }`, {
-    input: { returnId, notifyCustomer: true, returnLineItems: lines, financialTransfer: { issueRefund: { orderTransactions } } },
+    input: { returnId, notifyCustomer: true, returnLineItems: lines.map((l) => ({ ...l, ...(disp.get(l.id) ? { dispositions: disp.get(l.id) } : {}) })), financialTransfer: { issueRefund: { orderTransactions } } },
   });
   fail(data.returnProcess.userErrors);
 }
