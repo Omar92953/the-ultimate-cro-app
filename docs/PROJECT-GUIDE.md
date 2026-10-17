@@ -255,3 +255,10 @@ features and sends people to the App Store listing.
   live, link to a "Coming soon" or waitlist form.
 - **Truthfulness**: only claim features that exist in the app; no invented reviews, numbers or logos.
 - Keep UI text rules: no dashes, short plain sentences.
+
+## MCP server (AI assistants), design in `docs/plans/mcp-server.md`
+
+- Endpoint `/mcp` (`app/routes/mcp._index.tsx`), OAuth discovery under `/.well-known/`, `/mcp/register`, `/mcp/authorize` (asks the store, then hands over to the admin page `app/routes/app.mcp-connect.tsx`), `/mcp/token`. Settings → "Connect an AI assistant" is `app/routes/app.assistant.tsx` (token, connections, audit log).
+- Code: `app/lib/mcp/` (`auth.server.ts` grants and tokens, `limits.server.ts` audit and rate limits, `server.server.ts` protocol, `tools.server.ts` tools, `registry.server.ts` which designs can be read and built). Tables McpClient, McpRequest, McpGrant, McpAudit (SQLite and Postgres migrations `20261018000000_mcp`).
+- A new tool: add it to `tools.server.ts` (or `registerTools`), say what it needs (`read`, `build`, `publish`), call the same lib functions as the admin and the rules in `app/lib/rules.ts`. Test it in `test/app/mcp-auth.test.ts`.
+

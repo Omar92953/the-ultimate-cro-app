@@ -86,3 +86,65 @@ model FeatureRequest {
   @@index([shop, createdAt])
   @@index([status])
 }
+
+/// MCP (AI assistants): an app that registered itself (OAuth dynamic client registration).
+model McpClient {
+  id           String   @id
+  name         String
+  redirectUris String
+  createdAt    DateTime @default(now())
+}
+
+/// A started "Connect" waiting for the merchant's OK in the admin, and then the one use code that follows it.
+model McpRequest {
+  id            String    @id
+  clientId      String
+  redirectUri   String
+  state         String    @default("")
+  challenge     String
+  shop          String    @default("")
+  /// Set when the merchant allowed it: the code the assistant exchanges for tokens (stored hashed).
+  codeHash      String    @default("")
+  scope         String    @default("read")
+  allowPublish  Boolean   @default(false)
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+
+  @@index([codeHash])
+  @@index([shop])
+}
+
+/// What a connected assistant (or a personal access token) may do in one shop. Tokens are stored hashed.
+model McpGrant {
+  id             String    @id
+  shop           String
+  kind           String
+  name           String
+  scope          String    @default("read")
+  allowPublish   Boolean   @default(false)
+  tokenHash      String    @unique
+  refreshHash    String    @default("")
+  expiresAt      DateTime?
+  refreshExpires DateTime?
+  createdAt      DateTime  @default(now())
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+
+  @@index([shop])
+  @@index([refreshHash])
+}
+
+/// What assistants did, shown in Settings for 90 days. The summary never holds the full text of a section.
+model McpAudit {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  grantId   String
+  tool      String
+  summary   String   @default("")
+  result    String
+  build     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([shop, createdAt])
+  @@index([grantId, createdAt])
+}
