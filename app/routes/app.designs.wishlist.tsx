@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -10,7 +10,7 @@ import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getWishlist, saveWishlist } from "../lib/designs.server";
 import { applyWishlistPreset, WISHLIST_PRESETS, WISHLIST_SIZES, withWishlistDefaults, type WishlistDesign } from "../lib/wishlist-design";
-import { Button, Checkbox, ColorField, NumberField, Select, TextField } from "../components/fields";
+import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { WishlistPreview } from "../components/WishlistPreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker, templateInUse } from "../components/LookPicker";
@@ -24,17 +24,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getWishlist(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   const links = sectionLinks(session.shop);
-  return { config, saved, css: storefrontCss("ucs-sections.css"), embedOn: theme ? theme.installed.boosters : null, embedLink: links.boosters, pageLink: links.track, pagesAdmin: `https://${session.shop}/admin/pages/new` };
+  return { config, saved, css: storefrontCss("ucs-sections.css") + storefrontCss("ucs-wishlist.css"), embedOn: theme ? theme.installed.boosters : null, embedLink: links.boosters, domain: session.shop, pageLink: links.track, pagesAdmin: `https://${session.shop}/admin/pages/new` };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
-    const config = await saveWishlist(admin, withWishlistDefaults(JSON.parse(String(form.get("config")))));
-    return { ok: true, error: null, config };
+    const draft = form.get("intent") === "draft";
+    const config = await saveWishlist(admin, withWishlistDefaults(JSON.parse(String(form.get("config")))), draft);
+    return { ok: true, draft, error: null, config };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), config: null };
+    return { ok: false, draft: false, error: errorMessage(e), config: null };
   }
 };
 
@@ -53,7 +54,8 @@ export default function WishlistDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Wishlist saved and live on your store" : "Wishlist saved");
+    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    else if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Wishlist saved and live on your store" : "Wishlist saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
 
@@ -61,13 +63,17 @@ export default function WishlistDesigner() {
     <K extends "where" | "page" | "text" | "look">(k: K) =>
     (patch: Partial<C[K]>) =>
       setCfg((c) => ({ ...c, [k]: { ...c[k], ...patch } }));
+  const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" });
   const where = part("where"), page = part("page"), text = part("text"), look = part("look");
 
   return (
     <s-page heading="Wishlist" inlineSize="large">
       <CategoryCrumb feature="wishlist" />
       <DemoButton feature="wishlist" template={templateInUse(WISHLIST_PRESETS, cfg, applyWishlistPreset)} />
-      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
+      <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
+      <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
+        See it on my store
+      </Button>
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Turn on in theme"}
       </Button>
@@ -94,6 +100,7 @@ export default function WishlistDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Where the heart shows">
                   <s-stack gap="small-200">
+                    <Switch label="Wishlist is on" details="Off hides the hearts, the floating button and the page's list. Your settings are kept." checked={cfg.on} onValue={(v) => setCfg((c) => ({ ...c, on: v }))} />
                     <Checkbox label="Product pages (next to Add to cart)" checked={cfg.where.product} onValue={(v) => where({ product: v })} />
                     <Checkbox label="Product cards (collections, search, home)" checked={cfg.where.cards} onValue={(v) => where({ cards: v })} />
                     <Checkbox label="Floating button with the count" checked={cfg.where.floating} onValue={(v) => where({ floating: v })} />
@@ -118,6 +125,11 @@ export default function WishlistDesigner() {
                       <TextField label="Price dropped" details="{amount} = how much less" value={cfg.page.priceDrop} onValue={(v) => page({ priceDrop: v })} />
                       <TextField label="Share button" value={cfg.page.share} onValue={(v) => page({ share: v })} />
                       <TextField label="After copying" value={cfg.page.copied} onValue={(v) => page({ copied: v })} />
+                    </s-grid>
+                    <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                      <TextField label="After adding to cart" value={cfg.page.added} onValue={(v) => page({ added: v })} />
+                      <TextField label="If adding fails" value={cfg.page.failed} onValue={(v) => page({ failed: v })} />
+                      <TextField label="Sold out" value={cfg.page.soldOut} onValue={(v) => page({ soldOut: v })} />
                     </s-grid>
                     <TextField label="Empty wishlist" value={cfg.page.empty} onValue={(v) => page({ empty: v })} />
                   </s-stack>
@@ -149,3 +161,6 @@ export default function WishlistDesigner() {
 }
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);
+
+/** "See it on my store" only stores the draft: the page keeps its state. */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);

@@ -1,0 +1,12 @@
+/* Gift note & delivery date (app: Gift note & delivery date). Loaded by ucs-cart-extras.js, so it works in the cart drawer and the cart page block. */
+.ucs-ce { display: grid; gap: 10px; margin: 12px 0; font-size: var(--ucs-ce-t, 14px); text-align: left; }
+.ucs-ce--box { padding: 14px; border-radius: var(--ucs-ce-r, 10px); background: var(--ucs-ce-bg, #f6f6f6); }
+.ucs-ce--drawer { margin: 0 0 12px; }
+.ucs-ce__h { margin: 0; font-size: var(--ucs-ce-h, 15px); font-weight: 700; }
+.ucs-ce__check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.ucs-ce__check input { width: 18px; height: 18px; accent-color: var(--ucs-ce-accent, #121212); }
+.ucs-ce__field { display: grid; gap: 4px; }
+.ucs-ce__field[hidden] { display: none; }
+.ucs-ce__field select, .ucs-ce__field textarea { min-height: var(--ucs-ce-in, 40px); padding: 6px 10px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-ce-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
+.ucs-ce__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.ucs-ce__msg { margin: 0; color: #b42318; font-size: 0.9em; }
