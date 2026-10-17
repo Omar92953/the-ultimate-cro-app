@@ -8,6 +8,7 @@
  * from images.unsplash.com as Unsplash asks. Video: MDN's CC0 sample clip.
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import s from "./SectionShowcase.module.css";
 
@@ -84,12 +85,21 @@ export function SectionCard(props: {
   demo?: string;
   /** Bookmark: saved cards are listed under Home → Saved. */
   save?: { saved: boolean; onChange: (saved: boolean) => void };
+  /** The detail drawer (the "i" button): what it does and which plan it is on, from the catalog. */
+  details?: { about: string; plan: string };
 }) {
   const [index, setIndex] = useState(0);
+  const [drawer, setDrawer] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const count = props.previews.length;
   const go = (dir: number) => setIndex((i) => (i + dir + count) % count);
+  useEffect(() => {
+    if (!drawer) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [drawer]);
   useEffect(() => {
     if (!menuOpen) return;
     const close = (e: Event) => {
@@ -143,6 +153,13 @@ export function SectionCard(props: {
             {props.title}
           </Go>
           <span className={s.footEnd}>
+            {props.details ? (
+              <button type="button" className={s.iconBtn} aria-label={`Details of ${props.title}`} title="Details" onClick={() => setDrawer(true)}>
+                <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                  <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm.9 11.5H9.1V9h1.8v4.5ZM10 7.8a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+            ) : null}
             {props.demo ? (
               <a className={s.iconBtn} href={props.demo} target="_blank" rel="noopener noreferrer" aria-label={`See the live demo of ${props.title} (opens in a new tab)`} title="See live demo">
                 <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
@@ -222,6 +239,62 @@ export function SectionCard(props: {
           ) : null}
         </div>
       </div>
+      {drawer && props.details && typeof document !== "undefined"
+        ? createPortal(
+            <div className={s.veil} role="presentation" onClick={(e) => e.target === e.currentTarget && setDrawer(false)} onKeyDown={() => {}}>
+              <aside className={s.drawer} role="dialog" aria-modal="true" aria-label={props.title}>
+                <div className={s.drawerHead}>
+                  <strong>{props.title}</strong>
+                  <button type="button" className={s.iconBtn} aria-label="Close" onClick={() => setDrawer(false)}>
+                    ✕
+                  </button>
+                </div>
+                <div className={s.drawerStage}>
+                  <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-hidden="true">
+                    {props.previews.map((preview, i) => (
+                      <span key={i} className={s.canvas}>
+                        {preview}
+                      </span>
+                    ))}
+                  </span>
+                  {count > 1 ? (
+                    <>
+                      <button type="button" className={`${s.arrow} ${s.arrowPrev}`} style={{ opacity: 0.9 }} aria-label="Previous look" onClick={() => go(-1)}>
+                        ‹
+                      </button>
+                      <button type="button" className={`${s.arrow} ${s.arrowNext}`} style={{ opacity: 0.9 }} aria-label="Next look" onClick={() => go(1)}>
+                        ›
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+                {count > 1 ? <p className={s.drawerMeta}>Look {index + 1} of {count}</p> : null}
+                <p className={s.drawerAbout}>{props.details.about}</p>
+                <p className={s.drawerMeta}>{props.details.plan}</p>
+                <p className={s.drawerMeta}>
+                  <span className={`${s.dotTone} ${s[props.status.tone]}`} aria-hidden="true" /> {props.status.text}
+                </p>
+                <div className={s.drawerActions}>
+                  <Go className={s.drawerPrimary} href={props.open.href} external={props.open.external}>
+                    Open
+                  </Go>
+                  {[...(props.menu ?? []), ...(props.demo ? [{ label: "See live demo", href: props.demo, newTab: true }] : [])].map((m) =>
+                    "onClick" in m ? (
+                      <button key={m.label} type="button" className={s.drawerLink} onClick={m.onClick}>
+                        {m.label}
+                      </button>
+                    ) : (
+                      <Go key={m.label} className={s.drawerLink} href={m.href} external={m.external} newTab={"newTab" in m ? m.newTab : false}>
+                        {m.label}
+                      </Go>
+                    ),
+                  )}
+                </div>
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

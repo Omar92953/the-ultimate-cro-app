@@ -362,6 +362,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                 off={e.off || locked}
                 save={save(e.key)}
                 demo={hasDemo(reg) ? demoUrl(reg) : undefined}
+                details={{ about: feature(reg).about, plan: `Plan: ${PLANS[FEATURE_PLAN[reg]].name}${canUse(plan, reg) ? " (included in yours)" : ""}` }}
               />
             ),
           });
