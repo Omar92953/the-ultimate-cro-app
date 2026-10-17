@@ -143,3 +143,28 @@ G9. MCP server (#12) — design first, then build
   see them as drafts in the app, publish.
 - Every group: typecheck, lint, test:app, build, build:theme, test:storefront, test:functions,
   site and demos builds; Shopify deploy before merge where marked.
+
+## G10. Pro plan value and selling after checkout (Omar, 2026-10-17)
+
+Do after G4 to G8 are merged and G9 PRs 1 to 3. One draft PR per item.
+
+1. **Product recommendations on the Track page** (Growth, with tracking): under the order status, "You may
+   also like" and "Complete your order" rows: products from the order's collections, the bought together
+   data (`bought-together.server.ts`) or picks the merchant sets; add to cart from the page. Same block
+   (`ucs-order-page`), settings in the Track page Style tab, shown in its live preview and the demo.
+   Results counted in Analytics like the other widgets.
+2. **A/B tests for offers** (Pro): split shoppers between two versions of an upsell, cross sell or bundle
+   (version A and B: text, discount, design), a fixed split per visitor (cookie or cart attribute), and a
+   result page per test (views, adds, orders, revenue per version, which earns more and how sure we are).
+   Build on the holdout test (`app/routes/app.analytics.tsx`, the holdout code in the boosters embed).
+   Only real data (rule 1.1.4). Stop and apply the winner with one click.
+3. **Return saving rules** (Pro; Growth keeps the basic returns from G4): before a refund the shopper is
+   offered an exchange for another size or item, or store credit (optionally with a bonus); auto approve
+   by rule (reason, product, order value, days since delivery). Use Shopify's exchange line items on the
+   return and Shopify store credit or gift cards for credit (see `docs/research/tracking-returns.md` §6).
+   Report: revenue kept by exchanges and credit.
+4. **Show "Pro requests are built first" louder**: Plans page (Pro card and the comparison), Home Request a
+   feature card, the website pricing page and listing pricing text. No promises of dates.
+5. Update `app/lib/plans.ts` (FEATURE_PLAN / EXTRA_PLAN), the plans page, the website pricing and
+   `docs/listing.md` so Pro reads: AI assistant and custom sections, A/B tests, return saving rules,
+   requests built first.
