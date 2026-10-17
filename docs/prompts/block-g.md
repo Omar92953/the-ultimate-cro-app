@@ -168,3 +168,33 @@ Do after G4 to G8 are merged and G9 PRs 1 to 3. One draft PR per item.
 5. Update `app/lib/plans.ts` (FEATURE_PLAN / EXTRA_PLAN), the plans page, the website pricing and
    `docs/listing.md` so Pro reads: AI assistant and custom sections, A/B tests, return saving rules,
    requests built first.
+
+## G11. The Track page sells (Omar, 2026-10-17)
+
+Do after the Track & Returns setup fixes and live tracking (`docs/research/tracking-returns.md` §9) and
+G10 item 1 (recommendations). Goal: the Track page is one more CRO Toolbox page that sells, using the
+existing offers, discounts, recommendations, styles and analytics. No new theme block: everything goes in
+`ucs-order-page`. One draft PR per group below. Only real data and real discounts (rules 1.1.4, no fake
+timers or counters).
+
+1. **Next order discount** (Growth): "Thanks for your order, here's 10% off your next one". The app makes a
+   real Shopify discount code per order (or one shared code, merchant's choice) with a real expiry; amount,
+   minimum and days valid set in the app; copy button on the page.
+2. **Offer slots** (Pro): place any existing offer (upsell, cross sell, bundle, free gift) on the Track page
+   the same way offers are placed elsewhere; one slot above and one below the tracking.
+3. **Buy again** (Growth): a button that fills the cart with the order's items (available variants only,
+   says which are sold out); merchant can turn it on per product type or tag.
+4. **After delivery mode** (Growth): once delivered, the page switches to "How was your order?": review
+   request (links to the merchant's review app or product page), Returns page link, and an optional
+   "share with a friend" discount (real code).
+5. **Delay message** (Growth): when a shipment is past its estimated date (or the provider says Problem),
+   show the merchant's apology text and an optional real discount (for example free shipping next time).
+6. **Track page editor**: one editor (`EditorLayout`) with Style and "What to show" (recommendations, next
+   order discount, offer slots, buy again, after delivery, delay message), live preview with a sample order
+   (in transit, delivered and delayed states), "See live demo"; update the demo in `demos/`.
+7. **Analytics card "Track & Returns"**: Track page visits, revenue from Track page offers and
+   recommendations, discount codes used, buy again orders, sales kept by return saving rules. Real orders
+   only (attribution by cart attribute or discount code).
+8. **Plans and copy**: `app/lib/plans.ts`, plans page, website pricing and feature page, `docs/listing.md`:
+   "Your tracking page sells too". Growth: track page with recommendations, next order discount, buy again,
+   after delivery, delay message. Pro: live tracking, offer slots, A/B tests, return saving rules.
