@@ -629,6 +629,9 @@
 }
 .ucro-bundle__totals [data-value] { text-decoration: line-through; opacity: 0.6; }
 .ucro-bundle__save { margin: 0; font-weight: 600; }
+/* A clear price summary: the total is the biggest thing in the box. */
+.ucro-bundle__totals { align-items: baseline; }
+.ucro-bundle__totals strong { font-size: 1.3em; }
 
 /* ---- Cart drawer offers ------------------------------------------------------------ */
 .ucro-drawer {
