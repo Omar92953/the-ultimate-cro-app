@@ -63,6 +63,14 @@ model ReturnRequest {
   note      String   @default("")
   status    String   @default("pending")
   createdAt DateTime @default(now())
+  /// The Shopify return (gid) made when the shopper asked, its name, and what the merchant attached.
+  returnId    String   @default("")
+  returnName  String   @default("")
+  labelUrl    String   @default("")
+  tracking    String   @default("")
+  trackingUrl String   @default("")
+  declineNote String   @default("")
+  refundedAt  DateTime?
 
   @@index([shop, status])
 }

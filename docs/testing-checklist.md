@@ -202,3 +202,12 @@ Once every box is ticked on both themes:
    Public App Store is needed for the discounts and bundle stock tracking on your non-Plus store.
 3. Only after the app works on your real store do the theme features get removed. See
    the private store notes (kept outside this repository).
+
+## Tracking & Returns (Growth plan, Testing 3)
+
+- [ ] Open the app from Apps and approve the new returns permission; Tracking & Returns shows "Approve the returns permission" as Done.
+- [ ] Put the Track order and Returns blocks on two pages (the hub's buttons). Track a test order: status, tracking number and carrier link show; with only a tracking link the page says live updates are on the carrier's page.
+- [ ] Returns page: find the test order, pick an item and a reason, send. A Shopify return appears on the order in status Requested; Returns in the app lists it as New.
+- [ ] Approve it: the shopper gets Shopify's email and the return is Open in Shopify. Decline another: the shopper gets the email with your note.
+- [ ] Return rules: set the window, a product tag that can't be returned, auto approve for one reason and a return address; the Returns page applies them (excluded product missing; an auto approved reason shows the address and extra words).
+- [ ] Approved return: upload a PDF label (or paste a link) and send; Shopify emails it. Refund: the refund shows on the order, the shopper gets Shopify's email, the return closes.

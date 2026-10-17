@@ -179,12 +179,12 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   track: {
     who: "For fewer where is my order messages.",
-    points: ["Shoppers look up their order with the order number and email", "Delivery status and tracking links"],
+    points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify", "Orders older than 60 days once Shopify approves access to all orders"],
     related: ["returns", "faq"],
   },
   returns: {
     who: "For handling returns without email back and forth.",
-    points: ["Shoppers ask for a return with the order number and email", "They choose the items and a reason", "Requests listed in the app"],
+    points: ["Shoppers ask for a return with the order number and email", "Each request is a real Shopify return you approve or decline, with Shopify emailing the shopper", "Rules: return window, products that can't be returned, reasons approved at once, your return address", "Upload your return label for the shopper, then refund when the items arrive", "Refunds only for now: no exchanges or store credit"],
     related: ["track", "faq"],
   },
   payment_rules: {

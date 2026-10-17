@@ -12,10 +12,11 @@
 import { DEAL_TYPES, type DealKind } from "./deals";
 import { BUNDLE_RECIPES } from "./bundle-recipes";
 
-export type AreaKey = "offers" | "storefront" | "checkout";
+export type AreaKey = "offers" | "tracking" | "storefront" | "checkout";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, bundles, cross sells and discounts." },
+  { key: "tracking", title: "Tracking & Returns", href: "/app/tracking-returns", intro: "Let shoppers track their orders and ask for returns on your store, and handle the returns here: approve, send a label, refund." },
   { key: "storefront", title: "Storefront", href: "/app/storefront", intro: "Everything shoppers see on your store: the cart, reviews, bars, timers, product-page tools, sections and pages." },
   { key: "checkout", title: "Checkout", href: "/app/checkout", intro: "Inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
 ];
@@ -23,14 +24,13 @@ export const isArea = (v: unknown): v is AreaKey => AREAS.some((a) => a.key === 
 export const area = (key: AreaKey) => AREAS.find((a) => a.key === key)!;
 
 /** Storefront groups, in the order the hub shows them. */
-export type GroupKey = "cart" | "social" | "bars" | "product" | "content" | "pages";
+export type GroupKey = "cart" | "social" | "bars" | "product" | "content";
 export const GROUPS: { key: GroupKey; title: string }[] = [
   { key: "cart", title: "Cart" },
   { key: "social", title: "Social proof" },
   { key: "bars", title: "Bars & urgency" },
   { key: "product", title: "Product page" },
   { key: "content", title: "Sections" },
-  { key: "pages", title: "Order pages" },
 ];
 
 export type FeatureTab = { label: string; href: string };
@@ -109,8 +109,8 @@ export const FEATURES = {
   quiz: { title: "Product quiz", area: "storefront", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
   collection_pills: { title: "Collection pills", area: "storefront", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
   // Storefront · header & pages
-  track: { title: "Track order page", area: "storefront", group: "pages", about: "A page where shoppers look up their order and its delivery status.", tabs: [design("/app/pages/track")] },
-  returns: { title: "Returns page", area: "storefront", group: "pages", about: "A page where shoppers ask for a return, and the requests in one list.", tabs: [{ label: "Requests", href: "/app/returns" }, design("/app/pages/returns")] },
+  track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, from the tracking Shopify has.", tabs: [design("/app/pages/track")] },
+  returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
   // Checkout
   payment_rules: { title: "Payment rules", area: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
   delivery_rules: { title: "Delivery rules", area: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },

@@ -6,7 +6,7 @@ const HUB: Record<string, string> = {
   offers: "/app/offers",
   boosters: "/app/storefront?cat=bars",
   sections: "/app/storefront?cat=content",
-  design: "/app/storefront?cat=pages",
+  design: "/app/storefront",
   checkout: "/app/checkout",
 };
 
