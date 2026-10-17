@@ -33,6 +33,11 @@ Updated 2026-10-15.
 - [ ] Next Shopify deploy: theme editor texts still say "Cross-sell" and "Design" (theme/blocks/ucro-cart-offers.liquid
       and others); change to "Cross sell" and "Style".
 
+- [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
+      Needs a Shopify deploy and Omar's steps in each PR: read_returns and write_returns scopes on Render
+      and the TOML (G4), request read_all_orders in the Partner Dashboard, test on Testing 3 with
+      `docs/testing-checklist.md`. G9: Omar approves `docs/plans/mcp-server.md` before any MCP code.
+
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
