@@ -180,6 +180,14 @@ export const order = {
   shipments: [{ status: "IN_TRANSIT", company: "UPS", number: "1Z999AA10123456784", url: "#", delivered: null, estimated: "2026-10-16T00:00:00Z" }],
 };
 
+/** The Track page's recommendation rows for the demo order: real demo products that are not in the order. */
+const rec = (handle) => {
+  const p = catalog[handle];
+  const v = p.variants.find((x) => x.available) ?? p.variants[0];
+  return { handle, title: p.title, image: p.featured_image, price: (v.price / 100).toFixed(2), currency: "USD", variantId: v.id };
+};
+order.recs = { like: ["daily-cream", "oat-soap", "sea-shampoo", "clay-mug"].map(rec), complete: ["fig-candle", "amber-candle"].map(rec) };
+
 /** Recent purchases for sales pop ups (no names, ever). */
 export const recent = (now) => [
   { product: "Cedar Candle", handle: "cedar-candle", image: IMG("cedar-candle"), city: "Austin", at: new Date(now - 4 * 60e3).toISOString() },

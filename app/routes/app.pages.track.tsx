@@ -13,7 +13,7 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
 import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
-import { Button, ColorField, NumberField, Select, TextArea, TextField } from "../components/fields";
+import { Button, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { OrderPagePreview } from "../components/OrderPagePreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker, templateInUse } from "../components/LookPicker";
@@ -80,6 +80,14 @@ export default function OrderPageDesigner() {
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const groups = [...new Set(TEXTS[data.kind].map((t) => t.group))];
+  const row = (k: "like" | "complete", patch: Partial<C["recs"]["like"]>) => setCfg((c) => ({ ...c, recs: { ...c.recs, [k]: { ...c.recs[k], ...patch } } }));
+  async function pickProducts(k: "like" | "complete") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const selected: any = await shopify.resourcePicker({ type: "product", multiple: true, action: "select" } as any);
+    if (!selected) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    row(k, { picks: selected.slice(0, 12).map((s: any) => ({ handle: String(s.handle), title: String(s.title) })) });
+  }
 
   return (
     <s-page heading={title} inlineSize="large">
@@ -125,6 +133,42 @@ export default function OrderPageDesigner() {
                   </s-section>
                 </Pane>
               ))}
+
+              {isTrack ? (
+                <Pane show={tab === "content"}>
+                  <s-section heading="Recommendations under the order">
+                    <s-stack gap="base">
+                      <s-text color="subdued">Products shoppers can add to a new cart from this page. Products already in the order are never shown, and only products in stock.</s-text>
+                      {(["like", "complete"] as const).map((k) => (
+                        <s-box key={k} padding="small-200" borderWidth="base" borderRadius="base">
+                          <s-stack gap="small-200">
+                            <Switch label={k === "like" ? "“You may also like” row" : "“Complete your order” row"} checked={cfg.recs[k].on} onValue={(v) => row(k, { on: v })} />
+                            {cfg.recs[k].on ? (
+                              <>
+                                <TextField label="Heading" value={cfg.recs[k].heading} onValue={(v) => row(k, { heading: v })} maxLength={60} />
+                                <Select label="Products come from" value={cfg.recs[k].source} onValue={(v) => row(k, { source: v as C["recs"]["like"]["source"] })} options={[{ value: "collection", label: "The order's collections" }, { value: "together", label: "Bought together (learned from your orders)" }, { value: "picks", label: "Products I choose" }]} />
+                                {cfg.recs[k].source === "picks" ? (
+                                  <s-stack direction="inline" gap="small-200" alignItems="center">
+                                    <Button onClick={() => pickProducts(k)}>Choose products</Button>
+                                    <s-text color="subdued">{cfg.recs[k].picks.length ? cfg.recs[k].picks.map((p) => p.title).join(", ") : "None chosen"}</s-text>
+                                  </s-stack>
+                                ) : null}
+                              </>
+                            ) : null}
+                          </s-stack>
+                        </s-box>
+                      ))}
+                      {cfg.recs.like.on || cfg.recs.complete.on ? (
+                        <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
+                          <NumberField label="Products per row" min={1} max={8} step={1} value={cfg.recs.count} onValue={(v) => setCfg((c) => ({ ...c, recs: { ...c.recs, count: v } }))} />
+                          <TextField label="Button" value={cfg.recs.button} onValue={(v) => setCfg((c) => ({ ...c, recs: { ...c.recs, button: v } }))} />
+                          <TextField label="After adding" value={cfg.recs.added} onValue={(v) => setCfg((c) => ({ ...c, recs: { ...c.recs, added: v } }))} />
+                        </s-grid>
+                      ) : null}
+                    </s-stack>
+                  </s-section>
+                </Pane>
+              ) : null}
 
               {!isTrack ? (
                 <Pane show={tab === "content"}>

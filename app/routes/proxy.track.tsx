@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import { findOrder, readLookup } from "../lib/orders-lookup.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
+import { readRecRequest, trackRecs } from "../lib/track-recs.server";
 import { resolveTracking } from "../lib/tracking/tracking.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -30,8 +31,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         return { ...rest, tracking: r.tracking };
       }),
     );
+    // "You may also like" / "Complete your order": only when the page asks for them (its own settings), and a failure never hides the order.
+    const recReq = readRecRequest(body.recs);
+    const recs = recReq ? await trackRecs(admin, order.items.flatMap((i) => (i.productId ? [i.productId] : [])), recReq).catch((e) => { console.error(`[proxy/track] recommendations ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
     // Everything except the internal order id.
-    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments } });
+    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}) } });
   } catch (e) {
     console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);

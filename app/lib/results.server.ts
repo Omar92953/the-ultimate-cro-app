@@ -26,6 +26,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   video_carousel: "Video carousel",
   sticky_cart: "Sticky add to cart",
   wishlist: "Wishlist",
+  track_recs: "Track page recommendations",
   quiz: "Product quiz",
   addons: "Add-ons",
   gift: "Gift with purchase",
