@@ -178,3 +178,15 @@ metaobject definition in `shopify.app.toml`).
 
 Sources: Anthropic, "Building custom connectors via remote MCP servers" (support.claude.com/en/articles/11503834);
 MCP specification (streamable HTTP and authorization, modelcontextprotocol.io).
+
+## 10. Omar's decisions (2026-10-17)
+
+1. **Connect**: OAuth for claude.ai and Claude Desktop, plus the personal access token for developer clients.
+2. **Publishing**: drafts always; publishing only when the merchant ticked "allow publishing" at connect time.
+3. **Plans**: connecting an assistant on Starter and up; custom sections on Pro.
+4. **Custom section block**: first read Shopify's current App Store requirements and ask Shopify (support or
+   Partner community) whether sanitized merchant/AI authored HTML and scoped CSS in a theme app block is
+   allowed; build PR 4 only once that's clearly yes. PRs 1 to 3 can go ahead now.
+5. **Render** is already on the paid Starter instance (`render.yaml` `plan: starter`), so it doesn't sleep.
+
+Build in the order of section 8.
