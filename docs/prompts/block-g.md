@@ -180,8 +180,12 @@ timers or counters).
 1. **Next order discount** (Growth): "Thanks for your order, here's 10% off your next one". The app makes a
    real Shopify discount code per order (or one shared code, merchant's choice) with a real expiry; amount,
    minimum and days valid set in the app; copy button on the page.
-2. **Offer slots** (Pro): place any existing offer (upsell, cross sell, bundle, free gift) on the Track page
-   the same way offers are placed elsewhere; one slot above and one below the tracking.
+2. **Offer slots** (Pro): Track page offers are made in **Offers**, like every other offer: "Track page" is
+   one more choice in the offer's "Where it shows" (cross sell, "add X and get free shipping", bundle, free
+   gift, next order discount). Tracking & Returns shows a "Track page offers" card listing them and a button
+   "Add an offer to the Track page" that opens Offers with Track page picked. One slot above and one below
+   the tracking. The order is already paid, so offers start a new cart (add to cart, or a real discount
+   code with a real expiry, e.g. free shipping on anything added in 48 hours); never edit the paid order.
 3. **Buy again** (Growth): a button that fills the cart with the order's items (available variants only,
    says which are sold out); merchant can turn it on per product type or tag.
 4. **After delivery mode** (Growth): once delivered, the page switches to "How was your order?": review
@@ -189,6 +193,9 @@ timers or counters).
    "share with a friend" discount (real code).
 5. **Delay message** (Growth): when a shipment is past its estimated date (or the provider says Problem),
    show the merchant's apology text and an optional real discount (for example free shipping next time).
+0. **Order price** (Growth, first PR of G11): each item's price, then subtotal, shipping, discounts and
+   total in the order's currency (`orders-lookup.server.ts` and the Track page). Prices only, never
+   payment method or address.
 6. **Track page editor**: one editor (`EditorLayout`) with Style and "What to show" (recommendations, next
    order discount, offer slots, buy again, after delivery, delay message), live preview with a sample order
    (in transit, delivered and delayed states), "See live demo"; update the demo in `demos/`.
