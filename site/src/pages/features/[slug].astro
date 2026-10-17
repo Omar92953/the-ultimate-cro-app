@@ -1,7 +1,7 @@
 ---
 /**
  * /features/<feature>/ for every feature of the app's catalog, and /features/<area>/ for each area
- * (offers, storefront, cart, checkout, analytics).
+ * (offers, tracking and returns, section library, cart and checkout, analytics).
  */
 import Base from "../../layouts/Base.astro";
 import Crumbs from "../../components/Crumbs.astro";
@@ -35,9 +35,9 @@ const areaOf = (k: FeatureKey) => SITE_AREAS.find((a) => a.key === FEATURES[k].a
 /** Where the feature lives in the app, for the setup steps. */
 const WHERE: Record<string, string> = {
   offers: "Offers",
-  storefront: "Storefront",
-  cart: "Cart",
-  checkout: "Checkout",
+  tracking: "Tracking & Returns",
+  library: "Section library",
+  cart: "Cart & Checkout",
 };
 let page: PageMeta;
 let crumbs: { name: string; href: string }[];
@@ -63,8 +63,8 @@ const copy = feature ? FEATURE_COPY[feature] : null;
 const templates = feature ? TEMPLATES[feature] : undefined;
 const steps = feature
   ? CHECKOUT_ONLY.includes(feature)
-    ? ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE.checkout} → ${featureTitle(feature)} in the app and set it up.`, "Switch it on and check a test order at checkout."]
-    : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Storefront"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."]
+    ? ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE.cart} → ${featureTitle(feature)} in the app and set it up.`, "Switch it on and check a test order at checkout."]
+    : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Section library"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."]
   : [];
 const schema = faq.length ? [faqPage(faq)] : [];
 /** The help guide that covers this feature, and articles written about it. */

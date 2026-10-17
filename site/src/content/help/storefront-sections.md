@@ -19,7 +19,7 @@ Logos or short texts scroll in a strip or sit in a grid. FAQ questions are group
 
 ## Hero banners
 
-Make banners in **Storefront → Hero banners**: a wide desktop image and a tall phone image, heading, text, up to two buttons, where the text sits (separately for phones), colours and height. In the theme editor add the **Hero image** section and pick a banner. Set **Where on the page** to "Lower down" for banners that aren't at the top, so they load only when scrolled to.
+Make banners in **Section library → Hero banners**: a wide desktop image and a tall phone image, heading, text, up to two buttons, where the text sits (separately for phones), colours and height. In the theme editor add the **Hero image** section and pick a banner. Set **Where on the page** to "Lower down" for banners that aren't at the top, so they load only when scrolled to.
 
 ## Image and video carousels
 

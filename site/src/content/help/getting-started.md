@@ -10,18 +10,18 @@ Home in the app shows a setup guide with these steps; they tick themselves as yo
 
 1. **Turn on the app in your theme.** Online Store → Themes → Customize → App embeds, and switch on the CRO Toolbox embeds you need (Conversion boosters is the main one).
 2. **Create your first offer.** Offers → Create offer asks where it shows (product page, cart, after payment) and what it offers.
-3. **Place a section.** Open a Storefront card and click **Add to theme**. The theme editor opens with the block ready: drag it where you want it, then click **Save**.
+3. **Place a section.** Open a card in the Section library and click **Add to theme**. The theme editor opens with the block ready: drag it where you want it, then click **Save**.
 4. **Check a test order.** Add an offer to the cart and check the price at checkout.
 5. **Choose a plan.** Home → Compare plans.
 
 ## Finding your way
 
-The menu is **Home · Offers · Storefront · Checkout · Analytics · Settings**.
+The menu is **Home · Offers · Tracking & Returns · Section library · Cart & Checkout · Analytics · Settings**.
 
 - **Offers:** every offer in one list: upsells, cross sells, bundles of all six types (frequently bought together, fixed, mix and match, build your own, tiered, fixed price), buy X get Y, volume discounts, free gifts, upgrades and the after purchase offer. Add ons and personalization are here too.
-- **Storefront:** every widget and section, grouped: social proof, bars and urgency, product page tools, sections, and store pages. Filter by status (live, needs setup, off, not in my plan) or search.
-- **Storefront → Cart:** offers in your theme's cart, the free shipping bar, gift note and delivery date.
-- **Checkout:** payment rules, delivery rules, order limits, the thank you page and the after purchase offer.
+- **Tracking & Returns:** the Track order and Returns pages, the returns you approve and refund, and your return rules.
+- **Section library:** every widget and section, grouped: social proof, bars and urgency, product page tools and sections. Filter by status (live, needs setup, off, not in my plan) or search.
+- **Cart & Checkout:** the Cart group first (offers in your theme's cart, the free shipping bar, gift note and delivery date), then the Checkout group (payment rules, delivery rules, order limits, the thank you page and the after purchase offer).
 - **Analytics:** sales from the app, each offer and bundle, and the holdout test.
 - **Settings:** app embeds and their status, checkout discounts, plan and billing, referral, help.
 

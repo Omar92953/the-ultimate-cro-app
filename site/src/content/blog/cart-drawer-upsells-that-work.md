@@ -31,7 +31,7 @@ CRO Toolbox adds offers to **your theme's own cart drawer** with **Offers in you
 
 ## How do I set it up?
 
-1. In the app, open **Storefront** and turn on **Offers in your theme's cart** (the Cart group).
+1. In the app, open **Cart & Checkout** and turn on **Offers in your theme's cart** (the Cart group).
 2. Create a cross sell offer (**Offers → Cross sell offers**) with the trigger products and the products to offer, and include the cart drawer in where it appears.
 3. Turn on the free shipping bar and set the goal a little above your typical order.
 4. Add something to the cart on your store and check the drawer.

@@ -103,8 +103,8 @@ export const MORE_PAGES = {
   features: {
     slug: "features",
     path: "/features/",
-    title: "Features: offers, bundles, storefront, cart and checkout",
-    description: `Every CRO Toolbox feature in one place: ${FEATURE_KEYS.length} features across offers, storefront, cart, checkout and analytics, for any Online Store 2.0 theme.`,
+    title: "Features: offers, bundles, tracking and returns, sections, cart and checkout",
+    description: `Every CRO Toolbox feature in one place: ${FEATURE_KEYS.length} features across offers, tracking and returns, the section library, cart and checkout, and analytics, for any Online Store 2.0 theme.`,
     ogTitle: "Every feature, one app",
     ogKicker: "Features",
   },

@@ -1,14 +1,9 @@
-/**
- * Checkout hub: rules and pages inside Shopify checkout (lib/catalog.ts, area "checkout").
- */
-import type { HeadersFunction } from "react-router";
-import { boundary } from "@shopify/shopify-app-react-router/server";
-import { FeatureHub } from "./app.storefront";
+/** Checkout moved into Cart & Checkout: old links go to its Checkout group. */
+import { redirect, type LoaderFunctionArgs } from "react-router";
+import { authenticate } from "../shopify.server";
 
-export { action, loader, shouldRevalidate } from "./app.storefront";
-
-export default function Checkout() {
-  return <FeatureHub area="checkout" />;
-}
-
-export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  await authenticate.admin(request);
+  const search = new URL(request.url).search;
+  return redirect(`/app/cart-checkout${search || "?cat=checkout"}`);
+};

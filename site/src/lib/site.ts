@@ -65,8 +65,8 @@ export type NavLink = { label: string; href: string; /** A dropdown (desktop) an
 export const FEATURES_MENU: NavLink[] = [
   { label: "Offers", href: "/features/offers/" },
   { label: "Tracking & Returns", href: "/features/tracking/" },
-  { label: "Storefront", href: "/features/storefront/" },
-  { label: "Checkout", href: "/features/checkout/" },
+  { label: "Section library", href: "/features/library/" },
+  { label: "Cart & Checkout", href: "/features/cart/" },
   { label: "Analytics", href: "/features/analytics/" },
   { label: "Upsell", href: "/features/upsell/" },
   { label: "Cross sell", href: "/features/cross-sell/" },

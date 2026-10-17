@@ -1,6 +1,6 @@
 /**
  * Server timing per loader: how long a page spent on each kind of work, logged as one line per
- * request, e.g. `[timing] app.storefront 1240ms auth=210 plan=0 hub=820 theme=640`.
+ * request, e.g. `[timing] app.library 1240ms auth=210 plan=0 hub=820 theme=640`.
  * Work that runs side by side is counted by the time spent waiting on each part, so the parts can
  * add up to more than the total. Wrap a loader with `timedLoader(name, fn)` and the pieces with
  * `timed(label, fn)`; outside a wrapped loader `timed` just runs `fn`. Set CRO_TIMING=off to silence.

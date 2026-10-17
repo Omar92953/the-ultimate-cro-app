@@ -100,14 +100,16 @@ test("pages map to features, and locked pages say which plan they need", () => {
   assert.deepEqual(featuresForPath("/app/settings"), []);
   // Every feature belongs to a hub, and its pages lead back there.
   assert.equal(areaForPath("/app/offers/upsell/new"), "offers");
-  assert.equal(areaForPath("/app/designs/quiz"), "storefront");
-  assert.equal(areaForPath("/app/checkout/limits"), "checkout");
-  // Cart is no longer a menu item: its features sit in Storefront, group Cart.
+  assert.equal(areaForPath("/app/designs/quiz"), "library");
+  assert.equal(areaForPath("/app/checkout/limits"), "cart");
+  // Menu: Offers, Tracking & Returns, Section library, Cart & Checkout (Cart group first, then Checkout).
+  assert.deepEqual(AREAS.map((a) => a.title), ["Offers", "Tracking & Returns", "Section library", "Cart & Checkout"]);
   assert.equal(areaForPath("/app/cart"), null);
-  assert.equal(areaForPath("/app/designs/cart-extras"), "storefront");
-  assert.equal(AREAS.some((a) => (a.key as string) === "cart"), false);
+  assert.equal(areaForPath("/app/cart-checkout"), "cart");
+  assert.equal(areaForPath("/app/designs/cart-extras"), "cart");
   assert.equal(FEATURES.cart_extras.group, "cart");
-  assert.equal(GROUPS[0].key, "cart");
+  assert.deepEqual(GROUPS.filter((g) => g.area === "cart").map((g) => g.key), ["cart", "checkout"]);
+  assert.equal(GROUPS.some((g) => g.area === "library" && g.key === "cart"), false);
   assert.equal((FEATURES as Record<string, unknown>).cart_tools, undefined);
   assert.deepEqual(featuresForPath("/app/sections/reviews").sort(), ["product_reviews", "reviews"]);
   assert.equal(pageLock("free", "/app/offers/upsell/new"), null);
@@ -117,7 +119,7 @@ test("pages map to features, and locked pages say which plan they need", () => {
   // Hubs and the offer picker are never locked.
   assert.equal(pageLock("free", "/app/offers"), null);
   assert.equal(pageLock("free", "/app/offers/new"), null);
-  assert.equal(pageLock("free", "/app/storefront"), null);
+  assert.equal(pageLock("free", "/app/library"), null);
   // Not features: never locked.
   assert.equal(pageLock("free", "/app"), null);
   assert.equal(pageLock("free", "/app/results"), null);
@@ -134,8 +136,8 @@ test("offers sit in four groups, and every offer page shows its group's tabs", (
   assert.equal(offerGroupOf("addons")?.key, "upsell");
   assert.equal(offerGroupOf("post_purchase")?.key, "upsell");
   assert.equal(areaForPath("/app/checkout/after-purchase"), "offers");
-  // The after-purchase offer is still listed on the Checkout hub.
-  assert.ok(featuresIn("checkout").includes("post_purchase"));
+  // The after-purchase offer is still listed on the Cart & Checkout hub.
+  assert.ok(featuresIn("cart").includes("post_purchase"));
   // Every bundle editor belongs to Bundles (one list, tabs Bundles · Design).
   assert.deepEqual(featuresForPath("/app/kits/new"), ["bundles"]);
   assert.deepEqual(featuresForPath("/app/bundles/create"), ["bundles"]);

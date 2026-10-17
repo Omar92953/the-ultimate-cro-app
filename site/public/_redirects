@@ -1,6 +1,8 @@
 /sitemap.xml /sitemap-index.xml 301
-/features/cart /features/storefront/ 301
-/features/cart/ /features/storefront/ 301
+/features/storefront /features/library/ 301
+/features/storefront/ /features/library/ 301
+/features/checkout /features/cart/ 301
+/features/checkout/ /features/cart/ 301
 /features/cart-tools /features/cart-offers/ 301
 /features/cart-tools/ /features/cart-offers/ 301
 /demo / 302

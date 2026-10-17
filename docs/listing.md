@@ -96,10 +96,10 @@ WHAT TO CLICK
   shows under Add to cart; the discount appears in the cart and at checkout as a Shopify discount.
 - Discounts (Offers > Discounts): buy X get Y, volume, gift. Add the products to the cart; the
   discount shows in the cart and at checkout.
-- Storefront (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
+- Section library (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
   Wishlist, FAQ, Logos, Hero banner, Quiz. Each has a Style tab with a live
   preview and an "Add to theme" button.
-- Storefront > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
+- Cart & Checkout > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
   offers and the free shipping bar show in the cart.
 - Checkout (menu): Payment rules, Delivery rules, Order limits (blocks checkout with a message
   you write), Thank-you page modules, After-purchase offer. Test at the real checkout.
@@ -128,7 +128,7 @@ password, the Partner Dashboard or `.env`.
 | 1:45 | Product page | Pick three items, show the summary, Add to cart. |
 | 2:15 | Cart and checkout | One bundle line at the bundle price. Go to checkout: one item, one price. |
 | 2:45 | Upsell | Create an upsell, show it under Add to cart and the discount at checkout. |
-| 3:30 | Storefront | Turn on Reviews and the Announcement bar; show the Style tab with its live preview, then the store. |
+| 3:30 | Section library | Turn on Reviews and the Announcement bar; show the Style tab with its live preview, then the store. |
 | 4:15 | Cart offers | Turn on offers in your theme's cart, add a product, show the free shipping bar and offer. |
 | 4:45 | Checkout rules | Order limits: set a minimum, show checkout blocked with the message. |
 | 5:15 | Analytics and plans | Show Analytics and the Plans page (upgrade goes to Shopify's hosted page). |
@@ -164,7 +164,7 @@ Run on the Mac on 2026-10-16 (after Block D, version cro-toolbox-22), all pass:
 `/privacy` 200, crotoolbox.com `/privacy/` and `/support/` 200; `/webhooks/compliance` and
 `/webhooks/app/uninstalled` answer 401 without a valid signature.
 Clicked through on Testing 3: plans (upgrade to Growth, trial, back to Free), feature request,
-offers lists and editors, Delete, Style tab, Storefront with the Cart group.
+offers lists and editors, Delete, Style tab, Section library, Cart & Checkout with the Cart group.
 
 **Blocker until the website deploy with the demos is live**: every "See live demo" button in the app opens
 `crotoolbox.com/demo/…`, built by the website build (`docs/website.md`). Run `npm run check:links` after the
