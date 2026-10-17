@@ -132,6 +132,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["A button on every product card", "Sizes and colours open a small picker", "An Added to your cart popup or the cart drawer", "Bundle products open their own page instead of being added alone"],
     related: ["wishlist", "sticky_atc", "collection_pills"],
   },
+  size_guide: {
+    who: "For clothing, shoes and anything with sizes.",
+    points: ["A size chart window with columns like chest, waist and inseam, in cm or inches", "A drawing of the garment or your own picture", "Different charts for products, collections or tags", "A size recommendation from the height and weight ranges you set, with a snug or relaxed fit choice", "Your own fit note, like “Runs large, size down”"],
+    related: ["delivery", "stock", "quiz"],
+  },
   delivery: {
     who: "For answering when will it arrive before shoppers ask.",
     points: ["Order within 2h 15m and get it Thu to Sat", "Order cut off time, days off, holidays and delivery times per country", "On product pages and in the cart"],

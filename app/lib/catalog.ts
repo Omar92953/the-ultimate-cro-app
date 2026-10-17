@@ -100,6 +100,7 @@ export const FEATURES = {
   sticky_atc: { title: "Sticky add to cart", area: "library", group: "product", about: "An Add to cart bar that stays on screen while shoppers scroll.", tabs: [{ label: "Settings", href: "/app/boosters" }] },
   quick_add: { title: "Quick add to cart", area: "library", group: "product", about: "A button on every product card; sizes open a small picker.", tabs: [design("/app/designs/quick-add")] },
   delivery: { title: "Delivery estimate", area: "library", group: "product", about: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", tabs: [design("/app/designs/delivery")] },
+  size_guide: { title: "Size guide", area: "library", group: "product", about: "Size charts and a size recommendation on the product page, answered from the height and weight ranges you set.", tabs: [design("/app/designs/size-guide")] },
   stock: { title: "Back in stock & pre-order", area: "library", group: "product", about: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
   wishlist: { title: "Wishlist", area: "library", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
   // Storefront · sections

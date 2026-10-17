@@ -27,6 +27,7 @@ export const SHOWCASES: Partial<Record<FeatureKey, Looks>> = {
   sticky_atc: [S.StickyShowcase, S.StickyMobileShowcase],
   quick_add: [S.QuickAddShowcase, S.QuickAddToastShowcase],
   delivery: [S.DeliveryShowcase],
+  size_guide: [S.SizeGuideShowcase],
   stock: [S.StockShowcase],
   wishlist: [S.WishlistShowcase],
   hero: [S.HeroShowcase, S.HeroCenteredShowcase],

@@ -1,0 +1,41 @@
+{%- liquid
+assign d = shop.metaobjects['$app:cro_design']['size_guide'].config.value
+if request.design_mode and shop.metaobjects['$app:cro_design']['size_guide_draft'].config.value
+assign d = shop.metaobjects['$app:cro_design']['size_guide_draft'].config.value
+endif
+assign at = -1
+if d and d.on != false and product
+for ch in d.charts
+if at == -1
+if ch.m.all
+assign at = forloop.index0
+elsif ch.m.products contains product.handle
+assign at = forloop.index0
+else
+assign chart_at = forloop.index0
+for tg in product.tags
+assign low = tg | downcase
+if ch.m.tags contains low
+assign at = chart_at
+break
+endif
+endfor
+if at == -1
+for co in product.collections
+if ch.m.collections contains co.handle
+assign at = chart_at
+break
+endif
+endfor
+endif
+endif
+endif
+endfor
+if at == -1 and request.design_mode
+assign at = 0
+endif
+endif
+-%}{%- if at > -1 -%}{%- assign pick = d.charts[at] -%}<div class="{{ d.cls }}" style="{{ d.css }}" data-ucs-sg data-place="{{ block.settings.place | default: d.place }}" hidden {{ block.shopify_attributes }}>
+<script type="application/json">{"t":{{ d.t | json }},"chart":{{ pick | json }}}</script>
+</div>
+<script src="{{ 'ucs-size-guide.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<p {{ block.shopify_attributes }}>Set up the size guide in the app: Section library → Size guide.</p>{%- endif -%}{% schema %}{"name":"Size guide","target":"section","settings":[{"type":"select","id":"place","label":"t:s.11","default":"","options":[{"value":"","label":"t:s.12"},{"value":"picker","label":"t:s.13"},{"value":"block","label":"t:s.14"}]},{"type":"paragraph","content":"t:s.15"}]}{% endschema %}

@@ -64,6 +64,7 @@ import {
   ProductReviewsShowcase,
   StockShowcase,
   DeliveryShowcase,
+  SizeGuideShowcase,
   PersonalizeShowcase,
   CartExtrasShowcase,
   WishlistShowcase,
@@ -186,7 +187,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -201,6 +202,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "personalize", title: "Personalization", description: "Engraving or names on the product with a live preview, saved on the order, with an optional fee.", list: null, embed: false, app: "/app/offers/personalization", cat: "offers", Previews: [PersonalizeShowcase] },
   { key: "wishlist", title: "Wishlist", description: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", list: null, embed: true, app: "/app/designs/wishlist", cat: "boosters", Previews: [WishlistShowcase] },
   { key: "delivery", title: "Delivery estimate", description: "“Order within 2h 15m and get it Thu to Sat” on product pages and the cart.", list: null, embed: false, app: "/app/designs/delivery", cat: "boosters", Previews: [DeliveryShowcase] },
+  { key: "size_guide", title: "Size guide", description: "Size charts and a size recommendation on the product page, answered from the height and weight ranges you set.", list: null, embed: false, app: "/app/designs/size-guide", cat: "boosters", Previews: [SizeGuideShowcase] },
   { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
   { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
