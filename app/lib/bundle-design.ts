@@ -35,10 +35,12 @@ export const DEFAULT_BUNDLE_DESIGN: BundleDesign = {
   button: { theme: true, label: "Add bundle to cart", remaining: "Choose [remaining] more" },
   tray: { add: "Add to bundle", cart: "Add bundle to cart", checkout: "Checkout", position: "bottom" },
   look: { themeAccent: true, accent: "#111111", themeRadius: true, radius: 12, top: 16, bottom: 16, scheme: "" },
-  card: { style: "outline", bg: "", border: "", borderWidth: 1, padding: 8, gap: 13, align: "left", pickedTint: false, pickedBorder: "" },
+  // The default look: filled cards on a soft background, a clear picked state (accent border and tint),
+  // a filled Add button that turns into the accent colour when picked, and a clear price summary.
+  card: { style: "filled", bg: "", border: "", borderWidth: 1, padding: 10, gap: 14, align: "left", pickedTint: true, pickedBorder: "" },
   image: { ratio: "1 / 1", fit: "cover", radius: -1 },
   type: { font: "theme", nameSize: 15, nameWeight: 600, nameColor: "", priceSize: 15, priceWeight: 400, priceColor: "", stepSize: 15, counter: "text" },
-  pickButton: { style: "outline", radius: 6, height: 36, size: 14, weight: 400, upper: false, bg: "", text: "", border: "", pickedBg: "", pickedText: "" },
+  pickButton: { style: "filled", radius: 8, height: 40, size: 14, weight: 600, upper: false, bg: "", text: "", border: "", pickedBg: "", pickedText: "" },
   summaryLook: { bg: "", text: "", radius: -1, customButton: false, btnBg: "#111111", btnText: "#ffffff", btnRadius: 8 },
   layout: { mobile: "grid", maxWidth: 0 },
 };
@@ -54,7 +56,7 @@ type Patch = {
 };
 /** Ready-made looks; everything stays editable. */
 export const BUNDLE_PRESETS: { key: string; title: string; patch: Patch }[] = [
-  { key: "theme", title: "My theme", patch: { look: { themeAccent: true, themeRadius: true }, card: { style: "outline", pickedTint: false }, pickButton: { style: "outline", radius: 6 } } },
+  { key: "theme", title: "My theme", patch: { look: { themeAccent: true, themeRadius: true }, card: { style: "filled", pickedTint: true }, pickButton: { style: "filled", radius: 8, weight: 600, height: 40 } } },
   { key: "black", title: "Black and white", patch: { look: { themeAccent: false, accent: "#111111", themeRadius: false, radius: 10 }, card: { style: "outline", pickedTint: false }, pickButton: { style: "filled", radius: 6, bg: "#f1f1f1", text: "#111111", border: "" } } },
   { key: "green", title: "Fresh green", patch: { look: { themeAccent: false, accent: "#16a34a", themeRadius: false, radius: 14 }, card: { style: "filled", bg: "#f3faf5", pickedTint: true }, pickButton: { style: "outline", radius: 99 } } },
   { key: "blue", title: "Blue", patch: { look: { themeAccent: false, accent: "#2563eb", themeRadius: false, radius: 12 }, card: { style: "shadow", bg: "#ffffff", pickedTint: true }, pickButton: { style: "filled", radius: 8, bg: "#eef3ff", text: "#1d4ed8" } } },

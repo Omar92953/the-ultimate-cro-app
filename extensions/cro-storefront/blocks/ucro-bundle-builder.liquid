@@ -49,8 +49,8 @@ assign sub = d.sub
 endif
 assign pick = d.pk | default: 'Add'
 -%}{%- if bundle and bundle.steps.value.size > 0 -%}<ucro-bundle
-class="ucro ucro-bundle{{ d.cls }}"
-style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
+class="ucro ucro-bundle{{ d.cls | default: ' ucro-bundle--card-filled ucro-bundle--btn-filled ucro-bundle--tint' }}"
+style="{{ d.css | default: '--ucro-align: left; --ucro-pt: 16px; --ucro-pb: 16px; --ucro-cols-d: 4; --ucro-cols-m: 2; --ucro-b-bw: 1px; --ucro-b-pad: 10px; --ucro-b-gap: 14px; --ucro-b-align: left; --ucro-b-ratio: 1 / 1; --ucro-b-fit: cover; --ucro-b-ns: 15px; --ucro-b-nw: 600; --ucro-b-ps: 15px; --ucro-b-pw: 400; --ucro-b-ls: 15px; --ucro-b-br: 8px; --ucro-b-bh: 40px; --ucro-b-bs: 14px; --ucro-b-bwt: 600; --ucro-b-bt: none;' }}"
 data-key="{{ bp.id }}"
 data-bundle="{{ bp.id }}"
 data-mode="{{ shop.metaobjects['$app:cro_design']['bundle_mode'].config.value.m | default: 'merge' }}"
