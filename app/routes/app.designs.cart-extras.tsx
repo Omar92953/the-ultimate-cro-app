@@ -29,7 +29,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme, style] = await Promise.all([getCartExtras(admin), getThemeStatus(admin, session.shop).catch(() => null), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const links = sectionLinks(session.shop);
-  return { config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: theme ? theme.installed.cart_extras : false, boostersOn: theme ? theme.installed.boosters : null, addLink: links.cart_extras, boostersLink: links.boosters };
+  return { config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css") + storefrontCss("ucs-cart-extras.css"), inTheme: theme ? theme.installed.cart_extras : false, boostersOn: theme ? theme.installed.boosters : null, addLink: links.cart_extras, boostersLink: links.boosters };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

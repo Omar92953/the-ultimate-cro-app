@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const cache = new Map<string, string>();
-export function storefrontCss(file: "ucs-sections.css" | "ucro.css" | "ucro-bundle-tray.css" | "ucs-shipping-bar.css" | "ucs-quick-add.css" | "ucs-boosters.css") {
+export function storefrontCss(file: "ucs-sections.css" | "ucro.css" | "ucro-bundle-tray.css" | "ucs-shipping-bar.css" | "ucs-quick-add.css" | "ucs-boosters.css" | "ucs-wishlist.css" | "ucs-cart-extras.css") {
   if (process.env.NODE_ENV === "production" && cache.has(file)) return cache.get(file)!;
   const css = fs.readFileSync(path.join(process.cwd(), "extensions/cro-storefront/assets", file), "utf8");
   cache.set(file, css);

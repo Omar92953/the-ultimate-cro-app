@@ -623,43 +623,6 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-pz__plabel { position: absolute; top: 8px; left: 8px; z-index: 1; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: #121212; font-size: 11px; font-weight: 600; }
 .ucs-pz__text { position: absolute; left: var(--ucs-pz-x, 50%); top: var(--ucs-pz-y, 60%); max-width: 90%; transform: translate(-50%, -50%); color: var(--ucs-pz-c, #fff); font-family: var(--ucs-pz-font, serif); font-size: var(--ucs-pz-fs, 28px); text-transform: var(--ucs-pz-tt, none); text-align: center; line-height: 1.15; white-space: pre-line; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); pointer-events: none; }
 .ucs-pz__note { margin: 0; font-size: 0.85em; opacity: 0.75; }
-/* ---- Gift note & delivery date (cart) ---------------------------------------------------- */
-.ucs-ce { display: grid; gap: 10px; margin: 12px 0; font-size: var(--ucs-ce-t, 14px); text-align: left; }
-.ucs-ce--box { padding: 14px; border-radius: var(--ucs-ce-r, 10px); background: var(--ucs-ce-bg, #f6f6f6); }
-.ucs-ce--drawer { margin: 0 0 12px; }
-.ucs-ce__h { margin: 0; font-size: var(--ucs-ce-h, 15px); font-weight: 700; }
-.ucs-ce__check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.ucs-ce__check input { width: 18px; height: 18px; accent-color: var(--ucs-ce-accent, #121212); }
-.ucs-ce__field { display: grid; gap: 4px; }
-.ucs-ce__field[hidden] { display: none; }
-.ucs-ce__field select, .ucs-ce__field textarea { min-height: var(--ucs-ce-in, 40px); padding: 6px 10px; border: 1px solid rgba(127, 127, 127, 0.45); border-radius: min(var(--ucs-ce-r, 10px), 10px); background: #fff; color: #121212; font: inherit; }
-.ucs-ce__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.ucs-ce__msg { margin: 0; color: #b42318; font-size: 0.9em; }
-/* ---- Wishlist ---------------------------------------------------------------------------- */
-.ucs-wl-btn { display: inline-grid; place-items: center; width: var(--ucs-wl-size, 36px); height: var(--ucs-wl-size, 36px); padding: 0; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: var(--ucs-wl-r, 999px); background: var(--ucs-wl-bg, #fff); color: var(--ucs-wl-c, #e11d48); cursor: pointer; }
-.ucs-wl-btn svg { width: 55%; height: 55%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-.ucs-wl-btn.is-on svg { fill: currentColor; }
-.ucs-wl-btn--card { position: absolute; top: 8px; right: 8px; z-index: 3; }
-.ucs-wl-btn--text { display: inline-flex; gap: 8px; width: auto; padding: 0 14px 0 10px; }
-.ucs-wl-btn--text svg { width: calc(var(--ucs-wl-size, 36px) * 0.5); height: calc(var(--ucs-wl-size, 36px) * 0.5); }
-.ucs-wl-label { color: #121212; font: inherit; font-size: 0.9em; }
-.ucs-wl-row { margin: 10px 0; }
-.ucs-wl-float { position: fixed; bottom: 18px; z-index: 2147482000; display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 999px; background: var(--ucs-wl-bg, #fff); color: var(--ucs-wl-c, #e11d48); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18); text-decoration: none; }
-.ucs-wl-float[hidden] { display: none; }
-.ucs-wl-float--bl { left: 18px; }
-.ucs-wl-float--br { right: 18px; }
-.ucs-wl-float svg { width: 18px; height: 18px; fill: currentColor; }
-.ucs-wl-float b { color: #121212; }
-.ucs-wl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.ucs-wl-page { padding: 32px 0; }
-.ucs-wl-h { margin: 0 0 18px; font-size: var(--ucs-wl-h, 28px); }
-.ucs-wl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; }
-.ucs-wl-item { display: grid; gap: 6px; align-content: start; font-size: var(--ucs-wl-t, 15px); }
-.ucs-wl-item img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
-.ucs-wl-name { color: inherit; font-weight: 600; text-decoration: none; }
-.ucs-wl-drop { justify-self: start; padding: 2px 8px; border-radius: 999px; background: #e6f4ea; color: #1a7f37; font-size: 0.8em; font-weight: 600; }
-.ucs-wl-rm { justify-self: start; border: 0; background: none; color: inherit; font: inherit; font-size: 0.85em; text-decoration: underline; opacity: 0.7; cursor: pointer; }
-.ucs-wl-foot { margin-top: 20px; }
 /* ---- Product quiz ---------------------------------------------------------------------- */
 .ucs-qz__wrap { display: grid; gap: 14px; max-width: 760px; }
 .ucs-qz--center .ucs-qz__wrap { justify-items: center; margin-inline: auto; text-align: center; }

@@ -375,10 +375,12 @@ export async function getWishlist(admin: AdminClient): Promise<{ config: Wishlis
   return { config: withWishlistDefaults(raw), saved: raw !== null };
 }
 
-export async function saveWishlist(admin: AdminClient, config: WishlistDesign) {
+export async function saveWishlist(admin: AdminClient, config: WishlistDesign, draftOnly = false) {
   const clean = withWishlistDefaults(config);
-  await upsert(admin, "$app:cro_design", "wishlist", { config: JSON.stringify(toStorefrontWishlist(clean)) });
-  await upsert(admin, "$app:cro_design", "wishlist_editor", { config: JSON.stringify(clean) });
+  const store = JSON.stringify(toStorefrontWishlist(clean));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "wishlist", { config: store });
+  await upsert(admin, "$app:cro_design", "wishlist_draft", { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", "wishlist_editor", { config: JSON.stringify(clean) });
   return clean;
 }
 

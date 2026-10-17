@@ -156,7 +156,7 @@ async function block(name, overrides = {}, ctx = {}) {
 }
 
 const page = (title, body, embeds = "") => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} — UCS harness</title><link rel="stylesheet" href="assets/ucs-sections.css">
+<title>${title} — UCS harness</title><link rel="stylesheet" href="assets/ucs-sections.css"><link rel="stylesheet" href="assets/ucs-wishlist.css"><link rel="stylesheet" href="assets/ucs-cart-extras.css">
 <style>:root{--page-width:1200px}body{margin:0;font:15px/1.55 system-ui,sans-serif;color:#121212;background:#fff}header.site{display:flex;justify-content:space-between;align-items:center;padding:18px 40px;border-bottom:1px solid #eee}header.site b{font-size:20px}h3.t{max-width:1200px;margin:32px auto 0;padding:0 40px;font:600 12px/1 monospace;text-transform:uppercase;color:#999}</style>
 <script>window.Shopify={routes:{root:'/'},currency:{rate:'1.0'}};window.__cart={total_price:45000};const rf=window.fetch.bind(window);window.fetch=async(u,o)=>{u=String(u);if(u.includes('/cart/add')){window.__cart.total_price+=40000;return new Response('{}')}if(u.includes('/cart.js'))return new Response(JSON.stringify(window.__cart));return rf(u,o)};</script>
 </head><body><a href="#main" style="position:absolute;left:-999px">Skip</a><header class="site"><b>Harness shop</b><nav>Home · Catalog · Contact</nav></header><main id="main">${body}</main>${embeds}</body></html>`;

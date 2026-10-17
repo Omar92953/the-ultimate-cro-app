@@ -6,6 +6,15 @@
   if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsCe) return;
   window.__ucsCe = true;
+  // Its own small stylesheet, next to this script (the boosters embed only loads ucs-boosters.css).
+  var me = document.currentScript;
+  if (me && me.src && !document.querySelector('link[data-ucs-css="ce"]')) {
+    var lk = document.createElement('link');
+    lk.rel = 'stylesheet';
+    lk.href = me.src.replace(/\.js(\?|$)/, '.css$1');
+    lk.setAttribute('data-ucs-css', 'ce');
+    document.head.appendChild(lk);
+  }
   var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };

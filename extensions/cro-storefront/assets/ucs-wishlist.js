@@ -5,14 +5,25 @@
   if (window.__ucsHoldout) return; // holdout test: this shopper sees the store without the app's widgets
   if (window.__ucsWl) return;
   window.__ucsWl = true;
+  // Its own small stylesheet, next to this script (the boosters embed only loads ucs-boosters.css).
+  var me = document.currentScript;
+  if (me && me.src && !document.querySelector('link[data-ucs-css="wl"]')) {
+    var lk = document.createElement('link');
+    lk.rel = 'stylesheet';
+    lk.href = me.src.replace(/\.js(\?|$)/, '.css$1');
+    lk.setAttribute('data-ucs-css', 'wl');
+    document.head.appendChild(lk);
+  }
   var el = document.getElementById('ucs-wl-data');
   if (!el) return;
   var data;
   try { data = JSON.parse(el.textContent); } catch (e) { return; }
   var c = data.c;
-  if (!c) return;
+  if (!c || c.on === false) return;
   var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
   var KEY = 'ucs-wishlist';
+  // The store's language prefix (root is '/fr/' on a French market): every link keeps it.
+  var link = function (path) { return root === '/' || path.indexOf(root) === 0 ? path : root.replace(/\/$/, '') + path; };
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var money = function (cents) { try { return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: 'currency', currency: (window.Shopify && window.Shopify.currency && window.Shopify.currency.active) || data.cur || 'USD' }).format(cents / 100); } catch (e) { return (cents / 100).toFixed(2); } };
   var ICON = {
@@ -26,7 +37,16 @@
   var toggle = function (h, price) {
     var l = read();
     if (l.some(function (x) { return x.h === h; })) l = l.filter(function (x) { return x.h !== h; });
-    else l.unshift({ h: h, p: price || 0, t: Date.now() });
+    else {
+      l.unshift({ h: h, p: price || 0, t: Date.now() });
+      // Hearts on product cards don't know the price: read it now, so a later price drop can show.
+      if (!price) fetch(root + 'products/' + encodeURIComponent(h) + '.js').then(function (r) { return r.ok ? r.json() : null; }).then(function (p) {
+        if (!p) return;
+        var cur = read();
+        cur.forEach(function (x) { if (x.h === h && !x.p) x.p = p.price; });
+        try { localStorage.setItem(KEY, JSON.stringify(cur)); } catch (e) { /* private mode */ }
+      }).catch(function () {});
+    }
     write(l.slice(0, 100));
   };
 
@@ -102,7 +122,7 @@
   if (c.w.floating) {
     var f = document.createElement('a');
     f.className = 'ucs-wl-float ucs-wl-float--' + c.w.floatPos;
-    f.href = c.p.url;
+    f.href = link(c.p.url);
     f.style.cssText = c.css;
     f.innerHTML = (ICON[c.ic] || ICON.heart) + '<b>0</b><span class="ucs-wl-sr">' + esc(c.p.heading) + '</span>';
     f.hidden = true;
@@ -122,10 +142,10 @@
           var v = (p.variants || []).filter(function (x) { return x.available; })[0];
           var saved = l[i].p, drop = saved && p.price < saved ? saved - p.price : 0;
           var img = p.featured_image ? (p.featured_image.indexOf('//') === 0 ? 'https:' : '') + p.featured_image + (p.featured_image.indexOf('?') > -1 ? '&' : '?') + 'width=400' : '';
-          return '<li class="ucs-wl-item">' + (img ? '<a href="' + esc(p.url) + '"><img src="' + esc(img) + '" alt="" loading="lazy"></a>' : '') +
-            '<a class="ucs-wl-name" href="' + esc(p.url) + '">' + esc(p.title) + '</a><span class="ucs-wl-price">' + money(p.price) + '</span>' +
+          return '<li class="ucs-wl-item">' + (img ? '<a href="' + esc(link('/products/' + p.handle)) + '"><img src="' + esc(img) + '" alt="" loading="lazy"></a>' : '') +
+            '<a class="ucs-wl-name" href="' + esc(link('/products/' + p.handle)) + '">' + esc(p.title) + '</a><span class="ucs-wl-price">' + money(p.price) + '</span>' +
             (drop ? '<span class="ucs-wl-drop">' + esc(c.p.priceDrop.replace('{amount}', money(drop))) + '</span>' : '') +
-            (v ? '<button type="button" class="ucs-btn" data-add="' + v.id + '">' + esc(c.p.add) + '</button>' : '<span class="ucs-wl-sold">—</span>') +
+            (v ? '<button type="button" class="ucs-btn" data-add="' + v.id + '">' + esc(c.p.add) + '</button>' : '<span class="ucs-wl-sold">' + esc(c.p.soldOut || 'Sold out') + '</span>') +
             '<button type="button" class="ucs-wl-rm" data-rm="' + esc(l[i].h) + '">' + esc(c.p.remove) + '</button></li>';
         }).join('');
         host.innerHTML = '<div class="ucs-wrap"><h2 class="ucs-wl-h">' + esc(c.p.heading) + '</h2><ul class="ucs-wl-grid" role="list">' + rows + '</ul>' +
@@ -138,15 +158,22 @@
       if (rm) { write(read().filter(function (x) { return x.h !== rm.getAttribute('data-rm'); })); return draw(); }
       var add = t.closest('[data-add]');
       if (add) {
+        // The shopper sees what happened: the button says "Added to cart" (or that it failed) for a moment.
+        var label = add.textContent;
+        var say = function (text) { add.textContent = text; setTimeout(function () { add.textContent = label; add.disabled = false; }, 2000); };
         add.disabled = true;
         return fetch(root + 'cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(add.getAttribute('data-add')), quantity: 1, properties: { _source: 'wishlist' } }] }) })
-          .then(function () { add.disabled = false; document.dispatchEvent(new CustomEvent('ucs:cart:added')); });
+          .then(function (r) { if (!r.ok) throw new Error('add'); say(c.p.added || 'Added to cart'); document.dispatchEvent(new CustomEvent('ucs:cart:added')); })
+          .catch(function () { say(c.p.failed || 'Could not add. Try again.'); });
       }
       if (t.closest('[data-share]')) {
-        var link = location.origin + c.p.url + '?wl=' + read().map(function (x) { return encodeURIComponent(x.h); }).join(',');
-        var shown = function () { host.querySelector('.ucs-wl-copied').hidden = false; };
-        if (navigator.share) return navigator.share({ url: link }).catch(function () {});
-        if (navigator.clipboard) return navigator.clipboard.writeText(link).then(shown);
+        var shareUrl = location.origin + link(c.p.url) + '?wl=' + read().map(function (x) { return encodeURIComponent(x.h); }).join(',');
+        var note = host.querySelector('.ucs-wl-copied');
+        var shown = function (text) { note.textContent = text; note.hidden = false; setTimeout(function () { note.hidden = true; }, 5000); };
+        // Copy the link; when the browser won't, show it so it can be copied by hand.
+        var copy = function () { return (navigator.clipboard ? navigator.clipboard.writeText(shareUrl).then(function () { shown(c.p.copied); }) : Promise.reject()).catch(function () { shown(shareUrl); }); };
+        if (navigator.share) return navigator.share({ url: shareUrl }).catch(function (err) { if (!err || err.name !== 'AbortError') return copy(); });
+        return copy();
       }
     });
     draw();

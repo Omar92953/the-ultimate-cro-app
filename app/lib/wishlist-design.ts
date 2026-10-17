@@ -17,8 +17,10 @@ export const WISHLIST_SIZES: SizeSpec[] = [
 
 export type WishlistDesign = {
   scheme: string;
+  /** Off: nothing shows on the store (the settings are kept). */
+  on: boolean;
   where: { product: boolean; cards: boolean; floating: boolean; floatPos: "bl" | "br" };
-  page: { url: string; heading: string; empty: string; add: string; remove: string; priceDrop: string; share: string; copied: string };
+  page: { url: string; heading: string; empty: string; add: string; remove: string; priceDrop: string; share: string; copied: string; added: string; failed: string; soldOut: string };
   text: { add: string; saved: string };
   look: { icon: "heart" | "star" | "bookmark"; color: string; bg: string; radius: number };
   sizes: Sizes;
@@ -26,8 +28,9 @@ export type WishlistDesign = {
 
 export const DEFAULT_WISHLIST: WishlistDesign = {
   scheme: "",
+  on: true,
   where: { product: true, cards: true, floating: true, floatPos: "bl" },
-  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied" },
+  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied", added: "Added to cart", failed: "Could not add. Try again.", soldOut: "Sold out" },
   text: { add: "Add to wishlist", saved: "Saved to wishlist" },
   look: { icon: "heart", color: "#e11d48", bg: "#ffffff", radius: 999 },
   sizes: defaultSizes(WISHLIST_SIZES),
@@ -56,6 +59,7 @@ export function withWishlistDefaults(raw: unknown): WishlistDesign {
   const url = String(p.url ?? d.page.url).trim();
   return {
     scheme: schemeId(r.scheme),
+    on: bool(r.on, d.on),
     where: { product: bool(w.product, d.where.product), cards: bool(w.cards, d.where.cards), floating: bool(w.floating, d.where.floating), floatPos: pick(w.floatPos, ["bl", "br"] as const, d.where.floatPos) },
     page: {
       url: /^\/[a-z0-9/_-]*$/i.test(url) ? url : d.page.url,
@@ -66,6 +70,9 @@ export function withWishlistDefaults(raw: unknown): WishlistDesign {
       priceDrop: str(p.priceDrop, d.page.priceDrop, 60),
       share: str(p.share, d.page.share, 40),
       copied: str(p.copied, d.page.copied, 60),
+      added: str(p.added, d.page.added, 40),
+      failed: str(p.failed, d.page.failed, 60),
+      soldOut: str(p.soldOut, d.page.soldOut, 30),
     },
     text: { add: str(t.add, d.text.add, 40), saved: str(t.saved, d.text.saved, 40) },
     look: { icon: pick(k.icon, ["heart", "star", "bookmark"] as const, d.look.icon), color: color(k.color, d.look.color), bg: color(k.bg, d.look.bg), radius: num(k.radius, 0, 999, d.look.radius) },
@@ -85,6 +92,7 @@ export function toStorefrontWishlist(c: WishlistDesign) {
     css: Object.entries(wishlistVars(c))
       .map(([k, v]) => `${k}: ${v};`)
       .join(" "),
+    on: c.on,
     w: c.where,
     p: c.page,
     t: c.text,
