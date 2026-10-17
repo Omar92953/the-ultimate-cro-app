@@ -190,3 +190,15 @@ prepaid label purchase, exchanges and store credit, branded email and SMS, retur
 - Redo (reviews and AfterShip comparison, August 2026): ecommercefastlane.com/redo-review, aftership.com/blog/aftership-vs-redo
 - ReturnGO Shopify listing: apps.shopify.com/returngo
 - Shopify returns help and developer docs: help.shopify.com (returns), shopify.dev (returns apps, FulfillmentEvent)
+
+## 8. Omar's decisions (2026-10-17)
+
+- **Returns v1: refunds only.** Real Shopify returns, approve/decline, refund and restock, return rules.
+  Exchanges and store credit are v2.
+- **Tracking: Shopify data only.** Status, tracking number, carrier link, estimated and delivered dates
+  from Shopify fulfillments; no paid carrier API. The page says clearly when only the carrier link is known.
+- **Request `read_all_orders`** so older orders can be tracked and returned (Shopify reviews it; the reason
+  is order lookup for the shopper's own order). Until approved, the lookup stays at 60 days.
+- **Labels: the merchant uploads them** (or the shopper ships to the return address). No label provider in v1.
+
+G4 builds section 7's v1 with these choices.
