@@ -25,6 +25,7 @@ import { FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
 import type { PreviewItem } from "../components/BundlePreview";
 import ui from "../components/PageEditor.module.css";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -82,6 +83,7 @@ export default function FbtStyle() {
       <s-link slot="breadcrumb-actions" href="/app/styles/bundles">
         Style
       </s-link>
+      <DemoButton feature="bundles" recipe="fbt" />
       <SaveControls dirty={changed(fbt, data.fbt)} saving={fetcher.state !== "idle"} saved onSave={() => fetcher.submit({ fbt: JSON.stringify(fbt) }, { method: "post" })} onDiscard={() => setFbt(data.fbt)} />
       <div className={ui.shell}>
         <s-stack gap="base">

@@ -17,6 +17,7 @@ import { UpgradeButton, UpgradeCard, usePlan } from "../components/Upgrade";
 import { feature, type FeatureKey } from "../lib/catalog";
 import { isLocked } from "../lib/plan-gate";
 import { FEATURE_PLAN, PLANS, limitOf } from "../lib/plans";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -36,6 +37,7 @@ export default function StylePicker() {
   return (
     <s-page heading={`${meta.title} style`} inlineSize="base">
       <CategoryCrumb feature={FEATURE[group]} />
+      <DemoButton feature={FEATURE[group]} />
       <s-stack gap="base">
         <FeatureTabs feature={FEATURE[group]} />
         {params.get("full") ? (

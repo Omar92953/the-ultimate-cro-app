@@ -27,6 +27,7 @@ import { useFlash } from "../components/flash";
 import type { PreviewItem } from "../components/BundlePreview";
 import { EditorLayout } from "../components/EditorLayout";
 import { SaveControls, changed } from "../components/SaveControls";
+import { DemoButton } from "../components/DemoButton";
 
 function blankRule(kind: RuleKind): Rule {
   return {
@@ -182,6 +183,7 @@ export default function RuleEditor() {
       <s-link slot="breadcrumb-actions" href={`/app/offers/${kindSlug}`}>
         {meta.title}
       </s-link>
+      <DemoButton feature={isUpsell ? "upsell" : "cross_sell"} />
       <SaveControls dirty={changed(rule, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setRule(initial); setTouched(false); }} />
 
       {fetcher.data?.error ? (
