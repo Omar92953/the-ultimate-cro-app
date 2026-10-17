@@ -21,6 +21,7 @@ import { Button, Checkbox, NumberField, Select, TextField } from "../components/
 import { ResourceList } from "../components/ResourceList";
 import { LimitUpgrade } from "../components/Upgrade";
 import { SaveControls, changed } from "../components/SaveControls";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -121,6 +122,7 @@ export default function KitEditor() {
       <s-link slot="breadcrumb-actions" href="/app/bundles?tab=kit">
         Bundles
       </s-link>
+      <DemoButton feature="bundles" recipe="kit" />
       <SaveControls dirty={changed(kit, initial)} saving={busy} saved={!isNew} label={isNew ? "Create in Shopify" : "Save"} allowLeave={busy || !!fetcher.data?.deleted || (isNew && !!fetcher.data?.id)} onSave={save} onDiscard={() => { setKit(initial); setTouched(false); }} />
       {!isNew ? (
         <Button slot="secondary-actions" href={`shopify://admin/products/${productNumber(kit.productId ?? "")}`} target="_top">

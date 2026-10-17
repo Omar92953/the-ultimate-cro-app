@@ -41,6 +41,8 @@ import { useFlash } from "../components/flash";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
+import { DemoButton } from "../components/DemoButton";
+import { dealFeature } from "../lib/catalog";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -234,6 +236,7 @@ export default function DealEditor() {
       <s-link slot="breadcrumb-actions" href={kind === "fixed" ? "/app/bundles?tab=fbt" : `/app/deals/${kind}`}>
         {kind === "fixed" ? "Bundles" : t.title}
       </s-link>
+      {kind === "fixed" ? <DemoButton feature="bundles" recipe="fbt" /> : <DemoButton feature={dealFeature(kind)} />}
       <SaveControls dirty={changed(deal, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setTouched(false); }} />
 
       <s-stack gap="base">

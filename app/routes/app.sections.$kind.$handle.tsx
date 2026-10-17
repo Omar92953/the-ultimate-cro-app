@@ -14,6 +14,8 @@ import { Segmented } from "../components/ui";
 import { EditorLayout } from "../components/EditorLayout";
 import { DeleteOffer } from "../components/DeleteOffer";
 import { SaveControls, changed } from "../components/SaveControls";
+import { DemoButton } from "../components/DemoButton";
+import { LIST_FEATURE } from "../lib/catalog";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -92,6 +94,7 @@ export default function SectionItemEditor() {
       <s-link slot="breadcrumb-actions" href={`/app/sections/${kind}`}>
         {cfg.title}
       </s-link>
+      <DemoButton feature={LIST_FEATURE[kind]} />
       <SaveControls dirty={changed(item, initial)} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setTouched(false); }} />
       {isNew ? (
         <Button slot="secondary-actions" onClick={() => save("another")} disabled={busy}>

@@ -89,6 +89,7 @@ import { GROUPS, area as areaOf, feature, featuresIn, type AreaKey, type Feature
 import { FEATURE_PLAN, PLANS, canUse } from "../lib/plans";
 import { usePlan } from "../components/Upgrade";
 import { canTry } from "../lib/plan-gate";
+import { demoUrl, hasDemo } from "../lib/site";
 import { remember } from "../lib/short-cache.server";
 import { loadHub } from "../lib/hub.server";
 
@@ -373,6 +374,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                 menu={locked ? [{ label: "See what it does", href: e.open.href }] : e.menu}
                 off={e.off || locked}
                 save={save(e.key)}
+                demo={hasDemo(reg) ? demoUrl(reg) : undefined}
               />
             ),
           });

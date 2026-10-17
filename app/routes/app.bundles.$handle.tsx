@@ -30,6 +30,8 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { SaveControls, changed } from "../components/SaveControls";
+import { DemoButton } from "../components/DemoButton";
+import { recipeOfBundle } from "../lib/bundle-recipes";
 
 const blankStep = (): BundleStep => ({ label: "", required: true, min: 1, max: 1, products: [], collection: null });
 
@@ -249,6 +251,7 @@ export default function BundleEditor() {
       <s-link slot="breadcrumb-actions" href="/app/bundles">
         Bundles
       </s-link>
+      <DemoButton feature="bundles" recipe={recipeOfBundle(bundle)} />
       <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
 
       {fetcher.data?.error ? (

@@ -17,6 +17,7 @@ import { Button, Select, TextField } from "../components/fields";
 import { GroupCards, Pill } from "../components/ui";
 import { UpgradeButton, usePlan } from "../components/Upgrade";
 import { isLocked } from "../lib/plan-gate";
+import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -74,6 +75,7 @@ export default function OffersHub() {
               about: g.about,
               href: g.tabs[0].href,
               locked: g.features.every((f) => isLocked(plan, f, trial)),
+              action: <DemoButton feature={g.key === "cross_sell" ? "cross_sell" : g.key} slot="" variant="tertiary" />,
               status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
               chips: g.chips ?? g.tabs.filter((t) => t.label !== "Style").map((t) => t.label),
             };

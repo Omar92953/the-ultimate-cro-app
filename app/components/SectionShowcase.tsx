@@ -11,10 +11,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import s from "./SectionShowcase.module.css";
 
-type Target = { href: string; external?: boolean };
+type Target = { href: string; external?: boolean; /** Opens in a new tab (the live demo). */ newTab?: boolean };
 
 function Go(props: Target & { className: string; children: ReactNode; label?: string }) {
-  return props.external ? (
+  return props.newTab ? (
+    <a className={props.className} href={props.href} target="_blank" rel="noopener noreferrer" aria-label={props.label}>
+      {props.children}
+    </a>
+  ) : props.external ? (
     <a className={props.className} href={props.href} target="_top" aria-label={props.label}>
       {props.children}
     </a>
@@ -38,6 +42,8 @@ export function SectionCard(props: {
   /** Everything else (manage, turn on/off, theme editor) lives in the ⋯ menu. */
   menu?: CardMenuItem[];
   off?: boolean;
+  /** The feature's live demo (a new tab): a small eye link and a menu item. */
+  demo?: string;
   /** Bookmark: saved cards are listed under Home → Saved. */
   save?: { saved: boolean; onChange: (saved: boolean) => void };
 }) {
@@ -99,6 +105,13 @@ export function SectionCard(props: {
             {props.title}
           </Go>
           <span className={s.footEnd}>
+            {props.demo ? (
+              <a className={s.iconBtn} href={props.demo} target="_blank" rel="noopener noreferrer" aria-label={`See the live demo of ${props.title} (opens in a new tab)`} title="See live demo">
+                <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                  <path d="M10 5C5.5 5 2.7 8.3 2 10c.7 1.7 3.5 5 8 5s7.3-3.3 8-5c-.7-1.7-3.5-5-8-5Zm0 7.8a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6Z" fill="currentColor" stroke="none" />
+                </svg>
+              </a>
+            ) : null}
             {props.save ? (
               <button
                 type="button"
@@ -132,7 +145,7 @@ export function SectionCard(props: {
                 </button>
                 {menuOpen ? (
                   <div className={s.menu} role="menu">
-                    {props.menu.map((m) =>
+                    {[...props.menu, ...(props.demo ? [{ label: "See live demo", href: props.demo, newTab: true }] : [])].map((m) =>
                       "onClick" in m ? (
                         <button
                           key={m.label}
@@ -148,9 +161,9 @@ export function SectionCard(props: {
                         </button>
                       ) : (
                         <span key={m.label} role="none" onClick={() => setMenuOpen(false)}>
-                          <Go className={s.menuItem} href={m.href} external={m.external}>
+                          <Go className={s.menuItem} href={m.href} external={m.external} newTab={"newTab" in m ? m.newTab : false}>
                             {m.label}
-                            {m.external ? <span aria-hidden="true"> ↗</span> : null}
+                            {m.external || ("newTab" in m && m.newTab) ? <span aria-hidden="true"> ↗</span> : null}
                           </Go>
                         </span>
                       ),
