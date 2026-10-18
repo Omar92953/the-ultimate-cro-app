@@ -14,3 +14,20 @@ export function parseExchange(raw: string): ExchangePlan | null {
     return null;
   }
 }
+
+/**
+ * The money line on an exchange's card in Returns. `owed` is what Shopify says the order still owes (known only for an approved
+ * exchange the shopper owes for); once it is 0, or the exchange was sent, the line says it was paid instead of "owes".
+ */
+export function exchangeMoneyLine(o: { diff: number; status: string; currency: string; owed?: number }): string {
+  const { diff, status, currency } = o;
+  if (Math.abs(diff) < 0.005) return "An even exchange.";
+  if (diff < 0) return status === "requested" ? `${(-diff).toFixed(2)} ${currency} is refunded to the shopper when you approve.` : `${(-diff).toFixed(2)} ${currency} was refunded to the shopper.`;
+  if (status === "exchanged") return `Paid: the shopper paid the extra ${diff.toFixed(2)} ${currency} and the exchange was sent.`;
+  if (status === "approved" && o.owed !== undefined) {
+    return o.owed <= 0.005
+      ? `Paid: the shopper paid the extra ${diff.toFixed(2)} ${currency}. Ship the exchange once the items arrive.`
+      : `The shopper owes ${o.owed.toFixed(2)} ${currency}: send them an invoice from the order in Shopify, the shipment stays on hold until it is paid.`;
+  }
+  return `The shopper owes ${diff.toFixed(2)} ${currency}: send them an invoice from the order in Shopify, the shipment stays on hold until it is paid.`;
+}

@@ -6,7 +6,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
 import type { AdminClient } from "../../app/lib/admin.server";
-import { parseExchange, priceDifference } from "../../app/lib/return-exchange";
+import { exchangeMoneyLine, parseExchange, priceDifference } from "../../app/lib/return-exchange";
 import { withReturnRulesDefaults } from "../../app/lib/return-rules";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ret-ex-"));
@@ -192,4 +192,17 @@ test("a dearer exchange that Shopify shows as fully paid is flagged at approval"
   const out = await E.approveExchange(a.admin, "s.myshopify.com", id);
   assert.match(out.warning, /shows nothing owed/);
   assert.equal(out.owes, 15);
+});
+
+test("the exchange card says owes while money is owed, and Paid once the balance is 0 or the exchange was sent", () => {
+  const base = { diff: 15, currency: "USD" };
+  assert.match(exchangeMoneyLine({ ...base, status: "requested" }), /owes 15\.00 USD/);
+  assert.match(exchangeMoneyLine({ ...base, status: "approved", owed: 15 }), /owes 15\.00 USD/);
+  assert.match(exchangeMoneyLine({ ...base, status: "approved", owed: 4 }), /owes 4\.00 USD/);
+  assert.match(exchangeMoneyLine({ ...base, status: "approved", owed: 0 }), /^Paid/);
+  assert.match(exchangeMoneyLine({ ...base, status: "exchanged" }), /^Paid.*sent/);
+  assert.doesNotMatch(exchangeMoneyLine({ ...base, status: "exchanged" }), /owes/);
+  assert.equal(exchangeMoneyLine({ diff: 0, status: "approved", currency: "USD" }), "An even exchange.");
+  assert.match(exchangeMoneyLine({ diff: -4, status: "requested", currency: "USD" }), /refunded to the shopper when you approve/);
+  assert.match(exchangeMoneyLine({ diff: -4, status: "exchanged", currency: "USD" }), /was refunded/);
 });
