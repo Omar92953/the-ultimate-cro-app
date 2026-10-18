@@ -155,6 +155,8 @@ export default function WishlistDesigner() {
                       <TextField label="After adding to cart" value={cfg.page.added} onValue={(v) => page({ added: v })} />
                       <TextField label="If adding fails" value={cfg.page.failed} onValue={(v) => page({ failed: v })} />
                       <TextField label="Sold out" value={cfg.page.soldOut} onValue={(v) => page({ soldOut: v })} />
+                      <TextField label="Price without a chosen option" details="{amount} = lowest price" value={cfg.page.from} onValue={(v) => page({ from: v })} />
+                      <TextField label="Button without a chosen option" value={cfg.page.choose} onValue={(v) => page({ choose: v })} />
                     </s-grid>
                     <TextField label="Empty wishlist" value={cfg.page.empty} onValue={(v) => page({ empty: v })} />
                   </s-stack>
@@ -167,7 +169,7 @@ export default function WishlistDesigner() {
                     <ColorField label="Icon colour" value={cfg.look.color} onValue={(v) => look({ color: v })} />
                     <ColorField label="Button background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                     <NumberField label="Corners" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
-                    <NumberField label="Floating button height from the bottom" details="Raise it to clear payment icons or a chat button." suffix="px" min={0} max={400} step={1} value={cfg.where.floatBottom} onValue={(v) => where({ floatBottom: v })} />
+                    <NumberField label="Floating button height from the bottom" details="0 = automatic: it sits above the theme's fixed bars. Raise it to clear a chat button." suffix="px" min={0} max={400} step={1} value={cfg.where.floatBottom} onValue={(v) => where({ floatBottom: v })} />
                     <Select label="Floating button" value={cfg.where.floatPos} onValue={(v) => where({ floatPos: v as C["where"]["floatPos"] })} options={[{ value: "bl", label: "Bottom left" }, { value: "br", label: "Bottom right" }]} />
                   </s-grid>
                 </s-section>

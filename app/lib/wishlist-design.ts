@@ -19,8 +19,8 @@ export type WishlistDesign = {
   scheme: string;
   /** Off: nothing shows on the store (the settings are kept). */
   on: boolean;
-  where: { product: boolean; cards: boolean; floating: boolean; floatPos: "bl" | "br"; /** Distance of the floating button from the bottom of the screen (px). */ floatBottom: number };
-  page: { url: string; heading: string; empty: string; add: string; remove: string; priceDrop: string; share: string; copied: string; added: string; failed: string; soldOut: string };
+  where: { product: boolean; cards: boolean; floating: boolean; floatPos: "bl" | "br"; /** Distance of the floating button from the bottom of the screen (px); 0 = automatic, above the theme's fixed bars. */ floatBottom: number };
+  page: { url: string; heading: string; empty: string; add: string; remove: string; priceDrop: string; /** Price when no variant is known: "From {amount}". */ from: string; choose: string; share: string; copied: string; added: string; failed: string; soldOut: string };
   text: { add: string; saved: string };
   look: { icon: "heart" | "star" | "bookmark"; color: string; bg: string; radius: number };
   sizes: Sizes;
@@ -29,8 +29,8 @@ export type WishlistDesign = {
 export const DEFAULT_WISHLIST: WishlistDesign = {
   scheme: "",
   on: true,
-  where: { product: true, cards: true, floating: true, floatPos: "bl", floatBottom: 18 },
-  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied", added: "Added to cart", failed: "Could not add. Try again.", soldOut: "Sold out" },
+  where: { product: true, cards: true, floating: true, floatPos: "br", floatBottom: 0 },
+  page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", from: "From {amount}", choose: "Choose options", share: "Share my wishlist", copied: "Link copied", added: "Added to cart", failed: "Could not add. Try again.", soldOut: "Sold out" },
   text: { add: "Add to wishlist", saved: "Saved to wishlist" },
   look: { icon: "heart", color: "#e11d48", bg: "#ffffff", radius: 999 },
   sizes: defaultSizes(WISHLIST_SIZES),
@@ -68,6 +68,8 @@ export function withWishlistDefaults(raw: unknown): WishlistDesign {
       add: str(p.add, d.page.add, 30),
       remove: str(p.remove, d.page.remove, 30),
       priceDrop: str(p.priceDrop, d.page.priceDrop, 60),
+      from: str(p.from, d.page.from, 40),
+      choose: str(p.choose, d.page.choose, 30),
       share: str(p.share, d.page.share, 40),
       copied: str(p.copied, d.page.copied, 60),
       added: str(p.added, d.page.added, 40),

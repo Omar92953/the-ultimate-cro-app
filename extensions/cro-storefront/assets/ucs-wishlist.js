@@ -1,4 +1,4 @@
-/* Wishlist (app: Boosters → Wishlist). Saved in this browser: [{ h: handle, p: price when saved }].
+/* Wishlist (app: Boosters → Wishlist). Saved in this browser: [{ h: handle, v: chosen variant id (0 = not known), p: price when saved }].
    Hearts on the product page and on product cards, a floating button with the count, and the wishlist
    page ([data-ucs-orders="wishlist"]) with add to cart, "price dropped" and a share link (?wl=a,b). */
 (function () {
@@ -34,16 +34,20 @@
   var read = function () { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
   var write = function (l) { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch (e) { /* private mode */ } paintAll(); };
   var has = function (h) { return read().some(function (x) { return x.h === h; }); };
-  var toggle = function (h, price) {
+  var toggle = function (h, price, vid) {
     var l = read();
     if (l.some(function (x) { return x.h === h; })) l = l.filter(function (x) { return x.h !== h; });
     else {
-      l.unshift({ h: h, p: price || 0, t: Date.now() });
-      // Hearts on product cards don't know the price: read it now, so a later price drop can show.
+      l.unshift({ h: h, v: vid || 0, p: price || 0, t: Date.now() });
+      // Read the price now (of the chosen variant, or the lowest one when none is known), so a later price drop can show.
       if (!price) fetch(root + 'products/' + encodeURIComponent(h) + '.js').then(function (r) { return r.ok ? r.json() : null; }).then(function (p) {
         if (!p) return;
         var cur = read();
-        cur.forEach(function (x) { if (x.h === h && !x.p) x.p = p.price; });
+        cur.forEach(function (x) {
+          if (x.h !== h || x.p) return;
+          var vv = x.v ? (p.variants || []).filter(function (y) { return y.id === x.v; })[0] : null;
+          x.p = vv ? vv.price : p.price;
+        });
         try { localStorage.setItem(KEY, JSON.stringify(cur)); } catch (e) { /* private mode */ }
       }).catch(function () {});
     }
@@ -58,14 +62,14 @@
     try { localStorage.setItem(KEY, JSON.stringify(l0.slice(0, 100))); } catch (e) { /* private mode */ }
   }
 
-  function heart(h, price, extra) {
+  function heart(h, price, extra, getV) {
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'ucs-wl-btn' + (extra ? ' ' + extra : '');
     b.setAttribute('data-wl', h);
     b.innerHTML = ICON[c.ic] || ICON.heart;
     b.style.cssText = c.css;
-    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle(h, price); });
+    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle(h, price, getV ? getV() : 0); });
     return b;
   }
   function paintAll() {
@@ -88,7 +92,9 @@
     if (submit) {
       var row = document.createElement('div');
       row.className = 'ucs-wl-row';
-      var b = heart(data.ph, data.pp);
+      // The variant the shopper has chosen right now: the theme keeps it in the form's id field.
+      var getV = function () { var i = form.querySelector('[name="id"]'); return i ? Number(i.value) || 0 : 0; };
+      var b = heart(data.ph, 0, '', getV);
       b.classList.add('ucs-wl-btn--text');
       b.insertAdjacentHTML('beforeend', '<span class="ucs-wl-label"></span>');
       row.appendChild(b);
@@ -123,7 +129,25 @@
     var f = document.createElement('a');
     f.className = 'ucs-wl-float ucs-wl-float--' + c.w.floatPos;
     f.href = link(c.p.url);
-    f.style.cssText = c.css + ';bottom:' + (c.w.floatBottom == null ? 18 : c.w.floatBottom) + 'px';
+    f.style.cssText = c.css;
+    // Clear the theme's own fixed bars (sticky add to cart, cookie banner, announcement at the bottom): the button sits
+    // above the tallest one. A height typed in the editor (above 18) is a minimum; 18 and 0 mean automatic.
+    var lift = function () {
+      var bars = 0, vh = window.innerHeight, vw = window.innerWidth;
+      document.querySelectorAll('body > *, body > * > *').forEach(function (n) {
+        if (n === f || n.classList.contains('ucs-wl-float')) return;
+        var cs = getComputedStyle(n);
+        if (cs.position !== 'fixed' && cs.position !== 'sticky') return;
+        var r = n.getBoundingClientRect();
+        if (r.height > 0 && r.height < 220 && r.width > vw * 0.5 && r.bottom >= vh - 4 && r.top < vh) bars = Math.max(bars, vh - r.top);
+      });
+      var own = c.w.floatBottom > 18 ? c.w.floatBottom : 0;
+      f.style.bottom = Math.max(own, bars ? bars + 12 : 20) + 'px';
+    };
+    lift();
+    setTimeout(lift, 1200);
+    window.addEventListener('resize', lift);
+    window.addEventListener('scroll', function () { clearTimeout(lift.t); lift.t = setTimeout(lift, 250); }, { passive: true });
     f.innerHTML = (ICON[c.ic] || ICON.heart) + '<b>0</b><span class="ucs-wl-sr">' + esc(c.p.heading) + '</span>';
     f.hidden = true;
     document.body.appendChild(f);
@@ -139,13 +163,20 @@
       Promise.all(l.map(function (x) { return fetch(root + 'products/' + encodeURIComponent(x.h) + '.js').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); })).then(function (ps) {
         var rows = ps.map(function (p, i) {
           if (!p) return '';
-          var v = (p.variants || []).filter(function (x) { return x.available; })[0];
-          var saved = l[i].p, drop = saved && p.price < saved ? saved - p.price : 0;
-          var img = p.featured_image ? (p.featured_image.indexOf('//') === 0 ? 'https:' : '') + p.featured_image + (p.featured_image.indexOf('?') > -1 ? '&' : '?') + 'width=400' : '';
+          // The variant the shopper chose (saved with the product); when none is known the product shows "From" its lowest price.
+          var pick = l[i].v ? (p.variants || []).filter(function (x) { return x.id === l[i].v; })[0] : null;
+          var unknown = !pick && p.price_varies;
+          var v = pick ? (pick.available ? pick : null) : unknown ? null : (p.variants || []).filter(function (x) { return x.available; })[0];
+          var cost = pick ? pick.price : p.price;
+          var saved = l[i].p, drop = saved && cost < saved ? saved - cost : 0;
+          var pic = pick && pick.featured_image && pick.featured_image.src ? pick.featured_image.src : p.featured_image;
+          var img = pic ? (pic.indexOf('//') === 0 ? 'https:' : '') + pic + (pic.indexOf('?') > -1 ? '&' : '?') + 'width=400' : '';
           return '<li class="ucs-wl-item">' + (img ? '<a href="' + esc(link('/products/' + p.handle)) + '"><img src="' + esc(img) + '" alt="" loading="lazy"></a>' : '') +
-            '<a class="ucs-wl-name" href="' + esc(link('/products/' + p.handle)) + '">' + esc(p.title) + '</a><span class="ucs-wl-price">' + money(p.price) + '</span>' +
+            '<a class="ucs-wl-name" href="' + esc(link('/products/' + p.handle)) + '">' + esc(p.title) + '</a>' +
+            (pick && pick.title && pick.title !== 'Default Title' ? '<span class="ucs-wl-var">' + esc(pick.title) + '</span>' : '') +
+            '<span class="ucs-wl-price">' + (unknown ? esc((c.p.from || 'From {amount}').replace('{amount}', money(cost))) : money(cost)) + '</span>' +
             (drop ? '<span class="ucs-wl-drop">' + esc(c.p.priceDrop.replace('{amount}', money(drop))) + '</span>' : '') +
-            (v ? '<button type="button" class="ucs-btn" data-add="' + v.id + '">' + esc(c.p.add) + '</button>' : '<span class="ucs-wl-sold">' + esc(c.p.soldOut || 'Sold out') + '</span>') +
+            (unknown ? '<a class="ucs-btn" href="' + esc(link('/products/' + p.handle)) + '">' + esc(c.p.choose || 'Choose options') + '</a>' : v ? '<button type="button" class="ucs-btn" data-add="' + v.id + '">' + esc(c.p.add) + '</button>' : '<span class="ucs-wl-sold">' + esc(c.p.soldOut || 'Sold out') + '</span>') +
             '<button type="button" class="ucs-wl-rm" data-rm="' + esc(l[i].h) + '">' + esc(c.p.remove) + '</button></li>';
         }).join('');
         host.innerHTML = '<div class="ucs-wrap"><h2 class="ucs-wl-h">' + esc(c.p.heading) + '</h2><ul class="ucs-wl-grid" role="list">' + rows + '</ul>' +
