@@ -390,6 +390,22 @@ export async function resolveDiscountEngine(
 /** The automatic discount that runs the offer Function (merchants see it under Discounts). */
 const OFFER_DISCOUNT_TITLE = "CRO Toolbox offers";
 
+/**
+ * How the app's own offer discount combines: with order discounts (a Track page code, a discount code
+ * the shopper types) and shipping discounts, never with another product discount. Stores whose discount
+ * was created before this was set keep their old flags until a sync updates them.
+ */
+export const OFFER_COMBINES = { orderDiscounts: true, productDiscounts: false, shippingDiscounts: true };
+
+/** The update to send for an existing offer discount: its title and combining flags, only what is out of date. Null when nothing is. */
+export function offerDiscountFix(discount: { title?: string; combinesWith?: { orderDiscounts?: boolean; productDiscounts?: boolean; shippingDiscounts?: boolean } | null }) {
+  const c = discount.combinesWith;
+  const fix: { title?: string; combinesWith?: typeof OFFER_COMBINES } = {};
+  if (discount.title !== OFFER_DISCOUNT_TITLE) fix.title = OFFER_DISCOUNT_TITLE;
+  if (!c || c.orderDiscounts !== OFFER_COMBINES.orderDiscounts || c.productDiscounts !== OFFER_COMBINES.productDiscounts || c.shippingDiscounts !== OFFER_COMBINES.shippingDiscounts) fix.combinesWith = OFFER_COMBINES;
+  return Object.keys(fix).length ? fix : null;
+}
+
 async function findOfferDiscount(admin: AdminClient) {
   const data = await gql(
     admin,
@@ -403,6 +419,7 @@ async function findOfferDiscount(admin: AdminClient) {
             ... on DiscountAutomaticApp {
               title
               status
+              combinesWith { orderDiscounts productDiscounts shippingDiscounts }
               appDiscountType { appKey functionId }
             }
           }
@@ -776,16 +793,18 @@ async function syncFunctionDiscount(
       }`,
       { metafields: metafields.map((m) => ({ ...m, ownerId: existing.id })) },
     );
-    // Discounts made before the app was renamed keep their old title until the next save.
-    if (existing.discount.title !== OFFER_DISCOUNT_TITLE) {
+    // Discounts made before the app was renamed keep their old title, and ones made before codes
+    // could combine keep their old combining flags, until the next save.
+    const fix = offerDiscountFix(existing.discount);
+    if (fix) {
       await gql(
         admin,
         `#graphql
         mutation CroDiscountRename($id: ID!, $discount: DiscountAutomaticAppInput!) {
           discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $discount) { userErrors { field message } }
         }`,
-        { id: existing.id, discount: { title: OFFER_DISCOUNT_TITLE } },
-      ).catch(() => null); // a cosmetic rename never blocks saving offers
+        { id: existing.id, discount: fix },
+      ).catch(() => null); // a cosmetic fix never blocks saving offers
     }
     // The storefront copy is written only after checkout's config is saved, so shoppers are never
     // shown a deal that checkout doesn't apply.
@@ -812,7 +831,7 @@ async function syncFunctionDiscount(
         functionHandle: "cro-discount",
         discountClasses: ["PRODUCT"],
         startsAt: new Date().toISOString(),
-        combinesWith: { orderDiscounts: true, productDiscounts: false, shippingDiscounts: true },
+        combinesWith: OFFER_COMBINES,
         metafields,
       },
     },
