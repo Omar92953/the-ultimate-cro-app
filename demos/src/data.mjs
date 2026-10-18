@@ -192,6 +192,11 @@ const rec = (handle) => {
 order.recs = { like: ["daily-cream", "oat-soap", "sea-shampoo", "clay-mug"].map(rec), complete: ["fig-candle", "amber-candle"].map(rec) };
 
 /** "Buy again" for the demo order: the serum is in stock (its first demo variant), the candle is shown as sold out. */
+/** Track page offers (Pro) for the demo order: a cross sell with a real looking code below the tracking, free shipping above. */
+order.offers = {
+  above: { kind: "shipping", headline: "Free shipping on your next order", text: "Add anything in the next 48 hours.", button: "Shop now", products: [], code: { code: "TRACK-91C4E07A", percent: 0, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
+  below: { kind: "cross_sell", headline: "Pairs well with your order", text: "10% off for 48 hours.", button: "Add to cart", products: ["daily-cream", "oat-soap"].map(rec), code: { code: "TRACK-3FA9C2D1", percent: 10, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
+};
 order.delay = { gift: "shipping", code: { code: "SORRY-5D90E1AA", percent: 0, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
 order.afterDelivery = { reviewUrl: "", reviews: [{ title: "Glow Serum", handle: "glow-serum" }], returnsHandle: "returns", friend: { code: "FRIEND-8C21A0B7", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
 order.buyAgain = { items: [{ variantId: catalog["glow-serum"].variants[0].id, quantity: 1, title: "Glow Serum (30 ml)" }], soldOut: ["Cedar Candle"] };

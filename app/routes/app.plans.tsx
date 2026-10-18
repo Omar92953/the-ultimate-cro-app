@@ -47,6 +47,7 @@ const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
   { label: "Your requests built first", needs: EXTRA_PLAN.requestsFirst },
   { label: "Request any feature and we build it", needs: EXTRA_PLAN.featureRequests },
   { label: "Holdout test (measure what the app adds)", needs: EXTRA_PLAN.holdoutTest },
+  { label: "Track page offers above and below the tracking", needs: EXTRA_PLAN.trackOffers },
   { label: "Priority support", needs: EXTRA_PLAN.prioritySupport },
 ];
 

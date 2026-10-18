@@ -6,6 +6,8 @@
 import type { AdminClient } from "./admin.server";
 import { listBundles, listDeals, listRules } from "./cro.server";
 import { listKits } from "./kits.server";
+import { getTrackOffers } from "./track-offers.server";
+import { TRACK_OFFER_KINDS } from "./track-offers";
 import { getPostPurchase } from "./post-purchase.server";
 import type { OfferRow } from "./offer-types";
 import type { DealKind } from "./deals";
@@ -21,12 +23,13 @@ const DEAL_WHERE: Record<DealKind, string> = {
 const PLACE: Record<string, string> = { product: "Product page", cart: "Cart page", drawer: "Cart drawer" };
 
 export async function listOffers(admin: AdminClient): Promise<OfferRow[]> {
-  const [rules, bundles, deals, kits, post] = await Promise.all([
+  const [rules, bundles, deals, kits, post, track] = await Promise.all([
     listRules(admin).catch(() => []),
     listBundles(admin).catch(() => []),
     listDeals(admin).catch(() => []),
     listKits(admin).catch(() => []),
     getPostPurchase(admin).catch(() => null),
+    getTrackOffers(admin).catch(() => ({ offers: [] })),
   ]);
   const rows: OfferRow[] = [];
   for (const r of rules) {
@@ -48,6 +51,9 @@ export async function listOffers(admin: AdminClient): Promise<OfferRow[]> {
   }
   for (const d of deals) {
     rows.push({ id: d.id ?? d.handle ?? d.name, type: d.kind, name: d.name, active: d.active, where: DEAL_WHERE[d.kind], href: `/app/deals/${d.kind}/${d.handle}`, recipe: d.kind === "fixed" ? "fbt" : undefined });
+  }
+  for (const t of track.offers) {
+    rows.push({ id: t.id, type: "track", name: t.name, active: t.active, where: `Track page, ${t.slot === "above" ? "above" : "below"} the tracking · ${TRACK_OFFER_KINDS[t.kind].title}`, href: `/app/offers/track/${t.id}` });
   }
   const pp = post?.config;
   if (pp && (pp.product || pp.on)) {

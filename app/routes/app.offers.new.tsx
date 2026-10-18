@@ -7,7 +7,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../lib/offer-types";
 import { OFFER_GROUPS, feature, featureHref, featuresForPath, type FeatureKey } from "../lib/catalog";
-import { FEATURE_PLAN, PLANS } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast } from "../lib/plans";
 import { isLocked } from "../lib/plan-gate";
 import { LinkTiles, Pill } from "../components/ui";
 import { BUNDLE_RECIPES } from "../lib/bundle-recipes";
@@ -25,6 +25,7 @@ export default function NewOffer() {
   const { plan, trial } = usePlan();
   // The plan that a page's features need, or null when the page is open to this shop.
   const lockOf = (href: string) => {
+    if (href.startsWith("/app/offers/track")) return atLeast(plan, EXTRA_PLAN.trackOffers) ? null : EXTRA_PLAN.trackOffers;
     const fs = featuresForPath(href);
     return fs.length && fs.every((f) => isLocked(plan, f, trial)) ? fs.map((f) => FEATURE_PLAN[f])[0] : null;
   };

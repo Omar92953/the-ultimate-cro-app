@@ -36,7 +36,7 @@ function shippingInput(code: string, title: string, o: { endsAt: Date }) {
   return { title, code, startsAt: new Date().toISOString(), endsAt: o.endsAt.toISOString(), usageLimit: 1, context: { all: "ALL" }, destination: { all: true }, combinesWith: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: false } };
 }
 
-function discountInput(code: string, title: string, o: { percent: number; minimum: number; endsAt: Date; usageLimit: number | null }) {
+function discountInput(code: string, title: string, o: { percent: number; minimum: number; endsAt: Date; usageLimit: number | null; productIds?: string[] }) {
   return {
     title,
     code,
@@ -44,7 +44,7 @@ function discountInput(code: string, title: string, o: { percent: number; minimu
     endsAt: o.endsAt.toISOString(),
     ...(o.usageLimit ? { usageLimit: o.usageLimit } : {}),
     context: { all: "ALL" },
-    customerGets: { value: { percentage: o.percent / 100 }, items: { all: true } },
+    customerGets: { value: { percentage: o.percent / 100 }, items: o.productIds?.length ? { products: { productsToAdd: o.productIds } } : { all: true } },
     ...(o.minimum > 0 ? { minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: o.minimum.toFixed(2) } } } : {}),
     combinesWith: { productDiscounts: false, orderDiscounts: false, shippingDiscounts: true },
   };
@@ -86,18 +86,18 @@ export async function nextOrderCode(admin: AdminClient, shop: string, orderId: s
 }
 
 /** One single use code for this order and kind ("next", "friend"), made the first time and the same ever after (nothing once it expires). */
-export async function givenCode(admin: AdminClient, shop: string, orderId: string, kind: string, prefix: string, spec: { percent: number; minimum: number; days: number; shipping?: boolean }, label: string): Promise<GivenCode | null> {
+export async function givenCode(admin: AdminClient, shop: string, orderId: string, kind: string, prefix: string, spec: { percent: number; minimum: number; days: number; shipping?: boolean; hours?: number; productIds?: string[] }, label: string): Promise<GivenCode | null> {
   const show = (r: { code: string; percent: number; minimum: number; endsAt: Date }) => ({ code: r.code, percent: r.percent, minimum: r.minimum, endsAt: r.endsAt.toISOString() });
   const existing = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind } } });
   if (existing) return existing.endsAt > new Date() ? show(existing) : null;
   const code = `${prefix}-${randomBytes(4).toString("hex").toUpperCase()}`;
-  const endsAt = new Date(Date.now() + spec.days * 86_400_000);
+  const endsAt = new Date(Date.now() + (spec.hours ? spec.hours * 3_600_000 : spec.days * 86_400_000));
   if (spec.shipping) {
     await gql(admin, `#graphql
       mutation CroTrackShipCode($d: DiscountCodeFreeShippingInput!) { discountCodeFreeShippingCreate(freeShippingCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: shippingInput(code, `Track page: ${label} ${code}`, { endsAt }) });
   } else {
     await gql(admin, `#graphql
-      mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: ${label} ${code}`, { percent: spec.percent, minimum: spec.minimum, endsAt, usageLimit: 1 }) });
+      mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: ${label} ${code}`, { percent: spec.percent, minimum: spec.minimum, endsAt, usageLimit: 1, productIds: spec.productIds }) });
   }
   try {
     await db.trackCode.create({ data: { shop, orderId, kind, code, percent: spec.percent, minimum: spec.minimum, endsAt } });

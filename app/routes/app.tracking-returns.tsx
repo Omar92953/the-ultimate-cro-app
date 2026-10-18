@@ -16,6 +16,8 @@ import { createOrderPage, orderPageContext, pageAdminUrl, type OrderPageKind } f
 import { planContext } from "../lib/rules.server";
 import { atLeast } from "../lib/plans";
 import { getTrackingConfig } from "../lib/tracking/tracking.server";
+import { getTrackOffers } from "../lib/track-offers.server";
+import { TRACK_OFFER_KINDS } from "../lib/track-offers";
 import { listReturns, returnSavings, shipmentOverview } from "../lib/orders-lookup.server";
 import { getReturnRules, grantedScopes, syncReturns } from "../lib/shopify-returns.server";
 import { remember } from "../lib/short-cache.server";
@@ -29,13 +31,14 @@ import { DemoButton } from "../components/DemoButton";
 export const loader = timedLoader("app.tracking-returns", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   await syncReturns(admin, session.shop).catch(() => null);
-  const [returns, theme, rules, scopes, shipments, savings] = await Promise.all([
+  const [returns, theme, rules, scopes, shipments, savings, trackOffers] = await Promise.all([
     listReturns(session.shop).catch(() => []),
     getThemeStatus(admin, session.shop).catch(() => null),
     getReturnRules(admin).catch(() => null),
     grantedScopes(admin).catch(() => [] as string[]),
     remember(session.shop, "shipments", 5 * 60000, () => shipmentOverview(admin)).catch(() => null),
     returnSavings(session.shop).catch(() => null),
+    getTrackOffers(admin).catch(() => ({ offers: [] })),
   ]);
   const pctx = await planContext(admin, session.shop);
   const tracking = await getTrackingConfig(session.shop, pctx.plan).catch(() => null);
@@ -55,6 +58,7 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
     },
     shipments,
     savings,
+    trackOffers: trackOffers.offers.map((o) => ({ id: o.id, name: o.name, active: o.active, slot: o.slot, kind: o.kind })),
     creditWhen: rules?.rules.saving.creditWhen ?? "received",
     pro: atLeast(pctx.plan, "pro"),
     tracking: tracking ? { chosen: tracking.chosen, source: tracking.source, used: tracking.live.used, limit: tracking.live.limit } : null,
@@ -151,6 +155,27 @@ export default function TrackingReturns() {
             </s-stack>
           </s-section>
         ) : null}
+
+        <s-section heading="Track page offers">
+          <s-stack gap="small-200">
+            <s-text color="subdued">An offer above and one below the tracking on the Track page. The order is already paid, so an offer starts a new cart or gives a real Shopify code that really expires. Made in Offers.{d.pro ? "" : " Track page offers are on the Pro plan."}</s-text>
+            {(["above", "below"] as const).map((slot) => {
+              const mine = d.trackOffers.filter((o) => o.slot === slot);
+              const live = mine.find((o) => o.active);
+              return (
+                <s-stack key={slot} direction="inline" gap="small-200" alignItems="center">
+                  <s-text type="strong">{slot === "above" ? "Above the tracking:" : "Below the tracking:"}</s-text>
+                  {live ? <s-link href={`/app/offers/track/${live.id}`}>{live.name}</s-link> : <s-text color="subdued">Nothing yet</s-text>}
+                  {live ? <Pill tone="ok">{TRACK_OFFER_KINDS[live.kind].title}</Pill> : null}
+                  {mine.filter((o) => !o.active).length ? <s-text color="subdued">{`(${mine.filter((o) => !o.active).length} paused)`}</s-text> : null}
+                </s-stack>
+              );
+            })}
+            <s-stack direction="inline">
+              <Button href="/app/offers/track/new">Add an offer to the Track page</Button>
+            </s-stack>
+          </s-stack>
+        </s-section>
 
         <s-grid gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap="base">
           <s-section heading="Track order page">

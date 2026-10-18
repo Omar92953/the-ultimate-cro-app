@@ -6,12 +6,13 @@ import type { OfferGroupKey } from "./catalog";
 import { DEAL_TYPES } from "./deals";
 import type { RecipeKey } from "./bundle-recipes";
 
-export type OfferTypeKey = "upsell" | "cross_sell" | "bundle" | "kit" | "fixed" | "bogo" | "volume" | "gift" | "upgrade" | "post_purchase";
+export type OfferTypeKey = "upsell" | "cross_sell" | "bundle" | "kit" | "fixed" | "bogo" | "volume" | "gift" | "upgrade" | "post_purchase" | "track";
 
 export const OFFER_TYPES: Record<OfferTypeKey, { title: string; group: OfferGroupKey; about: string; create: string; list: string }> = {
   upsell: { title: "Quantity & size offer", group: "upsell", about: "“Buy 2, save 10%” or a bigger size, picked on the product page.", create: "/app/offers/upsell/new", list: "/app/offers/upsell" },
   upgrade: { title: DEAL_TYPES.upgrade.title.replace(/s$/, ""), group: "upsell", about: DEAL_TYPES.upgrade.what, create: "/app/deals/upgrade/new", list: "/app/deals/upgrade" },
   post_purchase: { title: "After-purchase offer", group: "upsell", about: "A one-click offer right after payment, added to the same order.", create: "/app/checkout/after-purchase", list: "/app/checkout/after-purchase" },
+  track: { title: "Track page offer", group: "cross_sell", about: "An offer above or below the tracking on the Track page: a cross sell, free shipping, a free gift or a discount, with real codes that expire.", create: "/app/offers/track/new", list: "/app/offers/track" },
   cross_sell: { title: "Cross sell", group: "cross_sell", about: "“Pairs well with” products, on the product page, the cart page or in your theme's cart.", create: "/app/offers/cross-sell/new", list: "/app/offers/cross-sell" },
   bundle: { title: "Mix and match", group: "bundles", about: "Shoppers build a set from your products at one price, or by number of items.", create: "/app/bundles/new", list: "/app/bundles" },
   kit: { title: "Fixed bundle", group: "bundles", about: "A set sold as its own product, with its own page, price and stock from its items.", create: "/app/kits/new", list: "/app/kits" },
