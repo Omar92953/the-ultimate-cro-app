@@ -16,6 +16,7 @@ import { DeleteOffer } from "../components/DeleteOffer";
 import { SaveControls, changed } from "../components/SaveControls";
 import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
+import { applyOrderCheck } from "../lib/verified-check";
 import { checkReviewerOrders, getReviewerEmail, removeReviewerEmail, setReviewerEmail } from "../lib/reviewer-email.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -57,6 +58,8 @@ export default function SectionItemEditor() {
   const cfg = SECTIONS[kind];
   const [item, setItem] = useState<SectionItem>(initial);
   const [touched, setTouched] = useState(false);
+  const [byCheck, setByCheck] = useState(false);
+  const [unticked, setUnticked] = useState(false);
   const [email, setEmail] = useState(savedEmail);
   const checker = useFetcher<typeof action>();
   const fetcher = useFetcher<typeof action>();
@@ -73,14 +76,22 @@ export default function SectionItemEditor() {
       setItem(initial);
       setEmail(savedEmail);
       setTouched(false);
+      setByCheck(false);
+      setUnticked(false);
     }
   }
-  // The result of "Check against orders": a found order ticks Verified buyer, nothing found never unticks it.
+  // The result of "Check against orders": a found order ticks Verified buyer; nothing found unticks it again
+  // only if an earlier check ticked it (a tick made by hand or saved before stays).
   const [seen, setSeen] = useState<unknown>(null);
   const check = checker.data?.check ?? null;
   if (checker.data && seen !== checker.data) {
     setSeen(checker.data);
-    if (check?.found) setItem((it) => ({ ...it, values: { ...it.values, verified: true } }));
+    if (check) {
+      const next = applyOrderCheck({ verified: !!item.values.verified, byCheck }, check.found);
+      setByCheck(next.byCheck);
+      setUnticked(next.unticked);
+      if (next.verified !== !!item.values.verified) setItem((it) => ({ ...it, values: { ...it.values, verified: next.verified } }));
+    }
   }
   const product = (item.values.product as ProductRef | null) ?? null;
   useEffect(() => {
@@ -94,7 +105,13 @@ export default function SectionItemEditor() {
     }
   }, [fetcher.state, fetcher.data, shopify, navigate, kind, cfg.singular]);
 
-  const set = (key: string, value: Value) => setItem((it) => ({ ...it, values: { ...it.values, [key]: value } }));
+  const set = (key: string, value: Value) => {
+    if (key === "verified") {
+      setByCheck(false);
+      setUnticked(false);
+    }
+    setItem((it) => ({ ...it, values: { ...it.values, [key]: value } }));
+  };
   const missing = cfg.fields.filter((f) => f.required && !item.values[f.key]).map((f) => f.label);
   const save = (next: "list" | "another") => {
     setTouched(true);
@@ -113,7 +130,7 @@ export default function SectionItemEditor() {
         {cfg.title}
       </s-link>
       <DemoButton feature={LIST_FEATURE[kind]} />
-      <SaveControls dirty={changed(item, initial) || email !== savedEmail} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setEmail(savedEmail); setTouched(false); }} />
+      <SaveControls dirty={changed(item, initial) || email !== savedEmail} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setEmail(savedEmail); setTouched(false); setByCheck(false); setUnticked(false); }} />
       {isNew ? (
         <Button slot="secondary-actions" onClick={() => save("another")} disabled={busy}>
           Save and add another
@@ -162,6 +179,7 @@ export default function SectionItemEditor() {
                         {check ? <s-text tone={check.found ? "success" : "critical"}>{check.message}</s-text> : null}
                       </s-stack>
                       {check?.found ? <s-text color="subdued">Verified buyer is ticked. Save to keep it.</s-text> : null}
+                      {unticked ? <s-text color="subdued">Verified buyer is unticked.</s-text> : null}
                     </s-stack>
                   );
                 }

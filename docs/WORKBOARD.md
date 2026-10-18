@@ -79,7 +79,21 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 - [x] Track page "Late orders" select text is cut off ("Just the apol...").
 - [x] Track page prices: a "Refunded" line when the order is refunded or partly refunded (#162).
 - [ ] Not tested (need the Pro test plan): Track page offer slots, exchanges, store credit and gift card, A/B tests,
-      live tracking with a provider key.
+      live tracking with a provider key. (Done since, see "Verified on Testing 3, 2026-10-18 (supervisor)" below.)
+
+## Verified on Testing 3, 2026-10-18 (supervisor)
+
+- [x] Returns close webhook: credit given when the return is closed in Shopify admin (#1005).
+- [x] A/B test on an upsell: A and B shown and counted, "Use version B" applied (test ab_352qcb6s).
+- [x] Cheaper exchange: $25.00 refunded at approval, exchange held until items arrived, then shipped (#1006).
+- [x] Bundle guard (#183, cro-toolbox-35): a real bundle checks out; a bare bundle and a forged stamp are refused at
+      /cart/add with "is a bundle"; a normal product is fine. Kit not checked (Testing 3's kit is sold out).
+- [x] Live tracking: TRACKING_KEY_SECRET (generated on Render) and TRACKING_PROVIDER_KEY (17TRACK API trial, 200 numbers,
+      account 17track@crotoolbox.com) set; Testing 3 on Live tracking; #1006 with a UPS test number registered
+      (17TRACK counted 1).
+- [x] Check against orders (#189): a found order ticks Verified buyer, an unknown email says no order. A check that finds
+      nothing now unticks a tick an earlier check made (never the merchant's own tick).
+- [ ] Not testable by hand: gift card and discount code fallback (needs a guest order with no customer).
 
 ## Pro run on Testing 3, 2026-10-18 (cro-toolbox-31 + #164)
 
@@ -97,6 +111,7 @@ shown with after delivery, prices, next order code, buy again), exchange approva
 - [x] Shopper Returns page shows R1 as "Approved" after the credit was given (fixed, #167) (app says "Store credit given").
 - [x] Return saving rules "How it works" text still says credit is given when you approve (default is now items received).
 - [x] Deploy warning: LiquidHTMLSyntaxError (fixed, #168) in cro-storefront ("'script' was closed", the A/B snippet ucro-ab.liquid).
-- [ ] Not tested yet: A/B tests (Pro), gift card and discount code fallbacks (guest orders), live tracking with a provider key.
+- [x] A/B tests (Pro) and live tracking with a provider key: verified, see below.
+- [ ] Gift card and discount code fallbacks: not testable by hand (needs a guest order with no customer).
 - [x] App Returns card: "Paid back with store credit: 27.45 USD (done)" shows the internal step marker "(done)".
 - [x] App Returns card: after the shopper paid the difference and the exchange shipped, it still says "The shopper owes 15.00 USD".

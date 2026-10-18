@@ -25,7 +25,7 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
   approve, refund confirm, Shopify reason), wishlist page, cart discount box, size guide. Open bugs in
   `docs/WORKBOARD.md` ("Testing 3 run 2026-10-18").
 - Website: keyword pages and alternative pages live (SEO plan `docs/plans/seo-geo.md`).
-- Email: support@, info@, features@, pro@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
+- Email: support@, info@, features@, pro@, 17track@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
 - Partner Dashboard: protected customer data saved (works on dev stores; reviewed at submission).
 
 ## Website
