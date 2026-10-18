@@ -13,6 +13,8 @@ test("the shopper's words become Shopify's reason codes", () => {
   assert.equal(reasonCode("Changed my mind"), "UNWANTED");
   assert.equal(reasonCode("Received the wrong item"), "WRONG_ITEM");
   assert.equal(reasonCode("Other"), "OTHER");
+  // The five reasons a store starts with.
+  assert.deepEqual(["Wrong size", "Not as expected", "Arrived damaged", "Changed my mind", "Other"].map(reasonCode), ["SIZE_TOO_SMALL", "NOT_AS_DESCRIBED", "DEFECTIVE", "UNWANTED", "OTHER"]);
 });
 
 test("return rules are cleaned and keep sensible defaults", () => {

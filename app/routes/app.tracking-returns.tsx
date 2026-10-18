@@ -154,7 +154,7 @@ export default function TrackingReturns() {
         <s-grid gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap="base">
           <s-section heading="Track order page">
             <s-stack gap="small-200">
-              <s-text color="subdued">Shoppers enter their order number and email and see its delivery status, tracking number and carrier link. It shows what Shopify knows about the shipment; live carrier updates are on the carrier&apos;s own page.</s-text>
+              <s-text color="subdued">{`Shoppers enter their order number and email and see the delivery status, tracking number and carrier link. ${{ shopify: "It shows what Shopify knows about the shipment (status, expected date and any events); more detail is on the carrier's own page.", live: "It shows where the parcel is now and the full history, from live tracking.", own: "It shows where the parcel is now and the full history, from your own tracking key (Shopify's data if the key has nothing yet).", webhook: "It shows the updates your carrier or service sends to your webhook link (Shopify's data until the first update)." }[d.tracking?.source ?? "shopify"]}`}</s-text>
               <Pill tone={d.pages.track && d.inTheme?.track ? "ok" : "warn"}>{!d.pages.track ? "Page not made yet" : d.inTheme?.track ? "On your store" : "Block not added yet"}</Pill>
               <s-stack direction="inline" gap="small-200">
                 <Button href="/app/pages/track">Style the page</Button>
