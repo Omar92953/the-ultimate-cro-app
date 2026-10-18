@@ -76,3 +76,17 @@ Updated 2026-10-15.
 - [ ] Off site visibility checklist (`docs/website.md`, "Off site work")
 - [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution
 - [ ] App Store listing: screenshots, video, support email; tutorial videos
+
+## Testing 3 run 2026-10-18 (cro-toolbox-30): open bugs
+
+- [ ] Next order / friend / delay codes don't apply when the cart already has the app's own offer discount
+      (automatic "CRO Toolbox offers"): Shopify says not applicable. #157 makes new codes combine with product
+      discounts; also check the existing automatic app discount's combinesWith on old stores (update it on sync).
+- [ ] Size guide shows on every product (Gift Card, Ski Wax): show it only where a chart is assigned or the
+      product has a size option.
+- [ ] Wishlist saves the product, not the chosen variant: the page shows the lowest price ($9.95) for a $24.95 pick.
+- [ ] Floating wishlist heart still at bottom left 18px over footer links and payment icons (#135 fix didn't take).
+- [ ] Track page and Wishlist editors' intro text still says to create the page by hand (the app makes it now).
+- [ ] Track page "Late orders" select text is cut off ("Just the apol...").
+- [ ] Not tested (need the Pro test plan): Track page offer slots, exchanges, store credit and gift card, A/B tests,
+      live tracking with a provider key.
