@@ -245,7 +245,7 @@ export default function SizeGuideDesigner() {
                     </s-section>
                     <s-section heading="Which products">
                       <s-stack gap="base">
-                        <Checkbox label="All products" checked={chart.match.all} onValue={(v) => setChart({ match: { ...chart.match, all: v } })} />
+                        <Checkbox label="All products with a size option" details="Products that have a Size option (or the same word in another language). A Gift Card or a candle gets no size guide. Choose products, collections or tags below to show it on others." checked={chart.match.all} onValue={(v) => setChart({ match: { ...chart.match, all: v } })} />
                         {!chart.match.all ? (
                           <s-stack gap="base">
                             <s-stack direction="inline" gap="small-200" alignItems="center">
