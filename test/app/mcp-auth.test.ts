@@ -153,3 +153,19 @@ test("the MCP protocol: initialize, scoped tools, refusals that say why", async 
   assert.deepEqual(log.filter((x) => x.result === "denied").map((x) => x.tool).sort(), ["t_build", "t_publish"]);
   assert.ok(Array.isArray(await S.handleBody(read, [{ jsonrpc: "2.0", id: 1, method: "ping" }, { jsonrpc: "2.0", id: 2, method: "ping" }])));
 });
+
+test("the connection code pairs the authorize page with the signed in admin, with no store typed", async () => {
+  const client = await A.registerClient({ client_name: "Claude", redirect_uris: ["https://claude.ai/api/mcp/auth_callback"] });
+  const req = await A.startRequest({ clientId: client.client_id, redirectUri: "https://claude.ai/api/mcp/auth_callback", state: "s", challenge: challenge(verifier()), method: "S256" });
+  const code = A.pairingCode(req.id);
+  assert.match(code, /^[A-Z2-9]{5}-[A-Z2-9]{5}$/);
+  assert.equal((await A.requestByPairingCode(code.toLowerCase().replace("-", " ")))?.id, req.id, "typing style does not matter");
+  assert.equal(await A.requestByPairingCode("AAAAA-AAAAA"), null);
+  assert.equal(await A.requestByPairingCode("short"), null);
+  // Once the merchant allowed it, or when it expired, the code no longer finds the request.
+  await A.approveRequest(req.id, "p.myshopify.com", "read", false);
+  assert.equal(await A.requestByPairingCode(code), null);
+  const old = await A.startRequest({ clientId: client.client_id, redirectUri: "https://claude.ai/api/mcp/auth_callback", state: "", challenge: challenge(verifier()), method: "S256" });
+  await prisma.mcpRequest.update({ where: { id: old.id }, data: { expiresAt: new Date(Date.now() - 1000) } });
+  assert.equal(await A.requestByPairingCode(A.pairingCode(old.id)), null);
+});

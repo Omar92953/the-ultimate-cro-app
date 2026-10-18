@@ -5,7 +5,7 @@
  * Tokens, refresh tokens and codes are random, shown once and stored only as SHA-256 hashes.
  * Every grant belongs to one shop; tools never take a shop argument.
  */
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import db from "../../db.server";
 
 export type McpScope = "read" | "build";
@@ -49,6 +49,29 @@ export async function startRequest(p: { clientId: string; redirectUri: string; s
   const id = random(18);
   await db.mcpRequest.create({ data: { id, clientId: client.id, redirectUri: p.redirectUri, state: p.state.slice(0, 500), challenge: p.challenge, expiresAt: new Date(Date.now() + REQUEST_MS) } });
   return { id, clientName: client.name };
+}
+
+/**
+ * A short code that pairs the page the assistant opened (/mcp/authorize, which does not know the store) with the merchant's own admin
+ * (Settings → Connect an AI assistant, where the store is known from the signed in session). It is derived from the request id with
+ * the app secret, so nothing more is stored; 50 bits, and the admin page limits the tries.
+ */
+const PAIR_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export function pairingCode(requestId: string) {
+  const h = createHmac("sha256", process.env.SHOPIFY_API_SECRET ?? "").update(`mcp-pair:${requestId}`).digest();
+  let out = "";
+  for (let i = 0; i < 10; i++) out += PAIR_ALPHABET[h[i] % PAIR_ALPHABET.length];
+  return `${out.slice(0, 5)}-${out.slice(5)}`;
+}
+const normalizeCode = (v: string) => v.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+/** The waiting request (not yet allowed, not expired) that a code from the authorize page belongs to, or null. */
+export async function requestByPairingCode(input: string) {
+  const want = normalizeCode(input);
+  if (want.length !== 10) return null;
+  const waiting = await db.mcpRequest.findMany({ where: { codeHash: "", expiresAt: { gt: new Date() } }, take: 500 });
+  const hit = waiting.find((r) => normalizeCode(pairingCode(r.id)) === want);
+  return hit ? { id: hit.id } : null;
 }
 
 export async function getRequest(id: string) {

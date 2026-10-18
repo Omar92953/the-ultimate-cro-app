@@ -104,6 +104,17 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
   };
 }
 
+/** Store credit can only be a refund to a customer account: whether the order has a customer. False when Shopify cannot say. */
+export async function orderHasCustomer(admin: AdminClient, orderId: string): Promise<boolean> {
+  try {
+    const data = await gql(admin, `#graphql
+      query CroOrderCustomer($id: ID!) { order(id: $id) { customer { id } } }`, { id: orderId });
+    return !!data.order?.customer?.id;
+  } catch {
+    return false;
+  }
+}
+
 /* ------------------------------------------------------------------ returns -- */
 export type ReturnItem = { id: string; title: string; variant: string; quantity: number };
 

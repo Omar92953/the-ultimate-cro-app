@@ -4,13 +4,14 @@
  */
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { atLeast, PLANS } from "../lib/plans";
 import { planContext } from "../lib/rules.server";
-import { appUrl, createPersonalToken, listGrants, revokeGrant, sweepMcp, type McpScope } from "../lib/mcp/auth.server";
+import { appUrl, createPersonalToken, listGrants, requestByPairingCode, revokeGrant, sweepMcp, type McpScope } from "../lib/mcp/auth.server";
+import { tooMany } from "../lib/proxy-guard.server";
 import { MCP_MIN_PLAN } from "../lib/mcp/server.server";
 import { recentAudit } from "../lib/mcp/limits.server";
 import { errorMessage } from "../lib/admin.server";
@@ -34,13 +35,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!atLeast(p.plan, MCP_MIN_PLAN)) throw new Error("Connecting an AI assistant needs the Starter plan or higher.");
     if (form.get("intent") === "revoke") {
       await revokeGrant(session.shop, String(form.get("id")));
-      return { ok: true, error: null, token: null };
+      return { ok: true, error: null, token: null, req: null };
+    }
+    if (form.get("intent") === "pair") {
+      // The code shown on the page the assistant opened: it names the waiting request, the store is this signed in one.
+      if (tooMany(request, session.shop, "mcp-pair", 10)) throw new Error("Too many tries. Please wait a few minutes.");
+      const r = await requestByPairingCode(String(form.get("code") ?? ""));
+      if (!r) throw new Error("That code is not right or has expired. Start again from your assistant.");
+      return { ok: true, error: null, token: null, req: r.id };
     }
     const scope: McpScope = form.get("scope") === "build" ? "build" : "read";
     const t = await createPersonalToken(session.shop, String(form.get("name") ?? ""), scope, form.get("publish") === "true");
-    return { ok: true, error: null, token: t.token };
+    return { ok: true, error: null, token: t.token, req: null };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), token: null };
+    return { ok: false, error: errorMessage(e), token: null, req: null };
   }
 };
 
@@ -50,12 +58,17 @@ export default function Assistant() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
+  const navigate = useNavigate();
+  const [pairCode, setPairCode] = useState("");
   const [name, setName] = useState("This computer");
   const [scope, setScope] = useState("build");
   const [publish, setPublish] = useState(false);
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.error) shopify.toast.show(fetcher.data.error, { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
+  useEffect(() => {
+    if (fetcher.data?.req) navigate(`/app/mcp-connect?req=${encodeURIComponent(fetcher.data.req)}`);
+  }, [fetcher.data?.req, navigate]);
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => shopify.toast.show("Copied"), () => shopify.toast.show("Select the text and copy it", { isError: true }));
 
   return (
@@ -81,6 +94,19 @@ export default function Assistant() {
             <s-text color="subdued">In Claude: Settings, Connectors, Add custom connector. It sees your offers, designs, products and collections, never orders or customers.</s-text>
           </s-stack>
         </s-section>
+        {d.allowed ? (
+          <s-section heading="Finish connecting">
+            <s-stack gap="small-200">
+              <s-paragraph>When Claude opens a page that shows a connection code, enter it here to choose what the assistant may do.</s-paragraph>
+              <s-grid gridTemplateColumns="1fr auto" gap="small-200" alignItems="end">
+                <TextField label="Connection code" value={pairCode} onValue={setPairCode} maxLength={11} />
+                <Button variant="primary" loading={fetcher.state !== "idle"} onClick={() => fetcher.submit({ intent: "pair", code: pairCode }, { method: "post" })}>
+                  Continue
+                </Button>
+              </s-grid>
+            </s-stack>
+          </s-section>
+        ) : null}
         {d.allowed ? (
           <>
             <s-section heading="Connected">

@@ -24,9 +24,15 @@ way merchants connect.**
   of connected assistants with "Disconnect", and the audit log (section 6).
 - **OAuth 2.1 with PKCE, DCR** served by the same Remix/React Router app: `/.well-known/oauth-protected-resource`,
   `/.well-known/oauth-authorization-server`, `/mcp/register`, `/mcp/authorize`, `/mcp/token`.
-  The `authorize` step requires the merchant to be inside the Shopify admin session (the existing
-  `authenticate.admin`), shows "Claude wants to manage CRO Toolbox on <shop>" with a read only or read and
-  build choice, and issues a code. Tokens: short lived access token (1 hour), refresh token (30 days), both
+  The `authorize` page the assistant opens does **not** ask for the store address (Shopify App Store rule 2.3.1:
+  installation starts from a Shopify surface, no typing a shop URL). It shows a short **connection code**
+  (`pairingCode()` in `auth.server.ts`: an HMAC of the request id with the app secret, 10 characters, no extra
+  storage) and tells the merchant to open CRO Toolbox in the Shopify admin, Settings, Connect an AI assistant,
+  "Finish connecting". There the merchant enters the code (limited to 10 tries per 10 minutes); the signed in admin
+  session (`authenticate.admin`) is what tells us the shop, so no shop is ever taken from the URL or typed, and
+  there is no redirect built from user input (the redirect goes only to the address the client registered, as
+  before; state and PKCE S256 are unchanged). The admin page `app.mcp-connect` then shows "Claude wants to manage CRO Toolbox on <shop>" with a read only or read and
+  build choice, and issues a code (a request is kept 10 minutes and a code works once). Tokens: short lived access token (1 hour), refresh token (30 days), both
   stored hashed in a new `McpGrant` table (shop, client name, scope, created, last used, revoked).
 - **A token is bound to one shop.** Every tool resolves the shop from the token, then gets an Admin API client
   with the shop's stored offline session (`unauthenticated.admin(shop)`, already in `shopify.server.ts`). No tool

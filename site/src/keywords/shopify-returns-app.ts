@@ -43,7 +43,7 @@ const page: KeywordPage = {
     {
       heading: `Exchanges and store credit (${savingPlan.name})`,
       list: [
-        "<b>Store credit instead of a refund</b>, with an optional bonus such as 10% extra. It is given as Shopify store credit on the customer's account, a Shopify gift card or a single use discount code, whichever your store supports. The shopper sees the credit or the code on the Returns page.",
+        "<b>Store credit instead of a refund</b>, with an optional bonus such as 10% extra. It is given as a refund to Shopify store credit on the customer's account, so the order shows the money as refunded. The shopper sees the credit on the Returns page.",
         "<b>Exchanges</b> for another size or colour of the same product that is in stock. The shopper sees the price difference before sending. When you approve, the app makes the Shopify return with the exchange, and the new shipment waits on hold until you mark the items as arrived.",
         "<b>Approve by rule:</b> reason, product tag, order value and days since delivery.",
         "<b>Back in stock:</b> returned items go back into stock at your location.",
@@ -70,7 +70,7 @@ const page: KeywordPage = {
       ["Real Shopify returns", "Approve or decline in the app; Shopify emails the shopper", planOf("returns")],
       ["Return rules", "Return window, products that can't be returned, reasons approved at once, return address", planOf("returns")],
       ["Labels and refunds", "Upload a return label, refund when the items arrive", planOf("returns")],
-      ["Store credit with a bonus", "Credit instead of a refund, as store credit, a gift card or a discount code", planOf("return_saving")],
+      ["Store credit with a bonus", "Credit instead of a refund, as a refund to Shopify store credit", planOf("return_saving")],
       ["Exchanges", "Another size or colour, with the new shipment held until the items arrive", planOf("return_saving")],
       ["Approve by rule and restock", "Rules by reason, tag, order value and days since delivery; items back in stock", planOf("return_saving")],
     ],
@@ -95,7 +95,7 @@ const page: KeywordPage = {
     },
     {
       q: "Can I offer store credit instead of a refund?",
-      a: `Yes, on the ${savingPlan.name} plan, with an optional bonus such as 10% extra. The credit is Shopify store credit, a gift card or a single use discount code, whichever your store supports.`,
+      a: `Yes, on the ${savingPlan.name} plan, with an optional bonus such as 10% extra. The credit is a refund to Shopify store credit on the customer's account.`,
     },
     {
       q: "Can shoppers still get a refund?",

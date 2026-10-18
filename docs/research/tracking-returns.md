@@ -150,8 +150,11 @@ provider (returns), and for email branding add their own domain.
   merchant needs their own account; US and Canada first. Not needed for v1 (merchant uploads labels).
 - **Branded emails and SMS**: an email service (Resend, Postmark, SES) and a verified sender domain per
   merchant; SMS needs a provider and consent rules. Shopify's own emails cover v1.
-- **Exchanges and store credit**: Shopify supports exchange items on a return and store credit through gift
-  cards or store credit accounts; building the UI is ours but it is a large piece.
+- **Exchanges and store credit**: Shopify supports exchange items on a return and store credit as a refund
+  method of `returnProcess` (a refund to store credit on the customer's account). Shopify's App Store rule 1.1.15 allows refunds only
+  through the original payment processor, `refundCreate` or `returnProcess`, and flags refunds to gift cards: so credit is a refund to
+  store credit inside `returnProcess` (customer required), a bonus on top is a separate `storeCreditAccountCredit`, and gift cards and
+  discount codes are not used for returns. If Shopify refuses the refund to store credit, the merchant refunds to the original payment.
 
 ## 7. Recommended v1 scope (for Omar to decide)
 
