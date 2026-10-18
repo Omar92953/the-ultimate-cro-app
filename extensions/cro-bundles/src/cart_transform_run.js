@@ -21,7 +21,7 @@
  * cro-bundle) never validates; the validation Function (cro-validation) then blocks checkout.
  *
  * Config, from the dashboard, in this cart transform's `$app.bundles` metafield:
- * { "b": { "<bundle product id>": {
+ * { "st": "<stamp token, written on every merged line as _cro_merged; the bundle guard checks it>", "b": { "<bundle product id>": {
  *     "pv": "<parent variant id>", "t": "<title>", "d": 0|1 (same item twice),
  *     "k": "f" (fixed: the bundle product's price) | "p" (percent off) | "t" (tiers: price by item count)
  *          | "pt" (% off that grows with the item count) | "at" (amount off that grows with the item count),
@@ -52,6 +52,9 @@ export function cartTransformRun(input) {
   const bundles = config && config.b;
   if (!bundles) return NO_CHANGES;
   const rate = Number(input.presentmentCurrencyRate) || 1;
+  // Every merged bundle line is stamped, so the checkout guard (cro-validation) can tell a real bundle from a bundle product added alone.
+  // The stamp is the shop's token from the config (a guess is refused), or "1" for a config made before tokens.
+  const stamp = String(config.st || "1").slice(0, 64);
 
   /** @type {Map<string, { line: any, step: number }[]>} */
   const groups = new Map();
@@ -78,6 +81,7 @@ export function cartTransformRun(input) {
       cartLines: picks.map((p) => ({ cartLineId: p.line.id, quantity: p.line.quantity })),
       parentVariantId: `gid://shopify/ProductVariant/${bundle.pv}`,
     };
+    merge.attributes = [{ key: "_cro_merged", value: stamp }];
     if (bundle.t) merge.title = String(bundle.t).slice(0, 255);
     if (off > 0) merge.price = { percentageDecrease: { value: off } };
     operations.push({ linesMerge: merge });

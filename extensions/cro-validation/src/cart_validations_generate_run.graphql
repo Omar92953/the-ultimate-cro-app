@@ -5,7 +5,7 @@ query CartValidationsGenerateRunInput {
       id
       quantity
       bundle: attribute(key: "_bundle") { value }
-      parentRelationship { parent { id } }
+      merged: attribute(key: "_cro_merged") { value }
       merchandise { __typename ... on ProductVariant { product { id title isBundle: hasAnyTag(tags: ["cro-bundle"]) } } }
     }
   }

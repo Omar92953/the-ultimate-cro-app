@@ -25,17 +25,37 @@ describe("order limits", () => {
 });
 
 describe("bundle guard", () => {
-  const bl = (lineId, productId, title, parent) => ({ id: lineId, quantity: 1, parentRelationship: parent ? { parent: { id: parent } } : null, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${productId}`, title } } });
-  const guard = (lines) => cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: "10" } }, lines }, validation: { metafield: { jsonValue: { bundles: ["7"] } } } });
-  test("a bare bundle product is refused", () => {
-    expect(messages(guard([bl("a", 7, "Gift box"), bl("b", 1, "Mug")]))).toEqual(["Gift box is a bundle. Pick its items on its page, then add it to your cart."]);
+  // A cart line as the validation sees it after the cart transform: `merged` is the stamp the transform wrote on a merged bundle line.
+  const bl = (lineId, productId, title, merged) => ({ id: lineId, quantity: 1, merged: merged === undefined ? null : { value: merged }, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${productId}`, title } } });
+  const guard = (lines, config = { bundles: ["7"], st: "tok" }) => cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: "10" } }, lines }, validation: { metafield: { jsonValue: config } } });
+  const BARE = ["Gift box is a bundle. Pick its items on its page, then add it to your cart."];
+  test("a bundle product added alone (no stamp) is refused", () => {
+    expect(messages(guard([bl("a", 7, "Gift box"), bl("b", 1, "Mug")]))).toEqual(BARE);
   });
-  test("a bundle line with picks under it passes", () => {
-    expect(messages(guard([bl("a", 7, "Gift box"), bl("b", 1, "Mug", "a"), bl("c", 2, "Cap", "a")]))).toEqual([]);
+  test("a bundle line the cart transform merged (stamped) passes", () => {
+    expect(messages(guard([bl("a", 7, "Gift box", "tok")]))).toEqual([]);
   });
-  test("other products and an empty list pass", () => {
-    expect(messages(guard([bl("b", 1, "Mug")]))).toEqual([]);
+  test("a kit (not a mix and match bundle id) and a normal product pass, stamped or not", () => {
+    expect(messages(guard([bl("k", 8, "Kit"), bl("b", 1, "Mug"), bl("c", 2, "Cap", "tok")]))).toEqual([]);
+  });
+  test("a forged stamp is refused when the shop has a token: the shopper cannot guess it", () => {
+    expect(messages(guard([bl("a", 7, "Gift box", "1")]))).toEqual(BARE);
+    expect(messages(guard([bl("a", 7, "Gift box", "")]))).toEqual(BARE);
+  });
+  test("without a token in the config any stamp counts (a config made before tokens)", () => {
+    expect(messages(guard([bl("a", 7, "Gift box", "1")], { bundles: ["7"] }))).toEqual([]);
+    expect(messages(guard([bl("a", 7, "Gift box")], { bundles: ["7"] }))).toEqual(BARE);
+  });
+  test("no bundle ids: everything passes (guard off, or line mode)", () => {
+    expect(messages(guard([bl("a", 7, "Gift box")], { bundles: [], st: "tok" }))).toEqual([]);
     expect(checkBundles([], { lines: [bl("a", 7, "Gift box")] })).toEqual([]);
+  });
+  test("each bare bundle line gets its own message and the order limits still run", () => {
+    expect(messages(guard([bl("a", 7, "Gift box"), bl("b", 9, "Duo")], { bundles: ["7", "9"], st: "tok", rules: [{ kind: "maxItems", value: 1 }] }))).toEqual([
+      "Gift box is a bundle. Pick its items on its page, then add it to your cart.",
+      "Duo is a bundle. Pick its items on its page, then add it to your cart.",
+      "You can order up to 1 items.",
+    ]);
   });
 });
 

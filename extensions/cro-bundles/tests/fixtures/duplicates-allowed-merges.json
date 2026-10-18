@@ -76,7 +76,13 @@
               }
             ],
             "parentVariantId": "gid://shopify/ProductVariant/5001",
-            "title": "Candle set"
+            "title": "Candle set",
+            "attributes": [
+              {
+                "key": "_cro_merged",
+                "value": "1"
+              }
+            ]
           }
         }
       ]

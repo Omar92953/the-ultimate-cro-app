@@ -113,7 +113,13 @@
               "percentageDecrease": {
                 "value": 15
               }
-            }
+            },
+            "attributes": [
+              {
+                "key": "_cro_merged",
+                "value": "1"
+              }
+            ]
           }
         }
       ]
