@@ -25,7 +25,11 @@
 - Web Vitals in the Partner Dashboard after 100 loads.
 - Mobile: open the admin in the Shopify mobile app.
 
-**Proposal (no change made): optional scopes.** Today `shopify.app.toml` requires `read_returns`,
+**Storefront check on Testing 3, 2026-10-19 (supervisor, browser timings, not Lighthouse):** home 7 app files about 18 KB, product page 10 files about 35 KB gzipped; all app JS deferred, CLS 0, no long tasks, home LCP 1.8 s. Render blocking: only `ucs-boosters.css` (~3 KB gz) and `ucro.css` (~6 KB gz); nice to have: load booster CSS only where used. Expected well under the 10 point Lighthouse limit; confirm with Lighthouse on a store without a password.
+
+**Decided 2026-10-19 (Omar): keep all scopes required at install for launch** (the reviewer tests every feature with no extra approval step; every scope is used). Revisit after launch if installs drop at the permission screen.
+
+**Proposal (kept for later): optional scopes.** Today `shopify.app.toml` requires `read_returns`,
 `write_returns`, `read_store_credit_accounts`, `write_store_credit_account_transactions`,
 `write_gift_cards` and `write_merchant_managed_fulfillment_orders`. Reviewers prefer a short list at
 install, so these could move to `optional_scopes` and be requested when the merchant turns on returns,
