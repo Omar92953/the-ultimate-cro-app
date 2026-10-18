@@ -5,6 +5,13 @@
 import type { CSSProperties } from "react";
 import { orderPageClass, orderPageVars, type OrderPageDesign } from "../lib/order-pages";
 
+const SAMPLE_RECS = [
+  { title: "Linen shorts", price: "$39.00" },
+  { title: "Canvas cap", price: "$22.00" },
+  { title: "Wool socks", price: "$14.00" },
+  { title: "Tote bag", price: "$18.00" },
+];
+
 const ITEMS = [
   { title: "Linen shirt", variant: "Medium / Sand", quantity: 1 },
   { title: "Classic tee", variant: "Large", quantity: 2 },
@@ -65,6 +72,29 @@ export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign;
                   </li>
                 ))}
               </ul>
+              {c.recs.like.on || c.recs.complete.on
+                ? (["like", "complete"] as const)
+                    .filter((k) => c.recs[k].on)
+                    .map((k) => (
+                      <div key={k} className="ucs-op__recs">
+                        <p className="ucs-op__t">
+                          <b>{c.recs[k].heading}</b>
+                        </p>
+                        <ul className="ucs-op__rg">
+                          {SAMPLE_RECS.slice(k === "like" ? 0 : 2, (k === "like" ? 0 : 2) + Math.min(c.recs.count, 2)).map((p) => (
+                            <li key={p.title} className="ucs-op__rc">
+                              {thumb}
+                              <span className="ucs-op__rn">{p.title}</span>
+                              <span className="ucs-op__rp">{p.price}</span>
+                              <button type="button" className="ucs-btn ucs-btn--outline">
+                                {c.recs.button}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))
+                : null}
               <button type="button" className="ucs-btn ucs-btn--outline">
                 {t.again}
               </button>

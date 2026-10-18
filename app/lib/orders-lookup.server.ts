@@ -14,7 +14,7 @@ export type OrderSummary = {
   cancelled: boolean;
   payment: string;
   fulfillment: string;
-  items: { id: string; title: string; variant: string; quantity: number; image: string | null }[];
+  items: { id: string; title: string; variant: string; quantity: number; image: string | null; /** Not sent to the page. */ productId: string | null }[];
   shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null; /** What Shopify knows: its fulfillment events, dates and status. */ tracking: Tracking | null }[];
 };
 
@@ -60,7 +60,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
       orders(first: 5, query: $q) {
         nodes {
           id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus
-          lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } } }
+          lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } product { id } } }
           fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }
       }
@@ -78,7 +78,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     fulfillment: order.displayFulfillmentStatus ?? "",
     items: order.lineItems.nodes
       .filter((l: { currentQuantity: number }) => l.currentQuantity > 0)
-      .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null }) => ({ id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null })),
+      .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null; product: { id: string } | null }) => ({ id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null, productId: l.product?.id ?? null })),
     shipments: order.fulfillments.flatMap((f: FulfillmentNode) =>
       (f.trackingInfo.length ? f.trackingInfo : [{ company: null, number: null, url: null }]).map((t) => ({ status: f.displayStatus ?? "", company: t.company, number: t.number, url: t.url, delivered: f.deliveredAt, estimated: f.estimatedDeliveryAt, tracking: shopifyTracking(f) })),
     ),

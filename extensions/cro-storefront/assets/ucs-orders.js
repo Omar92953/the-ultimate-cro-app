@@ -46,7 +46,7 @@
         if (!last.order || !last.email) { msg.textContent = t.notFound; return; }
         btn.disabled = true;
         msg.textContent = '';
-        post(kind, { intent: 'find', order: last.order, email: last.email }).then(function (d) {
+        post(kind, { intent: 'find', order: last.order, email: last.email, recs: kind === 'track' && cfg && cfg.recs ? { count: cfg.recs.count, rows: cfg.recs.rows } : undefined }).then(function (d) {
           btn.disabled = false;
           if (d.ok) return kind === 'track' ? showOrder(d.order) : chooseItems(d.order, d);
           msg.textContent = d.notFound ? t.notFound : d.tooLate ? t.tooLate : d.error || t.notFound;
@@ -65,6 +65,21 @@
           '<span class="ucs-op__it"><b>' + esc(i.title) + '</b>' + (i.variant ? '<small>' + esc(i.variant) + '</small>' : '') + '</span>' +
           (pickable ? qty : '<span class="ucs-op__q">× ' + i.quantity + '</span>') + '</li>';
       }).join('') + '</ul>';
+    };
+
+    // "You may also like" and "Complete your order": real products, added to a new cart (the paid order is never touched).
+    var money = function (amount, currency) { try { return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(Number(amount)); } catch (e) { return amount + ' ' + currency; } };
+    var recRows = function (recs) {
+      if (!recs || !cfg || !cfg.recs) return '';
+      return cfg.recs.rows.map(function (row) {
+        var list = recs[row.key] || [];
+        if (!list.length) return '';
+        return '<div class="ucs-op__recs"><p class="ucs-op__t"><b>' + esc(row.heading) + '</b></p><ul class="ucs-op__rg" role="list">' + list.map(function (p) {
+          return '<li class="ucs-op__rc">' + (p.image ? '<a href="' + esc(root + '/products/' + p.handle) + '"><img src="' + esc(sized(p.image, 300)) + '" alt="" loading="lazy"></a>' : '<span class="ucs-op__ph"></span>') +
+            '<a class="ucs-op__rn" href="' + esc(root + '/products/' + p.handle) + '">' + esc(p.title) + '</a><span class="ucs-op__rp">' + esc(money(p.price, p.currency)) + '</span>' +
+            '<button type="button" class="ucs-btn ucs-btn--outline" data-rec-add="' + p.variantId + '">' + esc(cfg.recs.button) + '</button></li>';
+        }).join('') + '</ul></div>';
+      }).join('');
     };
 
     var showOrder = function (o) {
@@ -96,9 +111,19 @@
         '<h2 class="ucs-op__h">' + esc(o.name) + '</h2>' +
         '<p class="ucs-op__t">' + esc(t.placed) + ' ' + esc(day(o.createdAt)) + '</p>' +
         '<p class="ucs-op__pills"><span class="ucs-op__pill">' + esc(o.cancelled ? nice('CANCELED') : nice(o.fulfillment)) + '</span><span class="ucs-op__pill ucs-op__pill--soft">' + esc(nice(o.payment)) + '</span></p>' +
-        tracking + items(o.items, false) +
+        tracking + items(o.items, false) + recRows(o.recs) +
         '<button type="button" class="ucs-btn ucs-btn--outline ucs-op__again">' + esc(t.again) + '</button></div></div>';
       host.querySelector('.ucs-op__again').addEventListener('click', lookupForm);
+      host.querySelectorAll('[data-rec-add]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var label = b.textContent;
+          var say = function (text) { b.textContent = text; setTimeout(function () { b.textContent = label; b.disabled = false; }, 2000); };
+          b.disabled = true;
+          fetch(root + '/cart/add.js', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(b.getAttribute('data-rec-add')), quantity: 1, properties: { _source: 'track_recs' } }] }) })
+            .then(function (r) { if (!r.ok) throw new Error('add'); say(cfg.recs.added); document.dispatchEvent(new CustomEvent('ucs:cart:added')); })
+            .catch(function () { say(t.unavailable); });
+        });
+      });
     };
 
     var afterText = function (a) {

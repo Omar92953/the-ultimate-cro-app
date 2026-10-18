@@ -71,9 +71,24 @@ export const ORDER_PAGE_SIZES: SizeSpec[] = [
   BUTTON_HEIGHT,
 ];
 
+export type RecSource = "together" | "collection" | "picks";
+/** One row of products under the order (Track page, Growth). */
+export type RecRow = { on: boolean; heading: string; source: RecSource; picks: { handle: string; title: string }[] };
+export type Recs = { like: RecRow; complete: RecRow; count: number; button: string; added: string };
+
+export const DEFAULT_RECS: Recs = {
+  like: { on: false, heading: "You may also like", source: "collection", picks: [] },
+  complete: { on: false, heading: "Complete your order", source: "together", picks: [] },
+  count: 4,
+  button: "Add to cart",
+  added: "Added",
+};
+
 export type OrderPageDesign = {
   scheme: string;
   kind: OrderPageKind;
+  /** Track page only: product recommendations under the order. */
+  recs: Recs;
   text: Record<string, string>;
   rules: { days: number };
   look: { align: "left" | "center"; maxWidth: number; accent: string; onAccent: string; card: string; radius: number };
@@ -86,6 +101,7 @@ const baseLook: OrderPageDesign["look"] = { align: "center", maxWidth: 640, acce
 export const defaultOrderPage = (kind: OrderPageKind): OrderPageDesign => ({
   scheme: "",
   kind,
+  recs: DEFAULT_RECS,
   text: Object.fromEntries(TEXTS[kind].map((t) => [t.key, t.def])),
   rules: { days: 30 },
   look: baseLook,
@@ -108,6 +124,21 @@ export function applyOrderPagePreset(c: OrderPageDesign, key: string): OrderPage
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 
+const bool = (v: unknown, fallback: boolean) => (typeof v === "boolean" ? v : fallback);
+function recRow(raw: unknown, d: RecRow): RecRow {
+  const r = obj(raw);
+  const picks = (Array.isArray(r.picks) ? r.picks : []).slice(0, 12).flatMap((x) => {
+    const p = obj(x);
+    const handle = str(p.handle, "", 255).trim();
+    return /^[a-z0-9][a-z0-9_-]*$/.test(handle) ? [{ handle, title: str(p.title, handle, 120) }] : [];
+  });
+  return { on: bool(r.on, d.on), heading: str(r.heading, d.heading, 60), source: pick(r.source, ["together", "collection", "picks"] as const, d.source), picks };
+}
+export function withRecs(raw: unknown): Recs {
+  const r = obj(raw);
+  return { like: recRow(r.like, DEFAULT_RECS.like), complete: recRow(r.complete, DEFAULT_RECS.complete), count: num(r.count, 1, 8, DEFAULT_RECS.count), button: str(r.button, DEFAULT_RECS.button, 30), added: str(r.added, DEFAULT_RECS.added, 30) };
+}
+
 export function withOrderPageDefaults(raw: unknown, kind: OrderPageKind): OrderPageDesign {
   const r = obj(raw);
   const d = defaultOrderPage(kind);
@@ -115,6 +146,7 @@ export function withOrderPageDefaults(raw: unknown, kind: OrderPageKind): OrderP
   return {
     scheme: schemeId(r.scheme),
     kind,
+    recs: withRecs(r.recs),
     text: Object.fromEntries(TEXTS[kind].map((x) => [x.key, str(t[x.key], x.def, x.max ?? (x.long ? 300 : 80))])),
     rules: { days: num(ru.days, 0, 365, d.rules.days) },
     look: {
@@ -156,5 +188,9 @@ export function toStorefrontOrderPage(c: OrderPageDesign) {
       .join(" "),
     t: c.text,
     days: c.rules.days,
+    // The Track page asks the server for products only when a row is on (proxy.track.tsx).
+    recs: c.kind === "track" && (c.recs.like.on || c.recs.complete.on)
+      ? { count: c.recs.count, button: c.recs.button, added: c.recs.added, rows: (["like", "complete"] as const).filter((k) => c.recs[k].on).map((k) => ({ key: k, heading: c.recs[k].heading, source: c.recs[k].source, picks: c.recs[k].picks.map((p) => p.handle) })) }
+      : null,
   };
 }
