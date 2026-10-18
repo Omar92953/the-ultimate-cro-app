@@ -33,6 +33,7 @@ const SECTIONS: [string, string[]][] = [
       "Back-in-stock requests: when a shopper asks to be told when a product is back, we store their email address and the product they want, so you can see and export the list in the app.",
       "Return requests: when a shopper asks for a return, we store the order number, their email, the items, the reason and any note, so you can handle the request in the app.",
       "Reviews written on your store: the name, text, rating and location the shopper enters are saved in your Shopify store for you to approve. No email address is collected.",
+      "Reviewer emails: if you type the email of the person behind a review so the app can check it against your orders (to tick Verified buyer), we store that email in our database. It is never shown on your store. It is deleted when you delete the review, and when you uninstall or the customer asks for deletion.",
       "Wishlists are kept only in the shopper's own browser. Gift notes, delivery dates, personalization text and similar choices are added to the shopper's cart and order in Shopify.",
     ],
   ],
@@ -45,8 +46,8 @@ const SECTIONS: [string, string[]][] = [
   [
     "How long we keep it and how it's deleted",
     [
-      "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock and return requests and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
-      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests and return requests), which we do.",
+      "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock requests, return requests and reviewer emails and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
+      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests, return requests and reviewer emails), which we do.",
     ],
   ],
   [

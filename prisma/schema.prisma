@@ -234,3 +234,15 @@ model TrackStat {
 
   @@unique([shop, day])
 }
+
+/// The email of the person behind a review, typed by the merchant only to check it against orders. Never shown on the store.
+model ReviewerEmail {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  reviewId  String
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([shop, reviewId])
+  @@index([shop, email])
+}

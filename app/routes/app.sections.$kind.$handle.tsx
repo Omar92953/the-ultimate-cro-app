@@ -16,40 +16,49 @@ import { DeleteOffer } from "../components/DeleteOffer";
 import { SaveControls, changed } from "../components/SaveControls";
 import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
+import { checkReviewerOrders, getReviewerEmail, removeReviewerEmail, setReviewerEmail } from "../lib/reviewer-email.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const kind = params.kind;
   if (!isKind(kind)) throw new Response("Not found", { status: 404 });
   const offset = await shopOffset(admin);
-  if (params.handle === "new") return { kind, item: blankItem(kind), isNew: true };
+  if (params.handle === "new") return { kind, item: blankItem(kind), isNew: true, reviewerEmail: "" };
   const item = (await listItems(admin, kind)).find((i) => i.handle === params.handle);
   if (!item) throw new Response("Not found", { status: 404 });
-  return { kind, item: toForm(kind, item, offset.minutes), isNew: false };
+  return { kind, item: toForm(kind, item, offset.minutes), isNew: false, reviewerEmail: kind === "reviews" ? await getReviewerEmail(session.shop, item.id) : "" };
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { admin, redirect } = await authenticate.admin(request);
+  const { admin, session, redirect } = await authenticate.admin(request);
   const kind = params.kind;
-  if (!isKind(kind)) return { ok: false, error: "Unknown list.", next: null };
+  if (!isKind(kind)) return { ok: false, error: "Unknown list.", next: null, check: null };
   const form = await request.formData();
   try {
+    if (form.get("intent") === "check") {
+      return { ok: false, error: null, next: null, check: await checkReviewerOrders(admin, String(form.get("email")), String(form.get("productId") || "") || null) };
+    }
     if (form.get("intent") === "delete") {
-      const done = await deleteItem(admin, kind, String(form.get("id")));
+      const id = String(form.get("id"));
+      const done = await deleteItem(admin, kind, id);
+      if (kind === "reviews") await removeReviewerEmail(session.shop, id);
       return redirect(`/app/sections/${kind}?deleted=${done}`);
     }
-    await saveItem(admin, kind, JSON.parse(String(form.get("item"))) as SectionItem);
-    return { ok: true, error: null, next: String(form.get("next") || "list") };
+    const saved = await saveItem(admin, kind, JSON.parse(String(form.get("item"))) as SectionItem);
+    if (kind === "reviews" && form.has("email")) await setReviewerEmail(session.shop, saved.id, String(form.get("email")));
+    return { ok: true, error: null, next: String(form.get("next") || "list"), check: null };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), next: null };
+    return { ok: false, error: errorMessage(e), next: null, check: null };
   }
 };
 
 export default function SectionItemEditor() {
-  const { kind, item: initial, isNew } = useLoaderData<typeof loader>();
+  const { kind, item: initial, isNew, reviewerEmail: savedEmail } = useLoaderData<typeof loader>();
   const cfg = SECTIONS[kind];
   const [item, setItem] = useState<SectionItem>(initial);
   const [touched, setTouched] = useState(false);
+  const [email, setEmail] = useState(savedEmail);
+  const checker = useFetcher<typeof action>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const navigate = useNavigate();
@@ -62,9 +71,18 @@ export default function SectionItemEditor() {
     setLoaded(initial);
     if (JSON.stringify(loaded) !== JSON.stringify(initial)) {
       setItem(initial);
+      setEmail(savedEmail);
       setTouched(false);
     }
   }
+  // The result of "Check against orders": a found order ticks Verified buyer, nothing found never unticks it.
+  const [seen, setSeen] = useState<unknown>(null);
+  const check = checker.data?.check ?? null;
+  if (checker.data && seen !== checker.data) {
+    setSeen(checker.data);
+    if (check?.found) setItem((it) => ({ ...it, values: { ...it.values, verified: true } }));
+  }
+  const product = (item.values.product as ProductRef | null) ?? null;
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (fetcher.data.ok) {
@@ -81,7 +99,7 @@ export default function SectionItemEditor() {
   const save = (next: "list" | "another") => {
     setTouched(true);
     if (missing.length) return;
-    fetcher.submit({ item: JSON.stringify(item), next }, { method: "post" });
+    fetcher.submit({ item: JSON.stringify(item), next, ...(kind === "reviews" ? { email } : {}) }, { method: "post" });
   };
   const remove = () => {
     if (!item.id) return;
@@ -95,7 +113,7 @@ export default function SectionItemEditor() {
         {cfg.title}
       </s-link>
       <DemoButton feature={LIST_FEATURE[kind]} />
-      <SaveControls dirty={changed(item, initial)} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setTouched(false); }} />
+      <SaveControls dirty={changed(item, initial) || email !== savedEmail} saving={busy} saved={!isNew} allowLeave={busy || !!fetcher.data?.ok} onSave={() => save("list")} onDiscard={() => { setItem(initial); setEmail(savedEmail); setTouched(false); }} />
       {isNew ? (
         <Button slot="secondary-actions" onClick={() => save("another")} disabled={busy}>
           Save and add another
@@ -128,6 +146,24 @@ export default function SectionItemEditor() {
                 if (f.type === "datetime") {
                   if (shown.findIndex((x) => x.type === "datetime") !== i) return null;
                   return <ScheduleInput key="schedule" fields={shown.filter((x) => x.type === "datetime")} values={item.values} set={set} singular={cfg.singular} />;
+                }
+                if (f.key === "verified" && kind === "reviews") {
+                  return (
+                    <s-stack key={f.key} gap="small-200">
+                      <FieldInput field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt="" />
+                      <TextField label="Reviewer email" details="Optional. Only you see it: it is never shown on your store. Used to check the review against your orders." placeholder="name@example.com" value={email} onValue={setEmail} />
+                      <s-stack direction="inline" gap="base" alignItems="center">
+                        <Button
+                          disabled={!email.trim() || checker.state !== "idle"}
+                          onClick={() => checker.submit({ intent: "check", email, productId: product?.id ?? "" }, { method: "post" })}
+                        >
+                          {checker.state !== "idle" ? "Checking…" : "Check against orders"}
+                        </Button>
+                        {check ? <s-text tone={check.found ? "success" : "critical"}>{check.message}</s-text> : null}
+                      </s-stack>
+                      {check?.found ? <s-text color="subdued">Verified buyer is ticked. Save to keep it.</s-text> : null}
+                    </s-stack>
+                  );
                 }
                 return <FieldInput key={f.key} field={f} value={item.values[f.key]} onValue={(v) => set(f.key, v)} alt={String(item.values[cfg.titleKey] || "")} error={touched && f.required && !item.values[f.key] ? `${f.label} is required` : undefined} />;
               })}
