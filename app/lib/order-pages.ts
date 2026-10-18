@@ -60,6 +60,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "priceDiscount", label: "Discounts", def: "Discounts", group: "Prices" },
     { key: "priceTax", label: "Taxes", def: "Taxes", group: "Prices" },
     { key: "priceTotal", label: "Total", def: "Total", group: "Prices" },
+    { key: "priceRefunded", label: "Refunded", def: "Refunded", group: "Prices" },
     { key: "carrierOnly", label: "Live updates are on the carrier's page", def: "Live updates are on the carrier's page. Open the tracking link.", long: true, group: "Result" },
   ],
   returns: [

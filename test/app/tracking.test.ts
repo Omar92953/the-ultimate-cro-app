@@ -161,7 +161,8 @@ test("uninstall removes the store's tracking settings and cache", async () => {
 test("the order's prices are read in the currency the shopper paid in", async () => {
   const { orderPrices } = await import("../../app/lib/orders-lookup.server");
   const set = (amount: string, currencyCode = "EUR") => ({ presentmentMoney: { amount, currencyCode } });
-  assert.deepEqual(orderPrices({ subtotalPriceSet: set("78.005"), totalShippingPriceSet: set("0"), totalDiscountsSet: set("7.8"), totalTaxSet: set("0"), totalPriceSet: set("70.2") }), { currency: "EUR", subtotal: 78.01, shipping: 0, discounts: 7.8, tax: 0, total: 70.2 });
+  assert.deepEqual(orderPrices({ subtotalPriceSet: set("78.005"), totalShippingPriceSet: set("0"), totalDiscountsSet: set("7.8"), totalTaxSet: set("0"), totalPriceSet: set("70.2") }), { currency: "EUR", subtotal: 78.01, shipping: 0, discounts: 7.8, tax: 0, total: 70.2, refunded: 0 });
+  assert.equal(orderPrices({ subtotalPriceSet: set("78"), totalPriceSet: set("70.2"), totalRefundedSet: set("25.5") })?.refunded, 25.5);
   assert.equal(orderPrices({}), null);
   assert.equal(orderPrices({ subtotalPriceSet: set("10"), totalPriceSet: null }), null);
 });
