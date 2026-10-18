@@ -143,7 +143,7 @@ function TryCard({ feature: key }: { feature: FeatureKey }) {
           loading={fetcher.state !== "idle"}
           onClick={() => fetcher.submit({ feature: key, back: pathname + search }, { method: "post", action: "/app/plan-trial" })}
         >
-          {trial ? `Switch my free ${needs} feature to this` : `Use this as my free ${needs} feature`}
+          {trial ? `Switch the free ${needs} feature to this` : `Use this as the free ${needs} feature`}
         </Button>
       }
     >

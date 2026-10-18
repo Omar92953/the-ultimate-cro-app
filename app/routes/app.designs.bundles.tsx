@@ -65,7 +65,7 @@ function MaybeColor({ label, value, fallback, onValue }: { label: string; value:
   return (
     <s-stack gap="small-200">
       {value ? <ColorField label={label} value={value} onValue={onValue} /> : <s-text type="strong">{label}</s-text>}
-      <Checkbox label="From my theme" checked={!value} onValue={(on) => onValue(on ? "" : fallback)} />
+      <Checkbox label="From the theme" checked={!value} onValue={(on) => onValue(on ? "" : fallback)} />
     </s-stack>
   );
 }
@@ -111,7 +111,7 @@ export default function BundleDesigner() {
       <DemoButton feature="bundles" />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
@@ -179,7 +179,7 @@ export default function BundleDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Add to cart">
                   <s-stack gap="base">
-                    <Switch label="Use my theme's Add to cart button" details="Hides the builder's button; your theme's button adds the bundle once it's complete. Express checkout buttons are hidden on that page." checked={cfg.button.theme} onValue={(v) => button({ theme: v })} />
+                    <Switch label="Use the theme's Add to cart button" details="Hides the builder's button; your theme's button adds the bundle once it's complete. Express checkout buttons are hidden on that page." checked={cfg.button.theme} onValue={(v) => button({ theme: v })} />
                     {!cfg.button.theme ? (
                       <>
                         <TextField label="Button text" value={cfg.button.label} onValue={(v) => button({ label: v })} />
@@ -312,7 +312,7 @@ export default function BundleDesigner() {
                       <Checkbox label="Summary corners follow the cards" checked={cfg.summaryLook.radius < 0} onValue={(v) => summaryLook({ radius: v ? -1 : 12 })} />
                       {cfg.summaryLook.radius >= 0 ? <NumberField label="Summary corners" suffix="px" min={0} max={40} step={1} value={cfg.summaryLook.radius} onValue={(v) => summaryLook({ radius: v })} /> : <span />}
                     </s-grid>
-                    <Switch label="My own colours for the Add bundle to cart button" details="Off: it looks like your theme's Add to cart button." checked={cfg.summaryLook.customButton} onValue={(v) => summaryLook({ customButton: v })} />
+                    <Switch label="Own colours for the Add bundle to cart button" details="Off: it looks like your theme's Add to cart button." checked={cfg.summaryLook.customButton} onValue={(v) => summaryLook({ customButton: v })} />
                     {cfg.summaryLook.customButton ? (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <ColorField label="Button background" value={cfg.summaryLook.btnBg} onValue={(v) => summaryLook({ btnBg: v })} />
@@ -327,9 +327,9 @@ export default function BundleDesigner() {
               <Pane show={tab === "design" && group === "colours"}>
                 <s-section heading="Picked colour and card corners">
                   <s-stack gap="base">
-                    <Checkbox label="Picked items use my theme's button colour" checked={cfg.look.themeAccent} onValue={(v) => look({ themeAccent: v })} />
+                    <Checkbox label="Picked items use the theme's button colour" checked={cfg.look.themeAccent} onValue={(v) => look({ themeAccent: v })} />
                     {!cfg.look.themeAccent ? <ColorField label="Picked item colour" value={cfg.look.accent} onValue={(v) => look({ accent: v })} /> : null}
-                    <Checkbox label="Match my theme's corners" checked={cfg.look.themeRadius} onValue={(v) => look({ themeRadius: v })} />
+                    <Checkbox label="Match the theme's corners" checked={cfg.look.themeRadius} onValue={(v) => look({ themeRadius: v })} />
                     {!cfg.look.themeRadius ? <NumberField label="Corner radius" suffix="px" min={0} max={40} step={2} value={cfg.look.radius} onValue={(v) => look({ radius: v })} /> : null}
                   </s-stack>
                 </s-section>
@@ -365,7 +365,7 @@ export default function BundleDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

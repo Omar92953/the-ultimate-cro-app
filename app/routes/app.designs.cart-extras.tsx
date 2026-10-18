@@ -77,7 +77,7 @@ export default function CartExtrasDesigner() {
       <DemoButton feature="cart_extras" template={templateInUse(CART_EXTRAS_PRESETS, cfg, applyCartExtrasPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=cart`} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to cart page"}

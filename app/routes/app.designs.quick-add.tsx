@@ -93,7 +93,7 @@ export default function QuickAddDesigner() {
       <DemoButton feature="quick_add" template={templateInUse(QUICK_ADD_PRESETS, cfg, applyQuickAddPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2Fcollections%2Fall`} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Turn on in theme"}
@@ -128,7 +128,7 @@ export default function QuickAddDesigner() {
                       onValue={(v) => after({ mode: v as C["after"]["mode"] })}
                       options={[
                         { value: "toast", label: "Show the “Added to your cart” popup" },
-                        { value: "theme", label: "Open my theme's cart drawer" },
+                        { value: "theme", label: "Open the theme's cart drawer" },
                         { value: "cart", label: "Go to the cart page" },
                       ]}
                     />
@@ -204,7 +204,7 @@ export default function QuickAddDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

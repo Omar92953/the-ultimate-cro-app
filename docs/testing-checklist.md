@@ -121,7 +121,7 @@ Run everything on **Dawn (test)** and on the **live theme copy**.
 - [ ] Cart drawer offer → Add → the drawer refreshes and the added item leaves the offer list.
 - [ ] Carousel "Add to cart" on a single-variant product. On a multi-variant product it shows "Choose options" and links to the product.
 - [ ] Bundle: the button stays disabled until the steps are complete. Then one line appears in the cart with the readable picks.
-- [ ] Bundle with "Use my theme's Add to cart button": an incomplete bundle is refused with a message, the express buttons are hidden, and a complete bundle adds with the picks.
+- [ ] Bundle with "Use the theme's Add to cart button": an incomplete bundle is refused with a message, the express buttons are hidden, and a complete bundle adds with the picks.
 - [ ] Sold-out variant or product: never offered. Forcing a sold-out add shows the inline error.
 
 ### Size upgrades, sizes per item, grouped list
@@ -214,7 +214,7 @@ Once every box is ticked on both themes:
 
 ## Wishlist, discount code box, size guide (Testing 3, after the Shopify deploy)
 
-- [ ] Wishlist: heart on a product page and on collection cards (styled), floating button count, the wishlist page (styled grid, Add to cart says "Added to cart", Remove, Share shows "Link copied"), "Wishlist is on" off hides everything, "See it on my store" shows a draft only in the theme editor.
+- [ ] Wishlist: heart on a product page and on collection cards (styled), floating button count, the wishlist page (styled grid, Add to cart says "Added to cart", Remove, Share shows "Link copied"), "Wishlist is on" off hides everything, "Preview on store" shows a draft only in the theme editor.
 - [ ] Discount code box (Gift note & delivery date → Discount code): a valid code on the cart page and in the drawer lowers the price and shows at checkout; an invalid code shows your message; Remove works.
 - [ ] Size guide: add the Size guide block to a product page; "Size chart" opens the chart (cm and in), "Size recommendation" answers from your ranges; a chart assigned to a tag or collection shows only on those products.
 

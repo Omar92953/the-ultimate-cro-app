@@ -1,5 +1,5 @@
 /**
- * Own sizes for the parts of a section, the same way in every section: a switch ("Choose my own
+ * Own sizes for the parts of a section, the same way in every section: a switch ("Choose own
  * sizes") and one number per part. Each part is a CSS variable that the storefront stylesheet reads
  * with its automatic size as the fallback, so with the switch off nothing changes.
  * Shared by client and server.

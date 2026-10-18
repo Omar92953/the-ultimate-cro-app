@@ -94,7 +94,7 @@ export function MediaPicker(props: {
           />
           <s-box>
             <Button variant="tertiary" icon="image" onClick={loadFiles}>
-              {browsing ? "Hide my files" : "Choose from Content → Files"}
+              {browsing ? "Hide files" : "Choose from Content → Files"}
             </Button>
           </s-box>
         </>

@@ -27,6 +27,6 @@ The menu is **Home · Offers · Tracking & Returns · Section library · Cart & 
 
 ## How design pages work
 
-Every design page has the same tabs (Templates · Content · Style), settings on the left and a live preview on the right, and the same buttons: **See it on my store** and **Add to theme** or **Open in theme editor**. Changes show Shopify's save bar at the top; leaving with unsaved changes asks first.
+Every design page has the same tabs (Templates · Content · Style), settings on the left and a live preview on the right, and the same buttons: **Preview on store** and **Add to theme** or **Open in theme editor**. Changes show Shopify's save bar at the top; leaving with unsaved changes asks first.
 
 A section can have up to five **styles**; you pick one per placement in the theme editor with the block's **Style** setting. The theme editor only places, moves or removes a section; everything else is set in the app.

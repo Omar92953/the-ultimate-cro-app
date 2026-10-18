@@ -1,7 +1,7 @@
 /**
  * Home's setup guide: a progress bar, then the steps. The first step not done yet is open on a grey
- * panel with its button and "I've done it"; the others are one line each (click to open). Steps
- * tick themselves when the app sees they're done; "I've done it" is the fallback.
+ * panel with its button and "Mark as done"; the others are one line each (click to open). Steps
+ * tick themselves when the app sees they're done; "Mark as done" is the fallback.
  */
 import { useState, type ReactNode } from "react";
 import styles from "./SetupGuide.module.css";
@@ -83,7 +83,7 @@ export function SetupGuide(props: { steps: GuideStep[]; onManual: (key: string) 
                     {s.action}
                     {s.done ? null : (
                       <button type="button" className={styles.manual} onClick={() => { setOpen(null); props.onManual(s.key); }}>
-                        I&apos;ve done it
+                        Mark as done
                       </button>
                     )}
                   </span>

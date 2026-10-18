@@ -116,7 +116,7 @@ export default function OrderPageDesigner() {
       <DemoButton feature={feature} template={templateInUse(ORDER_PAGE_PRESETS, cfg, applyOrderPagePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={data.seeLink} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : data.pageMade ? "Add the block" : "Open the theme editor"}
@@ -184,7 +184,7 @@ export default function OrderPageDesigner() {
                         <Switch label="After delivery: “How was your order?”" details="Once every shipment is delivered the page asks for a review, links to your Returns page and can give a code to share with a friend." checked={sell.afterDelivery.on} onValue={(v) => after({ on: v })} />
                         {sell.afterDelivery.on ? (
                           <s-stack gap="base">
-                            <Select label="“Write a review” goes to" value={sell.afterDelivery.review} onValue={(v) => after({ review: v === "url" ? "url" : "product" })} options={[{ value: "product", label: "Each product's page" }, { value: "url", label: "My review page" }]} />
+                            <Select label="“Write a review” goes to" value={sell.afterDelivery.review} onValue={(v) => after({ review: v === "url" ? "url" : "product" })} options={[{ value: "product", label: "Each product's page" }, { value: "url", label: "A review page URL" }]} />
                             {sell.afterDelivery.review === "url" ? <TextField label="Review page address" placeholder="https://" value={sell.afterDelivery.reviewUrl} onValue={(v) => after({ reviewUrl: v })} details="Where your review app collects reviews. Must start with https://" /> : null}
                             <Checkbox label="Link to the Returns page" checked={sell.afterDelivery.returnsLink} onValue={(v) => after({ returnsLink: v })} />
                             <Switch label="Give a code to share with a friend" details="A real single use Shopify code with an expiry, made for the order." checked={sell.afterDelivery.friend.on} onValue={(v) => friend({ on: v })} />
@@ -234,7 +234,7 @@ export default function OrderPageDesigner() {
                             {cfg.recs[k].on ? (
                               <>
                                 <TextField label="Heading" value={cfg.recs[k].heading} onValue={(v) => row(k, { heading: v })} maxLength={60} />
-                                <Select label="Products come from" value={cfg.recs[k].source} onValue={(v) => row(k, { source: v as C["recs"]["like"]["source"] })} options={[{ value: "collection", label: "The order's collections" }, { value: "together", label: "Bought together (learned from your orders)" }, { value: "picks", label: "Products I choose" }]} />
+                                <Select label="Products come from" value={cfg.recs[k].source} onValue={(v) => row(k, { source: v as C["recs"]["like"]["source"] })} options={[{ value: "collection", label: "The order's collections" }, { value: "together", label: "Bought together (learned from your orders)" }, { value: "picks", label: "Chosen products" }]} />
                                 {cfg.recs[k].source === "picks" ? (
                                   <s-stack direction="inline" gap="small-200" alignItems="center">
                                     <Button onClick={() => pickProducts(k)}>Choose products</Button>

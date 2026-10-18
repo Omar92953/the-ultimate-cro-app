@@ -1,6 +1,6 @@
 /**
  * Small per-shop Home choices, kept in the shop's own store ($app:cro_design "home_state"):
- * the setup guide was hidden, and the guide steps the merchant ticked by hand ("I've done it").
+ * the setup guide was hidden, and the guide steps the merchant ticked by hand ("Mark as done").
  */
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";

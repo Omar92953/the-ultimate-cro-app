@@ -79,7 +79,7 @@ export default function StockDesigner() {
       <DemoButton feature="stock" template={templateInUse(STOCK_PRESETS, cfg, applyStockPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=product` : data.addLink} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}

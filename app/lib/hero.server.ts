@@ -9,7 +9,7 @@ import { toStorefrontHero, withHeroDefaults, type HeroDesign } from "./hero-desi
 
 const TYPE = "$app:cro_hero";
 
-/** live: false until saved once (a "See it on my store" preview of a new banner). */
+/** live: false until saved once (a "Preview on store" preview of a new banner). */
 export type HeroItem = { id: string; handle: string; position: number; live: boolean; config: HeroDesign };
 
 const FIELDS = `id handle position: field(key: "position") { value } editor: field(key: "editor") { value } live: field(key: "config") { value }`;

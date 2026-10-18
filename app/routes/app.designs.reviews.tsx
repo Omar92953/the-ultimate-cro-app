@@ -112,7 +112,7 @@ export default function ReviewsDesigner() {
       <DemoButton feature={feature} template={templateInUse(isProduct ? PRODUCT_REVIEW_PRESETS : REVIEW_PRESETS, cfg, applyReviewPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`} target="_blank" onClick={() => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction })}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         Add to a page
@@ -308,7 +308,7 @@ export default function ReviewsDesigner() {
 
             <Pane show={tab === "design"}><s-section heading="Sizes">
               <s-stack gap="base">
-                <Switch label="Choose my own sizes" details="Off: sizes that suit the layout and your theme." checked={cfg.sizes.own} onValue={(v) => sizes({ own: v })} />
+                <Switch label="Choose own sizes" details="Off: sizes that suit the layout and your theme." checked={cfg.sizes.own} onValue={(v) => sizes({ own: v })} />
                 {cfg.sizes.own ? (
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <NumberField label="Text under heading" suffix="px" min={10} max={40} step={1} value={cfg.sizes.sub} onValue={(v) => sizes({ sub: v })} />
@@ -396,7 +396,7 @@ export default function ReviewsDesigner() {
                           return { ...c, icon: { ...c.icon, custom } };
                         });
                     }}
-                    options={[{ value: "built", label: "The built-in icon" }, { value: "own", label: "My own picture" }]}
+                    options={[{ value: "built", label: "The built-in icon" }, { value: "own", label: "Own picture" }]}
                   />
                 </s-grid>
                 {cfg.icon.custom[iconFor] || ownFor[iconFor] ? (
@@ -474,7 +474,7 @@ export default function ReviewsDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

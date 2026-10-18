@@ -129,7 +129,7 @@ export default function Boosters() {
                 </s-stack>
               ))}
             </s-stack>
-            <Checkbox label="Show my store's payment icons" checked={cfg.trust.showPayments} onValue={(v) => set("trust", { showPayments: v })} />
+            <Checkbox label="Show the store's payment icons" checked={cfg.trust.showPayments} onValue={(v) => set("trust", { showPayments: v })} />
             <Select label="Layout" value={cfg.trust.style} onValue={(v) => set("trust", { style: v as "row" | "grid" })} options={[{ value: "row", label: "In a row" }, { value: "grid", label: "Boxes, two per row" }]} />
           </Card>
 

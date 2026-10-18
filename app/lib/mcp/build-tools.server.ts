@@ -1,6 +1,6 @@
 /**
  * The build and publish tools (docs/plans/mcp-server.md §3). Everything is a DRAFT:
- *   - a design is saved as the theme editor draft ("<feature>_draft", the "See it on my store" mechanism)
+ *   - a design is saved as the theme editor draft ("<feature>_draft", the "Preview on store" mechanism)
  *     and as a pending copy here; only publish copies it to the live design;
  *   - an offer is created switched off; only publish_offer turns it on (offer slot rule applies).
  * Every tool runs the same cleaners, plan checks and limits as the admin pages (lib/rules.ts).

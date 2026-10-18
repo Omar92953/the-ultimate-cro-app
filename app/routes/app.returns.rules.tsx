@@ -98,7 +98,7 @@ export default function ReturnRulesPage() {
           <s-section heading="3. What shoppers are told after approval">
             <s-stack gap="base">
               <TextArea label="Return address" rows={3} value={rules.address} onValue={(v) => set({ address: v })} details="Shown to the shopper once the return is approved." />
-              <Select label="Return shipping" value={rules.shipping} onValue={(v) => set({ shipping: v === "merchant" ? "merchant" : "shopper" })} options={[{ value: "shopper", label: "The shopper pays and ships it themselves" }, { value: "merchant", label: "I send a return label (you add it on each return)" }]} />
+              <Select label="Return shipping" value={rules.shipping} onValue={(v) => set({ shipping: v === "merchant" ? "merchant" : "shopper" })} options={[{ value: "shopper", label: "The shopper pays and ships it themselves" }, { value: "merchant", label: "A return label is sent (you add it on each return)" }]} />
               <TextArea label="Extra words (optional)" rows={2} value={rules.instructions} onValue={(v) => set({ instructions: v })} details="For example “Pack the items in the original box.”" />
             </s-stack>
           </s-section>

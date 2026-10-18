@@ -73,7 +73,7 @@ export function applyVideoCarouselPreset(c: VideoCarouselDesign, key: string): V
   return { ...c, text: { ...c.text, ...p.patch.text }, videos: { ...c.videos, ...p.patch.videos }, layout: { ...c.layout, ...p.patch.layout } };
 }
 
-/** "Match my theme style": the theme's corners and, when picked, one of its colour schemes. */
+/** "Match the theme style": the theme's corners and, when picked, one of its colour schemes. */
 export function matchVideoCarouselTheme(c: VideoCarouselDesign, scheme: string): VideoCarouselDesign {
   return { ...c, layout: { ...c.layout, corners: "theme", scheme } };
 }

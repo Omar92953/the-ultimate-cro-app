@@ -332,7 +332,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
 
 
       {(() => {
-        /** `onStore`: it's in the theme right now (on or off), so it belongs in "On my store". */
+        /** `onStore`: it's in the theme right now (on or off), so it belongs in "On store". */
         type Entry = { key: string; reg: RegistryKey; title: string; tone: Status["tone"]; locked: boolean; onStore: boolean; el: ReactElement };
         const cards: Entry[] = [];
         const add = (e: { key: string; cat?: string; title?: string; onStore: boolean; status: Status; next?: Next; open: { href: string; external?: boolean }; previews: (() => JSX.Element)[]; menu: CardMenuItem[]; off?: boolean }) => {
@@ -550,10 +550,10 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                   onChange={(v) => setFilter({ cat: v })}
                 />
                 <Segmented
-                  label="My views"
+                  label="Views"
                   value={cat}
                   options={[
-                    { value: "store", label: "On my store", count: onStoreCount },
+                    { value: "store", label: "On store", count: onStoreCount },
                     { value: "saved", label: "Saved", count: saved.length },
                   ]}
                   onChange={(v) => setFilter({ cat: v })}
@@ -565,7 +565,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                   <option value="live">Live</option>
                   <option value="setup">Needs a step</option>
                   <option value="off">Turned off</option>
-                  <option value="locked">Not in my plan</option>
+                  <option value="locked">Not in the plan</option>
                 </select>
                 <input className={showcase.find} type="search" placeholder="Search…" aria-label="Search features" value={query} onChange={(e) => setQuery(e.target.value)} />
               </s-stack>

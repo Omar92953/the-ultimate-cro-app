@@ -38,7 +38,7 @@ export const DEFAULT_UPSELL: UpsellDesign = {
 type Patch = { offers?: Partial<UpsellDesign["offers"]>; heading?: Partial<UpsellDesign["heading"]>; look?: Partial<UpsellDesign["look"]>; space?: Partial<UpsellDesign["space"]> };
 /** Ready-made looks; everything stays editable. */
 export const UPSELL_PRESETS: { key: string; title: string; patch: Patch }[] = [
-  { key: "theme", title: "My theme", patch: { offers: { style: "cards" }, heading: { style: "heading" }, look: { themeColors: true, themeRadius: true } } },
+  { key: "theme", title: "Theme", patch: { offers: { style: "cards" }, heading: { style: "heading" }, look: { themeColors: true, themeRadius: true } } },
   { key: "black", title: "Black and white", patch: { offers: { style: "cards" }, heading: { style: "heading" }, look: { themeColors: false, accent: "#111111", border: "#d9d9d9", badgeBg: "#111111", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#111111", themeRadius: false, radius: 10 } } },
   { key: "green", title: "Fresh green", patch: { offers: { style: "cards" }, heading: { style: "label" }, look: { themeColors: false, accent: "#16a34a", border: "#d6eadb", badgeBg: "#16a34a", badgeText: "#ffffff", saveBg: "#eaf7ee", saveText: "#166534", themeRadius: false, radius: 14 } } },
   { key: "list", title: "Grouped list", patch: { offers: { style: "list" }, heading: { style: "label" }, look: { themeColors: false, accent: "#2563eb", border: "#dbe3f0", badgeBg: "#2563eb", badgeText: "#ffffff", saveBg: "#ffffff", saveText: "#1d4ed8", themeRadius: false, radius: 12 } } },
@@ -52,7 +52,7 @@ export function applyUpsellPreset(c: UpsellDesign, key: string): UpsellDesign {
   return { ...c, offers: { ...c.offers, ...p.patch.offers }, heading: { ...c.heading, ...p.patch.heading }, look: { ...c.look, ...p.patch.look }, space: { ...c.space, ...p.patch.space } };
 }
 
-/** "Match my theme style": the theme's colours (a scheme, or the theme's button colour), corners and fonts. */
+/** "Match the theme style": the theme's colours (a scheme, or the theme's button colour), corners and fonts. */
 export function matchUpsellTheme(c: UpsellDesign, scheme: string): UpsellDesign {
   return { ...c, look: { ...c.look, themeColors: true, themeRadius: true, scheme } };
 }

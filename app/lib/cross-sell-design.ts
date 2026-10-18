@@ -43,7 +43,7 @@ export const DEFAULT_CROSS_SELL: CrossSellDesign = {
 
 type Patch = { look?: Partial<CrossSellDesign["look"]>; heading?: Partial<CrossSellDesign["heading"]> };
 export const CROSS_SELL_PRESETS: { key: string; title: string; patch: Patch }[] = [
-  { key: "theme", title: "My theme", patch: { look: { themeColors: true, themeRadius: true, panel: true } } },
+  { key: "theme", title: "Theme", patch: { look: { themeColors: true, themeRadius: true, panel: true } } },
   { key: "plain", title: "No panel", patch: { look: { themeColors: true, themeRadius: true, panel: false } } },
   { key: "black", title: "Black and white", patch: { look: { themeColors: false, accent: "#111111", border: "#d9d9d9", panel: true, panelColor: "#f4f4f4", themeRadius: false, radius: 10 } } },
   { key: "green", title: "Fresh green", patch: { look: { themeColors: false, accent: "#16a34a", border: "#cfe9d7", panel: true, panelColor: "#f1faf4", themeRadius: false, radius: 14 } } },
@@ -57,7 +57,7 @@ export function applyCrossSellPreset(c: CrossSellDesign, key: string): CrossSell
   return { ...c, look: { ...c.look, ...p.patch.look }, heading: { ...c.heading, ...p.patch.heading } };
 }
 
-/** "Match my theme style": the theme's colours and corners; a picked scheme colours the panel. */
+/** "Match the theme style": the theme's colours and corners; a picked scheme colours the panel. */
 export function matchCrossSellTheme(c: CrossSellDesign, scheme: string): CrossSellDesign {
   return { ...c, scheme, look: { ...c.look, themeColors: true, themeRadius: true, panel: true } };
 }

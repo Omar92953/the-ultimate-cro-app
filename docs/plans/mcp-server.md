@@ -58,7 +58,7 @@ call one function (see section 5).
 **Build** (`build` scope; everything is created as a **draft**)
 - `set_design(feature, patch | template)`: start from a template key and/or change values; the input goes through
   the feature's `with<Feature>Defaults()` cleaner, which already clamps, trims and drops unknown fields, and
-  the result is stored as `<feature>_draft` only (the existing "See it on my store" mechanism).
+  the result is stored as `<feature>_draft` only (the existing "Preview on store" mechanism).
 - `create_offer(type, values)`, `update_offer(id, values)`: upsell, cross sell, bundle recipes, discounts. New
   offers are created **inactive** (draft) with the same validators and the offer slot check as the admin.
 - `create_discount(type, values)`, `update_discount(id, values)` (built): buy X get Y, volume discounts, gift with

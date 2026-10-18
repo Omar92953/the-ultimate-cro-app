@@ -149,7 +149,7 @@ export default function FaqDesigner() {
         target="_blank"
         onClick={seeOnStore}
       >
-        See it on my store
+        Preview on store
       </Button>
       <Button
         slot="secondary-actions"
@@ -501,7 +501,7 @@ export default function FaqDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   formData,
   defaultShouldRevalidate,

@@ -119,7 +119,7 @@ export default function CrossSellDesigner() {
       <DemoButton feature="cross_sell" template={templateInUse(CROSS_SELL_PRESETS, cfg, applyCrossSellPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
@@ -210,7 +210,7 @@ export default function CrossSellDesigner() {
                   <s-stack gap="base">
                     <Switch label="Background panel" checked={cfg.look.panel} onValue={(v) => look({ panel: v })} />
                     {cfg.look.panel ? <Checkbox label="Panel edge to edge on phones" checked={cfg.look.edge} onValue={(v) => look({ edge: v })} /> : null}
-                    <Checkbox label="Use my theme's colours" checked={cfg.look.themeColors} onValue={(v) => look({ themeColors: v })} />
+                    <Checkbox label="Use the theme's colours" checked={cfg.look.themeColors} onValue={(v) => look({ themeColors: v })} />
                     {!cfg.look.themeColors ? (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <ColorField label="Tick" value={cfg.look.accent} onValue={(v) => look({ accent: v })} />
@@ -218,7 +218,7 @@ export default function CrossSellDesigner() {
                         {cfg.look.panel ? <ColorField label="Panel" value={cfg.look.panelColor} onValue={(v) => look({ panelColor: v })} /> : null}
                       </s-grid>
                     ) : null}
-                    <Checkbox label="Match my theme's corners" checked={cfg.look.themeRadius} onValue={(v) => look({ themeRadius: v })} />
+                    <Checkbox label="Match the theme's corners" checked={cfg.look.themeRadius} onValue={(v) => look({ themeRadius: v })} />
                     {!cfg.look.themeRadius ? <NumberField label="Corner radius" suffix="px" min={0} max={40} step={2} value={cfg.look.radius} onValue={(v) => look({ radius: v })} /> : null}
                   </s-stack>
                 </s-section>
@@ -255,7 +255,7 @@ export default function CrossSellDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

@@ -211,8 +211,9 @@ Phase 6 testing on Testing2:
       bundle stays $30, kit gets no upsell; checkout $1,446.82 before, $1,444.62 after)
 
 Known gaps: the theme editor ignores `previewPath` with `addAppBlockId` (the page link opens another page, the block still lands on the page template); the Add to theme link appends the builder below the theme's Add to cart button (merchant
-can drag it); a bare bundle product can still be bought alone through quick add buttons on collection
-cards; checkout doesn't reject a bundle product picked inside a bundle (the storefront prevents it).
+can drag it). Fixed: a bare bundle product bought alone through a theme's quick add is refused at checkout (the cart transform stamps
+merged lines with `_cro_merged`, the bundle guard refuses an unstamped bundle product; #183, cro-toolbox-35, `docs/plans/bare-bundle-gap.md`;
+`CRO_BUNDLE_GUARD=off` on Render switches it off); checkout also rejects a bundle product picked inside a bundle (#46).
 
 Open with Omar (outside the code): protected customer data request and App Pricing plans in the
 Partner Dashboard, listing screenshots and video, tutorial videos (Home shows "Coming soon").

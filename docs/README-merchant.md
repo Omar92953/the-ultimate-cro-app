@@ -28,7 +28,7 @@ customer pays.
   yet) and what to try next.
 - **Every feature page** has a breadcrumb back to its menu item, and tabs for its content and its look.
 - **Every design page** has the same tabs (Templates · Content · Style), settings on the left and a
-  live preview on the right, and the same buttons: See it on my store, Add to theme / Open in
+  live preview on the right, and the same buttons: Preview on store, Add to theme / Open in
   theme editor. Changes show Shopify's save bar (Save / Discard) at the top; leaving the page with
   unsaved changes asks first. A section can have up to 5 **styles**; pick one per placement in the theme editor
   (the block's **Style** setting).
@@ -99,7 +99,7 @@ together, a kit sold as one product, mix & match on a product page, a growing di
 page or its own store page), build while browsing, or any N from a long collection for one price.
 Every editor is a few numbered steps on the left with a **live preview** on the right (your real
 products and prices); a step with a problem opens itself when you save.
-1. **Mix and match:** the app creates and publishes the bundle product for you ("Create it for me"),
+1. **Mix and match:** the app creates and publishes the bundle product for you ("Create a new one"),
    or you pick one you have. For a store page it also creates the page.
 2. Add steps, e.g. "Choose 2 posters" (min 2, max 2) and "Add a frame" (optional).
 3. Click **Add to theme** in the editor's "Get it on your store" card once; it ticks itself.
@@ -141,7 +141,7 @@ they picked, so **each item's stock goes down** and the items appear on the orde
 - In the theme editor add the **Hero image** section and pick a banner. With none picked it shows your
   first banner (change the order in the list). Set **Where on the page** to "Lower down" for banners
   that aren't at the top, so they load only when scrolled to.
-- **See it on my store** shows your unsaved changes in the theme editor only; **Save** puts them live.
+- **Preview on store** shows your unsaved changes in the theme editor only; **Save** puts them live.
 
 ## Logos, FAQ and quick add
 - **Scrolling logos and text** and **FAQ**: the logos and questions are in Storefront; the look is

@@ -11,9 +11,7 @@ Updated 2026-10-18.
 - [x] "See live demo" buttons in the app (`app/components/DemoButton.tsx`): every feature page, design
       pages open the template in use, bundle recipe cards, each Conversion boosters card (website PR 5)
 - [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
-- [ ] Known gap: a bare mix and match bundle product can still be bought alone through a theme's own quick add. Fix in progress
-      (option C of `docs/plans/bare-bundle-gap.md`, branch claude/bundle-stamp-spike): the cart transform stamps merged lines, the bundle
-      guard refuses a bundle product line without the stamp. Spike to check on Testing 3 first (clicks in the PR).
+- [x] A bare mix and match bundle product bought alone through a theme's quick add: fixed in #183 (cro-toolbox-35): merged lines are stamped, the bundle guard refuses an unstamped one at checkout (`docs/plans/bare-bundle-gap.md`). Verified on Testing 3.
 - [x] Checkout rejects a bundle product picked inside a bundle (PR #46, cro-toolbox-19)
 - [ ] Add to theme places the builder below the theme's Add to cart: the theme editor link can't
       choose a position (PR #47 adds a hint in the app)

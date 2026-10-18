@@ -29,7 +29,7 @@ import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./ups
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
 
 /**
- * "See it on my store": unsaved changes stored as "<key>_draft". Blocks show the draft only inside the
+ * "Preview on store": unsaved changes stored as "<key>_draft". Blocks show the draft only inside the
  * theme editor (request.design_mode), so shoppers keep the saved design. Saving copies the live
  * design over the draft.
  */
