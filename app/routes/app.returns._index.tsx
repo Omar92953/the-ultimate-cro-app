@@ -13,6 +13,8 @@ import { errorMessage } from "../lib/admin.server";
 import { getReturn, listReturns, updateReturn } from "../lib/orders-lookup.server";
 import { attachLabel, closeReturn, declineReturn, getReturnRules, refundReturn, syncReturns } from "../lib/shopify-returns.server";
 import { approveAndSettle } from "../lib/return-saving.server";
+import { releaseExchange } from "../lib/return-exchange.server";
+import { parseExchange } from "../lib/return-exchange";
 import { planContext } from "../lib/rules.server";
 import { atLeast } from "../lib/plans";
 import { getThemeStatus } from "../lib/cro.server";
@@ -65,6 +67,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await refundReturn(admin, shopifyId, { restock: rules.saving.restock });
       await closeReturn(admin, shopifyId).catch(() => null);
       await updateReturn(session.shop, id, { status: "refunded", refundedAt: new Date() });
+    } else if (intent === "ship-exchange") {
+      // The items arrived: let the exchange ship.
+      await releaseExchange(admin, session.shop, id);
     } else if (intent === "close") {
       if (shopifyId) await closeReturn(admin, shopifyId).catch(() => null);
       await updateReturn(session.shop, id, { status: "closed" });
@@ -75,7 +80,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
-const DONE: Record<string, string> = { approve: "Approved. Shopify emailed the shopper (credit is given if they chose it).", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
+const DONE: Record<string, string> = { approve: "Approved. Shopify emailed the shopper (credit is given if they chose it; an exchange waits on hold until you say the items arrived).", "ship-exchange": "The exchange can ship now.", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
 
 function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string }) {
   const fetcher = useFetcher<typeof action>();
@@ -148,7 +153,17 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
                 </Button>
               </>
             ) : null}
-            {state === "approved" ? (
+            {state === "approved" && r.resolution === "exchange" ? (
+              <>
+                <Button variant="primary" loading={busy} onClick={() => send("ship-exchange")}>
+                  Items arrived: ship the exchange
+                </Button>
+                <Button variant="tertiary" onClick={() => send("close")}>
+                  Close
+                </Button>
+              </>
+            ) : null}
+            {state === "approved" && r.resolution !== "exchange" ? (
               <>
                 <Button variant="primary" loading={busy} onClick={() => send("refund")}>
                   Refund
@@ -158,7 +173,7 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
                 </Button>
               </>
             ) : null}
-            {state === "refunded" || state === "credited" ? (
+            {state === "refunded" || state === "credited" || state === "exchanged" ? (
               <Button variant="tertiary" onClick={() => send("close")}>
                 Close
               </Button>
@@ -168,6 +183,19 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
         <s-text>
           {r.items.map((i) => `${i.quantity} × ${i.title}${i.variant ? ` (${i.variant})` : ""}`).join(", ")}: <b>{r.reason}</b>
         </s-text>
+        {r.resolution === "exchange" ? (
+          <s-stack gap="small-100">
+            {(parseExchange(r.exchange)?.lines ?? []).map((l, i) => (
+              <s-text key={i} color="subdued">
+                Exchange: {l.qty} × {l.title}{l.from ? ` (${l.from})` : ""} for {l.to}
+              </s-text>
+            ))}
+            {(() => {
+              const diff = parseExchange(r.exchange)?.diff ?? 0;
+              return <s-text color="subdued">{Math.abs(diff) < 0.005 ? "An even exchange." : diff > 0 ? `The shopper owes ${diff.toFixed(2)} ${r.currency}: send them an invoice from the order in Shopify, the shipment stays on hold until it is paid.` : `${(-diff).toFixed(2)} ${r.currency} is refunded to the shopper when you approve.`}</s-text>;
+            })()}
+          </s-stack>
+        ) : null}
         {r.resolution === "credit" ? (
           <s-text color="subdued">
             {r.creditKind
@@ -188,7 +216,7 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
             </s-stack>
           </s-stack>
         ) : null}
-        {state === "approved" && r.returnId ? (
+        {state === "approved" && r.returnId && r.resolution !== "exchange" ? (
           <s-stack gap="small-200">
             <s-text type="strong">Return label</s-text>
             <s-text color="subdued">Upload your label (a PDF or a picture), or paste a link to it, and/or add a tracking number. Shopify emails it to the shopper.</s-text>

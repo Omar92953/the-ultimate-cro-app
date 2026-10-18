@@ -114,7 +114,7 @@ export const FEATURES = {
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, from the tracking Shopify has.", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
   // Checkout
-  return_saving: { title: "Return saving rules", area: "tracking", about: "Offer store credit (with a bonus) before a refund, approve returns by rule and put returned items back in stock.", tabs: [{ label: "Saving rules", href: "/app/returns/saving" }] },
+  return_saving: { title: "Return saving rules", area: "tracking", about: "Offer store credit (with a bonus) or an exchange before a refund, approve returns by rule and put returned items back in stock.", tabs: [{ label: "Saving rules", href: "/app/returns/saving" }] },
   payment_rules: { title: "Payment rules", area: "cart", group: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
   delivery_rules: { title: "Delivery rules", area: "cart", group: "checkout", about: "Hide, rename or reorder delivery options at checkout.", tabs: [{ label: "Delivery", href: "/app/checkout/delivery" }] },
   order_limits: { title: "Order limits", area: "cart", group: "checkout", about: "Minimum and maximum order amounts and quantities at checkout.", tabs: [{ label: "Limits", href: "/app/checkout/limits" }] },

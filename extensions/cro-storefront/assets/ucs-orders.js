@@ -4,7 +4,7 @@
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); };
   var DEF = {
     track: { heading: 'Track your order', sub: 'Enter your order number and the email you used at checkout.', order: 'Order number (e.g. 1001)', email: 'Email', button: 'Track order', notFound: "We couldn't find an order with that number and email. Please check both.", placed: 'Placed on', shipped: 'Tracking number', trackLink: 'Track the parcel', noTracking: "Your order is being prepared. You'll get tracking details as soon as it ships.", delivered: 'Delivered', estimated: 'Expected', again: 'Track another order', unavailable: "Order lookup isn't available right now. Please try again in a moment.", carrierOnly: "Live updates are on the carrier's page. Open the tracking link.", statusInfo: 'Info received', statusTransit: 'In transit', statusOut: 'Out for delivery', statusDelivered: 'Delivered', statusProblem: 'Delivery problem', where: 'Latest update', history: 'Tracking history' },
-    returns: { heading: 'Request a return', sub: 'Enter your order number and the email you used at checkout, then choose what you would like to return.', howPaid: 'How would you like to be paid back?', optRefund: 'Refund to my original payment ({amount})', optCredit: 'Store credit ({amount})', optCreditBonus: 'Get {amount} store credit instead of a {refund} refund', creditStore: 'Your store credit: {amount}', creditGift: 'Your gift card code', creditCode: 'Your discount code', creditOnce: 'Use it in one order.', copy: 'Copy', copied: 'Copied', unavailable: "Order lookup isn't available right now. Please try again in a moment.", order: 'Order number (e.g. 1001)', email: 'Email', button: 'Find my order', notFound: "We couldn't find an order with that number and email. Please check both.", pick: 'Which items would you like to return?', reason: 'Reason', reasons: 'Wrong size\nNot as expected\nArrived damaged\nChanged my mind\nOther', note: 'Anything else we should know? (optional)', send: 'Send return request', thanks: "Thanks! We've received your request and will email you the next steps.", already: "You've already sent a return request for this order. We'll be in touch soon.", tooLate: 'This order is outside our return window.', thanksApproved: 'Your return is approved. Here is how to send it back.', yourReturns: 'Your returns for this order', sendTo: 'Send the items to', shopperPays: 'You pay for the return shipping.', merchantPays: 'We will email you a return label.', nothing: 'Nothing in this order can be returned.' }
+    returns: { heading: 'Request a return', sub: 'Enter your order number and the email you used at checkout, then choose what you would like to return.', howPaid: 'How would you like to be paid back?', optRefund: 'Refund to my original payment ({amount})', optCredit: 'Store credit ({amount})', optCreditBonus: 'Get {amount} store credit instead of a {refund} refund', optExchange: 'Exchange for another size or colour', exChoose: 'Choose the new one for {item}', exSame: 'same price', exNone: 'Nothing else in stock for {item}.', exMore: 'You pay {amount} more for this exchange.', exLess: 'We refund {amount} to your original payment.', exEven: 'An even exchange: no payment either way.', creditStore: 'Your store credit: {amount}', creditGift: 'Your gift card code', creditCode: 'Your discount code', creditOnce: 'Use it in one order.', copy: 'Copy', copied: 'Copied', unavailable: "Order lookup isn't available right now. Please try again in a moment.", order: 'Order number (e.g. 1001)', email: 'Email', button: 'Find my order', notFound: "We couldn't find an order with that number and email. Please check both.", pick: 'Which items would you like to return?', reason: 'Reason', reasons: 'Wrong size\nNot as expected\nArrived damaged\nChanged my mind\nOther', note: 'Anything else we should know? (optional)', send: 'Send return request', thanks: "Thanks! We've received your request and will email you the next steps.", already: "You've already sent a return request for this order. We'll be in touch soon.", tooLate: 'This order is outside our return window.', thanksApproved: 'Your return is approved. Here is how to send it back.', yourReturns: 'Your returns for this order', sendTo: 'Send the items to', shopperPays: 'You pay for the return shipping.', merchantPays: 'We will email you a return label.', nothing: 'Nothing in this order can be returned.' }
   };
   var STATUS = { FULFILLED: 'Shipped', UNFULFILLED: 'Being prepared', PARTIALLY_FULFILLED: 'Partly shipped', IN_PROGRESS: 'Being prepared', ON_HOLD: 'On hold', SCHEDULED: 'Scheduled', RESTOCKED: 'Returned', PAID: 'Paid', PENDING: 'Payment pending', REFUNDED: 'Refunded', PARTIALLY_REFUNDED: 'Partly refunded', AUTHORIZED: 'Payment authorised', VOIDED: 'Cancelled', DELIVERED: 'Delivered', IN_TRANSIT: 'In transit', OUT_FOR_DELIVERY: 'Out for delivery', ATTEMPTED_DELIVERY: 'Delivery attempted', READY_FOR_PICKUP: 'Ready for pickup', CONFIRMED: 'Confirmed', LABEL_PRINTED: 'Label printed', LABEL_PURCHASED: 'Label created', FAILURE: 'Delivery problem', CANCELED: 'Cancelled', NOT_DELIVERED: 'Not delivered' };
   var nice = function (s) { return STATUS[String(s || '').toUpperCase().replace(/ /g, '_')] || String(s || '').replace(/_/g, ' ').toLowerCase().replace(/^./, function (c) { return c.toUpperCase(); }); };
@@ -168,8 +168,10 @@
       // How to be paid back: shown when the store offers store credit; the amounts follow the items chosen.
       var how = f.querySelector('.ucs-op__how'), cur = o.currency || '';
       var credit = d.options && d.options.credit;
+      var swapOf = function (key) { return o.items.filter(function (i) { return String(i.key) === key; })[0]; };
+      var ex = d.options && d.options.exchange;
       var paintHow = function () {
-        if (!credit) return;
+        if (!credit && !ex) return;
         var total = 0;
         f.querySelectorAll('input[name="item"]:checked').forEach(function (c) {
           var it = o.items.filter(function (i) { return String(i.key) === c.value; })[0], q = f.querySelector('[name="qty-' + c.value + '"]');
@@ -178,11 +180,34 @@
         how.hidden = !total;
         if (!total) { how.innerHTML = ''; return; }
         var keep = how.querySelector('input:checked');
-        var refund = money(total, cur), creditAmount = money(Math.round(total * (1 + (credit.bonus || 0) / 100) * 100) / 100, cur);
-        var creditText = credit.bonus > 0 ? fill(t.optCreditBonus, { amount: creditAmount, refund: refund }) : fill(t.optCredit, { amount: creditAmount });
+        var refund = money(total, cur), creditAmount = credit ? money(Math.round(total * (1 + (credit.bonus || 0) / 100) * 100) / 100, cur) : '';
+        var creditText = credit ? (credit.bonus > 0 ? fill(t.optCreditBonus, { amount: creditAmount, refund: refund }) : fill(t.optCredit, { amount: creditAmount })) : '';
+        var chosenNow = keep ? keep.value : 'refund';
+        // The new item for each chosen product (kept while the shopper changes other things).
+        var picks = {};
+        how.querySelectorAll('select[data-ex]').forEach(function (s) { picks[s.getAttribute('data-ex')] = s.value; });
+        var exHtml = '', exOk = !!ex;
+        if (ex) {
+          var chosenItems = Array.prototype.map.call(f.querySelectorAll('input[name="item"]:checked'), function (c) { return swapOf(c.value); }).filter(Boolean);
+          exOk = chosenItems.every(function (i) { return i.swaps && i.swaps.length; });
+          if (chosenNow === 'exchange' && exOk) {
+            var diff = 0;
+            exHtml = '<div class="ucs-op__ex">' + chosenItems.map(function (i) {
+              var q = f.querySelector('[name="qty-' + i.key + '"]'), qty = q ? Number(q.value) : 1;
+              var cur1 = picks[i.key] || String(i.swaps[0].id);
+              var sw = i.swaps.filter(function (v) { return String(v.id) === cur1; })[0] || i.swaps[0];
+              diff += (sw.price - i.price) * qty;
+              return '<label class="ucs-op__field"><span>' + esc(fill(t.exChoose, { item: i.title + (i.variant ? ' (' + i.variant + ')' : '') })) + '</span><select data-ex="' + esc(i.key) + '">' + i.swaps.map(function (v) {
+                var d1 = v.price - i.price;
+                return '<option value="' + esc(v.id) + '"' + (String(v.id) === String(sw.id) ? ' selected' : '') + '>' + esc(v.title + ' · ' + (Math.abs(d1) < 0.005 ? t.exSame : (d1 > 0 ? '+' : '−') + money(Math.abs(d1), cur))) + '</option>';
+              }).join('') + '</select></label>';
+            }).join('') + '<p class="ucs-op__t">' + esc(Math.abs(diff) < 0.005 ? t.exEven : diff > 0 ? fill(t.exMore, { amount: money(diff, cur) }) : fill(t.exLess, { amount: money(-diff, cur) })) + '</p></div>';
+          } else if (!exOk) exHtml = '<p class="ucs-op__t">' + esc(fill(t.exNone, { item: chosenItems.filter(function (i) { return !(i.swaps && i.swaps.length); }).map(function (i) { return i.title; }).join(', ') })) + '</p>';
+        }
         how.innerHTML = '<fieldset class="ucs-op__opts"><legend>' + esc(t.howPaid) + '</legend>' +
-          '<label><input type="radio" name="resolution" value="refund"' + (!keep || keep.value === 'refund' ? ' checked' : '') + '> <span>' + esc(fill(t.optRefund, { amount: refund })) + '</span></label>' +
-          '<label><input type="radio" name="resolution" value="credit"' + (keep && keep.value === 'credit' ? ' checked' : '') + '> <span>' + esc(creditText) + '</span></label></fieldset>';
+          '<label><input type="radio" name="resolution" value="refund"' + (chosenNow === 'refund' ? ' checked' : '') + '> <span>' + esc(fill(t.optRefund, { amount: refund })) + '</span></label>' +
+          (credit ? '<label><input type="radio" name="resolution" value="credit"' + (chosenNow === 'credit' ? ' checked' : '') + '> <span>' + esc(creditText) + '</span></label>' : '') +
+          (ex ? '<label><input type="radio" name="resolution" value="exchange"' + (chosenNow === 'exchange' ? ' checked' : '') + (exOk ? '' : ' disabled') + '> <span>' + esc(t.optExchange) + '</span></label>' : '') + '</fieldset>' + exHtml;
       };
       f.addEventListener('change', paintHow);
       paintHow();
@@ -196,7 +221,7 @@
         if (!chosen.length) { msg.textContent = t.pick; return; }
         if (!f.reason.value) { msg.textContent = t.reason; return; }
         btn.disabled = true;
-        post('returns', { intent: 'send', order: last.order, email: last.email, items: chosen, reason: f.reason.value, note: f.note.value, resolution: (f.querySelector('input[name="resolution"]:checked') || {}).value || 'refund' }).then(function (r) {
+        post('returns', { intent: 'send', order: last.order, email: last.email, items: chosen, reason: f.reason.value, note: f.note.value, resolution: (f.querySelector('input[name="resolution"]:checked') || {}).value || 'refund', exchange: Array.prototype.map.call(f.querySelectorAll('select[data-ex]'), function (s) { return { key: s.getAttribute('data-ex'), variantId: s.value }; }) }).then(function (r) {
           if (r.ok || r.already) {
             host.querySelector('.ucs-op__card').innerHTML = '<h2 class="ucs-op__h">' + esc(o.name) + '</h2><p class="ucs-op__t" role="status">' + esc(r.ok ? (r.approved ? t.thanksApproved : t.thanks) : t.already) + '</p>' + (r.credit ? creditHtml([r.credit]) : '') + (r.approved ? afterText(r.after) : '');
             wireCopy(host);

@@ -12,6 +12,7 @@ import { AdminError, gql, type AdminClient } from "./admin.server";
 import { creditFor, type ReturnRules } from "./return-rules";
 import { approveReturn } from "./shopify-returns.server";
 import { getReturn, updateReturn } from "./orders-lookup.server";
+import { approveExchange } from "./return-exchange.server";
 
 export type CreditKind = "store_credit" | "gift_card" | "discount_code";
 export type Credit = { kind: CreditKind; code: string; amount: number; currency: string };
@@ -142,6 +143,12 @@ async function processWithoutRefund(admin: AdminClient, d: Detail, restock: bool
 export async function approveAndSettle(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules, allowCredit: boolean): Promise<{ status: string; credit: Credit | null }> {
   const row = await getReturn(shop, rowId);
   if (!row) throw new AdminError("This request no longer exists. Reload the page.");
+  // An exchange has no Shopify return until it is approved: it is created, processed and its shipment held in one go.
+  if (row.resolution === "exchange") {
+    if (!allowCredit || !rules.saving.exchange.on) throw new AdminError("Exchanges are on the Pro plan and need to be switched on in Return saving rules.");
+    await approveExchange(admin, shop, rowId);
+    return { status: "approved", credit: null };
+  }
   if (row.returnId && (row.status === "requested" || row.status === "pending")) {
     await approveReturn(admin, row.returnId);
     await updateReturn(shop, rowId, { status: "approved" });

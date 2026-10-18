@@ -13,6 +13,7 @@ listing's API access justification and the protected customer data request.
 | `read_customers` | The customer of an order, to give them store credit (return saving rules, Pro) | Tracking & Returns |
 | `read_store_credit_accounts`, `write_store_credit_account_transactions` | Give store credit instead of a refund (store credit accounts) | Return saving rules |
 | `write_gift_cards` | A gift card for the credit amount when store credit is not available | Return saving rules |
+| `write_merchant_managed_fulfillment_orders` | Hold an exchange's new shipment until the returned items arrive, and release it | Return saving rules (exchanges) |
 | `read_locations` | The location to put returned items back in stock | Return saving rules |
 | `read_returns`, `write_returns` | Returns as real Shopify returns: a shopper's request becomes a return, the merchant approves or declines it, adds the label Shopify emails, and refunds it | Tracking & Returns |
 | `read_orders` | **Protected customer data (level 1, plus shipping city and email at level 2).** Analytics: which sales came from the app's offers and widgets (order line attributes), the plan's revenue-added meter, "bought together" suggestions for cross-sells, the sales pop-ups (product, time and, only if the merchant turns it on, the shipping city; never names), and the shopper's own order lookup on the track-order and returns pages (order number + email) | Analytics, Home, Boosters, Track order and Returns pages |

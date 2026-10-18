@@ -46,10 +46,11 @@ test("Tracking & Returns is its own menu area, on the Growth plan", () => {
 test("return saving rules are cleaned", () => {
   const s = withSaving({ credit: { on: true, bonus: 250, expiryDays: -4 }, restock: "yes", rules: [{ reasons: ["Wrong size", 5, ""], tags: " Basics ,Tees", maxValue: "99.999", maxDays: 9999 }, ...Array.from({ length: 20 }, () => ({}))] });
   assert.deepEqual(s.credit, { on: true, bonus: 100, expiryDays: 0 });
+  assert.deepEqual(withSaving({ exchange: { on: true, extra: "yes" } }).exchange, { on: true, extra: false });
   assert.equal(s.restock, false);
   assert.equal(s.rules.length, 10);
   assert.deepEqual(s.rules[0], { reasons: ["Wrong size"], tags: "basics ,tees", maxValue: 100, maxDays: 365 });
-  assert.deepEqual(withSaving(undefined), { credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
+  assert.deepEqual(withSaving(undefined), { exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
 });
 
 test("a return is approved when one rule holds on every condition it sets", () => {

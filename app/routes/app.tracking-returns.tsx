@@ -135,11 +135,12 @@ export default function TrackingReturns() {
           </s-grid>
         </s-section>
 
-        {d.savings && (d.savings.credit.count || d.savings.refunds.count || d.pro) ? (
+        {d.savings && (d.savings.credit.count || d.savings.refunds.count || d.savings.exchanges.count || d.pro) ? (
           <s-section heading="Return saving, last 30 days">
             <s-stack gap="small-200">
               <s-grid gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="base">
                 <Tile label="Kept as store credit" value={`${d.savings.credit.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.credit.count} return${d.savings.credit.count === 1 ? "" : "s"}${d.savings.credit.bonus ? `, ${d.savings.credit.bonus.toFixed(2)} of it bonus` : ""}`} />
+                <Tile label="Kept as exchanges" value={`${d.savings.exchanges.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.exchanges.count} exchange${d.savings.exchanges.count === 1 ? "" : "s"}, price of the new items`} />
                 <Tile label="Refunded" value={`${d.savings.refunds.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.refunds.count} return${d.savings.refunds.count === 1 ? "" : "s"}, value of the items`} />
               </s-grid>
               <s-text color="subdued">Credit stays in your store as a sale to come. {d.pro ? "" : "Return saving rules are on the Pro plan."}</s-text>

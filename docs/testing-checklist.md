@@ -225,3 +225,4 @@ Once every box is ticked on both themes:
 - [ ] Choose store credit with a reason that needs approval; in the app approve it: the return is processed with no refund, the customer has store credit (or a gift card, or a discount code shown on the Returns page with a Copy button), items are restocked if that is on.
 - [ ] Send a "Wrong size" return with store credit: it is approved at once and the credit shows on the page.
 - [ ] Tracking & Returns shows "Return saving, last 30 days".
+- [ ] Exchanges: switch on "Let shoppers exchange" (and "Also when the new item costs more"). On the Returns page choose Exchange, pick another variant: the price difference shows. Send, approve in the app: a Shopify return with exchange items exists on the order, the new shipment is on hold ("Waiting for the return"), a cheaper exchange refunded the difference. Click "Items arrived: ship the exchange": the hold is released.

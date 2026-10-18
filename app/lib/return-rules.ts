@@ -20,12 +20,14 @@ export type AutoRule = {
 };
 export type Saving = {
   /** The ways a shopper can be paid back. Refund to the original payment is always possible. */
+  /** Exchange for another size or colour instead of returning for money. `extra`: also when the new item costs more (the merchant then collects the difference). */
+  exchange: { on: boolean; extra: boolean };
   credit: { on: boolean; /** Extra credit on top of the refund value, in percent. */ bonus: number; /** Days the store credit lasts (0 = never). */ expiryDays: number };
   /** Put returned items back in stock when they are processed. */
   restock: boolean;
   rules: AutoRule[];
 };
-export const DEFAULT_SAVING: Saving = { credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] };
+export const DEFAULT_SAVING: Saving = { exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] };
 
 export type ReturnRules = {
   /** Pro: store credit instead of a refund, auto approve rules, restocking. */
@@ -64,7 +66,9 @@ const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
 
 export function withSaving(raw: unknown): Saving {
   const r = obj(raw), c = obj(r.credit);
+  const e = obj(r.exchange);
   return {
+    exchange: { on: e.on === true, extra: e.extra === true },
     credit: { on: c.on === true, bonus: clampInt(c.bonus, 0, 100, 0), expiryDays: clampInt(c.expiryDays, 0, 3650, 0) },
     restock: r.restock === true,
     rules: (Array.isArray(r.rules) ? r.rules : []).slice(0, 10).map((x) => {
@@ -131,14 +135,15 @@ export function reasonCode(words: string): ShopifyReason {
 }
 
 /** The live status words the app shows for a return. */
-export type ReturnState = "requested" | "approved" | "declined" | "refunded" | "credited" | "closed";
+export type ReturnState = "requested" | "approved" | "declined" | "refunded" | "credited" | "exchanged" | "closed";
 export const RETURN_STATES: Record<ReturnState, { text: string; tone: "ok" | "warn" | "muted" }> = {
   requested: { text: "New", tone: "warn" },
   approved: { text: "Approved, waiting for the items", tone: "ok" },
   declined: { text: "Declined", tone: "muted" },
   refunded: { text: "Refunded", tone: "ok" },
   credited: { text: "Store credit given", tone: "ok" },
+  exchanged: { text: "Exchange sent", tone: "ok" },
   closed: { text: "Closed", tone: "muted" },
 };
 /** Old rows used pending/approved/declined/done. */
-export const returnState = (s: string): ReturnState => (s === "pending" ? "requested" : s === "done" ? "closed" : (["requested", "approved", "declined", "refunded", "credited", "closed"].includes(s) ? (s as ReturnState) : "requested"));
+export const returnState = (s: string): ReturnState => (s === "pending" ? "requested" : s === "done" ? "closed" : (["requested", "approved", "declined", "refunded", "credited", "exchanged", "closed"].includes(s) ? (s as ReturnState) : "requested"));

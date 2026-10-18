@@ -58,6 +58,7 @@ export default function ReturnSaving() {
     if (fetcher.data.ok) shopify.toast.show("Saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
+  const exchange = (patch: Partial<Saving["exchange"]>) => setS((x) => ({ ...x, exchange: { ...x.exchange, ...patch } }));
   const credit = (patch: Partial<Saving["credit"]>) => setS((x) => ({ ...x, credit: { ...x.credit, ...patch } }));
   const rule = (i: number, patch: Partial<AutoRule>) => setS((x) => ({ ...x, rules: x.rules.map((r, j) => (j === i ? { ...r, ...patch } : r)) }));
   const clean = withSaving(s);
@@ -71,7 +72,7 @@ export default function ReturnSaving() {
         <EditorLayout
           side={
             <s-section heading="How it works">
-              <s-paragraph>Before a refund, the shopper on your Returns page can choose store credit (you can add a bonus). Credit is given when you approve the return, or at once when a rule approves it: first as Shopify store credit on their customer account, otherwise as a Shopify gift card, otherwise as a single use discount code for the exact amount. Then the return is processed without a money refund.</s-paragraph>
+              <s-paragraph>Shoppers on your Returns page can also exchange for another size or colour. Before a refund, the shopper on your Returns page can choose store credit (you can add a bonus). Credit is given when you approve the return, or at once when a rule approves it: first as Shopify store credit on their customer account, otherwise as a Shopify gift card, otherwise as a single use discount code for the exact amount. Then the return is processed without a money refund.</s-paragraph>
               <s-paragraph>Refunds to the original payment stay available for every shopper.</s-paragraph>
             </s-section>
           }
@@ -85,6 +86,13 @@ export default function ReturnSaving() {
                   <NumberField label="Credit lasts" details="0 = it never expires." suffix="days" min={0} max={3650} step={1} value={s.credit.expiryDays} onValue={(v) => credit({ expiryDays: v })} />
                 </s-grid>
               ) : null}
+            </s-stack>
+          </s-section>
+          <s-section heading="Exchanges">
+            <s-stack gap="base">
+              <Switch label="Let shoppers exchange for another size or colour" details="They pick another variant of the same product that is in stock. The Shopify return is made when you approve; the new shipment is held until you say the items arrived." checked={s.exchange.on} onValue={(v) => exchange({ on: v })} />
+              {s.exchange.on ? <Checkbox label="Also when the new item costs more" checked={s.exchange.extra} onValue={(v) => exchange({ extra: v })} /> : null}
+              {s.exchange.on && s.exchange.extra ? <s-text color="subdued">The shopper sees the difference before they send the request. After you approve, Shopify holds the shipment for payment: send the invoice from the order in your Shopify admin. A cheaper exchange is refunded the difference.</s-text> : null}
             </s-stack>
           </s-section>
           <s-section heading="2. Approve returns by rule">
