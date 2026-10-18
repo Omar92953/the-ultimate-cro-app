@@ -138,7 +138,7 @@
         '<p class="ucs-op__t" data-offer-msg role="status"></p></div>';
     };
     var showOrder = function (o) {
-      priced = !!(cfg && cfg.prices && o.prices);
+      priced = !!(o.prices && (!cfg || cfg.prices !== false)); // on by default, like the editor's switch
       cur0 = priced ? o.prices.currency : '';
       var ships = o.shipments.filter(function (s) { return s.number || s.url || s.delivered; });
       var STEP = { info: t.statusInfo, transit: t.statusTransit, out: t.statusOut, delivered: t.statusDelivered, problem: t.statusProblem };
