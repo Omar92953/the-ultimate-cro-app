@@ -205,3 +205,13 @@ timers or counters).
 8. **Plans and copy**: `app/lib/plans.ts`, plans page, website pricing and feature page, `docs/listing.md`:
    "Your tracking page sells too". Growth: track page with recommendations, next order discount, buy again,
    after delivery, delay message. Pro: live tracking, offer slots, A/B tests, return saving rules.
+
+## G10 follow up: when credit is given (Omar, 2026-10-18)
+
+Return saving rules (#128) issue store credit, the gift card or the discount code when the return is
+approved. Add a rule "Give credit when": **Items received** (default) or **Approved** (instant credit).
+Items received: the credit is issued when the merchant marks the items received (or Shopify's return is
+closed with the items in), with the same no double issue check; the shopper sees "Your credit is sent once
+we receive the items" on the Returns page and in the approval email text. Existing stores keep their
+behavior only if they already saved rules before this change (default them to Approved), new ones get
+Items received. Show it in the savings report.
