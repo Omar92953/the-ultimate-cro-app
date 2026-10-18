@@ -219,6 +219,9 @@ export default function OrderPageDesigner() {
               ) : null}
               {isTrack ? (
                 <Pane show={tab === "show"}>
+                  <s-section heading="Prices">
+                    <Switch label="Show what the order cost" details="Each item's price, then subtotal, shipping, discounts and total, in the currency the shopper paid in. Prices only: never the payment method or address." checked={cfg.prices} onValue={(v) => setCfg((c) => ({ ...c, prices: v }))} />
+                  </s-section>
                   <s-section heading="Recommendations under the order">
                     <s-stack gap="base">
                       <s-text color="subdued">Products shoppers can add to a new cart from this page. Products already in the order are never shown, and only products in stock.</s-text>

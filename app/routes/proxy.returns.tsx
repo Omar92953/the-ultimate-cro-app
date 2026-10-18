@@ -8,6 +8,7 @@
  */
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
+import db from "../db.server";
 import { addReturn, creditsForOrder, exchangesForOrder, findOrder, orderReturns, readLookup } from "../lib/orders-lookup.server";
 import { getPlan } from "../lib/billing.server";
 import { approveAndSettle } from "../lib/return-saving.server";
@@ -56,6 +57,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     const choices = legacy ? order.items.map((i) => ({ key: i.id.split("/").pop() ?? "", title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })) : returnable.map((i) => ({ key: i.key, title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.price, swaps: i.swaps.filter((v) => v.available && v.id !== i.variantId).map((v) => ({ id: v.id.split("/").pop() ?? "", title: v.title, price: v.price })) }));
     const existing = legacy ? [] : [...(await orderReturns(admin, order.id)), ...(await exchangesForOrder(session.shop, order.id, q.email))].map((r) => ({ name: r.name, status: r.status, say: SAY[r.status] ?? r.status }));
+    // A credit return that is approved waits for the items: the shopper sees when it comes.
+    const waiting = new Set((await db.returnRequest.findMany({ where: { shop: session.shop, orderId: order.id, resolution: "credit", status: "approved", creditedAt: null }, select: { returnName: true } })).map((x) => x.returnName));
+    for (const e of existing) if (waiting.has(e.name)) e.say = "Approved: your credit is sent once we receive the items";
     const approvedHere = existing.some((r) => r.status === "OPEN");
     const after = { address: rules.address, instructions: rules.instructions, shipping: rules.shipping };
     const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
@@ -118,17 +122,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const reasonOk = rules.autoApprove.on && rules.autoApprove.reasons.some((x) => x.toLowerCase() === reason.toLowerCase());
     let approved = false;
     let credit: Awaited<ReturnType<typeof approveAndSettle>>["credit"] = null;
+    let creditLater = false;
     if ((returnId || exchange) && (reasonOk || matchesRule)) {
       try {
         const out = await approveAndSettle(admin, session.shop, r.id, rules, pro);
         approved = true;
         credit = out.credit;
+        creditLater = !!out.creditLater;
       } catch (e) {
         console.error(`[proxy/returns] auto approve ${session.shop}:`, e instanceof Error ? e.message : e);
         approved = false; // stays New (or approved without the credit); the merchant finishes it in the app
       }
     }
-    return json({ ok: true, approved, ...(credit ? { credit: { kind: credit.kind, code: credit.code, amount: credit.amount, currency: credit.currency } } : {}), ...(approved ? { after } : {}) });
+    return json({ ok: true, approved, ...(credit ? { credit: { kind: credit.kind, code: credit.code, amount: credit.amount, currency: credit.currency } } : {}), ...(approved ? { after } : {}), ...(creditLater ? { creditLater: true } : {}) });
   } catch (e) {
     console.error(`[proxy/returns] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: e instanceof Error && /^[A-Z]/.test(e.message) && e.message.length < 140 && !/gid:|graphql|userErrors/i.test(e.message) ? e.message : "Returns aren't available right now." }, 500);

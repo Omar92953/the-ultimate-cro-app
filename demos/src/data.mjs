@@ -179,6 +179,7 @@ export const order = {
     { key: "12", title: "Cedar Candle", variant: null, quantity: 2, image: IMG("cedar-candle"), price: 22, swaps: [{ id: "201", title: "Fig", price: 22 }, { id: "202", title: "Amber", price: 22 }] },
   ],
   nextOrder: { code: "NEXT-3FA9C2D1", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" },
+  prices: { currency: "USD", subtotal: 78, shipping: 0, discounts: 7.8, tax: 0, total: 70.2 },
   shipments: [{ status: "IN_TRANSIT", company: "UPS", number: "1Z999AA10123456784", url: "#", delivered: null, estimated: "2026-10-16T00:00:00Z" }],
 };
 

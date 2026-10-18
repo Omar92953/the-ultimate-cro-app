@@ -2,6 +2,10 @@
 import Logo from "./Logo.astro";
 import { FOOTER, OPERATOR, SOCIAL, type SocialKey } from "../lib/site";
 import { BRAND_LINE } from "../lib/brand";
+import { KEYWORD_PAGES, keywordPath } from "../lib/keywords";
+// Keyword pages (src/keywords/) list themselves in a Solutions column after Product.
+const solutions = { title: "Solutions", links: KEYWORD_PAGES.map((p) => ({ label: p.menu, href: keywordPath(p) })) };
+const columns = solutions.links.length ? [FOOTER[0], solutions, ...FOOTER.slice(1)] : FOOTER;
 const year = new Date().getFullYear();
 // 24x24 icon paths (simple monochrome marks). Names are used for the aria labels.
 const ICONS: Record<SocialKey, { label: string; path: string }> = {
@@ -34,7 +38,7 @@ const socials = (Object.keys(SOCIAL) as SocialKey[]).filter((k) => SOCIAL[k]).ma
         }
       </div>
       {
-        FOOTER.map((col) => (
+        columns.map((col) => (
           <nav aria-label={col.title}>
             <h2>{col.title}</h2>
             <ul>
@@ -121,7 +125,12 @@ const socials = (Object.keys(SOCIAL) as SocialKey[]).filter((k) => SOCIAL[k]).ma
   }
   @media (min-width: 820px) {
     .top {
-      grid-template-columns: 1.6fr repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+  @media (min-width: 1100px) {
+    .top {
+      grid-template-columns: 1.4fr repeat(5, 1fr);
     }
     .brand {
       grid-column: auto;

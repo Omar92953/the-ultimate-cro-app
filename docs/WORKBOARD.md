@@ -56,6 +56,11 @@ Updated 2026-10-15.
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
 - [x] Live demos at crotoolbox.com/demo/ (PR #96): `npm run check:links` on 2026-10-17, 59 pages, all 200
+- [ ] SEO & GEO (`docs/plans/seo-geo.md`): keyword pages PR 1 of 5 merged (#131, upsell and cross sell);
+      PR 2 to 4 (bundles, AOV, CRO, post purchase, tracking, returns), PR 5 alternative pages; website account (cloud)
+- [x] AI crawlers named in robots.txt, fuller llms.txt (#133); listing text with search words (#134)
+- [ ] After keyword pages: blog routine (drafts as PRs), monthly GEO check routine, MCP listing in the Claude
+      and ChatGPT directories (after the MCP is tested on Testing 3)
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)

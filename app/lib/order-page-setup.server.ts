@@ -8,13 +8,14 @@ import { AdminError, gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { sectionLinks } from "./sections.server";
 
-export type OrderPageKind = "track" | "returns";
+export type OrderPageKind = "track" | "returns" | "wishlist";
 export type StorePage = { id: string; handle: string; title: string };
-export type OrderPages = { track: StorePage | null; returns: StorePage | null };
+export type OrderPages = { track: StorePage | null; returns: StorePage | null; wishlist: StorePage | null };
 
 const TITLES: Record<OrderPageKind, { title: string; handle: string }> = {
   track: { title: "Track your order", handle: "track-your-order" },
   returns: { title: "Returns", handle: "returns" },
+  wishlist: { title: "Wishlist", handle: "wishlist" },
 };
 
 export async function getOrderPages(admin: AdminClient): Promise<OrderPages> {
@@ -30,11 +31,17 @@ export async function getOrderPages(admin: AdminClient): Promise<OrderPages> {
     const o = v && typeof v === "object" ? (v as Record<string, unknown>) : null;
     return o && typeof o.id === "string" && typeof o.handle === "string" ? { id: o.id, handle: o.handle, title: typeof o.title === "string" ? o.title : "" } : null;
   };
-  return { track: page(raw.track), returns: page(raw.returns) };
+  return { track: page(raw.track), returns: page(raw.returns), wishlist: page(raw.wishlist) };
 }
 
 const save = (admin: AdminClient, pages: OrderPages) =>
-  upsert(admin, "$app:cro_design", "order_pages", { config: JSON.stringify({ track: pages.track?.handle ? pages.track : null, returns: pages.returns?.handle ? pages.returns : null, trackHandle: pages.track?.handle ?? "", returnsHandle: pages.returns?.handle ?? "" }) });
+  upsert(admin, "$app:cro_design", "order_pages", {
+    config: JSON.stringify({
+      track: pages.track, returns: pages.returns, wishlist: pages.wishlist,
+      // The block reads these flat handles.
+      trackHandle: pages.track?.handle ?? "", returnsHandle: pages.returns?.handle ?? "", wishlistHandle: pages.wishlist?.handle ?? "",
+    }),
+  });
 
 /** Makes the page (or adopts one that already has the handle), and remembers it. */
 export async function createOrderPage(admin: AdminClient, kind: OrderPageKind): Promise<StorePage> {
@@ -55,11 +62,25 @@ export async function createOrderPage(admin: AdminClient, kind: OrderPageKind): 
 
 export const pageAdminUrl = (shop: string, p: StorePage) => `https://${shop}/admin/pages/${p.id.split("/").pop()}`;
 
-/** What the Track and Returns screens need: editor links that open the app's own pages, and whether the block is in the page template. */
+/** The theme file a page uses: templates/page.json, or page.<suffix>.json when the page has its own template. */
+export const templateFile = (suffix: string | null | undefined) => (suffix ? `templates/page.${suffix}.json` : "templates/page.json");
+
+/** What the Track, Returns and Wishlist screens need: editor links that open the app's own pages, and whether the block is in the template those pages really use. */
 export async function orderPageContext(admin: AdminClient, shop: string, theme: { files: Record<string, string[]> } | null) {
-  const pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null }) as OrderPages);
+  const pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null, wishlist: null }) as OrderPages);
   const links = sectionLinks(shop, { trackHandle: pages.track?.handle, returnsHandle: pages.returns?.handle });
-  const inPageTemplate = (theme?.files.track ?? []).some((f) => /^templates\/page(\.[^/]+)?\.json$/.test(f));
-  const editor = (kind: OrderPageKind) => `https://${shop}/admin/themes/current/editor?template=page&previewPath=${encodeURIComponent(`/pages/${pages[kind]?.handle ?? TITLES[kind].handle}`)}`;
-  return { pages, links, inPageTemplate, editor };
+  // Each made page can have its own template (templateSuffix): the block must be in that one, not in any page.*.json.
+  const made = ([pages.track, pages.returns, pages.wishlist].filter(Boolean) as StorePage[]).map((p) => p.id);
+  let suffixes = new Map<string, string | null>();
+  if (made.length) {
+    const d = await gql(admin, `#graphql
+      query CroPageTemplates($ids: [ID!]!) { nodes(ids: $ids) { ... on Page { id templateSuffix } } }`, { ids: made }).catch(() => null);
+    suffixes = new Map((d?.nodes ?? []).filter(Boolean).map((n: { id: string; templateSuffix: string | null }) => [n.id, n.templateSuffix]));
+  }
+  const files = new Set(theme?.files.track ?? []);
+  const hasBlock = (p: StorePage | null) => !p || files.has(templateFile(suffixes.get(p.id)));
+  const inPageTemplate = !!theme && !!(pages.track || pages.returns) && hasBlock(pages.track) && hasBlock(pages.returns);
+  const wishlistInTemplate = !!theme && !!pages.wishlist && hasBlock(pages.wishlist);
+  const editor = (kind: OrderPageKind) => `https://${shop}/admin/themes/current/editor?template=${encodeURIComponent(suffixes.get(pages[kind]?.id ?? "") ? `page.${suffixes.get(pages[kind]!.id)}` : "page")}&previewPath=${encodeURIComponent(`/pages/${pages[kind]?.handle ?? TITLES[kind].handle}`)}`;
+  return { pages, links, inPageTemplate, wishlistInTemplate, editor };
 }

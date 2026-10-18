@@ -78,6 +78,17 @@ export function TextField(props: Common & { value: string; onValue: (v: string) 
   );
 }
 
+/** A secret (a key): shown as dots (Polaris s-password-field). */
+export function PasswordField(props: Common & { value: string; onValue: (v: string) => void; placeholder?: string }) {
+  const ref = useRef<any>(null);
+  useProp(ref, "defaultValue", props.value);
+  useProp(ref, "value", props.value);
+  useProp(ref, "disabled", !!props.disabled);
+  useProp(ref, "error", props.error ?? "");
+  useFieldEvents(ref, (el) => props.onValue(el.value));
+  return <s-password-field ref={ref} label={props.label} details={props.details} placeholder={props.placeholder} autocomplete="off" />;
+}
+
 /** Colour picker with a hex text box (Polaris s-color-field). Value is "#rrggbb". */
 export function ColorField(props: Common & { value: string; onValue: (v: string) => void }) {
   const ref = useRef<any>(null);

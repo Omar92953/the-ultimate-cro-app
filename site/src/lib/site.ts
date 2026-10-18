@@ -12,8 +12,8 @@ export const SITE_URL = (process.env.SITE_URL || "https://crotoolbox.com").repla
 /** TODO(Omar): the App Store listing link, once it's live (e.g. https://apps.shopify.com/cro-toolbox). */
 export const INSTALL_URL = "";
 
-/** TODO(Omar): the support email shown on the support, privacy and terms pages. */
-export const SUPPORT_EMAIL = "";
+/** The support email shown on the support, privacy and terms pages (Cloudflare Email Routing to the app's Gmail). */
+export const SUPPORT_EMAIL = "support@crotoolbox.com";
 
 export const SITE_NAME = "CRO Toolbox";
 /** Who runs the app (Shopify Partner organization). TODO(Omar): legal name and country. */

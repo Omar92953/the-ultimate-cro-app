@@ -32,7 +32,7 @@ services:
       - key: TRACKING_PROVIDER_KEY
         sync: false        # our own account key for the included live tracking (Pro). Empty: live tracking falls back to Shopify's data
       - key: SUPPORT_EMAIL
-        sync: false        # shown on /privacy as the contact address (the listing's privacy policy URL)
+        value: support@crotoolbox.com   # shown on /privacy, Home and Settings (Cloudflare Email Routing to crotoolbox.app@gmail.com)
       - key: DATABASE_URL
         sync: false        # Supabase → Connect → Session pooler (…pooler.supabase.com:5432/postgres) — Render is a long-running server
       - key: DIRECT_URL
