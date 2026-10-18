@@ -77,7 +77,7 @@ export default function ReturnSaving() {
                 {s.creditWhen === "received"
                   ? "Credit is given when the items arrive: you click “Items received: give the credit” on the return in Returns. Approving the return gives no credit yet."
                   : "Credit is given when you approve the return, or at once when a rule approves it."}{" "}
-                It is a refund to store credit on the shopper&apos;s customer account, so the order shows the money as refunded, with your bonus added on top. For a guest order it is a Shopify gift card, otherwise a single use discount code for the exact amount.
+                It is a refund to store credit on the shopper&apos;s customer account, so the order shows the money as refunded, with your bonus added on top. It needs a customer account on the order: for a guest order the Returns page does not offer store credit, only the refund. If Shopify cannot refund to store credit, the return stays approved and you refund it to the original payment with the normal Refund button.
               </s-paragraph>
               <s-paragraph>An exchange for something dearer waits for payment: the shopper pays the difference, and “Items arrived: ship the exchange” works only once the order owes nothing.</s-paragraph>
               <s-paragraph>Refunds to the original payment stay available for every shopper.</s-paragraph>

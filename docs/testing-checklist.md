@@ -220,9 +220,10 @@ Once every box is ticked on both themes:
 
 ## Return saving rules (Pro, Testing 3, after the Shopify deploy and approving the new permissions)
 
+- [ ] Connect Claude: the page Claude opens shows a connection code and no store address field; Settings, Connect an AI assistant, Finish connecting: enter the code → the Allow page.
 - [ ] Returns, Return saving rules: switch on store credit with a 10% bonus, a rule for the reason "Wrong size". Save.
 - [ ] Returns page: find a test order, pick an item: "How would you like to be paid back?" shows the refund and "Get $X store credit instead of a $Y refund".
-- [ ] Choose store credit with a reason that needs approval; in the app approve it: the return is processed with no refund, the customer has store credit (or a gift card, or a discount code shown on the Returns page with a Copy button), items are restocked if that is on.
+- [ ] Choose store credit with a reason that needs approval; in the app approve it: the return is processed with no refund, the order shows the money refunded to store credit and the customer has the bonus on top (no gift card, no discount code), items are restocked if that is on. A guest order (no customer) does not offer store credit on the Returns page.
 - [ ] Send a "Wrong size" return with store credit: it is approved at once and the credit shows on the page.
 - [ ] Tracking & Returns shows "Return saving, last 30 days".
 - [ ] Exchanges: switch on "Let shoppers exchange" (and "Also when the new item costs more"). On the Returns page choose Exchange, pick another variant: the price difference shows. Send, approve in the app: a Shopify return with exchange items exists on the order, the new shipment is on hold ("Waiting for the return"), a cheaper exchange refunded the difference. Click "Items arrived: ship the exchange": the hold is released.

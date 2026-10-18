@@ -9,7 +9,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { addReturn, creditsForOrder, exchangesForOrder, findOrder, orderReturns, readLookup } from "../lib/orders-lookup.server";
+import { addReturn, creditsForOrder, exchangesForOrder, findOrder, orderHasCustomer, orderReturns, readLookup } from "../lib/orders-lookup.server";
 import { getPlan } from "../lib/billing.server";
 import { approveAndSettle } from "../lib/return-saving.server";
 import { priceDifference, type ExchangeLine } from "../lib/return-exchange";
@@ -68,7 +68,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const after = { address: rules.address, instructions: rules.instructions, shipping: rules.shipping };
     const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
     // How the shopper can be paid back: a refund always; store credit when the merchant (Pro) switched it on.
-    const options = { credit: saving.credit.on && !legacy ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
+    // Store credit is a refund to the customer's account, so an order with no customer (a guest order) is only refunded.
+    const creditOk = saving.credit.on && !legacy && (await orderHasCustomer(admin, order.id));
+    const options = { credit: creditOk ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
     if (body.intent !== "send") {
       const credits = legacy ? [] : await creditsForOrder(session.shop, order.id, q.email);
       return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
