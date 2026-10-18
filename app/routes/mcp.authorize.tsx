@@ -9,14 +9,17 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { pairingCode, startRequest } from "../lib/mcp/auth.server";
 
+// Store-less admin link: Shopify sends the merchant to their own store (or its store picker) and keeps the query.
+const ADMIN_APP_URL = "https://admin.shopify.com/apps/the-ultimate-cro-app";
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const q = new URL(request.url).searchParams;
   try {
     if (q.get("response_type") !== "code") throw new Error("This address is for AI assistants that connect to CRO Toolbox. Start from your assistant.");
     const r = await startRequest({ clientId: q.get("client_id") ?? "", redirectUri: q.get("redirect_uri") ?? "", state: q.get("state") ?? "", challenge: q.get("code_challenge") ?? "", method: q.get("code_challenge_method") ?? "" });
-    return { code: pairingCode(r.id), clientName: r.clientName, error: "" };
+    return { code: pairingCode(r.id), openUrl: `${ADMIN_APP_URL}/app/mcp-connect?req=${encodeURIComponent(r.id)}`, clientName: r.clientName, error: "" };
   } catch (e) {
-    return { code: "", clientName: "", error: e instanceof Error ? e.message : "Something went wrong." };
+    return { code: "", openUrl: "", clientName: "", error: e instanceof Error ? e.message : "Something went wrong." };
   }
 };
 
@@ -28,12 +31,15 @@ export default function Authorize() {
       {d.code ? (
         <>
           <p>{d.clientName ? `${d.clientName} wants to work with your CRO Toolbox.` : "An AI assistant wants to work with your CRO Toolbox."} Continue in your Shopify admin:</p>
-          <ol style={{ paddingLeft: 20 }}>
-            <li>Open <b>CRO Toolbox</b> in your Shopify admin.</li>
-            <li>Go to <b>Settings</b>, then <b>Connect an AI assistant</b>.</li>
-            <li>Enter this connection code and choose what the assistant may do:</li>
-          </ol>
-          <p style={{ font: "600 28px/1.2 ui-monospace, monospace", letterSpacing: 2, background: "#f3f3f3", borderRadius: 8, padding: "12px 16px", textAlign: "center" }}>{d.code}</p>
+          <p>
+            <a href={d.openUrl} target="_top" style={{ display: "inline-block", background: "#111", color: "#fff", borderRadius: 8, padding: "12px 20px", textDecoration: "none", fontWeight: 600 }}>
+              Open CRO Toolbox in Shopify
+            </a>
+          </p>
+          <p style={{ color: "#555", fontSize: 14, marginBottom: 4 }}>
+            If the button does not work, open <b>CRO Toolbox</b> in your Shopify admin, go to <b>Settings</b>, then <b>Connect an AI assistant</b>, and enter this connection code:
+          </p>
+          <p style={{ font: "600 24px/1.2 ui-monospace, monospace", letterSpacing: 2, background: "#f3f3f3", borderRadius: 8, padding: "10px 16px", textAlign: "center" }}>{d.code}</p>
           <p style={{ color: "#555", fontSize: 14 }}>The code works for 10 minutes. Nothing is shared before you say yes in Shopify.</p>
         </>
       ) : (

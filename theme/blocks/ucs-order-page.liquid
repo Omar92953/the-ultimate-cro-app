@@ -44,7 +44,7 @@
 {%- elsif kind == 'wishlist' -%}
 <div data-ucs-orders="wishlist" {{ block.shopify_attributes }}>{%- if request.design_mode -%}<p style="padding:24px;text-align:center">The wishlist shows here (turn on the Conversion boosters embed and set up Boosters → Wishlist in the app).</p>{%- endif -%}</div>
 {%- else -%}
-<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="{{ kind }}" data-root="{{ routes.root_url }}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
+<div class="{{ d.cls | default: 'ucs ucs-op ucs-op--center' }}" style="{{ d.css }}" data-ucs-orders="{{ kind }}" data-root="{{ routes.root_url }}" data-login="{{ routes.account_login_url }}" data-signed="{% if customer %}1{% endif %}" data-locale="{{ request.locale.iso_code }}" {{ block.shopify_attributes }}>
   <script type="application/json">{{ d | json | default: 'null' }}</script>
   <noscript><p class="ucs-op__t">Please turn on JavaScript to use this page.</p></noscript>
 </div>
