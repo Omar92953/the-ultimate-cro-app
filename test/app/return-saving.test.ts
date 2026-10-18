@@ -241,3 +241,10 @@ test("items received: approving gives no credit, receiving it gives it once", as
   const free = await row("credit", "approved");
   await assert.rejects(S.giveCreditOnReceipt(a.admin, "s.myshopify.com", free, waiting, false), /Pro/);
 });
+
+test("what the shopper reads once the money or credit was given", async () => {
+  const { settledSay } = await import("../../app/lib/return-rules");
+  assert.equal(settledSay("credited", "store_credit"), "Store credit given");
+  assert.equal(settledSay("credited", "gift_card"), "Credit given");
+  assert.equal(settledSay("refunded", ""), "Refunded");
+});
