@@ -81,6 +81,21 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 - [ ] Not tested (need the Pro test plan): Track page offer slots, exchanges, store credit and gift card, A/B tests,
       live tracking with a provider key. (Done since, see "Verified on Testing 3, 2026-10-18 (supervisor)" below.)
 
+## Review run 2026-10-19 (supervisor)
+
+- [x] Shopify AI self review (AI Toolkit "App Store Review", 100 rules): 2 likely rejections fixed and deployed
+      (cro-toolbox-37, #192/#193): 1.1.15 refunds only via returnProcess (no gift card / discount code paybacks,
+      write_gift_cards removed) and 2.3.1 no typed store address on /mcp/authorize (pairing code).
+- [x] Follow ups (cro-toolbox-38, #194/#195): guest orders get "Refund to my original payment" or "Sign in to get
+      store credit"; Connect Claude is one click ("Open CRO Toolbox in Shopify", store-less admin link, code as
+      backup); /auth/callback added to redirect_urls (Gemini audit).
+- [x] All 54 admin pages open on Testing 3 (titles checked); 8 storefront pages show no app errors (only the demo
+      theme's own selling-plans.js error).
+- [ ] Not testable by hand: whether signing in links a guest order to the customer (needs a real guest checkout);
+      the full Connect Claude flow (needs adding the connector in Claude).
+- [ ] Omar: Partner Dashboard: post-purchase access (5.8.1), App Pricing plans (handles free, starter, growth, pro),
+      read_all_orders request. Decide: ship the first version without the after purchase offer if access is late?
+
 ## Verified on Testing 3, 2026-10-18 (supervisor)
 
 - [x] Returns close webhook: credit given when the return is closed in Shopify admin (#1005).
