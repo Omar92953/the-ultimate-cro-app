@@ -2,7 +2,7 @@
 
 The backlog for all accounts (see `docs/TEAM.md`). What's being worked on right now is in the open
 pull requests (`gh pr list`). Update this file in the PR that finishes or adds an item.
-Updated 2026-10-15.
+Updated 2026-10-18.
 
 ## App
 
@@ -22,9 +22,6 @@ Updated 2026-10-15.
 - [x] Countdown timers blocking every click / cart drawer hidden (class clash `ucs-cd`; drawer is now
       `ucs-cdr`): fixed in PR #59, **deployed as cro-toolbox-21** from the Mac (build:theme,
       test:storefront, test:functions all passed), then merged (2026-10-15).
-- [ ] Check cro-toolbox-21 on Testing2: turn on a countdown timer (header bar and product page), click
-      Add to cart and links under it, open the app's cart drawer. Needs the storefront unlocked
-      (password is back on; Omar types it). Rollback: `shopify app release --version=cro-toolbox-20`.
 
 - [x] Blocks check 2026-10-16: build:theme 30 of 30 blocks, 86.3 KB of 100 KB Liquid; `shopify theme check` 37 files, no offenses; `npm run test:storefront` passes (every block and embed rendered). No fixes needed.
 
@@ -33,15 +30,12 @@ Updated 2026-10-15.
 - [x] Theme editor texts say "Cross sell" and "Style" (#178, deployed).
 - [x] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy. Done in #171 (`returns/close` in shopify.app.toml, `app/routes/webhooks.returns.close.tsx`), deployed. Verified on Testing 3 (Pro) 2026-10-18 with #1005: approved in the app, closed in Shopify admin, the request turned "Store credit given" by itself: $49.95 refunded to store credit inside the order, $5.00 bonus credited once.
 
-- [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
-      Needs a Shopify deploy and Omar's steps in each PR: read_returns and write_returns scopes on Render
-      and the TOML (G4), request read_all_orders in the Partner Dashboard, test on Testing 3 with
-      `docs/testing-checklist.md`. G9: Omar approves `docs/plans/mcp-server.md` before any MCP code.
+- [x] Block G (2026-10-17 to 18): G1 to G11 and the MCP read/build tools are merged and deployed (Returns with Shopify returns,
+      store credit, exchanges, Track page selling, MCP offers, discounts and bundles). Tested on Testing 3, see the runs below.
+      Still Omar's: request `read_all_orders` in the Partner Dashboard (Shopify only shows the last 60 days of orders until then).
 
-- [ ] Block G11 (2026-10-18, open draft PRs, Omar reviews on Testing 3): Track page selling in #137 (prices), #139
-      (next order discount), #140 (buy again), #142 (after delivery), #143 (delay), #149 (offer slots, Pro), and
-      the editor "What to show", sample orders, Analytics "Track & Returns" card and copy (this PR). Then the MCP
-      discounts tools and the MCP bundles tools.
+- [x] Block G11 (Track page selling: prices, next order discount, buy again, after delivery, delay message, offer slots (Pro), editor
+      "What to show", sample orders, Analytics "Track & Returns" card) merged and deployed; tested on Testing 3.
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
@@ -56,8 +50,7 @@ Updated 2026-10-15.
 - [x] Live on Cloudflare Pages (free plan): project `crotoolbox`, root `site`, build `npm run build`, output `dist`,
       NODE_VERSION 22; https://crotoolbox.com and www, rebuilds on every push to `main` (2026-10-15)
 - [x] Live demos at crotoolbox.com/demo/ (PR #96): `npm run check:links` on 2026-10-17, 59 pages, all 200
-- [ ] SEO & GEO (`docs/plans/seo-geo.md`): keyword pages PR 1 of 5 merged (#131, upsell and cross sell);
-      PR 2 to 4 (bundles, AOV, CRO, post purchase, tracking, returns), PR 5 alternative pages; website account (cloud)
+- [x] SEO & GEO (`docs/plans/seo-geo.md`): keyword pages (#131, #144 to #146) and the alternative pages in /compare (#148) are live.
 - [x] AI crawlers named in robots.txt, fuller llms.txt (#133); listing text with search words (#134)
 - [ ] After keyword pages: blog routine (drafts as PRs), monthly GEO check routine, MCP listing in the Claude
       and ChatGPT directories (after the MCP is tested on Testing 3)
