@@ -3,7 +3,7 @@
  * merchant's own key, or a webhook link. The provider is never named; key steps are generic.
  */
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,7 +14,7 @@ import { atLeast } from "../lib/plans";
 import { isRuleError } from "../lib/rules";
 import { LIVE_MONTHLY_LIMIT, type TrackSource } from "../lib/tracking";
 import { getTrackingConfig, regenerateSecret, removeKey, saveKey, saveSource } from "../lib/tracking/tracking.server";
-import { Button, TextField } from "../components/fields";
+import { Button, PasswordField } from "../components/fields";
 import { Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -64,6 +64,8 @@ export default function TrackingSource() {
     shopify.toast.show(fetcher.data.intent === "key" ? "Connected" : "Saved");
   }, [fetcher.state, fetcher.data, shopify]);
   const busy = fetcher.state !== "idle";
+  // The key error stays next to the field (the toast comes and goes).
+  const keyFailed = !!fetcher.data && !fetcher.data.ok && !!key.trim();
   const choose = (source: TrackSource) => fetcher.submit({ intent: "source", source }, { method: "post" });
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => shopify.toast.show("Copied"), () => shopify.toast.show("Select the text and copy it", { isError: true }));
 
@@ -97,7 +99,7 @@ export default function TrackingSource() {
                       </s-stack>
                     ) : null}
                     <s-text color="subdued">Sign in to your shipping company or tracking service, open Settings, then API or Developers, create a key and paste it here. We test it before saving.</s-text>
-                    <TextField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} />
+                    <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
                     <s-stack direction="inline">
                       <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
                         Test and save
@@ -138,3 +140,6 @@ export default function TrackingSource() {
 }
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);
+
+/** A save that did not change anything (a key that failed its test) leaves the page as it is. */
+export const shouldRevalidate: ShouldRevalidateFunction = ({ actionResult, defaultShouldRevalidate }) => (actionResult && (actionResult as { ok?: boolean }).ok === false ? false : defaultShouldRevalidate);

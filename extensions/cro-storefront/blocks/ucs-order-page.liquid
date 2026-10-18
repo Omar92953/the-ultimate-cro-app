@@ -8,6 +8,8 @@ if pages.trackHandle != blank and page.handle == pages.trackHandle
 assign kind = 'track'
 elsif pages.returnsHandle != blank and page.handle == pages.returnsHandle
 assign kind = 'returns'
+elsif pages.wishlistHandle != blank and page.handle == pages.wishlistHandle
+assign kind = 'wishlist'
 endif
 if kind == ''
 assign show = false

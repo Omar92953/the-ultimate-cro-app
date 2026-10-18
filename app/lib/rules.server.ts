@@ -6,8 +6,12 @@ import type { AdminClient } from "./admin.server";
 import { checkCheckoutRules, checkCount, checkLimit, getPlan, getPlanState } from "./billing.server";
 import type { CheckoutKind } from "./checkout-rules";
 import { PLANS, type PlanKey } from "./plans";
-import { RuleError } from "./rules";
-import type { FeatureKey } from "./catalog";
+import { RuleError, requireFeature } from "./rules";
+import { dealFeature, type FeatureKey } from "./catalog";
+import { validateDeal, type Deal } from "./deals";
+import { validateBundle } from "./validate";
+import { validateKit, type Kit } from "./kits";
+import type { Bundle } from "./types";
 
 type Limited = { error: string; upgrade: string | null } | null;
 const refuse = (over: Limited) => {
@@ -24,6 +28,39 @@ export async function planContext(admin: AdminClient, shop: string): Promise<{ p
 /** May this offer be on? Every offer type fills one of the plan's offer slots; an offer can always be saved off. */
 export async function requireOfferSlot(admin: AdminClient, shop: string, self: { active: boolean; handle?: string | null; id?: string | null }) {
   refuse(await checkLimit(admin, shop, "offerSlots", self));
+}
+
+/**
+ * May this deal (buy X get Y, volume, gift, upgrade, fixed bundle) be saved, and switched on if it is on? The plan includes its feature,
+ * its settings are complete, and it fits the plan's offer slots. The admin's deal page and the MCP discount tools both use this.
+ */
+export async function requireDeal(admin: AdminClient, shop: string, deal: Deal) {
+  const { plan, trial } = await planContext(admin, shop);
+  requireFeature(plan, dealFeature(deal.kind), trial);
+  const problems = validateDeal(deal);
+  if (problems.length) throw new RuleError(problems.join(" "), "input", false);
+  await requireOfferSlot(admin, shop, deal);
+}
+
+/**
+ * May this bundle (mix and match, build your own, tiered, fixed price) be saved, and switched on if it is on? The plan includes bundles, the
+ * bundle is complete (`others` are the store's other bundles), and it fits the offer slots. The admin's bundle page and the MCP bundle tools use this.
+ */
+export async function requireBundle(admin: AdminClient, shop: string, bundle: Bundle, others: Bundle[]) {
+  const { plan, trial } = await planContext(admin, shop);
+  requireFeature(plan, "bundles", trial);
+  const problems = validateBundle(bundle, others);
+  if (problems.length) throw new RuleError(problems.join(" "), "input", false);
+  await requireOfferSlot(admin, shop, bundle);
+}
+
+/** The same for a fixed bundle sold as its own product (a kit): it fills an offer slot when it is new. */
+export async function requireKit(admin: AdminClient, shop: string, kit: Kit) {
+  const { plan, trial } = await planContext(admin, shop);
+  requireFeature(plan, "bundles", trial);
+  const problems = validateKit(kit);
+  if (problems.length) throw new RuleError(problems.join(" "), "input", false);
+  if (!kit.productId) await requireOfferSlot(admin, shop, { active: true, handle: null });
 }
 
 /** Checkout rules count together across payment, delivery and order limits. */

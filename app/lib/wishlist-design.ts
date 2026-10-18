@@ -19,7 +19,7 @@ export type WishlistDesign = {
   scheme: string;
   /** Off: nothing shows on the store (the settings are kept). */
   on: boolean;
-  where: { product: boolean; cards: boolean; floating: boolean; floatPos: "bl" | "br" };
+  where: { product: boolean; cards: boolean; floating: boolean; floatPos: "bl" | "br"; /** Distance of the floating button from the bottom of the screen (px). */ floatBottom: number };
   page: { url: string; heading: string; empty: string; add: string; remove: string; priceDrop: string; share: string; copied: string; added: string; failed: string; soldOut: string };
   text: { add: string; saved: string };
   look: { icon: "heart" | "star" | "bookmark"; color: string; bg: string; radius: number };
@@ -29,7 +29,7 @@ export type WishlistDesign = {
 export const DEFAULT_WISHLIST: WishlistDesign = {
   scheme: "",
   on: true,
-  where: { product: true, cards: true, floating: true, floatPos: "bl" },
+  where: { product: true, cards: true, floating: true, floatPos: "bl", floatBottom: 18 },
   page: { url: "/pages/wishlist", heading: "Your wishlist", empty: "Nothing saved yet. Tap the heart on any product.", add: "Add to cart", remove: "Remove", priceDrop: "Price dropped {amount}", share: "Share my wishlist", copied: "Link copied", added: "Added to cart", failed: "Could not add. Try again.", soldOut: "Sold out" },
   text: { add: "Add to wishlist", saved: "Saved to wishlist" },
   look: { icon: "heart", color: "#e11d48", bg: "#ffffff", radius: 999 },
@@ -60,7 +60,7 @@ export function withWishlistDefaults(raw: unknown): WishlistDesign {
   return {
     scheme: schemeId(r.scheme),
     on: bool(r.on, d.on),
-    where: { product: bool(w.product, d.where.product), cards: bool(w.cards, d.where.cards), floating: bool(w.floating, d.where.floating), floatPos: pick(w.floatPos, ["bl", "br"] as const, d.where.floatPos) },
+    where: { product: bool(w.product, d.where.product), cards: bool(w.cards, d.where.cards), floating: bool(w.floating, d.where.floating), floatPos: pick(w.floatPos, ["bl", "br"] as const, d.where.floatPos), floatBottom: num(w.floatBottom, 0, 400, d.where.floatBottom) },
     page: {
       url: /^\/[a-z0-9/_-]*$/i.test(url) ? url : d.page.url,
       heading: str(p.heading, d.page.heading, 80),
