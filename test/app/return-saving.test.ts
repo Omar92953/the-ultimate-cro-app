@@ -248,3 +248,38 @@ test("what the shopper reads once the money or credit was given", async () => {
   assert.equal(settledSay("credited", "gift_card"), "Credit given");
   assert.equal(settledSay("refunded", ""), "Refunded");
 });
+
+test("closing the return in Shopify's admin gives the waiting credit, once", async () => {
+  const waiting = withReturnRulesDefaults({ saving: { creditWhen: "received", credit: { on: true, bonus: 10, expiryDays: 0 }, restock: true } });
+  const make = async (over: Record<string, unknown> = {}) => (await prisma.returnRequest.create({ data: { shop: "s.myshopify.com", orderId: "gid://shopify/Order/1", orderName: "#1042", email: "a@b.com", items: "[]", reason: "x", status: "approved", returnId: `gid://shopify/Return/c${Math.random()}`, returnName: "#1042-R1", resolution: "credit", quote: 50, currency: "EUR", ...over } }));
+  const a = fake();
+  const r = await make();
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", r.returnId, waiting, true), "given");
+  const saved = await prisma.returnRequest.findUnique({ where: { id: r.id } });
+  assert.deepEqual({ status: saved?.status, kind: saved?.creditKind, amount: saved?.creditAmount }, { status: "credited", kind: "store_credit", amount: 55 });
+  // The webhook can arrive twice (and our own processing closes the return too): nothing is given again.
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", r.returnId, waiting, true), "skipped");
+  assert.equal(a.calls.filter((c) => c.op === "CroProcessRefundCredit").length, 1);
+  assert.equal(a.calls.filter((c) => c.op === "CroCredit").length, 1, "the bonus, once");
+});
+
+test("a return closed in Shopify gives no credit when it is not a credit waiting for its items", async () => {
+  const waiting = withReturnRulesDefaults({ saving: { creditWhen: "received", credit: { on: true, bonus: 10, expiryDays: 0 }, restock: true } });
+  const make = async (over: Record<string, unknown>) => (await prisma.returnRequest.create({ data: { shop: "s.myshopify.com", orderId: "gid://shopify/Order/1", orderName: "#1042", email: "a@b.com", items: "[]", reason: "x", status: "approved", returnId: `gid://shopify/Return/s${Math.random()}`, returnName: "#R", resolution: "credit", quote: 50, currency: "EUR", ...over } })).returnId;
+  const a = fake();
+  const cases: [string, string, boolean?][] = [
+    [await make({ resolution: "refund" }), "a refund return"],
+    [await make({ resolution: "exchange" }), "an exchange"],
+    [await make({ status: "refunded" }), "already refunded by the app"],
+    [await make({ status: "closed" }), "closed by the merchant in the app"],
+    [await make({ status: "credited", creditKind: "store_credit" }), "already credited"],
+    [await make({ creditKind: "store_credit", creditCode: "pending:50.00:5.00" }), "credit already started"],
+  ];
+  for (const [id, why] of cases) assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", id, waiting, true), "skipped", why);
+  const plain = await make({});
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", plain, waiting, false), "skipped", "not Pro");
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", plain, withReturnRulesDefaults({ saving: { creditWhen: "approved", credit: { on: true } } }), true), "skipped", "credit is given at approval in this store");
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", plain, withReturnRulesDefaults({ saving: { creditWhen: "received", credit: { on: false } } }), true), "skipped", "store credit is off");
+  assert.equal(await S.giveCreditWhenClosed(a.admin, "s.myshopify.com", "gid://shopify/Return/unknown", waiting, true), "skipped", "not ours");
+  assert.equal(a.calls.length, 0, "Shopify was never called");
+});
