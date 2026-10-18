@@ -274,6 +274,16 @@ export function planPageUrl(shop: string, appHandle: string) {
   return `https://admin.shopify.com/store/${store}/charges/${appHandle}/pricing_plans`;
 }
 
+/**
+ * Shopify's approval page for one plan and billing period, skipping its plan selection page (the
+ * Plans page in the app does the choosing). Shopify's interval codes: EVERY_30_DAYS and ANNUAL.
+ */
+export function planApproveUrl(shop: string, appHandle: string, plan: PlanKey, yearly: boolean) {
+  const store = shop.replace(/\.myshopify\.com$/, "");
+  const interval = yearly && plan !== "free" ? "ANNUAL" : "EVERY_30_DAYS";
+  return `https://admin.shopify.com/store/${store}/charges/${appHandle}/plans/${PLANS[plan].handle}?interval=${interval}`;
+}
+
 /** Map a subscription's plan handle or name (Partner API / Admin API) to a plan key. */
 export function planFromSubscription(handleOrName: string | null | undefined): PlanKey | null {
   if (!handleOrName) return null;

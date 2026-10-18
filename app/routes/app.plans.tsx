@@ -1,27 +1,29 @@
 /**
  * Plans: the three paid plans as wide cards (Omar's reference style), Free as one slim row, then
  * the full comparison folded away. Not in the menu: linked from Home's plan bar, Settings and every
- * upgrade card. Prices, limits and features come from lib/plans.ts; choosing a plan happens on
- * Shopify's plan selection page (planUrl, target _top).
+ * upgrade card. Prices, limits and features come from lib/plans.ts; each button opens Shopify's
+ * approval page for that plan and period directly (planApproveUrl, target _top).
  */
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { getPlan } from "../lib/billing.server";
+import { appHandle, getPlan } from "../lib/billing.server";
 import { getValue } from "../lib/value.server";
 import { AREAS, feature, featuresIn } from "../lib/catalog";
-import { EXTRA_PLAN, REQUESTS_FIRST_TEXT, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planRank, type LimitKey, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, REQUESTS_FIRST_TEXT, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planApproveUrl, planRank, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
-import { Pill, Segmented } from "../components/ui";
+import { Pill } from "../components/ui";
 import { FreeRow, PlanCard } from "../components/PlanCard";
 import styles from "../components/PlanCard.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [info, value] = await Promise.all([getPlan(admin, session.shop), getValue(admin, session.shop)]);
-  return { plan: info.plan, planUrl: info.planUrl, trialEndsAt: info.trialEndsAt, value };
+  // Each plan button opens Shopify's approval page for that plan and period directly.
+  const approve = Object.fromEntries(PLAN_KEYS.map((k) => [k, { monthly: planApproveUrl(session.shop, appHandle(), k, false), yearly: planApproveUrl(session.shop, appHandle(), k, true) }])) as Record<PlanKey, { monthly: string; yearly: string }>;
+  return { plan: info.plan, approve, trialEndsAt: info.trialEndsAt, value };
 };
 
 const money = (n: number, currency: string) => {
@@ -57,7 +59,7 @@ function limitCell(p: PlanKey, key: LimitKey) {
 }
 
 export default function Plans() {
-  const { plan, planUrl, trialEndsAt, value } = useLoaderData<typeof loader>();
+  const { plan, approve, trialEndsAt, value } = useLoaderData<typeof loader>();
   const [yearly, setYearly] = useState(false);
   const current = PLANS[plan];
   const choose = (k: PlanKey) =>
@@ -66,7 +68,7 @@ export default function Plans() {
         Your plan
       </Button>
     ) : (
-      <Button href={planUrl} target="_top" inlineSize="fill" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
+      <Button href={approve[k][yearly ? "yearly" : "monthly"]} target="_top" inlineSize="fill" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
         {planRank(k) > planRank(plan) ? (PLANS[k].trialDays ? `Start ${PLANS[k].trialDays}-day free trial` : `Choose ${PLANS[k].name}`) : `Switch to ${PLANS[k].name}`}
       </Button>
     );
@@ -89,15 +91,16 @@ export default function Plans() {
               <s-text color="subdued">{GUARANTEE}</s-text>
             )}
           </s-stack>
-          <Segmented
-            label="Billing period"
-            value={yearly ? "yearly" : "monthly"}
-            onChange={(v) => setYearly(v === "yearly")}
-            options={[
-              { value: "monthly", label: "Monthly" },
-              { value: "yearly", label: "Yearly: 2 months free" },
-            ]}
-          />
+          <s-stack direction="inline" gap="small-200" alignItems="center">
+            <Pill tone="ok">Annual: 2 months free</Pill>
+            <div className={styles.period} role="radiogroup" aria-label="Billing period">
+              {(["yearly", "monthly"] as const).map((v) => (
+                <button key={v} type="button" role="radio" aria-checked={(v === "yearly") === yearly} className={`${styles.periodBtn} ${(v === "yearly") === yearly ? styles.periodOn : ""}`} onClick={() => setYearly(v === "yearly")}>
+                  {v === "yearly" ? "Annual" : "Monthly"}
+                </button>
+              ))}
+            </div>
+          </s-stack>
         </s-stack>
 
         <div className={styles.cards}>
@@ -106,7 +109,7 @@ export default function Plans() {
           ))}
         </div>
         <s-banner tone="info" heading="Pro: your requests are built first">{REQUESTS_FIRST_TEXT}</s-banner>
-        <s-text color="subdued">You confirm the plan on Shopify&apos;s page. Development stores show $0.</s-text>
+        <s-text color="subdued">You confirm the plan and its billing period on Shopify&apos;s approval page. Development stores show $0.</s-text>
         <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
         <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>
 
