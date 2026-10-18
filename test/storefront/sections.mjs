@@ -302,6 +302,13 @@ const sgShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withS
 ] })) }));
 pages["size-guide.html"] = page("Size guide",
   label("product page: tagged Tees, in the collection mens, so the second chart") + '<div style="max-width:440px;margin:0 40px"><p>Size: S M L</p>' + (await block("ucs-size-guide", {}, { page_type: "product", product: { handle: "classic-tee", tags: ["Summer"], collections: [{ handle: "mens" }] }, shop: sgShop })) + "</div>");
+// A chart for all products shows only where the product has a size like option (not on a Gift Card or a candle).
+const sgAllShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withSizeGuideDefaults({ charts: [{ ...SAMPLE_CHART, id: "a", match: { all: true, products: [], collections: [], tags: "" } }] })) }));
+const sgAll = async (options) => block("ucs-size-guide", {}, { page_type: "product", product: { handle: "p", tags: [], collections: [], options }, shop: sgAllShop });
+const sgSized = await sgAll(["Color", "Size"]), sgPlain = await sgAll(["Title"]), sgFr = await sgAll(["Taille"]);
+if (!sgSized.includes("data-ucs-sg")) throw new Error("size guide missing on a product with a Size option");
+if (!sgFr.includes("data-ucs-sg")) throw new Error("size guide missing on a product with a Taille option");
+if (sgPlain.includes("data-ucs-sg")) throw new Error("size guide shown on a product with no size option");
 // The Order pages block on "Automatic": the pages the app made show Track and Returns, every other page shows nothing.
 const opShop = withDesign(mo("order_pages", { config: { trackHandle: "track-your-order", returnsHandle: "returns" } }));
 const opAuto = async (handle, shop) => block("ucs-order-page", {}, { page_type: "page", page: { handle }, shop });
@@ -347,13 +354,14 @@ pages["deals-cart.html"] = page("Deals in the cart", cartFake + '<form action="/
 const { toStorefrontWishlist, withWishlistDefaults } = await import("../../app/lib/wishlist-design.ts");
 const wlShop = withDesign(mo("wishlist", { config: toStorefrontWishlist(withWishlistDefaults({})) }));
 const wlFake = `<script>
-  try { localStorage.setItem("ucs-wishlist", JSON.stringify([{ h: "classic-tee", p: 50000, t: 1 }])); } catch (e) {}
+  try { localStorage.setItem("ucs-wishlist", JSON.stringify([{ h: "classic-tee", v: 2, p: 50000, t: 1 }, { h: "old-save", p: 0, t: 0 }])); } catch (e) {}
   const wf = window.fetch;
-  window.fetch = (u, o) => { u = String(u); if (u.includes("/products/")) return Promise.resolve(new Response(JSON.stringify({ title: u.includes("classic-tee") ? "Classic tee" : "Classic watch", url: "/products/x", price: 45000, featured_image: null, variants: [{ id: 1, available: true }] }))); return wf(u, o); };
+  window.fetch = (u, o) => { u = String(u); if (u.includes("/products/")) return Promise.resolve(new Response(JSON.stringify({ title: u.includes("classic-tee") ? "Classic tee" : "Classic watch", url: "/products/x", price: 995, price_varies: true, featured_image: null, variants: [{ id: 1, title: "Small", price: 995, available: true }, { id: 2, title: "Large", price: 2495, available: true }] }))); return wf(u, o); };
 </script>`;
 pages["wishlist.html"] = page("Wishlist", wlFake +
-  '<div class="shopify-section" style="margin:24px 40px"><form action="/cart/add"><input type="hidden" name="id" value="7701"><button type="submit" name="add">Add to cart</button></form>' +
+  '<div class="shopify-section" style="margin:24px 40px"><form action="/cart/add"><input type="hidden" name="id" value="2"><button type="submit" name="add">Add to cart</button></form>' +
   '<div class="card-wrapper" style="width:200px"><div class="card__media" style="height:120px;background:#eee"></div><a href="/products/classic-tee">Classic tee</a></div></div>' +
+  '<div id="fixed-bar" style="position:fixed;left:0;right:0;bottom:0;height:60px;background:#222;z-index:10"></div>' +
   (await block("ucs-order-page", { page: "wishlist" }, { page_type: "page" })),
   await block("ucs-boosters", {}, { page_type: "product", product: { ...watch, handle: "classic-watch", price: 12900 }, shop: wlShop }));
 const { toStorefrontQuiz, withQuizDefaults } = await import("../../app/lib/quiz-design.ts");

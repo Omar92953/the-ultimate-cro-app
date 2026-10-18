@@ -127,8 +127,8 @@ export default function OrderPageDesigner() {
           <DesignSlots base={isTrack ? "track_page" : "returns_page"} blockName="Order & wishlist pages" />
           <s-text color="subdued">
             {isTrack
-              ? "Shoppers enter their order number and email and see the order's status, items and tracking. Create a page (Online Store → Pages, e.g. “Track your order”) and add the “Order & wishlist pages” block to it (Page: Track order)."
-              : "Shoppers find their order with its number and email, choose the items and a reason, and the request arrives in Returns here. Create a page (e.g. “Returns”) and add the “Order & wishlist pages” block to it (Page: Returns)."}
+              ? "Shoppers enter their order number and email and see the order's status, items and tracking. The app makes the “Track your order” page for you (Tracking & Returns, step “Make the two pages”); the one block in its theme template shows it."
+              : "Shoppers find their order with its number and email, choose the items and a reason, and the request arrives in Returns here. The app makes the “Returns” page for you (Tracking & Returns, step “Make the two pages”); the one block in its theme template shows it."}
           </s-text>
           {!data.saved ? (
             <s-banner tone="info" heading="Not saved yet">
@@ -201,11 +201,13 @@ export default function OrderPageDesigner() {
                       <s-stack gap="base">
                         <Switch label="Late orders: say sorry" details="When a shipment is more than a day past its expected date, or the carrier reports a problem, the page shows your apology (edit the words in Late orders) and can give a real code." checked={sell.delay.on} onValue={(v) => delay({ on: v })} />
                         {sell.delay.on ? (
-                          <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="base">
+                          <s-stack gap="base">
                             <Select label="Give" value={sell.delay.gift} onValue={(v) => delay({ gift: v === "percent" ? "percent" : v === "shipping" ? "shipping" : "none" })} options={[{ value: "none", label: "Just the apology" }, { value: "percent", label: "A discount on the next order" }, { value: "shipping", label: "Free shipping on the next order" }]} />
-                            {sell.delay.gift === "percent" ? <NumberField label="Discount" suffix="%" min={1} max={90} step={1} value={sell.delay.percent} onValue={(v) => delay({ percent: v })} /> : <span />}
-                            {sell.delay.gift !== "none" ? <NumberField label="Valid for" suffix="days" min={1} max={365} step={1} value={sell.delay.days} onValue={(v) => delay({ days: v })} /> : <span />}
-                          </s-grid>
+                            <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                              {sell.delay.gift === "percent" ? <NumberField label="Discount" suffix="%" min={1} max={90} step={1} value={sell.delay.percent} onValue={(v) => delay({ percent: v })} /> : <span />}
+                              {sell.delay.gift !== "none" ? <NumberField label="Valid for" suffix="days" min={1} max={365} step={1} value={sell.delay.days} onValue={(v) => delay({ days: v })} /> : <span />}
+                            </s-grid>
+                          </s-stack>
                         ) : null}
                       </s-stack>
                       <s-stack direction="inline">

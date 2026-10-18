@@ -26,3 +26,12 @@ test("the discount code box is off until chosen, and its texts reach the store c
   assert.match(c.cls, /ucs-ce--stack/);
   assert.match(c.c?.applied ?? "", /\{code\}/);
 });
+
+test("the floating button defaults to the right and to an automatic height; the no variant texts are kept", async () => {
+  const { withWishlistDefaults } = await import("../../app/lib/wishlist-design");
+  const d = withWishlistDefaults({});
+  assert.equal(d.where.floatPos, "br");
+  assert.equal(d.where.floatBottom, 0);
+  assert.equal(d.page.from, "From {amount}");
+  assert.equal(withWishlistDefaults({ page: { from: "Starting at {amount}", choose: "Pick a size" } }).page.choose, "Pick a size");
+});

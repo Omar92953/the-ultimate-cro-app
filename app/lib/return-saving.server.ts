@@ -90,7 +90,7 @@ export async function detailForCredit(admin: AdminClient, returnId: string): Pro
 async function suggestedAmount(admin: AdminClient, returnId: string, lines: { id: string; quantity: number }[]): Promise<number> {
   try {
     const out = await gql(admin, `#graphql
-      query CroSuggest($id: ID!, $items: [SuggestedOutcomeReturnLineItemInput!]!) { return(id: $id) { suggestedFinancialOutcome(returnLineItems: $items, exchangeLineItems: [], refundMethodAllocation: ORIGINAL_PAYMENT_METHODS) { financialTransfer { ... on RefundReturnOutcome { suggestedTransactions { amountSet { shopMoney { amount } } } } } } } }`, { id: returnId, items: lines.map((l) => ({ id: l.id, quantity: l.quantity })) });
+      query CroSuggestCredit($id: ID!, $items: [SuggestedOutcomeReturnLineItemInput!]!) { return(id: $id) { suggestedFinancialOutcome(returnLineItems: $items, exchangeLineItems: [], refundMethodAllocation: ORIGINAL_PAYMENT_METHODS) { financialTransfer { ... on RefundReturnOutcome { suggestedTransactions { amountSet { shopMoney { amount } } } } } } } }`, { id: returnId, items: lines.map((l) => ({ id: l.id, quantity: l.quantity })) });
     const tx: { amountSet: { shopMoney: { amount: string } } }[] = out.return?.suggestedFinancialOutcome?.financialTransfer?.suggestedTransactions ?? [];
     return tx.reduce((n, t) => n + (Number(t.amountSet.shopMoney.amount) || 0), 0);
   } catch {

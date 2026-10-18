@@ -57,15 +57,15 @@ export function shopifyTracking(f: FulfillmentNode): Tracking | null {
   return t;
 }
 
-export type OrderPrices = { currency: string; subtotal: number; shipping: number; discounts: number; tax: number; total: number };
+export type OrderPrices = { currency: string; subtotal: number; shipping: number; discounts: number; tax: number; total: number; /** Money already given back (a refund or a partial refund). */ refunded: number };
 
 type PriceSet = { presentmentMoney?: { amount?: string; currencyCode?: string } } | null | undefined;
 /** The order's money lines in the currency the shopper paid in (presentment currency). Exported for tests. */
-export function orderPrices(o: { subtotalPriceSet?: PriceSet; totalShippingPriceSet?: PriceSet; totalDiscountsSet?: PriceSet; totalTaxSet?: PriceSet; totalPriceSet?: PriceSet }): OrderPrices | null {
+export function orderPrices(o: { subtotalPriceSet?: PriceSet; totalShippingPriceSet?: PriceSet; totalDiscountsSet?: PriceSet; totalTaxSet?: PriceSet; totalPriceSet?: PriceSet; totalRefundedSet?: PriceSet }): OrderPrices | null {
   const n = (s: PriceSet) => Math.round((Number(s?.presentmentMoney?.amount) || 0) * 100) / 100;
   const currency = o.subtotalPriceSet?.presentmentMoney?.currencyCode ?? "";
   if (!currency || !o.totalPriceSet) return null;
-  return { currency, subtotal: n(o.subtotalPriceSet), shipping: n(o.totalShippingPriceSet), discounts: n(o.totalDiscountsSet), tax: n(o.totalTaxSet), total: n(o.totalPriceSet) };
+  return { currency, subtotal: n(o.subtotalPriceSet), shipping: n(o.totalShippingPriceSet), discounts: n(o.totalDiscountsSet), tax: n(o.totalTaxSet), total: n(o.totalPriceSet), refunded: n(o.totalRefundedSet) };
 }
 
 export async function findOrder(admin: AdminClient, number: string, email: string): Promise<OrderSummary | null> {
@@ -75,7 +75,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     query CroFindOrder($q: String!) {
       orders(first: 5, query: $q) {
         nodes {
-          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } } subtotalPriceSet { presentmentMoney { amount currencyCode } } totalShippingPriceSet { presentmentMoney { amount } } totalDiscountsSet { presentmentMoney { amount } } totalTaxSet { presentmentMoney { amount } } totalPriceSet { presentmentMoney { amount } }
+          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } } subtotalPriceSet { presentmentMoney { amount currencyCode } } totalShippingPriceSet { presentmentMoney { amount } } totalDiscountsSet { presentmentMoney { amount } } totalTaxSet { presentmentMoney { amount } } totalPriceSet { presentmentMoney { amount } } totalRefundedSet { presentmentMoney { amount } }
           lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } variant { id availableForSale } product { id handle productType tags } discountedUnitPriceSet { presentmentMoney { amount } } } }
           fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }

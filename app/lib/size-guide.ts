@@ -16,6 +16,10 @@ export const SIZE_GUIDE_SIZES: SizeSpec[] = [
   { key: "heading", label: "Window heading", cssVar: "--ucs-sg-h", min: 14, max: 32, def: 20 },
 ];
 
+/** A product option whose name contains one of these (lower case) counts as a size. Mirrored in theme/blocks/ucs-size-guide.liquid (a test keeps them equal). */
+export const SIZE_OPTION_WORDS = ["size", "taille", "größe", "grosse", "talla", "taglia", "maat", "tamanho", "storlek", "rozmiar", "numero", "tamaño", "размер", "尺码", "サイズ"];
+export const hasSizeOption = (options: string[]) => options.some((o) => SIZE_OPTION_WORDS.some((w) => o.toLowerCase().includes(w)));
+
 export const MAX_CHARTS = 8;
 export const MAX_ROWS = 20;
 export const MAX_COLUMNS = 8;
