@@ -100,14 +100,16 @@ Worked: store credit (shopper picks "Get $27.45 store credit instead of a $24.95
 give the credit" credits the customer $27.45 in Shopify), Track page offer (cross sell with its own TRACK- code and expiry,
 shown with after delivery, prices, next order code, buy again), exchange approval after #164 (returnReasonNote).
 
-- [ ] **CRITICAL, money:** order #1003 on Testing 3. R1 ($24.95) paid back with store credit, then R2 exchange of the
+- [x] **CRITICAL, money (fixed in #166, cro-toolbox-32, verified on #1004 2026-10-18: refund to store credit $24.95 inside the order + $2.50 bonus; exchange refused to ship while $15 owed, shipped once paid):** order #1003 on Testing 3. R1 ($24.95) paid back with store credit, then R2 exchange of the
       $9.95 item for the $24.95 one (shopper owes $15). On "Items arrived: ship the exchange" the app refunded the $9.95
       AND released the $24.95 item, without the $15. Cause: store credit is given outside the order (storeCreditAccountCredit),
       so Shopify still counts R1's $24.95 as paid and the exchange outcome used it. Fix both: give return credit through
       Shopify's refund to store credit (returnProcess financialTransfer with a store credit refund method) so the order's
       money is right; and for an exchange where the shopper owes more, never refund the returned item and keep the hold
       until the invoice is paid (check the order's outstanding balance before releasing).
-- [ ] Shopper Returns page shows R1 as "Approved" after the credit was given (app says "Store credit given").
+- [x] Shopper Returns page shows R1 as "Approved" after the credit was given (fixed, #167) (app says "Store credit given").
 - [ ] Return saving rules "How it works" text still says credit is given when you approve (default is now items received).
-- [ ] Deploy warning: LiquidHTMLSyntaxError in cro-storefront ("'script' was closed", the A/B snippet ucro-ab.liquid).
+- [x] Deploy warning: LiquidHTMLSyntaxError (fixed, #168) in cro-storefront ("'script' was closed", the A/B snippet ucro-ab.liquid).
 - [ ] Not tested yet: A/B tests (Pro), gift card and discount code fallbacks (guest orders), live tracking with a provider key.
+- [ ] App Returns card: "Paid back with store credit: 27.45 USD (done)" shows the internal step marker "(done)".
+- [ ] App Returns card: after the shopper paid the difference and the exchange shipped, it still says "The shopper owes 15.00 USD".
