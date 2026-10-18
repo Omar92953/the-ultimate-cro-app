@@ -231,7 +231,7 @@ features and sends people to the App Store listing.
   **crotoolbox.com/demo** and hidden from search (noindex everywhere, robots.txt `Disallow: /`, no
   list of demos, `/` redirects to the website). They reuse the real storefront code (`theme/`,
   `extensions/cro-storefront/assets`, `test/storefront/engine.mjs`) and open only from the app's
-  "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`). The website never links to them.
+  "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`). The website links to them only from its keyword pages (nofollow).
 - **Pages**: home; one page per feature (the 6 bundle recipes, upsell, cross-sell, video carousel,
   cart drawer, reviews, countdown...) with real screenshots from Testing2; pricing (from
   `app/lib/plans.ts`: Free / $5.99 / $14.99 / $24.99, orders per month, 14-day trial); help center
