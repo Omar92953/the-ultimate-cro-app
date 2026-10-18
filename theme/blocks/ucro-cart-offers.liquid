@@ -1,5 +1,5 @@
 {%- comment -%}
-  App embed: cross-sell rules whose placement includes "Cart drawer".
+  App embed: cross sell rules whose placement includes "Cart drawer".
   All drawer rules are rendered once as JSON; ucro-drawer.js picks the best match for the
   current cart every time the drawer re-renders. Works with Dawn-family <cart-drawer>;
   on other themes it stays silent.
@@ -10,7 +10,7 @@
   if cfg and cfg.cross_sell_enabled.value == false
     assign enabled = false
   endif
-  # Heading, number of products, button and look are designed in the app (Cross-sell → Design): $app:cro_design "cross_sell".
+  # Heading, number of products, button and look are designed in the app (Cross sell → Style): $app:cro_design "cross_sell".
   assign d = shop.metaobjects['$app:cro_design']['cross_sell'].config.value
   if request.design_mode and shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
     assign d = shop.metaobjects['$app:cro_design']['cross_sell_draft'].config.value
@@ -95,7 +95,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Shows Cross-sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it. Heading, products and button are set in CRO Toolbox → Cross-sell offers → Design."
+      "content": "Shows cross sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it. Heading, products and button are set in CRO Toolbox → Offers → Cross sell offers → Style."
     }
   ]
 }

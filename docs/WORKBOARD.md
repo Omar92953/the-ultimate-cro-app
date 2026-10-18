@@ -30,9 +30,7 @@ Updated 2026-10-15.
 
 - [ ] After launch: own style for every offer type (D5 did upsell, cross sell and mix and match bundles; the
       other types still share one style per group, and plans cap styles at 5). Omar agreed to ship as is.
-- [ ] Next Shopify deploy: theme editor texts still say "Cross-sell" and "Design" (theme/blocks/ucro-cart-offers.liquid
-      and others); change to "Cross sell" and "Style".
-
+- [x] Theme editor texts say "Cross sell" and "Style" (#178, deployed).
 - [x] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy. Done in #171 (`returns/close` in shopify.app.toml, `app/routes/webhooks.returns.close.tsx`), deployed. Verified on Testing 3 (Pro) 2026-10-18 with #1005: approved in the app, closed in Shopify admin, the request turned "Store credit given" by itself: $49.95 refunded to store credit inside the order, $5.00 bonus credited once.
 
 - [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
@@ -79,18 +77,18 @@ Updated 2026-10-15.
 
 ## Testing 3 run 2026-10-18 (cro-toolbox-30): open bugs
 
-`[~]` = fixed in an open draft PR (#159 offer discount, #160 size guide, #161 wishlist, #162 texts and refunds), waiting for Omar's check on Testing 3.
+Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he next tests.
 
-- [~] Next order / friend / delay codes don't apply when the cart already has the app's own offer discount
+- [x] Next order / friend / delay codes don't apply when the cart already has the app's own offer discount
       (automatic "CRO Toolbox offers"): Shopify says not applicable. #157 makes new codes combine with product
       discounts; also check the existing automatic app discount's combinesWith on old stores (update it on sync).
-- [~] Size guide shows on every product (Gift Card, Ski Wax): show it only where a chart is assigned or the
+- [x] Size guide shows on every product (Gift Card, Ski Wax): show it only where a chart is assigned or the
       product has a size option.
-- [~] Wishlist saves the product, not the chosen variant: the page shows the lowest price ($9.95) for a $24.95 pick.
-- [~] Floating wishlist heart still at bottom left 18px over footer links and payment icons (#135 fix didn't take).
-- [~] Track page and Wishlist editors' intro text still says to create the page by hand (the app makes it now).
-- [~] Track page "Late orders" select text is cut off ("Just the apol...").
-- [~] Track page prices: a "Refunded" line when the order is refunded or partly refunded (#162).
+- [x] Wishlist saves the product, not the chosen variant: the page shows the lowest price ($9.95) for a $24.95 pick.
+- [x] Floating wishlist heart still at bottom left 18px over footer links and payment icons (#135 fix didn't take).
+- [x] Track page and Wishlist editors' intro text still says to create the page by hand (the app makes it now).
+- [x] Track page "Late orders" select text is cut off ("Just the apol...").
+- [x] Track page prices: a "Refunded" line when the order is refunded or partly refunded (#162).
 - [ ] Not tested (need the Pro test plan): Track page offer slots, exchanges, store credit and gift card, A/B tests,
       live tracking with a provider key.
 
@@ -108,8 +106,8 @@ shown with after delivery, prices, next order code, buy again), exchange approva
       money is right; and for an exchange where the shopper owes more, never refund the returned item and keep the hold
       until the invoice is paid (check the order's outstanding balance before releasing).
 - [x] Shopper Returns page shows R1 as "Approved" after the credit was given (fixed, #167) (app says "Store credit given").
-- [ ] Return saving rules "How it works" text still says credit is given when you approve (default is now items received).
+- [x] Return saving rules "How it works" text still says credit is given when you approve (default is now items received).
 - [x] Deploy warning: LiquidHTMLSyntaxError (fixed, #168) in cro-storefront ("'script' was closed", the A/B snippet ucro-ab.liquid).
 - [ ] Not tested yet: A/B tests (Pro), gift card and discount code fallbacks (guest orders), live tracking with a provider key.
-- [ ] App Returns card: "Paid back with store credit: 27.45 USD (done)" shows the internal step marker "(done)".
-- [ ] App Returns card: after the shopper paid the difference and the exchange shipped, it still says "The shopper owes 15.00 USD".
+- [x] App Returns card: "Paid back with store credit: 27.45 USD (done)" shows the internal step marker "(done)".
+- [x] App Returns card: after the shopper paid the difference and the exchange shipped, it still says "The shopper owes 15.00 USD".
