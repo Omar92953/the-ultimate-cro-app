@@ -30,8 +30,8 @@ Updated 2026-10-15.
 
 - [ ] After launch: own style for every offer type (D5 did upsell, cross sell and mix and match bundles; the
       other types still share one style per group, and plans cap styles at 5). Omar agreed to ship as is.
-- [x] Theme editor texts say "Cross sell" and "Style" (PR below; needs a Shopify deploy to reach merchants).
-- [x] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy. Done in the returns webhook PR (`returns/close` in shopify.app.toml, `app/routes/webhooks.returns.close.tsx`); needs a Shopify deploy.
+- [x] Theme editor texts say "Cross sell" and "Style" (#178, deployed).
+- [x] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy. Done in #171 (`returns/close` in shopify.app.toml, `app/routes/webhooks.returns.close.tsx`), deployed. Verified on Testing 3 (Pro) 2026-10-18 with #1005: approved in the app, closed in Shopify admin, the request turned "Store credit given" by itself: $49.95 refunded to store credit inside the order, $5.00 bonus credited once.
 
 - [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
       Needs a Shopify deploy and Omar's steps in each PR: read_returns and write_returns scopes on Render
