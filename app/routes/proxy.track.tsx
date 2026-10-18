@@ -6,7 +6,8 @@ import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import { findOrder, readLookup } from "../lib/orders-lookup.server";
 import { buyAgainFor } from "../lib/track-sell";
-import { getTrackSell, nextOrderCode } from "../lib/track-sell.server";
+import { getOrderPages } from "../lib/order-page-setup.server";
+import { getTrackSell, givenCode, nextOrderCode } from "../lib/track-sell.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
 import { readRecRequest, trackRecs } from "../lib/track-recs.server";
@@ -40,8 +41,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const sell = (await getTrackSell(admin).catch(() => null))?.sell;
     const next = sell && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await nextOrderCode(admin, session.shop, order.id, sell.nextOrder).catch((e) => { console.error(`[proxy/track] next order code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
     const buyAgain = sell?.buyAgain.on && !order.cancelled ? buyAgainFor(order.items.map((i) => ({ variantId: i.variantId, title: i.title, variant: i.variant, quantity: i.quantity, available: i.available, productType: i.productType, tags: i.tags })), sell.buyAgain) : null;
+    // After delivery: "How was your order?": review links, the Returns page, and a real code to share with a friend.
+    const delivered = shipments.length > 0 && shipments.every((s) => !!(s.tracking?.delivered || s.delivered));
+    const ad = sell?.afterDelivery;
+    let after: Record<string, unknown> | null = null;
+    if (ad?.on && delivered && !order.cancelled) {
+      const pages = ad.returnsLink ? await getOrderPages(admin).catch(() => null) : null;
+      const friend = ad.friend.on ? await givenCode(admin, session.shop, order.id, "friend", "FRIEND", ad.friend, "friend").catch((e) => { console.error(`[proxy/track] friend code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
+      after = {
+        reviewUrl: ad.review === "url" ? ad.reviewUrl : "",
+        reviews: ad.review === "product" ? order.items.filter((i) => i.handle).slice(0, 5).map((i) => ({ title: i.title, handle: i.handle })) : [],
+        returnsHandle: pages?.returns?.handle ?? "",
+        ...(friend ? { friend: { ...friend, currency: order.currency } } : {}),
+      };
+    }
     // Everything except the internal order id.
-    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}), ...(buyAgain && (buyAgain.items.length || buyAgain.soldOut.length) ? { buyAgain } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
+    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}), ...(after ? { afterDelivery: after } : {}), ...(buyAgain && (buyAgain.items.length || buyAgain.soldOut.length) ? { buyAgain } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
   } catch (e) {
     console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);

@@ -17,7 +17,7 @@ const ITEMS = [
   { title: "Classic tee", variant: "Large", quantity: 2 },
 ];
 
-export function OrderPagePreview({ config: c, step, showNext = false, showBuyAgain = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean; showBuyAgain?: boolean }) {
+export function OrderPagePreview({ config: c, step, showNext = false, showBuyAgain = false, showAfter = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean; showBuyAgain?: boolean; showAfter?: boolean }) {
   const t = c.text;
   const thumb = <span className="ucs-op__ph" />;
   return (
@@ -78,6 +78,14 @@ export function OrderPagePreview({ config: c, step, showNext = false, showBuyAga
                 <p className="ucs-op__t"><code className="ucs-op__code">NEXT-3FA9C2D1</code> <button type="button" className="ucs-btn ucs-btn--outline">{t.nextCopy}</button></p>
                 <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
               </div>
+              ) : null}
+              {showAfter ? (
+                <div className="ucs-op__after">
+                  <p className="ucs-op__t"><b>{t.afterTitle}</b></p>
+                  <p className="ucs-op__t">{t.afterSub}</p>
+                  <p className="ucs-op__links"><span className="ucs-btn">{t.reviewButton}</span></p>
+                  <p className="ucs-op__t"><u>{t.returnLink}</u></p>
+                </div>
               ) : null}
               {showBuyAgain ? <div className="ucs-op__again-buy"><button type="button" className="ucs-btn">{t.buyAgain}</button></div> : null}
               {c.recs.like.on || c.recs.complete.on

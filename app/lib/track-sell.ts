@@ -22,17 +22,36 @@ export type NextOrder = {
 /** "Buy again": a button that puts the order's items back in a new cart. `only` limits it by product type or tag. */
 export type BuyAgain = { on: boolean; only: "all" | "types" | "tags"; list: string };
 
-export type TrackSell = { nextOrder: NextOrder; buyAgain: BuyAgain };
+/** After delivery the page asks "How was your order?": a review request, the Returns page, and an optional discount to share with a friend. */
+export type AfterDelivery = {
+  on: boolean;
+  /** Where "Write a review" goes: your review page (an https address), or each product's own page. */
+  review: "url" | "product";
+  reviewUrl: string;
+  returnsLink: boolean;
+  friend: { on: boolean; percent: number; minimum: number; days: number };
+};
 
-export const DEFAULT_TRACK_SELL: TrackSell = { nextOrder: { on: false, mode: "perOrder", percent: 10, minimum: 0, days: 30, sharedCode: "THANKS10" }, buyAgain: { on: false, only: "all", list: "" } };
+export type TrackSell = { nextOrder: NextOrder; buyAgain: BuyAgain; afterDelivery: AfterDelivery };
+
+export const DEFAULT_TRACK_SELL: TrackSell = { nextOrder: { on: false, mode: "perOrder", percent: 10, minimum: 0, days: 30, sharedCode: "THANKS10" }, buyAgain: { on: false, only: "all", list: "" }, afterDelivery: { on: false, review: "product", reviewUrl: "", returnsLink: true, friend: { on: false, percent: 10, minimum: 0, days: 30 } } };
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 
 export function withTrackSellDefaults(raw: unknown): TrackSell {
-  const r = obj(raw), n = obj(r.nextOrder), b = obj(r.buyAgain);
+  const r = obj(raw), n = obj(r.nextOrder), b = obj(r.buyAgain), a = obj(r.afterDelivery), fr = obj(a.friend);
   const d = DEFAULT_TRACK_SELL.nextOrder;
   const code = str(n.sharedCode, d.sharedCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const url = str(a.reviewUrl, "", 300).trim();
+  const httpsUrl = /^https:\/\/\S+$/.test(url);
   return {
+    afterDelivery: {
+      on: a.on === true,
+      review: a.review === "url" && httpsUrl ? "url" : "product",
+      reviewUrl: httpsUrl ? url : "",
+      returnsLink: a.returnsLink !== false,
+      friend: { on: fr.on === true, percent: num(fr.percent, 1, 90, 10), minimum: Math.min(100000, Math.max(0, Math.round(Number(fr.minimum) * 100) / 100 || 0)), days: num(fr.days, 1, 365, 30) },
+    },
     buyAgain: { on: b.on === true, only: b.only === "types" || b.only === "tags" ? b.only : "all", list: str(b.list, "", 300).split(",").map((x) => x.trim()).filter(Boolean).join(", ") },
     nextOrder: {
       on: n.on === true,

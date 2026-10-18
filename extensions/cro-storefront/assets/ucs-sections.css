@@ -678,3 +678,8 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 /* Track page: buy again */
 .ucs-op__again-buy { display: grid; gap: 6px; justify-items: start; }
 .ucs-op__again-buy p { margin: 0; }
+
+/* Track page: after delivery */
+.ucs-op__after { display: grid; gap: 8px; padding: 14px; border-radius: var(--ucs-op-r, 12px); border: 1px solid rgba(127, 127, 127, 0.3); }
+.ucs-op__after p { margin: 0; }
+.ucs-op__links { display: flex; flex-wrap: wrap; gap: 8px; }

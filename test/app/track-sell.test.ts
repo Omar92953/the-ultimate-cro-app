@@ -110,3 +110,20 @@ test("buy again: items in stock go to the cart, sold out ones are named, the mer
   assert.deepEqual(buyAgainFor(lines, { on: true, only: "tags", list: "nothing" }), { items: [], soldOut: [] });
   assert.equal(withTrackSellDefaults({ buyAgain: { on: true, only: "types", list: " Shirts ,, Hats " } }).buyAgain.list, "Shirts, Hats");
 });
+
+test("after delivery: settings are cleaned, and the friend code is its own code for the same order", async () => {
+  const d = withTrackSellDefaults({ afterDelivery: { on: true, review: "url", reviewUrl: "http://nope", friend: { on: true, percent: 200, days: 0 } } }).afterDelivery;
+  assert.deepEqual({ on: d.on, review: d.review, reviewUrl: d.reviewUrl, returnsLink: d.returnsLink }, { on: true, review: "product", reviewUrl: "", returnsLink: true }, "only https review pages are kept");
+  assert.deepEqual(d.friend, { on: true, percent: 90, minimum: 0, days: 1 });
+  assert.equal(withTrackSellDefaults({ afterDelivery: { review: "url", reviewUrl: "https://reviews.example/store" } }).afterDelivery.reviewUrl, "https://reviews.example/store");
+  const a = fake();
+  const next = await S.givenCode(a.admin, "f.myshopify.com", "gid://shopify/Order/1", "next", "NEXT", { percent: 10, minimum: 0, days: 30 }, "next order");
+  const friend = await S.givenCode(a.admin, "f.myshopify.com", "gid://shopify/Order/1", "friend", "FRIEND", { percent: 15, minimum: 20, days: 14 }, "friend");
+  assert.match(friend!.code, /^FRIEND-[0-9A-F]{8}$/);
+  assert.notEqual(friend!.code, next!.code);
+  assert.equal((await S.givenCode(a.admin, "f.myshopify.com", "gid://shopify/Order/1", "friend", "FRIEND", { percent: 15, minimum: 20, days: 14 }, "friend"))!.code, friend!.code);
+  const dInput = a.calls.filter((c) => c.op === "CroTrackCode").map((c) => c.vars.d);
+  assert.equal(dInput.length, 2, "one discount each, none for the repeat");
+  assert.equal(dInput[1].usageLimit, 1);
+  assert.equal(dInput[1].customerGets.value.percentage, 0.15);
+});
