@@ -13,30 +13,36 @@ directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see o
 
 ## 1. Listing text (copy and paste)
 
-**App name (30 max):** `CRO Toolbox`
+**App name (30 max):** `CRO Toolbox` (or, Omar's choice, `CRO Toolbox: Upsell & Bundles`, 29: the
+name is the strongest search signal in the App Store; keep the brand first and only two plain words)
 
-**App card subtitle (62 max, 59 used):**
-`Bundles, upsells, cart offers and checkout rules in one app`
+Search words used once each below, no stuffing (docs/plans/seo-geo.md section 1): upsell, cross sell,
+bundles, AOV, conversion rate, after purchase, cart, free shipping bar, discount code, order tracking,
+returns, reviews, wishlist, size guide.
 
-**App introduction (100 max, 88 used):**
-`Build bundles, upsells and cart offers that apply as real Shopify discounts at checkout.`
+**App card subtitle (62 max, 62 used):**
+`Upsells, cross sells and bundles that raise AOV, plus tracking`
 
-**App details (500 max, 470 used):**
+**App introduction (100 max, 91 used):**
+`Upsell, cross sell and bundle offers that raise AOV, applied as real discounts at checkout.`
+
+**App details (500 max, 488 used):**
 
 ```
-CRO Toolbox puts the tools stores usually add one by one into a single app. Create bundles, upsells, cross sells and buy X get Y offers that apply as real Shopify discounts at checkout. Add reviews, announcement bars, countdowns, sticky add to cart, a wishlist and back in stock alerts to any Online Store 2.0 theme. Add offers and a free shipping bar to your theme's own cart. Set payment and delivery rules and order limits, and see what each offer sells in Analytics.
+CRO Toolbox brings the conversion tools stores add one by one into a single app, to raise average order value (AOV) and conversion rate. Create upsells, cross sells, bundles and buy X get Y offers that apply as real discounts at checkout. Add a free shipping bar, a discount code box and offers to your theme's cart. Give shoppers an order tracking page and a returns page. Add reviews, a wishlist, a size guide and countdowns to any Online Store 2.0 theme, and see what each offer sells.
 ```
 
-**Feature list (80 max each):**
+**Feature list (the form takes 5, 80 max each):**
 
-1. `Mix and match, fixed and tiered bundles, buy X get Y, volume deals and gifts` (76)
-2. `Upsell and cross sell offers on product pages, in the cart and after payment` (76)
-3. `Discounts apply at checkout as real Shopify discounts, with bundle stock tracked` (80)
-4. `Offers in your theme's cart, a free shipping bar and gift notes` (63)
-5. `Reviews, trust badges, announcement bars, countdowns and sticky add to cart` (75)
-6. `Hero banners, FAQ, logos, carousels, quiz and collection pills` (60)
-7. `Payment and delivery rules, order limits and thank-you page modules` (67)
-8. `Analytics per offer and bundle, with an optional holdout test` (61)
+1. `Upsell and cross sell offers on product pages, in the cart and after purchase` (77)
+2. `Mix and match, fixed and tiered bundles, buy X get Y, volume deals and gifts` (76)
+3. `Cart offers, free shipping bar, discount code box and gift notes in your cart` (77)
+4. `Order tracking page and returns that become real Shopify returns and refunds` (76)
+5. `Reviews, wishlist, size guide, countdowns and analytics for every offer` (71)
+
+Only list what works on the version under review: tracking and returns need the protected customer data
+approval (section 4) before review; if it is not approved yet, swap feature 4 for
+`Payment and delivery rules, order limits and thank-you page modules` (67).
 
 **Pricing (entered as Shopify App Pricing plans in the Partner Dashboard, same as `plans.ts`):**
 Free (50 orders a month, 3 offers on at once); Starter $5.99 a month (500 orders); Growth $14.99 a
