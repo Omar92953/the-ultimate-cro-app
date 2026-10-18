@@ -69,10 +69,18 @@ const here = Astro.url.pathname;
     position: sticky;
     top: 0;
     z-index: 50;
+    border-bottom: 1px solid rgb(11 11 15 / 0.06);
+  }
+  /* The frosted background sits on its own layer: a blur on the header itself would make it the box the
+     fixed phone menu is measured from (Safari), so the menu would shrink to the header's 68 px. */
+  .site-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     background: rgb(255 255 255 / 0.86);
     backdrop-filter: saturate(180%) blur(14px);
     -webkit-backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 1px solid rgb(11 11 15 / 0.06);
   }
   .bar {
     display: flex;
@@ -223,6 +231,7 @@ const here = Astro.url.pathname;
     right: 0;
     top: 68px;
     bottom: 0;
+    height: calc(100dvh - 68px);
     background: #fff;
     display: flex;
     flex-direction: column;
@@ -303,8 +312,10 @@ const here = Astro.url.pathname;
   // Phone menu: the page behind it doesn't scroll while it is open; Escape or a link closes it.
   const mobile = document.querySelector<HTMLDetailsElement>("details.mobile");
   if (mobile) {
+    // iPhones ignore overflow on <html> alone, so the body is locked too.
     mobile.addEventListener("toggle", () => {
       document.documentElement.style.overflow = mobile.open ? "hidden" : "";
+      document.body.style.overflow = mobile.open ? "hidden" : "";
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && mobile.open) {
