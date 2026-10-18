@@ -6,12 +6,12 @@
  *   - the 6 bundle recipes: app/lib/bundle-recipes.ts
  *   - the offer types: app/lib/offer-types.ts
  */
-import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, type Plan, type PlanKey, type Limits } from "../../../app/lib/plans";
+import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, REQUESTS_FIRST_TEXT, atLeast, type Plan, type PlanKey, type Limits } from "../../../app/lib/plans";
 import { BUNDLE_RECIPES, type Recipe, type RecipeKey } from "../../../app/lib/bundle-recipes";
 import { OFFER_TYPES, type OfferTypeKey } from "../../../app/lib/offer-types";
 import { FEATURES, FEATURE_KEYS, AREAS, featuresIn, type FeatureKey, type AreaKey } from "../../../app/lib/catalog";
 
-export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
+export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, REQUESTS_FIRST_TEXT, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
 export { BUNDLE_RECIPES, OFFER_TYPES };
 export type { OfferTypeKey };
 export type { Limits, Plan, PlanKey, FeatureKey, AreaKey, Recipe, RecipeKey };

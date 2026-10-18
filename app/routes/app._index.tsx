@@ -415,14 +415,14 @@ function FeatureRequestCard({ plan, requests }: { plan: PlanKey; requests: Featu
   if (!atLeast(plan, needs)) {
     return (
       <Card title="Request a feature" badge={<Pill>{`${PLANS[needs].name} plan`}</Pill>} actions={<UpgradeButton to={needs} />}>
-        <CardText>{`Need something the app doesn't do yet? On the ${PLAN_KEYS.filter((k) => atLeast(k, needs)).map((k) => PLANS[k].name).join(" and ")} plans, ask for any feature and we build it for you.`}</CardText>
+        <CardText>{`Need something the app doesn't do yet? On the ${PLAN_KEYS.filter((k) => atLeast(k, needs)).map((k) => PLANS[k].name).join(" and ")} plans, ask for any feature and we build it for you. On Pro, your requests are built first.`}</CardText>
       </Card>
     );
   }
   const first = atLeast(plan, EXTRA_PLAN.requestsFirst);
   return (
     <Card title="Request a feature" badge={<Pill tone="ok">{first ? "Built first" : "Included"}</Pill>}>
-      <CardText>{first ? "Tell us what you'd like your store to do. We build it for you, and Pro requests come first." : "Tell us what you'd like your store to do. We build it for you; it's included in your plan."}</CardText>
+      <CardText>{first ? "Tell us what you'd like your store to do. We build it for you, and as a Pro store your requests come first: we build yours before everyone else's. We don't promise dates, but you see when it's planned and when it's built." : "Tell us what you'd like your store to do. We build it for you; it's included in your plan."}</CardText>
       {/* New key after a send (the list gets a new newest request), so the form empties itself. */}
       <RequestForm key={requests[0]?.id ?? 0} sending={fetcher.state !== "idle"} onSend={(text, place) => fetcher.submit({ intent: "feature-request", text, place }, { method: "post" })} />
       {requests.length ? (
