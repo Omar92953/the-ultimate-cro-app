@@ -39,7 +39,7 @@ Updated 2026-10-18.
 - [x] PR 2: hidden live demos for every feature in `demos/` (crotoolbox.com/demo), `app/lib/site.ts`,
       no demo links on the website, `docs/website.md` (PR #43)
 - [x] PR 3: bundles hub, feature and area pages, use cases, comparisons (PR #50)
-- [ ] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
+- [x] Comparisons: check each app's listing yourself and update `site/src/lib/competitors.ts` (marked "Not checked" until then)
 - [x] PR 4: blog (6 articles), help center (13 guides), tutorials page, IndexNow, search engine
       verification support, visibility checklist in `docs/website.md` (PR #56)
 - [x] PR 5 (app): "See live demo" buttons

@@ -22,7 +22,7 @@ const crumbs = [
   { name: `vs ${c.name}`, href: page.path },
 ];
 const ourPricing = plans.map((p) => (p.monthly ? `${p.name} ${money(p.monthly)} a month (${ordersText(p).toLowerCase()})` : `${p.name}: ${ordersText(p).toLowerCase()}, ${p.limits.offerSlots} offers at once`));
-const levelText = c.level === "vendor" ? "from the app's own listing or website, found by a web search" : "from review sites, which are often out of date";
+const levelText = c.level === "vendor" ? "from the app's own Shopify App Store listing or website" : "from review sites, which are often out of date";
 const faq: QA[] = [
   {
     q: `What is the difference between CRO Toolbox and ${c.name}?`,
@@ -87,6 +87,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
       <div class="block">
         <h2 class="h2s">{c.name} pricing, as reported</h2>
         <ul class="plain">{c.pricing.map((l) => <li>{l}</li>)}</ul>
+        {c.rating && <p class="small">Listing rating: {c.rating}.</p>}
         <p class="small muted">
           Source: {
             c.sources.map((s, i) => (
@@ -97,7 +98,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
                 </a>
               </>
             ))
-          }. Checked {CHECKED}; not verified on the listing by us.
+          }. Checked {CHECKED}.
         </p>
       </div>
     </div>
