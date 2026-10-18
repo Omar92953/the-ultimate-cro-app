@@ -78,20 +78,26 @@ export async function nextOrderCode(admin: AdminClient, shop: string, orderId: s
     const row = await db.trackCode.findFirst({ where: { shop, kind: "shared", code: n.sharedCode }, orderBy: { endsAt: "desc" } });
     return row && row.endsAt > new Date() ? { code: row.code, percent: row.percent, minimum: row.minimum, endsAt: row.endsAt.toISOString() } : null;
   }
-  const existing = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind: "next" } } });
-  if (existing) return existing.endsAt > new Date() ? { code: existing.code, percent: existing.percent, minimum: existing.minimum, endsAt: existing.endsAt.toISOString() } : null;
-  const code = `NEXT-${randomBytes(4).toString("hex").toUpperCase()}`;
-  const endsAt = new Date(Date.now() + n.days * 86_400_000);
+  return givenCode(admin, shop, orderId, "next", "NEXT", { percent: n.percent, minimum: n.minimum, days: n.days }, "next order");
+}
+
+/** One single use code for this order and kind ("next", "friend"), made the first time and the same ever after (nothing once it expires). */
+export async function givenCode(admin: AdminClient, shop: string, orderId: string, kind: string, prefix: string, spec: { percent: number; minimum: number; days: number }, label: string): Promise<GivenCode | null> {
+  const show = (r: { code: string; percent: number; minimum: number; endsAt: Date }) => ({ code: r.code, percent: r.percent, minimum: r.minimum, endsAt: r.endsAt.toISOString() });
+  const existing = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind } } });
+  if (existing) return existing.endsAt > new Date() ? show(existing) : null;
+  const code = `${prefix}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  const endsAt = new Date(Date.now() + spec.days * 86_400_000);
   await gql(admin, `#graphql
-    mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: next order ${code}`, { percent: n.percent, minimum: n.minimum, endsAt, usageLimit: 1 }) });
+    mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: ${label} ${code}`, { percent: spec.percent, minimum: spec.minimum, endsAt, usageLimit: 1 }) });
   try {
-    await db.trackCode.create({ data: { shop, orderId, kind: "next", code, percent: n.percent, minimum: n.minimum, endsAt } });
+    await db.trackCode.create({ data: { shop, orderId, kind, code, percent: spec.percent, minimum: spec.minimum, endsAt } });
   } catch {
     // Two lookups at once: keep the first code that was saved.
-    const first = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind: "next" } } });
-    if (first) return { code: first.code, percent: first.percent, minimum: first.minimum, endsAt: first.endsAt.toISOString() };
+    const first = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind } } });
+    if (first) return show(first);
   }
-  return { code, percent: n.percent, minimum: n.minimum, endsAt: endsAt.toISOString() };
+  return { code, percent: spec.percent, minimum: spec.minimum, endsAt: endsAt.toISOString() };
 }
 
 export async function removeShopTrackCodes(shop: string) {

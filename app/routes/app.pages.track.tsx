@@ -15,7 +15,7 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
 import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
-import { Button, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
+import { Checkbox, Button, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { OrderPagePreview } from "../components/OrderPagePreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker, templateInUse } from "../components/LookPicker";
@@ -91,6 +91,8 @@ export default function OrderPageDesigner() {
     if (sellFetcher.data.ok) shopify.toast.show("Saved");
     else shopify.toast.show(sellFetcher.data.error || "Not saved", { isError: true });
   }, [sellFetcher.state, sellFetcher.data, shopify]);
+  const after = (patch: Partial<TrackSell["afterDelivery"]>) => setSell((x) => ({ ...x, afterDelivery: { ...x.afterDelivery, ...patch } }));
+  const friend = (patch: Partial<TrackSell["afterDelivery"]["friend"]>) => setSell((x) => ({ ...x, afterDelivery: { ...x.afterDelivery, friend: { ...x.afterDelivery.friend, ...patch } } }));
   const again = (patch: Partial<TrackSell["buyAgain"]>) => setSell((x) => ({ ...x, buyAgain: { ...x.buyAgain, ...patch } }));
   const next = (patch: Partial<TrackSell["nextOrder"]>) => setSell((x) => ({ ...x, nextOrder: { ...x.nextOrder, ...patch } }));
   const row = (k: "like" | "complete", patch: Partial<C["recs"]["like"]>) => setCfg((c) => ({ ...c, recs: { ...c.recs, [k]: { ...c.recs[k], ...patch } } }));
@@ -170,6 +172,24 @@ export default function OrderPageDesigner() {
                             <Select label="For" value={sell.buyAgain.only} onValue={(v) => again({ only: v === "types" ? "types" : v === "tags" ? "tags" : "all" })} options={[{ value: "all", label: "Every product" }, { value: "types", label: "Only these product types" }, { value: "tags", label: "Only products with these tags" }]} />
                             {sell.buyAgain.only !== "all" ? <TextField label={sell.buyAgain.only === "types" ? "Product types" : "Product tags"} details="Separated by commas." value={sell.buyAgain.list} onValue={(v) => again({ list: v })} /> : <span />}
                           </s-grid>
+                        ) : null}
+                      </s-stack>
+                      <s-stack gap="base">
+                        <Switch label="After delivery: “How was your order?”" details="Once every shipment is delivered the page asks for a review, links to your Returns page and can give a code to share with a friend." checked={sell.afterDelivery.on} onValue={(v) => after({ on: v })} />
+                        {sell.afterDelivery.on ? (
+                          <s-stack gap="base">
+                            <Select label="“Write a review” goes to" value={sell.afterDelivery.review} onValue={(v) => after({ review: v === "url" ? "url" : "product" })} options={[{ value: "product", label: "Each product's page" }, { value: "url", label: "My review page" }]} />
+                            {sell.afterDelivery.review === "url" ? <TextField label="Review page address" placeholder="https://" value={sell.afterDelivery.reviewUrl} onValue={(v) => after({ reviewUrl: v })} details="Where your review app collects reviews. Must start with https://" /> : null}
+                            <Checkbox label="Link to the Returns page" checked={sell.afterDelivery.returnsLink} onValue={(v) => after({ returnsLink: v })} />
+                            <Switch label="Give a code to share with a friend" details="A real single use Shopify code with an expiry, made for the order." checked={sell.afterDelivery.friend.on} onValue={(v) => friend({ on: v })} />
+                            {sell.afterDelivery.friend.on ? (
+                              <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="base">
+                                <NumberField label="Discount" suffix="%" min={1} max={90} step={1} value={sell.afterDelivery.friend.percent} onValue={(v) => friend({ percent: v })} />
+                                <NumberField label="Minimum order" details="0 = none" min={0} max={100000} step={1} value={sell.afterDelivery.friend.minimum} onValue={(v) => friend({ minimum: v })} />
+                                <NumberField label="Valid for" suffix="days" min={1} max={365} step={1} value={sell.afterDelivery.friend.days} onValue={(v) => friend({ days: v })} />
+                              </s-grid>
+                            ) : null}
+                          </s-stack>
                         ) : null}
                       </s-stack>
                       <s-stack direction="inline">
@@ -265,7 +285,7 @@ export default function OrderPageDesigner() {
               tools={<Segmented label="Show" value={step} options={[{ value: "form", label: "Form" }, { value: "result", label: isTrack ? "Order found" : "Choosing items" }]} onChange={setStep} />}
             >
               <ThemeLook style={data.style}>
-                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} />
+                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} showAfter={sell.afterDelivery.on} />
               </ThemeLook>
             </PreviewFrame>
           </div>
