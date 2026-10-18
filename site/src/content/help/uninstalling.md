@@ -26,7 +26,7 @@ Uninstalling stops the app's billing. Shopify ends the subscription when the app
 
 ## Your data
 
-48 hours after you uninstall, Shopify asks us to delete your store's data and we do: its sessions, back in stock requests, return requests and feature requests. Data the app saved inside your store is removed by Shopify together with the app. Details are in the [privacy policy](/privacy/).
+48 hours after you uninstall, Shopify asks us to delete your store's data and we do: its sessions, back in stock requests and return requests. Data the app saved inside your store is removed by Shopify together with the app. Details are in the [privacy policy](/privacy/).
 
 ## Coming back
 

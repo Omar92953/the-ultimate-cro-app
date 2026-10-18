@@ -92,16 +92,6 @@ test("discard goes back to the saved design", async () => {
   assert.equal(cfg("mcp_pending_delivery"), null);
 });
 
-test("feature requests need Growth, are limited to 5 a day, and say who is first", async () => {
-  await assert.rejects(tool("request_feature").run(ctx("starter"), { what: "Gift cards" }), /Growth plan/);
-  await assert.rejects(tool("request_feature").run(ctx("growth"), { what: "  " }), /Tell us what/);
-  const a = (await tool("request_feature").run(ctx("pro"), { what: "A loyalty page", where: "account page" })) as { sent: boolean; message: string };
-  assert.match(a.message, /Pro plan are built first/);
-  for (let i = 0; i < 4; i++) await tool("request_feature").run(ctx("growth"), { what: `Idea ${i}` });
-  await assert.rejects(tool("request_feature").run(ctx("growth"), { what: "One more" }), /Five requests/);
-  assert.equal((await prisma.featureRequest.findFirst({ where: { text: "A loyalty page" } }))?.place, "account page");
-});
-
 test("links point at the theme editor and the app page", async () => {
   const r = (await tool("get_preview_link").run(ctx("starter"), { feature: "size_guide" })) as { themeEditor: string; app: string };
   assert.match(r.themeEditor, /admin\/themes\/current\/editor.*ucs-size-guide/);
@@ -110,5 +100,5 @@ test("links point at the theme editor and the app page", async () => {
 
 test("tool scopes: building needs build, publishing needs the tick", () => {
   const need = Object.fromEntries(tools.map((t) => [t.name, t.needs]));
-  assert.deepEqual(need, { set_design: "build", discard_draft: "build", get_preview_link: "read", get_place_link: "read", create_offer: "build", update_offer: "build", request_feature: "build", publish: "publish", publish_offer: "publish" });
+  assert.deepEqual(need, { set_design: "build", discard_draft: "build", get_preview_link: "read", get_place_link: "read", create_offer: "build", update_offer: "build", publish: "publish", publish_offer: "publish" });
 });

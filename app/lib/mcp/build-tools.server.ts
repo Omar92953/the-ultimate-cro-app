@@ -5,13 +5,10 @@
  *   - an offer is created switched off; only publish_offer turns it on (offer slot rule applies).
  * Every tool runs the same cleaners, plan checks and limits as the admin pages (lib/rules.ts).
  */
-import db from "../../db.server";
 import { AdminError, gql } from "../admin.server";
 import { feature, featureHref, type FeatureKey } from "../catalog";
-import { cleanRequest } from "../feature-requests";
-import { createFeatureRequest } from "../feature-requests.server";
 import { listRules, saveRule, upsert } from "../cro.server";
-import { RuleError, requireFeature, requireFeatureRequests, requireSizeGuide } from "../rules";
+import { RuleError, requireFeature, requireSizeGuide } from "../rules";
 import { requireOfferSlot } from "../rules.server";
 import { sectionLinks } from "../sections.server";
 import type { Placement, Rule } from "../types";
@@ -55,7 +52,7 @@ export function ignoredFields(sent: unknown, kept: unknown, path = ""): string[]
 
 function designOf(key: FeatureKey) {
   const d = DESIGNS[key];
-  if (!d) throw new RuleError(`${feature(key).title} can't be built this way yet. Use request_feature, or open it in the app: ${featureHref(key)}`, "input", false);
+  if (!d) throw new RuleError(`${feature(key).title} can't be built this way yet. Open it in the app: ${featureHref(key)}`, "input", false);
   return d;
 }
 
@@ -186,7 +183,7 @@ export const BUILD_TOOLS: Tool[] = [
     summary: (a) => `${String(a.type)} ${String(a.name ?? "").slice(0, 60)}`,
     async run(ctx, args) {
       const kind = args.type === "cross_sell" ? "cross_sell" : args.type === "upsell" ? "upsell" : null;
-      if (!kind) throw new RuleError("type must be upsell or cross_sell. Discounts have create_discount and bundles their own tools; anything else: use request_feature or the app.", "input", false);
+      if (!kind) throw new RuleError("type must be upsell or cross_sell. Discounts have create_discount and bundles their own tools; anything else: use the app.", "input", false);
       requireFeature(ctx.plan, kind === "upsell" ? "upsell" : "cross_sell", ctx.trial);
       const rule = await applyOfferArgs(ctx, blankRule(kind), args);
       try {
@@ -217,22 +214,6 @@ export const BUILD_TOOLS: Tool[] = [
         if (e instanceof AdminError) throw new RuleError(e.message, "input", false);
         throw e;
       }
-    },
-  },
-  {
-    name: "request_feature",
-    description: "When none of the tools can do what the merchant asked, send it to the CRO Toolbox team as a feature request (Growth and Pro plans; Pro requests are built first). Tell the merchant it was sent. Max 5 a day. Describe what the store should do, not how.",
-    needs: "build",
-    schema: obj({ what: { type: "string", description: "What the store should do, in the merchant's words (up to 2000 characters)." }, where: { type: "string", description: "Where it should show, for example the product page (optional)." } }, ["what"]),
-    summary: (a) => String(a.what ?? "").slice(0, 60),
-    async run(ctx, args) {
-      requireFeatureRequests(ctx.plan);
-      const clean = cleanRequest(args.what, args.where);
-      if (!clean.ok) throw new RuleError(clean.error, "input", false);
-      const today = await db.featureRequest.count({ where: { shop: ctx.shop, createdAt: { gt: new Date(Date.now() - 86_400_000) } } });
-      if (today >= 5) throw new RuleError("Five requests were already sent today. Try again tomorrow.", "limit", false);
-      await createFeatureRequest(ctx.shop, ctx.plan, clean.text, clean.place);
-      return { sent: true, message: ctx.plan === "pro" ? "Sent. Requests from the Pro plan are built first." : "Sent to the CRO Toolbox team." };
     },
   },
 ];

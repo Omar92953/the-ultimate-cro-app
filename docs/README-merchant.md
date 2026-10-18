@@ -50,7 +50,7 @@ customer pays.
   rules, results for your top 3 offers.
 - **Growth:** unlimited checkout rules, results for every offer and bundle, the holdout test, and
   feature requests we build for you.
-- **Pro:** unlimited orders, priority support, your requests built first.
+- **Pro:** unlimited orders, A/B tests, return saving rules, Track page offer slots, priority support.
 - Paid plans are billed by Shopify. Cancel or change your plan anytime — nothing is deleted; offers
   over a limit are switched off and come back on when you upgrade.
 

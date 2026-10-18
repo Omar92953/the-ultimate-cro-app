@@ -41,11 +41,6 @@ export function requirePage(plan: PlanKey, pathname: string, search = "", trial:
   if (lock) throw new RuleError(needsPlan(lock.needs), "plan");
 }
 
-/** Sending a feature request is included from one plan up (plans.ts EXTRA_PLAN). */
-export function requireFeatureRequests(plan: PlanKey) {
-  if (!atLeast(plan, EXTRA_PLAN.featureRequests)) throw new RuleError(`Requests are included from the ${PLANS[EXTRA_PLAN.featureRequests].name} plan.`, "plan");
-}
-
 /** Track page offers (offers above and below the tracking) are on the Pro plan (plans.ts EXTRA_PLAN). */
 export function requireTrackOffers(plan: PlanKey) {
   if (!atLeast(plan, EXTRA_PLAN.trackOffers)) throw new RuleError(needsPlan(EXTRA_PLAN.trackOffers), "plan");

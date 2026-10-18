@@ -1,11 +1,9 @@
 /**
  * Home: is the app set up and working, and what is it bringing in. Top to bottom: one banner at
  * most, the setup guide (4 steps that tick themselves, "I've done it" as a fallback), the plan bar,
- * the last 30 days, what needs attention, what to try next, tutorials, then help, feature requests
- * and what's new. Features live in the hubs. One loader; reads run at once, remembered per shop.
+ * the last 30 days, what needs attention, what to try next, tutorials, then help and what's new. Features live in the hubs. One loader; reads run at once, remembered per shop.
  */
 import { useEffect, useState } from "react";
-import { useAppBridge } from "@shopify/app-bridge-react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useFetcher, useLoaderData, useRevalidator } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -20,15 +18,12 @@ import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, PLAN_KEYS, atLeast, limitOf, limitText, ordersOver, type PlanKey } from "../lib/plans";
-import { TUTORIALS_URL, helpUrl } from "../lib/site";
+import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOver } from "../lib/plans";
+import { FEATURE_IDEAS_EMAIL, TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
-import { requireFeatureRequests } from "../lib/rules";
-import { createFeatureRequest, listFeatureRequests, type FeatureRequestRow } from "../lib/feature-requests.server";
-import { REQUEST_STATUS_LABEL, cleanRequest, MAX_PLACE, MAX_TEXT } from "../lib/feature-requests";
-import { Button, TextArea, TextField } from "../components/fields";
-import { Card, CardGrid, CardText, LinkTiles, Pill } from "../components/ui";
-import { UpgradeButton, usePlan } from "../components/Upgrade";
+import { Button } from "../components/fields";
+import { Card, CardGrid, LinkTiles, Pill } from "../components/ui";
+import { usePlan } from "../components/Upgrade";
 import { isLocked } from "../lib/plan-gate";
 import { PlanBar } from "../components/PlanCard";
 import { SetupGuide, type GuideStep } from "../components/SetupGuide";
@@ -42,7 +37,7 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
   const shop = session.shop;
   // Everything at once. The hub data is the same the Storefront hub uses (remembered for both);
   // orders are the slowest, so Home waits at most 3 s for them and fills in on the next visit.
-  const [plan, hub, extras, results, requests] = await Promise.all([
+  const [plan, hub, extras, results] = await Promise.all([
     getPlan(admin, shop),
     timed("hub", () => remember(shop, "hub", 30000, () => loadHub(admin, session), 300000)),
     remember(shop, "home", 30000, () =>
@@ -55,7 +50,6 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
         waitingEmails(shop).catch(() => []),
       ]), 300000),
     cachedResults(admin, shop),
-    listFeatureRequests(shop).catch(() => [] as FeatureRequestRow[]),
   ]);
   const [planState, homeState, offers, monthOrders, returns, waiting] = extras;
   const installed = hub.theme?.installed ?? null;
@@ -119,27 +113,13 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
     attention,
     recommended,
     supportEmail: process.env.SUPPORT_EMAIL || "",
-    requests,
   };
 });
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   const intent = form.get("intent");
-  if (intent === "feature-request") {
-    // The plan gate is checked here too, not only by hiding the form.
-    const { plan } = await getPlan(admin, session.shop);
-    try {
-      requireFeatureRequests(plan);
-    } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Requests need a higher plan.", requested: false };
-    }
-    const clean = cleanRequest(form.get("text"), form.get("place"));
-    if (!clean.ok) return { ok: false, error: clean.error, requested: false };
-    await createFeatureRequest(session.shop, plan, clean.text, clean.place);
-    return { ok: true, error: null, requested: true };
-  }
   if (intent === "dismiss" || intent === "restore") await setHomeState(admin, { dismissed: intent === "dismiss" });
   if (intent === "manual") {
     const step = String(form.get("step") ?? "");
@@ -348,7 +328,7 @@ export default function Home() {
             </div>
         </s-section>
 
-        <CardGrid cols={3}>
+        <CardGrid cols={2}>
           <Card title="Help">
             <ul className={styles.links}>
               <li><a href={helpUrl()} target="_blank" rel="noreferrer">Help center</a></li>
@@ -359,6 +339,7 @@ export default function Home() {
                   {atLeast(data.plan.key, EXTRA_PLAN.prioritySupport) ? " (priority)" : ""}
                 </li>
               ) : null}
+              <li><a href={`mailto:${FEATURE_IDEAS_EMAIL}?subject=Feature%20idea`} target="_blank" rel="noreferrer">Suggest a feature</a></li>
               <li><Link to="/app/settings" prefetch="intent">Settings and app embeds</Link></li>
               <li><a href="/privacy" target="_blank" rel="noreferrer">Privacy policy</a></li>
             </ul>
@@ -368,8 +349,6 @@ export default function Home() {
               </Button>
             ) : null}
           </Card>
-
-          <FeatureRequestCard plan={data.plan.key} requests={data.requests} />
 
           <Card title="What's new">
             <ul className={styles.news}>
@@ -399,57 +378,6 @@ function Metric({ label, value, change, note }: { label: string; value: string; 
       ) : null}
       {note ? <span className={styles.metricNote}>{note}</span> : null}
     </div>
-  );
-}
-
-function FeatureRequestCard({ plan, requests }: { plan: PlanKey; requests: FeatureRequestRow[] }) {
-  const needs = EXTRA_PLAN.featureRequests;
-  const shopify = useAppBridge();
-  const fetcher = useFetcher<{ ok: boolean; error: string | null; requested: boolean }>();
-  useEffect(() => {
-    if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.requested) shopify.toast.show("Request sent");
-    else if (fetcher.data.error) shopify.toast.show(fetcher.data.error, { isError: true });
-  }, [fetcher.state, fetcher.data, shopify]);
-
-  if (!atLeast(plan, needs)) {
-    return (
-      <Card title="Request a feature" badge={<Pill>{`${PLANS[needs].name} plan`}</Pill>} actions={<UpgradeButton to={needs} />}>
-        <CardText>{`Need something the app doesn't do yet? On the ${PLAN_KEYS.filter((k) => atLeast(k, needs)).map((k) => PLANS[k].name).join(" and ")} plans, ask for any feature and we build it for you. On Pro, your requests are built first.`}</CardText>
-      </Card>
-    );
-  }
-  const first = atLeast(plan, EXTRA_PLAN.requestsFirst);
-  return (
-    <Card title="Request a feature" badge={<Pill tone="ok">{first ? "Built first" : "Included"}</Pill>}>
-      <CardText>{first ? "Tell us what you'd like your store to do. We build it for you, and as a Pro store your requests come first: we build yours before everyone else's. We don't promise dates, but you see when it's planned and when it's built." : "Tell us what you'd like your store to do. We build it for you; it's included in your plan."}</CardText>
-      {/* New key after a send (the list gets a new newest request), so the form empties itself. */}
-      <RequestForm key={requests[0]?.id ?? 0} sending={fetcher.state !== "idle"} onSend={(text, place) => fetcher.submit({ intent: "feature-request", text, place }, { method: "post" })} />
-      {requests.length ? (
-        <ul className={styles.news}>
-          {requests.map((r) => (
-            <li key={r.id}>
-              <span className={styles.newsDate}>{`${new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${REQUEST_STATUS_LABEL[r.status] ?? r.status}`}</span>
-              {r.text.length > 90 ? `${r.text.slice(0, 90)}…` : r.text}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </Card>
-  );
-}
-
-function RequestForm({ sending, onSend }: { sending: boolean; onSend: (text: string, place: string) => void }) {
-  const [text, setText] = useState("");
-  const [place, setPlace] = useState("");
-  return (
-    <s-stack gap="base">
-      <TextArea label="What should your store do?" value={text} onValue={setText} rows={3} maxLength={MAX_TEXT} />
-      <TextField label="Where should it show? (optional)" value={place} onValue={setPlace} placeholder="Product page, cart, checkout…" maxLength={MAX_PLACE} />
-      <div>
-        <Button variant="primary" onClick={() => onSend(text, place)} loading={sending} disabled={!text.trim()}>Send request</Button>
-      </div>
-    </s-stack>
   );
 }
 
