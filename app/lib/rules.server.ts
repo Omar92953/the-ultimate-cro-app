@@ -6,8 +6,9 @@ import type { AdminClient } from "./admin.server";
 import { checkCheckoutRules, checkCount, checkLimit, getPlan, getPlanState } from "./billing.server";
 import type { CheckoutKind } from "./checkout-rules";
 import { PLANS, type PlanKey } from "./plans";
-import { RuleError } from "./rules";
-import type { FeatureKey } from "./catalog";
+import { RuleError, requireFeature } from "./rules";
+import { dealFeature, type FeatureKey } from "./catalog";
+import { validateDeal, type Deal } from "./deals";
 
 type Limited = { error: string; upgrade: string | null } | null;
 const refuse = (over: Limited) => {
@@ -24,6 +25,18 @@ export async function planContext(admin: AdminClient, shop: string): Promise<{ p
 /** May this offer be on? Every offer type fills one of the plan's offer slots; an offer can always be saved off. */
 export async function requireOfferSlot(admin: AdminClient, shop: string, self: { active: boolean; handle?: string | null; id?: string | null }) {
   refuse(await checkLimit(admin, shop, "offerSlots", self));
+}
+
+/**
+ * May this deal (buy X get Y, volume, gift, upgrade, fixed bundle) be saved, and switched on if it is on? The plan includes its feature,
+ * its settings are complete, and it fits the plan's offer slots. The admin's deal page and the MCP discount tools both use this.
+ */
+export async function requireDeal(admin: AdminClient, shop: string, deal: Deal) {
+  const { plan, trial } = await planContext(admin, shop);
+  requireFeature(plan, dealFeature(deal.kind), trial);
+  const problems = validateDeal(deal);
+  if (problems.length) throw new RuleError(problems.join(" "), "input", false);
+  await requireOfferSlot(admin, shop, deal);
 }
 
 /** Checkout rules count together across payment, delivery and order limits. */
