@@ -89,7 +89,7 @@ export default function WishlistDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="wishlist" />
           <s-text color="subdued">
-            Shoppers save products with a heart and find them on your wishlist page. The list is kept in their browser; “Share my wishlist” gives a link that opens it on any device. For the page: create a page (e.g. “Wishlist”, address {cfg.page.url}) and add the “Order &amp; wishlist pages” block to it with Page: Wishlist.
+            Shoppers save products with a heart and find them on your wishlist page. The list is kept in their browser; “Share my wishlist” gives a link that opens it on any device. The app makes the wishlist page for you (button below), at the address in “Page address”; the “Order & wishlist pages” block in its theme template shows it.
           </s-text>
           {data.embedOn === false ? (
             <s-banner tone="warning" heading="Turn on the Conversion boosters embed. The wishlist runs from it">
