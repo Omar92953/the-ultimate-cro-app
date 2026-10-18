@@ -91,7 +91,7 @@ export default function Plans() {
               <s-text color="subdued">{GUARANTEE}</s-text>
             )}
           </s-stack>
-          <s-stack direction="inline" gap="small-200" alignItems="center">
+          <div className={styles.periodRow}>
             <Pill tone="ok">Annual: 2 months free</Pill>
             <div className={styles.period} role="radiogroup" aria-label="Billing period">
               {(["yearly", "monthly"] as const).map((v) => (
@@ -100,7 +100,7 @@ export default function Plans() {
                 </button>
               ))}
             </div>
-          </s-stack>
+          </div>
         </s-stack>
 
         <div className={styles.cards}>
