@@ -156,6 +156,24 @@ provider (returns), and for email branding add their own domain.
   store credit inside `returnProcess` (customer required), a bonus on top is a separate `storeCreditAccountCredit`, and gift cards and
   discount codes are not used for returns. If Shopify refuses the refund to store credit, the merchant refunds to the original payment.
 
+### Guest orders and store credit (research 2026-10-19, Admin API 2026-07)
+
+- **Putting a customer on an existing guest order:** `orderCustomerSet(orderId, customerId)` exists and needs **`write_orders`** (or
+  `write_quick_sale`). `orderUpdate` takes no `customerId` (its input has only email, phone, shippingAddress, tags, note, metafields...). Both
+  need `write_orders`, which the app does not have: **not used** (Omar decided to keep the scope list).
+  Sources: https://shopify.dev/docs/api/admin-graphql/2026-07/mutations/orderCustomerSet,
+  https://shopify.dev/docs/api/admin-graphql/2026-07/mutations/orderUpdate
+- **Finding or creating the customer:** `customers(query: "email:...")` is read with `read_customers` (we have it). Creating one
+  (`customerCreate`) needs `write_customers`: **not used**. Source: https://shopify.dev/docs/api/admin-graphql/2026-07/mutations/customerCreate
+- **Does signing in link a guest order?** The docs say nothing explicit. They show only that a buyer who is not signed in is a guest in
+  checkout and the order status page (`customer` is undefined for a guest), and that `routes.account_login_url` sends the shopper to
+  sign in. Sources: https://shopify.dev/docs/api/customer-account-ui-extensions/2026-07/target-apis/order-apis/buyer-identity-api,
+  https://shopify.dev/docs/storefronts/themes/sign-in. **Unverified, must be tested on Testing 3.**
+- **Built:** on a guest order the Returns page offers "Refund to my original payment" and "Get $X store credit (needs your account)", the
+  second with a "Sign in to your account to get store credit" link (`routes.account_login_url`, `return_to` the Returns page). Credit is
+  only ever given when the order has a customer (`orderHasCustomer`, unchanged), so nothing is lost if signing in does not link the
+  order: a shopper who is signed in and whose order still has no customer sees "Store credit needs an account at checkout." and the refund.
+
 ## 7. Recommended v1 scope (for Omar to decide)
 
 **In v1 (Shopify APIs only, Growth plan):**

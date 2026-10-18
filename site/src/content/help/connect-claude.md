@@ -14,7 +14,8 @@ It can see your offers, designs, products and collections. It never sees orders,
 
 1. In the app open **Settings, Connect an AI assistant** and copy the address.
 2. In Claude open **Settings, Connectors, Add custom connector**, paste the address and connect.
-3. Claude opens a page with a **connection code** (no store address to type). In your Shopify admin open CRO Toolbox, **Settings, Connect an AI assistant**, enter the code under **Finish connecting** and press Continue. Choose **Read only** or **Read and build**. Tick **Allow publishing** only if you want Claude to make drafts live.
+3. Claude opens a page with the button **Open CRO Toolbox in Shopify**. Press it: it opens CRO Toolbox in your own store (Shopify asks which store if you have several). Choose **Read only** or **Read and build**, tick **Allow publishing** only if you want Claude to make drafts live, and press **Allow**.
+4. If the button does not work, the same page shows a **connection code** (no store address to type). In your Shopify admin open CRO Toolbox, **Settings, Connect an AI assistant**, enter the code under **Finish connecting** and press Continue.
 
 Developer tools such as Claude Code can use a **personal access token** made on the same page. It is shown once.
 

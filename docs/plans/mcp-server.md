@@ -27,7 +27,11 @@ way merchants connect.**
   The `authorize` page the assistant opens does **not** ask for the store address (Shopify App Store rule 2.3.1:
   installation starts from a Shopify surface, no typing a shop URL). It shows a short **connection code**
   (`pairingCode()` in `auth.server.ts`: an HMAC of the request id with the app secret, 10 characters, no extra
-  storage) and tells the merchant to open CRO Toolbox in the Shopify admin, Settings, Connect an AI assistant,
+  storage). Its primary control is a button **Open CRO Toolbox in Shopify**: a store-less admin link
+  `https://admin.shopify.com/apps/the-ultimate-cro-app/app/mcp-connect?req=<request id>` that Shopify redirects to the merchant's own store
+  (or its store picker) with `?req` kept, so the admin page `app.mcp-connect` opens on that request and Allow is one click (still
+  validated server side: the request must exist, wait and be unexpired; the signed in session gives the shop; approve and deny are
+  limited to 20 per 10 minutes). The code stays as the backup under the button: the merchant opens CRO Toolbox in the Shopify admin, Settings, Connect an AI assistant,
   "Finish connecting". There the merchant enters the code (limited to 10 tries per 10 minutes); the signed in admin
   session (`authenticate.admin`) is what tells us the shop, so no shop is ever taken from the URL or typed, and
   there is no redirect built from user input (the redirect goes only to the address the client registered, as

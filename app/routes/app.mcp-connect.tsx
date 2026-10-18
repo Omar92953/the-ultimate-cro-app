@@ -12,8 +12,10 @@ import { planContext } from "../lib/rules.server";
 import { approveRequest, denyRequest, getRequest, type McpScope } from "../lib/mcp/auth.server";
 import { MCP_MIN_PLAN } from "../lib/mcp/server.server";
 import { errorMessage } from "../lib/admin.server";
+import { tooMany } from "../lib/proxy-guard.server";
 import { Button, Checkbox, Select } from "../components/fields";
 
+// Opened from the "Open CRO Toolbox in Shopify" button on /mcp/authorize (?req=...): the request is already chosen, so Allow is one click.
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const req = new URL(request.url).searchParams.get("req") ?? "";
@@ -26,6 +28,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const req = String(form.get("req") ?? "");
   try {
+    if (tooMany(request, session.shop, "mcp-connect", 20)) throw new Error("Too many tries. Please wait a few minutes.");
     if (form.get("intent") === "deny") return { ok: true, error: null, url: await denyRequest(req), denied: true };
     const p = await planContext(admin, session.shop);
     if (!atLeast(p.plan, MCP_MIN_PLAN)) throw new Error("Connecting an AI assistant needs the Starter plan or higher.");

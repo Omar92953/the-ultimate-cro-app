@@ -69,8 +69,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
     // How the shopper can be paid back: a refund always; store credit when the merchant (Pro) switched it on.
     // Store credit is a refund to the customer's account, so an order with no customer (a guest order) is only refunded.
-    const creditOk = saving.credit.on && !legacy && (await orderHasCustomer(admin, order.id));
-    const options = { credit: creditOk ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
+    // A guest order can still get credit once the shopper signs in to their account (the page shows a sign in step); without that, refund only.
+    const hasCustomer = saving.credit.on && !legacy && (await orderHasCustomer(admin, order.id));
+    const creditOk = hasCustomer;
+    const options = { credit: creditOk ? { bonus: saving.credit.bonus } : null, signIn: saving.credit.on && !legacy && !hasCustomer ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
     if (body.intent !== "send") {
       const credits = legacy ? [] : await creditsForOrder(session.shop, order.id, q.email);
       return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
