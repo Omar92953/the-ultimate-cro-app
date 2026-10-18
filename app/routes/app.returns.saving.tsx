@@ -15,7 +15,7 @@ import { getReturnRules, saveReturnRules } from "../lib/shopify-returns.server";
 import { planContext } from "../lib/rules.server";
 import { requireFeature } from "../lib/rules";
 import { withSaving, type AutoRule, type Saving } from "../lib/return-rules";
-import { Button, Checkbox, NumberField, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
 import { EditorLayout } from "../components/EditorLayout";
@@ -81,10 +81,13 @@ export default function ReturnSaving() {
             <s-stack gap="base">
               <Switch label="Offer store credit on the Returns page" checked={s.credit.on} onValue={(v) => credit({ on: v })} />
               {s.credit.on ? (
+                <s-stack gap="base">
+                <Select label="Give the credit" value={s.creditWhen} onValue={(v) => setS((x) => ({ ...x, creditWhen: v === "approved" ? "approved" : "received" }))} options={[{ value: "received", label: "When the items are received (you click “Items received”)" }, { value: "approved", label: "At once, when the return is approved" }]} details="The shopper sees when the credit comes: “Your credit is sent once we receive the items”." />
                 <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                   <NumberField label="Bonus on top of the refund value" details="For example 10 turns a $50 refund into $55 of credit." suffix="%" min={0} max={100} step={1} value={s.credit.bonus} onValue={(v) => credit({ bonus: v })} />
                   <NumberField label="Credit lasts" details="0 = it never expires." suffix="days" min={0} max={3650} step={1} value={s.credit.expiryDays} onValue={(v) => credit({ expiryDays: v })} />
                 </s-grid>
+                </s-stack>
               ) : null}
             </s-stack>
           </s-section>

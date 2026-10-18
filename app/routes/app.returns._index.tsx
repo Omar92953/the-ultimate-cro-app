@@ -11,8 +11,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getReturn, listReturns, updateReturn } from "../lib/orders-lookup.server";
-import { attachLabel, closeReturn, declineReturn, getReturnRules, refundReturn, syncReturns } from "../lib/shopify-returns.server";
-import { approveAndSettle } from "../lib/return-saving.server";
+import { attachLabel, closeReturn, declineReturn, getReturnRules, refundPlan, refundReturn, syncReturns } from "../lib/shopify-returns.server";
+import { approveAndSettle, giveCreditOnReceipt } from "../lib/return-saving.server";
 import { releaseExchange } from "../lib/return-exchange.server";
 import { parseExchange } from "../lib/return-exchange";
 import { planContext } from "../lib/rules.server";
@@ -30,7 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await syncReturns(admin, session.shop).catch(() => null);
   const [returns, theme] = await Promise.all([listReturns(session.shop).catch(() => []), getThemeStatus(admin, session.shop).catch(() => null)]);
   const ctx = await orderPageContext(admin, session.shop, theme);
-  return { returns, shop: session.shop, inTheme: theme ? ctx.inPageTemplate && !!ctx.pages.returns : null, addLink: ctx.links.returns };
+  return { returns, shop: session.shop, inTheme: theme ? ctx.inPageTemplate && !!ctx.pages.returns : null, addLink: ctx.links.returns, creditWhen: (await getReturnRules(admin).catch(() => null))?.rules.saving.creditWhen ?? "received" };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -48,6 +48,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const { plan } = await planContext(admin, session.shop);
       const { rules } = await getReturnRules(admin);
       await approveAndSettle(admin, session.shop, id, rules, atLeast(plan, "pro"));
+    } else if (intent === "credit-now") {
+      // The items arrived: gives the store credit (and processes the return).
+      const { plan } = await planContext(admin, session.shop);
+      const { rules } = await getReturnRules(admin);
+      await giveCreditOnReceipt(admin, session.shop, id, rules, atLeast(plan, "pro"));
     } else if (intent === "decline") {
       const note = String(form.get("note") ?? "").trim();
       if (shopifyId) await declineReturn(admin, shopifyId, note);
@@ -61,6 +66,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       for (const u of [labelUrl, trackingUrl]) if (u && !/^https:\/\/\S+$/.test(u)) throw new Error("Links must start with https://");
       await attachLabel(admin, shopifyId, { labelUrl, tracking, trackingUrl });
       await updateReturn(session.shop, id, { labelUrl, tracking, trackingUrl });
+    } else if (intent === "refund-quote") {
+      // The amount Shopify would refund, shown before the merchant confirms.
+      if (!shopifyId) throw new Error("Refund it in the Shopify admin: this request was made before returns used Shopify.");
+      const plan = await refundPlan(admin, shopifyId);
+      return { ok: true, error: null, intent, quote: { amount: plan.amount, currency: plan.currency } };
     } else if (intent === "refund") {
       if (!shopifyId) throw new Error("Refund it in the Shopify admin: this request was made before returns used Shopify.");
       const { rules } = await getReturnRules(admin);
@@ -74,23 +84,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (shopifyId) await closeReturn(admin, shopifyId).catch(() => null);
       await updateReturn(session.shop, id, { status: "closed" });
     } else throw new Error("Unknown action.");
-    return { ok: true, error: null, intent };
+    return { ok: true, error: null, intent, quote: null };
   } catch (e) {
-    return { ok: false, error: errorMessage(e), intent };
+    return { ok: false, error: errorMessage(e), intent, quote: null };
   }
 };
 
-const DONE: Record<string, string> = { approve: "Approved. Shopify emailed the shopper (credit is given if they chose it; an exchange waits on hold until you say the items arrived).", "ship-exchange": "The exchange can ship now.", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
+const DONE: Record<string, string> = { "credit-now": "The credit was given and the return processed.", approve: "Approved. Shopify emailed the shopper (credit is given now or when the items arrive, as set in Return saving rules; an exchange waits on hold until you say the items arrived).", "ship-exchange": "The exchange can ship now.", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
 
-function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string }) {
+function Card({ r, shop, creditWhen }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string; creditWhen: string }) {
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [declining, setDeclining] = useState(false);
+  // Refund asks first: the amount Shopify will refund, then Confirm.
+  const [dismissed, setDismissed] = useState<unknown>(null);
   const [note, setNote] = useState("");
   const [label, setLabel] = useState({ labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl });
   const busy = fetcher.state !== "idle";
+  const confirmRefund = fetcher.data?.ok && fetcher.data.intent === "refund-quote" && fetcher.data !== dismissed ? fetcher.data.quote : null;
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.ok && fetcher.data.intent === "refund-quote") return;
     if (fetcher.data.ok) shopify.toast.show(DONE[fetcher.data.intent] ?? "Saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
@@ -163,9 +177,14 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
                 </Button>
               </>
             ) : null}
+            {state === "approved" && r.resolution === "credit" ? (
+              <Button variant="primary" loading={busy} onClick={() => send("credit-now")}>
+                Items received: give the credit
+              </Button>
+            ) : null}
             {state === "approved" && r.resolution !== "exchange" ? (
               <>
-                <Button variant="primary" loading={busy} onClick={() => send("refund")}>
+                <Button variant={r.resolution === "credit" ? "secondary" : "primary"} loading={busy} onClick={() => send("refund-quote")}>
                   Refund
                 </Button>
                 <Button variant="tertiary" onClick={() => send("close")}>
@@ -200,12 +219,24 @@ function Card({ r, shop }: { r: Awaited<ReturnType<typeof loader>>["returns"][nu
           <s-text color="subdued">
             {r.creditKind
               ? `Paid back with ${r.creditKind === "store_credit" ? "store credit" : r.creditKind === "gift_card" ? "a gift card" : "a discount code"}: ${r.creditAmount.toFixed(2)} ${r.currency}${r.creditCode ? ` (${r.creditCode})` : ""}.`
-              : `The shopper chose store credit${r.quote ? ` (about ${r.quote.toFixed(2)} ${r.currency} of items${r.creditBonus ? `, plus a ${r.creditBonus}% bonus` : ""})` : ""}. It is given when you approve.`}
+              : `The shopper chose store credit${r.quote ? ` (about ${r.quote.toFixed(2)} ${r.currency} of items${r.creditBonus ? `, plus a ${r.creditBonus}% bonus` : ""})` : ""}. ${creditWhen === "received" ? "It is given when you click “Items received”. The shopper is told it is sent once you have the items." : "It is given when you approve."}`}
           </s-text>
         ) : null}
         {r.note ? <s-text color="subdued">“{r.note}”</s-text> : null}
         {r.declineNote ? <s-text color="subdued">Declined: {r.declineNote}</s-text> : null}
         {!r.returnId ? <s-text color="subdued">Made before returns used Shopify. Arrange the return and refund in the Shopify admin.</s-text> : null}
+        {confirmRefund ? (
+          <s-banner tone="warning" heading={`Refund ${confirmRefund.amount.toFixed(2)} ${confirmRefund.currency} to the original payment?`}>
+            <s-stack direction="inline" gap="small-200">
+              <Button variant="primary" tone="critical" loading={busy} onClick={() => send("refund")}>
+                Refund {confirmRefund.amount.toFixed(2)} {confirmRefund.currency}
+              </Button>
+              <Button variant="tertiary" onClick={() => setDismissed(fetcher.data)}>
+                Cancel
+              </Button>
+            </s-stack>
+          </s-banner>
+        ) : null}
         {declining ? (
           <s-stack gap="small-200">
             <TextField label="Message to the shopper (optional)" value={note} onValue={setNote} maxLength={500} />
@@ -264,7 +295,7 @@ export default function ReturnRequests() {
           {data.returns.length ? (
             <s-stack gap="small-300">
               {data.returns.map((r) => (
-                <Card key={r.id} r={r} shop={data.shop} />
+                <Card key={r.id} r={r} shop={data.shop} creditWhen={data.creditWhen} />
               ))}
             </s-stack>
           ) : (

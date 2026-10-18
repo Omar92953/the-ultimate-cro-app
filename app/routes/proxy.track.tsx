@@ -39,7 +39,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const sell = (await getTrackSell(admin).catch(() => null))?.sell;
     const next = sell && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await nextOrderCode(admin, session.shop, order.id, sell.nextOrder).catch((e) => { console.error(`[proxy/track] next order code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
     // Everything except the internal order id.
-    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
+    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.unitPrice })), prices: order.prices, shipments, ...(recs ? { recs } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
   } catch (e) {
     console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);
