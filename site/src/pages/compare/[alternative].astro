@@ -1,0 +1,236 @@
+---
+/**
+ * /compare/<app>-alternative/: for merchants looking to switch from another app (lib/alternatives.ts).
+ * What CRO Toolbox does comes from the app's catalog.ts and plans.ts. About the other app we only say
+ * what we checked on its own pages, with the date; today that is nothing, and the page says so.
+ */
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import FeatureCard from "../../components/FeatureCard.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { ALTERNATIVES, CHECKED_ALT, altMeta, altPath, appStoreSearch, article, type Alternative } from "../../lib/alternatives";
+import { KEYWORD_PAGES, keywordPath } from "../../lib/keywords";
+import { planOf } from "../../lib/plan-lines";
+import { featurePath, MORE_PAGES, PAGES } from "../../lib/pages";
+import { PLANS, cheapestPaid, money, trialDays, featureTitle, featureAbout } from "../../lib/app";
+import { faqPage } from "../../lib/schema";
+
+export function getStaticPaths() {
+  return ALTERNATIVES.map((a) => ({ params: { alternative: `${a.slug}-alternative` }, props: { a } }));
+}
+interface Props {
+  a: Alternative;
+}
+const { a } = Astro.props;
+const page = altMeta(a);
+const crumbs = [
+  { name: "Compare", href: MORE_PAGES.compare.path },
+  { name: `${a.name} alternative`, href: altPath(a) },
+];
+const list = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}` : items[0]);
+const names = a.features.map((k) => featureTitle(k));
+const an = article(a.name);
+const An = an === "an" ? "An" : "A";
+const free = PLANS.free.name;
+const keywordLinks = a.keywordPages.map((s) => KEYWORD_PAGES.find((p) => p.slug === s)).filter((p): p is (typeof KEYWORD_PAGES)[number] => Boolean(p));
+const others = ALTERNATIVES.filter((x) => x.slug !== a.slug);
+const updated = new Date(`${CHECKED_ALT} 12:00 UTC`);
+
+const faq: QA[] = [
+  {
+    q: `Is CRO Toolbox ${an} ${a.name} alternative?`,
+    a: `For ${a.job}, yes: CRO Toolbox has ${list(names)}, in one app for any Online Store 2.0 theme. Compare the features you use today before you switch.`,
+  },
+  ...a.faq,
+  {
+    q: "How much does CRO Toolbox cost?",
+    a: `There is a ${free} plan, and paid plans from ${money(cheapestPaid.monthly)} a month, each with a ${trialDays} day free trial. ${list(a.features.map((k) => `${featureTitle(k)}: ${planOf(k)}`))}. See <a href="/pricing/">pricing</a>.`,
+  },
+  {
+    q: `Can I import my setup from ${a.name}?`,
+    a: "No. CRO Toolbox doesn't import from other apps: you set things up again in CRO Toolbox, starting from its templates with a live preview.",
+  },
+  {
+    q: `What does ${a.name} cost?`,
+    a: `We couldn't open ${a.name}'s own pages to check on ${CHECKED_ALT}, so we don't state its prices. See its current listing on the Shopify App Store.`,
+  },
+];
+---
+
+<Base page={page} crumbs={crumbs} schema={[faqPage(faq)]}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Compare</span>
+      <h1>{An} {a.name} alternative for Shopify</h1>
+      <p class="lead">
+        {`If you're looking for ${an} ${a.name} alternative for ${a.job}, CRO Toolbox does it with ${list(names)}, in one app with a ${free} plan. We couldn't check ${a.name}'s current features and prices on its own pages, so this page doesn't state them: compare them on its listing before you switch.`}
+      </p>
+      <p class="updated">Last updated <time datetime={updated.toISOString().slice(0, 10)}>{CHECKED_ALT}</time></p>
+      <div class="actions">
+        <InstallButton medium="compare" campaign={`${a.slug}_alternative`} />
+        <a class="btn ghost" href={PAGES.pricing.path}>See pricing</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap prose wide">
+      <h2>What CRO Toolbox has for {a.job}</h2>
+      <div class="table-scroll">
+        <table class="kt">
+          <caption class="sr-only">CRO Toolbox features for {a.job} and the plan that includes each</caption>
+          <thead><tr><th scope="col">Feature</th><th scope="col">What it does</th><th scope="col">Plan</th></tr></thead>
+          <tbody>
+            {
+              a.features.map((k) => (
+                <tr>
+                  <th scope="row">
+                    <a href={featurePath(k)}>{featureTitle(k)}</a>
+                  </th>
+                  <td>{featureAbout(k)}</td>
+                  <td>{planOf(k)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="about">
+        <h3>About {a.name}</h3>
+        <p>
+          {`We tried to open ${a.name}'s own pages on ${CHECKED_ALT} and couldn't from where this site is built, so this page states nothing about its features or prices. Search for `}
+          <a href={appStoreSearch(a)} rel="nofollow noopener" target="_blank">{a.listingName} on the Shopify App Store</a> to see its current listing.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">What to compare before you switch</h2>
+        <ul class="check-list">
+          <li>The features you use today, one by one</li>
+          <li>How each app charges: by plan, by orders or by revenue, and what you'd pay at your order volume</li>
+          <li>Whether it works with your theme without code changes</li>
+          <li>What happens to your current setup and data when you uninstall the old app</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h2 class="h3">How to switch to CRO Toolbox</h2>
+        <ol class="steps">
+          <li>Install CRO Toolbox. The {free} plan needs no card.</li>
+          {a.tips.map((t) => <li>{t}</li>)}
+          <li>Place a test order and check your store before you uninstall the old app.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <div class="grid three cards">{a.features.map((k) => <FeatureCard feature={k} />)}</div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap">
+      <div class="head center"><h2>Questions</h2></div>
+      <Faq items={faq} />
+      <h2 class="h3 more">Read next</h2>
+      <ul class="links">
+        {
+          keywordLinks.map((p) => (
+            <li>
+              <a class="link" href={keywordPath(p)}>{p.h1}</a>
+            </li>
+          ))
+        }
+        {
+          a.compare && (
+            <li>
+              <a class="link" href={`/compare/cro-toolbox-vs-${a.compare}/`}>CRO Toolbox vs {a.name}, side by side</a>
+            </li>
+          )
+        }
+        <li><a class="link" href={PAGES.pricing.path}>Pricing and plans</a></li>
+        <li><a class="link" href={MORE_PAGES.compare.path}>All comparisons</a></li>
+      </ul>
+      <h2 class="h3 more">Other alternatives</h2>
+      <ul class="others">{others.map((o) => <li><a class="btn ghost small" href={altPath(o)}>{o.name} alternative</a></li>)}</ul>
+    </div>
+  </section>
+  <NotifyCta campaign={`alternative_${a.slug}`} />
+</Base>
+
+<style>
+  .updated {
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .actions {
+    margin-top: 24px;
+  }
+  .wide {
+    max-width: 960px;
+  }
+  .prose > h2:first-child {
+    margin-top: 0;
+  }
+  .kt {
+    min-width: 560px;
+    margin-bottom: 0;
+  }
+  .kt th,
+  .kt td {
+    overflow-wrap: normal;
+  }
+  .about {
+    margin-top: 28px;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+  .about h3 {
+    margin: 0 0 8px;
+  }
+  .about p {
+    margin: 0;
+  }
+  .h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  .grid > .block {
+    min-width: 0;
+  }
+  .steps {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 10px;
+  }
+  .more {
+    margin-top: 48px;
+  }
+  .links,
+  .others {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .links {
+    display: grid;
+    gap: 10px;
+  }
+  .others {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>

@@ -4,6 +4,7 @@ import Crumbs from "../../components/Crumbs.astro";
 import NotifyCta from "../../components/NotifyCta.astro";
 import { COMPETITORS, CHECKED } from "../../lib/competitors";
 import { MORE_PAGES } from "../../lib/pages";
+import { ALTERNATIVES, altPath, article } from "../../lib/alternatives";
 
 const page = MORE_PAGES.compare;
 const crumbs = [{ name: "Compare", href: page.path }];
@@ -34,6 +35,22 @@ const crumbs = [{ name: "Compare", href: page.path }];
       }
     </div>
   </section>
+  <section class="section tight">
+    <div class="wrap">
+      <h2 class="alt-h">Switching from another app?</h2>
+      <div class="grid three">
+        {
+          ALTERNATIVES.map((a) => (
+            <a class="card ccard" href={altPath(a)}>
+              <h3>{article(a.name) === "an" ? "An" : "A"} {a.name} alternative</h3>
+              <p class="muted">For {a.job}.</p>
+              <span class="link">See CRO Toolbox →</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
   <NotifyCta campaign="compare" />
 </Base>
 
@@ -48,8 +65,17 @@ const crumbs = [{ name: "Compare", href: page.path }];
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .ccard h2 {
+  .ccard h2,
+  .ccard h3 {
     font-size: 1.25rem;
+  }
+  .ccard:hover h3 {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .alt-h {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
   }
   .ccard .link {
     margin-top: auto;
