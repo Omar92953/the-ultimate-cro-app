@@ -190,7 +190,7 @@ export async function exchangesForOrder(shop: string, orderId: string, email: st
 /** The credit given for this order's returns (what the Returns page shows the shopper). */
 export async function creditsForOrder(shop: string, orderId: string, email: string) {
   const rows = await db.returnRequest.findMany({ where: { shop, orderId, email: email.toLowerCase(), creditKind: { not: "" } }, orderBy: { createdAt: "desc" }, take: 5 });
-  return rows.map((r) => ({ name: r.returnName || `Return ${r.orderName}`, kind: r.creditKind, code: r.creditCode, amount: r.creditAmount, currency: r.currency }));
+  return rows.map((r) => ({ name: r.returnName || `Return ${r.orderName}`, kind: r.creditKind, code: r.creditKind === "store_credit" ? "" : r.creditCode, amount: r.creditAmount, currency: r.currency }));
 }
 
 export type ReturnRow = Awaited<ReturnType<typeof listReturns>>[number];

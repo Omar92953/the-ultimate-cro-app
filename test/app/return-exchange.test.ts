@@ -40,7 +40,8 @@ test("the price difference is paid by the shopper when positive, refunded when n
   assert.equal(parseExchange(JSON.stringify({ lines: [] })), null);
 });
 
-function fake(opts: { refund?: boolean; holdFails?: boolean; processError?: string } = {}) {
+function fake(opts: { refund?: boolean; holdFails?: boolean; processError?: string; owed?: string | null } = {}) {
+  const state = { owed: opts.owed === undefined ? "0.00" : opts.owed };
   const calls: { op: string; vars: Record<string, any> }[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
   let processed = false;
   const admin = {
@@ -64,12 +65,13 @@ function fake(opts: { refund?: boolean; holdFails?: boolean; processError?: stri
         case "CroHold":
           if (opts.holdFails) return data({ fulfillmentOrderHold: { fulfillmentHold: null, userErrors: [{ message: "Cannot hold" }] } });
           return data({ fulfillmentOrderHold: { fulfillmentHold: { id: "gid://shopify/FulfillmentHold/4" }, userErrors: [] } });
+        case "CroOrderOwed": return data({ order: state.owed === null ? null : { totalOutstandingSet: { shopMoney: { amount: state.owed, currencyCode: "EUR" } } } });
         case "CroRelease": return data({ fulfillmentOrderReleaseHold: { fulfillmentOrder: { id: "x", status: "OPEN" }, userErrors: [] } });
         default: return data({});
       }
     },
   };
-  return { admin: admin as unknown as AdminClient, calls };
+  return { admin: admin as unknown as AdminClient, calls, state };
 }
 
 async function row(over: Record<string, unknown> = {}) {
@@ -147,4 +149,47 @@ test("the report counts exchanges at the price of the new items", async () => {
   await prisma.returnRequest.create({ data: { shop: "x.myshopify.com", orderId: "o", orderName: "#9", email: "a@b.com", items: "[]", reason: "x", status: "exchanged", resolution: "exchange", currency: "EUR", exchange: JSON.stringify({ lines: [line({ qty: 2, newPrice: 45 })], diff: 10 }) } });
   const r = await returnSavings("x.myshopify.com");
   assert.deepEqual(r.exchanges, { count: 1, value: 90 });
+});
+
+test("a cheaper exchange never refunds more than the difference", async () => {
+  const a = fake({ refund: true }); // Shopify suggests 6.00 back
+  const id = await row({ exchange: JSON.stringify({ lines: [line({ newPrice: 38, qty: 1 })], diff: -2 }) });
+  await E.approveExchange(a.admin, "s.myshopify.com", id);
+  const proc = a.calls.find((c) => c.op === "CroProcessExchange")!.vars.input;
+  assert.deepEqual(proc.financialTransfer.issueRefund.orderTransactions.map((t: { transactionAmount: { amount: string } }) => t.transactionAmount.amount), ["2.00"]);
+});
+
+test("an exchange where the shopper owes more never refunds the returned item and stays on hold until it is paid", async () => {
+  // Shopify suggests refunding the returned item (it counts credit given outside the order as paid); the shopper owes 15.
+  const a = fake({ refund: true, owed: "15.00" });
+  const id = await row({ exchange: JSON.stringify({ lines: [line({ oldPrice: 9.95, newPrice: 24.95, qty: 1 })], diff: 15 }) });
+  const out = await E.approveExchange(a.admin, "s.myshopify.com", id);
+  assert.equal(a.calls.find((c) => c.op === "CroProcessExchange")!.vars.input.financialTransfer, undefined, "no refund of the returned item");
+  assert.equal(out.owes, 15);
+  assert.equal(out.holds.length, 1);
+  // "Ship the exchange" is refused while the order owes money, and nothing is released.
+  await assert.rejects(E.releaseExchange(a.admin, "s.myshopify.com", id), /still owes 15\.00 EUR/);
+  assert.ok(!a.calls.some((c) => c.op === "CroRelease"), "still on hold");
+  assert.equal((await prisma.returnRequest.findUnique({ where: { id } }))?.status, "approved");
+  // The invoice is paid: the balance is 0 and the exchange ships.
+  a.state.owed = "0.00";
+  await E.releaseExchange(a.admin, "s.myshopify.com", id);
+  assert.ok(a.calls.some((c) => c.op === "CroRelease"));
+  assert.equal((await prisma.returnRequest.findUnique({ where: { id } }))?.status, "exchanged");
+});
+
+test("when Shopify cannot say what is owed, the exchange stays on hold", async () => {
+  const a = fake({ owed: null });
+  const id = await row();
+  await E.approveExchange(a.admin, "s.myshopify.com", id);
+  await assert.rejects(E.releaseExchange(a.admin, "s.myshopify.com", id), /Could not check what the shopper still owes/);
+  assert.ok(!a.calls.some((c) => c.op === "CroRelease"));
+});
+
+test("a dearer exchange that Shopify shows as fully paid is flagged at approval", async () => {
+  const a = fake({ owed: "0.00" });
+  const id = await row({ exchange: JSON.stringify({ lines: [line({ oldPrice: 9.95, newPrice: 24.95, qty: 1 })], diff: 15 }) });
+  const out = await E.approveExchange(a.admin, "s.myshopify.com", id);
+  assert.match(out.warning, /shows nothing owed/);
+  assert.equal(out.owes, 15);
 });

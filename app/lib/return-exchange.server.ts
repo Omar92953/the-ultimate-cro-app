@@ -2,8 +2,8 @@
  * Exchanges (Pro, return saving rules): the shopper asks for another size or colour of the same product instead of money.
  * The Shopify return is made when the merchant approves (returnCreate with exchange line items), then returnProcess creates the
  * exchange's fulfillment orders. We hold them until the merchant says the items arrived, then release them. If the new item costs
- * more, Shopify holds the order for payment and the merchant sends the invoice in the Shopify admin; if it costs less, the
- * difference is refunded. Scopes: write_returns, write_merchant_managed_fulfillment_orders.
+ * more, nothing is ever refunded for the returned item, Shopify holds the order for payment, the merchant sends the invoice in the
+ * Shopify admin and "ship the exchange" is refused until the order's outstanding balance is 0; if it costs less, only the difference is refunded. Scopes: write_returns, write_merchant_managed_fulfillment_orders.
  */
 import { reasonCode } from "./return-rules";
 import { AdminError, gql, type AdminClient } from "./admin.server";
@@ -18,6 +18,15 @@ async function fulfillmentOrderIds(admin: AdminClient, orderId: string): Promise
   const d = await gql(admin, `#graphql
     query CroOrderFos($id: ID!) { order(id: $id) { fulfillmentOrders(first: 30) { nodes { id status } } } }`, { id: orderId });
   return (d.order?.fulfillmentOrders?.nodes ?? []).filter((n: { status: string }) => n.status !== "CLOSED" && n.status !== "CANCELLED").map((n: { id: string }) => n.id);
+}
+
+/** What the order still owes Shopify (its outstanding balance, shop currency). Throws when Shopify cannot say: never guess when money may be owed. */
+export async function amountOwed(admin: AdminClient, orderId: string): Promise<{ amount: number; currency: string }> {
+  const d = await gql(admin, `#graphql
+    query CroOrderOwed($id: ID!) { order(id: $id) { totalOutstandingSet { shopMoney { amount currencyCode } } } }`, { id: orderId });
+  const m = d.order?.totalOutstandingSet?.shopMoney;
+  if (!m) throw new AdminError("Shopify did not say what this order still owes.");
+  return { amount: Math.max(0, Number(m.amount) || 0), currency: String(m.currencyCode ?? "") };
 }
 
 export type ExchangeResult = { holds: { fo: string; hold: string }[]; owes: number; warning: string };
@@ -58,16 +67,26 @@ export async function approveExchange(admin: AdminClient, shop: string, rowId: n
   let warning = "";
   if (rl.length || ex.length) {
     const before = new Set(await fulfillmentOrderIds(admin, orderId).catch(() => [] as string[]));
-    // A cheaper exchange is refunded the difference, to the original payment; an even or dearer one moves no money here.
+    // Only a cheaper exchange moves money here, and never more than the difference. A dearer or even one refunds nothing: the returned
+    // item is not paid back, the shopper pays the difference (or nothing) and the shipment waits until the order owes nothing.
     let transfer: unknown = undefined;
-    try {
-      const out = await gql(admin, `#graphql
-        query CroSuggestEx($id: ID!, $r: [SuggestedOutcomeReturnLineItemInput!]!, $e: [SuggestedOutcomeExchangeLineItemInput!]!) { return(id: $id) { suggestedFinancialOutcome(returnLineItems: $r, exchangeLineItems: $e, refundMethodAllocation: ORIGINAL_PAYMENT_METHODS) { financialTransfer { ... on RefundReturnOutcome { suggestedTransactions { amountSet { shopMoney { amount currencyCode } } parentTransaction { id } } } } } } }`, { id: returnId, r: rl, e: ex });
-      const tx: { amountSet: { shopMoney: { amount: string; currencyCode: string } }; parentTransaction: { id: string } | null }[] = out.return?.suggestedFinancialOutcome?.financialTransfer?.suggestedTransactions ?? [];
-      const orderTransactions = tx.filter((t) => t.parentTransaction?.id && Number(t.amountSet.shopMoney.amount) > 0).map((t) => ({ parentId: t.parentTransaction!.id, transactionAmount: { amount: t.amountSet.shopMoney.amount, currencyCode: t.amountSet.shopMoney.currencyCode } }));
-      if (orderTransactions.length) transfer = { issueRefund: { orderTransactions } };
-    } catch {
-      transfer = undefined;
+    if (plan.diff < 0) {
+      try {
+        const out = await gql(admin, `#graphql
+          query CroSuggestEx($id: ID!, $r: [SuggestedOutcomeReturnLineItemInput!]!, $e: [SuggestedOutcomeExchangeLineItemInput!]!) { return(id: $id) { suggestedFinancialOutcome(returnLineItems: $r, exchangeLineItems: $e, refundMethodAllocation: ORIGINAL_PAYMENT_METHODS) { financialTransfer { ... on RefundReturnOutcome { suggestedTransactions { amountSet { shopMoney { amount currencyCode } } parentTransaction { id } } } } } } }`, { id: returnId, r: rl, e: ex });
+        const tx: { amountSet: { shopMoney: { amount: string; currencyCode: string } }; parentTransaction: { id: string } | null }[] = out.return?.suggestedFinancialOutcome?.financialTransfer?.suggestedTransactions ?? [];
+        let left = Math.round(-plan.diff * 100) / 100;
+        const orderTransactions: { parentId: string; transactionAmount: { amount: string; currencyCode: string } }[] = [];
+        for (const t of tx) {
+          const amount = Math.min(Number(t.amountSet.shopMoney.amount) || 0, left);
+          if (!t.parentTransaction?.id || !(amount > 0)) continue;
+          orderTransactions.push({ parentId: t.parentTransaction.id, transactionAmount: { amount: amount.toFixed(2), currencyCode: t.amountSet.shopMoney.currencyCode } });
+          left = Math.round((left - amount) * 100) / 100;
+        }
+        if (orderTransactions.length) transfer = { issueRefund: { orderTransactions } };
+      } catch {
+        transfer = undefined;
+      }
     }
     const p = await gql(admin, `#graphql
       mutation CroProcessExchange($input: ReturnProcessInput!) { returnProcess(input: $input) { return { id status } userErrors { field message } } }`, {
@@ -92,8 +111,19 @@ export async function approveExchange(admin: AdminClient, shop: string, rowId: n
   } else {
     holds = (() => { try { return JSON.parse(row.holds || "[]"); } catch { return []; } })();
   }
+  // Shopify's own balance is the truth: the shopper owes what the order says, never less than the price difference of the exchange.
+  let owes = Math.max(0, plan.diff);
+  try {
+    const owed = await amountOwed(admin, orderId);
+    owes = Math.max(owes, owed.amount);
+    if (plan.diff > 0 && owed.amount <= 0.005) {
+      warning = `${warning ? `${warning} ` : ""}The exchange costs ${plan.diff.toFixed(2)} more, but Shopify shows nothing owed on this order (credit given outside the order counts as paid). Collect the difference before you ship.`;
+    }
+  } catch {
+    // The check is repeated before the exchange ships.
+  }
   await updateReturn(shop, rowId, { status: "approved" });
-  return { holds, owes: Math.max(0, plan.diff), warning };
+  return { holds, owes, warning };
 }
 
 /** The items arrived: let the exchange ship. */
@@ -105,6 +135,16 @@ export async function releaseExchange(admin: AdminClient, shop: string, rowId: n
     holds = JSON.parse(row.holds || "[]");
   } catch {
     holds = [];
+  }
+  // Never ship an exchange while the shopper owes money for it: the order's outstanding balance must be 0 (the invoice paid).
+  let owed: { amount: number; currency: string };
+  try {
+    owed = await amountOwed(admin, row.orderId);
+  } catch {
+    throw new AdminError("Could not check what the shopper still owes for this exchange, so it stays on hold. Open the order in Shopify, check it is paid, and try again.");
+  }
+  if (owed.amount > 0.005) {
+    throw new AdminError(`The shopper still owes ${owed.amount.toFixed(2)} ${owed.currency} for this exchange, so it stays on hold. Send the invoice from the order in Shopify (Collect payment) and ship the exchange once it is paid.`);
   }
   for (const h of holds) {
     const r = await gql(admin, `#graphql
