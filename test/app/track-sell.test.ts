@@ -6,7 +6,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
 import type { AdminClient } from "../../app/lib/admin.server";
-import { withTrackSellDefaults } from "../../app/lib/track-sell";
+import { buyAgainFor, withTrackSellDefaults } from "../../app/lib/track-sell";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "track-sell-"));
 const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(dir, "t.db")}` } } });
@@ -96,4 +96,17 @@ test("a shared code is made when saved, renewed when it exists, and shown only w
   assert.ok(b.calls.some((c) => c.op === "CroTrackCodeUpdate" && c.vars.id === "gid://shopify/DiscountCodeNode/9"));
   await prisma.trackCode.updateMany({ where: { shop: "sh.myshopify.com", kind: "shared" }, data: { endsAt: new Date(Date.now() - 1000) } });
   assert.equal(await S.nextOrderCode(a.admin, "sh.myshopify.com", "gid://shopify/Order/6", sell.nextOrder), null, "expired");
+});
+
+
+test("buy again: items in stock go to the cart, sold out ones are named, the merchant's filter applies", () => {
+  const line = (title: string, over: Record<string, unknown> = {}) => ({ variantId: 5, title, variant: "M", quantity: 2, available: true, productType: "Shirts", tags: ["basics"], ...over });
+  const lines = [line("Tee"), line("Hoodie", { available: false, productType: "Hoodies", tags: ["winter"] }), line("Cap", { productType: "Hats", tags: [], variantId: 0 })];
+  const all = buyAgainFor(lines, { on: true, only: "all", list: "" });
+  assert.deepEqual(all.items, [{ variantId: 5, quantity: 2, title: "Tee (M)" }]);
+  assert.deepEqual(all.soldOut, ["Hoodie (M)"]);
+  assert.deepEqual(buyAgainFor(lines, { on: true, only: "types", list: "shirts, hats" }).soldOut, []);
+  assert.deepEqual(buyAgainFor(lines, { on: true, only: "tags", list: "Winter" }), { items: [], soldOut: ["Hoodie (M)"] });
+  assert.deepEqual(buyAgainFor(lines, { on: true, only: "tags", list: "nothing" }), { items: [], soldOut: [] });
+  assert.equal(withTrackSellDefaults({ buyAgain: { on: true, only: "types", list: " Shirts ,, Hats " } }).buyAgain.list, "Shirts, Hats");
 });

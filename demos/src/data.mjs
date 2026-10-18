@@ -191,6 +191,9 @@ const rec = (handle) => {
 };
 order.recs = { like: ["daily-cream", "oat-soap", "sea-shampoo", "clay-mug"].map(rec), complete: ["fig-candle", "amber-candle"].map(rec) };
 
+/** "Buy again" for the demo order: the serum is in stock (its first demo variant), the candle is shown as sold out. */
+order.buyAgain = { items: [{ variantId: catalog["glow-serum"].variants[0].id, quantity: 1, title: "Glow Serum (30 ml)" }], soldOut: ["Cedar Candle"] };
+
 /** Recent purchases for sales pop ups (no names, ever). */
 export const recent = (now) => [
   { product: "Cedar Candle", handle: "cedar-candle", image: IMG("cedar-candle"), city: "Austin", at: new Date(now - 4 * 60e3).toISOString() },

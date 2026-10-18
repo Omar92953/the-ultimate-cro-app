@@ -17,7 +17,7 @@ const ITEMS = [
   { title: "Classic tee", variant: "Large", quantity: 2, unit: 30 },
 ];
 
-export function OrderPagePreview({ config: c, step, showNext = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean }) {
+export function OrderPagePreview({ config: c, step, showNext = false, showBuyAgain = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean; showBuyAgain?: boolean }) {
   const t = c.text;
   const thumb = <span className="ucs-op__ph" />;
   return (
@@ -87,6 +87,7 @@ export function OrderPagePreview({ config: c, step, showNext = false }: { config
                 <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
               </div>
               ) : null}
+              {showBuyAgain ? <div className="ucs-op__again-buy"><button type="button" className="ucs-btn">{t.buyAgain}</button></div> : null}
               {c.recs.like.on || c.recs.complete.on
                 ? (["like", "complete"] as const)
                     .filter((k) => c.recs[k].on)

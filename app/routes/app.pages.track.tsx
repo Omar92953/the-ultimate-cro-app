@@ -91,6 +91,7 @@ export default function OrderPageDesigner() {
     if (sellFetcher.data.ok) shopify.toast.show("Saved");
     else shopify.toast.show(sellFetcher.data.error || "Not saved", { isError: true });
   }, [sellFetcher.state, sellFetcher.data, shopify]);
+  const again = (patch: Partial<TrackSell["buyAgain"]>) => setSell((x) => ({ ...x, buyAgain: { ...x.buyAgain, ...patch } }));
   const next = (patch: Partial<TrackSell["nextOrder"]>) => setSell((x) => ({ ...x, nextOrder: { ...x.nextOrder, ...patch } }));
   const row = (k: "like" | "complete", patch: Partial<C["recs"]["like"]>) => setCfg((c) => ({ ...c, recs: { ...c.recs, [k]: { ...c.recs[k], ...patch } } }));
   async function pickProducts(k: "like" | "complete") {
@@ -148,7 +149,7 @@ export default function OrderPageDesigner() {
 
               {isTrack ? (
                 <Pane show={tab === "content"}>
-                  <s-section heading="Next order discount">
+                  <s-section heading="What the page sells">
                     <s-stack gap="base">
                       <Switch label="Give a discount on the next order" details="Shoppers whose order is paid see a real Shopify discount code with an expiry, with a Copy button." checked={sell.nextOrder.on} onValue={(v) => next({ on: v })} />
                       {sell.nextOrder.on ? (
@@ -162,9 +163,18 @@ export default function OrderPageDesigner() {
                           </s-grid>
                         </>
                       ) : null}
+                      <s-stack gap="base">
+                        <Switch label="Buy again button" details="Puts the order's items that are in stock in a new cart and names the ones that are sold out." checked={sell.buyAgain.on} onValue={(v) => again({ on: v })} />
+                        {sell.buyAgain.on ? (
+                          <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                            <Select label="For" value={sell.buyAgain.only} onValue={(v) => again({ only: v === "types" ? "types" : v === "tags" ? "tags" : "all" })} options={[{ value: "all", label: "Every product" }, { value: "types", label: "Only these product types" }, { value: "tags", label: "Only products with these tags" }]} />
+                            {sell.buyAgain.only !== "all" ? <TextField label={sell.buyAgain.only === "types" ? "Product types" : "Product tags"} details="Separated by commas." value={sell.buyAgain.list} onValue={(v) => again({ list: v })} /> : <span />}
+                          </s-grid>
+                        ) : null}
+                      </s-stack>
                       <s-stack direction="inline">
                         <Button loading={sellFetcher.state !== "idle"} disabled={JSON.stringify(withTrackSellDefaults(sell)) === JSON.stringify(data.sell)} onClick={() => sellFetcher.submit({ sell: JSON.stringify(sell) }, { method: "post", action: "/app/track-sell" })}>
-                          Save the discount
+                          Save
                         </Button>
                       </s-stack>
                     </s-stack>
@@ -255,7 +265,7 @@ export default function OrderPageDesigner() {
               tools={<Segmented label="Show" value={step} options={[{ value: "form", label: "Form" }, { value: "result", label: isTrack ? "Order found" : "Choosing items" }]} onChange={setStep} />}
             >
               <ThemeLook style={data.style}>
-                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} />
+                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} />
               </ThemeLook>
             </PreviewFrame>
           </div>

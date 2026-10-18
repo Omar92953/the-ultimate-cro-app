@@ -5,6 +5,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import { findOrder, readLookup } from "../lib/orders-lookup.server";
+import { buyAgainFor } from "../lib/track-sell";
 import { getTrackSell, nextOrderCode } from "../lib/track-sell.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
@@ -38,8 +39,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Next order discount: a real code, only for an order that is paid and not cancelled.
     const sell = (await getTrackSell(admin).catch(() => null))?.sell;
     const next = sell && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await nextOrderCode(admin, session.shop, order.id, sell.nextOrder).catch((e) => { console.error(`[proxy/track] next order code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
+    const buyAgain = sell?.buyAgain.on && !order.cancelled ? buyAgainFor(order.items.map((i) => ({ variantId: i.variantId, title: i.title, variant: i.variant, quantity: i.quantity, available: i.available, productType: i.productType, tags: i.tags })), sell.buyAgain) : null;
     // Everything except the internal order id.
-    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.unitPrice })), prices: order.prices, shipments, ...(recs ? { recs } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
+    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.unitPrice })), prices: order.prices, shipments, ...(recs ? { recs } : {}), ...(buyAgain && (buyAgain.items.length || buyAgain.soldOut.length) ? { buyAgain } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
   } catch (e) {
     console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);
