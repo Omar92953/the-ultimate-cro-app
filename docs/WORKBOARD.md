@@ -93,3 +93,21 @@ Updated 2026-10-15.
 - [~] Track page prices: a "Refunded" line when the order is refunded or partly refunded (#162).
 - [ ] Not tested (need the Pro test plan): Track page offer slots, exchanges, store credit and gift card, A/B tests,
       live tracking with a provider key.
+
+## Pro run on Testing 3, 2026-10-18 (cro-toolbox-31 + #164)
+
+Worked: store credit (shopper picks "Get $27.45 store credit instead of a $24.95 refund", 10% bonus; "Items received:
+give the credit" credits the customer $27.45 in Shopify), Track page offer (cross sell with its own TRACK- code and expiry,
+shown with after delivery, prices, next order code, buy again), exchange approval after #164 (returnReasonNote).
+
+- [ ] **CRITICAL, money:** order #1003 on Testing 3. R1 ($24.95) paid back with store credit, then R2 exchange of the
+      $9.95 item for the $24.95 one (shopper owes $15). On "Items arrived: ship the exchange" the app refunded the $9.95
+      AND released the $24.95 item, without the $15. Cause: store credit is given outside the order (storeCreditAccountCredit),
+      so Shopify still counts R1's $24.95 as paid and the exchange outcome used it. Fix both: give return credit through
+      Shopify's refund to store credit (returnProcess financialTransfer with a store credit refund method) so the order's
+      money is right; and for an exchange where the shopper owes more, never refund the returned item and keep the hold
+      until the invoice is paid (check the order's outstanding balance before releasing).
+- [ ] Shopper Returns page shows R1 as "Approved" after the credit was given (app says "Store credit given").
+- [ ] Return saving rules "How it works" text still says credit is given when you approve (default is now items received).
+- [ ] Deploy warning: LiquidHTMLSyntaxError in cro-storefront ("'script' was closed", the A/B snippet ucro-ab.liquid).
+- [ ] Not tested yet: A/B tests (Pro), gift card and discount code fallbacks (guest orders), live tracking with a provider key.
