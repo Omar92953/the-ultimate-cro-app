@@ -108,7 +108,8 @@ export async function attachLabel(admin: AdminClient, returnId: string, label: {
 }
 
 /** Refunds the items still unprocessed, the way Shopify suggests (back to the original payment), and tells the shopper. */
-export async function refundReturn(admin: AdminClient, returnId: string) {
+/** What Shopify would refund for the items still unprocessed (to the original payment): the amount to confirm, and what to send. */
+export async function refundPlan(admin: AdminClient, returnId: string) {
   const d = await detail(admin, returnId);
   const lines = d.returnLineItems.nodes.map((l) => ({ id: l.id, quantity: l.quantity - l.processedQuantity })).filter((l) => l.quantity > 0);
   if (!lines.length) throw new AdminError("Everything in this return was already refunded.");
@@ -117,6 +118,12 @@ export async function refundReturn(admin: AdminClient, returnId: string) {
   const tx: { amountSet: { shopMoney: { amount: string; currencyCode: string } }; parentTransaction: { id: string } | null }[] = out.return?.suggestedFinancialOutcome?.financialTransfer?.suggestedTransactions ?? [];
   const orderTransactions = tx.filter((t) => t.parentTransaction?.id && Number(t.amountSet.shopMoney.amount) > 0).map((t) => ({ parentId: t.parentTransaction!.id, transactionAmount: { amount: t.amountSet.shopMoney.amount, currencyCode: t.amountSet.shopMoney.currencyCode } }));
   if (!orderTransactions.length) throw new AdminError("Shopify could not suggest a refund for this order (for example it was paid with a gift card or in cash). Refund it in the Shopify admin.");
+  const amount = Math.round(orderTransactions.reduce((n, t) => n + Number(t.transactionAmount.amount), 0) * 100) / 100;
+  return { lines, orderTransactions, amount, currency: orderTransactions[0].transactionAmount.currencyCode };
+}
+
+export async function refundReturn(admin: AdminClient, returnId: string) {
+  const { lines, orderTransactions } = await refundPlan(admin, returnId);
   const data = await gql(admin, `#graphql
     mutation CroProcess($input: ReturnProcessInput!) { returnProcess(input: $input) { return { id status } userErrors { field message } } }`, {
     input: { returnId, notifyCustomer: true, returnLineItems: lines, financialTransfer: { issueRefund: { orderTransactions } } },

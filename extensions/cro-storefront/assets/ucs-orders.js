@@ -21,6 +21,7 @@
     var day = function (s) { try { return new Date(s).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' }); } catch (e) { return s; } };
     var root = (host.getAttribute('data-root') || '/').replace(/\/$/, '');
     var last = { order: '', email: '' };
+    var uid = 'ucs-op-' + Math.random().toString(36).slice(2, 7);
 
     var post = function (path, body) {
       return fetch(root + '/apps/ucro/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
@@ -35,8 +36,8 @@
       host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card">' +
         '<h2 class="ucs-op__h">' + esc(t.heading) + '</h2>' + (t.sub ? '<p class="ucs-op__t">' + esc(t.sub) + '</p>' : '') +
         '<form class="ucs-op__form" novalidate>' +
-        '<label class="ucs-op__field"><span>' + esc(t.order) + '</span><input name="order" required autocomplete="off" inputmode="text" value="' + esc(last.order) + '"></label>' +
-        '<label class="ucs-op__field"><span>' + esc(t.email) + '</span><input type="email" name="email" required autocomplete="email" value="' + esc(last.email) + '"></label>' +
+        '<label class="ucs-op__field" for="' + uid + '-order"><span>' + esc(t.order) + '</span><input id="' + uid + '-order" name="order" required autocomplete="off" inputmode="text" value="' + esc(last.order) + '"></label>' +
+        '<label class="ucs-op__field" for="' + uid + '-email"><span>' + esc(t.email) + '</span><input id="' + uid + '-email" type="email" name="email" required autocomplete="email" value="' + esc(last.email) + '"></label>' +
         '<p class="ucs-op__msg" role="alert"></p>' +
         '<button type="submit" class="ucs-btn">' + esc(t.button) + '</button></form></div></div>';
       var f = host.querySelector('form'), msg = f.querySelector('.ucs-op__msg'), btn = f.querySelector('button');
@@ -115,8 +116,8 @@
       var mine = (d.returns || []).length ? '<p class="ucs-op__t"><b>' + esc(t.yourReturns) + '</b></p><ul class="ucs-op__rets">' + d.returns.map(function (r) { return '<li>' + esc(r.name) + ': ' + esc(r.say) + '</li>'; }).join('') + '</ul>' + afterText(d.after) : '';
       var form = !o.items.length ? '<p class="ucs-op__t">' + esc(t.nothing) + '</p>' :
         '<p class="ucs-op__t"><b>' + esc(t.pick) + '</b></p><form class="ucs-op__form" novalidate>' + items(o.items, true) +
-        '<label class="ucs-op__field"><span>' + esc(t.reason) + '</span><select name="reason" required><option value=""></option>' + reasons.map(function (r) { return '<option>' + esc(r) + '</option>'; }).join('') + '</select></label>' +
-        '<label class="ucs-op__field"><span>' + esc(t.note) + '</span><textarea name="note" rows="3" maxlength="1000"></textarea></label>' +
+        '<label class="ucs-op__field" for="' + uid + '-reason"><span>' + esc(t.reason) + '</span><select id="' + uid + '-reason" name="reason" required><option value=""></option>' + reasons.map(function (r) { return '<option>' + esc(r) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="ucs-op__field" for="' + uid + '-note"><span>' + esc(t.note) + '</span><textarea id="' + uid + '-note" name="note" rows="3" maxlength="1000"></textarea></label>' +
         '<p class="ucs-op__msg" role="alert"></p><button type="submit" class="ucs-btn">' + esc(t.send) + '</button></form>';
       host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card"><h2 class="ucs-op__h">' + esc(o.name) + '</h2>' + mine + form + '</div></div>';
       var f = host.querySelector('form');

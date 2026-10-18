@@ -53,6 +53,8 @@ export type ShopifyReason = "COLOR" | "DEFECTIVE" | "NOT_AS_DESCRIBED" | "OTHER"
 export function reasonCode(words: string): ShopifyReason {
   const w = words.toLowerCase();
   if (/too (big|large)|size.*(large|big)|larger/.test(w)) return "SIZE_TOO_LARGE";
+  // "Wrong size" does not say which way: SIZE_TOO_SMALL is the closest (shoppers most often need the bigger one).
+  if (/wrong size|doesn'?t fit|does not fit|size/.test(w) && !/small|smaller/.test(w)) return "SIZE_TOO_SMALL";
   if (/too small|size.*small|smaller/.test(w)) return "SIZE_TOO_SMALL";
   if (/damag|defect|broken|faulty|arrived.*(bad|broken)/.test(w)) return "DEFECTIVE";
   if (/not as (expected|described)|different from|doesn't match|does not match/.test(w)) return "NOT_AS_DESCRIBED";

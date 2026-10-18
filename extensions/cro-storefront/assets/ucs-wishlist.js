@@ -123,7 +123,7 @@
     var f = document.createElement('a');
     f.className = 'ucs-wl-float ucs-wl-float--' + c.w.floatPos;
     f.href = link(c.p.url);
-    f.style.cssText = c.css;
+    f.style.cssText = c.css + ';bottom:' + (c.w.floatBottom == null ? 18 : c.w.floatBottom) + 'px';
     f.innerHTML = (ICON[c.ic] || ICON.heart) + '<b>0</b><span class="ucs-wl-sr">' + esc(c.p.heading) + '</span>';
     f.hidden = true;
     document.body.appendChild(f);

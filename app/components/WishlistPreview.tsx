@@ -44,7 +44,7 @@ export function WishlistPreview({ config: c }: { config: WishlistDesign }) {
         </div>
       ) : null}
       {c.where.floating && count ? (
-        <span className={`ucs-wl-float ucs-wl-float--${c.where.floatPos}`} style={{ ...vars, position: "absolute" }}>
+        <span className={`ucs-wl-float ucs-wl-float--${c.where.floatPos}`} style={{ ...vars, position: "absolute", bottom: Math.min(c.where.floatBottom, 120) }}>
           {svg}
           <b>{count}</b>
         </span>
