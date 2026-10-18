@@ -39,6 +39,11 @@ api_version = "2026-07"
   topics = [ "products/update" ]
   uri = "/webhooks/products/update"
 
+  # A return closed in Shopify's admin: a store credit return waiting for its items gets its credit (app/routes/webhooks.returns.close.tsx).
+  [[webhooks.subscriptions]]
+  topics = [ "returns/close" ]
+  uri = "/webhooks/returns/close"
+
   # Sales pop-ups: keeps the list of recent purchases fresh (handled by app/routes/webhooks.orders.create.tsx).
   # OFF until Shopify approves protected customer data for this app — without approval Shopify refuses
   # the whole config (even `shopify app dev`). Turn back on by removing the "# " from the 3 lines below.

@@ -199,6 +199,10 @@ export async function getReturn(shop: string, id: number) {
   return db.returnRequest.findFirst({ where: { shop, id } });
 }
 
+export async function returnByShopifyId(shop: string, returnId: string) {
+  return db.returnRequest.findFirst({ where: { shop, returnId } });
+}
+
 export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null; creditKind?: string; creditCode?: string; creditAmount?: number; creditedAt?: Date | null; holds?: string; returnId?: string; returnName?: string }) {
   await db.returnRequest.updateMany({ where: { shop, id }, data });
 }
