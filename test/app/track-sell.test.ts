@@ -6,7 +6,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
 import type { AdminClient } from "../../app/lib/admin.server";
-import { buyAgainFor, withTrackSellDefaults } from "../../app/lib/track-sell";
+import { buyAgainFor, isLate, withTrackSellDefaults } from "../../app/lib/track-sell";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "track-sell-"));
 const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(dir, "t.db")}` } } });
@@ -34,6 +34,7 @@ function fake(opts: { taken?: boolean } = {}) {
       calls.push({ op, vars: v });
       const data = (d: unknown) => ({ json: async () => ({ data: d }) });
       switch (op) {
+        case "CroTrackShipCode": return data({ discountCodeFreeShippingCreate: { codeDiscountNode: { id: "gid://shopify/DiscountCodeNode/2" }, userErrors: [] } });
         case "CroTrackCode": return data({ discountCodeBasicCreate: opts.taken ? { codeDiscountNode: null, userErrors: [{ message: "Code must be unique. Please try a different code." }] } : { codeDiscountNode: { id: "gid://shopify/DiscountCodeNode/1" }, userErrors: [] } });
         case "CroFindCode": return data({ codeDiscountNodeByCode: { id: "gid://shopify/DiscountCodeNode/9" } });
         case "CroTrackCodeUpdate": return data({ discountCodeBasicUpdate: { codeDiscountNode: { id: "x" }, userErrors: [] } });
@@ -126,4 +127,26 @@ test("after delivery: settings are cleaned, and the friend code is its own code 
   assert.equal(dInput.length, 2, "one discount each, none for the repeat");
   assert.equal(dInput[1].usageLimit, 1);
   assert.equal(dInput[1].customerGets.value.percentage, 0.15);
+});
+
+
+test("a shipment is late a day after its expected date, or when the carrier says there is a problem", () => {
+  const now = Date.parse("2026-10-20T12:00:00Z");
+  const d = (n: number) => new Date(now + n * 86_400_000).toISOString();
+  assert.equal(isLate({ delivered: null, estimated: d(1), status: "transit" }, now), false);
+  assert.equal(isLate({ delivered: null, estimated: d(-0.5), status: "transit" }, now), false, "a few hours late is not late yet");
+  assert.equal(isLate({ delivered: null, estimated: d(-2), status: "transit" }, now), true);
+  assert.equal(isLate({ delivered: d(-1), estimated: d(-5), status: "delivered" }, now), false);
+  assert.equal(isLate({ delivered: null, estimated: null, status: "problem" }, now), true);
+  assert.equal(isLate({ delivered: null, estimated: null, status: "transit" }, now), false, "no expected date, nothing to be late against");
+  const w = withTrackSellDefaults({ delay: { on: true, gift: "shipping", percent: 500, days: 0 } }).delay;
+  assert.deepEqual(w, { on: true, gift: "shipping", percent: 90, days: 1 });
+});
+
+test("a delay code can be free shipping: its own kind, single use, with a real expiry", async () => {
+  const a = fake();
+  const code = await S.givenCode(a.admin, "d.myshopify.com", "gid://shopify/Order/1", "delay", "SORRY", { percent: 0, minimum: 0, days: 14, shipping: true }, "delay");
+  assert.match(code!.code, /^SORRY-/);
+  assert.ok(!a.calls.some((c) => c.op === "CroTrackCode"), "no percentage discount made");
+  assert.equal(a.calls.length, 1);
 });

@@ -32,6 +32,10 @@ export async function saveTrackSell(admin: AdminClient, shop: string, raw: unkno
   return sell;
 }
 
+function shippingInput(code: string, title: string, o: { endsAt: Date }) {
+  return { title, code, startsAt: new Date().toISOString(), endsAt: o.endsAt.toISOString(), usageLimit: 1, context: { all: "ALL" }, destination: { all: true }, combinesWith: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: false } };
+}
+
 function discountInput(code: string, title: string, o: { percent: number; minimum: number; endsAt: Date; usageLimit: number | null }) {
   return {
     title,
@@ -82,14 +86,19 @@ export async function nextOrderCode(admin: AdminClient, shop: string, orderId: s
 }
 
 /** One single use code for this order and kind ("next", "friend"), made the first time and the same ever after (nothing once it expires). */
-export async function givenCode(admin: AdminClient, shop: string, orderId: string, kind: string, prefix: string, spec: { percent: number; minimum: number; days: number }, label: string): Promise<GivenCode | null> {
+export async function givenCode(admin: AdminClient, shop: string, orderId: string, kind: string, prefix: string, spec: { percent: number; minimum: number; days: number; shipping?: boolean }, label: string): Promise<GivenCode | null> {
   const show = (r: { code: string; percent: number; minimum: number; endsAt: Date }) => ({ code: r.code, percent: r.percent, minimum: r.minimum, endsAt: r.endsAt.toISOString() });
   const existing = await db.trackCode.findUnique({ where: { shop_orderId_kind: { shop, orderId, kind } } });
   if (existing) return existing.endsAt > new Date() ? show(existing) : null;
   const code = `${prefix}-${randomBytes(4).toString("hex").toUpperCase()}`;
   const endsAt = new Date(Date.now() + spec.days * 86_400_000);
-  await gql(admin, `#graphql
-    mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: ${label} ${code}`, { percent: spec.percent, minimum: spec.minimum, endsAt, usageLimit: 1 }) });
+  if (spec.shipping) {
+    await gql(admin, `#graphql
+      mutation CroTrackShipCode($d: DiscountCodeFreeShippingInput!) { discountCodeFreeShippingCreate(freeShippingCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: shippingInput(code, `Track page: ${label} ${code}`, { endsAt }) });
+  } else {
+    await gql(admin, `#graphql
+      mutation CroTrackCode($d: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $d) { codeDiscountNode { id } userErrors { field message code } } }`, { d: discountInput(code, `Track page: ${label} ${code}`, { percent: spec.percent, minimum: spec.minimum, endsAt, usageLimit: 1 }) });
+  }
   try {
     await db.trackCode.create({ data: { shop, orderId, kind, code, percent: spec.percent, minimum: spec.minimum, endsAt } });
   } catch {
