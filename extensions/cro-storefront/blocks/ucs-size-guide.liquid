@@ -5,10 +5,22 @@ assign d = shop.metaobjects['$app:cro_design']['size_guide_draft'].config.value
 endif
 assign at = -1
 if d and d.on != false and product
+assign size_words = 'size,taille,größe,grosse,talla,taglia,maat,tamanho,storlek,rozmiar,numero,tamaño,размер,尺码,サイズ' | split: ','
+assign has_size = false
+for opt_name in product.options
+assign opt_low = opt_name | downcase
+for word in size_words
+if opt_low contains word
+assign has_size = true
+endif
+endfor
+endfor
 for ch in d.charts
 if at == -1
 if ch.m.all
+if has_size
 assign at = forloop.index0
+endif
 elsif ch.m.products contains product.handle
 assign at = forloop.index0
 else

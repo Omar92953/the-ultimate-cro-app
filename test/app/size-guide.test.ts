@@ -60,3 +60,13 @@ test("the size guide is a Starter feature in the section library", () => {
   assert.equal(feature("size_guide").area, "library");
   assert.equal(feature("size_guide").group, "product");
 });
+
+test("the size option words in the app and in the theme block are the same", async () => {
+  const { SIZE_OPTION_WORDS, hasSizeOption } = await import("../../app/lib/size-guide");
+  const liquid = fs.readFileSync("theme/blocks/ucs-size-guide.liquid", "utf8");
+  const list = /assign size_words = '([^']+)' \| split/.exec(liquid)?.[1].split(",");
+  assert.deepEqual(list, SIZE_OPTION_WORDS);
+  assert.equal(hasSizeOption(["Color", "Shoe Size"]), true);
+  assert.equal(hasSizeOption(["Title"]), false);
+  assert.equal(hasSizeOption([]), false);
+});

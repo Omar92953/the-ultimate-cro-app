@@ -302,6 +302,13 @@ const sgShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withS
 ] })) }));
 pages["size-guide.html"] = page("Size guide",
   label("product page: tagged Tees, in the collection mens, so the second chart") + '<div style="max-width:440px;margin:0 40px"><p>Size: S M L</p>' + (await block("ucs-size-guide", {}, { page_type: "product", product: { handle: "classic-tee", tags: ["Summer"], collections: [{ handle: "mens" }] }, shop: sgShop })) + "</div>");
+// A chart for all products shows only where the product has a size like option (not on a Gift Card or a candle).
+const sgAllShop = withDesign(mo("size_guide", { config: toStorefrontSizeGuide(withSizeGuideDefaults({ charts: [{ ...SAMPLE_CHART, id: "a", match: { all: true, products: [], collections: [], tags: "" } }] })) }));
+const sgAll = async (options) => block("ucs-size-guide", {}, { page_type: "product", product: { handle: "p", tags: [], collections: [], options }, shop: sgAllShop });
+const sgSized = await sgAll(["Color", "Size"]), sgPlain = await sgAll(["Title"]), sgFr = await sgAll(["Taille"]);
+if (!sgSized.includes("data-ucs-sg")) throw new Error("size guide missing on a product with a Size option");
+if (!sgFr.includes("data-ucs-sg")) throw new Error("size guide missing on a product with a Taille option");
+if (sgPlain.includes("data-ucs-sg")) throw new Error("size guide shown on a product with no size option");
 // The Order pages block on "Automatic": the pages the app made show Track and Returns, every other page shows nothing.
 const opShop = withDesign(mo("order_pages", { config: { trackHandle: "track-your-order", returnsHandle: "returns" } }));
 const opAuto = async (handle, shop) => block("ucs-order-page", {}, { page_type: "page", page: { handle }, shop });
