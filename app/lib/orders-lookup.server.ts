@@ -133,7 +133,10 @@ export async function listReturns(shop: string) {
 export async function returnSavings(shop: string, days = 30) {
   const since = new Date(Date.now() - days * 86_400_000);
   const rows = await db.returnRequest.findMany({ where: { shop, OR: [{ refundedAt: { gte: since } }, { creditedAt: { gte: since } }, { resolution: "exchange", status: { in: ["approved", "exchanged"] }, createdAt: { gte: since } }] }, select: { quote: true, creditAmount: true, creditBonus: true, refundedAt: true, creditedAt: true, currency: true, resolution: true, exchange: true } });
-  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0 }, exchanges: { count: 0, value: 0 } };
+  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0, waiting: { count: 0, value: 0 } }, exchanges: { count: 0, value: 0 } };
+  // Approved credit returns still waiting for the items (credit comes when the merchant has them).
+  const waiting = await db.returnRequest.findMany({ where: { shop, resolution: "credit", status: "approved", creditedAt: null, createdAt: { gte: since } }, select: { quote: true, creditBonus: true } });
+  out.credit.waiting = { count: waiting.length, value: Math.round(waiting.reduce((n, w) => n + w.quote * (1 + w.creditBonus / 100), 0) * 100) / 100 };
   for (const r of rows) {
     if (r.resolution === "exchange") {
       // What the shopper took instead: the new items' price.

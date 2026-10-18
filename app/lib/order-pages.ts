@@ -70,6 +70,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "thanks", label: "After sending", def: "Thanks! We've received your request and will email you the next steps.", long: true, group: "After" },
     { key: "already", label: "Already requested", def: "You've already sent a return request for this order. We'll be in touch soon.", long: true, group: "After" },
     { key: "tooLate", label: "Too late", def: "This order is outside our return window.", long: true, group: "After" },
+    { key: "thanksCreditLater", label: "After sending, credit comes with the items", def: "Your return is approved. Your credit is sent once we receive the items. Here is how to send them back.", long: true, group: "After" },
     { key: "thanksApproved", label: "After sending, approved at once", def: "Your return is approved. Here is how to send it back.", long: true, group: "After" },
     { key: "yourReturns", label: "“Your returns”", def: "Your returns for this order", group: "After" },
     { key: "sendTo", label: "“Send the items to”", def: "Send the items to", group: "After" },

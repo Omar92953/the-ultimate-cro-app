@@ -50,7 +50,7 @@ test("return saving rules are cleaned", () => {
   assert.equal(s.restock, false);
   assert.equal(s.rules.length, 10);
   assert.deepEqual(s.rules[0], { reasons: ["Wrong size"], tags: "basics ,tees", maxValue: 100, maxDays: 365 });
-  assert.deepEqual(withSaving(undefined), { exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
+  assert.deepEqual(withSaving(undefined), { creditWhen: "received", exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
 });
 
 test("a return is approved when one rule holds on every condition it sets", () => {
