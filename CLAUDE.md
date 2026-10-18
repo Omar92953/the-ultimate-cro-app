@@ -15,15 +15,18 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
-## Status (2026-10-15)
+## Status (2026-10-18)
 
-- Live: Shopify app version **cro-toolbox-21**, admin on Render (`https://cro-toolbox.onrender.com`,
-  auto-deploys from `main`). Test store: **Testing2** `testing2-j6mmnywm.myshopify.com`.
-- Bundles overhaul done: all 6 recipes and checkout verified on Testing2 (`docs/PROJECT-GUIDE.md` §10).
-  Next: the known gaps in `docs/WORKBOARD.md`.
-- Website: PRs 1 to 5 done, live at https://crotoolbox.com; backlog in `docs/WORKBOARD.md`.
-- **Waiting: a Shopify deploy from the Mac** for the countdown timer fix (PR #58, merged). Steps in
-  `docs/WORKBOARD.md` (the URGENT line).
+- Live: Shopify app version **cro-toolbox-30**, admin on Render (`https://cro-toolbox.onrender.com`,
+  auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
+  Test store: **Testing 3** `testing-3-xsslpo6d` (back on the Free plan; switch to a $0 test plan to test paid features).
+- Block G done: G1 to G11, MCP read/build tools (offers, discounts, bundles). Tested on Testing 3 on
+  2026-10-18: Track page (prices, next order code, buy again, timeline by webhook), returns (request,
+  approve, refund confirm, Shopify reason), wishlist page, cart discount box, size guide. Open bugs in
+  `docs/WORKBOARD.md` ("Testing 3 run 2026-10-18").
+- Website: keyword pages and alternative pages live (SEO plan `docs/plans/seo-geo.md`).
+- Email: support@, info@, features@, pro@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
+- Partner Dashboard: protected customer data saved (works on dev stores; reviewed at submission).
 
 ## Website
 
