@@ -10,7 +10,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
 import type { AdminClient } from "../../app/lib/admin.server";
-import { DEFAULT_RETURN_RULES, withReturnRulesDefaults } from "../../app/lib/return-rules";
+import { DEFAULT_RETURN_RULES, withReturnRulesDefaults, withSaving } from "../../app/lib/return-rules";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ret-save-"));
 const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(dir, "t.db")}` } } });
@@ -171,5 +171,30 @@ test("the savings report counts credit and refunds in the window", async () => {
   await prisma.returnRequest.create({ data: { shop: "r.myshopify.com", orderId: "o3", orderName: "#3", email: "x@y.z", items: "[]", reason: "x", status: "refunded", resolution: "refund", quote: 99, currency: "USD", refundedAt: new Date(Date.now() - 40 * 864e5) } });
   const r = await returnSavings("r.myshopify.com");
   assert.deepEqual(r.refunds, { count: 1, value: 40 });
-  assert.deepEqual(r.credit, { count: 1, value: 55, bonus: 5 });
+  assert.deepEqual(r.credit, { count: 1, value: 55, bonus: 5, waiting: { count: 0, value: 0 } });
+});
+
+test("when credit is given: new stores wait for the items, stores that saved rules before keep approving at once", () => {
+  assert.equal(withSaving({}).creditWhen, "received", "nothing saved yet: items received");
+  assert.equal(withSaving({ credit: { on: true } }).creditWhen, "approved", "rules saved before this setting existed");
+  assert.equal(withSaving({ credit: { on: true }, creditWhen: "received" }).creditWhen, "received");
+  assert.equal(withSaving({ creditWhen: "nonsense" }).creditWhen, "approved");
+});
+
+test("items received: approving gives no credit, receiving it gives it once", async () => {
+  const waiting = withReturnRulesDefaults({ saving: { creditWhen: "received", credit: { on: true, bonus: 10, expiryDays: 0 }, restock: true } });
+  const a = fake();
+  const id = await row("credit");
+  const out = await S.approveAndSettle(a.admin, "s.myshopify.com", id, waiting, true);
+  assert.deepEqual({ status: out.status, credit: out.credit, later: out.creditLater }, { status: "approved", credit: null, later: true });
+  assert.ok(!a.calls.some((c) => c.op === "CroCredit" || c.op === "CroProcessNoRefund"), "no credit, no processing yet");
+  const given = await S.giveCreditOnReceipt(a.admin, "s.myshopify.com", id, waiting, true);
+  assert.deepEqual({ status: given.status, amount: given.credit?.amount }, { status: "credited", amount: 55 });
+  const again = await S.giveCreditOnReceipt(a.admin, "s.myshopify.com", id, waiting, true);
+  assert.equal(again.status, "credited");
+  assert.equal(a.calls.filter((c) => c.op === "CroCredit").length, 1, "never issued twice");
+  const other = await row("refund", "approved");
+  await assert.rejects(S.giveCreditOnReceipt(a.admin, "s.myshopify.com", other, waiting, true), /store credit/);
+  const free = await row("credit", "approved");
+  await assert.rejects(S.giveCreditOnReceipt(a.admin, "s.myshopify.com", free, waiting, false), /Pro/);
 });

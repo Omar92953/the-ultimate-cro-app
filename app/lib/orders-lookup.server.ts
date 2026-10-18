@@ -17,7 +17,9 @@ export type OrderSummary = {
   /** What the order is worth now, in the shop currency (for return rules). */
   total: number;
   currency: string;
-  items: { id: string; title: string; variant: string; quantity: number; image: string | null; /** Not sent to the page. */ productId: string | null }[];
+  /** What the shopper paid, in the currency of the order (prices only: no payment method, no address). Null when unknown. */
+  prices: OrderPrices | null;
+  items: { id: string; title: string; variant: string; quantity: number; image: string | null; /** One unit after discounts. */ unitPrice: number; /** Not sent to the page. */ productId: string | null }[];
   shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null; /** What Shopify knows: its fulfillment events, dates and status. */ tracking: Tracking | null }[];
 };
 
@@ -55,6 +57,17 @@ export function shopifyTracking(f: FulfillmentNode): Tracking | null {
   return t;
 }
 
+export type OrderPrices = { currency: string; subtotal: number; shipping: number; discounts: number; tax: number; total: number };
+
+type PriceSet = { presentmentMoney?: { amount?: string; currencyCode?: string } } | null | undefined;
+/** The order's money lines in the currency the shopper paid in (presentment currency). Exported for tests. */
+export function orderPrices(o: { subtotalPriceSet?: PriceSet; totalShippingPriceSet?: PriceSet; totalDiscountsSet?: PriceSet; totalTaxSet?: PriceSet; totalPriceSet?: PriceSet }): OrderPrices | null {
+  const n = (s: PriceSet) => Math.round((Number(s?.presentmentMoney?.amount) || 0) * 100) / 100;
+  const currency = o.subtotalPriceSet?.presentmentMoney?.currencyCode ?? "";
+  if (!currency || !o.totalPriceSet) return null;
+  return { currency, subtotal: n(o.subtotalPriceSet), shipping: n(o.totalShippingPriceSet), discounts: n(o.totalDiscountsSet), tax: n(o.totalTaxSet), total: n(o.totalPriceSet) };
+}
+
 export async function findOrder(admin: AdminClient, number: string, email: string): Promise<OrderSummary | null> {
   const data = await gql(
     admin,
@@ -62,8 +75,8 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     query CroFindOrder($q: String!) {
       orders(first: 5, query: $q) {
         nodes {
-          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } }
-          lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } product { id } } }
+          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } } subtotalPriceSet { presentmentMoney { amount currencyCode } } totalShippingPriceSet { presentmentMoney { amount } } totalDiscountsSet { presentmentMoney { amount } } totalTaxSet { presentmentMoney { amount } } totalPriceSet { presentmentMoney { amount } }
+          lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } product { id } discountedUnitPriceSet { presentmentMoney { amount } } } }
           fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }
       }
@@ -79,11 +92,12 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     cancelled: !!order.cancelledAt,
     payment: order.displayFinancialStatus ?? "",
     fulfillment: order.displayFulfillmentStatus ?? "",
+    prices: orderPrices(order),
     total: Number(order.currentTotalPriceSet?.shopMoney?.amount) || 0,
     currency: order.currentTotalPriceSet?.shopMoney?.currencyCode ?? "",
     items: order.lineItems.nodes
       .filter((l: { currentQuantity: number }) => l.currentQuantity > 0)
-      .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null; product: { id: string } | null }) => ({ id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null, productId: l.product?.id ?? null })),
+      .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null; product: { id: string } | null; discountedUnitPriceSet?: { presentmentMoney: { amount: string } } | null }) => ({ unitPrice: Number(l.discountedUnitPriceSet?.presentmentMoney.amount) || 0, id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null, productId: l.product?.id ?? null })),
     shipments: order.fulfillments.flatMap((f: FulfillmentNode) =>
       (f.trackingInfo.length ? f.trackingInfo : [{ company: null, number: null, url: null }]).map((t) => ({ status: f.displayStatus ?? "", company: t.company, number: t.number, url: t.url, delivered: f.deliveredAt, estimated: f.estimatedDeliveryAt, tracking: shopifyTracking(f) })),
     ),
@@ -133,7 +147,10 @@ export async function listReturns(shop: string) {
 export async function returnSavings(shop: string, days = 30) {
   const since = new Date(Date.now() - days * 86_400_000);
   const rows = await db.returnRequest.findMany({ where: { shop, OR: [{ refundedAt: { gte: since } }, { creditedAt: { gte: since } }, { resolution: "exchange", status: { in: ["approved", "exchanged"] }, createdAt: { gte: since } }] }, select: { quote: true, creditAmount: true, creditBonus: true, refundedAt: true, creditedAt: true, currency: true, resolution: true, exchange: true } });
-  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0 }, exchanges: { count: 0, value: 0 } };
+  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0, waiting: { count: 0, value: 0 } }, exchanges: { count: 0, value: 0 } };
+  // Approved credit returns still waiting for the items (credit comes when the merchant has them).
+  const waiting = await db.returnRequest.findMany({ where: { shop, resolution: "credit", status: "approved", creditedAt: null, createdAt: { gte: since } }, select: { quote: true, creditBonus: true } });
+  out.credit.waiting = { count: waiting.length, value: Math.round(waiting.reduce((n, w) => n + w.quote * (1 + w.creditBonus / 100), 0) * 100) / 100 };
   for (const r of rows) {
     if (r.resolution === "exchange") {
       // What the shopper took instead: the new items' price.

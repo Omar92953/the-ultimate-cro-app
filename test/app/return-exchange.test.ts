@@ -84,7 +84,7 @@ test("approving an exchange: return with exchange lines, process it, hold the ne
   const create = a.calls.find((c) => c.op === "CroReturnCreateExchange")!.vars.input;
   assert.deepEqual(create.exchangeLineItems, [{ variantId: "gid://shopify/ProductVariant/55", quantity: 2 }]);
   assert.equal(create.returnLineItems[0].fulfillmentLineItemId, "gid://shopify/FulfillmentLineItem/7");
-  assert.equal(create.returnLineItems[0].returnReason, "OTHER");
+  assert.equal(create.returnLineItems[0].returnReason, "SIZE_TOO_SMALL");
   assert.equal(create.returnLineItems[0].customerNote, "Wrong size");
   const proc = a.calls.find((c) => c.op === "CroProcessExchange")!.vars.input;
   assert.deepEqual(proc.exchangeLineItems, [{ id: "gid://shopify/ExchangeLineItem/9", quantity: 2 }]);

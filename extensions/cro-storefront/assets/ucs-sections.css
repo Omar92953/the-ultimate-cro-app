@@ -670,3 +670,8 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-op__opts legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
 .ucs-op__opts label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .ucs-op__code { padding: 2px 8px; border-radius: 6px; background: rgba(127, 127, 127, 0.15); font-weight: 700; letter-spacing: 0.04em; }
+
+/* Track page prices */
+.ucs-op__prices { display: grid; gap: 4px; padding-top: 8px; border-top: 1px solid rgba(127, 127, 127, 0.3); }
+.ucs-op__pr { display: flex; justify-content: space-between; gap: 12px; }
+.ucs-op__pr--total { font-weight: 700; padding-top: 4px; border-top: 1px solid rgba(127, 127, 127, 0.3); }

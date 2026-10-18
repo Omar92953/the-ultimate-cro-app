@@ -14,11 +14,13 @@ import { listRules, saveRule, upsert } from "../cro.server";
 import { RuleError, requireFeature, requireFeatureRequests, requireSizeGuide } from "../rules";
 import { requireOfferSlot } from "../rules.server";
 import { sectionLinks } from "../sections.server";
-import type { Placement, Rule, Ref } from "../types";
+import type { Placement, Rule } from "../types";
 import { DESIGNS } from "./registry.server";
 import { DATA_NOTE, asFeature, featureArg, type Tool, type ToolContext } from "./tools.server";
+import { adminHandle, obj, refs } from "./shared.server";
+import { publishDeal } from "./deal-tools.server";
+import { publishBundle } from "./bundle-tools.server";
 
-const obj = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required, additionalProperties: false });
 const PENDING = (key: FeatureKey) => `mcp_pending_${key}`;
 
 /* ------------------------------------------------------------ pending designs -- */
@@ -57,7 +59,6 @@ function designOf(key: FeatureKey) {
   return d;
 }
 
-const adminHandle = (shop: string) => shop.replace(/\.myshopify\.com$/, "");
 function links(ctx: ToolContext, key: FeatureKey) {
   const sl = sectionLinks(ctx.shop) as Record<string, string>;
   return {
@@ -68,13 +69,6 @@ function links(ctx: ToolContext, key: FeatureKey) {
 
 /* ------------------------------------------------------------------ offers -- */
 const PLACEMENTS: Placement[] = ["product", "cart", "drawer"];
-async function refs(ctx: ToolContext, ids: unknown, what: "Product" | "Collection"): Promise<Ref[]> {
-  const list = Array.isArray(ids) ? ids.map(String).filter((x) => new RegExp(`^gid://shopify/${what}/\\d+$`).test(x)).slice(0, 50) : [];
-  if (!list.length) return [];
-  const d = await gql(ctx.admin, `#graphql
-    query CroMcpRefs($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id title handle } ... on Collection { id title handle } } }`, { ids: list });
-  return (d.nodes as ({ id: string; title: string; handle: string } | null)[]).filter((n): n is { id: string; title: string; handle: string } => !!n).map((n) => ({ id: n.id, title: n.title, handle: n.handle }));
-}
 
 type OfferArgs = Record<string, unknown>;
 const OFFER_PROPS = {
@@ -192,7 +186,7 @@ export const BUILD_TOOLS: Tool[] = [
     summary: (a) => `${String(a.type)} ${String(a.name ?? "").slice(0, 60)}`,
     async run(ctx, args) {
       const kind = args.type === "cross_sell" ? "cross_sell" : args.type === "upsell" ? "upsell" : null;
-      if (!kind) throw new RuleError("type must be upsell or cross_sell. Bundles and discounts are not built through the assistant yet; use request_feature or the app.", "input", false);
+      if (!kind) throw new RuleError("type must be upsell or cross_sell. Discounts have create_discount and bundles their own tools; anything else: use request_feature or the app.", "input", false);
       requireFeature(ctx.plan, kind === "upsell" ? "upsell" : "cross_sell", ctx.trial);
       const rule = await applyOfferArgs(ctx, blankRule(kind), args);
       try {
@@ -272,7 +266,12 @@ export const PUBLISH_TOOLS: Tool[] = [
     async run(ctx, args) {
       const id = String(args.id);
       const current = (await listRules(ctx.admin)).find((r) => r.id === id || r.handle === id);
-      if (!current) throw new RuleError("No upsell or cross sell offer with that id. Use list_offers.", "input", false);
+      if (!current) {
+        // A discount deal, a bundle or a fixed bundle product: the same checks as the app's own pages.
+        const other = (await publishDeal(ctx, id)) ?? (await publishBundle(ctx, id));
+        if (!other) throw new RuleError("No offer with that id. Use list_offers.", "input", false);
+        return other;
+      }
       requireFeature(ctx.plan, current.kind === "upsell" ? "upsell" : "cross_sell", ctx.trial);
       await requireOfferSlot(ctx.admin, ctx.shop, { active: true, id: current.id, handle: current.handle });
       const saved = await saveRule(ctx.admin, { ...current, active: true });
