@@ -13,8 +13,8 @@ const SAMPLE_RECS = [
 ];
 
 const ITEMS = [
-  { title: "Linen shirt", variant: "Medium / Sand", quantity: 1 },
-  { title: "Classic tee", variant: "Large", quantity: 2 },
+  { title: "Linen shirt", variant: "Medium / Sand", quantity: 1, unit: 70 },
+  { title: "Classic tee", variant: "Large", quantity: 2, unit: 30 },
 ];
 
 export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign; step: "form" | "result" }) {
@@ -68,10 +68,18 @@ export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign;
                       <b>{i.title}</b>
                       <small>{i.variant}</small>
                     </span>
-                    <span className="ucs-op__q">× {i.quantity}</span>
+                    <span className="ucs-op__q">× {i.quantity}{c.prices ? ` · $${(i.quantity * i.unit).toFixed(2)}` : ""}</span>
                   </li>
                 ))}
               </ul>
+              {c.prices ? (
+                <div className="ucs-op__prices">
+                  <div className="ucs-op__pr"><span>{t.priceSubtotal}</span><span>$130.00</span></div>
+                  <div className="ucs-op__pr"><span>{t.priceShipping}</span><span>{t.priceFree}</span></div>
+                  <div className="ucs-op__pr"><span>{t.priceDiscount}</span><span>−$13.00</span></div>
+                  <div className="ucs-op__pr ucs-op__pr--total"><span>{t.priceTotal}</span><span>$117.00</span></div>
+                </div>
+              ) : null}
               {c.recs.like.on || c.recs.complete.on
                 ? (["like", "complete"] as const)
                     .filter((k) => c.recs[k].on)
