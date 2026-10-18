@@ -46,7 +46,8 @@ function discountInput(code: string, title: string, o: { percent: number; minimu
     context: { all: "ALL" },
     customerGets: { value: { percentage: o.percent / 100 }, items: o.productIds?.length ? { products: { productsToAdd: o.productIds } } : { all: true } },
     ...(o.minimum > 0 ? { minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: o.minimum.toFixed(2) } } } : {}),
-    combinesWith: { productDiscounts: false, orderDiscounts: false, shippingDiscounts: true },
+    // Combines with product discounts: the app's own upsells and bundles are product discounts, and the code must still work on those carts.
+    combinesWith: { productDiscounts: true, orderDiscounts: false, shippingDiscounts: true },
   };
 }
 
