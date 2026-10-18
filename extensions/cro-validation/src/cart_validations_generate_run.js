@@ -10,9 +10,9 @@
  * and {product} by the product's name (per-product rules).
  *
  * The same function also runs as the "bundle guard" (a second validation made by the app when the
- * store has mix and match bundles), configured with { "bundles": ["<bundle product id>", …] }: a line
- * of a bundle product that is not a merged bundle (no picks under it) is refused, so a bundle product
- * can't be bought alone, e.g. through a theme's quick add button. It also refuses a bundle product
+ * store has mix and match bundles), configured with { "bundles": ["<bundle product id>", …], "st": "<token>" }: a line
+ * of a bundle product that the cart transform did not stamp as merged (`_cro_merged` = the token) is refused, so a bundle
+ * product can't be bought alone, e.g. through a theme's quick add button. It also refuses a bundle product
  * (tag cro-bundle) added as a pick (a line with the `_bundle` property), which the builder never
  * offers but a hand made request could.
  */
@@ -73,16 +73,25 @@ export function check(rules, cart) {
   return errors;
 }
 
-/** Errors for mix and match bundle products in the cart that have no picks under them. @param {any} bundles numeric product ids */
-export function checkBundles(bundles, cart) {
+/**
+ * Errors for mix and match bundle products in the cart that were not merged from picks: the cart transform (cro-bundles) stamps every
+ * bundle line it merges with `_cro_merged` = the shop's token, so a line of a bundle product without that stamp was added alone
+ * (a theme's quick add, /cart/add) and is refused. `stamp` is the token from this validation's config; without one any stamp counts.
+ * Only the product ids listed (the store's mix and match bundles) are checked: kits and normal products are never touched.
+ * @param {any} bundles numeric product ids
+ * @param {any} cart
+ * @param {string} [stamp]
+ */
+export function checkBundles(bundles, cart, stamp = "") {
   const ids = new Set(Array.isArray(bundles) ? bundles.map(String) : []);
   if (!ids.size) return [];
-  const parents = new Set(cart.lines.map((/** @type {any} */ l) => l.parentRelationship?.parent?.id).filter(Boolean));
   const errors = [];
   for (const line of cart.lines) {
     const m = /** @type {any} */ (line.merchandise);
     if (m.__typename !== "ProductVariant" || !m.product) continue;
-    if (!ids.has(String(m.product.id).split("/").pop()) || parents.has(line.id)) continue;
+    if (!ids.has(String(m.product.id).split("/").pop())) continue;
+    const got = line.merged?.value;
+    if (stamp ? got === stamp : got) continue;
     errors.push(`${m.product.title || "This bundle"} is a bundle. Pick its items on its page, then add it to your cart.`.slice(0, 250));
   }
   return errors;
@@ -107,7 +116,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...(rules.length ? check(rules, input.cart) : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }

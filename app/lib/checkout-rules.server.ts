@@ -116,11 +116,12 @@ export async function saveCheckoutRules(admin: AdminClient, kind: CheckoutKind, 
 const GUARD_TITLE = "CRO Toolbox bundle guard";
 
 /**
- * Keeps the bundle guard validation (function cro-validation, `bundles` config) in step with the
- * store's mix and match bundle products, so a bundle product can't be bought alone at checkout.
+ * Keeps the bundle guard validation (function cro-validation, `bundles` and `st` config) in step with the
+ * store's mix and match bundle products, so a bundle product can't be bought alone at checkout: the cart
+ * transform stamps merged bundle lines with `st`, and a line of a listed product without it is refused.
  * Made only once there is a bundle; with no ids it stays and just lets everything through.
  */
-export async function syncBundleGuard(admin: AdminClient, productIds: string[]) {
+export async function syncBundleGuard(admin: AdminClient, productIds: string[], stamp = "") {
   const data = await gql(
     admin,
     `#graphql
@@ -138,7 +139,7 @@ export async function syncBundleGuard(admin: AdminClient, productIds: string[]) 
     }
     return;
   }
-  const metafields = [{ namespace: "$app", key: "function-configuration", type: "json", value: JSON.stringify({ bundles: productIds }) }];
+  const metafields = [{ namespace: "$app", key: "function-configuration", type: "json", value: JSON.stringify({ bundles: productIds, ...(stamp ? { st: stamp } : {}) }) }];
   if (guard) {
     const set = await gql(admin, `#graphql
       mutation CroGuardSet($metafields: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $metafields) { userErrors { field message } } }`, { metafields: metafields.map((m) => ({ ...m, ownerId: guard.id })) });

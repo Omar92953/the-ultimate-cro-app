@@ -17,6 +17,7 @@ import { FUNCTION_METAFIELD_LIMIT as RULES_FUNCTION_LIMIT } from "./rules";
 import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { timed } from "./timing.server";
 import { remember } from "./short-cache.server";
+import { createHmac } from "node:crypto";
 import { syncBundleGuard } from "./checkout-rules.server";
 
 import type {
@@ -1200,7 +1201,7 @@ async function bundleParents(admin: AdminClient, productIds: string[]) {
  * The checkout config for the cro-bundles Cart Transform: steps point at a collection (checked by
  * Shopify, any size) or a short product list, so it stays small for big catalogues.
  */
-export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[]) {
+export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[], stamp = "") {
   const active = bundles.filter((b) => b.active && b.product);
   const parents = await bundleParents(admin, [...new Set(active.map((b) => b.product!.id))]);
   const collections = new Set<string>();
@@ -1226,11 +1227,17 @@ export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[]) {
       }),
     };
   }
-  const value = JSON.stringify({ b });
+  // `st`: the token the cart transform writes on every merged bundle line (_cro_merged) and the bundle guard checks.
+  const value = JSON.stringify({ ...(stamp ? { st: stamp } : {}), b });
   if (value.length > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(`Your bundles list too many single products for Shopify's checkout engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use a collection for the bigger steps.`);
   }
-  return { value, vars: JSON.stringify({ collections: [...collections] }) };
+  return { value, vars: JSON.stringify({ collections: [...collections] }), ids: Object.keys(b) };
+}
+
+/** The shop's bundle stamp: derived from the app secret and the shop, so it needs no storage and a shopper cannot guess it. */
+export function bundleStamp(secret: string, shopDomain: string): string {
+  return createHmac("sha256", secret).update(`bundle-stamp:${shopDomain}`).digest("hex").slice(0, 24);
 }
 
 /** How the storefront adds bundles: "merge" (picks as items, merged at checkout) or "line" (one bundle line). */
@@ -1239,9 +1246,10 @@ async function setBundleMode(admin: AdminClient, mode: "merge" | "line") {
 }
 
 /** The checkout guard that refuses a bare bundle product. A failure here never blocks saving a bundle. */
-async function guardBundles(admin: AdminClient, productIds: string[]) {
+async function guardBundles(admin: AdminClient, productIds: string[], stamp = "") {
   try {
-    await syncBundleGuard(admin, productIds);
+    // CRO_BUNDLE_GUARD=off on Render switches the guard off without a deploy (rollback).
+    await syncBundleGuard(admin, process.env.CRO_BUNDLE_GUARD === "off" ? [] : productIds, stamp);
   } catch (error) {
     console.error("[bundle guard]", error);
   }
@@ -1249,7 +1257,10 @@ async function guardBundles(admin: AdminClient, productIds: string[]) {
 
 export async function syncBundles(admin: AdminClient) {
   const bundles = await listBundles(admin);
-  const { value, vars } = await buildBundleConfig(admin, bundles);
+  const shop = await gql(admin, `#graphql
+    query CroShopDomain { shop { myshopifyDomain } }`);
+  const stamp = process.env.SHOPIFY_API_SECRET && shop.shop?.myshopifyDomain ? bundleStamp(process.env.SHOPIFY_API_SECRET, shop.shop.myshopifyDomain) : "";
+  const { value, vars, ids } = await buildBundleConfig(admin, bundles, stamp);
   const data = await gql(
     admin,
     `#graphql
@@ -1268,10 +1279,6 @@ export async function syncBundles(admin: AdminClient) {
     { namespace: "$app", key: "bundle_vars", type: "json", value: vars },
   ];
   await setBundleMode(admin, "merge");
-  // The bundle guard is off: Shopify's validation sees a merged bundle as one line with no picks
-  // under it, so it refused real bundles (tested on Testing2, 2026-10-15). Passing no ids switches
-  // off any guard made earlier.
-  await guardBundles(admin, []);
   if (existing) {
     const set = await gql(
       admin,
@@ -1283,6 +1290,8 @@ export async function syncBundles(admin: AdminClient) {
     );
     const errors = set.metafieldsSet?.userErrors ?? [];
     if (errors.length) throw new AdminError(errors.map((e: { message: string }) => e.message).join(" "));
+    // The guard comes after the transform's config is saved, so a real bundle is never stamped with a token the guard does not know.
+    await guardBundles(admin, ids, stamp);
     return existing.id as string;
   }
   const created = await gql(
@@ -1296,6 +1305,7 @@ export async function syncBundles(admin: AdminClient) {
     }`,
     { metafields },
   );
+  await guardBundles(admin, ids, stamp);
   return created.cartTransformCreate.cartTransform.id as string;
 }
 
