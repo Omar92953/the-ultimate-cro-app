@@ -100,19 +100,19 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Your tracking page sells too", "Features built on request"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Your tracking page sells too"],
   },
   pro: {
     key: "pro",
     name: "Pro",
     handle: "pro",
-    job: "Your requests come first, with no limits.",
+    job: "Test, save returns and sell more, with no limits.",
     monthly: 24.99,
     yearly: 249,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
-        badge: "Requests first",
-    highlights: ["Everything in Growth", "Your requests built first", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
+    badge: "No limits",
+    highlights: ["Everything in Growth", "Unlimited orders", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
   },
 };
 
@@ -166,16 +166,10 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   return_saving: "pro",
 };
 
-/** What "built first" means, said the same everywhere (the Plans page, Home, the website, the App Store listing). No dates are promised. */
-export const REQUESTS_FIRST_TEXT = "Requests from Pro stores are built before everyone else's. We do not promise dates: we tell you when yours is planned and when it is built.";
-
 /** Things inside a page that need a plan (the page itself stays open). */
 export const EXTRA_PLAN = {
-  /** "Request a feature" on Home: the merchant asks, we build it for them. */
-  featureRequests: "growth",
   holdoutTest: "growth",
   prioritySupport: "pro",
-  requestsFirst: "pro",
   /** Offers above and below the tracking on the Track page, made in Offers. */
   trackOffers: "pro",
 } satisfies Record<string, PlanKey>;

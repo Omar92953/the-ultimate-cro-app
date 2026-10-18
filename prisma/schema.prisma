@@ -85,7 +85,8 @@ model ReturnRequest {
   @@index([shop, status])
 }
 
-/// "Request a feature" from the app's Home (Growth and up): waits for Omar, who reads it in the database.
+/// Old "Request a feature" rows (the feature was removed in Oct 2026; nothing writes here any more).
+/// Kept so no migration drops data; shop redact still deletes a shop's rows.
 model FeatureRequest {
   id        Int      @id @default(autoincrement())
   shop      String

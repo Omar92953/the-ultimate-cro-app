@@ -52,23 +52,7 @@ Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; pr
   customer data approval). Home's plan bar shows "N of 500 orders this month" with a meter, and a
   banner appears when it's passed; nothing is switched off.
 - Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
-- **Request a feature** (Growth and up): a form on Home ("What should your store do?", optional "Where should it show?"). Each request is saved in the `FeatureRequest` table (shop, plan, text, place, status, createdAt), Home shows a "Request sent" toast and the shop's earlier requests with their status. Free and Starter stores see the card with an upgrade button; the server checks the plan too.
-
-### Reading the requests (Omar, Supabase SQL editor)
-
-```sql
--- New requests, oldest first
-select id, shop, plan, "createdAt", text, place
-from "FeatureRequest"
-where status = 'new'
-order by "createdAt";
-
--- Change a status (what the merchant sees: new = Received, planned = We're building it,
--- done = Built, declined = Not planned)
-update "FeatureRequest" set status = 'planned' where id = 12;
-```
-
-Pro requests first: add `order by (plan = 'pro') desc, "createdAt"`.
+- Feature requests were removed (Oct 2026): the app no longer promises to build what merchants ask for. Home's Help card has "Suggest a feature" (mail to features@crotoolbox.com) with no promise attached. Old rows stay in the unused `FeatureRequest` table.
 
 ## Partner Dashboard steps (Omar)
 

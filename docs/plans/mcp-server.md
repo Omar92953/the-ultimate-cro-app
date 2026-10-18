@@ -72,10 +72,6 @@ call one function (see section 5).
   are placed on their bundle product's page; putting one on a store page is done in the app.
 - `create_custom_section(name, html, css)`: see section 7.
 - `discard_draft(feature)`.
-- `request_feature(what, where)`: when no tool can do what the merchant asked, the assistant sends it as a
-  feature request through the existing Request a feature system (`FeatureRequest` table, same plan rule:
-  Growth and Pro) and tells the merchant it was sent; Pro requests come first. Starter gets a message with the
-  upgrade link instead. Rate limit 5 a day per shop.
 
 **Place and preview**
 - `get_preview_link(feature)`: the theme editor deep link with the draft active (the links from
@@ -204,4 +200,4 @@ MCP specification (streamable HTTP and authorization, modelcontextprotocol.io).
 
 Build in the order of section 8.
 
-6. **Added (Omar)**: `request_feature` tool, so "Claude, add X" is either done with the app's tools or sent to the CRO Toolbox team as a feature request.
+6. ~~`request_feature` tool~~: removed in Oct 2026 with the app's feature requests (no promise to build what merchants ask).

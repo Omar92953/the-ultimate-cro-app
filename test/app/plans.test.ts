@@ -9,7 +9,6 @@ import { DEAL_KINDS } from "../../app/lib/deals";
 import { BUNDLE_RECIPES, recipeOfBundle } from "../../app/lib/bundle-recipes";
 import {
   planApproveUrl,
-  EXTRA_PLAN,
   GUARANTEE,
   limitOf,
   FEATURE_PLAN,
@@ -91,8 +90,6 @@ test("features unlock from their plan up", () => {
   assert.ok(!canUse("free", "quiz"));
   assert.ok(canUse("starter", "quiz"));
   assert.ok(atLeast("growth", "starter") && !atLeast("starter", "growth"));
-  // Feature requests ("we build it for you") start on Growth.
-  assert.ok(!atLeast("starter", EXTRA_PLAN.featureRequests) && atLeast("growth", EXTRA_PLAN.featureRequests) && atLeast("pro", EXTRA_PLAN.featureRequests));
 });
 
 test("pages map to features, and locked pages say which plan they need", () => {

@@ -24,7 +24,6 @@ const SECTIONS: [string, string[]][] = [
       "When you install the app, Shopify gives us your store's domain and an access token. We keep them in our database so the app can work for your store.",
       "Your settings and content (offers, bundles, designs, reviews, FAQ, logos, announcements, checkout rules) are saved in your own Shopify store, as data that belongs to the app, not on our servers.",
       "The app reads your products, collections, files, theme settings and navigation menus to show them in its editors and previews. It never changes your theme files.",
-      "Feature requests: when you send a request from the app's Home, we store your store's domain, your plan, what you asked for and where it should show, so we can build it and show you its status.",
     ],
   ],
   [
@@ -47,7 +46,7 @@ const SECTIONS: [string, string[]][] = [
     "How long we keep it and how it's deleted",
     [
       "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock and return requests and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
-      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests, return requests and feature requests), which we do.",
+      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests and return requests), which we do.",
     ],
   ],
   [

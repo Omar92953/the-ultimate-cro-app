@@ -25,6 +25,8 @@ export const TUTORIALS_URL = `${SITE_URL}/tutorials/`;
 export const helpUrl = (slug?: string) => `${SITE_URL}/help/${slug ? `${slug}/` : ""}`;
 /** Every help slug the app links to (checked by scripts/check-links.mjs). */
 export const HELP_SLUGS_USED = ["getting-started", "plans-and-billing", "good-to-know", "upsell-offers", "cross-sell-offers", "bundles", "storefront-sections", "discounts-addons-personalization"];
+/** Where merchants send feature ideas (Cloudflare Email Routing to the app's inbox). An inbox, not a promise to build them. */
+export const FEATURE_IDEAS_EMAIL = "features@crotoolbox.com";
 export const DEMO_URL = `${SITE_URL}/demo`;
 /** The App Store listing. Placeholder until the listing is live (confirm the handle then). */
 export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";

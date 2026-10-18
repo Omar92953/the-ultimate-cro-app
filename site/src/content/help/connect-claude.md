@@ -8,7 +8,7 @@ order: 11
 
 Connect Claude (claude.ai or Claude Desktop) to CRO Toolbox and ask in plain words: "Make a size guide for my t-shirts" or "Create a 10% upsell on my best seller". Claude uses the same settings and the same plan limits as the app. **Everything it builds is a draft.** You see it in the theme editor and publish it in the app, unless you chose to allow publishing.
 
-It can see your offers, designs, products and collections. It never sees orders, customers or emails. If it cannot do what you ask, it can send your idea to us as a feature request (Growth and Pro plans; Pro requests are built first).
+It can see your offers, designs, products and collections. It never sees orders, customers or emails. If it cannot do what you ask, it tells you, and you can do it in the app.
 
 ## Connect (Starter plan and up)
 

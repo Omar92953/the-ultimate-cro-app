@@ -12,7 +12,7 @@ import { authenticate } from "../shopify.server";
 import { appHandle, getPlan } from "../lib/billing.server";
 import { getValue } from "../lib/value.server";
 import { AREAS, feature, featuresIn } from "../lib/catalog";
-import { EXTRA_PLAN, REQUESTS_FIRST_TEXT, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planApproveUrl, planRank, type LimitKey, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planApproveUrl, planRank, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
 import { Pill } from "../components/ui";
 import { FreeRow, PlanCard } from "../components/PlanCard";
@@ -46,8 +46,6 @@ const LIMIT_ROWS: { key: LimitKey; label: string }[] = [
 ];
 
 const EXTRA_ROWS: { label: string; needs: PlanKey }[] = [
-  { label: "Your requests built first", needs: EXTRA_PLAN.requestsFirst },
-  { label: "Request any feature and we build it", needs: EXTRA_PLAN.featureRequests },
   { label: "Holdout test (measure what the app adds)", needs: EXTRA_PLAN.holdoutTest },
   { label: "Track page offers above and below the tracking", needs: EXTRA_PLAN.trackOffers },
   { label: "Priority support", needs: EXTRA_PLAN.prioritySupport },
@@ -108,7 +106,6 @@ export default function Plans() {
             <PlanCard key={k} plan={k} current={k === plan} yearly={yearly} action={choose(k)} />
           ))}
         </div>
-        <s-banner tone="info" heading="Pro: your requests are built first">{REQUESTS_FIRST_TEXT}</s-banner>
         <s-text color="subdued">You confirm the plan and its billing period on Shopify&apos;s approval page. Development stores show $0.</s-text>
         <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
         <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>
