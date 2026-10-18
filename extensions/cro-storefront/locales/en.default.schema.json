@@ -1,12 +1,12 @@
 {
  "s": {
-  "0": "Shows when this product is part of a mix & match bundle. Needs the Bundle tray app embed on. Words and look: CRO Toolbox → Bundles → Design.",
+  "0": "Shows when this product is part of a mix & match bundle. Needs the Bundle tray app embed on. Words and look: CRO Toolbox → Bundles → Style.",
   "1": "Which of the styles made in the app to show.",
   "2": "Steps, products and the look are set in CRO Toolbox → Bundles. Shoppers pay the bundle product's price, and each picked item's stock goes down.",
   "3": "Lets shoppers build your mix & match bundles anywhere: Add to bundle on product pages, + buttons on collection pages and a tray that follows them. Set it up in the app: Offers → Bundles.",
-  "4": "Shows Cross-sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it. Heading, products and button are set in CRO Toolbox → Cross-sell offers → Design.",
-  "5": "Products, headline and discount come from your Cross-sell rules; the look is set in CRO Toolbox → Cross-sell offers → Design.",
-  "6": "Offers come from your Upsell rules in CRO Toolbox; their look and wording are set in the app: Offers → Upsell → Design.",
+  "4": "Shows cross sell rules that have \"Cart drawer\" ticked, inside your theme's slide-out cart. Works with Dawn and themes built on it. Heading, products and button are set in CRO Toolbox → Offers → Cross sell offers → Style.",
+  "5": "Products, headline and discount come from your cross sell rules; the look is set in CRO Toolbox → Offers → Cross sell offers → Style.",
+  "6": "Offers come from your Upsell rules in CRO Toolbox; their look and wording are set in the app: Offers → Upsell → Style.",
   "7": "Videos, their order and linked products, the look and the pages it shows on are all set in CRO Toolbox → Video carousel.",
   "8": "Place it under the Add to cart button. Add-ons, texts and colours are set in the app: Offers → Add-ons.",
   "9": "Messages, icons, dates and the look are set in the app: Section library → Announcement bar.",
