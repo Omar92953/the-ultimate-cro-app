@@ -55,6 +55,7 @@ export const loader = timedLoader("app.tracking-returns", async ({ request }: Lo
     },
     shipments,
     savings,
+    creditWhen: rules?.rules.saving.creditWhen ?? "received",
     pro: atLeast(pctx.plan, "pro"),
     tracking: tracking ? { chosen: tracking.chosen, source: tracking.source, used: tracking.live.used, limit: tracking.live.limit } : null,
     inTheme: theme ? { track: inPageTemplate, returns: inPageTemplate } : null,
@@ -143,7 +144,7 @@ export default function TrackingReturns() {
                 <Tile label="Kept as exchanges" value={`${d.savings.exchanges.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.exchanges.count} exchange${d.savings.exchanges.count === 1 ? "" : "s"}, price of the new items`} />
                 <Tile label="Refunded" value={`${d.savings.refunds.value.toFixed(2)} ${d.savings.currency}`} note={`${d.savings.refunds.count} return${d.savings.refunds.count === 1 ? "" : "s"}, value of the items`} />
               </s-grid>
-              <s-text color="subdued">Credit stays in your store as a sale to come. {d.pro ? "" : "Return saving rules are on the Pro plan."}</s-text>
+              <s-text color="subdued">{d.savings.credit.waiting.count ? `Waiting for the items: ${d.savings.credit.waiting.count} return${d.savings.credit.waiting.count === 1 ? "" : "s"}, about ${d.savings.credit.waiting.value.toFixed(2)} ${d.savings.currency} of credit. ` : ""}{d.creditWhen === "received" ? "Credit is given when the items are received. " : "Credit is given when a return is approved. "}Credit stays in your store as a sale to come. {d.pro ? "" : "Return saving rules are on the Pro plan."}</s-text>
               <s-stack direction="inline">
                 <Button variant="tertiary" href="/app/returns/saving">Return saving rules</Button>
               </s-stack>
