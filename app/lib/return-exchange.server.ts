@@ -5,9 +5,9 @@
  * more, Shopify holds the order for payment and the merchant sends the invoice in the Shopify admin; if it costs less, the
  * difference is refunded. Scopes: write_returns, write_merchant_managed_fulfillment_orders.
  */
+import { reasonCode } from "./return-rules";
 import { AdminError, gql, type AdminClient } from "./admin.server";
 import { getReturn, updateReturn } from "./orders-lookup.server";
-import { reasonCode } from "./return-rules";
 import { parseExchange } from "./return-exchange";
 
 export { priceDifference, parseExchange, type ExchangeLine, type ExchangePlan } from "./return-exchange";
@@ -35,7 +35,8 @@ export async function approveExchange(admin: AdminClient, shop: string, rowId: n
       mutation CroReturnCreateExchange($input: ReturnInput!) { returnCreate(returnInput: $input) { return { id name status } userErrors { field message } } }`, {
       input: {
         orderId: row.orderId,
-        returnLineItems: plan.lines.map((l) => ({ fulfillmentLineItemId: l.fli, quantity: l.qty, returnReason: reasonCode(row.reason), customerNote: [row.reason, row.note].filter(Boolean).join(": ").slice(0, 300) })),
+        // returnCreate's line items take returnReasonNote (customerNote is only on returnRequest; Shopify refused it here).
+        returnLineItems: plan.lines.map((l) => ({ fulfillmentLineItemId: l.fli, quantity: l.qty, returnReason: reasonCode(row.reason), returnReasonNote: [row.reason, row.note].filter(Boolean).join(": ").slice(0, 300) })),
         exchangeLineItems: plan.lines.map((l) => ({ variantId: l.variantId, quantity: l.qty })),
       },
     });

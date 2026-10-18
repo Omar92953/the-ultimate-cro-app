@@ -224,7 +224,7 @@ function Card({ r, shop, creditWhen }: { r: Awaited<ReturnType<typeof loader>>["
         ) : null}
         {r.note ? <s-text color="subdued">“{r.note}”</s-text> : null}
         {r.declineNote ? <s-text color="subdued">Declined: {r.declineNote}</s-text> : null}
-        {!r.returnId ? <s-text color="subdued">Made before returns used Shopify. Arrange the return and refund in the Shopify admin.</s-text> : null}
+        {!r.returnId && r.resolution !== "exchange" ? <s-text color="subdued">Made before returns used Shopify. Arrange the return and refund in the Shopify admin.</s-text> : null}
         {confirmRefund ? (
           <s-banner tone="warning" heading={`Refund ${confirmRefund.amount.toFixed(2)} ${confirmRefund.currency} to the original payment?`}>
             <s-stack direction="inline" gap="small-200">
