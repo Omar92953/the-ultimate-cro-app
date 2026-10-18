@@ -10,6 +10,8 @@ import { atLeast } from "../plans";
 import { audit, checkRate } from "./limits.server";
 import { type Grant } from "./auth.server";
 import { BUILD_TOOLS, PUBLISH_TOOLS } from "./build-tools.server";
+import { DEAL_TOOLS } from "./deal-tools.server";
+import { BUNDLE_TOOLS } from "./bundle-tools.server";
 import { READ_TOOLS, type Tool, type ToolContext } from "./tools.server";
 import { errorMessage } from "../admin.server";
 
@@ -21,7 +23,7 @@ const ok = (id: Rpc["id"], result: unknown) => ({ jsonrpc: "2.0", id: id ?? null
 const fail = (id: Rpc["id"], code: number, message: string) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
 const text = (value: unknown, isError = false) => ({ content: [{ type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) }], isError });
 
-const TOOLS: Tool[] = [...READ_TOOLS, ...BUILD_TOOLS, ...PUBLISH_TOOLS];
+const TOOLS: Tool[] = [...READ_TOOLS, ...BUILD_TOOLS, ...DEAL_TOOLS, ...BUNDLE_TOOLS, ...PUBLISH_TOOLS];
 export function registerTools(...tools: Tool[]) {
   for (const t of tools) if (!TOOLS.some((x) => x.name === t.name)) TOOLS.push(t);
 }

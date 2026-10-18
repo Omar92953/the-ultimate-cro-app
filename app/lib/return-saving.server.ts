@@ -140,7 +140,7 @@ async function processWithoutRefund(admin: AdminClient, d: Detail, restock: bool
  * processes the return. Safe to run again after a failure: credit that was already given is never given twice.
  * `allowCredit` is false when the plan is not Pro.
  */
-export async function approveAndSettle(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules, allowCredit: boolean): Promise<{ status: string; credit: Credit | null }> {
+export async function approveAndSettle(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules, allowCredit: boolean): Promise<{ status: string; credit: Credit | null; creditLater?: boolean }> {
   const row = await getReturn(shop, rowId);
   if (!row) throw new AdminError("This request no longer exists. Reload the page.");
   // An exchange has no Shopify return until it is approved: it is created, processed and its shipment held in one go.
@@ -157,7 +157,24 @@ export async function approveAndSettle(admin: AdminClient, shop: string, rowId: 
   }
   const wantsCredit = row.resolution === "credit" && allowCredit && rules.saving.credit.on && !!row.returnId;
   if (!wantsCredit) return { status: "approved", credit: null };
+  // "Give credit when: items received": the credit waits for the merchant to mark the items received (giveCreditOnReceipt).
+  if (rules.saving.creditWhen === "received" && !row.creditKind) return { status: "approved", credit: null, creditLater: true };
+  return settleCredit(admin, shop, rowId, rules);
+}
 
+/** The merchant has the items: gives the credit now. Same safety as approving: credit already given is never given twice. */
+export async function giveCreditOnReceipt(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules, allowCredit: boolean): Promise<{ status: string; credit: Credit | null }> {
+  const row = await getReturn(shop, rowId);
+  if (!row) throw new AdminError("This request no longer exists. Reload the page.");
+  if (row.status === "credited") return { status: "credited", credit: row.creditKind ? { kind: row.creditKind as CreditKind, code: row.creditCode, amount: row.creditAmount, currency: row.currency } : null };
+  if (row.resolution !== "credit" || !row.returnId || row.status !== "approved") throw new AdminError("Only an approved return paid back with store credit can be given its credit.");
+  if (!allowCredit || !rules.saving.credit.on) throw new AdminError("Store credit is on the Pro plan and needs to be switched on in Return saving rules.");
+  return settleCredit(admin, shop, rowId, rules);
+}
+
+async function settleCredit(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules): Promise<{ status: string; credit: Credit | null }> {
+  const row = await getReturn(shop, rowId);
+  if (!row || !row.returnId) throw new AdminError("This request no longer exists. Reload the page.");
   const d = await detailForCredit(admin, row.returnId);
   const lines = d.returnLineItems.nodes.map((l) => ({ id: l.id, quantity: l.quantity - l.processedQuantity })).filter((l) => l.quantity > 0);
   let credit: Credit | null = row.creditKind ? { kind: row.creditKind as CreditKind, code: row.creditCode, amount: row.creditAmount, currency: row.currency || d.order.currencyCode } : null;

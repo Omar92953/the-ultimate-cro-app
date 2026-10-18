@@ -18,6 +18,8 @@ export type BundleProductInput = {
   descriptionHtml?: string;
   /** Keep it out of search and sitemaps (the bundle lives on a store page instead). */
   hidden?: boolean;
+  /** A draft product: not active, not on the Online Store, so nothing shows until it is activated (the assistant's drafts). */
+  draft?: boolean;
 };
 
 const userErrors = (errors: { field?: string[] | null; message: string }[] | undefined | null) => {
@@ -83,7 +85,7 @@ export async function createBundleProduct(admin: AdminClient, input: BundleProdu
     }`, {
     product: {
       title,
-      status: "ACTIVE",
+      status: input.draft ? "DRAFT" : "ACTIVE",
       tags: ["cro-bundle"],
       descriptionHtml: input.descriptionHtml ?? "",
       ...(input.hidden ? { metafields: [{ namespace: "seo", key: "hidden", type: "number_integer", value: "1" }] } : {}),
@@ -94,8 +96,18 @@ export async function createBundleProduct(admin: AdminClient, input: BundleProdu
   const product = data.productCreate?.product;
   if (!product?.id) throw new AdminError("Shopify didn't create the bundle product. Please try again.");
   await setStartingPrice(admin, product.id, input.price);
-  await publishToOnlineStore(admin, product.id);
+  if (!input.draft) await publishToOnlineStore(admin, product.id);
   return { id: product.id as string, title: product.title as string, handle: product.handle as string, image: product.featuredMedia?.preview?.image?.url ?? null };
+}
+
+/** Makes a draft bundle product live: Active and published to the Online Store. */
+export async function activateBundleProduct(admin: AdminClient, productId: string) {
+  const data = await gql(admin, `#graphql
+    mutation CroBundleProductActivate($product: ProductUpdateInput!) {
+      productUpdate(product: $product) { product { id } userErrors { field message } }
+    }`, { product: { id: productId, status: "ACTIVE" } });
+  userErrors(data.productUpdate?.userErrors);
+  await publishToOnlineStore(admin, productId);
 }
 
 /** Keep an app-created bundle product's title, picture and starting price in step with the bundle. */

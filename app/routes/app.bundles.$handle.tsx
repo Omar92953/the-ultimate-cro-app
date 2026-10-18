@@ -8,7 +8,7 @@ import { authenticate } from "../shopify.server";
 import { bundleBuilderLinks, deleteBundle, getThemeStatus, listBundles, saveBundle } from "../lib/cro.server";
 import { SCOPE_MESSAGE, createBundlePage, createBundleProduct, isScopeError } from "../lib/bundle-product.server";
 import { validateBundle } from "../lib/validate";
-import { requireOfferSlot } from "../lib/rules.server";
+import { requireBundle } from "../lib/rules.server";
 import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
@@ -129,12 +129,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
     const create = form.get("create") ? (JSON.parse(String(form.get("create"))) as NewProduct) : null;
     const where = (["product", "page", "both"].includes(String(form.get("where"))) ? String(form.get("where")) : "product") as Where;
-    // Bundles and deals share one limit on smaller plans (lib/plans.ts); a bundle can always be saved off.
-    await requireOfferSlot(admin, session.shop, bundle);
-    // Check everything else first, so a product or page is never created for a bundle that won't save.
-    const others = await listBundles(admin);
-    const problems = validateBundle({ ...bundle, product: bundle.product ?? (create ? { id: "pending", title: create.title } : null) }, others);
-    if (problems.length) return { ok: false, error: problems.join(" "), handle: null, upgrade: false };
+    // The plan, the bundle's own checks and the offer slots (bundles and deals share one limit on smaller plans; a bundle can always be saved off).
+    // Checked before anything is made, so a product or page is never created for a bundle that won't save.
+    await requireBundle(admin, session.shop, { ...bundle, product: bundle.product ?? (create ? { id: "pending", title: create.title } : null) }, await listBundles(admin));
     if (!bundle.product && create) {
       // No starting price entered: for "price by number of items" show the lowest bundle price, so the
       // product page never says $0.00 (shoppers pay the tier price at checkout either way).
