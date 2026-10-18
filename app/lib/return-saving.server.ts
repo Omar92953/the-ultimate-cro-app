@@ -63,7 +63,7 @@ export async function issueCredit(admin: AdminClient, o: { customerId: string | 
       appliesOncePerCustomer: true,
       customerSelection: o.customerId ? { customers: { add: [o.customerId] } } : { all: true },
       customerGets: { value: { discountAmount: { amount: money(o.amount), appliesOnEachItem: false } }, items: { all: true } },
-      combinesWith: { productDiscounts: false, orderDiscounts: false, shippingDiscounts: true },
+      combinesWith: { productDiscounts: true, orderDiscounts: false, shippingDiscounts: true },
     },
   });
   const err = messages(d.discountCodeBasicCreate?.userErrors);
