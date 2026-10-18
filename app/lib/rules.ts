@@ -46,6 +46,11 @@ export function requireFeatureRequests(plan: PlanKey) {
   if (!atLeast(plan, EXTRA_PLAN.featureRequests)) throw new RuleError(`Requests are included from the ${PLANS[EXTRA_PLAN.featureRequests].name} plan.`, "plan");
 }
 
+/** Track page offers (offers above and below the tracking) are on the Pro plan (plans.ts EXTRA_PLAN). */
+export function requireTrackOffers(plan: PlanKey) {
+  if (!atLeast(plan, EXTRA_PLAN.trackOffers)) throw new RuleError(needsPlan(EXTRA_PLAN.trackOffers), "plan");
+}
+
 /** Styles 2 to 5 of a section need a plan with more styles per section (plans.ts designsPerSection). */
 export function requireStyleSlot(plan: PlanKey, slot: number) {
   const allowed = limitOf(plan, "designsPerSection");

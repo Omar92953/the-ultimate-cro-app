@@ -112,7 +112,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
         badge: "Requests first",
-    highlights: ["Everything in Growth", "Your requests built first", "A/B tests for upsells and cross sells", "Return saving rules", "Priority support"],
+    highlights: ["Everything in Growth", "Your requests built first", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
   },
 };
 
@@ -176,6 +176,8 @@ export const EXTRA_PLAN = {
   holdoutTest: "growth",
   prioritySupport: "pro",
   requestsFirst: "pro",
+  /** Offers above and below the tracking on the Track page, made in Offers. */
+  trackOffers: "pro",
 } satisfies Record<string, PlanKey>;
 
 /** Referral reward text and link. PROPOSAL — the referral reward is Omar's decision. */

@@ -10,6 +10,8 @@ import { getOrderPages } from "../lib/order-page-setup.server";
 import { getTrackSell, givenCode, nextOrderCode } from "../lib/track-sell.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
+import { EXTRA_PLAN, atLeast } from "../lib/plans";
+import { trackOffersFor } from "../lib/track-offers.server";
 import { readRecRequest, trackRecs } from "../lib/track-recs.server";
 import { resolveTracking } from "../lib/tracking/tracking.server";
 
@@ -41,6 +43,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const sell = (await getTrackSell(admin).catch(() => null))?.sell;
     const next = sell && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await nextOrderCode(admin, session.shop, order.id, sell.nextOrder).catch((e) => { console.error(`[proxy/track] next order code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
     const buyAgain = sell?.buyAgain.on && !order.cancelled ? buyAgainFor(order.items.map((i) => ({ variantId: i.variantId, title: i.title, variant: i.variant, quantity: i.quantity, available: i.available, productType: i.productType, tags: i.tags })), sell.buyAgain) : null;
+    // Track page offers (Pro): above and below the tracking. They start a new cart; the paid order is never edited.
+    const offers = atLeast(plan, EXTRA_PLAN.trackOffers) && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await trackOffersFor(admin, session.shop, order.id, order.currency).catch(() => ({})) : {};
     // Late (past its expected date, or a problem): the merchant's apology and, when chosen, a real code.
     const lateNow = sell?.delay.on && !order.cancelled && shipments.some((s) => isLate({ delivered: s.tracking?.delivered ?? s.delivered, estimated: s.tracking?.estimated ?? s.estimated, status: s.tracking?.status ?? "" }));
     let late: Record<string, unknown> | null = null;
@@ -64,7 +68,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }
     // Everything except the internal order id.
-    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}), ...(late ? { delay: late } : {}), ...(after ? { afterDelivery: after } : {}), ...(buyAgain && (buyAgain.items.length || buyAgain.soldOut.length) ? { buyAgain } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
+    return json({ ok: true, order: { name: order.name, createdAt: order.createdAt, cancelled: order.cancelled, payment: order.payment, fulfillment: order.fulfillment, items: order.items.map((i) => ({ title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })), shipments, ...(recs ? { recs } : {}), ...(Object.keys(offers).length ? { offers } : {}), ...(late ? { delay: late } : {}), ...(after ? { afterDelivery: after } : {}), ...(buyAgain && (buyAgain.items.length || buyAgain.soldOut.length) ? { buyAgain } : {}), ...(next ? { nextOrder: { ...next, currency: order.currency } } : {}) } });
   } catch (e) {
     console.error(`[proxy/track] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: "Order lookup isn't available right now." }, 500);
