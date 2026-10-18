@@ -217,14 +217,14 @@ async function settleCredit(admin: AdminClient, shop: string, rowId: number, rul
     const total = creditFor(items, rule.bonus);
     // The refund part is what the items cost; the bonus on top is an ordinary store credit (Shopify refunds no more than was paid).
     marker = `pending:${money(items)}:${money(cents(total - items))}`;
-    await updateReturn(shop, rowId, { creditKind: "store_credit", creditCode: marker, creditAmount: total, creditedAt: new Date() });
+    await updateReturn(shop, rowId, { creditKind: "store_credit", creditCode: marker, creditAmount: total });
   }
   if (marker.startsWith("pending:")) {
     const [, refund, bonus] = marker.split(":");
     // Lines already processed (a retry after the refund went through but was not recorded) are not refunded again.
     const err = lines.length ? await refundToStoreCredit(admin, d, lines, { amount: Number(refund), expiryDays: rule.expiryDays, restock: rules.saving.restock }) : "";
     if (err && REFUND_TO_CREDIT_UNAVAILABLE.test(err)) {
-      await updateReturn(shop, rowId, { creditKind: "", creditCode: "", creditAmount: 0, creditedAt: null });
+      await updateReturn(shop, rowId, { creditKind: "", creditCode: "", creditAmount: 0 });
       marker = "fallback";
     } else if (err) {
       throw new AdminError(err);
@@ -240,7 +240,7 @@ async function settleCredit(admin: AdminClient, shop: string, rowId: number, rul
   }
   if (marker === "done") {
     const done = await getReturn(shop, rowId);
-    await updateReturn(shop, rowId, { status: "credited" });
+    await updateReturn(shop, rowId, { status: "credited", creditedAt: new Date() });
     return { status: "credited", credit: { kind: "store_credit", code: "", amount: done?.creditAmount ?? row.creditAmount, currency: d.order.currencyCode } };
   }
 
