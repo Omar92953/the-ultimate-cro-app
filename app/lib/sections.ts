@@ -135,7 +135,7 @@ export const SECTIONS: Record<SectionKind, SectionConfig> = {
       { key: "products", label: "Also show on these product pages", type: "products", details: "Optional. The review also appears in the reviews on these products' pages." },
       { key: "location", label: "Location", type: "text", placeholder: "Cairo" },
       { key: "date", label: "Date", type: "date" },
-      { key: "verified", label: "Verified buyer", type: "bool", default: false, details: "Only for a customer who really bought the product." },
+      { key: "verified", label: "Verified buyer", type: "bool", default: false, details: "Tick only if this person bought from your store." },
       { key: "featured", label: "Featured", type: "bool", default: false, details: "Sections set to “Featured reviews only” show just these." },
       { key: "active", label: "Shown on the store", type: "bool", default: true },
       { key: "pending", label: "Waiting for approval", type: "bool", default: false, hidden: true },

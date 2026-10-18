@@ -53,7 +53,7 @@ export const loader = slottedRoute(["reviews", "reviews_product"], async ({ requ
         source: String(v.source ?? ""),
         location: String(v.location ?? ""),
         date: v.date ? fmtDate(String(v.date)) : "",
-        verified: v.verified !== false,
+        verified: v.verified === true,
         featured: v.featured === true,
         media: media?.url ? { kind: media.kind === "video" ? "video" : "image", url: media.url } : null,
         photoFit: String(v.photo_fit ?? ""),

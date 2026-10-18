@@ -157,7 +157,7 @@
     sm: { show: true, average: true, stars: true, count: true },
     w: { filter: 'all', fallback: true, limit: 12 },
     l: { mode: 'carousel', perDesktop: 3, perMobile: 1, autoplay: 0, nav: 'arrows', arrowSize: 40 },
-    c: { style: 'classic', text: true, media: true, stars: true, source: true, verified: true, location: true, date: true, product: true, clamp: 5, videoAutoplay: true },
+    c: { style: 'classic', text: true, media: true, stars: true, source: true, verified: false, location: true, date: true, product: true, clamp: 5, videoAutoplay: true },
     sch: true, cls: 'ucs ucs-rv ucs-rv--carousel ucs-rv--fill-color ucs-rv--pat-chat ucs-rv--nav-arrows', css: ''
   };
   var SRC = { whatsapp: 'WhatsApp', instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', google: 'Google', x: 'X', snapchat: 'Snapchat', email: 'Email', youtube: 'YouTube', trustpilot: 'Trustpilot' };

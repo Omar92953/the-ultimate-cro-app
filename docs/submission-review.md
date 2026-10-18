@@ -1,5 +1,38 @@
 # App Store submission review — CRO Toolbox (2026-10-17)
 
+## Audit update (2026-10-18): Built for Shopify pass
+
+**Passing**
+- App Bridge loaded from the Shopify CDN (latest), `s-app-nav` navigation.
+- Contextual save bar in all 39 editors.
+- Compliance webhooks with HMAC; no REST Admin API, no Asset API, no ScriptTag.
+- Extension limits respected; every requested scope is used (`docs/scopes.md`).
+- Server timings low; about 100 KB of JS on first load.
+- Sales pop-ups, stock urgency and timers show real data only.
+
+**Fixed in this PR (`claude/app-store-fixes`, needs a Shopify deploy)**
+1. Trust badges: the default shows only "Secure checkout". Fast delivery, Free returns and Cash on
+   delivery are choices the merchant ticks (help text: "Only show what your store really offers.").
+   Saved settings are unchanged.
+2. Reviews "Verified buyer": the per review flag and the card's verified display now default to off
+   (a review with no flag no longer shows as verified). Help text on the flag: "Tick only if this
+   person bought from your store." Not done: "Check against orders" (needs a review email field and
+   order lookup; not cheap).
+3. Back links (breadcrumb) on Tracking source (to Tracking & Returns), Assistant and MCP connect (to Settings).
+
+**Live checks still to do (need a real store)**
+- Lighthouse: storefront impact under 10 points, on a store without a password.
+- Web Vitals in the Partner Dashboard after 100 loads.
+- Mobile: open the admin in the Shopify mobile app.
+
+**Proposal (no change made): optional scopes.** Today `shopify.app.toml` requires `read_returns`,
+`write_returns`, `read_store_credit_accounts`, `write_store_credit_account_transactions`,
+`write_gift_cards` and `write_merchant_managed_fulfillment_orders`. Reviewers prefer a short list at
+install, so these could move to `optional_scopes` and be requested when the merchant turns on returns,
+store credit, gift cards or fulfillment holds (`shopify.app.toml` `[access_scopes] optional_scopes`,
+requested with App Bridge `scopes.request()`). It needs a "grant this feature" step in each of those
+screens, so do it as its own PR.
+
 Replaces the 2026-10-07 review (all its code findings are fixed: no 404 deal pages, privacy
 webhooks act on stored data, sales pop-ups show each purchase once, no evergreen countdown, no
 review markup for typed reviews). Requirements re-fetched today with `shopify doc fetch`

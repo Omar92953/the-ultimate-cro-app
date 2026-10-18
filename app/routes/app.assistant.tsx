@@ -60,6 +60,9 @@ export default function Assistant() {
 
   return (
     <s-page heading="Connect an AI assistant" inlineSize="base">
+      <s-link slot="breadcrumb-actions" href="/app/settings">
+        Settings
+      </s-link>
       <s-stack gap="base">
         {!d.allowed ? (
           <s-banner tone="info" heading={`Connecting an AI assistant needs the Starter plan or higher (you are on ${d.plan})`}>

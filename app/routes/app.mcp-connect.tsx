@@ -50,6 +50,9 @@ export default function McpConnect() {
 
   return (
     <s-page heading="Connect an AI assistant" inlineSize="small">
+      <s-link slot="breadcrumb-actions" href="/app/settings">
+        Settings
+      </s-link>
       <s-section>
         {done ? (
           <s-stack gap="base">
