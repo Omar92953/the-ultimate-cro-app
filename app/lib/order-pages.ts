@@ -35,6 +35,12 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "statusProblem", label: "Status: problem", def: "Delivery problem", group: "Tracking" },
     { key: "where", label: "“Latest place”", def: "Latest update", group: "Tracking" },
     { key: "history", label: "Timeline heading", def: "Tracking history", group: "Tracking" },
+    { key: "priceSubtotal", label: "Subtotal", def: "Subtotal", group: "Prices" },
+    { key: "priceShipping", label: "Shipping", def: "Shipping", group: "Prices" },
+    { key: "priceFree", label: "Free shipping", def: "Free", group: "Prices" },
+    { key: "priceDiscount", label: "Discounts", def: "Discounts", group: "Prices" },
+    { key: "priceTax", label: "Taxes", def: "Taxes", group: "Prices" },
+    { key: "priceTotal", label: "Total", def: "Total", group: "Prices" },
     { key: "carrierOnly", label: "Live updates are on the carrier's page", def: "Live updates are on the carrier's page. Open the tracking link.", long: true, group: "Result" },
   ],
   returns: [
@@ -104,6 +110,8 @@ export const DEFAULT_RECS: Recs = {
 export type OrderPageDesign = {
   scheme: string;
   kind: OrderPageKind;
+  /** Track page: show what each item cost and the order's subtotal, shipping, discounts and total. */
+  prices: boolean;
   /** Track page only: product recommendations under the order. */
   recs: Recs;
   text: Record<string, string>;
@@ -118,6 +126,7 @@ const baseLook: OrderPageDesign["look"] = { align: "center", maxWidth: 640, acce
 export const defaultOrderPage = (kind: OrderPageKind): OrderPageDesign => ({
   scheme: "",
   kind,
+  prices: true,
   recs: DEFAULT_RECS,
   text: Object.fromEntries(TEXTS[kind].map((t) => [t.key, t.def])),
   rules: { days: 30 },
@@ -163,6 +172,7 @@ export function withOrderPageDefaults(raw: unknown, kind: OrderPageKind): OrderP
   return {
     scheme: schemeId(r.scheme),
     kind,
+    prices: typeof r.prices === "boolean" ? r.prices : true,
     recs: withRecs(r.recs),
     text: Object.fromEntries(TEXTS[kind].map((x) => [x.key, str(t[x.key], x.def, x.max ?? (x.long ? 300 : 80))])),
     rules: { days: num(ru.days, 0, 365, d.rules.days) },
@@ -205,6 +215,7 @@ export function toStorefrontOrderPage(c: OrderPageDesign) {
       .join(" "),
     t: c.text,
     days: c.rules.days,
+    prices: c.kind === "track" && c.prices,
     // The Track page asks the server for products only when a row is on (proxy.track.tsx).
     recs: c.kind === "track" && (c.recs.like.on || c.recs.complete.on)
       ? { count: c.recs.count, button: c.recs.button, added: c.recs.added, rows: (["like", "complete"] as const).filter((k) => c.recs[k].on).map((k) => ({ key: k, heading: c.recs[k].heading, source: c.recs[k].source, picks: c.recs[k].picks.map((p) => p.handle) })) }
