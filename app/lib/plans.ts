@@ -112,7 +112,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
     badge: "No limits",
-    highlights: ["Everything in Growth", "Unlimited orders", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
   },
 };
 
