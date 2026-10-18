@@ -674,3 +674,7 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 /* Track page: next order discount */
 .ucs-op__next { display: grid; gap: 4px; padding: 12px; border-radius: var(--ucs-op-r, 12px); background: rgba(127, 127, 127, 0.1); }
 .ucs-op__next p { margin: 0; }
+
+/* Track page: buy again */
+.ucs-op__again-buy { display: grid; gap: 6px; justify-items: start; }
+.ucs-op__again-buy p { margin: 0; }
