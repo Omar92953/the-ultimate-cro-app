@@ -56,7 +56,7 @@ type Patch = {
 };
 /** Ready-made looks; everything stays editable. */
 export const BUNDLE_PRESETS: { key: string; title: string; patch: Patch }[] = [
-  { key: "theme", title: "My theme", patch: { look: { themeAccent: true, themeRadius: true }, card: { style: "filled", pickedTint: true }, pickButton: { style: "filled", radius: 8, weight: 600, height: 40 } } },
+  { key: "theme", title: "Theme", patch: { look: { themeAccent: true, themeRadius: true }, card: { style: "filled", pickedTint: true }, pickButton: { style: "filled", radius: 8, weight: 600, height: 40 } } },
   { key: "black", title: "Black and white", patch: { look: { themeAccent: false, accent: "#111111", themeRadius: false, radius: 10 }, card: { style: "outline", pickedTint: false }, pickButton: { style: "filled", radius: 6, bg: "#f1f1f1", text: "#111111", border: "" } } },
   { key: "green", title: "Fresh green", patch: { look: { themeAccent: false, accent: "#16a34a", themeRadius: false, radius: 14 }, card: { style: "filled", bg: "#f3faf5", pickedTint: true }, pickButton: { style: "outline", radius: 99 } } },
   { key: "blue", title: "Blue", patch: { look: { themeAccent: false, accent: "#2563eb", themeRadius: false, radius: 12 }, card: { style: "shadow", bg: "#ffffff", pickedTint: true }, pickButton: { style: "filled", radius: 8, bg: "#eef3ff", text: "#1d4ed8" } } },
@@ -80,7 +80,7 @@ export function applyBundlePreset(c: BundleDesign, key: string): BundleDesign {
   };
 }
 
-/** "Match my theme style": the theme's colours (a scheme, or the theme's button colour) and corners. */
+/** "Match the theme style": the theme's colours (a scheme, or the theme's button colour) and corners. */
 export function matchBundleTheme(c: BundleDesign, scheme: string): BundleDesign {
   return { ...c, look: { ...c.look, themeAccent: true, themeRadius: true, scheme } };
 }

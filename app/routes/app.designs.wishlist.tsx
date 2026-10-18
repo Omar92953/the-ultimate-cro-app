@@ -80,7 +80,7 @@ export default function WishlistDesigner() {
       <DemoButton feature="wishlist" template={templateInUse(WISHLIST_PRESETS, cfg, applyWishlistPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.embedLink} target="_top" icon="theme-edit">
         {data.embedOn ? "Open in theme editor" : "Turn on in theme"}
@@ -190,5 +190,5 @@ export default function WishlistDesigner() {
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);
 
-/** "See it on my store" only stores the draft: the page keeps its state. */
+/** "Preview on store" only stores the draft: the page keeps its state. */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);

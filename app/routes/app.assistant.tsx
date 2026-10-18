@@ -50,7 +50,7 @@ export default function Assistant() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
-  const [name, setName] = useState("My computer");
+  const [name, setName] = useState("This computer");
   const [scope, setScope] = useState("build");
   const [publish, setPublish] = useState(false);
   useEffect(() => {

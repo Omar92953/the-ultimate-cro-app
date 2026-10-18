@@ -146,7 +146,7 @@ export default function HeroEditor() {
       <DemoButton feature="hero" template={templateInUse(HERO_PRESETS, cfg, applyHeroPreset)} />
       <SaveControls dirty={changed(cfg, data.config) && !(fetcher.data?.ok && fetcher.data.created)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={!!data.handle} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?previewPath=%2F`} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to theme"}
@@ -233,7 +233,7 @@ export default function HeroEditor() {
                   </s-grid>
                   <s-box paddingBlockStart="base">
                     <s-stack gap="base">
-                      <Checkbox label="Match my theme's button corners" checked={cfg.look.themeButtons} onValue={(v) => look({ themeButtons: v })} />
+                      <Checkbox label="Match the theme's button corners" checked={cfg.look.themeButtons} onValue={(v) => look({ themeButtons: v })} />
                       {!cfg.look.themeButtons ? <NumberField label="Button corners" details="99 = pill" suffix="px" min={0} max={99} step={1} value={Math.min(cfg.look.buttonRadius, 99)} onValue={(v) => look({ buttonRadius: v })} /> : null}
                     </s-stack>
                   </s-box>
@@ -300,7 +300,7 @@ export default function HeroEditor() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

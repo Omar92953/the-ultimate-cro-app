@@ -121,7 +121,7 @@ export default function SizeGuideDesigner() {
       <DemoButton feature="size_guide" template={templateInUse(SIZE_GUIDE_PRESETS, cfg, applySizeGuidePreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={() => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post" })} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={`https://${data.domain}/admin/themes/current/editor?template=product`} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to product page"}
@@ -324,7 +324,7 @@ export default function SizeGuideDesigner() {
   );
 }
 
-/** "See it on my store" only stores the draft: the page keeps its state. */
+/** "Preview on store" only stores the draft: the page keeps its state. */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

@@ -1,5 +1,5 @@
 /**
- * "Match my theme" for every design page: one button that applies the live theme's colours, corners
+ * "Match the theme" for every design page: one button that applies the live theme's colours, corners
  * and fonts, and a colour scheme picker (the section then uses that scheme's colours on the store,
  * and follows it if the theme's colours change later). Plus ThemeLook, which dresses a preview
  * like the store.
@@ -11,11 +11,11 @@ export function ThemeStylePanel({ style, scheme, onScheme, onMatch, noneLabel = 
   const f = style.fonts;
   const font = (x: ThemeStyle["fonts"]["body"]) => (x.family ? `${x.family} ${x.weight}` : "theme default");
   return (
-    <s-section heading="Match my theme">
+    <s-section heading="Match the theme">
       <s-stack gap="base">
         <s-stack direction="inline" gap="base" alignItems="center">
           <s-button variant="primary" icon="wand" onClick={onMatch}>
-            Match my theme style
+            Match the theme style
           </s-button>
           <s-text color="subdued">{style.theme ? `From “${style.theme}”: ` : ""}colours, corners and fonts.</s-text>
         </s-stack>
@@ -60,7 +60,7 @@ export function ThemeMatch<C extends { scheme: string }>({ style, config, setCon
     <ThemeStylePanel
       style={style}
       scheme={config.scheme}
-      noneLabel="None (my own colours)"
+      noneLabel="None (own colours)"
       onScheme={(id) =>
         setConfig((c) => {
           const s = schemeOf(style, id);

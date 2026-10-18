@@ -1,6 +1,6 @@
 /**
  * The live theme's style (colour schemes, fonts, corners), read from its settings by
- * theme-style.server.ts. Design pages use it for "Match my theme" and to draw previews that look like
+ * theme-style.server.ts. Design pages use it for "Match the theme" and to draw previews that look like
  * the store. Shared by client and server.
  */
 export type ThemeScheme = { id: string; name: string; bg: string; text: string; button: string; buttonText: string; link: string };

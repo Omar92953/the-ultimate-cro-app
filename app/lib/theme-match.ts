@@ -1,5 +1,5 @@
 /**
- * "Match my theme style" for the sections whose colours are stored in their design: copies one of the
+ * "Match the theme style" for the sections whose colours are stored in their design: copies one of the
  * theme's colour schemes (and its corners) into the section's own colour settings. Works on every
  * theme, and each colour stays editable afterwards. Shared by client and server.
  */

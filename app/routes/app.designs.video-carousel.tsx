@@ -116,7 +116,7 @@ export default function VideoCarouselDesigner() {
       <DemoButton feature="videos" template={templateInUse(VIDEO_CAROUSEL_PRESETS, cfg, applyVideoCarouselPreset)} />
       <SaveControls dirty={changed(cfg, data.config)} saving={fetcher.state !== "idle" && fetcher.formData?.get("intent") !== "draft"} saved={data.saved} onSave={save} onDiscard={() => setCfg(data.config)} />
       <Button slot="secondary-actions" href={previewLink} target="_blank" onClick={seeOnStore}>
-        See it on my store
+        Preview on store
       </Button>
       <Button slot="secondary-actions" href={data.addLink} target="_top" icon="theme-edit">
         {data.inTheme ? "Open in theme editor" : "Add to a page"}
@@ -173,7 +173,7 @@ export default function VideoCarouselDesigner() {
                 <s-section heading="Slides">
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <Select label="Shape" value={cfg.layout.ratio} onValue={(v) => layout({ ratio: v as C["layout"]["ratio"] })} options={[{ value: "9 / 16", label: "Tall (9:16)" }, { value: "3 / 4", label: "Portrait (3:4)" }, { value: "4 / 5", label: "Portrait (4:5)" }, { value: "1 / 1", label: "Square" }]} />
-                    <Select label="Corners" value={cfg.layout.corners} onValue={(v) => layout({ corners: v as C["layout"]["corners"] })} options={[{ value: "theme", label: "Match my theme" }, { value: "square", label: "Square" }, { value: "round", label: "Round" }]} />
+                    <Select label="Corners" value={cfg.layout.corners} onValue={(v) => layout({ corners: v as C["layout"]["corners"] })} options={[{ value: "theme", label: "Match the theme" }, { value: "square", label: "Square" }, { value: "round", label: "Round" }]} />
                     <NumberField label="Slides on desktop" min={2} max={6} step={1} value={cfg.layout.desktop} onValue={(v) => { layout({ desktop: v }); setDevice("desktop"); }} />
                     <Select label="Slides on mobile" value={cfg.layout.mobile} onValue={(v) => { layout({ mobile: v as C["layout"]["mobile"] }); setDevice("phone"); }} options={[{ value: "1.2", label: "1 and a peek" }, { value: "2", label: "2" }, { value: "2.2", label: "2 and a peek" }]} />
                     <NumberField label="Space between slides" suffix="px" min={0} max={40} step={2} value={cfg.layout.gap} onValue={(v) => layout({ gap: v })} />
@@ -237,7 +237,7 @@ export default function VideoCarouselDesigner() {
   );
 }
 
-/** Storing a draft for "See it on my store" must not reload the page (that would drop unsaved changes). */
+/** Storing a draft for "Preview on store" must not reload the page (that would drop unsaved changes). */
 export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultShouldRevalidate }) => (formData?.get("intent") === "draft" ? false : defaultShouldRevalidate);
 
 export const headers: HeadersFunction = (headersArgs) => boundary.headers(headersArgs);

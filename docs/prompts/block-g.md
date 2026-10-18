@@ -96,7 +96,7 @@ G5. New menu and hubs (#9, #11)
 
 G6. Wishlist works (#8) [Needs deploy]
   Load wishlist (and cart extras drawer) styles from the boosters embed, add an on/off and draft
-  preview ("See it on my store"), language prefix in links, feedback on add to cart and share, price
+  preview ("Preview on store"), language prefix in links, feedback on add to cart and share, price
   saved for card hearts, no dashes; test on Testing 3 (heart, floating button, wishlist page, share).
 
 G7. Discount code box in the cart (#13) [Needs deploy]

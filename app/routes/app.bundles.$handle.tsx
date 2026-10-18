@@ -113,7 +113,7 @@ function sectionOf(problem: string) {
   return 4;
 }
 
-/** "Create it for me": the bundle product the app makes on save. */
+/** "Create a new one": the bundle product the app makes on save. */
 type NewProduct = { title: string; price: number; imageUrl: string | null };
 /** Where shoppers build the bundle: its product page, a store page, or both. */
 type Where = "product" | "page" | "both";
@@ -155,7 +155,7 @@ export default function BundleEditor() {
   const [open, setOpen] = useState(isNew ? 1 : 0);
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const [bundle, setBundle] = useState<Bundle>(initial);
-  // "Create it for me" (new bundles start with it) or pick a product the store already has.
+  // "Create a new one" (new bundles start with it) or pick a product the store already has.
   const [create, setCreate] = useState<{ on: boolean; title: string; price: number; image: MediaRef | null }>({ on: !initial.product, title: "", price: 0, image: null });
   const [where, setWhere] = useState<"product" | "page" | "both">(initialWhere);
   const [touched, setTouched] = useState(false);
@@ -195,7 +195,7 @@ export default function BundleEditor() {
   const moveStep = (from: number, to: number) => set("steps", arrayMove(bundle.steps, from, to));
 
   const creating = create.on && !bundle.product;
-  // The product is made on save when "Create it for me" is chosen.
+  // The product is made on save when "Create a new one" is chosen.
   const problems = validateBundle({ ...bundle, product: bundle.product ?? (creating ? { id: "pending", title: create.title } : null) }, others);
   const save = () => {
     setTouched(true);
@@ -375,8 +375,8 @@ export default function BundleEditor() {
               value={create.on ? "create" : "pick"}
               onChange={(v) => setCreate((c) => ({ ...c, on: v === "create" }))}
               options={[
-                { value: "create", label: "Create it for me" },
-                { value: "pick", label: "Use a product I have" },
+                { value: "create", label: "Create a new one" },
+                { value: "pick", label: "Connect existing product" },
               ]}
             />
           ) : null}

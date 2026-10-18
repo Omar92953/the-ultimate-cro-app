@@ -16,7 +16,7 @@ Two links by the size picker: **Size chart** and **Size recommendation**. They o
 3. Add columns (Chest, Waist, Inseam) and a row for each size. Ranges like "86 to 91" work.
 4. For the size finder, fill in height (cm) and weight (kg) from and to for each size. Leave them empty to skip a size. With "Ask how they like it to fit" on, Snug moves the answer one size down and Relaxed one size up.
 5. Under **Which products** choose all products, or specific products, collections or tags. A product uses the first chart (from the left) that is meant for it. Add a fit note like "Runs large, size down" if you want shoppers to see it with the answer.
-6. Click **See it on my store** to check it in the theme editor (only you see the draft), then **Save**.
+6. Click **Preview on store** to check it in the theme editor (only you see the draft), then **Save**.
 7. In the theme editor open a product page, **Add block → Size guide**, and save. By default the links jump under the size picker; the block setting "Where the links go" can keep them where you placed it.
 
 ## Good to know

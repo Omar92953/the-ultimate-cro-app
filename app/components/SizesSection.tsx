@@ -6,7 +6,7 @@ export function SizesSection({ specs, value, onChange, note }: { specs: SizeSpec
   return (
     <s-section heading="Sizes">
       <s-stack gap="base">
-        <Switch label="Choose my own sizes" details="Off: sizes that suit the layout and your theme." checked={value.own} onValue={(own) => onChange({ ...value, own })} />
+        <Switch label="Choose own sizes" details="Off: sizes that suit the layout and your theme." checked={value.own} onValue={(own) => onChange({ ...value, own })} />
         {value.own ? (
           <s-grid gridTemplateColumns="1fr 1fr" gap="base">
             {specs.map((s) => (

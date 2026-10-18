@@ -1,6 +1,6 @@
 /**
  * Home: is the app set up and working, and what is it bringing in. Top to bottom: one banner at
- * most, the setup guide (4 steps that tick themselves, "I've done it" as a fallback), the plan bar,
+ * most, the setup guide (4 steps that tick themselves, "Mark as done" as a fallback), the plan bar,
  * the last 30 days, what needs attention, what to try next, tutorials, then help and what's new. Features live in the hubs. One loader; reads run at once, remembered per shop.
  */
 import { useEffect, useState } from "react";
@@ -154,7 +154,7 @@ export default function Home() {
   const fresh = check.data;
   const stepDone = { embed: data.steps.embed || !!fresh?.embed, place: data.steps.place || !!fresh?.place };
   const dismissed = pending === "dismiss" ? true : pending === "restore" ? false : data.dismissed;
-  // Ticked by hand ("I've done it"), including the one being saved right now.
+  // Ticked by hand ("Mark as done"), including the one being saved right now.
   const manual = new Set([...data.manual, ...(pending === "manual" ? [String(fetcher.formData?.get("step"))] : [])]);
 
   const steps: GuideStep[] = [

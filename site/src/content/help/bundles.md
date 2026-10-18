@@ -9,7 +9,7 @@ features: ["bundles"]
 
 ## Mix and match
 
-1. The app creates and publishes the bundle product for you ("Create it for me"), or you pick one you have. For a store page it also creates the page.
+1. The app creates and publishes the bundle product for you ("Create a new one"), or you pick one you have. For a store page it also creates the page.
 2. Add steps, for example "Choose 2 posters" (min 2, max 2) and "Add a frame" (optional). A step can use a whole collection.
 3. Click **Add to theme** in the editor's "Get it on your store" card once; it ticks itself.
 
