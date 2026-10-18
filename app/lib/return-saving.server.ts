@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 import { AdminError, gql, type AdminClient } from "./admin.server";
 import { creditFor, type ReturnRules } from "./return-rules";
 import { approveReturn } from "./shopify-returns.server";
-import { getReturn, updateReturn } from "./orders-lookup.server";
+import { getReturn, returnByShopifyId, updateReturn } from "./orders-lookup.server";
 import { approveExchange } from "./return-exchange.server";
 
 export type CreditKind = "store_credit" | "gift_card" | "discount_code";
@@ -256,4 +256,17 @@ async function settleCredit(admin: AdminClient, shop: string, rowId: number, rul
   await processWithoutRefund(admin, d, rules.saving.restock);
   await updateReturn(shop, rowId, { status: "credited" });
   return { status: "credited", credit };
+}
+
+/**
+ * The merchant closed a return in Shopify's own admin (webhook returns/close): when it is an approved store credit return still waiting
+ * for its items ("Give the credit: when the items are received"), the credit goes out now, the same as clicking "Items received". Returns
+ * this app closes itself are never here: a credited, refunded or closed row, one with credit already started, an exchange. Safe to run twice.
+ */
+export async function giveCreditWhenClosed(admin: AdminClient, shop: string, returnId: string, rules: ReturnRules, allowCredit: boolean): Promise<"given" | "skipped"> {
+  const row = await returnByShopifyId(shop, returnId);
+  if (!row || row.resolution !== "credit" || row.status !== "approved" || row.creditKind) return "skipped";
+  if (!allowCredit || !rules.saving.credit.on || rules.saving.creditWhen !== "received") return "skipped";
+  await giveCreditOnReceipt(admin, shop, row.id, rules, allowCredit);
+  return "given";
 }

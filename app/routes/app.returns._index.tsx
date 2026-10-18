@@ -75,14 +75,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (!shopifyId) throw new Error("Refund it in the Shopify admin: this request was made before returns used Shopify.");
       const { rules } = await getReturnRules(admin);
       await refundReturn(admin, shopifyId, { restock: rules.saving.restock });
-      await closeReturn(admin, shopifyId).catch(() => null);
+      // Marked refunded before closing: the returns/close webhook must not read this as "items received" and give credit too.
       await updateReturn(session.shop, id, { status: "refunded", refundedAt: new Date() });
+      await closeReturn(admin, shopifyId).catch(() => null);
     } else if (intent === "ship-exchange") {
       // The items arrived: let the exchange ship.
       await releaseExchange(admin, session.shop, id);
     } else if (intent === "close") {
-      if (shopifyId) await closeReturn(admin, shopifyId).catch(() => null);
+      // Marked closed first: closing in Shopify sends the returns/close webhook, which must not read this as "items received".
       await updateReturn(session.shop, id, { status: "closed" });
+      if (shopifyId) await closeReturn(admin, shopifyId).catch(() => null);
     } else throw new Error("Unknown action.");
     return { ok: true, error: null, intent, quote: null };
   } catch (e) {

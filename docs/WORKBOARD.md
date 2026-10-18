@@ -33,7 +33,7 @@ Updated 2026-10-15.
 - [ ] Next Shopify deploy: theme editor texts still say "Cross-sell" and "Design" (theme/blocks/ucro-cart-offers.liquid
       and others); change to "Cross sell" and "Style".
 
-- [ ] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy.
+- [x] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy. Done in the returns webhook PR (`returns/close` in shopify.app.toml, `app/routes/webhooks.returns.close.tsx`); needs a Shopify deploy.
 
 - [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
       Needs a Shopify deploy and Omar's steps in each PR: read_returns and write_returns scopes on Render
