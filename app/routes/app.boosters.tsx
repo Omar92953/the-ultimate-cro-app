@@ -120,6 +120,7 @@ export default function Boosters() {
           <Card title="Trust badges" actions={<DemoButton feature="trust_badges" slot="" variant="tertiary" />} badge={<Pill tone={cfg.trust.enabled ? "ok" : "muted"}>{cfg.trust.enabled ? "On" : "Off"}</Pill>}>
             <CardText>Reassurance under Add to cart: secure checkout, delivery, returns… plus the payment methods your store accepts.</CardText>
             <Switch label="Show trust badges" checked={cfg.trust.enabled} onValue={(v) => set("trust", { enabled: v })} />
+            <CardText>Only show what your store really offers.</CardText>
             <TextField label="Heading (optional)" value={cfg.trust.heading} onValue={(v) => set("trust", { heading: v })} />
             <s-stack gap="small-200">
               {TRUST_BADGES.map((b) => (

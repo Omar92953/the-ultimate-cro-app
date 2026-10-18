@@ -12,7 +12,7 @@
   var D = {
     sticky: { enabled: true, devices: 'all', position: 'bottom', showImage: true, showOptions: true, buttonText: 'Add to cart', soldOutText: 'Sold out', bg: '#ffffff', fg: '#121212', buttonBg: '', buttonFg: '' },
     urgency: { enabled: true, threshold: 10, text: 'Hurry! Only {count} left in stock', lastOneText: 'Last one in stock!', showBar: true, color: '#b42318' },
-    trust: { enabled: true, heading: '', badges: [{ key: 'secure', label: 'Secure checkout' }, { key: 'shipping', label: 'Fast delivery' }, { key: 'returns', label: 'Free returns' }, { key: 'cod', label: 'Cash on delivery' }], showPayments: true, style: 'row', color: '#303030' },
+    trust: { enabled: true, heading: '', badges: [{ key: 'secure', label: 'Secure checkout' }], showPayments: true, style: 'row', color: '#303030' },
     salesPop: { enabled: true, position: 'bottom-left', firstDelay: 8, gap: 20, perVisit: 5, showCity: false, text: 'Someone{city} bought {product}', maxAgeDays: 7, devices: 'all' },
   };
   var C = {};

@@ -92,12 +92,7 @@ export const DEFAULT_BOOSTERS: BoostersConfig = {
   trust: {
     enabled: true,
     heading: "",
-    badges: [
-      { key: "secure", label: "Secure checkout" },
-      { key: "shipping", label: "Fast delivery" },
-      { key: "returns", label: "Free returns" },
-      { key: "cod", label: "Cash on delivery" },
-    ],
+    badges: [{ key: "secure", label: "Secure checkout" }],
     showPayments: true,
     style: "row",
     color: "#303030",
