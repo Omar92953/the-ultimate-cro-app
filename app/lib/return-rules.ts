@@ -22,12 +22,14 @@ export type Saving = {
   /** The ways a shopper can be paid back. Refund to the original payment is always possible. */
   /** Exchange for another size or colour instead of returning for money. `extra`: also when the new item costs more (the merchant then collects the difference). */
   exchange: { on: boolean; extra: boolean };
+  /** When credit is given: once the items are received (default) or at once when the return is approved. */
+  creditWhen: "received" | "approved";
   credit: { on: boolean; /** Extra credit on top of the refund value, in percent. */ bonus: number; /** Days the store credit lasts (0 = never). */ expiryDays: number };
   /** Put returned items back in stock when they are processed. */
   restock: boolean;
   rules: AutoRule[];
 };
-export const DEFAULT_SAVING: Saving = { exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] };
+export const DEFAULT_SAVING: Saving = { creditWhen: "received", exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] };
 
 export type ReturnRules = {
   /** Pro: store credit instead of a refund, auto approve rules, restocking. */
@@ -67,7 +69,10 @@ const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
 export function withSaving(raw: unknown): Saving {
   const r = obj(raw), c = obj(r.credit);
   const e = obj(r.exchange);
+  // Stores that saved rules before "when credit is given" existed keep giving credit at approval.
+  const creditWhen = r.creditWhen === "received" || r.creditWhen === "approved" ? r.creditWhen : Object.keys(r).length ? "approved" : "received";
   return {
+    creditWhen,
     exchange: { on: e.on === true, extra: e.extra === true },
     credit: { on: c.on === true, bonus: clampInt(c.bonus, 0, 100, 0), expiryDays: clampInt(c.expiryDays, 0, 3650, 0) },
     restock: r.restock === true,
@@ -124,6 +129,8 @@ export type ShopifyReason = "COLOR" | "DEFECTIVE" | "NOT_AS_DESCRIBED" | "OTHER"
 export function reasonCode(words: string): ShopifyReason {
   const w = words.toLowerCase();
   if (/too (big|large)|size.*(large|big)|larger/.test(w)) return "SIZE_TOO_LARGE";
+  // "Wrong size" does not say which way: SIZE_TOO_SMALL is the closest (shoppers most often need the bigger one).
+  if (/wrong size|doesn'?t fit|does not fit|size/.test(w) && !/small|smaller/.test(w)) return "SIZE_TOO_SMALL";
   if (/too small|size.*small|smaller/.test(w)) return "SIZE_TOO_SMALL";
   if (/damag|defect|broken|faulty|arrived.*(bad|broken)/.test(w)) return "DEFECTIVE";
   if (/not as (expected|described)|different from|doesn't match|does not match/.test(w)) return "NOT_AS_DESCRIBED";

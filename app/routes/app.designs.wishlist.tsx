@@ -4,12 +4,14 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { createOrderPage, orderPageContext } from "../lib/order-page-setup.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getWishlist, saveWishlist } from "../lib/designs.server";
 import { applyWishlistPreset, WISHLIST_PRESETS, WISHLIST_SIZES, withWishlistDefaults, type WishlistDesign } from "../lib/wishlist-design";
+import { Pill } from "../components/ui";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { WishlistPreview } from "../components/WishlistPreview";
 import ui from "../components/PageEditor.module.css";
@@ -24,13 +26,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const [{ config, saved }, theme] = await Promise.all([getWishlist(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
   const links = sectionLinks(session.shop);
-  return { config, saved, css: storefrontCss("ucs-sections.css") + storefrontCss("ucs-wishlist.css"), embedOn: theme ? theme.installed.boosters : null, embedLink: links.boosters, domain: session.shop, pageLink: links.track, pagesAdmin: `https://${session.shop}/admin/pages/new` };
+  const ctx = await orderPageContext(admin, session.shop, theme);
+  return { wishlistPage: ctx.pages.wishlist ? { handle: ctx.pages.wishlist.handle } : null, blockInTemplate: ctx.wishlistInTemplate, editorLink: ctx.editor("wishlist"), config, saved, css: storefrontCss("ucs-sections.css") + storefrontCss("ucs-wishlist.css"), embedOn: theme ? theme.installed.boosters : null, embedLink: links.boosters, domain: session.shop, pageLink: links.track, pagesAdmin: `https://${session.shop}/admin/pages/new` };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const form = await request.formData();
   try {
+    if (form.get("intent") === "make-page") {
+      const page = await createOrderPage(admin, "wishlist");
+      return { ok: true, draft: false, error: null, config: null, page: page.handle };
+    }
     const draft = form.get("intent") === "draft";
     const config = await saveWishlist(admin, withWishlistDefaults(JSON.parse(String(form.get("config")))), draft);
     return { ok: true, draft, error: null, config };
@@ -54,7 +61,8 @@ export default function WishlistDesigner() {
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
+    if (fetcher.data.ok && "page" in fetcher.data) shopify.toast.show("Page ready");
+    else if (fetcher.data.ok && fetcher.data.draft) shopify.toast.show("Your changes are in the theme editor preview (only you see them). Save here to put them live.");
     else if (fetcher.data.ok) shopify.toast.show(data.embedOn ? "Wishlist saved and live on your store" : "Wishlist saved");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify, data.embedOn]);
@@ -90,6 +98,11 @@ export default function WishlistDesigner() {
               </s-link>
             </s-banner>
           ) : null}
+          {!data.saved ? (
+            <s-banner tone="info" heading="Not saved yet">
+              The wishlist shows on your store after you save here.
+            </s-banner>
+          ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
@@ -115,9 +128,21 @@ export default function WishlistDesigner() {
                 <s-section heading="Wishlist page">
                   <s-stack gap="base">
                     <TextField label="Page address" details="The page with the “Order & wishlist pages” block set to Wishlist." value={cfg.page.url} onValue={(v) => page({ url: v })} />
-                    <s-link href={data.pagesAdmin} target="_top">
-                      Create a page in Shopify
-                    </s-link>
+                    <s-stack gap="small-200">
+                      <s-stack direction="inline" gap="small-200" alignItems="center">
+                        <Pill tone={data.wishlistPage && data.blockInTemplate ? "ok" : "warn"}>{!data.wishlistPage ? "Page not made yet" : data.blockInTemplate ? "On your store" : "Block not added yet"}</Pill>
+                        {!data.wishlistPage ? (
+                          <Button loading={fetcher.state !== "idle" && fetcher.formData?.get("intent") === "make-page"} onClick={() => fetcher.submit({ intent: "make-page" }, { method: "post" })}>
+                            Make the Wishlist page
+                          </Button>
+                        ) : (
+                          <Button variant="tertiary" href={data.editorLink} target="_top" icon="theme-edit">
+                            {data.blockInTemplate ? "Open in theme editor" : "Add the block"}
+                          </Button>
+                        )}
+                      </s-stack>
+                      <s-text color="subdued">The app makes the page and the block you add to the page template (Order &amp; wishlist pages, Page: Automatic) shows the wishlist there only.</s-text>
+                    </s-stack>
                     <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                       <TextField label="Heading" value={cfg.page.heading} onValue={(v) => page({ heading: v })} />
                       <TextField label="Add to cart" value={cfg.page.add} onValue={(v) => page({ add: v })} />
@@ -142,6 +167,7 @@ export default function WishlistDesigner() {
                     <ColorField label="Icon colour" value={cfg.look.color} onValue={(v) => look({ color: v })} />
                     <ColorField label="Button background" value={cfg.look.bg} onValue={(v) => look({ bg: v })} />
                     <NumberField label="Corners" suffix="px" min={0} max={999} step={1} value={cfg.look.radius} onValue={(v) => look({ radius: v })} />
+                    <NumberField label="Floating button height from the bottom" details="Raise it to clear payment icons or a chat button." suffix="px" min={0} max={400} step={1} value={cfg.where.floatBottom} onValue={(v) => where({ floatBottom: v })} />
                     <Select label="Floating button" value={cfg.where.floatPos} onValue={(v) => where({ floatPos: v as C["where"]["floatPos"] })} options={[{ value: "bl", label: "Bottom left" }, { value: "br", label: "Bottom right" }]} />
                   </s-grid>
                 </s-section>

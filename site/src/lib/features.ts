@@ -189,7 +189,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   returns: {
     who: "For handling returns without email back and forth.",
-    points: ["Shoppers ask for a return with the order number and email", "Each request is a real Shopify return you approve or decline, with Shopify emailing the shopper", "Rules: return window, products that can't be returned, reasons approved at once, your return address", "Upload your return label for the shopper, then refund when the items arrive", "Refunds only for now: no exchanges or store credit"],
+    points: ["Shoppers ask for a return with the order number and email", "Each request is a real Shopify return you approve or decline, with Shopify emailing the shopper", "Rules: return window, products that can't be returned, reasons approved at once, your return address", "Upload your return label for the shopper, then refund when the items arrive", "Pro: exchanges for another size and store credit, gift card or discount code instead of a refund"],
     related: ["track", "faq"],
   },
   payment_rules: {
