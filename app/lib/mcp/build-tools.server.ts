@@ -19,6 +19,7 @@ import { DESIGNS } from "./registry.server";
 import { DATA_NOTE, asFeature, featureArg, type Tool, type ToolContext } from "./tools.server";
 import { adminHandle, obj, refs } from "./shared.server";
 import { publishDeal } from "./deal-tools.server";
+import { publishBundle } from "./bundle-tools.server";
 
 const PENDING = (key: FeatureKey) => `mcp_pending_${key}`;
 
@@ -266,8 +267,10 @@ export const PUBLISH_TOOLS: Tool[] = [
       const id = String(args.id);
       const current = (await listRules(ctx.admin)).find((r) => r.id === id || r.handle === id);
       if (!current) {
-        // A discount deal (buy X get Y, volume, gift, upgrade): the same checks as the app's deal page.
-        return publishDeal(ctx, id);
+        // A discount deal, a bundle or a fixed bundle product: the same checks as the app's own pages.
+        const other = (await publishDeal(ctx, id)) ?? (await publishBundle(ctx, id));
+        if (!other) throw new RuleError("No offer with that id. Use list_offers.", "input", false);
+        return other;
       }
       requireFeature(ctx.plan, current.kind === "upsell" ? "upsell" : "cross_sell", ctx.trial);
       await requireOfferSlot(ctx.admin, ctx.shop, { active: true, id: current.id, handle: current.handle });

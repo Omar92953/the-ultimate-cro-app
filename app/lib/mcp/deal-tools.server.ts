@@ -8,7 +8,7 @@ import { listDeals, saveDeal } from "../deals.server";
 import { dealFeature } from "../catalog";
 import { RuleError, requireFeature } from "../rules";
 import { requireDeal } from "../rules.server";
-import { DEAL_TYPES, blankDeal, describeDeal, type BogoConfig, type Deal, type DealKind, type GiftConfig, type Target, type UpgradeConfig, type VariantPick, type VolumeConfig } from "../deals";
+import { DEAL_TYPES, blankDeal, describeDeal, type BogoConfig, type Deal, type DealKind, type FixedConfig, type GiftConfig, type Target, type UpgradeConfig, type VariantPick, type VolumeConfig } from "../deals";
 import { adminHandle, obj, refs } from "./shared.server";
 import { DATA_NOTE, type Tool, type ToolContext } from "./tools.server";
 
@@ -81,7 +81,19 @@ const tidyNum = (v: unknown) => Number(v);
 export async function applyDealArgs(ctx: ToolContext, deal: Deal, a: Record<string, unknown>): Promise<Deal> {
   const d: Deal = { ...deal, config: structuredClone(deal.config) };
   if (a.name !== undefined) d.name = text(a.name, 80);
-  if (d.kind === "bogo") {
+  if (d.kind === "fixed") {
+    // A frequently bought together set: the items (with how many of each) and the percent off the set.
+    const c = d.config as FixedConfig;
+    if (Array.isArray(a.items)) {
+      const asked = a.items.slice(0, 10).map((i: { productId?: unknown; qty?: unknown }) => ({ id: String(i.productId), qty: Math.max(1, Math.round(tidyNum(i.qty) || 1)) }));
+      const found = await refs(ctx, asked.map((i) => i.id), "Product");
+      c.items = asked.flatMap((i) => {
+        const p = found.find((x) => x.id === i.id);
+        return p ? [{ product: { id: p.id, title: p.title, image: p.image ?? null, handle: p.handle ?? "" }, qty: i.qty }] : [];
+      });
+    }
+    if (a.percent !== undefined) c.pct = tidyNum(a.percent);
+  } else if (d.kind === "bogo") {
     const c = d.config as BogoConfig;
     c.buy = await target(ctx, a.buy, c.buy);
     if (a.get !== undefined) {
@@ -114,22 +126,23 @@ export async function applyDealArgs(ctx: ToolContext, deal: Deal, a: Record<stri
   return d;
 }
 
-const summary = (d: Deal) => ({ id: d.id, handle: d.handle, type: d.kind, name: d.name, on: d.active, describes: describeDeal(d) });
+export const dealSummary = (d: Deal) => ({ id: d.id, handle: d.handle, type: d.kind, name: d.name, on: d.active, describes: describeDeal(d) });
 const appPage = (ctx: ToolContext, d: { kind: DealKind; handle: string | null }) => `https://admin.shopify.com/store/${adminHandle(ctx.shop)}/apps/${process.env.SHOPIFY_API_KEY}/app/deals/${d.kind}/${d.handle}`;
-const asRuleError = (e: unknown) => (e instanceof AdminError ? new RuleError(e.message, "input", false) : e);
+export const asRuleError = (e: unknown) => (e instanceof AdminError ? new RuleError(e.message, "input", false) : e);
 
 /** publish_offer for a discount deal: switches it on with the same checks as the app's deal page. */
 export function makeDealPublisher(deps: Deps) {
+  /** Null when no deal has that id (so the next kind of offer can be tried). */
   return async (ctx: ToolContext, id: string) => {
     const deal = (await deps.listDeals(ctx.admin)).find((d) => d.id === id || d.handle === id);
-    if (!deal) throw new RuleError("No offer with that id. Use list_offers.", "input", false);
+    if (!deal) return null;
     try {
       await requireDeal(ctx.admin, ctx.shop, { ...deal, active: true });
       await deps.saveDeal(ctx.admin, { ...deal, active: true });
     } catch (e) {
       throw asRuleError(e);
     }
-    return { ...summary({ ...deal, active: true }), status: "live" };
+    return { ...dealSummary({ ...deal, active: true }), status: "live" };
   };
 }
 
@@ -150,7 +163,7 @@ export function makeDealTools(deps: Deps): Tool[] {
           await requireDeal(ctx.admin, ctx.shop, draft);
           const saved = await deps.saveDeal(ctx.admin, { ...draft, active: false });
           const made = { ...draft, id: saved.id ?? null, handle: saved.handle };
-          return { ...summary(made), status: "draft (off)", appPage: appPage(ctx, made), next: "Check it in the app, then switch it on there (or publish_offer when publishing is allowed)." };
+          return { ...dealSummary(made), status: "draft (off)", appPage: appPage(ctx, made), next: "Check it in the app, then switch it on there (or publish_offer when publishing is allowed)." };
         } catch (e) {
           throw asRuleError(e);
         }
@@ -173,7 +186,7 @@ export function makeDealTools(deps: Deps): Tool[] {
         try {
           await requireDeal(ctx.admin, ctx.shop, next);
           await deps.saveDeal(ctx.admin, { ...next, active: current.active });
-          return { ...summary({ ...next, active: current.active }), status: current.active ? "saved (live)" : "saved (still off)", appPage: appPage(ctx, next) };
+          return { ...dealSummary({ ...next, active: current.active }), status: current.active ? "saved (live)" : "saved (still off)", appPage: appPage(ctx, next) };
         } catch (e) {
           throw asRuleError(e);
         }

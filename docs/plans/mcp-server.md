@@ -65,6 +65,11 @@ call one function (see section 5).
   purchase and upgrades, as drafts (off). Same checks as the app's deal page (`requireDeal` in `rules.server.ts`:
   the plan's feature, complete settings, offer slots). A deal that is on can only be changed with the allow
   publishing tick; `publish_offer` switches a deal on.
+- `create_bundle(recipe, …)`, `update_bundle(id, …)` (built): all six recipes (`fbt`, `kit`, `mixmatch`, `browse`,
+  `growing`, `anyN`) as drafts: the bundle is off and its bundle product is a Shopify **draft product** (not active,
+  not on the Online Store); `publish_offer` activates the product and switches the bundle on. Checks:
+  `requireBundle` / `requireKit` / `requireDeal` in `rules.server.ts`, the same ones the app's pages run. Bundles
+  are placed on their bundle product's page; putting one on a store page is done in the app.
 - `create_custom_section(name, html, css)`: see section 7.
 - `discard_draft(feature)`.
 - `request_feature(what, where)`: when no tool can do what the merchant asked, the assistant sends it as a

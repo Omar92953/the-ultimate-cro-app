@@ -107,7 +107,7 @@ test("publish_offer switches a deal on, with the same checks", async () => {
   deals = [];
   const made = (await tool("create_discount").run(ctx("starter"), { type: "gift", name: "Tote", giftProductId: P(8), minimumAmount: 40 })) as { handle: string };
   const out = (await publishDeal(ctx("starter", { allowPublish: true }), made.handle)) as { status: string; on: boolean };
-  await assert.rejects(publishDeal(ctx("starter", { allowPublish: true }), "nope"), /No offer with that id/);
+  assert.equal(await publishDeal(ctx("starter", { allowPublish: true }), "nope"), null, "no deal with that id: the next kind of offer is tried")
   assert.deepEqual({ status: out.status, on: out.on }, { status: "live", on: true });
   assert.equal(deals.find((d) => d.handle === made.handle)!.active, true);
   assert.equal(tool("publish_offer").needs, "publish");

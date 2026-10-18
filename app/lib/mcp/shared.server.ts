@@ -9,6 +9,7 @@ export async function refs(ctx: ToolContext, ids: unknown, what: "Product" | "Co
   const list = Array.isArray(ids) ? ids.map(String).filter((x) => new RegExp(`^gid://shopify/${what}/\\d+$`).test(x)).slice(0, 50) : [];
   if (!list.length) return [];
   const d = await gql(ctx.admin, `#graphql
-    query CroMcpRefs($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id title handle } ... on Collection { id title handle } } }`, { ids: list });
-  return (d.nodes as ({ id: string; title: string; handle: string } | null)[]).filter((n): n is { id: string; title: string; handle: string } => !!n).map((n) => ({ id: n.id, title: n.title, handle: n.handle }));
+    query CroMcpRefs($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id title handle featuredMedia { preview { image { url } } } } ... on Collection { id title handle } } }`, { ids: list });
+  type Node = { id: string; title: string; handle: string; featuredMedia?: { preview?: { image?: { url?: string } | null } | null } | null };
+  return (d.nodes as (Node | null)[]).filter((n): n is Node => !!n).map((n) => ({ id: n.id, title: n.title, handle: n.handle, image: n.featuredMedia?.preview?.image?.url ?? null }));
 }

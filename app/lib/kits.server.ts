@@ -170,7 +170,7 @@ export async function applyKitPrices(admin: AdminClient, kit: Kit) {
     }`, { productId: kit.productId, variants: changed.map(({ id, price, compareAtPrice }) => ({ id, price, compareAtPrice })) });
 }
 
-export async function saveKit(admin: AdminClient, kit: Kit): Promise<Kit> {
+export async function saveKit(admin: AdminClient, kit: Kit, opts: { draft?: boolean } = {}): Promise<Kit> {
   const errors = validateKit(kit);
   if (errors.length) throw new AdminError(errors.join(" "));
   const input = { title: kit.title.trim(), components: await components(admin, kit.items) };
@@ -190,7 +190,8 @@ export async function saveKit(admin: AdminClient, kit: Kit): Promise<Kit> {
         productBundleCreate(input: $input) { productBundleOperation { id status } userErrors { field message } }
       }`, { input });
     productId = await waitFor(admin, data.productBundleCreate.productBundleOperation.id);
-    await finishNewKit(admin, productId, kit);
+    // A draft stays the draft product Shopify made (the assistant's drafts); publishKit makes it ready to sell.
+    if (!opts.draft) await finishNewKit(admin, productId, kit);
   }
   const saved: Kit = { ...kit, productId, title: input.title };
   const list = await readList(admin);
@@ -207,7 +208,7 @@ const escHtml = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<":
  * If a step fails (e.g. the publishing permission isn't approved yet), the kit stays a draft and the
  * editor says so; the kit itself is saved either way.
  */
-async function finishNewKit(admin: AdminClient, productId: string, kit: Kit) {
+async function finishNewKit(admin: AdminClient, productId: string, kit: Kit, strict = false) {
   const image = kit.items.find((i) => i.image)?.image ?? null;
   const inside = kit.items.map((i) => `<li>${i.qty > 1 ? `${i.qty} × ` : ""}${escHtml(i.title)}</li>`).join("");
   try {
@@ -222,8 +223,17 @@ async function finishNewKit(admin: AdminClient, productId: string, kit: Kit) {
     if (data.productUpdate?.userErrors?.length) throw new Error(data.productUpdate.userErrors.map((e: any) => e.message).join(" "));
     await publishToOnlineStore(admin, productId);
   } catch (e) {
+    if (strict) throw e;
     console.error("Finishing a new bundle product:", e);
   }
+}
+
+/** Makes a draft bundle product ready to sell (the first item's picture, a "What's inside" list, Active, published). Errors are raised. */
+export async function publishKit(admin: AdminClient, productId: string): Promise<Kit | null> {
+  const kit = (await readList(admin)).find((k) => k.productId === productId);
+  if (!kit) return null;
+  await finishNewKit(admin, productId, kit, true);
+  return kit;
 }
 
 /** Removes the kit from the app and deletes its product in Shopify (the items are untouched). */
