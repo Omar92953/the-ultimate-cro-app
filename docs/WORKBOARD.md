@@ -38,6 +38,11 @@ Updated 2026-10-15.
       and the TOML (G4), request read_all_orders in the Partner Dashboard, test on Testing 3 with
       `docs/testing-checklist.md`. G9: Omar approves `docs/plans/mcp-server.md` before any MCP code.
 
+- [ ] Block G11 (2026-10-18, open draft PRs, Omar reviews on Testing 3): Track page selling in #137 (prices), #139
+      (next order discount), #140 (buy again), #142 (after delivery), #143 (delay), #149 (offer slots, Pro), and
+      the editor "What to show", sample orders, Analytics "Track & Returns" card and copy (this PR). Then the MCP
+      discounts tools and the MCP bundles tools.
+
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)

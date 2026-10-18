@@ -223,3 +223,13 @@ model TrackCode {
   @@unique([shop, orderId, kind])
   @@index([shop, kind])
 }
+
+/// Orders looked up on the Track page, per day (a real count: one for each order that was found). The Analytics "Track & Returns" card.
+model TrackStat {
+  id     Int    @id @default(autoincrement())
+  shop   String
+  day    String
+  visits Int    @default(0)
+
+  @@unique([shop, day])
+}

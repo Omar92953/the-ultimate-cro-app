@@ -9,7 +9,7 @@ import { remember } from "./short-cache.server";
 
 export function cachedResults(admin: AdminClient, shop: string, waitMs = 3000): Promise<Results | null> {
   return Promise.race([
-    remember(shop, "home-results", 10 * 60000, () => getExperiment(admin).then((xp) => getResults(admin, xp)), 60 * 60000),
+    remember(shop, "home-results", 10 * 60000, () => getExperiment(admin).then((xp) => getResults(admin, xp, shop)), 60 * 60000),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs)),
   ]).catch(() => null);
 }

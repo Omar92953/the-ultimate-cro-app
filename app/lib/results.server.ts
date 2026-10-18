@@ -10,6 +10,7 @@
  */
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
+import db from "../db.server";
 
 export type Experiment = { on: boolean; holdout: number; since: string | null };
 export const DEFAULT_EXPERIMENT: Experiment = { on: false, holdout: 10, since: null };
@@ -27,6 +28,8 @@ export const SOURCE_LABELS: Record<string, string> = {
   sticky_cart: "Sticky add to cart",
   wishlist: "Wishlist",
   track_recs: "Track page recommendations",
+  track_offer: "Track page offers",
+  buy_again: "Track page buy again",
   quiz: "Product quiz",
   addons: "Add-ons",
   gift: "Gift with purchase",
@@ -57,7 +60,7 @@ type Line = {
   /** Set on the items of a bundle (mix & match or bundle product): which bundle, how many sold. */
   lineItemGroup: { id: string; title: string; productId: string | null; quantity: number } | null;
 };
-type Order = { id: string; createdAt: string; cancelledAt: string | null; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
+type Order = { id: string; createdAt: string; cancelledAt: string | null; discountCodes: string[]; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
 
 export type Period = { appRevenue: number; appOrders: number; appOrdersTotal: number; orders: number; revenue: number };
 const emptyPeriod = (): Period => ({ appRevenue: 0, appOrders: 0, appOrdersTotal: 0, orders: 0, revenue: 0 });
@@ -70,11 +73,25 @@ export type Results = {
   /** Each bundle (mix & match and bundle products): orders, bundles sold, revenue, average order value. */
   byBundle: { key: string; name: string; orders: number; units: number; revenue: number; aov: number }[];
   groups: { app: { orders: number; revenue: number }; holdout: { orders: number; revenue: number } } | null;
+  /** The Track page's own sales, last 30 days: only real orders (cart lines the page marked, and orders that used a code the page gave). */
+  track: TrackResults;
   lift: number | null; // e.g. 0.12 = the app's group buys 12% more often
   /** Last 30 days and the 30 before: sales from the app's items, orders with them, all orders. */
   periods: { current: Period; previous: Period };
   from: string | null;
 };
+
+export type TrackResults = {
+  recs: { orders: number; revenue: number };
+  offers: { orders: number; revenue: number };
+  buyAgain: { orders: number; revenue: number };
+  /** Orders that used a code the Track page gave, and what they came to; `byKind` counts them by the kind of code. */
+  codes: { orders: number; revenue: number; byKind: { next: number; friend: number; delay: number; offer: number } };
+};
+const emptyTrack = (): TrackResults => ({ recs: { orders: 0, revenue: 0 }, offers: { orders: 0, revenue: 0 }, buyAgain: { orders: 0, revenue: 0 }, codes: { orders: 0, revenue: 0, byKind: { next: 0, friend: 0, delay: 0, offer: 0 } } });
+
+/** The kind of a Track page code row ("next", "friend", "delay", "offer-<id>", or the shared code). */
+export const codeGroup = (kind: string): keyof TrackResults["codes"]["byKind"] | null => (kind === "next" || kind === "shared" ? "next" : kind === "friend" ? "friend" : kind === "delay" ? "delay" : kind.startsWith("offer-") ? "offer" : null);
 
 const sourceOf = (l: Line) => {
   const a = Object.fromEntries(l.customAttributes.map((x) => [x.key, x.value ?? ""]));
@@ -85,10 +102,21 @@ const sourceOf = (l: Line) => {
   return null;
 };
 
+const round2 = (t: { orders: number; revenue: number }) => ({ orders: t.orders, revenue: Math.round(t.revenue * 100) / 100 });
+
 /** Most orders read per visit (25 a page): enough for busy stores, short enough to stay fast. */
 const MAX_PAGES = 60;
 
-export async function getResults(admin: AdminClient, xp: Experiment): Promise<Results> {
+export async function getResults(admin: AdminClient, xp: Experiment, shop?: string): Promise<Results> {
+  // The codes the Track page gave (this shop's own rows): an order that used one came from the Track page.
+  const codeKinds = new Map<string, keyof TrackResults["codes"]["byKind"]>();
+  if (shop) {
+    for (const r of await db.trackCode.findMany({ where: { shop }, select: { code: true, kind: true } }).catch(() => [])) {
+      const g = codeGroup(r.kind);
+      if (g) codeKinds.set(r.code.toUpperCase(), g);
+    }
+  }
+  const track = emptyTrack();
   const orders: Order[] = [];
   let after: string | null = null;
   // Only what the numbers use: the last 60 days (or since the holdout test started, if earlier).
@@ -102,7 +130,7 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
         orders(first: 25, after: $after, query: $q, sortKey: CREATED_AT, reverse: true) {
           pageInfo { hasNextPage endCursor }
           nodes {
-            id createdAt cancelledAt
+            id createdAt cancelledAt discountCodes
             totalPriceSet { shopMoney { amount currencyCode } }
             customAttributes { key value }
             lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } } }
@@ -128,6 +156,7 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
     const age = now - Date.parse(o.createdAt);
     const period = age < 30 * day ? periods.current : age < 60 * day ? periods.previous : null;
     let appHere = 0;
+    const trackHere = { track_recs: 0, track_offer: 0, buy_again: 0 };
     const bundlesHere = new Set<string>();
     for (const l of o.lineItems.nodes) {
       const grp = l.lineItemGroup;
@@ -150,11 +179,25 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
       const s = sourceOf(l);
       if (!s) continue;
       appHere += Number(l.discountedTotalSet.shopMoney.amount) || 0;
+      if (s in trackHere && age < 30 * day) {
+        const t = s === "track_recs" ? track.recs : s === "track_offer" ? track.offers : track.buyAgain;
+        t.revenue += Number(l.discountedTotalSet.shopMoney.amount) || 0;
+        if (!trackHere[s as keyof typeof trackHere]) t.orders += 1;
+        trackHere[s as keyof typeof trackHere] += 1;
+      }
       const row = by.get(s) ?? { revenue: 0, lines: 0, orders: new Set<string>() };
       row.revenue += Number(l.discountedTotalSet.shopMoney.amount) || 0;
       row.lines += 1;
       row.orders.add(o.id);
       by.set(s, row);
+    }
+    if (age < 30 * day) {
+      const used = (o.discountCodes ?? []).map((c) => codeKinds.get(c.toUpperCase())).find(Boolean);
+      if (used) {
+        track.codes.orders += 1;
+        track.codes.revenue += total;
+        track.codes.byKind[used] += 1;
+      }
     }
     if (period) {
       period.orders += 1;
@@ -183,6 +226,7 @@ export async function getResults(admin: AdminClient, xp: Experiment): Promise<Re
       .sort((a, b) => b.revenue - a.revenue),
     groups: xp.since ? groups : null,
     periods,
+    track: { ...track, recs: round2(track.recs), offers: round2(track.offers), buyAgain: round2(track.buyAgain), codes: { ...track.codes, revenue: Math.round(track.codes.revenue * 100) / 100 } },
     lift,
     from: orders.length ? orders[orders.length - 1].createdAt : null,
   };

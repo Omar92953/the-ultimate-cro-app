@@ -100,7 +100,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Features built on request"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Your tracking page sells too", "Features built on request"],
   },
   pro: {
     key: "pro",

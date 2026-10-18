@@ -184,7 +184,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   track: {
     who: "For fewer where is my order messages.",
-    points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify", "Orders older than 60 days once Shopify approves access to all orders"],
+    points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify", "The page sells too (Growth): recommendations, a real next order discount code, a buy again button, a how was your order message after delivery, an apology (and optional code) for late orders", "Offers above and below the tracking with real codes that expire (Pro)", "Orders older than 60 days once Shopify approves access to all orders"],
     related: ["returns", "faq"],
   },
   returns: {
