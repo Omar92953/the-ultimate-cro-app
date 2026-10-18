@@ -670,3 +670,7 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-op__opts legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
 .ucs-op__opts label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .ucs-op__code { padding: 2px 8px; border-radius: 6px; background: rgba(127, 127, 127, 0.15); font-weight: 700; letter-spacing: 0.04em; }
+
+/* Track page: next order discount */
+.ucs-op__next { display: grid; gap: 4px; padding: 12px; border-radius: var(--ucs-op-r, 12px); background: rgba(127, 127, 127, 0.1); }
+.ucs-op__next p { margin: 0; }

@@ -17,7 +17,7 @@ const ITEMS = [
   { title: "Classic tee", variant: "Large", quantity: 2 },
 ];
 
-export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign; step: "form" | "result" }) {
+export function OrderPagePreview({ config: c, step, showNext = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean }) {
   const t = c.text;
   const thumb = <span className="ucs-op__ph" />;
   return (
@@ -72,6 +72,13 @@ export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign;
                   </li>
                 ))}
               </ul>
+              {showNext ? (
+              <div className="ucs-op__next">
+                <p className="ucs-op__t"><b>{t.nextTitle.replace("{percent}", "10%")}</b></p>
+                <p className="ucs-op__t"><code className="ucs-op__code">NEXT-3FA9C2D1</code> <button type="button" className="ucs-btn ucs-btn--outline">{t.nextCopy}</button></p>
+                <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
+              </div>
+              ) : null}
               {c.recs.like.on || c.recs.complete.on
                 ? (["like", "complete"] as const)
                     .filter((k) => c.recs[k].on)

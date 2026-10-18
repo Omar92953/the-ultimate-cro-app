@@ -7,6 +7,8 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
+import { getTrackSell } from "../lib/track-sell.server";
+import { DEFAULT_TRACK_SELL, withTrackSellDefaults, type TrackSell } from "../lib/track-sell";
 import { orderPageContext } from "../lib/order-page-setup.server";
 import { getOrderPage, saveOrderPage } from "../lib/designs.server";
 import { getThemeStyle } from "../lib/theme-style.server";
@@ -34,7 +36,8 @@ export const loader = slottedRoute(["track_page", "returns_page"], async ({ requ
   const kind = kindOf(request);
   const [{ config, saved }, theme, style] = await Promise.all([getOrderPage(admin, kind), getThemeStatus(admin, session.shop).catch(() => null), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const ctx = await orderPageContext(admin, session.shop, theme);
-  return { kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
+  const sell = await getTrackSell(admin).catch(() => ({ sell: DEFAULT_TRACK_SELL, saved: false }));
+  return { sell: sell.sell, kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
 });
 
 export const action = slottedRoute(["track_page", "returns_page"], async ({ request }: ActionFunctionArgs) => {
@@ -80,6 +83,15 @@ export default function OrderPageDesigner() {
   const save = () => fetcher.submit({ config: JSON.stringify(cfg) }, { method: "post", action: designAction });
   const seeOnStore = () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction });
   const groups = [...new Set(TEXTS[data.kind].map((t) => t.group))];
+  // What the page sells (next order discount…): its own Save, shared by every style (lib/track-sell.ts).
+  const [sell, setSell] = useState<TrackSell>(data.sell);
+  const sellFetcher = useFetcher<{ ok: boolean; error: string | null }>();
+  useEffect(() => {
+    if (sellFetcher.state !== "idle" || !sellFetcher.data) return;
+    if (sellFetcher.data.ok) shopify.toast.show("Saved");
+    else shopify.toast.show(sellFetcher.data.error || "Not saved", { isError: true });
+  }, [sellFetcher.state, sellFetcher.data, shopify]);
+  const next = (patch: Partial<TrackSell["nextOrder"]>) => setSell((x) => ({ ...x, nextOrder: { ...x.nextOrder, ...patch } }));
   const row = (k: "like" | "complete", patch: Partial<C["recs"]["like"]>) => setCfg((c) => ({ ...c, recs: { ...c.recs, [k]: { ...c.recs[k], ...patch } } }));
   async function pickProducts(k: "like" | "complete") {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,6 +146,31 @@ export default function OrderPageDesigner() {
                 </Pane>
               ))}
 
+              {isTrack ? (
+                <Pane show={tab === "content"}>
+                  <s-section heading="Next order discount">
+                    <s-stack gap="base">
+                      <Switch label="Give a discount on the next order" details="Shoppers whose order is paid see a real Shopify discount code with an expiry, with a Copy button." checked={sell.nextOrder.on} onValue={(v) => next({ on: v })} />
+                      {sell.nextOrder.on ? (
+                        <>
+                          <Select label="Code" value={sell.nextOrder.mode} onValue={(v) => next({ mode: v === "shared" ? "shared" : "perOrder" })} options={[{ value: "perOrder", label: "A new single use code for each order" }, { value: "shared", label: "One code for everybody (renewed when you save)" }]} />
+                          {sell.nextOrder.mode === "shared" ? <TextField label="The code" value={sell.nextOrder.sharedCode} onValue={(v) => next({ sharedCode: v })} maxLength={20} details="Letters and digits. Saving makes it or moves its end date." /> : null}
+                          <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="base">
+                            <NumberField label="Discount" suffix="%" min={1} max={90} step={1} value={sell.nextOrder.percent} onValue={(v) => next({ percent: v })} />
+                            <NumberField label="Minimum order" details="0 = none" min={0} max={100000} step={1} value={sell.nextOrder.minimum} onValue={(v) => next({ minimum: v })} />
+                            <NumberField label="Valid for" suffix="days" min={1} max={365} step={1} value={sell.nextOrder.days} onValue={(v) => next({ days: v })} />
+                          </s-grid>
+                        </>
+                      ) : null}
+                      <s-stack direction="inline">
+                        <Button loading={sellFetcher.state !== "idle"} disabled={JSON.stringify(withTrackSellDefaults(sell)) === JSON.stringify(data.sell)} onClick={() => sellFetcher.submit({ sell: JSON.stringify(sell) }, { method: "post", action: "/app/track-sell" })}>
+                          Save the discount
+                        </Button>
+                      </s-stack>
+                    </s-stack>
+                  </s-section>
+                </Pane>
+              ) : null}
               {isTrack ? (
                 <Pane show={tab === "content"}>
                   <s-section heading="Recommendations under the order">
@@ -211,7 +248,7 @@ export default function OrderPageDesigner() {
               tools={<Segmented label="Show" value={step} options={[{ value: "form", label: "Form" }, { value: "result", label: isTrack ? "Order found" : "Choosing items" }]} onChange={setStep} />}
             >
               <ThemeLook style={data.style}>
-                <OrderPagePreview config={cfg} step={step} />
+                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} />
               </ThemeLook>
             </PreviewFrame>
           </div>

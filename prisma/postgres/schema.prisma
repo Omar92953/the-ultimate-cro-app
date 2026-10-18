@@ -209,3 +209,19 @@ model AbView {
 
   @@id([shop, test, grp, day])
 }
+
+/// Real discount codes the Track page gives (next order discount, and later friend and delay codes): one per order and kind.
+model TrackCode {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  orderId   String
+  kind      String
+  code      String
+  percent   Int      @default(0)
+  minimum   Float    @default(0)
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([shop, orderId, kind])
+  @@index([shop, kind])
+}
