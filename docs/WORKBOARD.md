@@ -33,10 +33,17 @@ Updated 2026-10-15.
 - [ ] Next Shopify deploy: theme editor texts still say "Cross-sell" and "Design" (theme/blocks/ucro-cart-offers.liquid
       and others); change to "Cross sell" and "Style".
 
+- [ ] Later: a returns webhook (`returns/close`) so credit also goes out when the merchant closes the return in Shopify's own admin, not only from the "Items received: give the credit" button (G10 follow up, #147). Needs a toml change, so a Shopify deploy.
+
 - [ ] Block G (2026-10-17): G4 to G8 are open draft PRs stacked in order (#110 to #114, G9 design doc next).
       Needs a Shopify deploy and Omar's steps in each PR: read_returns and write_returns scopes on Render
       and the TOML (G4), request read_all_orders in the Partner Dashboard, test on Testing 3 with
       `docs/testing-checklist.md`. G9: Omar approves `docs/plans/mcp-server.md` before any MCP code.
+
+- [ ] Block G11 (2026-10-18, open draft PRs, Omar reviews on Testing 3): Track page selling in #137 (prices), #139
+      (next order discount), #140 (buy again), #142 (after delivery), #143 (delay), #149 (offer slots, Pro), and
+      the editor "What to show", sample orders, Analytics "Track & Returns" card and copy (this PR). Then the MCP
+      discounts tools and the MCP bundles tools.
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
 

@@ -10,6 +10,8 @@ import { UpgradeButton, UpgradeCard, usePlan } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import { getExperiment, getResults, saveExperiment, type Results } from "../lib/results.server";
 import { remember } from "../lib/short-cache.server";
+import { lookupsSince } from "../lib/track-sell.server";
+import { returnSavings } from "../lib/orders-lookup.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { Button, NumberField, Switch } from "../components/fields";
@@ -18,11 +20,13 @@ import { Explainer, Segmented } from "../components/ui";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
-  const [raw, theme, info] = await Promise.all([
+  const [raw, theme, info, lookups, kept] = await Promise.all([
     // Shared with Home (same key as value.server.ts cachedResults): the slow order read runs once per shop every 10 minutes.
-    remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
+    remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp, session.shop), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
     getPlan(admin, session.shop),
+    lookupsSince(session.shop, 30).catch(() => 0),
+    returnSavings(session.shop, 30).catch(() => null),
   ]);
   // Results per widget and per bundle: the plan shows its top N (plans.ts offerStats); the rest
   // are summed into one teaser row, so the merchant sees there's more to see.
@@ -38,7 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const { bySource, byBundle, ...rest } = raw;
     results = { ...rest, sources: cut(bySource), bundles: cut(byBundle) };
   }
-  return { xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
+  return { lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -59,7 +63,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 /** "+12%" against the 30 days before; null when there's nothing to compare. */
 const change = (now: number, before: number) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
 
-type Tab = "overview" | "offers" | "bundles" | "holdout";
+type Tab = "overview" | "offers" | "bundles" | "track" | "holdout";
 
 export default function Analytics() {
   const data = useLoaderData<typeof loader>();
@@ -135,6 +139,7 @@ export default function Analytics() {
             { value: "overview", label: "Overview" },
             { value: "offers", label: "Offers and widgets" },
             { value: "bundles", label: "Bundles" },
+            { value: "track", label: "Track & Returns" },
             { value: "holdout", label: "Holdout test" },
           ]}
         />
@@ -221,6 +226,32 @@ export default function Analytics() {
             ) : (
               <s-paragraph>No bundles sold in the last 60 days. Mix and match bundles and fixed bundles show here with their sales, orders and average order value.</s-paragraph>
             )}
+          </s-section>
+        ) : null}
+
+        {tab === "track" && r ? (
+          <s-section heading="Track & Returns · last 30 days">
+            <s-stack gap="base">
+              <s-grid gridTemplateColumns="repeat(auto-fit, minmax(190px, 1fr))" gap="base">
+                {[
+                  { label: "Orders looked up", value: String(data.lookups), note: "On your Track page (counted from the day this card shipped)" },
+                  { label: "Sales from recommendations", value: fmt(r.track.recs.revenue), note: `${r.track.recs.orders} order${r.track.recs.orders === 1 ? "" : "s"} with a recommended item` },
+                  { label: "Sales from Track page offers", value: fmt(r.track.offers.revenue), note: `${r.track.offers.orders} order${r.track.offers.orders === 1 ? "" : "s"} with an offer's item` },
+                  { label: "Buy again orders", value: String(r.track.buyAgain.orders), note: `${fmt(r.track.buyAgain.revenue)} from the Buy again button` },
+                  { label: "Codes used", value: String(r.track.codes.orders), note: `${fmt(r.track.codes.revenue)} in orders · next order ${r.track.codes.byKind.next}, friend ${r.track.codes.byKind.friend}, late order ${r.track.codes.byKind.delay}, offers ${r.track.codes.byKind.offer}` },
+                  { label: "Sales kept by return saving", value: data.kept ? `${(data.kept.credit + data.kept.exchanges).toFixed(2)} ${data.kept.currency}` : "No data yet", note: data.kept ? `${data.kept.count} return${data.kept.count === 1 ? "" : "s"} paid back as store credit or exchanged instead of refunded` : "Return saving rules (Pro)" },
+                ].map((k) => (
+                  <s-box key={k.label} padding="base" borderWidth="base" borderRadius="base">
+                    <s-stack gap="small-100">
+                      <s-text color="subdued">{k.label}</s-text>
+                      <s-heading>{k.value}</s-heading>
+                      <s-text color="subdued">{k.note}</s-text>
+                    </s-stack>
+                  </s-box>
+                ))}
+              </s-grid>
+              <s-text color="subdued">Real orders only. Items are counted when the page added them to a new cart (marked on the cart line); codes when an order used a code the Track page gave. An order that used a code and also has a marked item shows in both.</s-text>
+            </s-stack>
           </s-section>
         ) : null}
 

@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import { findOrder, readLookup } from "../lib/orders-lookup.server";
 import { buyAgainFor, isLate } from "../lib/track-sell";
 import { getOrderPages } from "../lib/order-page-setup.server";
-import { getTrackSell, givenCode, nextOrderCode } from "../lib/track-sell.server";
+import { countLookup, getTrackSell, givenCode, nextOrderCode } from "../lib/track-sell.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
 import { EXTRA_PLAN, atLeast } from "../lib/plans";
@@ -43,6 +43,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const sell = (await getTrackSell(admin).catch(() => null))?.sell;
     const next = sell && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await nextOrderCode(admin, session.shop, order.id, sell.nextOrder).catch((e) => { console.error(`[proxy/track] next order code ${session.shop}:`, e instanceof Error ? e.message : e); return null; }) : null;
     const buyAgain = sell?.buyAgain.on && !order.cancelled ? buyAgainFor(order.items.map((i) => ({ variantId: i.variantId, title: i.title, variant: i.variant, quantity: i.quantity, available: i.available, productType: i.productType, tags: i.tags })), sell.buyAgain) : null;
+    void countLookup(session.shop);
     // Track page offers (Pro): above and below the tracking. They start a new cart; the paid order is never edited.
     const offers = atLeast(plan, EXTRA_PLAN.trackOffers) && !order.cancelled && /^(PAID|PARTIALLY_REFUNDED)$/.test(order.payment) ? await trackOffersFor(admin, session.shop, order.id, order.currency).catch(() => ({})) : {};
     // Late (past its expected date, or a problem): the merchant's apology and, when chosen, a real code.

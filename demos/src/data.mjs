@@ -197,8 +197,6 @@ order.offers = {
   above: { kind: "shipping", headline: "Free shipping on your next order", text: "Add anything in the next 48 hours.", button: "Shop now", products: [], code: { code: "TRACK-91C4E07A", percent: 0, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
   below: { kind: "cross_sell", headline: "Pairs well with your order", text: "10% off for 48 hours.", button: "Add to cart", products: ["daily-cream", "oat-soap"].map(rec), code: { code: "TRACK-3FA9C2D1", percent: 10, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
 };
-order.delay = { gift: "shipping", code: { code: "SORRY-5D90E1AA", percent: 0, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
-order.afterDelivery = { reviewUrl: "", reviews: [{ title: "Glow Serum", handle: "glow-serum" }], returnsHandle: "returns", friend: { code: "FRIEND-8C21A0B7", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
 order.buyAgain = { items: [{ variantId: catalog["glow-serum"].variants[0].id, quantity: 1, title: "Glow Serum (30 ml)" }], soldOut: ["Cedar Candle"] };
 
 /** Recent purchases for sales pop ups (no names, ever). */
@@ -207,3 +205,14 @@ export const recent = (now) => [
   { product: "Glow Serum", handle: "glow-serum", image: IMG("glow-serum"), city: "Leeds", at: new Date(now - 11 * 60e3).toISOString() },
   { product: "Studio Tee", handle: "studio-tee", image: IMG("studio-tee"), city: null, at: new Date(now - 26 * 60e3).toISOString() },
 ];
+
+/**
+ * The Track page demo answers by order number: 1042 is on its way, 1043 is delivered ("How was your order?"),
+ * 1044 is late (the apology and its code). Same items, prices, offers and recommendations.
+ */
+const lateBox = { gift: "shipping", code: { code: "SORRY-5D90E1AA", percent: 0, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
+const afterBox = { reviewUrl: "", reviews: [{ title: "Glow Serum", handle: "glow-serum" }], returnsHandle: "returns", friend: { code: "FRIEND-8C21A0B7", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
+export const orderStates = {
+  1043: { ...order, name: "#1043", afterDelivery: afterBox, shipments: [{ status: "DELIVERED", company: "UPS", number: "1Z999AA10123456785", url: "#", delivered: "2026-10-14T00:00:00Z", estimated: "2026-10-14T00:00:00Z" }] },
+  1044: { ...order, name: "#1044", delay: lateBox, shipments: [{ status: "IN_TRANSIT", company: "UPS", number: "1Z999AA10123456786", url: "#", delivered: null, estimated: "2026-10-12T00:00:00Z" }] },
+};

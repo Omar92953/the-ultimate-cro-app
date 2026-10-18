@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import { storefrontCss } from "../lib/storefront-css.server";
 import { errorMessage } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
+import { getTrackOffers } from "../lib/track-offers.server";
 import { getTrackSell } from "../lib/track-sell.server";
 import { DEFAULT_TRACK_SELL, withTrackSellDefaults, type TrackSell } from "../lib/track-sell";
 import { orderPageContext } from "../lib/order-page-setup.server";
@@ -16,7 +17,7 @@ import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
 import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
 import { Checkbox, Button, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
-import { OrderPagePreview } from "../components/OrderPagePreview";
+import { OrderPagePreview, type PreviewSells, type SampleOrder } from "../components/OrderPagePreview";
 import ui from "../components/PageEditor.module.css";
 import { LookPicker, templateInUse } from "../components/LookPicker";
 import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/DesignTabs";
@@ -36,8 +37,9 @@ export const loader = slottedRoute(["track_page", "returns_page"], async ({ requ
   const kind = kindOf(request);
   const [{ config, saved }, theme, style] = await Promise.all([getOrderPage(admin, kind), getThemeStatus(admin, session.shop).catch(() => null), getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE)]);
   const ctx = await orderPageContext(admin, session.shop, theme);
+  const offers = (await getTrackOffers(admin).catch(() => ({ offers: [] }))).offers.filter((o) => o.active).map((o) => ({ id: o.id, slot: o.slot, kind: o.kind, headline: o.headline, text: o.text, button: o.button }));
   const sell = await getTrackSell(admin).catch(() => ({ sell: DEFAULT_TRACK_SELL, saved: false }));
-  return { sell: sell.sell, kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
+  return { offers, sell: sell.sell, kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
 });
 
 export const action = slottedRoute(["track_page", "returns_page"], async ({ request }: ActionFunctionArgs) => {
@@ -61,7 +63,9 @@ export default function OrderPageDesigner() {
   const title = isTrack ? "Track order page" : "Returns page";
   const [cfg, setCfg] = useState<C>(data.config);
   const [tab, setTab] = useState<DesignTab>("looks");
-  const [step, setStep] = useState<"form" | "result">("form");
+  const [view, setView] = useState<"form" | "transit" | "delivered" | "delayed" | "items">("form");
+  const step = view === "form" ? "form" : "result";
+  const sample: SampleOrder = view === "delivered" || view === "delayed" ? view : "transit";
   const fetcher = useFetcher<typeof action>();
   const designAction = useDesignAction();
   const shopify = useAppBridge();
@@ -85,6 +89,7 @@ export default function OrderPageDesigner() {
   const groups = [...new Set(TEXTS[data.kind].map((t) => t.group))];
   // What the page sells (next order discount…): its own Save, shared by every style (lib/track-sell.ts).
   const [sell, setSell] = useState<TrackSell>(data.sell);
+  const sells: PreviewSells = { next: sell.nextOrder.on, buyAgain: sell.buyAgain.on, after: sell.afterDelivery.on, late: sell.delay.on, offers: { above: data.offers.find((o) => o.slot === "above") ?? null, below: data.offers.find((o) => o.slot === "below") ?? null } };
   const sellFetcher = useFetcher<{ ok: boolean; error: string | null }>();
   useEffect(() => {
     if (sellFetcher.state !== "idle" || !sellFetcher.data) return;
@@ -131,7 +136,7 @@ export default function OrderPageDesigner() {
             </s-banner>
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
-          <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
+          <DesignTabs tabs={isTrack ? ["looks", "show", "content", "design"] : ["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>
             <s-stack gap="base">
               <Pane show={tab === "looks"}>
@@ -151,7 +156,7 @@ export default function OrderPageDesigner() {
               ))}
 
               {isTrack ? (
-                <Pane show={tab === "content"}>
+                <Pane show={tab === "show"}>
                   <s-section heading="What the page sells">
                     <s-stack gap="base">
                       <Switch label="Give a discount on the next order" details="Shoppers whose order is paid see a real Shopify discount code with an expiry, with a Copy button." checked={sell.nextOrder.on} onValue={(v) => next({ on: v })} />
@@ -213,14 +218,10 @@ export default function OrderPageDesigner() {
                 </Pane>
               ) : null}
               {isTrack ? (
-                <Pane show={tab === "content"}>
+                <Pane show={tab === "show"}>
                   <s-section heading="Prices">
                     <Switch label="Show what the order cost" details="Each item's price, then subtotal, shipping, discounts and total, in the currency the shopper paid in. Prices only: never the payment method or address." checked={cfg.prices} onValue={(v) => setCfg((c) => ({ ...c, prices: v }))} />
                   </s-section>
-                </Pane>
-              ) : null}
-              {isTrack ? (
-                <Pane show={tab === "content"}>
                   <s-section heading="Recommendations under the order">
                     <s-stack gap="base">
                       <s-text color="subdued">Products shoppers can add to a new cart from this page. Products already in the order are never shown, and only products in stock.</s-text>
@@ -250,6 +251,27 @@ export default function OrderPageDesigner() {
                           <TextField label="After adding" value={cfg.recs.added} onValue={(v) => setCfg((c) => ({ ...c, recs: { ...c.recs, added: v } }))} />
                         </s-grid>
                       ) : null}
+                    </s-stack>
+                  </s-section>
+                </Pane>
+              ) : null}
+
+              {isTrack ? (
+                <Pane show={tab === "show"}>
+                  <s-section heading="Track page offers (Pro)">
+                    <s-stack gap="small-200">
+                      <s-text color="subdued">An offer above and one below the tracking, made in Offers. The order is already paid, so they start a new cart or give a real code that expires.</s-text>
+                      {(["above", "below"] as const).map((slot) => {
+                        const o = data.offers.find((x) => x.slot === slot);
+                        return (
+                          <s-text key={slot}>
+                            <b>{slot === "above" ? "Above the tracking:" : "Below the tracking:"}</b> {o ? <s-link href={`/app/offers/track/${o.id}`}>{o.headline}</s-link> : "Nothing yet"}
+                          </s-text>
+                        );
+                      })}
+                      <s-stack direction="inline">
+                        <Button href="/app/offers/track/new">Add an offer to the Track page</Button>
+                      </s-stack>
                     </s-stack>
                   </s-section>
                 </Pane>
@@ -293,10 +315,10 @@ export default function OrderPageDesigner() {
             <PreviewFrame
               width={760}
               title={title}
-              tools={<Segmented label="Show" value={step} options={[{ value: "form", label: "Form" }, { value: "result", label: isTrack ? "Order found" : "Choosing items" }]} onChange={setStep} />}
+              tools={<Segmented label="Show" value={view} options={isTrack ? [{ value: "form", label: "Form" }, { value: "transit", label: "In transit" }, { value: "delivered", label: "Delivered" }, { value: "delayed", label: "Delayed" }] : [{ value: "form", label: "Form" }, { value: "items", label: "Choosing items" }]} onChange={setView} />}
             >
               <ThemeLook style={data.style}>
-                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} showAfter={sell.afterDelivery.on} showLate={sell.delay.on} />
+                <OrderPagePreview config={cfg} step={step} sample={sample} sells={sells} />
               </ThemeLook>
             </PreviewFrame>
           </div>

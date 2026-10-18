@@ -111,4 +111,22 @@ export async function givenCode(admin: AdminClient, shop: string, orderId: strin
 
 export async function removeShopTrackCodes(shop: string) {
   await db.trackCode.deleteMany({ where: { shop } });
+  await db.trackStat.deleteMany({ where: { shop } });
+}
+
+/** One more order was looked up on the Track page today (a real count for Analytics). Never makes the lookup fail. */
+export async function countLookup(shop: string) {
+  const day = new Date().toISOString().slice(0, 10);
+  try {
+    await db.trackStat.upsert({ where: { shop_day: { shop, day } }, create: { shop, day, visits: 1 }, update: { visits: { increment: 1 } } });
+  } catch {
+    // Two lookups at the same moment may both try to create the day: the next one counts.
+  }
+}
+
+/** Orders looked up in the last `days` days. */
+export async function lookupsSince(shop: string, days: number) {
+  const from = new Date(Date.now() - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  const rows = await db.trackStat.findMany({ where: { shop, day: { gte: from } }, select: { visits: true } });
+  return rows.reduce((n, r) => n + r.visits, 0);
 }

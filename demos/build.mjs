@@ -155,6 +155,7 @@ function designPages(dir, title, designs) {
       catalog: data.catalog,
       collections: data.collectionHandles,
       orderJson: data.order,
+      orderStates: data.orderStates,
       cartSeed: d.cartSeed ?? null,
       head: d.head ?? "",
       header: d.layout !== "raw" && d.layout !== undefined,
@@ -191,7 +192,7 @@ for (const r of BUNDLE_RECIPES) {
 }
 
 // The demo store's cart and checkout (the storefront scripts send shoppers there).
-const storePage = (rel, title, body) => write(`store/${rel}/index.html`, frame({ title, frameId: `store-${rel}`, body, catalog: data.catalog, collections: data.collectionHandles, orderJson: data.order }));
+const storePage = (rel, title, body) => write(`store/${rel}/index.html`, frame({ title, frameId: `store-${rel}`, body, catalog: data.catalog, collections: data.collectionHandles, orderJson: data.order, orderStates: data.orderStates }));
 storePage("cart", "Cart", cartPage());
 // Every demo store address the pages link to: collections and products.
 for (const [handle, c] of Object.entries(data.collections)) storePage(`collections/${handle}`, c.title, collectionGrid(c.title, c.products.filter((p) => !p.tags.includes("cro-bundle"))));

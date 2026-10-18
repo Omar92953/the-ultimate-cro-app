@@ -7,8 +7,8 @@ import { Segmented } from "./ui";
 import ui from "./PageEditor.module.css";
 
 /** The same three tabs on every design page: start from a template, the words and items, then how it looks (layout, colours, spacing, devices). */
-export type DesignTab = "looks" | "content" | "design";
-const LABELS: Record<DesignTab, string> = { looks: "Templates", content: "Content", design: "Style" };
+export type DesignTab = "looks" | "content" | "design" | "show";
+const LABELS: Record<DesignTab, string> = { looks: "Templates", content: "Content", design: "Style", show: "What to show" };
 
 export function DesignTabs({ tabs, value, onChange }: { tabs: DesignTab[]; value: DesignTab; onChange: (t: DesignTab) => void }) {
   return (
