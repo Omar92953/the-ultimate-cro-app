@@ -3,6 +3,7 @@ import { authenticate } from "../shopify.server";
 import { removeShopMcp } from "../lib/mcp/auth.server";
 import { removeShopTracking } from "../lib/tracking/tracking.server";
 import { removeShopAb } from "../lib/ab-tests.server";
+import { removeShopTrackCodes } from "../lib/track-sell.server";
 import db from "../db.server";
 import { recentForOrders, redactRecent } from "../lib/boosters.server";
 import { alertsForEmail, redactEmail, redactShop } from "../lib/stock.server";
@@ -61,6 +62,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await removeShopMcp(shop);
       await removeShopTracking(shop);
       await removeShopAb(shop);
+      await removeShopTrackCodes(shop);
       break;
     default:
       break;

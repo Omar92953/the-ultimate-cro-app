@@ -17,7 +17,7 @@ const ITEMS = [
   { title: "Classic tee", variant: "Large", quantity: 2, unit: 30 },
 ];
 
-export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign; step: "form" | "result" }) {
+export function OrderPagePreview({ config: c, step, showNext = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean }) {
   const t = c.text;
   const thumb = <span className="ucs-op__ph" />;
   return (
@@ -79,6 +79,13 @@ export function OrderPagePreview({ config: c, step }: { config: OrderPageDesign;
                   <div className="ucs-op__pr"><span>{t.priceDiscount}</span><span>−$13.00</span></div>
                   <div className="ucs-op__pr ucs-op__pr--total"><span>{t.priceTotal}</span><span>$117.00</span></div>
                 </div>
+              ) : null}
+              {showNext ? (
+              <div className="ucs-op__next">
+                <p className="ucs-op__t"><b>{t.nextTitle.replace("{percent}", "10%")}</b></p>
+                <p className="ucs-op__t"><code className="ucs-op__code">NEXT-3FA9C2D1</code> <button type="button" className="ucs-btn ucs-btn--outline">{t.nextCopy}</button></p>
+                <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
+              </div>
               ) : null}
               {c.recs.like.on || c.recs.complete.on
                 ? (["like", "complete"] as const)
