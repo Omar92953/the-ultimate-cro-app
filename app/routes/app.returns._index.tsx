@@ -13,8 +13,8 @@ import { errorMessage } from "../lib/admin.server";
 import { getReturn, listReturns, updateReturn } from "../lib/orders-lookup.server";
 import { attachLabel, closeReturn, declineReturn, getReturnRules, refundPlan, refundReturn, syncReturns } from "../lib/shopify-returns.server";
 import { approveAndSettle, giveCreditOnReceipt } from "../lib/return-saving.server";
-import { releaseExchange } from "../lib/return-exchange.server";
-import { parseExchange } from "../lib/return-exchange";
+import { amountOwed, releaseExchange } from "../lib/return-exchange.server";
+import { exchangeMoneyLine, parseExchange } from "../lib/return-exchange";
 import { planContext } from "../lib/rules.server";
 import { atLeast } from "../lib/plans";
 import { getThemeStatus } from "../lib/cro.server";
@@ -30,7 +30,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await syncReturns(admin, session.shop).catch(() => null);
   const [returns, theme] = await Promise.all([listReturns(session.shop).catch(() => []), getThemeStatus(admin, session.shop).catch(() => null)]);
   const ctx = await orderPageContext(admin, session.shop, theme);
-  return { returns, shop: session.shop, inTheme: theme ? ctx.inPageTemplate && !!ctx.pages.returns : null, addLink: ctx.links.returns, creditWhen: (await getReturnRules(admin).catch(() => null))?.rules.saving.creditWhen ?? "received" };
+  // What an approved exchange still owes, from Shopify (its outstanding balance), so the card says Paid once it is.
+  const owed: Record<number, number> = {};
+  await Promise.all(returns.filter((r) => r.resolution === "exchange" && r.status === "approved" && (parseExchange(r.exchange)?.diff ?? 0) > 0).map(async (r) => {
+    try { owed[r.id] = (await amountOwed(admin, r.orderId)).amount; } catch { /* unknown: the card keeps the price difference */ }
+  }));
+  return { returns, owed, shop: session.shop, inTheme: theme ? ctx.inPageTemplate && !!ctx.pages.returns : null, addLink: ctx.links.returns, creditWhen: (await getReturnRules(admin).catch(() => null))?.rules.saving.creditWhen ?? "received" };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -92,7 +97,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 const DONE: Record<string, string> = { "credit-now": "The credit was given and the return processed.", approve: "Approved. Shopify emailed the shopper (credit is given now or when the items arrive, as set in Return saving rules; an exchange waits on hold until you say the items arrived).", "ship-exchange": "The exchange can ship now.", decline: "Declined. Shopify emailed the shopper.", label: "Label added. Shopify emailed it to the shopper.", refund: "Refunded. Shopify emailed the shopper.", close: "Closed" };
 
-function Card({ r, shop, creditWhen }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string; creditWhen: string }) {
+function Card({ r, shop, creditWhen, owed }: { r: Awaited<ReturnType<typeof loader>>["returns"][number]; shop: string; creditWhen: string; owed?: number }) {
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [declining, setDeclining] = useState(false);
@@ -209,16 +214,13 @@ function Card({ r, shop, creditWhen }: { r: Awaited<ReturnType<typeof loader>>["
                 Exchange: {l.qty} × {l.title}{l.from ? ` (${l.from})` : ""} for {l.to}
               </s-text>
             ))}
-            {(() => {
-              const diff = parseExchange(r.exchange)?.diff ?? 0;
-              return <s-text color="subdued">{Math.abs(diff) < 0.005 ? "An even exchange." : diff > 0 ? `The shopper owes ${diff.toFixed(2)} ${r.currency}: send them an invoice from the order in Shopify, the shipment stays on hold until it is paid.` : `${(-diff).toFixed(2)} ${r.currency} is refunded to the shopper when you approve.`}</s-text>;
-            })()}
+            <s-text color="subdued">{exchangeMoneyLine({ diff: parseExchange(r.exchange)?.diff ?? 0, status: r.status, currency: r.currency, owed })}</s-text>
           </s-stack>
         ) : null}
         {r.resolution === "credit" ? (
           <s-text color="subdued">
             {r.creditKind
-              ? `Paid back with ${r.creditKind === "store_credit" ? "store credit" : r.creditKind === "gift_card" ? "a gift card" : "a discount code"}: ${r.creditAmount.toFixed(2)} ${r.currency}${r.creditCode ? ` (${r.creditCode})` : ""}.`
+              ? `Paid back with ${r.creditKind === "store_credit" ? "store credit" : r.creditKind === "gift_card" ? "a gift card" : "a discount code"}: ${r.creditAmount.toFixed(2)} ${r.currency}${r.creditCode && r.creditKind !== "store_credit" ? ` (${r.creditCode})` : ""}.`
               : `The shopper chose store credit${r.quote ? ` (about ${r.quote.toFixed(2)} ${r.currency} of items${r.creditBonus ? `, plus a ${r.creditBonus}% bonus` : ""})` : ""}. ${creditWhen === "received" ? "It is given when you click “Items received”. The shopper is told it is sent once you have the items." : "It is given when you approve."}`}
           </s-text>
         ) : null}
@@ -295,7 +297,7 @@ export default function ReturnRequests() {
           {data.returns.length ? (
             <s-stack gap="small-300">
               {data.returns.map((r) => (
-                <Card key={r.id} r={r} shop={data.shop} creditWhen={data.creditWhen} />
+                <Card key={r.id} r={r} shop={data.shop} creditWhen={data.creditWhen} owed={data.owed[r.id]} />
               ))}
             </s-stack>
           ) : (
