@@ -687,3 +687,8 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 /* Track page: offers above and below the tracking */
 .ucs-op__offer { display: grid; gap: 8px; padding: 14px; border-radius: var(--ucs-op-r, 12px); border: 1px solid rgba(127, 127, 127, 0.3); }
 .ucs-op__offer p { margin: 0; }
+
+/* Track page prices */
+.ucs-op__prices { display: grid; gap: 4px; padding-top: 8px; border-top: 1px solid rgba(127, 127, 127, 0.3); }
+.ucs-op__pr { display: flex; justify-content: space-between; gap: 12px; }
+.ucs-op__pr--total { font-weight: 700; padding-top: 4px; border-top: 1px solid rgba(127, 127, 127, 0.3); }

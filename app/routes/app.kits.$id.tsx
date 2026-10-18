@@ -16,7 +16,7 @@ import { DeleteOffer } from "../components/DeleteOffer";
 import { flashStyle, useFlash } from "../components/flash";
 import { EditorSection } from "../components/EditorSection";
 import type { PreviewItem } from "../components/BundlePreview";
-import { requireOfferSlot } from "../lib/rules.server";
+import { requireKit } from "../lib/rules.server";
 import { isRuleError } from "../lib/rules";
 import { Button, Checkbox, NumberField, Select, TextField } from "../components/fields";
 import { ResourceList } from "../components/ResourceList";
@@ -42,9 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return { ok: true, error: null, id: null, deleted: true, upgrade: false };
     }
     const kit = JSON.parse(String(form.get("kit"))) as Kit;
-    if (!kit.productId) {
-      await requireOfferSlot(admin, session.shop, { active: true, handle: null });
-    }
+    await requireKit(admin, session.shop, kit);
     const saved = await saveKit(admin, kit);
     return { ok: true, error: null, id: numericId(saved.productId!), deleted: false, upgrade: false };
   } catch (e) {

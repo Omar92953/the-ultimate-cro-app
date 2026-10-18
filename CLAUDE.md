@@ -33,8 +33,8 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 - Hosting: Cloudflare Pages (free plan), domain crotoolbox.com. Deploys itself when `main` changes.
 - `demos/`: the live demos, served at https://crotoolbox.com/demo/ by the website build
   (`npm --prefix site run build` builds them and copies them into `site/dist/demo/`), hidden from
-  search and opened only from the app ("See live demo", `app/lib/site.ts`). The website never links to
-  them. Details: `docs/website.md`.
+  search and opened only from the app ("See live demo", `app/lib/site.ts`). The website links to them
+  only from the keyword pages (`rel="nofollow"`, new tab; Omar, 2026-10-18). Details: `docs/website.md`.
 
 ## Rules that matter most
 

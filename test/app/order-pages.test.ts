@@ -17,6 +17,7 @@ function fakeAdmin(existing: Record<string, { id: string; handle: string; title:
         created.push(page.handle);
         return data({ pageCreate: { page: { id: `gid://shopify/Page/${created.length + 100}`, handle: page.handle, title: page.title }, userErrors: [] } });
       }
+      if (query.includes("CroPageTemplates")) return data({ nodes: ((v.ids as string[]) ?? []).map((id) => ({ id, templateSuffix: null })) });
       if (query.includes("pages(first")) return data({ pages: { nodes: existing[String(v.q).replace("handle:", "")] ? [existing[String(v.q).replace("handle:", "")]] : [] } });
       if (query.includes("metaobjectUpsert")) {
         store.set((v.handle as { handle: string }).handle, ((v.metaobject as { fields: { value: string }[] }).fields[0]).value);
@@ -32,7 +33,7 @@ function fakeAdmin(existing: Record<string, { id: string; handle: string; title:
 test("it makes the page and saves both handles for the block", async () => {
   const { createOrderPage, getOrderPages } = await import("../../app/lib/order-page-setup.server");
   const f = fakeAdmin();
-  assert.deepEqual(await getOrderPages(f.admin), { track: null, returns: null });
+  assert.deepEqual(await getOrderPages(f.admin), { track: null, returns: null, wishlist: null });
   const t = await createOrderPage(f.admin, "track");
   const r = await createOrderPage(f.admin, "returns");
   assert.deepEqual(f.created, ["track-your-order", "returns"]);
@@ -59,6 +60,26 @@ test("the editor link opens the page the app made", async () => {
   const none = await orderPageContext(f.admin, "t.myshopify.com", { files: { track: ["templates/index.json"] } });
   assert.equal(none.inPageTemplate, false);
   assert.match(none.editor("track"), /previewPath=%2Fpages%2Ftrack-your-order/);
-  const some = await orderPageContext(f.admin, "t.myshopify.com", { files: { track: ["templates/page.contact.json"] } });
-  assert.equal(some.inPageTemplate, true);
+});
+
+test("the block must be in the template the made pages really use", async () => {
+  const { orderPageContext, templateFile } = await import("../../app/lib/order-page-setup.server");
+  assert.equal(templateFile(null), "templates/page.json");
+  assert.equal(templateFile("track"), "templates/page.track.json");
+  const f = fakeAdmin();
+  await (await import("../../app/lib/order-page-setup.server")).createOrderPage(f.admin, "track");
+  await (await import("../../app/lib/order-page-setup.server")).createOrderPage(f.admin, "returns");
+  // The fake answers every page with the default template (no suffix).
+  const only = await orderPageContext(f.admin, "t.myshopify.com", { files: { track: ["templates/page.contact.json"] } });
+  assert.equal(only.inPageTemplate, false, "another page.*.json is not the template these pages use");
+  const yes = await orderPageContext(f.admin, "t.myshopify.com", { files: { track: ["templates/page.json"] } });
+  assert.equal(yes.inPageTemplate, true);
+});
+
+test("the Wishlist page is made and remembered like the other two", async () => {
+  const { createOrderPage, getOrderPages } = await import("../../app/lib/order-page-setup.server");
+  const f = fakeAdmin();
+  await createOrderPage(f.admin, "wishlist");
+  assert.equal((await getOrderPages(f.admin)).wishlist?.handle, "wishlist");
+  assert.equal(JSON.parse(f.store.get("order_pages")!).wishlistHandle, "wishlist");
 });

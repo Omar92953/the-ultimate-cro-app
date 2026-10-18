@@ -13,6 +13,8 @@ test("the shopper's words become Shopify's reason codes", () => {
   assert.equal(reasonCode("Changed my mind"), "UNWANTED");
   assert.equal(reasonCode("Received the wrong item"), "WRONG_ITEM");
   assert.equal(reasonCode("Other"), "OTHER");
+  // The five reasons a store starts with.
+  assert.deepEqual(["Wrong size", "Not as expected", "Arrived damaged", "Changed my mind", "Other"].map(reasonCode), ["SIZE_TOO_SMALL", "NOT_AS_DESCRIBED", "DEFECTIVE", "UNWANTED", "OTHER"]);
 });
 
 test("return rules are cleaned and keep sensible defaults", () => {
@@ -50,7 +52,7 @@ test("return saving rules are cleaned", () => {
   assert.equal(s.restock, false);
   assert.equal(s.rules.length, 10);
   assert.deepEqual(s.rules[0], { reasons: ["Wrong size"], tags: "basics ,tees", maxValue: 100, maxDays: 365 });
-  assert.deepEqual(withSaving(undefined), { exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
+  assert.deepEqual(withSaving(undefined), { creditWhen: "received", exchange: { on: false, extra: false }, credit: { on: false, bonus: 0, expiryDays: 0 }, restock: false, rules: [] });
 });
 
 test("a return is approved when one rule holds on every condition it sets", () => {

@@ -15,7 +15,7 @@ The website and the live demos are built together and deployed as **one** Cloudf
 (`npm --prefix demos ci && run build`) and copies `demos/dist/demo` into `site/dist/demo`. If the demos build
 fails (or is out of sync with the app, see below), the website build fails too.
 
-The website never links to the demos, and the demos don't link to each other or to the website pages
+The website links to the demos only from the keyword pages (`site/src/keywords/`, "See it on a demo store", `rel="nofollow"`, new tab; Omar, 2026-10-18). Everywhere else it never links to them, and the demos don't link to each other or to the website pages
 (only the "Install CRO Toolbox" button to the App Store listing). Every address the demos write starts
 with `/demo` (`demos/src/base.mjs`, the build fails on any other absolute address), so a demo never
 resolves to a website page (`/bundles/` is the website's, `/demo/bundles/<recipe>/` is a demo).
@@ -57,7 +57,7 @@ The demo build needs Node 22.18 or newer (it loads the app's TypeScript files di
 
 ### Screenshots for the website
 
-The website's feature, bundle and use case pages show pictures of the demos (it never links to them):
+The website's feature, bundle and use case pages show pictures of the demos (only the keyword pages link to them):
 `npm --prefix demos run build && npm --prefix demos run screenshots` writes
 `site/src/assets/features/<feature>.jpg` and `site/src/assets/bundles/<recipe>.jpg`. It needs Playwright
 with Chromium on your computer (see the top of `demos/screenshots.mjs`). Commit the pictures.

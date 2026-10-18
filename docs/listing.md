@@ -55,7 +55,7 @@ What each plan adds (keep in step with `highlights` in `plans.ts`; list only wha
 - Category: pick the closest one for upsell and bundles in the form. Language: English.
 - Privacy policy URL: `https://crotoolbox.com/privacy/` (live; matches what the app stores, see section 4; the app's own copy is `https://cro-toolbox.onrender.com/privacy`).
 - Support URL: `https://crotoolbox.com/support/` (live).
-- Support: needs a support email and URL that do not contain "Shopify" (Omar decides, see section 6). The app shows the email on Home when `SUPPORT_EMAIL` is set in Render.
+- Support email: `support@crotoolbox.com` (Cloudflare Email Routing to crotoolbox.app@gmail.com; also info@, features@, pro@). Support URL: `https://crotoolbox.com/support/`. `SUPPORT_EMAIL` is set in `render.yaml`.
 - Emergency developer contact (email and phone) in the Partner Dashboard.
 
 **Screenshots (3 to 6, 1600 x 900, no browser chrome, no prices, reviews or stats; add alt text):**
@@ -182,7 +182,7 @@ deploy; reviewers reject broken pages (2.1.1).
 - [ ] Choose the **distribution method** (public, App Store). It is permanent.
 - [ ] Request **protected customer data** access (section 4 answers), then turn the `orders/create` subscription back on in `shopify.app.toml` and deploy.
 - [x] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $14.99, $24.99; yearly; 14-day trial) and check the plan handles the app reads.
-- [ ] Set **SUPPORT_EMAIL** in Render and give a support email and URL for the listing (no "Shopify" in the address).
+- [x] SUPPORT_EMAIL `support@crotoolbox.com` (render.yaml) and support URL for the listing (2026-10-18).
 - [ ] Add the **emergency developer contact** (email and phone).
 - [ ] Upload the **icon** (`branding/app-icon.png`, 1200 x 1200), 3 to 6 **screenshots**, the feature image or video, and the **screencast**.
 - [ ] Paste the listing text and test instructions from sections 1 and 2; type the storefront password into the form yourself, never into this repo.
