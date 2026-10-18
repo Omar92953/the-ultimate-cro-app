@@ -284,7 +284,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
 
   const orderPage = (kind) => async (p) => ({
     template: p.key, title: p.title, layout: "page",
-    html: await block("ucs-order-page", { settings: { page: kind }, page_type: "page", shop: shopWith({ designs: { [`${kind}_page`]: orderD.toStorefrontOrderPage(orderD.applyOrderPagePreset(orderD.withOrderPageDefaults(kind === "track" ? { recs: { like: { on: true }, complete: { on: true }, count: 4 } } : {}, kind), p.key)) } }) }),
+    html: await block("ucs-order-page", { settings: { page: kind }, page_type: "page", shop: shopWith({ designs: { [`${kind}_page`]: orderD.toStorefrontOrderPage(orderD.applyOrderPagePreset(orderD.withOrderPageDefaults(kind === "track" ? { recs: { like: { on: true }, complete: { on: true }, count: 4 }, text: { sub: "Demo: try order 1042 (on its way), 1043 (delivered) or 1044 (late), with any email." } } : {}, kind), p.key)) } }) }),
   });
   F.track = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("track")));
   F.returns = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("returns")));

@@ -107,7 +107,7 @@ export const storeHeader = () => `<header class="demo-header site-header" id="sh
  * The fake store: Shopify-like globals, the cart and the endpoints the storefront scripts call.
  * `catalog` maps handle → product JSON (as /products/<handle>.js returns it).
  */
-function backendScript({ catalog, collections, frameId, orderJson }) {
+function backendScript({ catalog, collections, frameId, orderJson, orderStates }) {
   return `<script>
 (function () {
   var ROOT = ${JSON.stringify(STORE_ROOT)};
@@ -124,6 +124,7 @@ function backendScript({ catalog, collections, frameId, orderJson }) {
   var CATALOG = ${JSON.stringify(catalog)};
   var COLLECTIONS = ${JSON.stringify(collections)};
   var ORDER = ${JSON.stringify(orderJson)};
+  var ORDER_STATES = ${JSON.stringify(orderStates ?? {})};
   window.__demoCatalog = CATALOG;
   var byVariant = {};
   Object.keys(CATALOG).forEach(function (h) { CATALOG[h].variants.forEach(function (v) { byVariant[v.id] = { p: CATALOG[h], v: v }; }); });
@@ -231,7 +232,7 @@ function backendScript({ catalog, collections, frameId, orderJson }) {
       var found = Object.keys(CATALOG).map(function (h) { return CATALOG[h]; }).filter(function (p) { return p.title.toLowerCase().indexOf(term) >= 0; }).slice(0, 6);
       return res({ resources: { results: { products: found.map(function (p) { return { title: p.title, url: ROOT + "products/" + p.handle, image: p.featured_image, price: (p.price / 100).toFixed(2) }; }) } } });
     }
-    if (/\\/apps\\/ucro\\/track$/.test(path)) return res({ ok: true, order: ORDER });
+    if (/\\/apps\\/ucro\\/track$/.test(path)) return res({ ok: true, order: ORDER_STATES[String(body.order || "").replace(/\\D/g, "")] || ORDER });
     if (/\\/apps\\/ucro\\/returns$/.test(path)) return res(body.intent === "send" ? (body.resolution === "exchange" ? { ok: true } : body.resolution === "credit" ? { ok: true, approved: true, credit: { kind: "discount_code", code: "RETURN-7F3A2C1B9E", amount: 37.4, currency: "USD" } } : { ok: true }) : { ok: true, order: ORDER, options: { credit: { bonus: 10 }, exchange: { extra: true } }, credits: [] });
     if (/\\/apps\\/ucro\\//.test(path)) return res({ ok: true });
     if (/\\/contact$/.test(path)) return res({ ok: true });
@@ -405,7 +406,7 @@ export const cartPage = (body = "") => `<div class="page-width cart-page"><h1>Yo
  * bars); `embeds` are app embeds (end of body, like Shopify puts them); `css` lists the extension
  * stylesheets the blocks need.
  */
-export function frame({ title, frameId, body, top = "", embeds = "", css = [], catalog, collections, orderJson, header = true, cartSeed = null, head = "" }) {
+export function frame({ title, frameId, body, top = "", embeds = "", css = [], catalog, collections, orderJson, orderStates, header = true, cartSeed = null, head = "" }) {
   const links = ["ucro.css", "ucs-sections.css", ...css].map((f) => `<link rel="stylesheet" href="${BASE}/assets/${f}">`).join("");
   const seed = cartSeed
     ? `<script>try{if(!sessionStorage.getItem("lumen-demo-cart"))sessionStorage.setItem("lumen-demo-cart",${JSON.stringify(JSON.stringify(cartSeed))})}catch(e){}</script>`
@@ -413,7 +414,7 @@ export function frame({ title, frameId, body, top = "", embeds = "", css = [], c
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex, nofollow">
 <title>${esc(title)} | ${STORE_NAME} demo store</title><link rel="icon" href="${BASE}/favicon.svg" type="image/svg+xml">
-<style>${CSS}</style>${links}${seed}${backendScript({ catalog, collections, frameId, orderJson })}${head}
+<style>${CSS}</style>${links}${seed}${backendScript({ catalog, collections, frameId, orderJson, orderStates })}${head}
 </head><body class="template-demo">
 ${top}${header ? storeHeader() : ""}
 <main id="MainContent">${body}</main>

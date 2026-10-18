@@ -17,7 +17,14 @@ const ITEMS = [
   { title: "Classic tee", variant: "Large", quantity: 2 },
 ];
 
-export function OrderPagePreview({ config: c, step, showNext = false, showBuyAgain = false, showAfter = false, showLate = false }: { config: OrderPageDesign; step: "form" | "result"; /** The next order discount is on in what the page sells. */ showNext?: boolean; showBuyAgain?: boolean; showAfter?: boolean; showLate?: boolean }) {
+/** What the Track page sells, as the preview needs it (the settings in lib/track-sell.ts and the live Track page offers). */
+export type PreviewSells = { next: boolean; buyAgain: boolean; after: boolean; late: boolean; offers: { above: PreviewOffer | null; below: PreviewOffer | null } };
+export type PreviewOffer = { headline: string; text: string; button: string; kind: string };
+export const NO_SELLS: PreviewSells = { next: false, buyAgain: false, after: false, late: false, offers: { above: null, below: null } };
+/** The sample orders the editor shows: on its way, delivered (after delivery mode) and late (delay message). */
+export type SampleOrder = "transit" | "delivered" | "delayed";
+
+export function OrderPagePreview({ config: c, step, sample = "transit", sells = NO_SELLS }: { config: OrderPageDesign; step: "form" | "result"; sample?: SampleOrder; sells?: PreviewSells }) {
   const t = c.text;
   const thumb = <span className="ucs-op__ph" />;
   return (
@@ -47,19 +54,34 @@ export function OrderPagePreview({ config: c, step, showNext = false, showBuyAga
               <h2 className="ucs-op__h">#1001</h2>
               <p className="ucs-op__t">{t.placed} Oct 3, 2026</p>
               <p className="ucs-op__pills">
-                <span className="ucs-op__pill">Shipped</span>
+                <span className="ucs-op__pill">{sample === "delivered" ? "Delivered" : "Shipped"}</span>
                 <span className="ucs-op__pill ucs-op__pill--soft">Paid</span>
               </p>
+              {sample === "delayed" && sells.late ? (
+                <div className="ucs-op__after ucs-op__late">
+                  <p className="ucs-op__t"><b>{t.delayText}</b></p>
+                </div>
+              ) : null}
+              {sample === "delivered" && sells.after ? (
+                <div className="ucs-op__after">
+                  <p className="ucs-op__t"><b>{t.afterTitle}</b></p>
+                  <p className="ucs-op__t">{t.afterSub}</p>
+                  <p className="ucs-op__links"><span className="ucs-btn">{t.reviewButton}</span></p>
+                  <p className="ucs-op__t"><u>{t.returnLink}</u></p>
+                </div>
+              ) : null}
+              {sells.offers.above ? <SampleOffer o={sells.offers.above} /> : null}
               <div className="ucs-op__ship">
-                <span className="ucs-op__pill">In transit</span>
+                <span className="ucs-op__pill">{sample === "delivered" ? "Delivered" : sample === "delayed" ? "In transit, late" : "In transit"}</span>
                 <p className="ucs-op__t">
                   {t.shipped}: <b>EG123456789</b> · Aramex
                 </p>
-                <p className="ucs-op__t">{t.estimated}: Oct 8, 2026</p>
+                <p className="ucs-op__t">{t.estimated}: {sample === "delayed" ? "Oct 6, 2026" : "Oct 8, 2026"}</p>
                 <a className="ucs-btn ucs-btn--outline" href="#preview" onClick={(e) => e.preventDefault()}>
                   {t.trackLink}
                 </a>
               </div>
+              {sells.offers.below ? <SampleOffer o={sells.offers.below} /> : null}
               <ul className="ucs-op__items">
                 {ITEMS.map((i) => (
                   <li key={i.title} className="ucs-op__item">
@@ -72,27 +94,14 @@ export function OrderPagePreview({ config: c, step, showNext = false, showBuyAga
                   </li>
                 ))}
               </ul>
-              {showNext ? (
-              <div className="ucs-op__next">
-                <p className="ucs-op__t"><b>{t.nextTitle.replace("{percent}", "10%")}</b></p>
-                <p className="ucs-op__t"><code className="ucs-op__code">NEXT-3FA9C2D1</code> <button type="button" className="ucs-btn ucs-btn--outline">{t.nextCopy}</button></p>
-                <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
-              </div>
-              ) : null}
-              {showLate ? (
-                <div className="ucs-op__after ucs-op__late">
-                  <p className="ucs-op__t"><b>{t.delayText}</b></p>
+              {sells.next ? (
+                <div className="ucs-op__next">
+                  <p className="ucs-op__t"><b>{t.nextTitle.replace("{percent}", "10%")}</b></p>
+                  <p className="ucs-op__t"><code className="ucs-op__code">NEXT-3FA9C2D1</code> <button type="button" className="ucs-btn ucs-btn--outline">{t.nextCopy}</button></p>
+                  <p className="ucs-op__t"><small>{t.nextUntil.replace("{date}", "Nov 18, 2026")}</small></p>
                 </div>
               ) : null}
-              {showAfter ? (
-                <div className="ucs-op__after">
-                  <p className="ucs-op__t"><b>{t.afterTitle}</b></p>
-                  <p className="ucs-op__t">{t.afterSub}</p>
-                  <p className="ucs-op__links"><span className="ucs-btn">{t.reviewButton}</span></p>
-                  <p className="ucs-op__t"><u>{t.returnLink}</u></p>
-                </div>
-              ) : null}
-              {showBuyAgain ? <div className="ucs-op__again-buy"><button type="button" className="ucs-btn">{t.buyAgain}</button></div> : null}
+              {sells.buyAgain ? <div className="ucs-op__again-buy"><button type="button" className="ucs-btn">{t.buyAgain}</button></div> : null}
               {c.recs.like.on || c.recs.complete.on
                 ? (["like", "complete"] as const)
                     .filter((k) => c.recs[k].on)
@@ -165,6 +174,31 @@ export function OrderPagePreview({ config: c, step, showNext = false, showBuyAga
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** A Track page offer as the shopper sees it (sample products and code). */
+function SampleOffer({ o }: { o: PreviewOffer }) {
+  return (
+    <div className="ucs-op__offer">
+      <p className="ucs-op__t"><b>{o.headline}</b></p>
+      {o.text ? <p className="ucs-op__t">{o.text}</p> : null}
+      {o.kind === "cross_sell" ? (
+        <ul className="ucs-op__rg">
+          {SAMPLE_RECS.slice(0, 2).map((p) => (
+            <li key={p.title} className="ucs-op__rc">
+              <span className="ucs-op__ph" />
+              <span className="ucs-op__rn">{p.title}</span>
+              <span className="ucs-op__rp">{p.price}</span>
+              <button type="button" className="ucs-btn ucs-btn--outline">{o.button}</button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p><span className="ucs-btn">{o.button}</span></p>
+      )}
+      <p className="ucs-op__t"><code className="ucs-op__code">TRACK-3FA9C2D1</code> <small>Valid until Oct 22, 3:00 PM.</small></p>
     </div>
   );
 }
