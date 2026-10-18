@@ -8,9 +8,12 @@
  */
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import { addReturn, findOrder, orderReturns, readLookup, updateReturn } from "../lib/orders-lookup.server";
-import { getReturnRules, approveReturn, requestReturn, returnableItems } from "../lib/shopify-returns.server";
-import { excludedTags } from "../lib/return-rules";
+import { addReturn, creditsForOrder, findOrder, orderReturns, readLookup } from "../lib/orders-lookup.server";
+import { getPlan } from "../lib/billing.server";
+import { approveAndSettle } from "../lib/return-saving.server";
+import { atLeast } from "../lib/plans";
+import { getReturnRules, requestReturn, returnableItems } from "../lib/shopify-returns.server";
+import { DEFAULT_SAVING, excludedTags, matchesAutoRule, withSaving } from "../lib/return-rules";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 
 const clean = (v: unknown, max: number) =>
@@ -35,6 +38,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const order = await findOrder(admin, q.number, q.email);
     if (!order) return json({ ok: false, notFound: true });
     const { rules } = await getReturnRules(admin);
+    // Return saving rules (store credit, rules that approve) are Pro: below Pro the shopper is refunded as before.
+    const pro = atLeast((await getPlan(admin, session.shop)).plan, "pro");
+    const saving = pro ? withSaving(rules.saving) : DEFAULT_SAVING;
     if (rules.days > 0 && Date.now() - Date.parse(order.createdAt) > rules.days * 86_400_000) return json({ ok: false, tooLate: true });
 
     // What can still be returned: Shopify's returnable items, minus products the merchant excluded by tag.
@@ -47,11 +53,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (!noAccess(e)) throw e;
       legacy = true; // returns scopes not approved yet: the old list of items and an app-only request
     }
-    const choices = legacy ? order.items.map((i) => ({ key: i.id.split("/").pop() ?? "", title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })) : returnable.map((i) => ({ key: i.key, title: i.title, variant: i.variant, quantity: i.quantity, image: i.image }));
+    const choices = legacy ? order.items.map((i) => ({ key: i.id.split("/").pop() ?? "", title: i.title, variant: i.variant, quantity: i.quantity, image: i.image })) : returnable.map((i) => ({ key: i.key, title: i.title, variant: i.variant, quantity: i.quantity, image: i.image, price: i.price }));
     const existing = legacy ? [] : (await orderReturns(admin, order.id)).map((r) => ({ name: r.name, status: r.status, say: SAY[r.status] ?? r.status }));
     const approvedHere = existing.some((r) => r.status === "OPEN");
     const after = { address: rules.address, instructions: rules.instructions, shipping: rules.shipping };
-    if (body.intent !== "send") return json({ ok: true, order: { name: order.name, items: choices }, returns: existing, ...(approvedHere ? { after } : {}) });
+    const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
+    // How the shopper can be paid back: a refund always; store credit when the merchant (Pro) switched it on.
+    const options = { credit: saving.credit.on && !legacy ? { bonus: saving.credit.bonus } : null };
+    if (body.intent !== "send") {
+      const credits = legacy ? [] : await creditsForOrder(session.shop, order.id, q.email);
+      return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
+    }
 
     const wanted = Array.isArray(body.items) ? (body.items as { key?: unknown; qty?: unknown }[]) : [];
     const picked = wanted
@@ -66,6 +78,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!reason) return json({ ok: false, error: "Please choose a reason." }, 400);
     const note = clean(body.note, 1000);
 
+    const resolution = body.resolution === "credit" && options.credit ? ("credit" as const) : ("refund" as const);
+    const quote = Math.round(picked.reduce((n, p) => n + (priceOf.get(p.key) ?? 0) * p.quantity, 0) * 100) / 100;
     let returnId = "", returnName = "";
     const status = "requested";
     if (!legacy) {
@@ -74,20 +88,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       returnId = made.id;
       returnName = made.name;
     }
-    const r = await addReturn(session.shop, { orderId: order.id, orderName: order.name, email: q.email, items: picked.map((p) => ({ id: p.key, title: p.title, variant: p.variant, quantity: p.quantity })), reason, note, returnId, returnName, status });
+    const r = await addReturn(session.shop, { orderId: order.id, orderName: order.name, email: q.email, items: picked.map((p) => ({ id: p.key, title: p.title, variant: p.variant, quantity: p.quantity })), reason, note, returnId, returnName, status, resolution, quote, currency: order.currency, creditBonus: resolution === "credit" ? saving.credit.bonus : 0 });
     if (r.duplicate) return json({ ok: false, already: true });
-    // Approved at once for the reasons the merchant chose.
+    // Approved at once: the reasons the merchant ticked (Growth), or a Pro rule (reason, product tag, order value, days since delivery).
+    const delivered = order.shipments.map((s) => s.delivered).filter((d): d is string => !!d).sort().pop();
+    const matchesRule = matchesAutoRule(saving.rules, {
+      reason,
+      tags: picked.flatMap((p) => returnable.find((i) => i.key === p.key)?.tags ?? []),
+      orderValue: order.total,
+      daysSinceDelivery: delivered ? Math.floor((Date.now() - Date.parse(delivered)) / 86_400_000) : null,
+    });
+    const reasonOk = rules.autoApprove.on && rules.autoApprove.reasons.some((x) => x.toLowerCase() === reason.toLowerCase());
     let approved = false;
-    if (returnId && rules.autoApprove.on && rules.autoApprove.reasons.some((x) => x.toLowerCase() === reason.toLowerCase())) {
+    let credit: Awaited<ReturnType<typeof approveAndSettle>>["credit"] = null;
+    if (returnId && (reasonOk || matchesRule)) {
       try {
-        await approveReturn(admin, returnId);
-        await updateReturn(session.shop, r.id, { status: "approved" });
+        const out = await approveAndSettle(admin, session.shop, r.id, rules, pro);
         approved = true;
-      } catch {
-        approved = false; // stays New; the merchant approves it in the app
+        credit = out.credit;
+      } catch (e) {
+        console.error(`[proxy/returns] auto approve ${session.shop}:`, e instanceof Error ? e.message : e);
+        approved = false; // stays New (or approved without the credit); the merchant finishes it in the app
       }
     }
-    return json({ ok: true, approved, ...(approved ? { after } : {}) });
+    return json({ ok: true, approved, ...(credit ? { credit: { kind: credit.kind, code: credit.code, amount: credit.amount, currency: credit.currency } } : {}), ...(approved ? { after } : {}) });
   } catch (e) {
     console.error(`[proxy/returns] ${session.shop}:`, e instanceof Error ? e.message : e);
     return json({ ok: false, error: e instanceof Error && /^[A-Z]/.test(e.message) && e.message.length < 140 && !/gid:|graphql|userErrors/i.test(e.message) ? e.message : "Returns aren't available right now." }, 500);

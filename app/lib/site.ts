@@ -37,7 +37,7 @@ export const DEMOS: FeatureKey[] = [
   "announcements", "countdown", "shipping_bar", "stock_urgency",
   "sticky_atc", "quick_add", "delivery", "size_guide", "stock", "wishlist",
   "hero", "image_carousel", "videos", "faq", "quiz", "collection_pills",
-  "track", "returns",
+  "track", "returns", "return_saving",
   "payment_rules", "delivery_rules", "order_limits", "thank_you", "post_purchase",
 ];
 /** Bundle recipes with their own live demo page. */

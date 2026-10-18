@@ -664,3 +664,9 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-op__rc { display: grid; gap: 4px; align-content: start; font-size: 0.92em; }
 .ucs-op__rc img, .ucs-op__rc .ucs-op__ph { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--ucs-op-r, 12px); }
 .ucs-op__rn { color: inherit; font-weight: 600; text-decoration: none; }
+
+/* Returns page: how to be paid back, and the credit given */
+.ucs-op__opts { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.ucs-op__opts legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
+.ucs-op__opts label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.ucs-op__code { padding: 2px 8px; border-radius: 6px; background: rgba(127, 127, 127, 0.15); font-weight: 700; letter-spacing: 0.04em; }

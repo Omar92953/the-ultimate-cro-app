@@ -217,3 +217,11 @@ Once every box is ticked on both themes:
 - [ ] Wishlist: heart on a product page and on collection cards (styled), floating button count, the wishlist page (styled grid, Add to cart says "Added to cart", Remove, Share shows "Link copied"), "Wishlist is on" off hides everything, "See it on my store" shows a draft only in the theme editor.
 - [ ] Discount code box (Gift note & delivery date → Discount code): a valid code on the cart page and in the drawer lowers the price and shows at checkout; an invalid code shows your message; Remove works.
 - [ ] Size guide: add the Size guide block to a product page; "Size chart" opens the chart (cm and in), "Size recommendation" answers from your ranges; a chart assigned to a tag or collection shows only on those products.
+
+## Return saving rules (Pro, Testing 3, after the Shopify deploy and approving the new permissions)
+
+- [ ] Returns, Return saving rules: switch on store credit with a 10% bonus, a rule for the reason "Wrong size". Save.
+- [ ] Returns page: find a test order, pick an item: "How would you like to be paid back?" shows the refund and "Get $X store credit instead of a $Y refund".
+- [ ] Choose store credit with a reason that needs approval; in the app approve it: the return is processed with no refund, the customer has store credit (or a gift card, or a discount code shown on the Returns page with a Copy button), items are restocked if that is on.
+- [ ] Send a "Wrong size" return with store credit: it is approved at once and the credit shows on the page.
+- [ ] Tracking & Returns shows "Return saving, last 30 days".

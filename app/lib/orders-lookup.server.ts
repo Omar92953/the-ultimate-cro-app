@@ -14,6 +14,9 @@ export type OrderSummary = {
   cancelled: boolean;
   payment: string;
   fulfillment: string;
+  /** What the order is worth now, in the shop currency (for return rules). */
+  total: number;
+  currency: string;
   items: { id: string; title: string; variant: string; quantity: number; image: string | null; /** Not sent to the page. */ productId: string | null }[];
   shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null; /** What Shopify knows: its fulfillment events, dates and status. */ tracking: Tracking | null }[];
 };
@@ -59,7 +62,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     query CroFindOrder($q: String!) {
       orders(first: 5, query: $q) {
         nodes {
-          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus
+          id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } }
           lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } product { id } } }
           fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }
@@ -76,6 +79,8 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     cancelled: !!order.cancelledAt,
     payment: order.displayFinancialStatus ?? "",
     fulfillment: order.displayFulfillmentStatus ?? "",
+    total: Number(order.currentTotalPriceSet?.shopMoney?.amount) || 0,
+    currency: order.currentTotalPriceSet?.shopMoney?.currencyCode ?? "",
     items: order.lineItems.nodes
       .filter((l: { currentQuantity: number }) => l.currentQuantity > 0)
       .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null; product: { id: string } | null }) => ({ id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null, productId: l.product?.id ?? null })),
@@ -99,12 +104,12 @@ export async function orderReturns(admin: AdminClient, orderId: string): Promise
   }
 }
 
-export type NewReturn = { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string; returnId: string; returnName: string; status: string };
+export type NewReturn = { orderId: string; orderName: string; email: string; items: ReturnItem[]; reason: string; note: string; returnId: string; returnName: string; status: string; resolution?: "refund" | "credit"; quote?: number; currency?: string; creditBonus?: number };
 
 export async function addReturn(shop: string, r: NewReturn) {
   const open = await db.returnRequest.findFirst({ where: { shop, orderId: r.orderId, status: { in: ["requested", "pending", "approved"] } } });
   if (open) return { duplicate: true, id: open.id } as const;
-  const row = await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note, returnId: r.returnId, returnName: r.returnName, status: r.status } });
+  const row = await db.returnRequest.create({ data: { shop, orderId: r.orderId, orderName: r.orderName, email: r.email, items: JSON.stringify(r.items), reason: r.reason, note: r.note, returnId: r.returnId, returnName: r.returnName, status: r.status, resolution: r.resolution ?? "refund", quote: r.quote ?? 0, currency: r.currency ?? "", creditBonus: r.creditBonus ?? 0 } });
   return { duplicate: false, id: row.id } as const;
 }
 
@@ -117,8 +122,39 @@ export async function listReturns(shop: string) {
     } catch {
       items = [];
     }
-    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString(), returnId: r.returnId, returnName: r.returnName, labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl, declineNote: r.declineNote, refundedAt: r.refundedAt?.toISOString() ?? null };
+    return { id: r.id, orderId: r.orderId, orderName: r.orderName, email: r.email, items, reason: r.reason, note: r.note, status: r.status, createdAt: r.createdAt.toISOString(), returnId: r.returnId, returnName: r.returnName, labelUrl: r.labelUrl, tracking: r.tracking, trackingUrl: r.trackingUrl, declineNote: r.declineNote, refundedAt: r.refundedAt?.toISOString() ?? null, resolution: r.resolution, quote: r.quote, currency: r.currency, creditKind: r.creditKind, creditCode: r.creditCode, creditAmount: r.creditAmount, creditBonus: r.creditBonus, creditedAt: r.creditedAt?.toISOString() ?? null };
   });
+}
+
+/**
+ * What returns did to the store's money in the last `days` days: value refunded (the items' price when asked) against value
+ * kept as credit (what the shopper was given, bonus included), and exchanges later. Real rows only.
+ */
+export async function returnSavings(shop: string, days = 30) {
+  const since = new Date(Date.now() - days * 86_400_000);
+  const rows = await db.returnRequest.findMany({ where: { shop, OR: [{ refundedAt: { gte: since } }, { creditedAt: { gte: since } }] }, select: { quote: true, creditAmount: true, creditBonus: true, refundedAt: true, creditedAt: true, currency: true } });
+  const out = { days, currency: rows.find((r) => r.currency)?.currency ?? "", refunds: { count: 0, value: 0 }, credit: { count: 0, value: 0, bonus: 0 } };
+  for (const r of rows) {
+    if (r.creditedAt) {
+      out.credit.count += 1;
+      out.credit.value += r.creditAmount;
+      out.credit.bonus += r.creditBonus > 0 ? r.creditAmount - r.creditAmount / (1 + r.creditBonus / 100) : 0;
+    } else if (r.refundedAt) {
+      out.refunds.count += 1;
+      out.refunds.value += r.quote;
+    }
+  }
+  const round = (n: number) => Math.round(n * 100) / 100;
+  out.refunds.value = round(out.refunds.value);
+  out.credit.value = round(out.credit.value);
+  out.credit.bonus = round(out.credit.bonus);
+  return out;
+}
+
+/** The credit given for this order's returns (what the Returns page shows the shopper). */
+export async function creditsForOrder(shop: string, orderId: string, email: string) {
+  const rows = await db.returnRequest.findMany({ where: { shop, orderId, email: email.toLowerCase(), creditKind: { not: "" } }, orderBy: { createdAt: "desc" }, take: 5 });
+  return rows.map((r) => ({ name: r.returnName || `Return ${r.orderName}`, kind: r.creditKind, code: r.creditCode, amount: r.creditAmount, currency: r.currency }));
 }
 
 export type ReturnRow = Awaited<ReturnType<typeof listReturns>>[number];
@@ -127,7 +163,7 @@ export async function getReturn(shop: string, id: number) {
   return db.returnRequest.findFirst({ where: { shop, id } });
 }
 
-export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null }) {
+export async function updateReturn(shop: string, id: number, data: { status?: string; labelUrl?: string; tracking?: string; trackingUrl?: string; declineNote?: string; refundedAt?: Date | null; creditKind?: string; creditCode?: string; creditAmount?: number; creditedAt?: Date | null }) {
   await db.returnRequest.updateMany({ where: { shop, id }, data });
 }
 

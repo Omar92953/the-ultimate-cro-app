@@ -212,6 +212,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["A discount code for the next order with a copy button", "A message, follow us buttons and product suggestions", "Works on every Shopify plan"],
     related: ["post_purchase", "reviews"],
   },
+  return_saving: {
+    who: "For stores that want to keep the sale when a shopper returns something.",
+    points: ["Shoppers choose store credit instead of a refund, with an optional bonus", "Credit as Shopify store credit, a gift card or a single use discount code, whichever your store supports", "Approve returns by rule: reason, product tag, order value, days since delivery", "Put returned items back in stock at your location", "Refunds to the original payment stay available"],
+    related: ["returns", "track"],
+  },
   ab_tests: {
     who: "For stores that want proof before they change an offer.",
     points: ["Show half of your shoppers another version of an upsell or cross sell", "Change the words, the discount or the style in version B", "Each shopper keeps one version, so orders can be told apart", "Real shoppers and real orders: we say which is ahead only when there is enough data", "One click to use the winner"],

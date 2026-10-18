@@ -18,3 +18,7 @@ features: ["track", "returns"]
 4. **Set your return rules and address**, then add both pages to your menu or footer.
 
 Each step turns green when it is done. Each page has ready made looks (Style).
+
+## Return saving rules (Pro)
+
+On **Returns, Return saving rules** you can let shoppers choose **store credit** instead of a refund (with an optional bonus, for example 10% extra), approve returns **by rule** (reason, product tag, order value, days since delivery) and put returned items **back in stock**. Credit is given when the return is approved: as Shopify store credit on the customer's account, or as a Shopify gift card, or as a single use discount code for the exact amount, whichever your store supports, in that order. The shopper sees the credit or the code on the Returns page. Refunds to the original payment stay available for everyone.

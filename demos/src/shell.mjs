@@ -232,7 +232,7 @@ function backendScript({ catalog, collections, frameId, orderJson }) {
       return res({ resources: { results: { products: found.map(function (p) { return { title: p.title, url: ROOT + "products/" + p.handle, image: p.featured_image, price: (p.price / 100).toFixed(2) }; }) } } });
     }
     if (/\\/apps\\/ucro\\/track$/.test(path)) return res({ ok: true, order: ORDER });
-    if (/\\/apps\\/ucro\\/returns$/.test(path)) return res(body.intent === "send" ? { ok: true } : { ok: true, order: ORDER });
+    if (/\\/apps\\/ucro\\/returns$/.test(path)) return res(body.intent === "send" ? (body.resolution === "credit" ? { ok: true, approved: true, credit: { kind: "discount_code", code: "RETURN-7F3A2C1B9E", amount: 37.4, currency: "USD" } } : { ok: true }) : { ok: true, order: ORDER, options: { credit: { bonus: 10 } }, credits: [] });
     if (/\\/apps\\/ucro\\//.test(path)) return res({ ok: true });
     if (/\\/contact$/.test(path)) return res({ ok: true });
     return realFetch(url, opts);
