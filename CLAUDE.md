@@ -17,7 +17,7 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 
 ## Status (2026-10-18)
 
-- Live: Shopify app version **cro-toolbox-30**, admin on Render (`https://cro-toolbox.onrender.com`,
+- Live: Shopify app version **cro-toolbox-34**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
   Test store: **Testing 3** `testing-3-xsslpo6d` (back on the Free plan; switch to a $0 test plan to test paid features).
 - Block G done: G1 to G11, MCP read/build tools (offers, discounts, bundles). Tested on Testing 3 on
