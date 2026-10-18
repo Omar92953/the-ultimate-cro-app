@@ -5,7 +5,7 @@
   Without JavaScript the page keeps version A.
 {%- endcomment -%}
 <script>(function(){var id={{ test.id | json }},g;try{g=localStorage.getItem('ucs-ab-'+id);if(g!=='A'&&g!=='B'){g=Math.random()<0.5?'A':'B';localStorage.setItem('ucs-ab-'+id,g)}}catch(e){g='A'}
-var els=document.querySelectorAll('[data-ab="'+id+'"]');for(var i=0;i<els.length;i++){if(els[i].getAttribute('data-ab-g')!==g){els[i].parentNode.removeChild(els[i])}else{els[i].hidden=false}}
+var els=document.querySelectorAll('[data-ab="'+id+'"]');for(var i=0;els.length>i;i++){if(els[i].getAttribute('data-ab-g')!==g){els[i].parentNode.removeChild(els[i])}else{els[i].hidden=false}}
 if(window.__ucsHoldout)return;
 var r=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/';
 function parse(v){var o={};String(v||'').split(',').forEach(function(p){var a=p.split(':');if(a[0]&&(a[1]==='A'||a[1]==='B'))o[a[0]]=a[1]});return o}

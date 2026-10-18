@@ -1,7 +1,8 @@
 /**
  * Return saving rules (Pro): paying a return back with store credit instead of a refund. Credit is given when the return is
  * approved, in this order of preference (docs: tracking-returns §6):
- *   1. Shopify store credit on the order's customer (storeCreditAccountCredit);
+ *   1. Shopify store credit on the order's customer, as a REFUND TO STORE CREDIT inside returnProcess, so the order's money is right
+ *      (a bonus on top is an ordinary storeCreditAccountCredit; if Shopify refuses the refund method, the plain storeCreditAccountCredit);
  *   2. otherwise a Shopify gift card for the amount (giftCardCreate);
  *   3. otherwise a single use discount code for the exact amount (discountCodeBasicCreate), limited to the customer.
  * Then the return is processed with no money refund, and optionally restocked. Scopes: read_customers,
@@ -172,16 +173,83 @@ export async function giveCreditOnReceipt(admin: AdminClient, shop: string, rowI
   return settleCredit(admin, shop, rowId, rules);
 }
 
+/** Shopify refuses a refund to store credit (not switched on, amount over what was paid): then the credit is given the older way, outside the order. */
+const REFUND_TO_CREDIT_UNAVAILABLE = /store credit|refund method|not (enabled|supported|available)|maximum|exceed|more than/i;
+const cents = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Pays the returned items back as store credit THROUGH THE ORDER: returnProcess with a refund whose method is store credit, so the
+ * order's own money is right (Shopify counts it as refunded). Credit given outside the order (storeCreditAccountCredit) leaves the order
+ * showing the money as still paid, and a later exchange on the same order then used it. Returns Shopify's error text, "" when it worked.
+ */
+async function refundToStoreCredit(admin: AdminClient, d: Detail, lines: { id: string; quantity: number }[], o: { amount: number; expiryDays: number; restock: boolean }): Promise<string> {
+  const disp = o.restock ? await restockDispositions(admin, d, lines) : new Map<string, unknown[]>();
+  const expires = o.expiryDays > 0 ? new Date(Date.now() + o.expiryDays * 86_400_000).toISOString() : null;
+  try {
+    await gql(admin, `#graphql
+      mutation CroProcessRefundCredit($input: ReturnProcessInput!) { returnProcess(input: $input) { return { id status } userErrors { field message } } }`, {
+      input: {
+        returnId: d.id,
+        notifyCustomer: true,
+        returnLineItems: lines.map((l) => ({ ...l, ...(disp.get(l.id) ? { dispositions: disp.get(l.id) } : {}) })),
+        financialTransfer: { issueRefund: { orderTransactions: [], refundMethods: [{ storeCreditRefund: { amount: { amount: money(o.amount), currencyCode: d.order.currencyCode }, ...(expires ? { expiresAt: expires } : {}) } }] } },
+      },
+    });
+    return "";
+  } catch (e) {
+    return e instanceof Error ? e.message : "Shopify could not refund to store credit.";
+  }
+}
+
 async function settleCredit(admin: AdminClient, shop: string, rowId: number, rules: ReturnRules): Promise<{ status: string; credit: Credit | null }> {
   const row = await getReturn(shop, rowId);
   if (!row || !row.returnId) throw new AdminError("This request no longer exists. Reload the page.");
   const d = await detailForCredit(admin, row.returnId);
   const lines = d.returnLineItems.nodes.map((l) => ({ id: l.id, quantity: l.quantity - l.processedQuantity })).filter((l) => l.quantity > 0);
-  let credit: Credit | null = row.creditKind ? { kind: row.creditKind as CreditKind, code: row.creditCode, amount: row.creditAmount, currency: row.currency || d.order.currencyCode } : null;
+  const { credit: rule } = rules.saving;
+
+  // Store credit through the order. The state is saved in creditCode before each step, so a failure is retried without giving anything twice:
+  //   "pending:<refund>:<bonus>"  the refund to store credit is not done yet;   "bonus:<amount>"  the refund is done, the bonus is not;   "done"  all given. (Store credit given the older way keeps an empty code.)
+  let marker = row.creditKind === "store_credit" ? row.creditCode : "";
+  if (!row.creditKind && d.order.customer) {
+    const suggested = await suggestedAmount(admin, row.returnId, lines);
+    const items = suggested > 0 ? suggested : row.quote;
+    const total = creditFor(items, rule.bonus);
+    // The refund part is what the items cost; the bonus on top is an ordinary store credit (Shopify refunds no more than was paid).
+    marker = `pending:${money(items)}:${money(cents(total - items))}`;
+    await updateReturn(shop, rowId, { creditKind: "store_credit", creditCode: marker, creditAmount: total });
+  }
+  if (marker.startsWith("pending:")) {
+    const [, refund, bonus] = marker.split(":");
+    // Lines already processed (a retry after the refund went through but was not recorded) are not refunded again.
+    const err = lines.length ? await refundToStoreCredit(admin, d, lines, { amount: Number(refund), expiryDays: rule.expiryDays, restock: rules.saving.restock }) : "";
+    if (err && REFUND_TO_CREDIT_UNAVAILABLE.test(err)) {
+      await updateReturn(shop, rowId, { creditKind: "", creditCode: "", creditAmount: 0 });
+      marker = "fallback";
+    } else if (err) {
+      throw new AdminError(err);
+    } else {
+      marker = Number(bonus) > 0 ? `bonus:${bonus}` : "done";
+      await updateReturn(shop, rowId, { creditCode: marker });
+    }
+  }
+  if (marker.startsWith("bonus:")) {
+    await issueCredit(admin, { customerId: d.order.customer?.id ?? null, orderName: row.orderName, amount: Number(marker.split(":")[1]), currency: d.order.currencyCode, expiryDays: rule.expiryDays });
+    await updateReturn(shop, rowId, { creditCode: "done" });
+    marker = "done";
+  }
+  if (marker === "done") {
+    const done = await getReturn(shop, rowId);
+    await updateReturn(shop, rowId, { status: "credited", creditedAt: new Date() });
+    return { status: "credited", credit: { kind: "store_credit", code: "", amount: done?.creditAmount ?? row.creditAmount, currency: d.order.currencyCode } };
+  }
+
+  // The older way, outside the order: no customer to credit, store credit refused as a refund, or a retry of a credit given this way.
+  let credit: Credit | null = row.creditKind && marker !== "fallback" ? { kind: row.creditKind as CreditKind, code: row.creditCode, amount: row.creditAmount, currency: row.currency || d.order.currencyCode } : null;
   if (!credit) {
     const suggested = await suggestedAmount(admin, row.returnId, lines);
     const base = suggested > 0 ? suggested : row.quote;
-    credit = await issueCredit(admin, { customerId: d.order.customer?.id ?? null, orderName: row.orderName, amount: creditFor(base, rules.saving.credit.bonus), currency: d.order.currencyCode, expiryDays: rules.saving.credit.expiryDays });
+    credit = await issueCredit(admin, { customerId: d.order.customer?.id ?? null, orderName: row.orderName, amount: creditFor(base, rule.bonus), currency: d.order.currencyCode, expiryDays: rule.expiryDays });
     // Saved before the return is processed, so a failure below can be retried without giving the credit twice.
     await updateReturn(shop, rowId, { creditKind: credit.kind, creditCode: credit.code, creditAmount: credit.amount, creditedAt: new Date() });
   }

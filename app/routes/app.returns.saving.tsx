@@ -72,7 +72,14 @@ export default function ReturnSaving() {
         <EditorLayout
           side={
             <s-section heading="How it works">
-              <s-paragraph>Shoppers on your Returns page can also exchange for another size or colour. Before a refund, the shopper on your Returns page can choose store credit (you can add a bonus). Credit is given when you approve the return, or at once when a rule approves it: first as Shopify store credit on their customer account, otherwise as a Shopify gift card, otherwise as a single use discount code for the exact amount. Then the return is processed without a money refund.</s-paragraph>
+              <s-paragraph>Shoppers on your Returns page can also exchange for another size or colour. Before a refund, the shopper can choose store credit (you can add a bonus).</s-paragraph>
+              <s-paragraph>
+                {s.creditWhen === "received"
+                  ? "Credit is given when the items arrive: you click “Items received: give the credit” on the return in Returns. Approving the return gives no credit yet."
+                  : "Credit is given when you approve the return, or at once when a rule approves it."}{" "}
+                It is a refund to store credit on the shopper&apos;s customer account, so the order shows the money as refunded, with your bonus added on top. For a guest order it is a Shopify gift card, otherwise a single use discount code for the exact amount.
+              </s-paragraph>
+              <s-paragraph>An exchange for something dearer waits for payment: the shopper pays the difference, and “Items arrived: ship the exchange” works only once the order owes nothing.</s-paragraph>
               <s-paragraph>Refunds to the original payment stay available for every shopper.</s-paragraph>
             </s-section>
           }

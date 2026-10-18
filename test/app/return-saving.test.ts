@@ -31,7 +31,7 @@ after(async () => {
 });
 
 type Call = { op: string; vars: Record<string, any> }; // eslint-disable-line @typescript-eslint/no-explicit-any
-function fake(opts: { credit?: "ok" | "errors" | "throws"; gift?: "ok" | "errors" | "throws"; customer?: boolean; suggested?: string[]; location?: boolean } = {}) {
+function fake(opts: { credit?: "ok" | "errors" | "throws"; gift?: "ok" | "errors" | "throws"; customer?: boolean; suggested?: string[]; location?: boolean; refundError?: string } = {}) {
   const calls: Call[] = [];
   const admin = {
     graphql: async (query: string, o?: { variables?: Record<string, any> }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -54,6 +54,9 @@ function fake(opts: { credit?: "ok" | "errors" | "throws"; gift?: "ok" | "errors
           return data({ giftCardCreate: opts.gift === "errors" ? { giftCard: null, giftCardCode: null, userErrors: [{ message: "Not on this plan" }] } : { giftCard: { id: "g" }, giftCardCode: "ABCD1234EFGH5678", userErrors: [] } });
         case "CroCode": return data({ discountCodeBasicCreate: { codeDiscountNode: { id: "d" }, userErrors: [] } });
         case "CroLocation": return data({ locations: { nodes: opts.location === false ? [] : [{ id: "gid://shopify/Location/1" }] } });
+        case "CroProcessRefundCredit":
+          if (opts.refundError) return data({ returnProcess: { return: null, userErrors: [{ message: opts.refundError }] } });
+          return data({ returnProcess: { return: { id: "r", status: "CLOSED" }, userErrors: [] } });
         case "CroProcessNoRefund": return data({ returnProcess: { return: { id: "r", status: "CLOSED" }, userErrors: [] } });
         default: return data({});
       }
@@ -108,39 +111,79 @@ async function row(resolution: string, status = "requested") {
   return r.id;
 }
 
-test("approving a store credit return: approve, credit the suggested amount plus the bonus, process without a refund, restock", async () => {
+test("approving a store credit return: the items are refunded to store credit through the order, the bonus is added on top, restock", async () => {
   const a = fake();
   const id = await row("credit");
   const out = await S.approveAndSettle(a.admin, "s.myshopify.com", id, rules, true);
   assert.equal(out.status, "credited");
   assert.equal(out.credit?.amount, 55, "50.00 suggested plus the 10% bonus");
   const ops = a.calls.map((c) => c.op);
-  assert.deepEqual(ops.filter((o) => ["CroReturnApprove", "CroCredit", "CroProcessNoRefund"].includes(o)), ["CroReturnApprove", "CroCredit", "CroProcessNoRefund"]);
-  const input = a.calls.find((c) => c.op === "CroProcessNoRefund")!.vars.input;
-  assert.equal(input.financialTransfer, undefined, "no money refund");
+  assert.deepEqual(ops.filter((o) => ["CroReturnApprove", "CroProcessRefundCredit", "CroCredit", "CroProcessNoRefund"].includes(o)), ["CroReturnApprove", "CroProcessRefundCredit", "CroCredit"]);
+  const input = a.calls.find((c) => c.op === "CroProcessRefundCredit")!.vars.input;
+  // The order's own money is right: a refund whose method is store credit, for what the items cost.
+  assert.deepEqual(input.financialTransfer, { issueRefund: { orderTransactions: [], refundMethods: [{ storeCreditRefund: { amount: { amount: "50.00", currencyCode: "EUR" } } }] } });
   assert.equal(input.returnLineItems[0].dispositions[0].dispositionType, "RESTOCKED");
   assert.equal(input.returnLineItems[0].dispositions[0].locationId, "gid://shopify/Location/1");
+  // Only the bonus is a plain credit outside the order.
+  assert.equal(a.calls.find((c) => c.op === "CroCredit")!.vars.input.creditAmount.amount, "5.00");
   const saved = await prisma.returnRequest.findUnique({ where: { id } });
-  assert.deepEqual({ status: saved?.status, kind: saved?.creditKind, amount: saved?.creditAmount }, { status: "credited", kind: "store_credit", amount: 55 });
+  assert.deepEqual({ status: saved?.status, kind: saved?.creditKind, amount: saved?.creditAmount, code: saved?.creditCode }, { status: "credited", kind: "store_credit", amount: 55, code: "done" });
 });
 
-test("a failure after the credit never gives the credit twice", async () => {
+test("a failure never gives the refund or the bonus twice", async () => {
   const id = await row("credit");
   const bad = fake();
   const orig = bad.admin.graphql.bind(bad.admin) as (q: string, o?: unknown) => Promise<{ json: () => Promise<unknown> }>;
-  let failOnce = true;
+  let failRefund = true, failBonus = true;
   (bad.admin as unknown as { graphql: unknown }).graphql = async (q: string, o?: unknown) => {
-    if (/mutation CroProcessNoRefund/.test(q) && failOnce) {
-      failOnce = false;
+    if (/mutation CroProcessRefundCredit/.test(q) && failRefund) {
+      failRefund = false;
       return { json: async () => ({ data: { returnProcess: { return: null, userErrors: [{ message: "Shopify is busy" }] } } }) };
+    }
+    if (/mutation CroCredit/.test(q) && failBonus) {
+      failBonus = false;
+      return { json: async () => ({ data: { storeCreditAccountCredit: { storeCreditAccountTransaction: null, userErrors: [{ message: "Busy" }] } } }) };
     }
     return orig(q, o);
   };
   await assert.rejects(S.approveAndSettle(bad.admin, "s.myshopify.com", id, rules, true), /busy/);
-  assert.equal((await prisma.returnRequest.findUnique({ where: { id } }))?.creditKind, "store_credit", "the credit is recorded before processing");
+  assert.match((await prisma.returnRequest.findUnique({ where: { id } }))?.creditCode ?? "", /^pending:/, "recorded before the refund");
+  // The refund goes through on the second try; the bonus fails (store credit then falls back to a gift card), so the whole credit still completes once.
   const again = await S.approveAndSettle(bad.admin, "s.myshopify.com", id, rules, true);
   assert.equal(again.status, "credited");
-  assert.equal(bad.calls.filter((c) => c.op === "CroCredit").length, 1, "given once");
+  assert.equal(bad.calls.filter((c) => c.op === "CroProcessRefundCredit").length, 1, "the busy first try never reached the fake, the second worked");
+  assert.equal(bad.calls.filter((c) => c.op === "CroProcessNoRefund").length, 0);
+  const third = await S.approveAndSettle(bad.admin, "s.myshopify.com", id, rules, true);
+  assert.equal(third.status, "credited");
+  assert.equal(bad.calls.filter((c) => c.op === "CroProcessRefundCredit").length, 1, "not refunded again");
+});
+
+test("when Shopify refuses a refund to store credit, the credit is given the older way, once", async () => {
+  const a = fake({ refundError: "Store credit refunds are not enabled" });
+  const id = await row("credit");
+  const out = await S.approveAndSettle(a.admin, "s.myshopify.com", id, rules, true);
+  assert.equal(out.status, "credited");
+  assert.equal(out.credit?.amount, 55);
+  assert.equal(a.calls.find((c) => c.op === "CroCredit")!.vars.input.creditAmount.amount, "55.00");
+  assert.equal(a.calls.filter((c) => c.op === "CroProcessNoRefund").length, 1);
+  const saved = await prisma.returnRequest.findUnique({ where: { id } });
+  assert.deepEqual({ kind: saved?.creditKind, code: saved?.creditCode, amount: saved?.creditAmount }, { kind: "store_credit", code: "", amount: 55 });
+});
+
+test("an error that is not about store credit is not worked around: the credit is not given outside the order", async () => {
+  const a = fake({ refundError: "Shopify is busy" });
+  const id = await row("credit");
+  await assert.rejects(S.approveAndSettle(a.admin, "s.myshopify.com", id, rules, true), /busy/);
+  assert.ok(!a.calls.some((c) => c.op === "CroCredit" || c.op === "CroGift" || c.op === "CroCode"));
+});
+
+test("a guest order (no customer) is credited the older way with a gift card", async () => {
+  const a = fake({ customer: false });
+  const id = await row("credit");
+  const out = await S.approveAndSettle(a.admin, "s.myshopify.com", id, rules, true);
+  assert.equal(out.credit?.kind, "gift_card");
+  assert.ok(!a.calls.some((c) => c.op === "CroProcessRefundCredit"));
+  assert.equal(a.calls.filter((c) => c.op === "CroProcessNoRefund").length, 1);
 });
 
 test("a refund return is only approved, and credit needs Pro and the merchant's switch", async () => {
@@ -187,7 +230,7 @@ test("items received: approving gives no credit, receiving it gives it once", as
   const id = await row("credit");
   const out = await S.approveAndSettle(a.admin, "s.myshopify.com", id, waiting, true);
   assert.deepEqual({ status: out.status, credit: out.credit, later: out.creditLater }, { status: "approved", credit: null, later: true });
-  assert.ok(!a.calls.some((c) => c.op === "CroCredit" || c.op === "CroProcessNoRefund"), "no credit, no processing yet");
+  assert.ok(!a.calls.some((c) => c.op === "CroCredit" || c.op === "CroProcessNoRefund" || c.op === "CroProcessRefundCredit"), "no credit, no processing yet");
   const given = await S.giveCreditOnReceipt(a.admin, "s.myshopify.com", id, waiting, true);
   assert.deepEqual({ status: given.status, amount: given.credit?.amount }, { status: "credited", amount: 55 });
   const again = await S.giveCreditOnReceipt(a.admin, "s.myshopify.com", id, waiting, true);
@@ -197,4 +240,11 @@ test("items received: approving gives no credit, receiving it gives it once", as
   await assert.rejects(S.giveCreditOnReceipt(a.admin, "s.myshopify.com", other, waiting, true), /store credit/);
   const free = await row("credit", "approved");
   await assert.rejects(S.giveCreditOnReceipt(a.admin, "s.myshopify.com", free, waiting, false), /Pro/);
+});
+
+test("what the shopper reads once the money or credit was given", async () => {
+  const { settledSay } = await import("../../app/lib/return-rules");
+  assert.equal(settledSay("credited", "store_credit"), "Store credit given");
+  assert.equal(settledSay("credited", "gift_card"), "Credit given");
+  assert.equal(settledSay("refunded", ""), "Refunded");
 });

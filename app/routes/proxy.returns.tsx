@@ -15,7 +15,7 @@ import { approveAndSettle } from "../lib/return-saving.server";
 import { priceDifference, type ExchangeLine } from "../lib/return-exchange";
 import { atLeast } from "../lib/plans";
 import { getReturnRules, requestReturn, returnableItems } from "../lib/shopify-returns.server";
-import { DEFAULT_SAVING, excludedTags, matchesAutoRule, withSaving } from "../lib/return-rules";
+import { DEFAULT_SAVING, excludedTags, matchesAutoRule, settledSay, withSaving } from "../lib/return-rules";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 
 const clean = (v: unknown, max: number) =>
@@ -60,6 +60,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // A credit return that is approved waits for the items: the shopper sees when it comes.
     const waiting = new Set((await db.returnRequest.findMany({ where: { shop: session.shop, orderId: order.id, resolution: "credit", status: "approved", creditedAt: null }, select: { returnName: true } })).map((x) => x.returnName));
     for (const e of existing) if (waiting.has(e.name)) e.say = "Approved: your credit is sent once we receive the items";
+    // Shopify keeps a processed return "Open" until it is closed: what the shopper cares about is that the money or credit was given.
+    const settled = await db.returnRequest.findMany({ where: { shop: session.shop, orderId: order.id, status: { in: ["credited", "refunded"] } }, select: { returnName: true, status: true, creditKind: true } });
+    const paidSay = new Map(settled.map((x) => [x.returnName, settledSay(x.status, x.creditKind)]));
+    for (const e of existing) if (paidSay.has(e.name)) e.say = paidSay.get(e.name)!;
     const approvedHere = existing.some((r) => r.status === "OPEN");
     const after = { address: rules.address, instructions: rules.instructions, shipping: rules.shipping };
     const priceOf = new Map(choices.map((c) => [c.key, "price" in c ? Number((c as { price: number }).price) || 0 : 0]));
