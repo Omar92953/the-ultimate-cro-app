@@ -12,6 +12,7 @@
  *  - the automatic app discount's $app.function-configuration (+ $app.function-input)
  *  - the cart transform's $app.bundles
  */
+import { functionAb, type AbTest } from "./ab-tests";
 import { FUNCTION_METAFIELD_LIMIT as RULES_FUNCTION_LIMIT } from "./rules";
 import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { timed } from "./timing.server";
@@ -466,13 +467,18 @@ async function syncStorefrontDeals(admin: AdminClient, deals: Deal[]) {
  * `skip`: product ids (numbers) whose lines are bundles already priced as a bundle (mix & match
  * bundle products, merged at checkout, and bundle products/kits), so no offer discount stacks on them.
  */
-export function buildDiscountConfig(rules: Rule[], deals: Deal[] = [], skip: string[] = []) {
+export function buildDiscountConfig(rules: Rule[], deals: Deal[] = [], skip: string[] = [], tests: AbTest[] = []) {
   const active = rules.filter((r) => r.active).sort((a, b) => a.priority - b.priority);
   const trigger = (r: Rule) => ({
     type: r.triggerType,
     products: r.triggerType === "products" ? r.triggerProducts.map((p) => p.id) : [],
     collections: r.triggerType === "collections" ? r.triggerCollections.map((c) => c.id) : [],
   });
+  // A running A/B test on an offer: the discount engine gets B's discount fields and the test id (lib/ab-tests.ts).
+  const abOf = (r: Rule) => {
+    const ab = functionAb(tests.find((t) => t.offer === r.handle && t.status === "running"), r);
+    return ab ? { ab } : {};
+  };
   const config = {
     upsell: active
       .filter((r) => r.kind === "upsell")
@@ -484,11 +490,13 @@ export function buildDiscountConfig(rules: Rule[], deals: Deal[] = [], skip: str
               option: r.optionName,
               tiers: r.tiers.map((t) => ({ value: t.value || "", pct: t.pct })),
               label: r.discountLabel || r.headline || r.name,
+              ...abOf(r),
             }
           : {
               trigger: trigger(r),
               tiers: r.tiers.map((t) => ({ qty: t.qty, pct: t.pct })),
               label: r.discountLabel || r.headline || r.name,
+              ...abOf(r),
             },
       ),
     crossSell: active
@@ -498,6 +506,7 @@ export function buildDiscountConfig(rules: Rule[], deals: Deal[] = [], skip: str
         offered: r.offeredProducts.map((p) => p.id),
         pct: r.discountPercent,
         label: r.discountLabel || r.headline || r.name,
+        ...abOf(r),
       })),
     deals: deals.filter((d) => d.active).sort((a, b) => a.position - b.position).map(toFunctionDeal).filter((x) => x !== null),
     ...(skip.length ? { skip: [...new Set(skip)] } : {}),
@@ -741,7 +750,8 @@ async function syncFunctionDiscount(
     import("./kits.server").then((m) => m.listKitIds(admin)).catch(() => [] as string[]),
   ]);
   const skip = [...bundles.flatMap((b) => (b.product ? [b.product.id] : [])), ...kitIds].map(numericId);
-  const { config, collectionIds, needed } = buildDiscountConfig(rules, deals, skip);
+  const tests = await import("./ab-tests.server").then((m) => m.listTests(admin)).catch(() => []);
+  const { config, collectionIds, needed } = buildDiscountConfig(rules, deals, skip, tests);
   const value = JSON.stringify(config);
   if (value.length > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(

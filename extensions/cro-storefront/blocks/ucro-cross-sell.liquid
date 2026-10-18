@@ -1,4 +1,4 @@
-{%- capture dk -%}{%- render 'ucs-dk', key: 'cross_sell', pick: block.settings.design -%}{%- endcapture -%}{%- assign dkd = dk | append: '_draft' -%}{%- liquid
+{%- liquid
 assign cfg = shop.metaobjects['$app:cro_settings']['settings']
 assign enabled = true
 if cfg and cfg.cross_sell_enabled.value == false
@@ -8,98 +8,16 @@ assign placement = 'product'
 if template.name == 'cart'
 assign placement = 'cart'
 endif
-assign d = shop.metaobjects['$app:cro_design'][dk].config.value
-if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
-assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
-endif
-assign rec_heading = 'Pairs well with'
-if d
-assign rec_heading = d.rh
-endif
-assign rule = nil
+assign rule_handle = ''
 if enabled
 capture rule_handle
 render 'ucro-match', kind: 'cross_sell', placement: placement, product: product
 endcapture
 assign rule_handle = rule_handle | split: '@@'
 assign rule_handle = rule_handle[1] | strip
-if rule_handle != blank
-assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
 endif
+assign ab_test = nil
+if rule_handle != blank and request.design_mode == false
+assign ab_test = shop.metaobjects['$app:cro_design']['ab_tests'].config.value[rule_handle]
 endif
-if rule and rule.design.value != blank
-capture dk
-render 'ucs-dk', key: 'cross_sell', pick: rule.design.value
-endcapture
-assign dk = dk | strip
-assign dkd = dk | append: '_draft'
-assign d = shop.metaobjects['$app:cro_design'][dk].config.value
-if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value
-assign d = shop.metaobjects['$app:cro_design'][dkd].config.value
-endif
-if d
-assign rec_heading = d.rh
-endif
-endif
-assign shown = 0
-if rule
-for p in rule.offered_products.value
-if product != blank and p.id == product.id
-continue
-endif
-assign in_cart = false
-if placement == 'cart'
-for item in cart.items
-if item.product_id == p.id
-assign in_cart = true
-break
-endif
-endfor
-endif
-unless in_cart
-assign shown = shown | plus: 1
-endunless
-endfor
-endif
-assign mode = ''
-if shown > 0
-assign mode = 'rule'
-elsif enabled and d.fb == 'recommendations' and product != blank
-assign mode = 'recommend'
-elsif enabled and d.fb == 'bought' and product != blank
-assign mode = 'recommend'
-assign pid = product.id | append: ''
-assign bought = shop.metaobjects['$app:cro_design']['bought_together'].config.value.map[pid] | join: ','
-endif
-assign pct = 0
-if rule
-assign pct = rule.discount_percent.value | default: 0
-endif
-assign heading = rec_heading
-assign button_label = d.btn | default: 'Add selected to cart'
-if mode == 'rule'
-assign heading = rule.headline.value | default: rec_heading
-assign button_label = rule.button_label.value | default: button_label
-endif
--%}{%- if mode != blank -%}<ucro-cross-sell
-class="ucro ucro-cross{% if d %}{{ d.cls }}{% else %} ucro-cross--panel{% endif %}"
-style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
-data-radius="{{ d.rad | default: 'theme' }}"
-data-mode="{{ mode }}"
-data-product-id="{{ product.id }}"{% if bought != blank %} data-bought="{{ bought | escape }}"{% endif %}
-data-limit="{{ d.rl | default: 4 }}"
-data-checked="false"
-data-label="{{ button_label | escape }}"
-data-money-format="{{ shop.money_format | escape }}"
-data-error="{{ 'ucro.error' | t | escape }}"
-data-sold-out-text="{{ 'ucro.sold_out' | t | escape }}"
-{{ block.shopify_attributes }}
->{%- if heading != blank -%}<h2 class="ucro__heading {{ d.hc | default: 'ucro__heading--medium' }}">{{ heading | escape }}</h2>{%- endif -%}{%- if mode == 'rule' and rule.subheadline.value != blank -%}<p class="ucro__sub">{{ rule.subheadline.value | escape }}</p>{%- endif -%}<ul class="ucro-cross__list" role="list">{%- if mode == 'rule' -%}{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id -%}{%- continue -%}{%- endif -%}{%- assign in_cart = false -%}{%- if placement == 'cart' -%}{%- for item in cart.items -%}{%- if item.product_id == p.id -%}{%- assign in_cart = true -%}{%- break -%}{%- endif -%}{%- endfor -%}{%- endif -%}{%- unless in_cart -%}{%- render 'ucro-offer-row', p: p, pct: pct, checked: false -%}{%- endunless -%}{%- endfor -%}{%- endif -%}</ul>
-<button type="button" class="ucro-btn ucro-cross__add" disabled>
-<span class="ucro-cross__label">{{ button_label | escape }}</span>
-</button>
-<p class="ucro__error" role="alert" hidden></p>
-</ucro-cross-sell>
-<script src="{{ 'ucro-core.js' | asset_url }}" defer></script>
-<script src="{{ 'ucro-offers.js' | asset_url }}" defer></script>{%- elsif request.design_mode -%}<div class="ucro-note" {{ block.shopify_attributes }}>{%- if enabled == false -%}Cross-sell is switched off in CRO Toolbox.{%- elsif rule -%}Cross-sell: rule “{{ rule.name.value | escape }}” matches this page, but none of its offered products can be shown here:{%- for p in rule.offered_products.value -%}{%- if product != blank and p.id == product.id %} {{ p.title | escape }} (this product){% else %} {{ p.title | escape }} (already in the cart){% endif -%}{%- unless forloop.last -%};{%- endunless -%}{%- else %} its product list is empty or its products aren’t published to the Online Store.{%- endfor %}
-Only you see this note.{%- else -%}{%- assign rule_count = shop.metaobjects['$app:cro_rule'].values.size | default: 0 -%}Cross-sell: no rule matches this page yet ({{ rule_count }} rule{% if rule_count != 1 %}s{% endif %} found; placement here: {{ placement }}). Add or edit a rule in CRO Toolbox, or turn on Shopify recommendations in CRO Toolbox → Cross-sell → Design. Only you see this note.{%- endif -%}</div>{%- endif -%}{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}
+-%}{%- if ab_test -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'A', ab_test: ab_test, scripts: false -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'B', ab_test: ab_test, scripts: true -%}{%- render 'ucro-ab', test: ab_test -%}{%- else -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: '', ab_test: nil, scripts: true -%}{%- endif -%}{% schema %}{"name":"Cross-sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}

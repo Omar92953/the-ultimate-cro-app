@@ -1,6 +1,9 @@
 query CartInput($collectionIds: [ID!]) {
   presentmentCurrencyRate
   cart {
+    ab: attribute(key: "_cro_ab") {
+      value
+    }
     cost {
       subtotalAmount {
         amount

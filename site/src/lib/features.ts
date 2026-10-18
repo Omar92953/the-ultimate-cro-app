@@ -212,6 +212,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["A discount code for the next order with a copy button", "A message, follow us buttons and product suggestions", "Works on every Shopify plan"],
     related: ["post_purchase", "reviews"],
   },
+  ab_tests: {
+    who: "For stores that want proof before they change an offer.",
+    points: ["Show half of your shoppers another version of an upsell or cross sell", "Change the words, the discount or the style in version B", "Each shopper keeps one version, so orders can be told apart", "Real shoppers and real orders: we say which is ahead only when there is enough data", "One click to use the winner"],
+    related: ["upsell", "cross_sell", "discounts"],
+  },
   post_purchase: {
     who: "For one more sale right after payment.",
     points: ["One product at a discount, added to the paid order in one click", "No new payment details", "Your product, discount and minimum order amount"],

@@ -52,6 +52,14 @@ export async function buildFeatures({ block, shopWith, mo }) {
     },
   ];
 
+  // A/B test (Pro): the same upsell, version A as saved and version B with other words and bigger discounts. In a store each
+  // shopper keeps one version; here each demo page is pinned to one so both can be seen.
+  const abTest = { "rule-upsell": { id: "demo", b: { headline: "Stock up and save more", subheadline: "Version B: bigger discounts", button_label: "", discount_percent: null, discount_label: "", design: 0, tiers: [{ qty: 1, pct: 0 }, { qty: 2, pct: 20, badge: "Best deal" }, { qty: 3, pct: 30 }] } } };
+  F.ab_tests = await Promise.all(["A", "B"].map(async (g) => ({
+    title: `Version ${g}`, layout: "product", product: "glow-serum", place: "above",
+    html: `<script>try{localStorage.setItem("ucs-ab-demo","${g}")}catch(e){}</script>` + await block("ucro-upsell", { product: P["glow-serum"], page_type: "product", shop: shopWith({ designs: { upsell: upsellOf("green"), ab_tests: abTest }, meta: { "$app:cro_rule": [upsellRule] } }) }),
+  })));
+
   const crossRule = mo("rule-cross", {
     kind: "cross_sell", active: true, priority: 1, trigger_type: "all", trigger_products: [], trigger_collections: [],
     offered_products: [P["daily-cream"], P["oat-soap"], P["sea-shampoo"]], placements: ["product", "drawer"], headline: "Pairs well with",

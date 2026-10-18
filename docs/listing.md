@@ -48,6 +48,7 @@ approval (section 4) before review; if it is not approved yet, swap feature 4 fo
 Free (50 orders a month, 3 offers on at once); Starter $5.99 a month (500 orders); Growth $14.99 a
 month (1,000 orders); Pro $24.99 a month (unlimited); yearly $59 / $149 / $249; 14-day trial on
 paid plans. Prices go only in the pricing section, never in the text above or in screenshots.
+What each plan adds (keep in step with `highlights` in `plans.ts`; list only what works): Pro includes A/B tests for upsells and cross sells, your feature requests built first and priority support.
 
 **Other fields**
 - Requires the Online Store sales channel and an Online Store 2.0 theme (app blocks). Tick "merchant must have an online store".

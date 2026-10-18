@@ -23,6 +23,9 @@
  *   ]
  * Rules arrive sorted by priority; for upsells the first matching rule wins, like on the storefront.
  *
+ *   Any rule or deal may carry "ab": { "id": "t1", "b": { "pct": 20, "tiers": [...], "label": "…" } }: an A/B test. The shopper's
+ *   group is the cart attribute _cro_ab ("t1:B,t2:A"); group B gets the rule with "b" laid over it.
+ *
  *   "skip": ["123", …]   // product ids of bundles (mix & match bundle products, bundle products/kits)
  *
  * Each cart line gets at most one candidate (the highest percentage it qualifies for), so our
@@ -46,11 +49,20 @@ export function cartLinesDiscountsGenerateRun(input) {
   if (!input.discount.discountClasses.includes("PRODUCT")) return EMPTY;
 
   /** @type {any} */
-  const config = input.discount.metafield?.jsonValue;
-  if (!config || typeof config !== "object") return EMPTY;
+  const source = input.discount.metafield?.jsonValue;
+  if (!source || typeof source !== "object") return EMPTY;
+
+  // A/B tests (docs: A/B tests for offers): shoppers in group B get B's discount, everyone else the rule as saved.
+  const groups = parseGroups(input.cart.ab?.value);
+  const config = {
+    ...source,
+    upsell: (source.upsell || []).map((/** @type {any} */ r) => abEffective(r, groups)),
+    crossSell: (source.crossSell || []).map((/** @type {any} */ r) => abEffective(r, groups)),
+    deals: (source.deals || []).map((/** @type {any} */ r) => abEffective(r, groups)),
+  };
 
   /** @type {Set<string>} */
-  const skip = new Set(Array.isArray(config.skip) ? config.skip.map(String) : []);
+  const skip = new Set(Array.isArray(source.skip) ? source.skip.map(String) : []);
   const lines = [];
   for (const line of input.cart.lines) {
     const merchandise = /** @type {any} */ (line.merchandise);
@@ -158,6 +170,33 @@ export function cartLinesDiscountsGenerateRun(input) {
       },
     ],
   };
+}
+
+/**
+ * "t1:B,t2:A" → { t1: "B", t2: "A" }. Anything else is ignored (everyone is in group A then).
+ * @param {unknown} value
+ * @returns {Record<string, string>}
+ */
+export function parseGroups(value) {
+  /** @type {Record<string, string>} */
+  const out = {};
+  for (const part of String(value || "").split(",")) {
+    const [id, g] = part.split(":");
+    if (id && (g === "A" || g === "B")) out[id.trim()] = g;
+  }
+  return out;
+}
+
+/**
+ * The rule as this shopper's group sees it: B's overrides laid over the rule when it has a test and the
+ * shopper is in group B. Only the discount fields (pct, tiers, label) can differ.
+ * @param {any} rule
+ * @param {Record<string, string>} groups
+ */
+export function abEffective(rule, groups) {
+  if (!rule || !rule.ab || groups[rule.ab.id] !== "B" || !rule.ab.b) return rule;
+  const { pct, tiers, label } = rule.ab.b;
+  return { ...rule, ...(pct !== undefined ? { pct } : {}), ...(tiers !== undefined ? { tiers } : {}), ...(label !== undefined ? { label } : {}) };
 }
 
 /**

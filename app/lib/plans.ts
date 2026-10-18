@@ -111,7 +111,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 249,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
-    highlights: ["Everything in Growth", "Your requests built first", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Your requests built first", "Priority support"],
   },
 };
 
@@ -161,6 +161,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   order_limits: "free",
   thank_you: "free",
   post_purchase: "free",
+  ab_tests: "pro",
 };
 
 /** Things inside a page that need a plan (the page itself stays open). */
