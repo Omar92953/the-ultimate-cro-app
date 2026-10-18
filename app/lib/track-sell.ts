@@ -32,19 +32,23 @@ export type AfterDelivery = {
   friend: { on: boolean; percent: number; minimum: number; days: number };
 };
 
-export type TrackSell = { nextOrder: NextOrder; buyAgain: BuyAgain; afterDelivery: AfterDelivery };
+/** When a shipment is late (past its expected date, or the carrier reports a problem) the page apologises and can give a real code. */
+export type Delay = { on: boolean; /** What the code is: none, a percentage off the next order, or free shipping. */ gift: "none" | "percent" | "shipping"; percent: number; days: number };
 
-export const DEFAULT_TRACK_SELL: TrackSell = { nextOrder: { on: false, mode: "perOrder", percent: 10, minimum: 0, days: 30, sharedCode: "THANKS10" }, buyAgain: { on: false, only: "all", list: "" }, afterDelivery: { on: false, review: "product", reviewUrl: "", returnsLink: true, friend: { on: false, percent: 10, minimum: 0, days: 30 } } };
+export type TrackSell = { nextOrder: NextOrder; buyAgain: BuyAgain; afterDelivery: AfterDelivery; delay: Delay };
+
+export const DEFAULT_TRACK_SELL: TrackSell = { nextOrder: { on: false, mode: "perOrder", percent: 10, minimum: 0, days: 30, sharedCode: "THANKS10" }, buyAgain: { on: false, only: "all", list: "" }, afterDelivery: { on: false, review: "product", reviewUrl: "", returnsLink: true, friend: { on: false, percent: 10, minimum: 0, days: 30 } }, delay: { on: false, gift: "none", percent: 10, days: 30 } };
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 
 export function withTrackSellDefaults(raw: unknown): TrackSell {
-  const r = obj(raw), n = obj(r.nextOrder), b = obj(r.buyAgain), a = obj(r.afterDelivery), fr = obj(a.friend);
+  const r = obj(raw), n = obj(r.nextOrder), b = obj(r.buyAgain), a = obj(r.afterDelivery), fr = obj(a.friend), dl = obj(r.delay);
   const d = DEFAULT_TRACK_SELL.nextOrder;
   const code = str(n.sharedCode, d.sharedCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, "");
   const url = str(a.reviewUrl, "", 300).trim();
   const httpsUrl = /^https:\/\/\S+$/.test(url);
   return {
+    delay: { on: dl.on === true, gift: dl.gift === "percent" || dl.gift === "shipping" ? dl.gift : "none", percent: num(dl.percent, 1, 90, 10), days: num(dl.days, 1, 365, 30) },
     afterDelivery: {
       on: a.on === true,
       review: a.review === "url" && httpsUrl ? "url" : "product",
@@ -73,4 +77,11 @@ export function buyAgainFor(lines: BuyAgainLine[], b: BuyAgain): { items: { vari
   const kept = lines.filter(allowed);
   const name = (l: BuyAgainLine) => (l.variant ? `${l.title} (${l.variant})` : l.title);
   return { items: kept.filter((l) => l.available && l.variantId > 0).map((l) => ({ variantId: l.variantId, quantity: l.quantity, title: name(l) })), soldOut: kept.filter((l) => !l.available).map(name) };
+}
+
+/** Is this shipment late? Past its expected date by more than a day, or the carrier says there is a problem. Delivered is never late. */
+export function isLate(s: { delivered: string | null; estimated: string | null; status: string }, now = Date.now()): boolean {
+  if (s.delivered || s.status === "delivered") return false;
+  if (s.status === "problem") return true;
+  return !!s.estimated && Date.parse(s.estimated) + 86_400_000 < now;
 }

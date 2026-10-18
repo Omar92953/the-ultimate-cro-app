@@ -93,6 +93,7 @@ export default function OrderPageDesigner() {
   }, [sellFetcher.state, sellFetcher.data, shopify]);
   const after = (patch: Partial<TrackSell["afterDelivery"]>) => setSell((x) => ({ ...x, afterDelivery: { ...x.afterDelivery, ...patch } }));
   const friend = (patch: Partial<TrackSell["afterDelivery"]["friend"]>) => setSell((x) => ({ ...x, afterDelivery: { ...x.afterDelivery, friend: { ...x.afterDelivery.friend, ...patch } } }));
+  const delay = (patch: Partial<TrackSell["delay"]>) => setSell((x) => ({ ...x, delay: { ...x.delay, ...patch } }));
   const again = (patch: Partial<TrackSell["buyAgain"]>) => setSell((x) => ({ ...x, buyAgain: { ...x.buyAgain, ...patch } }));
   const next = (patch: Partial<TrackSell["nextOrder"]>) => setSell((x) => ({ ...x, nextOrder: { ...x.nextOrder, ...patch } }));
   const row = (k: "like" | "complete", patch: Partial<C["recs"]["like"]>) => setCfg((c) => ({ ...c, recs: { ...c.recs, [k]: { ...c.recs[k], ...patch } } }));
@@ -192,6 +193,16 @@ export default function OrderPageDesigner() {
                           </s-stack>
                         ) : null}
                       </s-stack>
+                      <s-stack gap="base">
+                        <Switch label="Late orders: say sorry" details="When a shipment is more than a day past its expected date, or the carrier reports a problem, the page shows your apology (edit the words in Late orders) and can give a real code." checked={sell.delay.on} onValue={(v) => delay({ on: v })} />
+                        {sell.delay.on ? (
+                          <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="base">
+                            <Select label="Give" value={sell.delay.gift} onValue={(v) => delay({ gift: v === "percent" ? "percent" : v === "shipping" ? "shipping" : "none" })} options={[{ value: "none", label: "Just the apology" }, { value: "percent", label: "A discount on the next order" }, { value: "shipping", label: "Free shipping on the next order" }]} />
+                            {sell.delay.gift === "percent" ? <NumberField label="Discount" suffix="%" min={1} max={90} step={1} value={sell.delay.percent} onValue={(v) => delay({ percent: v })} /> : <span />}
+                            {sell.delay.gift !== "none" ? <NumberField label="Valid for" suffix="days" min={1} max={365} step={1} value={sell.delay.days} onValue={(v) => delay({ days: v })} /> : <span />}
+                          </s-grid>
+                        ) : null}
+                      </s-stack>
                       <s-stack direction="inline">
                         <Button loading={sellFetcher.state !== "idle"} disabled={JSON.stringify(withTrackSellDefaults(sell)) === JSON.stringify(data.sell)} onClick={() => sellFetcher.submit({ sell: JSON.stringify(sell) }, { method: "post", action: "/app/track-sell" })}>
                           Save
@@ -278,7 +289,7 @@ export default function OrderPageDesigner() {
               tools={<Segmented label="Show" value={step} options={[{ value: "form", label: "Form" }, { value: "result", label: isTrack ? "Order found" : "Choosing items" }]} onChange={setStep} />}
             >
               <ThemeLook style={data.style}>
-                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} showAfter={sell.afterDelivery.on} />
+                <OrderPagePreview config={cfg} step={step} showNext={sell.nextOrder.on} showBuyAgain={sell.buyAgain.on} showAfter={sell.afterDelivery.on} showLate={sell.delay.on} />
               </ThemeLook>
             </PreviewFrame>
           </div>
