@@ -1338,6 +1338,7 @@ export const BLOCKS = {
   boosters: "ucs-boosters",
   image_carousel: "ucs-image-carousel",
   addons: "ucs-addons",
+  header: "ucs-header",
   stock: "ucs-stock",
   delivery: "ucs-delivery",
   size_guide: "ucs-size-guide",

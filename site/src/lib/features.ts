@@ -182,6 +182,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["A row of buttons to your collections", "The current one highlighted", "Scroll or wrap, outline or filled"],
     related: ["quick_add", "hero"],
   },
+  header: {
+    who: "For a header that looks designed without editing theme code.",
+    points: ["Glass, rounded, classic, minimal and bold looks", "Your menu with dropdowns or mega menus", "Search, cart count and an optional button", "Sticky, and over the hero on the home page if you want"],
+    related: ["hero", "announcements", "collection_pills"],
+  },
   track: {
     who: "For fewer where is my order messages.",
     points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify", "The page sells too (Growth): recommendations, a real next order discount code, a buy again button, a how was your order message after delivery, an apology (and optional code) for late orders", "Offers above and below the tracking with real codes that expire (Pro)", "Orders older than 60 days once Shopify approves access to all orders"],
