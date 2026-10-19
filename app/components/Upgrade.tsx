@@ -1,7 +1,7 @@
 /**
  * Plan pieces used across pages: the shop's plan (from the app frame's loader), the upgrade card
  * shown instead of a page the plan doesn't include, and the "Upgrade" link for limit messages.
- * Upgrading always happens on Shopify's plan selection page (it must open with target="_top").
+ * Upgrading always starts on the app's own Plans page (/app/plans), never Shopify's pricing_plans page.
  */
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { Button } from "./fields";
@@ -16,7 +16,7 @@ import { GUARANTEE, PLANS, price, type PlanKey } from "../lib/plans";
 import { canTry, type PageLock } from "../lib/plan-gate";
 import type { loader as appLoader } from "../routes/app";
 
-/** The shop's plan and Shopify's plan page URL (set by routes/app.tsx for every page). */
+/** The shop's plan and the Plans page as a full admin URL (set by routes/app.tsx for every page). */
 export function usePlan(): { plan: PlanKey; planUrl: string; trial: FeatureKey | null } {
   const data = useRouteLoaderData<typeof appLoader>("routes/app");
   return { plan: data?.plan ?? "free", planUrl: data?.planUrl ?? "", trial: data?.trial ?? null };
@@ -30,9 +30,8 @@ export function planPriceText(key: PlanKey) {
 }
 
 export function UpgradeButton({ to, children, variant = "primary" }: { to?: PlanKey; children?: string; variant?: "primary" | "secondary" | "tertiary" }) {
-  const { planUrl } = usePlan();
   return (
-    <Button href={planUrl} target="_top" variant={variant}>
+    <Button href="/app/plans" variant={variant}>
       {children ?? (to ? `Upgrade to ${PLANS[to].name}` : "Change plan")}
     </Button>
   );

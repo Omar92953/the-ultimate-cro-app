@@ -262,10 +262,14 @@ export function ordersOver(p: PlanKey, orders: number | null): boolean {
   return n !== null && orders !== null && orders > n;
 }
 
-/** Shopify's hosted plan selection page (open it with target="_top"). */
+/**
+ * The app's own Plans page (/app/plans) as a full admin URL, for links opened outside the app frame
+ * (target="_top", AI assistant replies). Merchants choose a plan there, never on Shopify's hosted
+ * pricing_plans page. Inside the app, link to "/app/plans".
+ */
 export function planPageUrl(shop: string, appHandle: string) {
   const store = shop.replace(/\.myshopify\.com$/, "");
-  return `https://admin.shopify.com/store/${store}/charges/${appHandle}/pricing_plans`;
+  return `https://admin.shopify.com/store/${store}/apps/${appHandle}/app/plans`;
 }
 
 /**

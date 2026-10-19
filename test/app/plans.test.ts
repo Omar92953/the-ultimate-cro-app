@@ -3,6 +3,8 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { AREAS, FEATURES, GROUPS, OFFER_GROUPS, areaForPath, dealFeature, featuresForPath, featuresIn, offerGroupOf, type FeatureKey } from "../../app/lib/catalog";
 import { OFFER_TYPES, OFFER_TYPE_KEYS } from "../../app/lib/offer-types";
 import { DEAL_KINDS } from "../../app/lib/deals";
@@ -185,8 +187,13 @@ test("subscription names and handles map to plans", () => {
   assert.equal(planFromSubscription(null), null);
 });
 
-test("plan selection page URL", () => {
-  assert.equal(planPageUrl("my-shop.myshopify.com", "cro-toolbox"), "https://admin.shopify.com/store/my-shop/charges/cro-toolbox/pricing_plans");
+test("plan links open the app's Plans page, never Shopify's pricing_plans page", () => {
+  assert.equal(planPageUrl("my-shop.myshopify.com", "cro-toolbox"), "https://admin.shopify.com/store/my-shop/apps/cro-toolbox/app/plans");
+  const files = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : /\.(tsx?|liquid|astro)$/.test(e.name) ? [join(dir, e.name)] : []));
+  for (const f of ["app", "extensions", "theme", "site/src"].filter((d) => existsSync(d)).flatMap(files)) {
+    if (f.includes("types")) continue;
+    assert.doesNotMatch(readFileSync(f, "utf8").replace(/^\s*(\/\/|\*|\/\*\*).*$/gm, ""), /pricing_plans/, f);
+  }
 });
 
 test("every feature is listed on its hub", () => {
