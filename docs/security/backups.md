@@ -7,6 +7,7 @@ copies it every night, encrypts the copy with AES-256 and keeps the last 14 nigh
   repository `Omar92953/cro-toolbox-backups` (this app repository is public, so backups never go here).
 - Secrets in that private repository: `DATABASE_URL` (the same Supabase Session pooler URL Render uses) and
   `BACKUP_PASSPHRASE` (long random password; keep it in a password manager, it's the only way to open a backup).
+- Set the secrets without showing them: `bash scripts/set-backup-secrets.sh` (copy DIRECT_URL from Render first, or paste it when asked).
 - Check it works: private repo → Actions → "Nightly database backup" → Run workflow, then see the green run and
   the `.dump.gpg` file under Artifacts.
 
