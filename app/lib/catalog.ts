@@ -17,7 +17,7 @@ export type AreaKey = "offers" | "tracking" | "library" | "cart";
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, bundles, cross sells and discounts." },
   { key: "library", title: "Section library", href: "/app/library", intro: "Ready-made sections for your store: reviews, banners, bars, timers, product-page tools and more. Pick one, preview it, add it to your theme." },
-  { key: "tracking", title: "Tracking & Returns", href: "/app/tracking-returns", intro: "Let shoppers track their orders and ask for returns on your store, and handle the returns here: approve, send a label, refund." },
+  { key: "tracking", title: "Tracking & Returns", href: "/app/tracking-returns", intro: "Order tracking and returns pages that also sell: offers, a next order discount and buy again on the Track page, store credit and exchanges instead of refunds on Returns. Handle every return here: approve, send a label, refund." },
   { key: "cart", title: "Cart & Checkout", href: "/app/cart-checkout", intro: "The cart first (cart offers, free shipping bar, gift note), then inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
 ];
 export const isArea = (v: unknown): v is AreaKey => AREAS.some((a) => a.key === v);
