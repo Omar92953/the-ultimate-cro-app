@@ -1,0 +1,36 @@
+# Nightly encrypted database backup for CRO Toolbox.
+# Lives in the PRIVATE repository Omar92953/cro-toolbox-backups as .github/workflows/backup.yml
+# (never in the public app repository: artifacts of public repositories can be downloaded by anyone).
+# Secrets in that repository: DATABASE_URL (Supabase Session pooler URL, same as Render) and BACKUP_PASSPHRASE
+# (a long random password, also kept in Omar's password manager; without it the backups can't be opened).
+# Restore: docs/security/backups.md in the app repository.
+name: Nightly database backup
+on:
+  schedule:
+    - cron: "17 2 * * *" # every night at 02:17 UTC
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Dump and encrypt
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          name="cro-toolbox-$(date -u +%Y-%m-%d).dump.gpg"
+          docker run --rm -e DATABASE_URL postgres:17 sh -c 'pg_dump --format=custom --no-owner --no-privileges "$DATABASE_URL"' \
+            | gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" -o "$name"
+          test -s "$name"
+          echo "NAME=$name" >> "$GITHUB_ENV"
+          ls -lh "$name"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: ${{ env.NAME }}
+          retention-days: 14
+          if-no-files-found: error

@@ -3,11 +3,11 @@ import Doc from "../layouts/Doc.astro";
 import ContactLine from "../components/ContactLine.astro";
 import { PAGES } from "../lib/pages";
 import { OPERATOR } from "../lib/site";
-import { PLANS, trialDays, GUARANTEE } from "../lib/app";
+import { PLANS, trialDays, GUARANTEE, RETENTION_DAYS as R } from "../lib/app";
 const page = PAGES.terms;
 ---
 
-<Doc page={page} heading="Terms of service" intro="The terms for using the CRO Toolbox Shopify app and this website." updated="October 15, 2026">
+<Doc page={page} heading="Terms of service" intro="The terms for using the CRO Toolbox Shopify app and this website." updated="October 19, 2026">
   <p>
     These terms are an agreement between you (the merchant installing the app) and {OPERATOR} ("we"), who runs CRO Toolbox. By installing or using
     the app you accept them. Shopify's own terms also apply to your use of Shopify.
@@ -36,11 +36,21 @@ const page = PAGES.terms;
     <li>Don't misuse the app: no attempts to break, overload, copy or resell it.</li>
   </ul>
 
-  <h2>4. Your data</h2>
+  <h2>4. Your data and data processing</h2>
   <p>
     Your store's data stays yours. We use it only to run the app, as described in our <a href="/privacy/">privacy policy</a>. Most app settings are
     saved in your own store.
   </p>
+  <p>For personal data of your customers and visitors that the app processes for you, you are the controller and we are your processor. We:</p>
+  <ul>
+    <li>process it only to provide the app's features to your store, and never sell it or use it for advertising;</li>
+    <li>keep only the minimum the features need, delete it after the periods in our privacy policy, and delete all of it when you uninstall;</li>
+    <li>use only the service providers listed in our privacy policy, under the same obligations;</li>
+    <li>protect it with encryption in transit and at rest, encrypted backups and access limited to the people who run the app;</li>
+    <li>handle your customers' access and deletion requests that Shopify sends us, and help you answer them;</li>
+    <li>respect your customers' consent choices made in your store's cookie banner;</li>
+    <li>tell Shopify and you within 72 hours if a security incident affects personal data we hold for your store.</li>
+  </ul>
 
   <h2>5. Availability</h2>
   <p>

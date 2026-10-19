@@ -1,14 +1,21 @@
 {%- comment -%}
   A/B test (Pro): keeps the shopper's own version of an offer. Runs right after both versions are on the page, so
-  the other one is gone before the offer scripts start. The shopper keeps their version (browser storage), the
-  cart notes it (_cro_ab, read by the discount engine and by Results), and a visit is counted once a day.
-  Without JavaScript the page keeps version A.
+  the other one is gone before the offer scripts start. Without JavaScript the page keeps version A.
+  Consent (Shopify Customer Privacy API): a version is remembered (browser storage), noted on the cart (_cro_ab, read
+  by the discount engine and by Results) and counted once a day only when analytics is allowed. Until then the
+  shopper sees version A and nothing is stored or sent; once allowed, the random version applies from the next page.
+  Withdrawn consent erases the stored version.
 {%- endcomment -%}
-<script>(function(){var id={{ test.id | json }},g;try{g=localStorage.getItem('ucs-ab-'+id);if(g!=='A'&&g!=='B'){g=Math.random()<0.5?'A':'B';localStorage.setItem('ucs-ab-'+id,g)}}catch(e){g='A'}
-var els=document.querySelectorAll('[data-ab="'+id+'"]');for(var i=0;els.length>i;i++){if(els[i].getAttribute('data-ab-g')!==g){els[i].parentNode.removeChild(els[i])}else{els[i].hidden=false}}
+<script>(function(){var id={{ test.id | json }},key='ucs-ab-'+id,g=null;try{g=localStorage.getItem(key)}catch(e){}if(g!=='A'&&g!=='B')g=null;
+var shown=g||'A',els=document.querySelectorAll('[data-ab="'+id+'"]');for(var i=0;els.length>i;i++){if(els[i].getAttribute('data-ab-g')!==shown){els[i].parentNode.removeChild(els[i])}else{els[i].hidden=false}}
 if(window.__ucsHoldout)return;
 var r=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/';
 function parse(v){var o={};String(v||'').split(',').forEach(function(p){var a=p.split(':');if(a[0]&&(a[1]==='A'||a[1]==='B'))o[a[0]]=a[1]});return o}
+function track(){if(!g){try{localStorage.setItem(key,Math.random()<0.5?'A':'B')}catch(e){}return}
 fetch(r+'cart.js').then(function(x){return x.json()}).then(function(c){var o=parse((c.attributes||{})._cro_ab);if(o[id]===g)return;o[id]=g;var s=Object.keys(o).map(function(k){return k+':'+o[k]}).join(',');return fetch(r+'cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({attributes:{_cro_ab:s}})})}).catch(function(){});
-try{var k='ucs-abv-'+id+'-'+new Date().toISOString().slice(0,10);if(!localStorage.getItem(k)){localStorage.setItem(k,'1');fetch(r+'apps/ucro/ab',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({t:id,g:g})}).catch(function(){})}}catch(e){}
+try{var k='ucs-abv-'+id+'-'+new Date().toISOString().slice(0,10);if(!localStorage.getItem(k)){localStorage.setItem(k,'1');fetch(r+'apps/ucro/ab',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({t:id,g:g})}).catch(function(){})}}catch(e){}}
+function forget(){try{for(var j=localStorage.length-1;j>=0;j--){var n=localStorage.key(j);if(n&&(n===key||n.indexOf('ucs-abv-'+id+'-')===0))localStorage.removeItem(n)}}catch(e){}}
+function decide(){var p=window.Shopify&&Shopify.customerPrivacy;if(!p||!p.analyticsProcessingAllowed)return;if(p.analyticsProcessingAllowed())track();else forget()}
+if(window.Shopify&&Shopify.customerPrivacy){decide()}else if(window.Shopify&&Shopify.loadFeatures){Shopify.loadFeatures([{name:'consent-tracking-api',version:'0.1'}],function(err){if(!err)decide()})}
+document.addEventListener('visitorConsentCollected',decide);
 })();</script>

@@ -11,8 +11,10 @@ import { planContext } from "./lib/rules.server";
 import { requirePage } from "./lib/rules";
 import { warnIfApiKeyDiffers } from "./lib/api-key-check.server";
 import { timed } from "./lib/timing.server";
+import { startRetention } from "./lib/retention.server";
 
 warnIfApiKeyDiffers();
+startRetention();
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,

@@ -6,10 +6,11 @@
 import type { MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import styles from "./_index/styles.module.css";
+import { RETENTION_DAYS as R } from "../lib/retention";
 
 export const meta: MetaFunction = () => [{ title: "Privacy policy | CRO Toolbox" }];
 
-export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 11, 2026" });
+export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 19, 2026" });
 
 const SECTIONS: [string, string[]][] = [
   [
@@ -48,12 +49,16 @@ const SECTIONS: [string, string[]][] = [
     [
       "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock requests, return requests and reviewer emails and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
       "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests, return requests and reviewer emails), which we do.",
+      `While the app is installed, old records are deleted automatically every day: back-in-stock requests ${R.stockAlertSent} days after the shopper was told (or after ${R.stockAlertWaiting / 365} year if never sent), return requests and reviewer emails after ${R.returnRequest / 365} years, live tracking answers ${R.trackingCache} days after the last check, and Track page discount codes ${R.trackCode} days after they end.`,
+      "The database is encrypted at rest and backed up every night; each backup is encrypted and kept for 14 days.",
     ],
   ],
   [
     "Security",
     [
       "All connections use HTTPS. Requests from Shopify are verified with Shopify's signatures, and each store's data is only ever accessed with that store's own access token.",
+      "On your storefront, A/B test versions are remembered and counted only after the shopper allows analytics in your store's cookie banner (Shopify's Customer Privacy API).",
+      "If a security incident ever affects personal data, we tell Shopify and the affected merchants within 72 hours, as described in our Terms.",
     ],
   ],
 ];

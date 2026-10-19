@@ -2,7 +2,7 @@
 
 The backlog for all accounts (see `docs/TEAM.md`). What's being worked on right now is in the open
 pull requests (`gh pr list`). Update this file in the PR that finishes or adds an item.
-Updated 2026-10-18.
+Updated 2026-10-19.
 
 ## App
 
@@ -96,7 +96,12 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 - [x] Omar, 2026-10-19: post-purchase access (5.8.1) and read_all_orders both approved at once (Partner Dashboard →
       API access requests). read_all_orders added to scopes (cro-toolbox-39, #200); accepted on Testing 3, Tracking &
       Returns setup "Orders older than 60 days" shows Done. App Pricing handles checked (see "Plans page only").
-- [ ] Omar: protected customer data form is still "Draft": submit it with the App Store listing.
+- [x] Protected customer data form: 16 of 16 answered honestly (2026-10-19), checklist shows it complete. Made true by
+      #212 (cro-toolbox-41): A/B tests wait for analytics consent, retention periods with daily cleanup
+      (app/lib/retention.ts), Terms data processing section, docs/security/incident-response.md, and free nightly
+      encrypted backups in the private repo Omar92953/cro-toolbox-backups (docs/security/backups.md; first run OK).
+- [ ] App Store review checklist left: listing (feature image and 6 screenshots wait for final demos, screencast),
+      automated check (run last), capabilities, AI self review "Mark as done", then Submit.
 
 ## App Store listing images (Omar, 2026-10-19)
 
@@ -106,6 +111,18 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       Omar decides when the demos are final.
 - [ ] After that: re-capture the widgets, redo the feature image, and design all 6 listing screenshots (1600x900) in
       the same style, then Omar uploads them. Don't upload the current feature image before then.
+
+## Header back, 2026-10-19 (#208, cro-toolbox-40)
+
+- [x] Header restored in the Section library (Sections group, Starter plan), design page `/app/designs/header`,
+      theme block `ucs-header` in the Header area. Own block by Omar's choice: **28 of 30 blocks** now, so 2 slots
+      left for the bigger section library (new sections should share blocks or embeds). Footer and Contact stay removed.
+      No new scope (menu handle typed in the app, read in Liquid). Website page `/features/header` and demo are back.
+- Note for all sessions: a970482 (#209) committed another session's uncommitted edits from the shared folder and broke
+  main until #208. Use `git worktree add` for parallel work in one clone; never `git commit -a` there.
+- [x] Verified on Testing 3 (2026-10-19): Header card in Section library → Sections ("Needs setup" until saved), design page
+      and live preview work, Save, "Add to header" put the block in the theme's Header area; the storefront shows the app's
+      header (desktop pill menu, phone burger) and the theme's header is hidden. Not tested: mega menu with a nested menu, overlay settings.
 
 ## Plans page only, 2026-10-19 (lead)
 
