@@ -1,8 +1,9 @@
 /**
  * Which plan a shop is on, and keeping the store within it. Plans, prices and limits: plans.ts.
  *
- * Billing is Shopify App Pricing: plans are created in the Partner Dashboard and Shopify hosts the
- * plan selection page (plans.ts → planPageUrl). The app NEVER creates charges (no
+ * Billing is Shopify App Pricing: plans are created in the Partner Dashboard. Merchants choose on the
+ * app's Plans page (/app/plans), whose buttons open Shopify's approval page for one plan
+ * (plans.ts → planApproveUrl), never Shopify's pricing_plans page. The app NEVER creates charges (no
  * appSubscriptionCreate, no billing.request) — it only reads the active subscription:
  *  1. Partner API `activeSubscription` (Shopify's recommended check for App Pricing). Used when
  *     SHOPIFY_PARTNER_API_TOKEN, SHOPIFY_PARTNER_ORG_ID and SHOPIFY_APP_GID are set on the server.
