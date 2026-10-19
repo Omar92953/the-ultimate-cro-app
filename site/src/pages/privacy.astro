@@ -1,4 +1,5 @@
 ---
+import { RETENTION_DAYS as R } from "../lib/app";
 import Doc from "../layouts/Doc.astro";
 import ContactLine from "../components/ContactLine.astro";
 import { PAGES } from "../lib/pages";
@@ -6,7 +7,7 @@ import { OPERATOR } from "../lib/site";
 const page = PAGES.privacy;
 ---
 
-<Doc page={page} heading="Privacy policy" intro="What the CRO Toolbox Shopify app and this website collect, why, where it's kept and how it's deleted." updated="October 15, 2026">
+<Doc page={page} heading="Privacy policy" intro="What the CRO Toolbox Shopify app and this website collect, why, where it's kept and how it's deleted." updated="October 19, 2026">
   <p>
     This policy covers the CRO Toolbox app for Shopify ("the app") and this website. CRO Toolbox is run by {OPERATOR} ("we"). Questions: contact us
     through <ContactLine />.
@@ -90,7 +91,11 @@ const page = PAGES.privacy;
   <h2>Security</h2>
   <p>
     All connections use HTTPS. Requests from Shopify are verified with Shopify's signatures, and each store's data is only accessed with that store's
-    own access token.
+    own access token. The database is encrypted at rest and backed up every night; each backup is encrypted and kept for 14 days. Only the people
+    who run the app can reach the data.
+  </p>
+  <p>
+    If a security incident ever affects personal data, we tell Shopify and the affected merchants within 72 hours.
   </p>
 
   <h2>Service providers</h2>
@@ -98,6 +103,7 @@ const page = PAGES.privacy;
     <li><strong>Shopify</strong>: the platform the app runs on, and billing for paid plans.</li>
     <li><strong>Render</strong>: hosts the app's server (United States).</li>
     <li><strong>Supabase</strong>: hosts the app's database (United States, East).</li>
+    <li><strong>GitHub</strong>: stores the encrypted nightly database backups in a private repository.</li>
     <li><strong>17TRACK</strong>: tracking data provider, used only when a store turns on live tracking. It receives the tracking number of a shipment and returns its delivery events. It receives no names, emails or addresses.</li>
   </ul>
 
@@ -111,6 +117,11 @@ const page = PAGES.privacy;
       <strong>Shopper requests:</strong> when a shopper asks a store to delete their data, Shopify tells us and we delete that shopper's back in stock
       requests, return requests, reviewer emails and sales pop up entries.
     </li>
+    <li>
+      <strong>Automatic deletion:</strong> while the app is installed, old records are deleted every day: back in stock requests {R.stockAlertSent} days
+      after the shopper was told (or after {R.stockAlertWaiting / 365} year if never sent), return requests and reviewer emails after {R.returnRequest / 365}
+      years, live tracking answers {R.trackingCache} days after the last check, and Track page discount codes {R.trackCode} days after they end.
+    </li>
     <li>Merchants can also delete reviews, return requests and other content in the app at any time.</li>
   </ul>
 
@@ -118,6 +129,10 @@ const page = PAGES.privacy;
   <p>
     If you shopped at a store that uses CRO Toolbox, the store is responsible for your data. Contact the store first; we help stores answer data
     requests through Shopify's privacy tools.
+  </p>
+  <p>
+    The app follows the choice you make in a store's cookie banner (Shopify's Customer Privacy API): A/B test versions are remembered in your
+    browser and counted only after you allow analytics. Until then you see the store's standard version and nothing is stored or sent.
   </p>
 
   <h2>This website</h2>
