@@ -96,6 +96,18 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 - [ ] Omar: Partner Dashboard: post-purchase access (5.8.1), App Pricing plans (handles free, starter, growth, pro),
       read_all_orders request. Decide: ship the first version without the after purchase offer if access is late?
 
+## Plans page only, 2026-10-19 (lead)
+
+- [x] Every in-app plan button (Upgrade to X, Change plan, See plans and upgrade, limit messages) opens
+      `/app/plans`; the AI assistant pages and MCP replies link to the Plans page inside the admin (#198).
+      Test: no file in app/, extensions/, theme/, site/src links to `pricing_plans`.
+- [x] Testing 3: Settings → Change plan opens our Plans page. Approval pages open for all 4 handles (free,
+      starter, growth, pro); prices match plans.ts: $5.99/$59, $14.99/$149, $24.99/$249 a year. Nothing approved.
+- Shopify controls (cannot change): its hosted pricing_plans page still exists and Shopify may link to it from
+  its own screens (App Store listing, Settings → Apps). The app never sends anyone there. Welcome link per plan
+  (Partner Dashboard → App Pricing → plan → Welcome link) can be `/app/plans` or `/app`; `?plan_handle` refreshes
+  the plan either way.
+
 ## Verified on Testing 3, 2026-10-18 (supervisor)
 
 - [x] Returns close webhook: credit given when the return is closed in Shopify admin (#1005).

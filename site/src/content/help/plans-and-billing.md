@@ -6,7 +6,7 @@ order: 2
 
 ## How are plans billed?
 
-Paid plans are billed by Shopify on your Shopify invoice. You pick, change or cancel a plan from the app (Home → Compare plans); Shopify shows the plan page and handles the charge. Every paid plan starts with a free trial.
+Paid plans are billed by Shopify on your Shopify invoice. You pick, change or cancel a plan on the app's Plans page (Settings → Change plan, or Home → See plans); Shopify then asks you to approve the charge. Every paid plan starts with a free trial.
 
 ## What is an offer slot?
 

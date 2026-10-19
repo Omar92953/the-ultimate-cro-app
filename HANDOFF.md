@@ -66,7 +66,7 @@ the repo; never rely on old chats. Trust `CLAUDE.md` and `docs/WORKBOARD.md` ove
 
 ## Open work, in order
 
-1. **Omar's request (2026-10-19):** "I don't want Shopify's pricing_plans page to be where people subscribe, I want
+1. **Done 2026-10-19 (#198, see WORKBOARD "Plans page only").** Omar's request (2026-10-19): "I don't want Shopify's pricing_plans page to be where people subscribe, I want
    our page." Make sure every in-app link goes to `/app/plans`, whose buttons open the direct approval page
    (`planApproveUrl` in `app/lib/plans.ts`), never `/charges/<handle>/pricing_plans`; add a test. Check Shopify's
    App Pricing docs for any setting (welcome link / landing page) that keeps merchants out of the hosted page on
