@@ -98,6 +98,15 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       Returns setup "Orders older than 60 days" shows Done. App Pricing handles checked (see "Plans page only").
 - [ ] Omar: protected customer data form is still "Draft": submit it with the App Store listing.
 
+## App Store listing images (Omar, 2026-10-19)
+
+- [x] Feature image style approved: `branding/feature/feature-banner.png` (dark green to black background, logo,
+      headline, real widgets as white cards with green tags; source `branding/feature/src/banner.html`). Keep this style.
+- [ ] Demos (`demos/`): replace the drawn products (candle, serum, mug, soap) with a real product collection's photos.
+      Omar decides when the demos are final.
+- [ ] After that: re-capture the widgets, redo the feature image, and design all 6 listing screenshots (1600x900) in
+      the same style, then Omar uploads them. Don't upload the current feature image before then.
+
 ## Plans page only, 2026-10-19 (lead)
 
 - [x] Every in-app plan button (Upgrade to X, Change plan, See plans and upgrade, limit messages) opens
