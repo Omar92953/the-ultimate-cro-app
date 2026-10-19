@@ -167,7 +167,7 @@ Cloud accounts can't reach Shopify hosts: write the code and PR, and ask Omar to
   on `s-*` elements. `Segmented` (in `components/ui.tsx`) for small choices.
 - Prices and limits only in `plans.ts`; features only in `catalog.ts`; tutorials only in `tutorials.ts`.
 - Use `gql()` and `remember()`; new GraphQL must pass `npm run graphql-codegen`.
-- Theme extension: **28 of 30 blocks used** (cart drawer, contact, footer removed in Oct 2026; Header `ucs-header` restored as its own block on 2026-10-19, Omar's choice). New storefront features still go into existing blocks or embeds where possible.
+- Theme extension: **29 of 30 blocks used** (the CRO Toolbox cart drawer, block `ucs-cart`, was removed in Oct 2026 and freed one slot). New storefront features still go into existing blocks or embeds where possible.
   Liquid budget about 86 of 100 KB.
 - Don't run Prettier over the repo (it reformats hundreds of files).
 - Match the surrounding code's style and comment density.

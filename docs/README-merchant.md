@@ -15,7 +15,7 @@ customer pays.
   - **Storefront:** every widget and section, grouped: social proof (reviews, sales pop-ups, trust
     badges, logos), bars & urgency (announcement, countdown, free shipping, stock urgency), product
     page (sticky add to cart, quick add, delivery estimate, back in stock), content (hero, carousels,
-    FAQ, quiz, collection pills) and the header, and store pages (track order, returns).
+    FAQ, quiz, collection pills) and store pages (track order, returns).
     Filter by status (live, needs setup, off, not in my plan) or search.
   - **Storefront → Cart group** (first group): offers in your theme's cart, gift note & delivery
     date. The free-shipping bar sits in Bars & urgency.
