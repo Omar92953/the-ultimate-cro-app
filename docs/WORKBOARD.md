@@ -93,8 +93,10 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       theme's own selling-plans.js error).
 - [ ] Not testable by hand: whether signing in links a guest order to the customer (needs a real guest checkout);
       the full Connect Claude flow (needs adding the connector in Claude).
-- [ ] Omar: Partner Dashboard: post-purchase access (5.8.1), App Pricing plans (handles free, starter, growth, pro),
-      read_all_orders request. Decide: ship the first version without the after purchase offer if access is late?
+- [x] Omar, 2026-10-19: post-purchase access (5.8.1) and read_all_orders both approved at once (Partner Dashboard →
+      API access requests). read_all_orders added to scopes (cro-toolbox-39, #200); accepted on Testing 3, Tracking &
+      Returns setup "Orders older than 60 days" shows Done. App Pricing handles checked (see "Plans page only").
+- [ ] Omar: protected customer data form is still "Draft": submit it with the App Store listing.
 
 ## Plans page only, 2026-10-19 (lead)
 

@@ -47,7 +47,7 @@ the repo; never rely on old chats. Trust `CLAUDE.md` and `docs/WORKBOARD.md` ove
 
 ## Where things stand (2026-10-19)
 
-- Live: Shopify **cro-toolbox-38**, Render on `main`. Website crotoolbox.com live (Cloudflare Pages).
+- Live: Shopify **cro-toolbox-39**, Render on `main`. Website crotoolbox.com live (Cloudflare Pages).
 - Shopify AI self review (`shopify doc fetch --url https://shopify.dev/docs/apps/launch/app-store-review/app-store-ai-self-review-requirements`,
   AI Toolkit skill "App Store Review"): passes except Omar's Partner Dashboard items. Fixed 2026-10-19:
   1.1.15 (refunds only via returnProcess; no gift card or discount code paybacks; `write_gift_cards` removed) and
@@ -72,7 +72,7 @@ the repo; never rely on old chats. Trust `CLAUDE.md` and `docs/WORKBOARD.md` ove
    App Pricing docs for any setting (welcome link / landing page) that keeps merchants out of the hosted page on
    install; tell Omar plainly what Shopify controls and cannot be changed. Verify yearly prices and all 4 handles
    on Testing 3 without approving anything.
-2. **Omar's Partner Dashboard steps** (guide him click by click): post purchase extension access (rule 5.8.1),
+2. **(post purchase access and read_all_orders approved 2026-10-19, scope live in cro-toolbox-39)** **Omar's Partner Dashboard steps** (guide him click by click): post purchase extension access (rule 5.8.1),
    `read_all_orders` request (reason: Track page, returns and "Check against orders" beyond 60 days), then the
    App Store listing (icon, 3 to 6 screenshots 1600x900, optional video, demo screencast; text in
    `docs/listing.md`), public distribution, submit.
