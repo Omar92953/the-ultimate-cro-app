@@ -8,7 +8,7 @@ import { editorLinks, getDiscountStatus, getSavedSections, getSettings, getSlide
 import type { DiscountMode } from "./types";
 import { listItems, sectionLinks } from "./sections.server";
 import { getBoosters } from "./boosters.server";
-import { getAddons, getImageCarousel, getPills, getShippingBar } from "./designs.server";
+import { getAddons, getHeader, getImageCarousel, getPills, getShippingBar } from "./designs.server";
 import { DEFAULT_BOOSTERS } from "./boosters";
 import { SECTION_KINDS, itemStatus, type SectionKind } from "./sections";
 import { getCheckoutRules } from "./checkout-rules.server";
@@ -38,11 +38,12 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     getAddons(admin).catch(() => null),
     getPills(admin).catch(() => null),
     getShippingBar(admin).catch(() => null),
+    getHeader(admin).catch(() => null),
     getCheckoutRules(admin).catch(() => null),
     getThankYou(admin).catch(() => null),
     getPostPurchase(admin).catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, header, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -65,6 +66,7 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     postPurchase: postPurchase ? (postPurchase.config.on ? "on" : postPurchase.config.product ? "off" : "none") : "none",
     pillCount: pills ? pills.config.items.length : 0,
     shipBarSaved: !!shipBar?.saved,
+    headerSaved: !!header?.saved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
