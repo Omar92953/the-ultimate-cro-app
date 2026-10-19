@@ -29,7 +29,7 @@ const SECTIONS: [string, string[]][] = [
   [
     "Information about your customers",
     [
-      "Orders: the app reads orders from the last 60 days to show which sales came from its widgets (Results), to find products that are often bought together, to show recent purchases in sales pop-ups (product, time and, only if you turn it on, the shipping city, never names) and to let shoppers look up their own order by order number and email on your Track order and Returns pages. Order data is read from Shopify when needed and isn't copied to our servers, except as described below.",
+      "Orders: the app reads orders from the last 60 days to show which sales came from its widgets (Results), to find products that are often bought together and to show recent purchases in sales pop-ups (product, time and, only if you turn it on, the shipping city, never names). It also lets shoppers look up their own order, including older orders, by order number and email on your Track order and Returns pages. Order data is read from Shopify when needed and isn't copied to our servers, except as described below.",
       "Back-in-stock requests: when a shopper asks to be told when a product is back, we store their email address and the product they want, so you can see and export the list in the app.",
       "Return requests: when a shopper asks for a return, we store the order number, their email, the items, the reason and any note, so you can handle the request in the app.",
       "Reviews written on your store: the name, text, rating and location the shopper enters are saved in your Shopify store for you to approve. No email address is collected.",
