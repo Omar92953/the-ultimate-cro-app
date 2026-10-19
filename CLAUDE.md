@@ -39,6 +39,11 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
   search and opened only from the app ("See live demo", `app/lib/site.ts`). The website links to them
   only from the keyword pages (`rel="nofollow"`, new tab; Omar, 2026-10-18). Details: `docs/website.md`.
 
+## App Store listing images
+
+Design system for the feature image and screenshots: `branding/listing/README.md` (approved style, templates,
+`scripts/listing/capture.sh` and `render.sh`). Use it for any listing or marketing image.
+
 ## Rules that matter most
 
 - **Never** modify the live store `ms6vwv-3n.myshopify.com` (Backrooms) or its themes. Test on Testing2.

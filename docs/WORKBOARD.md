@@ -101,7 +101,7 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 ## App Store listing images (Omar, 2026-10-19)
 
 - [x] Feature image style approved: `branding/feature/feature-banner.png` (dark green to black background, logo,
-      headline, real widgets as white cards with green tags; source `branding/feature/src/banner.html`). Keep this style.
+      headline, real widgets as white cards with green tags; design system: `branding/listing/README.md`). Keep this style.
 - [ ] Demos (`demos/`): replace the drawn products (candle, serum, mug, soap) with a real product collection's photos.
       Omar decides when the demos are final.
 - [ ] After that: re-capture the widgets, redo the feature image, and design all 6 listing screenshots (1600x900) in

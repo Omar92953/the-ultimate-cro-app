@@ -1,0 +1,51 @@
+/*
+ * CRO Toolbox listing images: the design system (approved by Omar, 2026-10-19).
+ * Every page is exactly 1600 x 900. Templates in templates/ link this file.
+ */
+:root {
+  --bg-glow: #1d2a22;      /* green glow at the top */
+  --bg: #0b0b0f;           /* near black */
+  --green: #3ddc84;        /* the one accent: highlighted word, checks, tags */
+  --text: #ffffff;
+  --muted: #c9d1cc;        /* check line and sub lines */
+  --card: #ffffff;
+  --radius-card: 18px;
+  --radius-img: 10px;
+  --font: Inter, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1600px; height: 900px; overflow: hidden; }
+body {
+  font-family: var(--font);
+  background: radial-gradient(1200px 600px at 50% -10%, var(--bg-glow) 0%, var(--bg) 60%);
+  color: var(--text);
+  position: relative;
+}
+
+/* Top block: logo, headline, check line (centred) */
+.top { position: absolute; top: 44px; left: 0; right: 0; text-align: center; }
+.logo { height: 40px; }
+h1 { font-size: 58px; line-height: 1.08; font-weight: 800; letter-spacing: -1.5px; margin-top: 26px; }
+h1 span { color: var(--green); }
+.checks { margin-top: 22px; display: flex; gap: 30px; justify-content: center; font-size: 19px; color: var(--muted); }
+.checks b { color: var(--green); margin-right: 8px; }
+
+/* A widget card: white, rounded, deep shadow, with a green pill tag on its top edge */
+.card {
+  position: absolute; background: var(--card); border-radius: var(--radius-card); padding: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.card.thin { padding: 12px 16px; }
+.card img { display: block; width: 100%; border-radius: var(--radius-img); }
+.tag {
+  position: absolute; top: -15px; left: 18px; background: var(--green); color: var(--bg);
+  font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+}
+
+/* Screenshot layout: text on the left, one or two big widget cards on the right */
+.side { position: absolute; left: 80px; top: 0; bottom: 0; width: 560px; display: flex; flex-direction: column; justify-content: center; }
+.side .logo { height: 32px; align-self: flex-start; }
+.side h1 { font-size: 52px; margin-top: 28px; }
+.side p { font-size: 22px; line-height: 1.45; color: var(--muted); margin-top: 22px; }
+.side .checks { flex-direction: column; gap: 12px; justify-content: flex-start; margin-top: 28px; font-size: 20px; }
