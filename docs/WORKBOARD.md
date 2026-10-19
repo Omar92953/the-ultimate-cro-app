@@ -2,7 +2,7 @@
 
 The backlog for all accounts (see `docs/TEAM.md`). What's being worked on right now is in the open
 pull requests (`gh pr list`). Update this file in the PR that finishes or adds an item.
-Updated 2026-10-18.
+Updated 2026-10-19.
 
 ## App
 
@@ -106,6 +106,18 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       Omar decides when the demos are final.
 - [ ] After that: re-capture the widgets, redo the feature image, and design all 6 listing screenshots (1600x900) in
       the same style, then Omar uploads them. Don't upload the current feature image before then.
+
+## Header back, 2026-10-19 (#208, cro-toolbox-40)
+
+- [x] Header restored in the Section library (Sections group, Starter plan), design page `/app/designs/header`,
+      theme block `ucs-header` in the Header area. Own block by Omar's choice: **28 of 30 blocks** now, so 2 slots
+      left for the bigger section library (new sections should share blocks or embeds). Footer and Contact stay removed.
+      No new scope (menu handle typed in the app, read in Liquid). Website page `/features/header` and demo are back.
+- Note for all sessions: a970482 (#209) committed another session's uncommitted edits from the shared folder and broke
+  main until #208. Use `git worktree add` for parallel work in one clone; never `git commit -a` there.
+- [x] Verified on Testing 3 (2026-10-19): Header card in Section library → Sections ("Needs setup" until saved), design page
+      and live preview work, Save, "Add to header" put the block in the theme's Header area; the storefront shows the app's
+      header (desktop pill menu, phone burger) and the theme's header is hidden. Not tested: mega menu with a nested menu, overlay settings.
 
 ## Plans page only, 2026-10-19 (lead)
 
