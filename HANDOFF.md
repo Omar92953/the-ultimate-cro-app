@@ -58,7 +58,7 @@ the repo; never rely on old chats. Trust `CLAUDE.md` and `docs/WORKBOARD.md` ove
   Lighthouse points (`docs/submission-review.md`).
 - Live tracking: 17TRACK API trial (200 numbers, account 17track@crotoolbox.com), `TRACKING_PROVIDER_KEY` and
   `TRACKING_KEY_SECRET` set on Render.
-- Email: support@, info@, features@, pro@, 17track@crotoolbox.com forward to crotoolbox.app@gmail.com.
+- Email: support@, info@, features@, pro@, 17track@, omar@crotoolbox.com forward to crotoolbox.app@gmail.com.
 - App Pricing plans exist in the Partner Dashboard (Free, Starter $5.99, Growth $14.99, Pro $24.99, 14 day trial),
   seen on Testing 3 on 2026-10-19. Yearly prices and the growth/free handles not yet checked.
 - Omar's decisions: keep all scopes required at install (no optional scopes for launch); no feature requests
