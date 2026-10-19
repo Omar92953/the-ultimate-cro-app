@@ -48,6 +48,8 @@ import {
   ShippingBarCartShowcase,
   ShippingBarCardShowcase,
   CollectionPillsImagesShowcase,
+  HeaderGlassShowcase,
+  HeaderRoundedShowcase,
   AddonsCardsShowcase,
   ImageCarouselOverlayShowcase,
   VideosShowcase,
@@ -187,7 +189,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -209,6 +211,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/offers/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
   { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarCartShowcase, ShippingBarShowcase, ShippingBarCardShowcase] },
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
+  { key: "header", title: "Header", description: "Your store's header, designed in the app: logo, menu with dropdowns or mega menus, search, cart and glass looks.", list: null, embed: false, app: "/app/designs/header", Previews: [HeaderGlassShowcase, HeaderRoundedShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
   { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", cat: "boosters", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
 ];
@@ -407,6 +410,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
           const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
           let status: Status, next: Next | undefined;
           if (c.key === "shipping_bar" && !data.shipBarSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Set the goal", href: c.app! }];
+          else if (c.key === "header" && !data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Design the header", href: c.app! }];
           else if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
           else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
           else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];

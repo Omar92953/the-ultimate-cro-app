@@ -36,6 +36,7 @@ export const SHOWCASES: Partial<Record<FeatureKey, Looks>> = {
   faq: [S.FaqShowcase, S.FaqCardsShowcase],
   quiz: [S.QuizShowcase],
   collection_pills: [S.CollectionPillsShowcase, S.CollectionPillsImagesShowcase],
+  header: [S.HeaderGlassShowcase, S.HeaderRoundedShowcase],
   track: [S.TrackShowcase],
   returns: [S.ReturnsShowcase],
   payment_rules: [S.PaymentRulesShowcase],
