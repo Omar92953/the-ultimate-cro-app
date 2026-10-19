@@ -5,10 +5,12 @@
  *   - features and areas: app/lib/catalog.ts
  *   - the 6 bundle recipes: app/lib/bundle-recipes.ts
  *   - the offer types: app/lib/offer-types.ts
+ *   - data retention periods: app/lib/retention.ts
  */
 import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, type Plan, type PlanKey, type Limits } from "../../../app/lib/plans";
 import { BUNDLE_RECIPES, type Recipe, type RecipeKey } from "../../../app/lib/bundle-recipes";
 import { OFFER_TYPES, type OfferTypeKey } from "../../../app/lib/offer-types";
+export { RETENTION_DAYS } from "../../../app/lib/retention";
 import { FEATURES, FEATURE_KEYS, AREAS, featuresIn, type FeatureKey, type AreaKey } from "../../../app/lib/catalog";
 
 export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
