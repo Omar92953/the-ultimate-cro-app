@@ -70,7 +70,7 @@ Ready in `branding/screenshots/listing/` (real captures of the app on Testing 3,
 Not for the listing: `05-upsell-style.png` (plan banner) and `07-home.png` (plan bar and figures, rules 4.2.2 and 4.3.4).
 To retake: the capture script used `screencapture` on Omar's Chrome (window 1292 pt wide, page area 1292 x 727 pt).
 
-Feature image (1600 x 900): `branding/feature/feature-bundles.png` (Frequently bought together on the live bundles demo, crotoolbox.com/demo/bundles, store frame only; made 2026-10-19 with headless Chrome at 2x).
+Feature image (1600 x 900): `branding/feature/feature-banner.png` (headline + 6 widgets from the live demos; source `branding/feature/src/banner.html`, render with headless Chrome at 1600x900). Plain alternative: `branding/feature/feature-bundles.png`.
 
 ## 2. Testing instructions for the reviewer (paste into the submission form)
 
