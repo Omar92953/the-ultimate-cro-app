@@ -240,8 +240,13 @@ export async function buildFeatures({ block, shopWith, mo }) {
     ["Cards with captions", {}],
     ["Text on the pictures", { layout: { captions: "overlay", ratio: "4/5", perDesktop: 3 } }],
     ["Squares, three across", { layout: { ratio: "1/1", perDesktop: 3, radius: 0 }, heading: { text: "Shop by category", align: "left" } }],
-    ["Coverflow", { layout: { effect: "coverflow", ratio: "4/5", captions: "none", radius: 16 }, heading: { text: "Seen on our customers" } }],
   ].map(async ([title, raw]) => ({ title, layout: "page", html: await block("ucs-image-carousel", { shop: shopWith({ designs: { image_carousel: carouselOf(raw) } }) }) })));
+  const flowOf = (raw) => carouselD.toStorefrontImageCarousel(carouselD.withImageCarouselDefaults({ slides, ...raw }, "coverflow"), imageMap);
+  F.coverflow = await Promise.all([
+    ["Text on the pictures", {}],
+    ["Pictures only", { layout: { captions: "none" } }],
+    ["Square, moves by itself", { layout: { ratio: "1/1", radius: 24 }, nav: { autoplay: 4, mode: "dots" }, heading: { text: "New this week" } }],
+  ].map(async ([title, raw]) => ({ title, layout: "page", html: await block("ucs-coverflow", { shop: shopWith({ designs: { coverflow: flowOf(raw) } }) }) })));
 
   const video = (n, h) => ({
     alt: P[h].title,

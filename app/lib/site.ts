@@ -38,7 +38,7 @@ export const DEMOS: FeatureKey[] = [
   "reviews", "product_reviews", "sales_pop", "trust_badges", "logos",
   "announcements", "countdown", "shipping_bar", "stock_urgency",
   "sticky_atc", "quick_add", "delivery", "size_guide", "stock", "wishlist",
-  "image_carousel", "videos", "faq", "quiz", "collection_pills",
+  "image_carousel", "coverflow", "videos", "faq", "quiz", "collection_pills",
   "header", "track", "returns", "return_saving",
   "compare_table", "benefits", "product_tabs", "guarantee", "before_after", "shoppable", "recently_viewed", "how_it_works", "email_popup",
   "payment_rules", "delivery_rules", "order_limits", "thank_you", "post_purchase",

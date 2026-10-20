@@ -1,7 +1,8 @@
 /**
- * Image carousel, designed in the app (the theme editor only places the block). Stored in
- * $app:cro_design "image_carousel"; ucs-image-carousel.js builds the same markup as the preview.
- * Shared by client and server.
+ * Image carousel, designed in the app (the theme editor only places the block). Two sections share this
+ * code: "Image carousel" ($app:cro_design "image_carousel", pictures side by side) and "Image carousel 2"
+ * ("coverflow", one large picture in the centre and the others behind it), each with its own block, so a
+ * store can use both. ucs-image-carousel.js builds the same markup as the preview. Shared by client and server.
  */
 import { color, num, pick, safeLink, str } from "./designs";
 import type { MediaRef } from "./sections";
@@ -40,6 +41,13 @@ export const RATIOS: { value: ImageCarouselConfig["layout"]["ratio"]; label: str
   { value: "auto", label: "Each image's own shape" },
 ];
 
+/** The two carousel sections: their stored design key (and feature key), page and theme block. */
+export type CarouselKind = "image_carousel" | "coverflow";
+export const CAROUSELS: Record<CarouselKind, { title: string; page: string; block: string }> = {
+  image_carousel: { title: "Image carousel", page: "/app/designs/image-carousel", block: "Image carousel" },
+  coverflow: { title: "Image carousel 2", page: "/app/designs/image-carousel-2", block: "Image carousel 2" },
+};
+
 export const DEFAULT_IMAGE_CAROUSEL: ImageCarouselConfig = {
   scheme: "",
   heading: { show: true, text: "Shop the look", sub: "", align: "center", size: 28 },
@@ -58,9 +66,16 @@ function media(v: unknown): MediaRef | null {
   return { id: m.id, url: typeof m.url === "string" ? m.url : null, kind: "image", title: str(m.title, "Image", 200) };
 }
 
-export function withImageCarouselDefaults(raw: unknown): ImageCarouselConfig {
+/** Image carousel 2 starts as a coverflow: one large picture in front with its text on it. */
+export const DEFAULT_COVERFLOW: ImageCarouselConfig = {
+  ...DEFAULT_IMAGE_CAROUSEL,
+  heading: { ...DEFAULT_IMAGE_CAROUSEL.heading, text: "Seen on our customers" },
+  layout: { ...DEFAULT_IMAGE_CAROUSEL.layout, effect: "coverflow", ratio: "4/5", captions: "overlay", radius: 16 },
+};
+
+export function withImageCarouselDefaults(raw: unknown, kind: CarouselKind = "image_carousel"): ImageCarouselConfig {
   const r = obj(raw);
-  const d = DEFAULT_IMAGE_CAROUSEL;
+  const d = kind === "coverflow" ? DEFAULT_COVERFLOW : DEFAULT_IMAGE_CAROUSEL;
   const h = obj(r.heading), l = obj(r.layout), n = obj(r.nav), k = obj(r.look);
   return {
     scheme: schemeId((r as { scheme?: unknown }).scheme),
@@ -76,7 +91,7 @@ export function withImageCarouselDefaults(raw: unknown): ImageCarouselConfig {
       return { image: media(s.image), alt: str(s.alt, "", 200), title: str(s.title, "", 120), text: str(s.text, "", 300), link: str(s.link, "", 500), button: str(s.button, "", 40) };
     }),
     layout: {
-      effect: pick(l.effect, ["row", "coverflow"] as const, d.layout.effect),
+      effect: kind === "coverflow" ? "coverflow" : pick(l.effect, ["row", "coverflow"] as const, d.layout.effect),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: num(l.perMobile, 1, 3, d.layout.perMobile),
       ratio: pick(l.ratio, RATIOS.map((x) => x.value), d.layout.ratio),

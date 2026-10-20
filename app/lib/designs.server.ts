@@ -27,7 +27,7 @@ import { toStorefrontAnnouncement, withAnnouncementDefaults, type AnnouncementDe
 import { toStorefrontQuickAdd, withQuickAddDefaults, type QuickAddDesign } from "./quick-add-design";
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
-import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
+import { toStorefrontImageCarousel, withImageCarouselDefaults, type CarouselKind, type ImageCarouselConfig } from "./image-carousel";
 import { secImageIds, toStorefrontSec, withSecDefaults, type SecConfig, type SecKind } from "./cro-sections";
 
 /**
@@ -77,10 +77,11 @@ export async function saveCountdownBar(admin: AdminClient, config: CountdownBarC
 }
 
 /* ------------------------------------------------------------ image carousel -- */
-export async function getImageCarousel(admin: AdminClient): Promise<{ config: ImageCarouselConfig; saved: boolean }> {
+/** `kind`: "image_carousel" or "coverflow" (Image carousel 2), each stored under its own key. */
+export async function getImageCarousel(admin: AdminClient, kind: CarouselKind = "image_carousel"): Promise<{ config: ImageCarouselConfig; saved: boolean }> {
   // The editor's copy (file ids, empty slides) is kept apart from the lean storefront copy.
-  const raw = await getDesign(admin, "image_carousel_editor");
-  return { config: withImageCarouselDefaults(raw), saved: raw !== null };
+  const raw = await getDesign(admin, `${kind}_editor`);
+  return { config: withImageCarouselDefaults(raw, kind), saved: raw !== null };
 }
 
 /** Looks up each slide's image (CDN address and size) so the storefront needs no extra Liquid. */
@@ -101,14 +102,14 @@ export async function imageFiles(admin: AdminClient, ids: string[]) {
   return out;
 }
 
-export async function saveImageCarousel(admin: AdminClient, config: ImageCarouselConfig, draftOnly = false) {
-  const clean = withImageCarouselDefaults(config);
+export async function saveImageCarousel(admin: AdminClient, config: ImageCarouselConfig, draftOnly = false, kind: CarouselKind = "image_carousel") {
+  const clean = withImageCarouselDefaults(config, kind);
   const images = await imageFiles(admin, [...new Set(clean.slides.flatMap((s) => (s.image ? [s.image.id] : [])))]);
   const missing = clean.slides.filter((s) => s.image && !images.has(s.image.id)).length;
   const storefront = toStorefrontImageCarousel(clean, images);
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("image_carousel"), { config: JSON.stringify(storefront) });
-  await upsert(admin, "$app:cro_design", slotted("image_carousel_draft"), { config: JSON.stringify(storefront) });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("image_carousel_editor"), { config: JSON.stringify(clean) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(kind), { config: JSON.stringify(storefront) });
+  await upsert(admin, "$app:cro_design", slotted(`${kind}_draft`), { config: JSON.stringify(storefront) });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(`${kind}_editor`), { config: JSON.stringify(clean) });
   return { config: clean, missing };
 }
 

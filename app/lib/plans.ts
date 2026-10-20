@@ -149,6 +149,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   stock: "free",
   wishlist: "free",
   image_carousel: "starter",
+  coverflow: "starter",
   videos: "starter",
   faq: "free",
   quiz: "starter",

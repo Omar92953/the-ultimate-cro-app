@@ -1958,3 +1958,28 @@ export function EmailPopupShowcase() {
     </Fit>
   );
 }
+
+/** Image carousel 2: a coverflow, one large picture in the centre and the others smaller behind it. */
+export function CoverflowShowcase() {
+  const at = (d: number) => ({ transform: `translateX(${d * 58}%) scale(${1 - Math.abs(d) * 0.18})`, zIndex: 3 - Math.abs(d), filter: d ? "brightness(0.8)" : undefined });
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 8, justifyItems: "center", width: "100%", fontSize: 10 }}>
+        <b style={{ fontSize: 13 }}>Seen on our customers</b>
+        <span style={{ position: "relative", display: "block", width: 104, height: 130 }}>
+          {[PHOTO.pink, PHOTO.yellow, PHOTO.shopper, PHOTO.sunny, PHOTO.pink].map((id, i) => (
+            <span key={i} style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 12, boxShadow: "0 6px 16px rgba(0,0,0,0.18)", ...at(i - 2) }}>
+              <Img id={id} w={240} h={300} className={s.cover} />
+              {i === 2 ? <b style={{ position: "absolute", left: 8, right: 8, bottom: 8, color: "#fff", fontSize: 11, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>Weekend edit</b> : null}
+            </span>
+          ))}
+        </span>
+        <span style={{ display: "flex", gap: 4 }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <i key={i} style={{ width: 5, height: 5, borderRadius: 999, background: i === 2 ? "#111" : "#ccc" }} />
+          ))}
+        </span>
+      </span>
+    </Fit>
+  );
+}
