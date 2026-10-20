@@ -26,18 +26,6 @@
         "4321"
       ],
       "port": 4321
-    },
-    {
-      "name": "cro-sections-harness",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": [
-        "-m",
-        "http.server",
-        "-d",
-        "/Users/omarmoaz/Workspace/cro-sections/test/storefront/out",
-        "8124"
-      ],
-      "port": 8124
     }
   ]
 }
