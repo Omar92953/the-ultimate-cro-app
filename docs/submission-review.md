@@ -1,5 +1,19 @@
 # App Store submission review — CRO Toolbox (2026-10-17)
 
+## Audit update (2026-10-20, afternoon): after the 9 CRO sections (cro-toolbox-45, #211, #220)
+
+**Verdict: code ready for review.** All 12 checks pass (typecheck, lint, test:app, build, graphql-codegen,
+build:theme, test:storefront, test:functions, site and demos builds, config validate, theme check). Theme: 29 of 30
+blocks, 93.3 of 100 KB Liquid (enforced limit: little room left, so new storefront features must reuse the shared
+`ucs-section` block and stay small).
+
+| New piece | Requirement | Status |
+|---|---|---|
+| Comparison table, benefits, tabs, guarantee, before and after, shoppable image, how it works | 1.1.4 factual, 5.1.4 branding | ✅ Merchant entered content only, no random numbers or app branding |
+| Recently viewed | Privacy, consent | ✅ Product handles in the shopper's browser only, never sent to our server |
+| Email pop up (`app/routes/proxy.subscribe.tsx`) | Consent, 5.1.5, abuse | ✅ Unticked consent box required, signed app proxy, bot field, 5 per hour per visitor, customer created in the store with SINGLE_OPT_IN consent, one use code only for that customer, nothing stored by the app |
+| `write_customers` scope | 3.2.x, protected customer data | ✅ Documented in docs/scopes.md and both privacy pages. ⚠️ Partner Dashboard: add "Marketing" (or the closest reason) to the Email field's reasons in the protected customer data form |
+
 ## Audit update (2026-10-20): re-run on main after the Header, privacy and scope changes (cro-toolbox-41)
 
 ### Verdict
