@@ -38,7 +38,7 @@
       ps = ps.filter(Boolean);
       if (!ps.length) { el.hidden = true; return; }
       el.hidden = false;
-      el.innerHTML = '<div class="usec__in">' + S.head(c) + '<div class="usec-rv__vp"><ul class="usec-rv" style="--n:' + Math.min(ps.length, c.l.style === 'row' ? 6 : 4) + '">' + ps.map(function (p) { return card(p, c, ctx); }).join('') + '</ul></div></div>';
+      el.innerHTML = '<div class="usec__in">' + S.head(c) + '<div class="usec-rv__vp"><ul class="usec-rv" style="--n:' + Math.max(2, Math.min(c.d.n, 4)) + '">' + ps.map(function (p) { return card(p, c, ctx); }).join('') + '</ul></div></div>';
     });
     S.wireAdd(el, ctx, 'recently_viewed');
   });
