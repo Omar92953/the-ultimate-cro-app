@@ -3,8 +3,8 @@
  * with working arrows and dots. `phone` shows the mobile layout (the storefront switches with a
  * media query, so the preview sets the phone column count itself).
  */
-import { useRef, useState, type CSSProperties } from "react";
-import { imageCarouselClass, imageCarouselVars, sized, type ImageCarouselConfig } from "../lib/image-carousel";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { flowStyle, imageCarouselClass, imageCarouselVars, sized, type ImageCarouselConfig } from "../lib/image-carousel";
 
 const Chevron = () => (
   <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
@@ -16,16 +16,29 @@ export function ImageCarouselPreview({ config: c, phone }: { config: ImageCarous
   const track = useRef<HTMLUListElement>(null);
   const [at, setAt] = useState(0);
   const slides = c.slides.filter((s) => s.image?.url);
+  const flow = c.layout.effect === "coverflow";
   const per = phone ? c.layout.perMobile + 0.15 : c.layout.perDesktop;
-  const pages = Math.max(1, Math.ceil(slides.length - per) + 1);
-  const fits = slides.length <= per;
+  const pages = flow ? slides.length : Math.max(1, Math.ceil(slides.length - per) + 1);
+  const fits = !flow && slides.length <= per;
   const vars = imageCarouselVars(c) as CSSProperties & Record<string, string>;
   if (phone) vars["--ucs-ic-n"] = String(per);
 
   const step = () => {
-    const first = track.current?.children[0] as HTMLElement | undefined;
-    return first ? first.offsetWidth + c.layout.gap : 0;
+    const first = track.current?.querySelector<HTMLElement>(".ucs-ic__slide") ?? undefined;
+    return first ? first.offsetWidth + (flow ? 0 : c.layout.gap) : 0;
   };
+  // Coverflow: draw each slide by its distance from the centre, like the storefront script.
+  const drawFlow = () => {
+    const t = track.current;
+    if (!t) return;
+    const mid = t.scrollLeft + t.clientWidth / 2;
+    const w = step() || 1;
+    for (const el of Array.from(t.querySelectorAll<HTMLElement>(".ucs-ic__slide"))) {
+      const st = flow ? flowStyle((el.offsetLeft + el.offsetWidth / 2 - mid) / w) : { transform: "", zIndex: "", opacity: "" };
+      Object.assign(el.style, st);
+    }
+  };
+  useEffect(drawFlow);
   const go = (dir: number) => {
     const t = track.current;
     if (!t) return;
@@ -48,7 +61,11 @@ export function ImageCarouselPreview({ config: c, phone }: { config: ImageCarous
           </div>
         ) : null}
         <div className="ucs-ic__vp">
-          <ul className="ucs-ic__track" ref={track} onScroll={(e) => setAt(Math.round(e.currentTarget.scrollLeft / (step() || 1)))}>
+          <ul className="ucs-ic__track" ref={track} style={{ "--ucs-flow-n": String(slides.length) } as CSSProperties} onScroll={(e) => {
+              setAt(Math.round(e.currentTarget.scrollLeft / (step() || 1)));
+              drawFlow();
+            }}>
+            {flow ? <li className="ucs-ic__pad" aria-hidden="true" /> : null}
             {slides.map((s, i) => (
               <li key={i} className="ucs-ic__slide">
                 <div className="ucs-ic__card">
@@ -65,6 +82,7 @@ export function ImageCarouselPreview({ config: c, phone }: { config: ImageCarous
                 </div>
               </li>
             ))}
+            {flow ? <li className="ucs-ic__pad" aria-hidden="true" /> : null}
           </ul>
           <button type="button" className="ucs-ic__arrow ucs-ic__arrow--prev" aria-label="Previous" onClick={() => go(-1)}>
             <Chevron />
