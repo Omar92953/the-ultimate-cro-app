@@ -131,8 +131,11 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       #212 (cro-toolbox-41): A/B tests wait for analytics consent, retention periods with daily cleanup
       (app/lib/retention.ts), Terms data processing section, docs/security/incident-response.md, and free nightly
       encrypted backups in the private repo Omar92953/cro-toolbox-backups (docs/security/backups.md; first run OK).
-- [ ] App Store review checklist left: listing (feature image and 6 screenshots wait for final demos, screencast),
-      automated check (run last), AI self review "Mark as done" after the CRO sections merge and a re-run, then Submit. Capabilities done 2026-10-19.
+- [x] 2026-10-20: AI self review marked done (audit re-run after the CRO sections, docs/submission-review.md);
+      Embedded and Online Store app checks green; capabilities: checkout UI extension, online store, post purchase;
+      protected customer data reasons now include "Marketing or advertising" (email pop up).
+- [ ] Left before Submit: listing feature image + 6 screenshots (after the demos show real products, cloud
+      session), screencast URL (Omar), automated check (run last), then Submit for review.
 
 ## App Store listing images (Omar, 2026-10-19)
 
