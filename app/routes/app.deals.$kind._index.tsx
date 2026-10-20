@@ -4,6 +4,8 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { cachedResults } from "../lib/value.server";
+import { OfferList, offerStats } from "../components/OfferList";
 import { errorMessage } from "../lib/admin.server";
 import { deleteDeal, listDeals, setDealActive } from "../lib/deals.server";
 import { requireOfferSlot } from "../lib/rules.server";
@@ -19,13 +21,13 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { admin, redirect } = await authenticate.admin(request);
+  const { admin, redirect, session } = await authenticate.admin(request);
   const kind = params.kind;
   if (!isDealKind(kind)) throw new Response("Not found", { status: 404 });
   // Frequently bought together bundles are listed with every other bundle.
   if (kind === "fixed") throw redirect("/app/bundles?tab=fbt");
-  const [deals, discount] = await Promise.all([listDeals(admin), getDiscountStatus(admin).catch(() => null)]);
-  return { kind, deals: deals.filter((d) => d.kind === kind), native: discount?.engine === "native" };
+  const [deals, discount, results] = await Promise.all([listDeals(admin), getDiscountStatus(admin).catch(() => null), cachedResults(admin, session.shop)]);
+  return { kind, deals: deals.filter((d) => d.kind === kind), native: discount?.engine === "native", results: results ? { currency: results.currency, byOffer: results.byOffer } : null };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -57,7 +59,7 @@ const INTRO: Record<DealKind, string> = {
 };
 
 export default function DealList() {
-  const { kind, deals, native } = useLoaderData<typeof loader>();
+  const { kind, deals, native, results } = useLoaderData<typeof loader>();
   const t = DEAL_TYPES[kind];
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -93,62 +95,42 @@ export default function DealList() {
             This store uses Shopify&apos;s native discounts (Settings → Discounts), which can&apos;t apply this bundle type. Switch to the app&apos;s discount engine to use it.
           </s-banner>
         ) : null}
-        <s-section heading={`Your ${t.title.toLowerCase()} (${deals.length})`} padding="none">
-          {deals.length ? (
-            <s-table>
-              <s-table-header-row>
-                <s-table-header listSlot="primary">Name</s-table-header>
-                <s-table-header>Status</s-table-header>
-                <s-table-header>Offer</s-table-header>
-                <s-table-header>Actions</s-table-header>
-              </s-table-header-row>
-              <s-table-body>
-                {deals.map((d) => (
-                  <s-table-row key={d.id ?? d.name}>
-                    <s-table-cell>
-                      <s-link href={`/app/deals/${kind}/${d.handle}`}>{d.name}</s-link>
-                    </s-table-cell>
-                    <s-table-cell>
-                      <s-badge tone={d.active ? "success" : "neutral"}>{d.active ? "Active" : "Paused"}</s-badge>
-                    </s-table-cell>
-                    <s-table-cell>{describeDeal(d)}</s-table-cell>
-                    <s-table-cell>
-                      <s-stack direction="inline" gap="small-200" justifyContent="end">
-                        <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "active", active: String(!d.active), id: d.id ?? "" }, { method: "post" })}>
-                          {d.active ? "Pause" : "Activate"}
-                        </Button>
-                        {confirming === d.id ? (
-                          <>
-                            <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ intent: "delete", id: d.id ?? "" }, { method: "post" }); }}>
-                              Delete
-                            </Button>
-                            <Button variant="tertiary" onClick={() => setConfirming(null)}>
-                              Keep
-                            </Button>
-                          </>
-                        ) : (
-                          <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(d.id)}>
-                            Delete
-                          </Button>
-                        )}
-                      </s-stack>
-                    </s-table-cell>
-                  </s-table-row>
-                ))}
-              </s-table-body>
-            </s-table>
-          ) : (
-            <s-box padding="base">
-              <s-stack gap="base" alignItems="center">
-                <s-heading>{`No ${t.singular}s yet`}</s-heading>
-                <s-paragraph>{t.example}</s-paragraph>
-                <Button variant="primary" href={`/app/deals/${kind}/new`}>
-                  {t.addLabel}
+        <OfferList
+          title={`Your ${t.title.toLowerCase()}`}
+          currency={results?.currency ?? "USD"}
+          measured={!!results}
+          create={{ href: `/app/deals/${kind}/new`, label: t.addLabel }}
+          empty={{ title: `No ${t.singular}s yet`, text: t.example }}
+          rows={deals.map((d) => ({
+            key: d.id ?? d.name,
+            name: d.name,
+            href: `/app/deals/${kind}/${d.handle}`,
+            active: d.active,
+            detail: describeDeal(d),
+            stats: offerStats(results?.byOffer, [...(d.handle ? [`o:${d.handle}`] : []), `t:${d.name}`]),
+            actions: (
+              <>
+                <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "active", active: String(!d.active), id: d.id ?? "" }, { method: "post" })}>
+                  {d.active ? "Pause" : "Activate"}
                 </Button>
-              </s-stack>
-            </s-box>
-          )}
-        </s-section>
+                {confirming === d.id ? (
+                  <>
+                    <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ intent: "delete", id: d.id ?? "" }, { method: "post" }); }}>
+                      Delete
+                    </Button>
+                    <Button variant="tertiary" onClick={() => setConfirming(null)}>
+                      Keep
+                    </Button>
+                  </>
+                ) : (
+                  <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(d.id)}>
+                    Delete
+                  </Button>
+                )}
+              </>
+            ),
+          }))}
+        />
       </s-stack>
     </s-page>
   );

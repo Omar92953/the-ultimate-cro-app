@@ -25,4 +25,5 @@ export const OFFER_TYPE_KEYS = Object.keys(OFFER_TYPES) as OfferTypeKey[];
 
 /** One offer as the Offers hub lists it. `active`: it fills an offer slot (plans.ts). */
 /** `recipe`: for bundle rows, which of the six bundle tabs it belongs to (bundle-recipes.ts). */
-export type OfferRow = { id: string; type: OfferTypeKey; name: string; active: boolean; where: string; href: string; recipe?: RecipeKey };
+/** `statKeys`: where this offer's sales are found in the order results (results.server.ts byOffer); null = not measured. */
+export type OfferRow = { id: string; type: OfferTypeKey; name: string; active: boolean; where: string; href: string; recipe?: RecipeKey; statKeys: string[] | null };

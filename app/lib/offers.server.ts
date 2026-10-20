@@ -41,23 +41,24 @@ export async function listOffers(admin: AdminClient): Promise<OfferRow[]> {
       active: r.active,
       where: upsell ? "Product page" : r.placements.map((p) => PLACE[p] ?? p).join(", "),
       href: `/app/offers/${upsell ? "upsell" : "cross-sell"}/${r.handle}`,
+      statKeys: r.handle ? [`o:${r.handle}`] : [],
     });
   }
   for (const b of bundles) {
-    rows.push({ id: b.id ?? b.handle ?? b.name, type: "bundle", name: b.name, active: b.active, where: b.storeWide ? "Bundle page and anywhere in the store" : "Bundle product page", href: `/app/bundles/${b.handle}`, recipe: recipeOfBundle(b) });
+    rows.push({ id: b.id ?? b.handle ?? b.name, type: "bundle", name: b.name, active: b.active, where: b.storeWide ? "Bundle page and anywhere in the store" : "Bundle product page", href: `/app/bundles/${b.handle}`, recipe: recipeOfBundle(b), statKeys: [...(b.product?.id ? [`b:${b.product.id}`] : []), ...(b.handle ? [`o:${b.handle}`] : [])] });
   }
   for (const k of kits) {
-    rows.push({ id: k.productId, type: "kit", name: k.title, active: true, where: k.status === "ACTIVE" ? "Its own product page" : "Draft product (not on the store yet)", href: `/app/kits/${k.productId.split("/").pop()}`, recipe: "kit" });
+    rows.push({ id: k.productId, type: "kit", name: k.title, active: true, where: k.status === "ACTIVE" ? "Its own product page" : "Draft product (not on the store yet)", href: `/app/kits/${k.productId.split("/").pop()}`, recipe: "kit", statKeys: [`b:${k.productId}`] });
   }
   for (const d of deals) {
-    rows.push({ id: d.id ?? d.handle ?? d.name, type: d.kind, name: d.name, active: d.active, where: DEAL_WHERE[d.kind], href: `/app/deals/${d.kind}/${d.handle}`, recipe: d.kind === "fixed" ? "fbt" : undefined });
+    rows.push({ id: d.id ?? d.handle ?? d.name, type: d.kind, name: d.name, active: d.active, where: DEAL_WHERE[d.kind], href: `/app/deals/${d.kind}/${d.handle}`, recipe: d.kind === "fixed" ? "fbt" : undefined, statKeys: [...(d.handle ? [`o:${d.handle}`] : []), `t:${d.name}`] });
   }
   for (const t of track.offers) {
-    rows.push({ id: t.id, type: "track", name: t.name, active: t.active, where: `Track page, ${t.slot === "above" ? "above" : "below"} the tracking · ${TRACK_OFFER_KINDS[t.kind].title}`, href: `/app/offers/track/${t.id}` });
+    rows.push({ id: t.id, type: "track", name: t.name, active: t.active, where: `Track page, ${t.slot === "above" ? "above" : "below"} the tracking · ${TRACK_OFFER_KINDS[t.kind].title}`, href: `/app/offers/track/${t.id}`, statKeys: null });
   }
   const pp = post?.config;
   if (pp && (pp.product || pp.on)) {
-    rows.push({ id: "post_purchase", type: "post_purchase", name: pp.product ? `${pp.product.title}${pp.pct ? ` · ${pp.pct}% off` : ""}` : "After-purchase offer", active: pp.on, where: "After payment", href: "/app/checkout/after-purchase" });
+    rows.push({ id: "post_purchase", type: "post_purchase", name: pp.product ? `${pp.product.title}${pp.pct ? ` · ${pp.pct}% off` : ""}` : "After-purchase offer", active: pp.on, where: "After payment", href: "/app/checkout/after-purchase", statKeys: null });
   }
   return rows;
 }

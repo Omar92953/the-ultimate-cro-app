@@ -4,6 +4,8 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { cachedResults } from "../lib/value.server";
+import { OfferList, offerStats } from "../components/OfferList";
 import { deleteRule, editorLinks, listRules } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
@@ -19,8 +21,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const meta = KINDS[params.kind ?? ""];
   if (!meta) throw new Response("Not found", { status: 404 });
-  const rules = await listRules(admin, meta.kind);
-  return { kindSlug: params.kind!, meta, rules, addBlock: editorLinks(session.shop)[meta.kind] };
+  const [rules, results] = await Promise.all([listRules(admin, meta.kind), cachedResults(admin, session.shop)]);
+  return { kindSlug: params.kind!, meta, rules, addBlock: editorLinks(session.shop)[meta.kind], results: results ? { currency: results.currency, byOffer: results.byOffer } : null };
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -45,7 +47,7 @@ const INTRO: Record<string, string> = {
 };
 
 export default function RuleList() {
-  const { kindSlug, meta, rules, addBlock } = useLoaderData<typeof loader>();
+  const { kindSlug, meta, rules, addBlock, results } = useLoaderData<typeof loader>();
   const featureKey = OFFER_FEATURE[kindSlug] ?? "upsell";
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -87,63 +89,36 @@ export default function RuleList() {
         <FeatureTabs feature={featureKey} />
         <PageIntro text={INTRO[meta.kind]} />
 
-      <s-section heading={`Your offers (${rules.length})`} padding="none">
-        {rules.length ? (
-          <s-table>
-            <s-table-header-row>
-              <s-table-header listSlot="primary">Name</s-table-header>
-              <s-table-header>Status</s-table-header>
-              <s-table-header>Shown on</s-table-header>
-              <s-table-header>Offer</s-table-header>
-              <s-table-header format="numeric">Show order</s-table-header>
-              <s-table-header>Actions</s-table-header>
-            </s-table-header-row>
-            <s-table-body>
-              {rules.map((r) => (
-                <s-table-row key={r.handle}>
-                  <s-table-cell>
-                    <s-link href={`/app/offers/${kindSlug}/${r.handle}`}>{r.name}</s-link>
-                  </s-table-cell>
-                  <s-table-cell>
-                    <s-badge tone={r.active ? "success" : "neutral"}>{r.active ? "Active" : "Paused"}</s-badge>
-                  </s-table-cell>
-                  <s-table-cell>{trigger(r)}</s-table-cell>
-                  <s-table-cell>{offer(r)}</s-table-cell>
-                  <s-table-cell>{r.priority}</s-table-cell>
-                  <s-table-cell>
-                    <s-stack direction="inline" gap="small-200" justifyContent="end">
-                      {confirming === r.id ? (
-                        <>
-                          <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ id: r.id ?? "" }, { method: "post" }); }}>
-                            Delete
-                          </Button>
-                          <Button variant="tertiary" onClick={() => setConfirming(null)}>
-                            Keep
-                          </Button>
-                        </>
-                      ) : (
-                        <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(r.id ?? null)}>
-                          Delete
-                        </Button>
-                      )}
-                    </s-stack>
-                  </s-table-cell>
-                </s-table-row>
-              ))}
-            </s-table-body>
-          </s-table>
-        ) : (
-          <s-box padding="base">
-            <s-stack gap="base" alignItems="center">
-              <s-heading>No {meta.singular}s yet</s-heading>
-              <s-paragraph>Create your first offer, then add the block to your theme.</s-paragraph>
-              <Button variant="primary" href={`/app/offers/${kindSlug}/new`}>
-                {meta.addLabel}
+      <OfferList
+        title="Your offers"
+        currency={results?.currency ?? "USD"}
+        measured={!!results}
+        create={{ href: `/app/offers/${kindSlug}/new`, label: meta.addLabel }}
+        empty={{ title: `No ${meta.singular}s yet`, text: "Create your first offer, then add the block to your theme." }}
+        rows={rules.map((r) => ({
+          key: r.handle ?? r.name,
+          name: r.name,
+          href: `/app/offers/${kindSlug}/${r.handle}`,
+          active: r.active,
+          detail: `${trigger(r)} · ${offer(r)} · Show order ${r.priority}`,
+          stats: offerStats(results?.byOffer, r.handle ? [`o:${r.handle}`] : []),
+          actions:
+            confirming === r.id ? (
+              <>
+                <Button tone="critical" variant="primary" onClick={() => { setConfirming(null); fetcher.submit({ id: r.id ?? "" }, { method: "post" }); }}>
+                  Delete
+                </Button>
+                <Button variant="tertiary" onClick={() => setConfirming(null)}>
+                  Keep
+                </Button>
+              </>
+            ) : (
+              <Button tone="critical" variant="tertiary" icon="delete" onClick={() => setConfirming(r.id ?? null)}>
+                Delete
               </Button>
-            </s-stack>
-          </s-box>
-        )}
-      </s-section>
+            ),
+        }))}
+      />
 
       <s-section heading="Which offer is shown?">
         <s-paragraph>

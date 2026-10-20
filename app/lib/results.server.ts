@@ -9,7 +9,7 @@
  * Stored setting: $app:cro_design "experiment" ({ on, holdout %, since }).
  */
 import { gql, type AdminClient } from "./admin.server";
-import { upsert } from "./cro.server";
+import { listDeals, upsert } from "./cro.server";
 import db from "../db.server";
 
 export type Experiment = { on: boolean; holdout: number; since: string | null };
@@ -59,6 +59,8 @@ type Line = {
   discountedTotalSet: { shopMoney: { amount: string } };
   /** Set on the items of a bundle (mix & match or bundle product): which bundle, how many sold. */
   lineItemGroup: { id: string; title: string; productId: string | null; quantity: number } | null;
+  /** Checkout discounts on the line; a deal's discount carries the deal's name as its title. */
+  discountAllocations?: { discountApplication: { title?: string | null } }[];
 };
 type Order = { id: string; createdAt: string; cancelledAt: string | null; discountCodes: string[]; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
 
@@ -78,6 +80,11 @@ export type Results = {
   lift: number | null; // e.g. 0.12 = the app's group buys 12% more often
   /** Last 30 days and the 30 before: sales from the app's items, orders with them, all orders. */
   periods: { current: Period; previous: Period };
+  /** Each offer's sales, last 30 days. Keys: `o:<handle>` (items an offer added, or a gift deal's gift),
+   *  `b:<productId>` (a bundle), `t:<title>` (lines a deal's checkout discount applied to, by the deal's name). */
+  byOffer: { key: string; orders: number; revenue: number }[];
+  /** Offers only (not sections or widgets), last 30 days and the 30 before. */
+  offers: { current: Period; previous: Period };
   from: string | null;
 };
 
@@ -102,6 +109,26 @@ const sourceOf = (l: Line) => {
   return null;
 };
 
+/** The widget sources that are offers (the rest are sections and tools: quick add, wishlist, quiz…). */
+const OFFER_SOURCES = new Set(["upsell", "cross_sell", "bundle_builder", "bundle_tray", "fixed_bundle", "upgrade", "track_offer"]);
+
+/** Which offers a line counts for (see Results.byOffer); empty when no offer brought it in. */
+export function offerKeys(l: Line, dealNames: Set<string> = new Set()): string[] {
+  const a = Object.fromEntries(l.customAttributes.map((x) => [x.key, x.value ?? ""]));
+  const keys: string[] = [];
+  if (a._offer) keys.push(`o:${a._offer}`);
+  if (a._cro_gift) keys.push(`o:${a._cro_gift}`);
+  if (l.lineItemGroup?.productId) keys.push(`b:${l.lineItemGroup.productId}`);
+  for (const d of l.discountAllocations ?? []) {
+    const t = d.discountApplication?.title;
+    // Only the app's own deals (their discount carries the deal's name); the store's other discounts don't count.
+    if (t && dealNames.has(t)) keys.push(`t:${t}`);
+  }
+  // Offer items from before `_offer` existed still count toward offers in general.
+  if (!keys.length && a._source && OFFER_SOURCES.has(a._source)) keys.push(`s:${a._source}`);
+  return keys;
+}
+
 const round2 = (t: { orders: number; revenue: number }) => ({ orders: t.orders, revenue: Math.round(t.revenue * 100) / 100 });
 
 /** Most orders read per visit (25 a page): enough for busy stores, short enough to stay fast. */
@@ -117,6 +144,7 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
     }
   }
   const track = emptyTrack();
+  const dealNames = new Set((await listDeals(admin).catch(() => [])).map((d) => d.name));
   const orders: Order[] = [];
   let after: string | null = null;
   // Only what the numbers use: the last 60 days (or since the holdout test started, if earlier).
@@ -133,7 +161,7 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
             id createdAt cancelledAt discountCodes
             totalPriceSet { shopMoney { amount currencyCode } }
             customAttributes { key value }
-            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } } }
+            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } discountAllocations { discountApplication { ... on AutomaticDiscountApplication { title } } } } }
           }
         }
       }`,
@@ -148,6 +176,8 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
   let revenue = 0;
   const groups = { app: { orders: 0, revenue: 0 }, holdout: { orders: 0, revenue: 0 } };
   const periods = { current: emptyPeriod(), previous: emptyPeriod() };
+  const offerPeriods = { current: emptyPeriod(), previous: emptyPeriod() };
+  const byOffer = new Map<string, { revenue: number; orders: Set<string> }>();
   const day = 864e5;
   const now = Date.now();
   for (const o of orders) {
@@ -158,7 +188,21 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
     let appHere = 0;
     const trackHere = { track_recs: 0, track_offer: 0, buy_again: 0 };
     const bundlesHere = new Set<string>();
+    let offerHere = 0;
     for (const l of o.lineItems.nodes) {
+      const lineTotal = Number(l.discountedTotalSet.shopMoney.amount) || 0;
+      const keys = offerKeys(l, dealNames);
+      if (keys.length) {
+        offerHere += lineTotal;
+        if (age < 30 * day) {
+          for (const k of keys) {
+            const row = byOffer.get(k) ?? { revenue: 0, orders: new Set<string>() };
+            row.revenue += lineTotal;
+            row.orders.add(o.id);
+            byOffer.set(k, row);
+          }
+        }
+      }
       const grp = l.lineItemGroup;
       if (grp) {
         const key = grp.productId ?? grp.title;
@@ -199,6 +243,16 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
         track.codes.byKind[used] += 1;
       }
     }
+    const offerPeriod = age < 30 * day ? offerPeriods.current : age < 60 * day ? offerPeriods.previous : null;
+    if (offerPeriod) {
+      offerPeriod.orders += 1;
+      offerPeriod.revenue += total;
+      if (offerHere > 0) {
+        offerPeriod.appOrders += 1;
+        offerPeriod.appRevenue += offerHere;
+        offerPeriod.appOrdersTotal += total;
+      }
+    }
     if (period) {
       period.orders += 1;
       period.revenue += total;
@@ -226,6 +280,8 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
       .sort((a, b) => b.revenue - a.revenue),
     groups: xp.since ? groups : null,
     periods,
+    byOffer: [...byOffer.entries()].map(([key, r]) => ({ key, orders: r.orders.size, revenue: Math.round(r.revenue * 100) / 100 })),
+    offers: offerPeriods,
     track: { ...track, recs: round2(track.recs), offers: round2(track.offers), buyAgain: round2(track.buyAgain), codes: { ...track.codes, revenue: Math.round(track.codes.revenue * 100) / 100 } },
     lift,
     from: orders.length ? orders[orders.length - 1].createdAt : null,
