@@ -376,21 +376,25 @@ function FinderEditor({ chart, setChart, setRec, setRow, setUsual }: {
             <s-text color="subdued">Starters fill the sizes named XS to XXL. Adjust them to your cut.</s-text>
             {chart.rows.map((r, i) =>
               r.size.trim() ? (
-                <s-grid key={i} gridTemplateColumns={`minmax(60px, 0.6fr) repeat(${(rec.height ? 2 : 0) + (rec.weight ? 2 : 0)}, minmax(80px, 1fr))`} gap="small-200" alignItems="end">
-                  <s-text type="strong">{r.size}</s-text>
-                  {rec.height ? (
-                    <>
-                      <TextField label="Height from (cm)" value={show(r.height[0])} onValue={(v) => setRow(i, { height: [num(v), r.height[1]] })} />
-                      <TextField label="Height to (cm)" value={show(r.height[1])} onValue={(v) => setRow(i, { height: [r.height[0], num(v)] })} />
-                    </>
-                  ) : null}
-                  {rec.weight ? (
-                    <>
-                      <TextField label="Weight from (kg)" value={show(r.weight[0])} onValue={(v) => setRow(i, { weight: [num(v), r.weight[1]] })} />
-                      <TextField label="Weight to (kg)" value={show(r.weight[1])} onValue={(v) => setRow(i, { weight: [r.weight[0], num(v)] })} />
-                    </>
-                  ) : null}
-                </s-grid>
+                <s-box key={i} padding="small-200" borderWidth="base" borderRadius="base">
+                  <s-stack gap="small-200">
+                    <s-text type="strong">{r.size}</s-text>
+                    <s-grid gridTemplateColumns="repeat(auto-fit, minmax(110px, 1fr))" gap="small-200">
+                      {rec.height ? (
+                        <>
+                          <TextField label="Height from (cm)" value={show(r.height[0])} onValue={(v) => setRow(i, { height: [num(v), r.height[1]] })} />
+                          <TextField label="Height to (cm)" value={show(r.height[1])} onValue={(v) => setRow(i, { height: [r.height[0], num(v)] })} />
+                        </>
+                      ) : null}
+                      {rec.weight ? (
+                        <>
+                          <TextField label="Weight from (kg)" value={show(r.weight[0])} onValue={(v) => setRow(i, { weight: [num(v), r.weight[1]] })} />
+                          <TextField label="Weight to (kg)" value={show(r.weight[1])} onValue={(v) => setRow(i, { weight: [r.weight[0], num(v)] })} />
+                        </>
+                      ) : null}
+                    </s-grid>
+                  </s-stack>
+                </s-box>
               ) : null,
             )}
           </s-stack>
