@@ -43,6 +43,17 @@ const { kind } = Astro.props;
     )
   }
   {
+    kind === "cart_offers" && (
+      <div class="box">
+        <div class="cap">Your cart</div>
+        <div class="xs"><ProductArt kind="serum" /><span>Glow Serum<small>$34</small></span></div>
+        <div class="cap">You may also like</div>
+        <div class="xs"><ProductArt kind="soap" /><span>Oat Soap<small>$9</small></span><i class="tick off" /></div>
+        <div class="btn-dark">Checkout · $34.00</div>
+      </div>
+    )
+  }
+  {
     kind === "reviews" && (
       <div class="revs">
         <div class="rev"><div class="st">★★★★★</div><p>Smells amazing and lasts for weeks.</p><small>Maya R.</small></div>
@@ -128,7 +139,8 @@ const { kind } = Astro.props;
     line-height: 1.35;
     color: #1d1d22;
   }
-  .mini :global(svg) {
+  .mini :global(svg),
+  .mini :global(img.product-art) {
     border-radius: 8px;
   }
   .box,
@@ -145,7 +157,8 @@ const { kind } = Astro.props;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
-  .row3 :global(svg) {
+  .row3 :global(svg),
+  .row3 :global(img.product-art) {
     aspect-ratio: 1;
     height: auto;
     width: 100%;
@@ -213,7 +226,8 @@ const { kind } = Astro.props;
     gap: 8px;
     margin-top: 6px;
   }
-  .xs :global(svg) {
+  .xs :global(svg),
+  .xs :global(img.product-art) {
     width: 34px;
     height: 34px;
     flex: none;
@@ -308,7 +322,8 @@ const { kind } = Astro.props;
   .rev small {
     color: #777;
   }
-  .rev.photo :global(svg) {
+  .rev.photo :global(svg),
+  .rev.photo :global(img.product-art) {
     width: 100%;
     height: 54px;
     margin-bottom: 4px;
@@ -387,7 +402,8 @@ const { kind } = Astro.props;
     box-shadow: 0 -4px 12px rgb(0 0 0 / 0.08);
     font-size: 9.5px;
   }
-  .sticky :global(svg) {
+  .sticky :global(svg),
+  .sticky :global(img.product-art) {
     width: 24px;
     height: 24px;
   }
@@ -422,7 +438,8 @@ const { kind } = Astro.props;
     padding: 8px 12px 8px 8px;
     box-shadow: 0 10px 30px rgb(11 11 15 / 0.14);
   }
-  .popcard :global(svg) {
+  .popcard :global(svg),
+  .popcard :global(img.product-art) {
     width: 40px;
     height: 40px;
   }
@@ -439,7 +456,8 @@ const { kind } = Astro.props;
   .vid {
     position: relative;
   }
-  .vid :global(svg) {
+  .vid :global(svg),
+  .vid :global(img.product-art) {
     width: 100%;
     aspect-ratio: 9 / 15;
     height: auto;
@@ -467,7 +485,8 @@ const { kind } = Astro.props;
   .wcard {
     position: relative;
   }
-  .wcard :global(svg) {
+  .wcard :global(svg),
+  .wcard :global(img.product-art) {
     width: 100%;
     aspect-ratio: 1;
     height: auto;

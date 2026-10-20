@@ -20,7 +20,7 @@ const root = path.join(dist, "demo");
 const out = path.join(here, "../site/src/assets");
 const { chromium } = await import("playwright").catch(() => import("playwright-core"));
 
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json" };
+const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png" };
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]);
   if (p.endsWith("/")) p += "index.html";
@@ -56,6 +56,12 @@ for (const s of shots) {
   const look = LOOK[s.key] ?? {};
   if (look.scroll === "bottom") await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   else if (look.scroll) await page.evaluate((y) => window.scrollTo(0, y), look.scroll);
+  // CRO sections sit under the demo product: scroll the section to the top of the picture.
+  else await page.evaluate(() => {
+    const el = document.querySelector("[data-ucs-sec]");
+    const top = el ? el.getBoundingClientRect().top + window.scrollY : 0;
+    if (top > 300) window.scrollTo(0, top - 24);
+  });
   await page.waitForTimeout(look.wait ?? 1200);
   fs.mkdirSync(path.dirname(s.file), { recursive: true });
   await page.screenshot({ path: s.file, type: "jpeg", quality: 78 });

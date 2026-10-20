@@ -84,6 +84,9 @@ Updated 2026-10-19.
 - [x] Articles (finish-website-cloud §5), 1 of 4: upsell vs cross sell, bundle ideas by industry, free shipping threshold maths
 - [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
       `docs/research/geo-checks.md`) and add the columns
+- [x] Demos with real product photos (finish-website-cloud §2): 29 free Burst photos in `site/public/products/`
+      (sources and licences in `demos/IMAGES.md`), new website screenshots from the demos incl. the 12 features that had
+      none (CRO sections, size guide, return saving, A/B tests); product pictures on the website sized for photos
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)

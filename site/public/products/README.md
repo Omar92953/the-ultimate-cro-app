@@ -2,7 +2,9 @@
 
 Drop real product photos in this folder. The website (`ProductArt.astro`) and the live demos
 (`demos/build.mjs`, crotoolbox.com/demo) both read it, so adding a file here changes both.
-Without a file, the drawn pictures (`site/src/lib/art.ts`) are used.
+Without a file, the drawn pictures (`site/src/lib/art.ts`) are used. The photos here now are free
+Burst stock photos; each one's source and licence is listed in `demos/IMAGES.md` (update it when you
+change a file).
 
 ## File names
 

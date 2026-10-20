@@ -1,6 +1,7 @@
 /**
  * The demo store's catalog and content: products (pictures drawn by src/lib/art.ts), collections,
- * reviews, questions, logos and announcements. Names, prices and texts are made up for the demo.
+ * reviews, questions, logos and announcements. Names, prices and texts are made up for the demo;
+ * product photos are in site/public/products (sources in demos/IMAGES.md).
  */
 import { STORE_ROOT } from "./shell.mjs";
 import { BASE } from "./base.mjs";
@@ -30,13 +31,13 @@ const P = [
   ["monstera-pot", "Monstera Pot", "plant", null, 32, null, null, { tags: ["home"] }],
   ["studio-tee", "Studio Tee", "tee", null, 26, null, { name: "Size", values: [["S", 26], ["M", 26], ["L", 26], ["XL", 28]] }, { tags: ["apparel"] }],
   ["canvas-tote", "Canvas Tote", "tote", null, 24, null, null, { tags: ["apparel", "gift"] }],
-  ["ribbed-socks", "Ribbed Socks", "socks", null, 12, null, null, { tags: ["socks"] }],
+  ["ribbed-socks", "White Socks", "socks", null, 12, null, null, { tags: ["socks"] }],
   ["stripe-socks", "Stripe Socks", "socks", "#b5523b", 12, null, null, { tags: ["socks"] }],
-  ["wool-socks", "Wool Socks", "socks", "#6b705c", 14, null, null, { tags: ["socks"] }],
-  ["navy-socks", "Navy Socks", "socks", "#22305a", 12, null, null, { tags: ["socks"] }],
-  ["mustard-socks", "Mustard Socks", "socks", "#c99a2e", 12, null, null, { tags: ["socks"] }],
+  ["wool-socks", "Paw Socks", "socks", "#6b705c", 14, null, null, { tags: ["socks"] }],
+  ["navy-socks", "Kitten Socks", "socks", "#22305a", 12, null, null, { tags: ["socks"] }],
+  ["mustard-socks", "Hot Dog Socks", "socks", "#c99a2e", 12, null, null, { tags: ["socks"] }],
   ["cloud-socks", "Cloud Socks", "socks", "#9fb4c7", 12, null, null, { tags: ["socks"] }],
-  ["forest-socks", "Forest Socks", "socks", "#3f6a3b", 12, null, null, { tags: ["socks"] }],
+  ["forest-socks", "Pattern Socks", "socks", "#3f6a3b", 12, null, null, { tags: ["socks"] }],
   ["gift-wrap", "Gift wrapping", "gift", "#b08968", 4, null, null, { tags: ["addon"] }],
   ["care-kit", "Calm Night Kit", "gift", "#6b5ca5", 62, 74, null, { tags: ["cro-bundle", "kit"] }],
   ["candle-box", "Candle Box (pick 3)", "gift", "#8b5e3c", 56, 66, null, { tags: ["cro-bundle"] }],
