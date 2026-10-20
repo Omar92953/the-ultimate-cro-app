@@ -1,10 +1,12 @@
 /** schema.org structured data, built from the same sources as the visible page. */
 import { plans } from "./app";
-import { SITE_NAME, SITE_URL, INSTALL_URL, SOCIAL } from "./site";
+import { SITE_NAME, SITE_URL, INSTALL_URL, SOCIAL, PROFILES, SUPPORT_EMAIL, OPERATOR } from "./site";
 import { BRAND_LINE } from "./brand";
 import type { QA } from "../components/Faq.astro";
 
 const strip = (html: string) => html.replace(/<[^>]+>/g, "");
+/** Every profile that exists (footer icons and directory profiles), and the App Store listing once live. */
+const sameAs = [...new Set([...Object.values(SOCIAL), ...Object.values(PROFILES), INSTALL_URL].filter(Boolean))];
 
 export const organization = () => ({
   "@context": "https://schema.org",
@@ -13,7 +15,9 @@ export const organization = () => ({
   description: BRAND_LINE,
   url: SITE_URL,
   logo: `${SITE_URL}/favicon.svg`,
-  ...(Object.values(SOCIAL).some(Boolean) ? { sameAs: Object.values(SOCIAL).filter(Boolean) } : {}),
+  ...(SUPPORT_EMAIL ? { email: SUPPORT_EMAIL, contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: SUPPORT_EMAIL, url: `${SITE_URL}/support/`, availableLanguage: "English" } } : {}),
+  ...(OPERATOR ? { parentOrganization: { "@type": "Organization", name: OPERATOR } } : {}),
+  ...(sameAs.length ? { sameAs } : {}),
 });
 
 export const website = () => ({

@@ -159,6 +159,57 @@ through what other sites say about the app. Tick these off in `docs/WORKBOARD.md
    perplexity.ai and gemini.google.com. Install clicks carry UTM tags (`utm_medium` is the page type,
    `utm_campaign` the page), which the App Store listing analytics shows.
 
+### Search engines beyond Google (Bing, Yandex, Brave, DuckDuckGo)
+
+Bing's index also feeds DuckDuckGo, Yahoo, Ecosia, ChatGPT search and Copilot, so Bing comes first. The
+code side is done (checked 2026-10-20, `docs/research/search-visibility.md`): every page answers 200
+with one canonical, no noindex, unique titles, real text, a `<lastmod>` in the sitemap, and IndexNow
+sends every address after each website change (Bing answered 200). These steps need your logins.
+
+**1. Send www to the main address (Cloudflare, 2 minutes, most important).** Today
+`https://www.crotoolbox.com/` shows a second copy of the site. The pages already tell engines the main
+address and the copy is marked noindex, but a real redirect is better.
+1. dash.cloudflare.com → click **crotoolbox.com** → left menu **Rules** → **Overview**.
+2. **Create rule** → **Redirect Rule**.
+3. Pick the template **Redirect from WWW to root**. Check it shows: Request URL `https://www.*`,
+   Target URL `https://${1}`, Status code **301**, **Preserve query string** ticked.
+4. **Deploy**.
+5. Test: open `https://www.crotoolbox.com/pricing/`. The address bar must end on `https://crotoolbox.com/pricing/`.
+
+**2. Bing Webmaster Tools** (bing.com/webmasters, pick crotoolbox.com):
+1. Left menu **Sitemaps**: `https://crotoolbox.com/sitemap-index.xml` must show **Success** and about 120
+   URLs discovered. If it says Pending or an error, click **Resubmit**.
+2. Left menu **URL Inspection**: paste `https://crotoolbox.com/`, click **Inspect**, then **Request indexing**.
+   Do the same for these (Bing limits how many a day; if it says the limit is reached, carry on tomorrow):
+   `/pricing/`, `/features/`, `/shopify-upsell-app/`, `/shopify-cross-sell/`, `/shopify-bundles/`,
+   `/increase-aov-shopify/`, `/shopify-cro/`, `/post-purchase-upsell-shopify/`,
+   `/shopify-order-tracking-page/`, `/shopify-returns-app/`.
+3. Left menu **Site Scan** → **Start new scan** → name `crotoolbox`, URL `https://crotoolbox.com/`,
+   limit 500 pages → **Accept and scan**. When it finishes, send Claude any errors it lists.
+4. Left menu **IndexNow**: the addresses sent from GitHub after each change appear here.
+
+**3. Yandex Webmaster** (also receives IndexNow):
+1. webmaster.yandex.com → sign in → **Add site** → `https://crotoolbox.com`.
+2. Choose **DNS record**, copy the value it shows (`yandex-verification: …`).
+3. Cloudflare → crotoolbox.com → **DNS** → **Records** → **Add record**: Type **TXT**, Name `@`, Content:
+   the value from step 2 → **Save**. Back in Yandex click **Check**.
+4. **Indexing** → **Sitemap files** → add `https://crotoolbox.com/sitemap-index.xml`.
+
+**4. Brave Search:** there is no submission tool. Brave finds sites through links from other sites and its
+own crawler; `robots.txt` allows every crawler, so nothing blocks it.
+
+**5. DuckDuckGo, Yahoo and Ecosia** show Bing's results: nothing to submit, they follow once Bing has the pages.
+
+**How to check each engine** (write the result in `docs/research/search-visibility.md`): search
+`site:crotoolbox.com` on google.com, bing.com, duckduckgo.com, yandex.com and search.brave.com. Found = at
+least one crotoolbox.com result.
+
+**Why it takes weeks:** the domain is new (2026-10-15) and no other site links to it yet. Bing indexes
+new domains slowly and starts with a few pages. What speeds it up: links from other sites (the App Store
+listing's website link, profiles on G2, Capterra, Crunchbase, LinkedIn and Product Hunt, community answers
+and guest posts: drafts in `docs/outreach/`), Request indexing in Bing (step 2), and new articles, which
+IndexNow announces on each change.
+
 ### The one shared description
 
 Use this sentence word for word everywhere (App Store, YouTube, social profiles, directories):

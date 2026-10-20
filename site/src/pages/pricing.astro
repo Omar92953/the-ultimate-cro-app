@@ -32,6 +32,7 @@ const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
   { key: "thankYouModules", label: "Thank you page modules" },
   { key: "designsPerSection", label: "Styles per section" },
   { key: "offerStats", label: "Offers with their own results" },
+  { key: "trialFeatures", label: "Features of the next plan to try" },
 ];
 const limitCell = (p: PlanKey, k: keyof Limits) => {
   const n = PLANS[p].limits[k];
@@ -73,6 +74,14 @@ const faq: QA[] = [
   {
     q: "How does billing work?",
     a: "Shopify bills the plan on your Shopify invoice. You pick, change or cancel a plan from the app; Shopify shows the plan page and handles the charge.",
+  },
+  {
+    q: "How do I upgrade or change plan?",
+    a: "In the app, open the Plans page (Settings → Change plan), pick a plan and approve the charge on Shopify's page. The new plan's features unlock as soon as Shopify confirms it.",
+  },
+  {
+    q: "How do I cancel?",
+    a: `Choose the ${PLANS.free.name} plan on the Plans page in the app, or uninstall the app: Shopify then stops the app's charges. Cancelling during the ${trialDays} day trial means no charge.`,
   },
   {
     q: "What happens when I downgrade or cancel?",

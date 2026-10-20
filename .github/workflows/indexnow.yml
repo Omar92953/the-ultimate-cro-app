@@ -1,13 +1,22 @@
 # Tells Bing, Yandex and other IndexNow search engines about the website's pages after each
 # website change reaches main. Cloudflare Pages builds and publishes the site on its own; this
-# waits until the new build is live, then sends every address from the sitemap.
+# waits until the new build is live, then sends every address from the sitemap (120 or so: every
+# new or changed page is in it; each has a <lastmod>, so engines can tell what changed).
 # The key must match INDEXNOW_KEY in site/src/lib/site.ts and the file site/public/<key>.txt.
 name: IndexNow
 
 on:
   push:
     branches: [main]
-    paths: ["site/**"]
+    # The site also reads prices, features and bundle types from these app files.
+    paths:
+      - "site/**"
+      - "app/lib/plans.ts"
+      - "app/lib/catalog.ts"
+      - "app/lib/bundle-recipes.ts"
+      - "app/lib/offer-types.ts"
+      - "app/lib/tracking.ts"
+      - ".github/workflows/indexnow.yml"
   workflow_dispatch:
 
 permissions:
