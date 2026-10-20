@@ -82,6 +82,7 @@ Updated 2026-10-19.
       G2, Capterra, Crunchbase, LinkedIn page and Partner directory profiles (`docs/outreach/profiles.md`); paste each
       profile URL into `PROFILES` in `site/src/lib/site.ts`
 - [x] Articles (finish-website-cloud §5), 1 of 4: upsell vs cross sell, bundle ideas by industry, free shipping threshold maths
+- [x] Articles (finish-website-cloud §5), 2 of 4: post purchase upsell examples, thank you page ideas, A/B testing offers
 - [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
       `docs/research/geo-checks.md`) and add the columns
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
