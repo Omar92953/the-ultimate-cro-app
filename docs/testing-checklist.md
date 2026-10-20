@@ -216,7 +216,7 @@ Once every box is ticked on both themes:
 
 - [ ] Wishlist: heart on a product page and on collection cards (styled), floating button count, the wishlist page (styled grid, Add to cart says "Added to cart", Remove, Share shows "Link copied"), "Wishlist is on" off hides everything, "Preview on store" shows a draft only in the theme editor.
 - [ ] Discount code box (Gift note & delivery date → Discount code): a valid code on the cart page and in the drawer lowers the price and shows at checkout; an invalid code shows your message; Remove works.
-- [ ] Size guide: add the Size guide block to a product page; "Size chart" opens the chart (cm and in), "Size recommendation" answers from your ranges; a chart assigned to a tag or collection shows only on those products.
+- [ ] Size guide: add the Size guide block to a product page; "Size chart" opens the chart (cm and in), "Find my size" asks only the questions picked in Size finder and answers from your ranges or usual size answers; a chart assigned to a tag or collection shows only on those products.
 
 ## Return saving rules (Pro, Testing 3, after the Shopify deploy and approving the new permissions)
 

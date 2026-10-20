@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { test } from "node:test";
-import { convertCell, recommendSize, SAMPLE_CHART, toStorefrontSizeGuide, withSizeGuideDefaults, type Fit } from "../../app/lib/size-guide";
+import { applyFinderStarter, convertCell, finderAsks, recommendSize, SAMPLE_CHART, toStorefrontSizeGuide, usualFromSizes, withSizeGuideDefaults, type Fit } from "../../app/lib/size-guide";
+
+const c0 = () => structuredClone(SAMPLE_CHART);
 import { FEATURE_PLAN } from "../../app/lib/plans";
 import { feature } from "../../app/lib/catalog";
 
@@ -11,7 +13,7 @@ import { feature } from "../../app/lib/catalog";
 const sandbox: Record<string, unknown> = { document: { querySelectorAll: () => [] } };
 sandbox.window = sandbox;
 vm.runInNewContext(fs.readFileSync("extensions/cro-storefront/assets/ucs-size-guide.js", "utf8"), sandbox);
-const js = sandbox.__ucsSgRecommend as (c: unknown, h: number | null, w: number | null, f: string) => { size: string; index: number } | null;
+const js = sandbox.__ucsSgRecommend as (c: unknown, h: number | null, w: number | null, f: string, u?: string | null) => { size: string; index: number } | null;
 const jsConvert = sandbox.__ucsSgConvert as (t: string, a: string, b: string) => string;
 
 test("the size comes only from the merchant's ranges", () => {
@@ -26,13 +28,39 @@ test("the size comes only from the merchant's ranges", () => {
   assert.equal(recommendSize(c, 162, 56, "snug")?.size, "S");
   assert.equal(recommendSize(c, 190, 95, "relaxed")?.size, "XL");
   // With "ask for the fit" off, the fit choice does nothing.
-  assert.equal(recommendSize({ ...c, rec: { on: true, fit: false } }, 172, 70, "relaxed")?.size, "M");
+  assert.equal(recommendSize({ ...c, rec: { ...c.rec, fit: false } }, 172, 70, "relaxed")?.size, "M");
   // A chart with only weight ranges answers from weight.
   const w = { ...c, rows: c.rows.map((r) => ({ ...r, height: [null, null] as [null, null] })) };
   assert.equal(recommendSize(w, null, 70)?.size, "M");
 });
 
+test("the size finder: questions switched off are skipped, and a usual size answers on its own", () => {
+  const c = SAMPLE_CHART;
+  // Height switched off: only weight counts.
+  assert.equal(recommendSize({ ...c, rec: { ...c.rec, height: false } }, 150, 70)?.size, "M");
+  // Usual size: "M elsewhere" maps to L here; the fit question still moves it.
+  const u = { ...c, rec: { ...c.rec, usual: { on: true, answers: [{ answer: "M", size: "L" }, { answer: "L", size: "XL" }] } } };
+  assert.equal(recommendSize(u, null, null, "regular", "M")?.size, "L");
+  assert.equal(recommendSize(u, null, null, "snug", "M")?.size, "M");
+  // An unknown answer falls back to height and weight.
+  assert.equal(recommendSize(u, 172, 70, "regular", "XS")?.size, "M");
+  assert.deepEqual(finderAsks(u), { height: true, weight: true, usual: true, fit: true });
+});
+
+test("starters fill typical ranges by size name, and usual answers can start from the chart's sizes", () => {
+  const blank = { ...c0(), rows: c0().rows.map((r) => ({ ...r, height: [null, null] as [null, null], weight: [null, null] as [null, null] })) };
+  const t = applyFinderStarter(blank, "tops");
+  assert.deepEqual(t.rows.find((r) => r.size === "M")?.height, [166, 176]);
+  assert.equal(recommendSize(t, 170, 66)?.size, "M");
+  const u = usualFromSizes(blank);
+  assert.deepEqual(u.rec.usual.answers.map((a) => a.answer), ["S", "M", "L", "XL"]);
+});
+
 test("the storefront script gives the same answers as the app", () => {
+  const usualChart = { ...SAMPLE_CHART, rec: { ...SAMPLE_CHART.rec, height: false, usual: { on: true, answers: [{ answer: "M", size: "L" }] } } };
+  for (const u of [null, "M", "XS"]) for (const w of [null, 58, 70, 95]) for (const f of ["snug", "regular", "relaxed"] as Fit[]) {
+    assert.equal(JSON.stringify(js(usualChart, 172, w, f, u)), JSON.stringify(recommendSize(usualChart, 172, w, f, u)), `usual ${u} ${w} ${f}`);
+  }
   const fits: Fit[] = ["snug", "regular", "relaxed"];
   for (const h of [null, 150, 160, 165, 172, 180, 190, 200]) for (const w of [null, 40, 58, 66, 70, 80, 95, 120]) for (const f of fits) {
     assert.equal(JSON.stringify(js(SAMPLE_CHART, h, w, f)), JSON.stringify(recommendSize(SAMPLE_CHART, h, w, f)), `${h} ${w} ${f}`);

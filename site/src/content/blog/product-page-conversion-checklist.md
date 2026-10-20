@@ -68,7 +68,7 @@ For the wider picture of conversion rate optimization, see [Shopify CRO](/shopif
 
 **What it is:** a fast answer to "will it fit?" for clothing, shoes and anything with sizes.
 
-**Which widget:** the [size guide](/features/size-guide/) adds **Size chart** and **Size recommendation** links by the size picker. The chart switches between cm and inches, and the size finder answers from the height and weight ranges you set for each size; it never guesses. It is on the Starter plan. Setup steps are in the [size guide help guide](/help/size-guide/).
+**Which widget:** the [size guide](/features/size-guide/) adds **Size chart** and **Find my size** links by the size picker. The chart switches between cm and inches, and the size finder asks only the questions you pick and answers from the ranges and sizes you set; it never guesses. It is on the Starter plan. Setup steps are in the [size guide help guide](/help/size-guide/).
 
 ## 9. FAQ and product details
 

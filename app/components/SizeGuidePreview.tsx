@@ -1,10 +1,17 @@
 /** Live preview of the size guide: the links on a product, and the window with the same markup and styles as ucs-size-guide.js. */
 import { useState, type CSSProperties } from "react";
-import { convertCell, OUTLINE_PATH, recommendSize, sizeGuideClass, sizeGuideVars, type Chart, type Fit, type SizeGuideDesign } from "../lib/size-guide";
+import { convertCell, finderAsks, OUTLINE_PATH, recommendSize, sizeGuideClass, sizeGuideVars, type Chart, type Fit, type SizeGuideDesign } from "../lib/size-guide";
 
-export function SizeGuidePreview({ config: c, chartId }: { config: SizeGuideDesign; chartId?: string }) {
+/** `tab`: which part the window opens on (the editor shows the finder while you edit the finder). */
+export function SizeGuidePreview({ config: c, chartId, tab: startTab = "chart" }: { config: SizeGuideDesign; chartId?: string; tab?: "chart" | "rec" }) {
   const chart: Chart | undefined = c.charts.find((x) => x.id === chartId) ?? c.charts[0];
-  const [tab, setTab] = useState<"chart" | "rec">("chart");
+  const [tab, setTab] = useState<"chart" | "rec">(startTab);
+  const [shownFor, setShownFor] = useState(startTab);
+  if (shownFor !== startTab) {
+    setShownFor(startTab);
+    setTab(startTab);
+  }
+  const [usual, setUsual] = useState("");
   const [unit, setUnit] = useState<"cm" | "in" | null>(null);
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -14,13 +21,13 @@ export function SizeGuidePreview({ config: c, chartId }: { config: SizeGuideDesi
   const t = c.text;
   const shownUnit = unit ?? chart.unit;
   const hasChart = chart.rows.length > 0 && chart.columns.length > 0;
-  const hasRec = chart.rec.on && chart.rows.some((r) => r.height.some((x) => x !== null) || r.weight.some((x) => x !== null));
+  const q = finderAsks(chart);
+  const hasRec = chart.rec.on && (q.height || q.weight || q.usual);
   const tabNow = tab === "rec" && hasRec ? "rec" : hasChart ? "chart" : "rec";
-  const usesH = chart.rows.some((r) => r.height.some((x) => x !== null)), usesW = chart.rows.some((r) => r.weight.some((x) => x !== null));
   const find = () => {
     const h = parseFloat(height), w = parseFloat(weight);
-    if ((usesH && !(h > 0)) || (usesW && !(w > 0))) return setAnswer({ text: t.fillIn, ok: false });
-    const r = recommendSize(chart, usesH ? h : null, usesW ? w : null, fit);
+    if (!usual && ((q.height && !(h > 0)) || (q.weight && !(w > 0)))) return setAnswer({ text: t.fillIn, ok: false });
+    const r = recommendSize(chart, q.height && h > 0 ? h : null, q.weight && w > 0 ? w : null, fit, usual || null);
     setAnswer(r ? { text: t.result.replace("{size}", r.size), ok: true } : { text: t.noMatch, ok: false });
   };
   const vars = sizeGuideVars(c) as CSSProperties;
@@ -113,7 +120,22 @@ export function SizeGuidePreview({ config: c, chartId }: { config: SizeGuideDesi
               </div>
             ) : (
               <form className="ucs-sg__form" onSubmit={(e) => (e.preventDefault(), find())}>
+                {q.usual ? (
+                  <label className="ucs-sg__usual">
+                    {t.usual}
+                    <select value={usual} onChange={(e) => setUsual(e.target.value)}>
+                      <option value="">{t.usualPick}</option>
+                      {chart.rec.usual.answers.filter((a) => a.answer && a.size).map((a) => (
+                        <option key={a.answer} value={a.answer}>
+                          {a.answer}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {q.height || q.weight ? (
                 <div className="ucs-sg__row">
+                  {q.height ? (
                   <label>
                     {t.height}
                     <span className="ucs-sg__in">
@@ -124,6 +146,8 @@ export function SizeGuidePreview({ config: c, chartId }: { config: SizeGuideDesi
                       </select>
                     </span>
                   </label>
+                  ) : null}
+                  {q.weight ? (
                   <label>
                     {t.weight}
                     <span className="ucs-sg__in">
@@ -134,7 +158,9 @@ export function SizeGuidePreview({ config: c, chartId }: { config: SizeGuideDesi
                       </select>
                     </span>
                   </label>
+                  ) : null}
                 </div>
+                ) : null}
                 {chart.rec.fit ? (
                   <fieldset className="ucs-sg__fit">
                     <legend>{t.fit}</legend>

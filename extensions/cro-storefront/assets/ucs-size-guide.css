@@ -46,3 +46,4 @@
 .ucs-sg__result.is-ok strong { font-size: 1.15em; }
 .ucs-sg__result.is-bad { color: #b42318; }
 @media (max-width: 560px) { .ucs-sg__chart { grid-template-columns: 1fr; } .ucs-sg__art { max-width: 140px; } .ucs-sg__row { grid-template-columns: 1fr; } }
+.ucs-sg__usual{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:.9em}.ucs-sg__usual select{min-height:42px;padding:0 10px;border:1px solid rgba(0,0,0,.2);border-radius:8px;font:inherit;background:#fff}
