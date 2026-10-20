@@ -1,0 +1,169 @@
+---
+/** /bundles/<recipe>/: one page per bundle type (app/lib/bundle-recipes.ts), copy in lib/recipes.ts. */
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import Shot from "../../components/Shot.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import NotifyCta from "../../components/NotifyCta.astro";
+import { BUNDLE_RECIPES, PLANS, FEATURE_PLAN, cheapestPaid, money, plain, type RecipeKey } from "../../lib/app";
+import { MORE_PAGES, PAGES, featurePath } from "../../lib/pages";
+import { RECIPE_COPY, recipeMeta, recipePath, recipeSlug } from "../../lib/recipes";
+import { faqPage } from "../../lib/schema";
+
+export function getStaticPaths() {
+  return BUNDLE_RECIPES.map((r) => ({ params: { recipe: recipeSlug(r.key) }, props: { key: r.key } }));
+}
+interface Props {
+  key: RecipeKey;
+}
+const { key } = Astro.props;
+const i = BUNDLE_RECIPES.findIndex((r) => r.key === key);
+const r = BUNDLE_RECIPES[i];
+const c = RECIPE_COPY[key];
+const page = recipeMeta(key);
+const title = plain(r.title);
+const crumbs = [
+  { name: "Bundles", href: MORE_PAGES.bundles.path },
+  { name: plain(r.short), href: page.path },
+];
+const plan = PLANS[FEATURE_PLAN.bundles];
+const faq: QA[] = [
+  ...c.faq,
+  {
+    q: "Which plan do I need?",
+    a: `Every bundle type is on the ${plan.name} plan${plan.monthly ? ` (${money(plan.monthly)} a month)` : ""}. The ${PLANS.free.name} plan allows ${PLANS.free.limits.offerSlots} offers on at once; paid plans start at ${money(cheapestPaid.monthly)} a month with unlimited offers. See <a href="/pricing/">pricing</a>.`,
+  },
+  {
+    q: "Does it work with my theme?",
+    a: "Yes, with any Online Store 2.0 theme. The builder can use your theme's own Add to cart button, and your theme's code is never edited.",
+  },
+];
+const others = BUNDLE_RECIPES.filter((x) => x.key !== key);
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+---
+
+<Base page={page} crumbs={crumbs} schema={[faqPage(faq)]}>
+  <section class="page-hero">
+    <div class="wrap rhero">
+      <div>
+        <Crumbs items={crumbs} />
+        <span class="eyebrow">Bundle type {i + 1} of {BUNDLE_RECIPES.length}</span>
+        <h1>{title}</h1>
+        <p class="lead">{plain(r.about)}</p>
+        <dl>
+          <dt>Best for</dt>
+          <dd>{cap(plain(r.best).replace(/^Best for /, ""))}</dd>
+          <dt>Price</dt>
+          <dd>{c.price}</dd>
+          <dt>Where it shows</dt>
+          <dd>{c.where}</dd>
+        </dl>
+        <div class="actions">
+          <InstallButton medium="recipe" campaign={recipeSlug(key)} />
+          <a class="btn ghost" href={PAGES.pricing.path}>See pricing</a>
+        </div>
+      </div>
+      <Shot name={`bundles/${recipeSlug(key)}`} alt={`${title} on a demo store`} caption="On a demo store." eager />
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">How to set it up</h2>
+        <ol class="steps">{c.steps.map((s) => <li>{s}</li>)}</ol>
+        <p class="more"><a class="link" href="/help/bundles/">Step by step help: Bundles →</a></p>
+      </div>
+      <div class="block">
+        <h2 class="h3">In the cart and at checkout</h2>
+        <p>{c.checkout}</p>
+        <h3 class="sub">Example</h3>
+        <p>{c.example}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap">
+      <div class="head center"><h2>Questions about {plain(r.short).toLowerCase()} bundles</h2></div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <h2 class="h3">The other bundle types</h2>
+      <ul class="others">
+        {
+          others.map((o) => (
+            <li>
+              <a class="btn ghost small" href={recipePath(o.key)}>{plain(o.short)}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more">
+        <a class="link" href={MORE_PAGES.bundles.path}>All six side by side</a>{" · "}<a class="link" href="/shopify-bundles/">Shopify bundles app</a>{" · "}<a class="link" href={featurePath("bundles")}>The bundles feature</a>
+      </p>
+    </div>
+  </section>
+  <NotifyCta campaign={`recipe_${recipeSlug(key)}`} />
+</Base>
+
+<style>
+  .rhero {
+    display: grid;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .rhero {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  dl {
+    margin: 20px 0 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+  }
+  dt {
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+    color: #2b2d35;
+  }
+  .actions {
+    margin-top: 24px;
+  }
+  .h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  .sub {
+    font-size: 1rem;
+    margin: 22px 0 8px;
+  }
+  .steps {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 10px;
+  }
+  .grid > .block {
+    min-width: 0;
+  }
+  .more {
+    margin-top: 18px;
+  }
+  .others {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>

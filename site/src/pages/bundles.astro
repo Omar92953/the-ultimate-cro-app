@@ -9,21 +9,12 @@ import NotifyCta from "../components/NotifyCta.astro";
 import { BUNDLE_RECIPES, PLANS, plain } from "../lib/app";
 import { MORE_PAGES, featurePath } from "../lib/pages";
 import { faqPage } from "../lib/schema";
+import { RECIPE_COPY, recipePath, recipeSlug } from "../lib/recipes";
 import type { ArtKind } from "../lib/art";
 
 const page = MORE_PAGES.bundles;
 const crumbs = [{ name: "Bundles", href: page.path }];
-const recipeSlug = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 
-/** How each recipe is priced and where it shows, in plain words. */
-const HOW: Record<string, { price: string; where: string }> = {
-  fbt: { price: "A percentage off when all the items are bought together.", where: "On each item's product page, with Buy all." },
-  kit: { price: "Its own price; Shopify takes each item from stock.", where: "Its own product page, one line in the cart." },
-  mixmatch: { price: "One price for the box, or a percentage off the picks.", where: "The box's product page." },
-  growing: { price: "More off for each extra item: by percent, by amount or a set price.", where: "A product page or its own store page made by the app." },
-  browse: { price: "The bundle's price once every step is filled.", where: "Collection pages (+ Add to bundle), product pages and a tray that follows the shopper." },
-  anyN: { price: "A set price for N items, such as any 3 for $30 or any 6 for $55.", where: "A product page; long collections get Show more and a search box." },
-};
 
 /** Example bundles (made up for the demo store). */
 const GALLERY: { name: string; recipe: string; art: ArtKind; tint?: string; price: string; items: string }[] = [
@@ -75,10 +66,11 @@ const schema = [faqPage(faq)];
               <dt>Best for</dt>
               <dd>{plain(r.best).replace(/^Best for /, "")}</dd>
               <dt>Price</dt>
-              <dd>{HOW[r.key].price}</dd>
+              <dd>{RECIPE_COPY[r.key].price}</dd>
               <dt>Where it shows</dt>
-              <dd>{HOW[r.key].where}</dd>
+              <dd>{RECIPE_COPY[r.key].where}</dd>
             </dl>
+            <p class="rmore"><a class="link" href={recipePath(r.key)}>How to set up {plain(r.short).toLowerCase()} →</a></p>
           </div>
           <Shot name={`bundles/${recipeSlug(r.key)}`} alt={`${plain(r.title)} on a demo store`} />
         </div>
@@ -125,6 +117,9 @@ const schema = [faqPage(faq)];
 </Base>
 
 <style>
+  .rmore {
+    margin-top: 18px;
+  }
   .jump {
     display: flex;
     flex-wrap: wrap;
