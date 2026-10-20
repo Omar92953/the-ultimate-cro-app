@@ -15,6 +15,8 @@ export type ImageCarouselConfig = {
   heading: { show: boolean; text: string; sub: string; align: "left" | "center"; size: number };
   slides: ImageSlide[];
   layout: {
+    /** "row": pictures side by side; "coverflow": the centre picture large in front, the others smaller behind it. */
+    effect: "row" | "coverflow";
     perDesktop: number;
     perMobile: number;
     ratio: "1/1" | "4/5" | "3/4" | "2/3" | "16/9" | "auto";
@@ -42,7 +44,7 @@ export const DEFAULT_IMAGE_CAROUSEL: ImageCarouselConfig = {
   scheme: "",
   heading: { show: true, text: "Shop the look", sub: "", align: "center", size: 28 },
   slides: [],
-  layout: { perDesktop: 4, perMobile: 1, ratio: "4/5", gap: 16, radius: 12, captions: "below", fullWidth: false, paddingTop: 36, paddingBottom: 36 },
+  layout: { effect: "row", perDesktop: 4, perMobile: 1, ratio: "4/5", gap: 16, radius: 12, captions: "below", fullWidth: false, paddingTop: 36, paddingBottom: 36 },
   nav: { mode: "both", arrowSize: 40, autoplay: 0 },
   look: { text: "#121212", overlay: "#000000", titleSize: 16, textSize: 14, buttonBg: "#121212", buttonText: "#ffffff" },
 };
@@ -74,6 +76,7 @@ export function withImageCarouselDefaults(raw: unknown): ImageCarouselConfig {
       return { image: media(s.image), alt: str(s.alt, "", 200), title: str(s.title, "", 120), text: str(s.text, "", 300), link: str(s.link, "", 500), button: str(s.button, "", 40) };
     }),
     layout: {
+      effect: pick(l.effect, ["row", "coverflow"] as const, d.layout.effect),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: num(l.perMobile, 1, 3, d.layout.perMobile),
       ratio: pick(l.ratio, RATIOS.map((x) => x.value), d.layout.ratio),
@@ -128,12 +131,22 @@ export function imageCarouselClass(c: ImageCarouselConfig) {
     "ucs",
     "ucs-ic",
     `ucs-ic--cap-${c.layout.captions}`,
+    c.layout.effect === "coverflow" ? "ucs-ic--flow" : "",
     `ucs-ic--nav-${c.nav.mode}`,
     c.layout.ratio === "auto" ? "ucs-ic--auto" : "",
     c.layout.fullWidth ? "ucs-ic--full" : "",
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/**
+ * Coverflow: how a slide `d` steps away from the centre is drawn (d < 0 left, d > 0 right). It moves toward the
+ * centre so it tucks behind its neighbour, gets smaller and sits further back. Same maths in ucs-image-carousel.js.
+ */
+export function flowStyle(d: number) {
+  const a = Math.min(Math.abs(d), 3.5);
+  return { transform: `translateX(${(-d * 16).toFixed(1)}%) scale(${(1 - a * 0.12).toFixed(3)})`, zIndex: String(10 - Math.round(a * 2)), opacity: a > 3.2 ? "0" : "1" };
 }
 
 /** A Shopify CDN image at a given width (keeps the file's own query string). */

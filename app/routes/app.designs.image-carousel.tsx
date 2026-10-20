@@ -157,9 +157,22 @@ export default function ImageCarouselDesigner() {
             </s-section></Pane>
 
             <Pane show={tab === "design"}><s-section heading="Layout">
+              <Select
+                label="Effect"
+                value={cfg.layout.effect}
+                onValue={(v) => layout({ effect: v as C["layout"]["effect"] })}
+                options={[
+                  { value: "row", label: "Row: pictures side by side" },
+                  { value: "coverflow", label: "Coverflow: one large picture in the centre, the others behind it" },
+                ]}
+              />
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
-                <NumberField label="Per row on phones" min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
+                {cfg.layout.effect === "row" ? (
+                  <>
+                    <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
+                    <NumberField label="Per row on phones" min={1} max={3} step={1} value={cfg.layout.perMobile} onValue={(v) => layout({ perMobile: v })} />
+                  </>
+                ) : null}
                 <Select label="Image shape" value={cfg.layout.ratio} onValue={(v) => layout({ ratio: v as C["layout"]["ratio"] })} options={RATIOS} />
                 <Select
                   label="Title and text"

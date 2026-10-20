@@ -240,6 +240,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     ["Cards with captions", {}],
     ["Text on the pictures", { layout: { captions: "overlay", ratio: "4/5", perDesktop: 3 } }],
     ["Squares, three across", { layout: { ratio: "1/1", perDesktop: 3, radius: 0 }, heading: { text: "Shop by category", align: "left" } }],
+    ["Coverflow", { layout: { effect: "coverflow", ratio: "4/5", captions: "none", radius: 16 }, heading: { text: "Seen on our customers" } }],
   ].map(async ([title, raw]) => ({ title, layout: "page", html: await block("ucs-image-carousel", { shop: shopWith({ designs: { image_carousel: carouselOf(raw) } }) }) })));
 
   const video = (n, h) => ({

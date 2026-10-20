@@ -51,7 +51,9 @@
       (c.h && (c.h.t || c.h.s) ? '<div class="ucs-head">' + (c.h.t ? "<h2>" + esc(c.h.t) + "</h2>" : "") + (c.h.s ? "<p>" + esc(c.h.s) + "</p>" : "") + "</div>" : "") +
       '<div class="ucs-ic__vp">' +
       '<ul class="ucs-ic__track" role="list" tabindex="0" aria-roledescription="carousel" aria-label="' + esc(label) + '">' +
+      (/ucs-ic--flow/.test(c.cls) ? '<li class="ucs-ic__pad" aria-hidden="true"></li>' : "") +
       c.s.map(function (s, i) { return slide(s, i, c.s.length); }).join("") +
+      (/ucs-ic--flow/.test(c.cls) ? '<li class="ucs-ic__pad" aria-hidden="true"></li>' : "") +
       "</ul>" +
       '<button type="button" class="ucs-ic__arrow ucs-ic__arrow--prev" aria-label="Previous">' + CHEV + "</button>" +
       '<button type="button" class="ucs-ic__arrow ucs-ic__arrow--next" aria-label="Next">' + CHEV + "</button>" +
@@ -63,12 +65,13 @@
 
   function wire(root, c) {
     var track = root.querySelector(".ucs-ic__track");
-    var slides = track.children;
+    var slides = track.querySelectorAll(".ucs-ic__slide");
+    track.style.setProperty("--ucs-flow-n", slides.length);
     var prev = root.querySelector(".ucs-ic__arrow--prev");
     var next = root.querySelector(".ucs-ic__arrow--next");
     var dotsBox = root.querySelector(".ucs-ic__dots");
     var step = function () {
-      return slides[0] ? slides[0].getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0) : track.clientWidth;
+      return slides[0] ? slides[0].offsetWidth + parseFloat(getComputedStyle(track).columnGap || 0) : track.clientWidth;
     };
     var pages = function () {
       return Math.max(1, Math.round((track.scrollWidth - track.clientWidth) / step()) + 1);
@@ -98,7 +101,19 @@
       }
       dotsBox.hidden = n < 2;
     }
+    var flow = root.classList.contains("ucs-ic--flow");
+    // Coverflow: each slide is drawn by its distance from the centre (same maths as image-carousel.ts flowStyle).
+    function draw() {
+      var mid = track.scrollLeft + track.clientWidth / 2, w = step();
+      Array.prototype.forEach.call(slides, function (sl) {
+        var d = (sl.offsetLeft + sl.offsetWidth / 2 - mid) / w, a = Math.min(Math.abs(d), 3.5);
+        sl.style.transform = "translateX(" + (-d * 16).toFixed(1) + "%) scale(" + (1 - a * 0.12).toFixed(3) + ")";
+        sl.style.zIndex = String(10 - Math.round(a * 2));
+        sl.style.opacity = a > 3.2 ? "0" : "1";
+      });
+    }
     function update() {
+      if (flow) draw();
       var at = Math.round(track.scrollLeft / step());
       Array.prototype.forEach.call(dotsBox.children, function (d, i) {
         d.setAttribute("aria-current", i === at ? "true" : "false");
