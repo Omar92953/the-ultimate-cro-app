@@ -1,8 +1,8 @@
 ---
 title: "Storefront sections"
-description: "Reviews, logos, FAQ, hero banners, carousels, videos, the quiz, collection pills and the header."
+description: "Reviews, logos, FAQ, carousels, videos, the quiz, collection pills and the header."
 order: 8
-features: ["reviews", "product_reviews", "logos", "faq", "hero", "image_carousel", "videos", "quiz", "collection_pills", "header"]
+features: ["reviews", "product_reviews", "logos", "faq", "image_carousel", "videos", "quiz", "collection_pills", "header"]
 ---
 
 ## How sections work
@@ -16,10 +16,6 @@ Add text, photo and video reviews with their source (WhatsApp, Instagram, TikTok
 ## Logos and FAQ
 
 Logos or short texts scroll in a strip or sit in a grid. FAQ questions are grouped with buttons and a search box; a FAQ copy can show only one group (for example Shipping), have its own heading, and switch Google's FAQ data on or off.
-
-## Hero banners
-
-Make banners in **Section library → Hero banners**: a wide desktop image and a tall phone image, heading, text, up to two buttons, where the text sits (separately for phones), colours and height. In the theme editor add the **Hero image** section and pick a banner. Set **Where on the page** to "Lower down" for banners that aren't at the top, so they load only when scrolled to.
 
 ## Image and video carousels
 

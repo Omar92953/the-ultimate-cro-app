@@ -81,7 +81,7 @@ test("plan, template and size rules refuse in the admin's words", async () => {
   await assert.rejects(tool("set_design").run(ctx("starter"), { feature: "faq", template: "nope" }), /Choose one of: .*cards/);
   await assert.rejects(tool("set_design").run(ctx("starter"), { feature: "faq" }), /template, values, or both/);
   await assert.rejects(tool("set_design").run(ctx("pro"), { feature: "size_guide", values: { charts: Array.from({ length: 9 }, () => ({})) } }), /up to 8 charts/);
-  await assert.rejects(tool("set_design").run(ctx("pro"), { feature: "hero", values: {} }), /can't be built this way yet/);
+  await assert.rejects(tool("set_design").run(ctx("pro"), { feature: "reviews", values: {} }), /can't be built this way yet/);
   await assert.rejects(tool("set_design").run(ctx("pro"), { feature: "not_a_feature", values: {} }), /Unknown feature/);
   assert.ok(!store.has("size_guide_draft"), "a refused call writes nothing");
 });

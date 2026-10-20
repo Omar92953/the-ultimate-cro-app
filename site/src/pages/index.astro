@@ -25,7 +25,7 @@ const STRIP: FeatureKey[] = ["bundles", "upsell", "cross_sell", "cart_offers", "
  * TODO(Omar): send these three app screenshots; until then the closest feature picture (`fallback`) shows.
  *   app/one-menu      the app's Home or menu with Offers, Section library, Tracking & Returns, Cart & Checkout, Analytics (fallback: features/upsell)
  *   app/checkout-price an offer's preview next to the price at checkout (fallback: features/discounts)
- *   app/theme-editor  the theme editor with a CRO Toolbox block being placed (fallback: features/hero)
+ *   app/theme-editor  the theme editor with a CRO Toolbox block being placed (fallback: features/header)
  */
 /** Every kind of offer, grouped like the app's Offers menu, with where each one is explained on the site. */
 const OFFER_GROUPS: { title: string; types: { key: keyof typeof OFFER_TYPES; href: string }[] }[] = [
@@ -69,7 +69,7 @@ const VALUES = [
     title: "Fits your theme, no code",
     text: "Sections and widgets are theme app blocks for any Online Store 2.0 theme. You place them in the theme editor; your theme's code is never edited.",
     shot: "app/theme-editor",
-    fallback: "features/hero",
+    fallback: "features/header",
     alt: "A CRO Toolbox section placed in a store's theme",
   },
 ];

@@ -105,7 +105,6 @@ export const FEATURES = {
   stock: { title: "Back in stock & pre-order", area: "library", group: "product", about: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", tabs: [{ label: "Requests", href: "/app/stock" }, design("/app/designs/stock")] },
   wishlist: { title: "Wishlist", area: "library", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
   // Storefront · sections
-  hero: { title: "Hero banners", area: "library", group: "content", about: "A banner with separate desktop and mobile images.", tabs: [{ label: "Banners", href: "/app/designs/hero" }] },
   image_carousel: { title: "Image carousel", area: "library", group: "content", about: "Pictures that scroll, each with an optional title, text, button and link.", tabs: [design("/app/designs/image-carousel")] },
   videos: { title: "Video carousel", area: "library", group: "content", about: "Shoppable videos, each linked to a product.", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
   faq: { title: "FAQ", area: "library", group: "content", about: "Questions and answers with search and group buttons.", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },

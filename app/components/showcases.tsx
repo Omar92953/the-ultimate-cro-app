@@ -30,7 +30,6 @@ export const SHOWCASES: Partial<Record<FeatureKey, Looks>> = {
   size_guide: [S.SizeGuideShowcase],
   stock: [S.StockShowcase],
   wishlist: [S.WishlistShowcase],
-  hero: [S.HeroShowcase, S.HeroCenteredShowcase],
   image_carousel: [S.ImageCarouselShowcase, S.ImageCarouselOverlayShowcase],
   videos: [S.VideosShowcase, S.VideosLargeShowcase],
   faq: [S.FaqShowcase, S.FaqCardsShowcase],

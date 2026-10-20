@@ -27,8 +27,6 @@ import {
   CrossSellShowcase,
   FaqCardsShowcase,
   FaqShowcase,
-  HeroCenteredShowcase,
-  HeroShowcase,
   LogosGridShowcase,
   LogosOneLineShowcase,
   LogosShowcase,
@@ -189,7 +187,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "hero" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header";
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -207,7 +205,6 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "size_guide", title: "Size guide", description: "Size charts and a size recommendation on the product page, answered from the height and weight ranges you set.", list: null, embed: false, app: "/app/designs/size-guide", cat: "boosters", Previews: [SizeGuideShowcase] },
   { key: "stock", title: "Back in stock & pre-order", description: "“Notify me” on sold-out products, and “Pre-order” on products you still sell when out of stock.", list: null, embed: false, app: "/app/stock", cat: "boosters", Previews: [StockShowcase] },
   { key: "quick_add", title: "Quick add to cart", description: "A button on every product card; sizes open a small picker.", list: null, embed: true, app: "/app/designs/quick-add", cat: "boosters", Previews: [QuickAddShowcase, QuickAddToastShowcase] },
-  { key: "hero", title: "Hero image", description: "A banner with separate desktop and mobile images.", list: null, embed: false, app: "/app/designs/hero", Previews: [HeroShowcase, HeroCenteredShowcase] },
   { key: "addons", title: "Add-ons", description: "Gift wrapping and other extras ticked under Add to cart, plus a gift message.", list: null, embed: false, app: "/app/offers/add-ons", cat: "offers", Previews: [AddonsShowcase, AddonsCardsShowcase] },
   { key: "shipping_bar", title: "Free shipping bar", description: "Shows how much more to spend for free shipping, in the cart and at the top of the store.", list: null, embed: false, app: "/app/designs/shipping-bar", cat: "boosters", Previews: [ShippingBarCartShowcase, ShippingBarShowcase, ShippingBarCardShowcase] },
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
@@ -428,7 +425,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
             open: manage ? { href: manage } : { href: c.embed ? themeHref : data.links.editor, external: true },
             previews: c.Previews,
             menu: [
-              ...(manage ? [{ label: c.key === "hero" ? "Banners" : c.app ? "Style" : "Manage", href: manage }] : []),
+              ...(manage ? [{ label: c.app ? "Style" : "Manage", href: manage }] : []),
               ...(c.list && SECTIONS[c.list].design ? [{ label: "Style", href: SECTIONS[c.list].design! }] : []),
               ...(c.list && counts?.total ? [{ label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }] : []),
               { ...editor(themeHref, inTheme), ...(c.embed && !inTheme ? { label: "Turn on in theme" } : {}) },
