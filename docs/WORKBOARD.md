@@ -83,6 +83,7 @@ Updated 2026-10-19.
       profile URL into `PROFILES` in `site/src/lib/site.ts`
 - [x] Articles (finish-website-cloud §5), 1 of 4: upsell vs cross sell, bundle ideas by industry, free shipping threshold maths
 - [x] Articles (finish-website-cloud §5), 2 of 4: post purchase upsell examples, thank you page ideas, A/B testing offers
+- [x] Articles (finish-website-cloud §5), 3 of 4: return policy template, order tracking page that sells, store credit vs refunds
 - [x] Articles (finish-website-cloud §5), 4 of 4: raise AOV in 30 days, free gift with purchase, product page conversion checklist
 - [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
       `docs/research/geo-checks.md`) and add the columns
