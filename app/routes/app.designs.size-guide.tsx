@@ -21,7 +21,7 @@ import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
 import {
-  applyFinderStarter, applySizeGuidePreset, FINDER_STARTERS, MAX_CHARTS, MAX_COLUMNS, MAX_ROWS, MAX_USUAL, OUTLINE_LABEL, OUTLINES, SAMPLE_CHART,
+  applyFinderStarter, applySizeGuidePreset, FINDER_STARTERS, MAX_CHARTS, MAX_USUAL, OUTLINE_LABEL, OUTLINES, SAMPLE_CHART,
   SIZE_GUIDE_PRESETS, SIZE_GUIDE_SIZES, usualFromSizes, withSizeGuideDefaults, type Chart, type SizeGuideDesign, type SizeRow, type UsualAnswer,
 } from "../lib/size-guide";
 import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
@@ -34,6 +34,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
+import { SizeChartTable } from "../components/SizeChartTable";
 import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -104,10 +105,6 @@ export default function SizeGuideDesigner() {
     setCfg((c) => ({ ...c, charts: c.charts.filter((_, i) => i !== index) }));
     setAt(0);
   };
-  const addColumn = () => chart && chart.columns.length < MAX_COLUMNS && setChart({ columns: [...chart.columns, `Column ${chart.columns.length + 1}`], rows: chart.rows.map((r) => ({ ...r, values: [...r.values, ""] })) });
-  const removeColumn = (i: number) => chart && setChart({ columns: chart.columns.filter((_, j) => j !== i), rows: chart.rows.map((r) => ({ ...r, values: r.values.filter((_, j) => j !== i) })) });
-  const addRow = () => chart && chart.rows.length < MAX_ROWS && setChart({ rows: [...chart.rows, { size: "", values: chart.columns.map(() => ""), height: [null, null], weight: [null, null] }] });
-  const removeRow = (i: number) => chart && setChart({ rows: chart.rows.filter((_, j) => j !== i) });
 
   async function pick(type: "product" | "collection") {
     if (!chart) return;
@@ -193,46 +190,7 @@ export default function SizeGuideDesigner() {
                     <s-section heading="Sizes and measurements">
                       <s-stack gap="base">
                         <s-text color="subdued">One column per measurement (Chest, Waist, Inseam). Type ranges like “86 to 91”. The height and weight of each size are set in Size finder.</s-text>
-                        <s-stack gap="small-200">
-                          <s-text type="strong">Columns</s-text>
-                          <s-stack direction="inline" gap="small-200">
-                            {chart.columns.map((col, i) => (
-                              <s-stack key={i} direction="inline" gap="small-100" alignItems="end">
-                                <TextField label={`Column ${i + 1}`} value={col} maxLength={30} onValue={(v) => setChart({ columns: chart.columns.map((x, j) => (j === i ? v : x)) })} />
-                                <Button variant="tertiary" accessibilityLabel={`Remove ${col}`} onClick={() => removeColumn(i)}>
-                                  Remove
-                                </Button>
-                              </s-stack>
-                            ))}
-                            {chart.columns.length < MAX_COLUMNS ? (
-                              <Button variant="tertiary" onClick={addColumn}>
-                                Add a column
-                              </Button>
-                            ) : null}
-                          </s-stack>
-                        </s-stack>
-                        {chart.rows.map((r, i) => (
-                          <s-box key={i} padding="small-200" borderWidth="base" borderRadius="base">
-                            <s-stack gap="small-200">
-                              <s-grid gridTemplateColumns={`repeat(${Math.max(1, chart.columns.length) + 1}, minmax(90px, 1fr))`} gap="small-200">
-                                <TextField label="Size" value={r.size} maxLength={20} onValue={(v) => setRow(i, { size: v })} />
-                                {chart.columns.map((col, j) => (
-                                  <TextField key={j} label={col || `Column ${j + 1}`} value={r.values[j] ?? ""} maxLength={30} onValue={(v) => setRow(i, { values: r.values.map((x, k) => (k === j ? v : x)) })} />
-                                ))}
-                              </s-grid>
-                              <s-stack direction="inline">
-                                <Button variant="tertiary" tone="critical" onClick={() => removeRow(i)}>
-                                  Remove size {r.size}
-                                </Button>
-                              </s-stack>
-                            </s-stack>
-                          </s-box>
-                        ))}
-                        {chart.rows.length < MAX_ROWS ? (
-                          <s-stack direction="inline">
-                            <Button onClick={addRow}>Add a size</Button>
-                          </s-stack>
-                        ) : null}
+                        <SizeChartTable chart={chart} setChart={setChart} />
                       </s-stack>
                     </s-section>
                     <s-section heading="Which products">

@@ -60,7 +60,8 @@ function useProp(ref: React.RefObject<any>, name: string, value: unknown) {
 
 type Common = { label: string; details?: string; error?: string; disabled?: boolean };
 
-export function TextField(props: Common & { value: string; onValue: (v: string) => void; placeholder?: string; maxLength?: number }) {
+/** `labelHidden`: the label is read by screen readers only (cells of a table whose header already names them). */
+export function TextField(props: Common & { value: string; onValue: (v: string) => void; placeholder?: string; maxLength?: number; labelHidden?: boolean }) {
   const ref = useRef<any>(null);
   useProp(ref, "defaultValue", props.value);
   useProp(ref, "value", props.value);
@@ -70,6 +71,7 @@ export function TextField(props: Common & { value: string; onValue: (v: string) 
     <s-text-field
       ref={ref}
       label={props.label}
+      labelAccessibilityVisibility={props.labelHidden ? "exclusive" : undefined}
       details={props.details}
       error={props.error}
       placeholder={props.placeholder}
