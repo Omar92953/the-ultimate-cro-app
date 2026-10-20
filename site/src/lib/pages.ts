@@ -58,6 +58,14 @@ export const PAGES = {
     ogTitle: "About CRO Toolbox",
     ogKicker: "About",
   },
+  changelog: {
+    slug: "changelog",
+    path: "/changelog/",
+    title: "Changelog: what's new in CRO Toolbox",
+    description: "What changed in the CRO Toolbox Shopify app, newest first: new sections, Track page and returns features, editors and plans, in plain words with dates.",
+    ogTitle: "What's new in CRO Toolbox",
+    ogKicker: "Changelog",
+  },
   privacy: {
     slug: "privacy",
     path: "/privacy/",

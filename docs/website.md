@@ -31,7 +31,13 @@ npm --prefix site run build                                 # must pass before m
 npm --prefix demos ci && npm --prefix demos run build       # demos only, into demos/dist/demo (fails if out of sync, see below)
 npm --prefix demos run preview                              # http://localhost:4322/demo/upsell/ etc.
 python3 -m http.server -d site/dist 4323                    # the website with the demos, after the site build: http://localhost:4323/demo/upsell/
+
+# After the site build: checks on the built pages (both exit 1 on a problem)
+node site/scripts/check-pages.mjs --all-links "/shopify-upsell-app/=shopify upsell app"   # one h1, keyword in title and description, JSON-LD, links, dashes
+node site/scripts/check-a11y.mjs                                                         # alt text, headings in order, link and button names, labels, contrast
 ```
+
+Add a line to `site/src/lib/changelog.ts` (shown on `/changelog/`) when an app change merges.
 
 The demo build needs Node 22.18 or newer (it loads the app's TypeScript files directly).
 
