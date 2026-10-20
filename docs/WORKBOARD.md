@@ -92,6 +92,18 @@ Updated 2026-10-19.
       none (CRO sections, size guide, return saving, A/B tests); product pictures on the website sized for photos
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
+## Later, in Omar's exact words when we get there (2026-10-20)
+
+- [ ] Website: let visitors try the features on the website as if it were a real store. Leave until the end;
+      Omar will describe exactly how he wants it before anyone builds it.
+- [ ] Listing screenshots must include the Track page (live carrier tracking, offers, next order code, buy again)
+      and the Returns page (exchange, store credit with bonus, refund). Proposed set of 6: bundles, upsells, cart,
+      after purchase + thank you, Track page, Returns page (waiting for Omar's OK; replaces "delivery and stock" and
+      "sections" from PR #231). No carrier counts on the images (listing rule: no stats); the website may say
+      17TRACK covers 2,800+ carriers, credited to 17TRACK.
+- [ ] Idea (Omar): on Returns, offer a discount code as well as store credit with bonus. Credit bonus and
+      exchanges exist (app/lib/return-rules.ts); a discount code option doesn't yet.
+
 ## Omar (outside the code)
 
 - [x] Buy crotoolbox.com at Cloudflare Registrar, connect Cloudflare Pages to the repo
