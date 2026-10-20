@@ -96,6 +96,8 @@ export function createEngine(Liquid, { ext = EXT, locale = readLocale(ext), mone
     },
     placeholder_svg_tag: (name, cls) => `<svg class="${cls}" viewBox="0 0 525 300" xmlns="http://www.w3.org/2000/svg"><rect width="525" height="300"/></svg>`,
     asset_url: (name) => `assets/${name}`,
+    stylesheet_tag: (url) => `<link href="${url}" rel="stylesheet" type="text/css" media="all" />`,
+    metafield_tag: (m) => String(m?.value ?? m ?? ""),
     default_errors: (e) => `<ul><li>${e}</li></ul>`,
     payment_type_svg_tag: (type, ...args) =>
       `<svg class="${named(args).class ?? ""}" viewBox="0 0 38 24" role="img" aria-label="${type}"><rect width="38" height="24" rx="3" fill="#fff" stroke="#ccc"/><text x="19" y="15" font-size="7" text-anchor="middle" font-family="Arial" font-weight="700">${String(type).toUpperCase()}</text></svg>`,

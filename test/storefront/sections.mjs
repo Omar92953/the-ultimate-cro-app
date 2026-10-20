@@ -379,6 +379,26 @@ pages["quiz.html"] = page("Product quiz", quizFake + (await block("ucs-quiz", {}
 const xpShop = withDesign(mo("experiment", { config: { on: true, holdout: 10, since: "2026-10-11T00:00:00Z" } }));
 pages["holdout.html"] = page("Holdout test", '<script>try{localStorage.setItem("ucs-xp-2026-10-11T00:00:00Z","holdout")}catch(e){}window.__calls=[];const hf=window.fetch;window.fetch=(u,o)=>{window.__calls.push(String(u)+(o&&o.body?" "+o.body:""));return Promise.resolve(new Response(JSON.stringify({attributes:{}})))};</script><div class="ucs" style="margin:24px 40px">An app widget</div>', await block("ucs-boosters", {}, { shop: xpShop }));
 
+// CRO sections: one shared block, each kind with its default design; the pop up through the boosters embed.
+{
+  const { BLOCK_KINDS, defaultSec, toStorefrontSec, withSecDefaults } = await import("../../app/lib/cro-sections.ts");
+  const img = (seed) => ({ id: `gid://shopify/MediaImage/${seed}`, url: `https://picsum.photos/seed/${seed}/1200/800`, kind: "image", title: seed });
+  const extra = {
+    product_tabs: { content: { ...defaultSec("product_tabs").content, tabs: [{ title: "Care", text: "Wash cold.", mf: "custom.care" }, { title: "Shipping", text: "Ships in 2 days.", mf: "" }] } },
+    before_after: { content: { ...defaultSec("before_after").content, before: img("b1"), after: img("a1") } },
+    shoppable: { content: { ...defaultSec("shoppable").content, image: img("look"), spots: [{ x: 30, y: 40, id: "1", handle: "classic-watch", title: "Classic watch", image: null, price: 12900, variant: "gid://shopify/ProductVariant/7701", variants: 3 }] } },
+  };
+  const designs = BLOCK_KINDS.map((k) => mo(k, { config: toStorefrontSec(withSecDefaults(k, { ...defaultSec(k), ...extra[k] })) }));
+  const popup = mo("email_popup", { config: toStorefrontSec(withSecDefaults("email_popup", { ...defaultSec("email_popup"), content: { ...defaultSec("email_popup").content, on: true, show: { delay: 0, scroll: 0, exit: false, pages: "all", every: 7 } } })) });
+  const secShop = { ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values, ...designs, popup]) } };
+  const tee = { id: 90, title: "Classic tee", handle: "classic-tee", description: "<p>Soft cotton tee.</p>", metafields: { custom: { care: { value: "<p>Wash at 30.</p>" } } }, variants: [] };
+  const fake = `<script>try{localStorage.setItem("ucs-rv",JSON.stringify(["classic-watch","classic-tee"]))}catch(e){}window.__subs=[];const sf=window.fetch;window.fetch=(u,o)=>{u=String(u);if(u.includes("apps/ucro/subscribe")){window.__subs.push(o.body);return Promise.resolve(new Response(JSON.stringify({ok:true,code:"WELCOME-TEST1"})))}if(u.includes("/products/"))return Promise.resolve(new Response(JSON.stringify({handle:"classic-watch",title:"Classic watch",available:true,featured_image:null,variants:[{id:7701,price:12900,available:true}]})));return sf(u,o)};</script>`;
+  let body = fake + '<link rel="stylesheet" href="assets/ucs-sec.css">';
+  for (const k of BLOCK_KINDS) body += label(`CRO section: ${k}`) + (await block("ucs-section", { kind: k }, { page_type: "product", product: tee, shop: secShop }));
+  body += label("CRO section not designed yet (theme editor note)") + (await block("ucs-section", { kind: "guarantee" }, { design: true, shop }));
+  pages["cro-sections.html"] = page("CRO sections", body, await block("ucs-boosters", {}, { page_type: "index", shop: secShop }));
+}
+
 for (const [file, html] of Object.entries(pages)) fs.writeFileSync(path.join(out, file), html);
 
 // ---------------------------------------------------------------- checks --
@@ -419,6 +439,16 @@ check((idx.match(/class="ucs-faq__item"/g) || []).length === 4, "FAQ should show
 check(pages["holdout.html"].includes("data-cro-group"), "holdout script should render when the test is on");
 check(pages["deals.html"].includes("ucs-deals.js") && !pages["boosters.html"].includes("ucs-deals.js"), "deals script should load only when the shop has deals");
 check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "product collection ids should reach the deals script");
+{
+  const cro = pages["cro-sections.html"];
+  for (const k of ["compare_table", "benefits", "product_tabs", "guarantee", "before_after", "shoppable", "recently_viewed", "how_it_works"]) {
+    check(cro.includes(`data-ucs-sec="${k}"`) && cro.includes(`assets/ucs-sec-${k}.js`), `CRO section ${k} not rendered or its script not loaded`);
+  }
+  check(cro.includes('<template data-t="desc"><p>Soft cotton tee.</p></template>') && cro.includes('data-t="custom.care"><p>Wash at 30.</p>'), "product tabs: description or metafield template missing");
+  check(cro.includes('data-ucs-sec="email_popup"') && cro.includes("ucs-sec-email_popup.js"), "email pop up not loaded by the boosters embed");
+  check(!pages["index.html"].includes("ucs-sec-email_popup.js"), "email pop up must not load when it is off");
+  check(cro.includes("Design this section in the app first"), "CRO section: empty note missing in the theme editor");
+}
 if (problems.length) {
   console.error("✗ sections harness:\n  " + problems.join("\n  "));
   process.exit(1);
