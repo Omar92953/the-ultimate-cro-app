@@ -61,6 +61,8 @@ Updated 2026-10-19.
 - [x] Search visibility (finish-website-cloud §1, #218): sitemap `<lastmod>`, IndexNow also on app file changes,
       www and pages.dev copies noindex, 404 without canonical, `/about/`, Organization contact and `sameAs`;
       log in `docs/research/search-visibility.md`, checklist in `docs/website.md` ("Search engines beyond Google")
+- [x] A page per bundle recipe (`/bundles/<recipe>/`, copy in `site/src/lib/recipes.ts`), every plan limit in the
+      pricing table, pricing FAQ on upgrading and cancelling (finish-website-cloud §3, #221)
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
