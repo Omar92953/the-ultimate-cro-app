@@ -106,6 +106,7 @@ export const FEATURES = {
   wishlist: { title: "Wishlist", area: "library", group: "product", about: "Hearts on products and cards, a wishlist page with “price dropped” badges and a share link.", tabs: [design("/app/designs/wishlist")] },
   // Storefront · sections
   image_carousel: { title: "Image carousel", area: "library", group: "content", about: "Pictures that scroll, each with an optional title, text, button and link.", tabs: [design("/app/designs/image-carousel")] },
+  coverflow: { title: "Image carousel 2", area: "library", group: "content", about: "A coverflow: one large picture in the centre, the others smaller behind it, turning as shoppers swipe.", tabs: [design("/app/designs/image-carousel-2")] },
   videos: { title: "Video carousel", area: "library", group: "content", about: "Shoppable videos, each linked to a product.", tabs: [{ label: "Videos", href: "/app/videos" }, design("/app/designs/video-carousel")] },
   faq: { title: "FAQ", area: "library", group: "content", about: "Questions and answers with search and group buttons.", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },
   quiz: { title: "Product quiz", area: "library", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },

@@ -379,6 +379,7 @@ export function sectionLinks(shop: string, pages: { trackHandle?: string; return
     editor: base,
     boosters: embed("ucs-boosters"),
     image_carousel: block("ucs-image-carousel"),
+    coverflow: block("ucs-coverflow"),
     addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
     header: headerBlock("ucs-header"),
     collection_pills: block("ucs-collection-pills", "collection"),

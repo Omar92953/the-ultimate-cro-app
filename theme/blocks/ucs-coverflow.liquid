@@ -1,0 +1,29 @@
+{%- comment -%}
+  App block: Image carousel 2, a coverflow (one large picture in the centre, the others behind it). Images,
+  texts, sizes and arrows are set in the app (Section library → Image carousel 2), stored in
+  $app:cro_design "coverflow"; ucs-image-carousel.js builds it (the same script as Image carousel).
+{%- endcomment -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: 'coverflow', pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
+{%- if c.s.size > 0 -%}
+  <div class="ucs ucs-ic" data-ucs-ic {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script></div>
+  <script src="{{ 'ucs-image-carousel.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+  <p class="ucs-note">{{ 'ucs.ic2_empty' | t }}</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Image carousel 2",
+  "target": "section",
+  "stylesheet": "ucs-sections.css",
+  "settings": [
+    { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
+      { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }
+    ] },
+    { "type": "paragraph", "content": "Images, texts, sizes and arrows are set in the app: Section library → Image carousel 2." }
+  ]
+}
+{% endschema %}

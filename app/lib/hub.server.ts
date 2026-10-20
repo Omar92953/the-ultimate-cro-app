@@ -53,8 +53,9 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     getThankYou(admin).catch(() => null),
     getPostPurchase(admin).catch(() => null),
     savedSecs(admin).catch(() => [] as SecKind[]),
+    getImageCarousel(admin, "coverflow").catch(() => null),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, header, checkout, thankYou, postPurchase, secSaved]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, header, checkout, thankYou, postPurchase, secSaved, coverflow]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -81,6 +82,7 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     secSaved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
+    coverflowImages: coverflow ? coverflow.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,
     // Reviews written on the store, waiting for the merchant's approval.
     pendingReviews: settled(lists[SECTION_KINDS.indexOf("reviews")], []).filter((it) => it.values.pending === true).length,

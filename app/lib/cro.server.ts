@@ -1336,6 +1336,7 @@ export const BLOCKS = {
   countdown_bar: "ucs-countdown-bar",
   boosters: "ucs-boosters",
   image_carousel: "ucs-image-carousel",
+  coverflow: "ucs-coverflow",
   addons: "ucs-addons",
   header: "ucs-header",
   stock: "ucs-stock",

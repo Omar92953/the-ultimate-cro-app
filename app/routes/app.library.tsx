@@ -83,6 +83,7 @@ import {
   RecentlyViewedShowcase,
   HowItWorksShowcase,
   EmailPopupShowcase,
+  CoverflowShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { GroupTitle, Segmented } from "../components/ui";
@@ -197,7 +198,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header" | SecKind;
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header" | "coverflow" | SecKind;
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -220,6 +221,7 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "header", title: "Header", description: "Your store's header, designed in the app: logo, menu with dropdowns or mega menus, search, cart and glass looks.", list: null, embed: false, app: "/app/designs/header", Previews: [HeaderGlassShowcase, HeaderRoundedShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
+  { key: "coverflow", title: "Image carousel 2", description: "", list: null, embed: false, app: "/app/designs/image-carousel-2", Previews: [CoverflowShowcase] },
   // Sections that sell (lib/cro-sections.ts): one shared theme block, a design page each.
   { key: "compare_table", title: "Comparison table", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("compare_table")}`, Previews: [CompareTableShowcase] },
   { key: "benefits", title: "Benefits row", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("benefits")}`, Previews: [BenefitsShowcase] },
@@ -419,10 +421,11 @@ export function FeatureHub({ area, top, hub, active }: { area: AreaKey; top?: Re
           else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
           else if (sec && !data.secSaved.includes(sec)) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Design it", href: c.app! }];
           else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
+          else if (c.key === "coverflow" && !data.coverflowImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
           else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];
           else if (inTheme === null && !c.list) status = { tone: "neutral", text: "Set up in theme editor" };
-          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : c.key === "addons" ? `Live · ${plural(data.addonCount, "add-on")}` : c.key === "collection_pills" ? `Live · ${plural(data.pillCount, "collection")}` : "Live" };
+          else status = { tone: "success", text: c.list && counts ? `Live · ${counts.shown} shown` : c.key === "image_carousel" ? `Live · ${data.carouselImages} images` : c.key === "coverflow" ? `Live · ${data.coverflowImages} images` : c.key === "addons" ? `Live · ${plural(data.addonCount, "add-on")}` : c.key === "collection_pills" ? `Live · ${plural(data.pillCount, "collection")}` : "Live" };
           add({
             key: c.key,
             cat: c.cat ?? "sections",
