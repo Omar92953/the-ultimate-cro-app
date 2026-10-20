@@ -34,7 +34,7 @@ graphql-codegen, build:theme, test:storefront, test:functions, site build, `shop
 ### Left before submitting (Omar, Partner Dashboard)
 - [ ] Feature image + 6 screenshots in the approved style (`branding/listing/`), after the demos show real products.
 - [ ] Screencast URL (3 to 8 minutes, English, setup + every core feature).
-- [ ] AI self review: "Mark as done" (this report).
+- [ ] AI self review: re-run this audit after the CRO sections PRs merge (Omar, 2026-10-20), then "Mark as done".
 - [ ] Automated check, then Submit for review.
 - Coming: the CRO sections work adds `write_customers` (email pop up). Re-run this audit and update the
   protected customer data form before submitting if it lands first.
