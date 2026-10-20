@@ -66,3 +66,4 @@ Design system for the feature image and screenshots: `branding/listing/README.md
 
 Short messages, often screenshots. Explain plainly, say exactly what to click, one command at a time.
 He likes you to do things yourself ("do it yourself") and to test in the browser before reporting.
+Ask questions as plain text he can answer freely, never as boxes with prebuilt answer buttons (Omar, 2026-10-20).

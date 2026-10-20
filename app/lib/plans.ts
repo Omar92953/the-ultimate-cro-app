@@ -77,7 +77,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 0,
     trialDays: 0,
     limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: 50 },
-    highlights: ["3 offers on at once", "Cart offers and announcement bars", "Reviews, FAQ and wishlist", "3 checkout rules", "Try 1 Starter feature free"],
+    highlights: ["3 offers on at once", "Cart offers and announcement bars", "Reviews, FAQ and wishlist", "Sales pop-ups and trust badges", "After purchase offer and thank you", "3 checkout rules", "Try 1 Starter feature free"],
   },
   starter: {
     key: "starter",
@@ -100,7 +100,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Your tracking page sells too"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Track order and Returns pages", "Your tracking page sells too", "Shoppable images"],
   },
   pro: {
     key: "pro",
@@ -112,7 +112,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
     badge: "No limits",
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Return saving rules", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Store credit and exchanges on returns", "Auto approve returns by rule", "Restock returned items", "Track page offer slots", "Priority support"],
   },
 };
 

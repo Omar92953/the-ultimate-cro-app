@@ -101,6 +101,8 @@ Updated 2026-10-19.
       after purchase + thank you, Track page, Returns page (waiting for Omar's OK; replaces "delivery and stock" and
       "sections" from PR #231). No carrier counts on the images (listing rule: no stats); the website may say
       17TRACK covers 2,800+ carriers, credited to 17TRACK.
+- [ ] Website home "tour" strip (scrolling feature cards): the small widget pictures don't look like the app's real
+      widgets. Make them match (real designs from the demos), after the app is finished and submitted (Omar, 2026-10-20).
 - [ ] Idea (Omar): on Returns, offer a discount code as well as store credit with bonus. Credit bonus and
       exchanges exist (app/lib/return-rules.ts); a discount code option doesn't yet.
 

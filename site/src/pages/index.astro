@@ -34,6 +34,19 @@ const OFFER_GROUPS: { title: string; types: { key: keyof typeof OFFER_TYPES; hre
   { title: "Cross sell", types: [{ key: "cross_sell", href: featurePath("cross_sell") }] },
   { title: "Discounts", types: [{ key: "bogo", href: featurePath("discounts") }, { key: "volume", href: featurePath("discounts") }, { key: "gift", href: featurePath("discounts") }] },
 ];
+/** One line per offer type for the home page (the feature pages keep the full text from offer-types.ts). */
+const OFFER_SHORT: Partial<Record<keyof typeof OFFER_TYPES, string>> = {
+  upsell: '"Buy 2, save 10%" or a bigger size.',
+  upgrade: "A better option in place of the one chosen.",
+  post_purchase: "One click offer right after payment.",
+  fixed: "Chosen products sold together at a discount.",
+  kit: "A set sold as its own product.",
+  bundle: "Shoppers build a set at one price.",
+  cross_sell: '"Pairs well with" products, added in one click.',
+  bogo: "Buy some, get others free or discounted.",
+  volume: "The more they buy, the bigger the discount.",
+  gift: "A free gift once the cart reaches an amount.",
+};
 const offerCount = OFFER_GROUPS.reduce((n, g) => n + g.types.length, 0);
 const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
@@ -207,7 +220,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
         <h2>{COUNT_WORDS[offerCount] ? COUNT_WORDS[offerCount][0].toUpperCase() + COUNT_WORDS[offerCount].slice(1) : offerCount} kinds of offers, all on the {free.name} plan</h2>
         <p class="lead">Upsells, bundles, cross sells and discounts are included on every plan, within your plan's offer slots. Prices and discounts are applied at checkout by Shopify.</p>
       </div>
-      <div class="ogroups">
+      <div class="ogroups" style={`--orows: ${1 + Math.max(...OFFER_GROUPS.map((g) => g.types.length))}`}>
         {
           OFFER_GROUPS.map((g) => (
             <div class="ogroup">
@@ -217,7 +230,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
                   <li>
                     <a class="otype" href={t.href}>
                       <b>{plain(OFFER_TYPES[t.key].title)}</b>
-                      <span class="muted">{plain(OFFER_TYPES[t.key].about)}</span>
+                      <span class="muted">{OFFER_SHORT[t.key] ?? plain(OFFER_TYPES[t.key].about)}</span>
                     </a>
                   </li>
                 ))}
@@ -479,10 +492,20 @@ const schema = [organization(), website(), softwareApplication(page.description)
       column-gap: 48px;
     }
   }
-  @media (min-width: 1100px) {
+  @media (min-width: 980px) {
     .ogroups {
       grid-template-columns: repeat(4, 1fr);
-      column-gap: 36px;
+      column-gap: 32px;
+      row-gap: 0;
+    }
+    /* The four groups share rows (title, then one row per offer type), so offers line up across the columns. */
+    .ogroup {
+      display: grid;
+      grid-row: span var(--orows);
+      grid-template-rows: subgrid;
+    }
+    .ogroup ul {
+      display: contents;
     }
   }
   .ogroup h3 {
@@ -526,13 +549,15 @@ const schema = [organization(), website(), softwareApplication(page.description)
       column-gap: 48px;
     }
   }
+  /* Wide screens: Offers beside the Section library (2 columns wide, its list in 3 columns), then Tracking &
+     Returns, Cart & Checkout and Analytics on one row. */
   @media (min-width: 900px) {
-    .area-storefront {
+    .area-library {
       grid-column: span 2;
     }
-    .area-storefront .flist {
-      grid-template-columns: 1fr 1fr;
-      column-gap: 48px;
+    .area-library .flist {
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 32px;
     }
   }
   .area {

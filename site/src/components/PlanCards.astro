@@ -12,6 +12,7 @@ interface Props {
 const { medium, campaign } = Astro.props;
 const best = Math.max(...plans.map(yearlySaving));
 const id = `billing-${campaign}`;
+const ticks = Math.max(...plans.map((p) => p.highlights.length));
 ---
 
 <div class="plans">
@@ -22,21 +23,23 @@ const id = `billing-${campaign}`;
     <label for={`${id}-y`}>Yearly <span class="save">Save up to {best}%</span></label>
   </div>
 
-  <div class="cards">
+  <div class="cards" style={`--ticks: ${ticks}`}>
     {
       plans.map((p) => (
         <article class:list={["plan", { featured: p.badge }]}>
           {p.badge && <span class="badge">{p.badge}</span>}
           <h3>{p.name}</h3>
           <p class="job">{plain(p.job)}</p>
-          <div class="price m">
-            <b>{money(p.monthly)}</b>
-            <span>{p.monthly ? "/ month" : "forever"}</span>
-          </div>
-          <div class="price y">
-            <b>{money(p.yearly)}</b>
-            <span>{p.yearly ? "/ year" : "forever"}</span>
-            {p.yearly > 0 && <em>Save {yearlySaving(p)}%</em>}
+          <div class="prices">
+            <div class="price m">
+              <b>{money(p.monthly)}</b>
+              <span>{p.monthly ? "/ month" : "forever"}</span>
+            </div>
+            <div class="price y">
+              <b>{money(p.yearly)}</b>
+              <span>{p.yearly ? "/ year" : "forever"}</span>
+              {p.yearly > 0 && <em>Save {yearlySaving(p)}%</em>}
+            </div>
           </div>
           <p class="orders">{ordersText(p)}</p>
           <p class="trial">{p.trialDays ? `${p.trialDays} day free trial` : "No card needed"}</p>
@@ -110,13 +113,21 @@ const id = `billing-${campaign}`;
       grid-template-columns: repeat(4, 1fr);
     }
   }
+  /* Every card shares the same rows (name, job, price, orders, trial, one row per tick, button), so prices, order
+     lines and each tick line up across the cards. Every plan has the same number of ticks (plans.ts highlights). */
   .plan {
     position: relative;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-row: span calc(6 + var(--ticks));
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-content: start;
     background: #fff;
     border-radius: var(--radius);
     padding: 28px 24px 24px;
+  }
+  .plan > :global(.btn) {
+    align-self: end;
   }
   .badge {
     position: absolute;
@@ -133,7 +144,6 @@ const id = `billing-${campaign}`;
     color: var(--muted);
     font-size: 0.93rem;
     margin: 8px 0 18px;
-    min-height: 3em;
   }
   .price {
     display: flex;
@@ -177,8 +187,17 @@ const id = `billing-${campaign}`;
   }
   .check-list {
     font-size: 0.95rem;
-    margin-bottom: 24px;
-    flex: 1;
+    margin: 0 0 24px;
+    display: grid;
+    grid-row: span var(--ticks);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .check-list li {
+    padding-block: 5px;
+  }
+  .check-list li::before {
+    top: calc(5px + 0.3em);
   }
   .plan :global(.btn) {
     width: 100%;
