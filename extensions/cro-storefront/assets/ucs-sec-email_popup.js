@@ -85,6 +85,8 @@
     var shown = false, box, before;
     function close() {
       if (!box) return;
+      // In the theme editor the pop up opens on every page; once closed it stays closed for this browser session.
+      if (ctx.design) try { sessionStorage.setItem(KEY, '1'); } catch (e) { /* storage off */ }
       box.classList.remove('is-open');
       setTimeout(function () { if (box) box.remove(); box = null; }, 250);
       document.removeEventListener('keydown', key);
@@ -110,7 +112,11 @@
       document.addEventListener('keydown', key);
       requestAnimationFrame(function () { box.classList.add('is-open'); var i = box.querySelector('input[type=email]'); if (i && c.l.style !== 'bar') i.focus({ preventScroll: true }); });
     }
-    if (ctx.design || (!sh.delay && !sh.scroll && !sh.exit)) return show();
+    if (ctx.design) {
+      try { if (sessionStorage.getItem(KEY)) return; } catch (e) { /* storage off */ }
+      return show();
+    }
+    if (!sh.delay && !sh.scroll && !sh.exit) return show();
     if (sh.delay) setTimeout(show, sh.delay * 1000);
     if (sh.scroll) window.addEventListener('scroll', function on() {
       var h = document.documentElement.scrollHeight - window.innerHeight;

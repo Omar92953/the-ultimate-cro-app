@@ -38,7 +38,14 @@ Updated 2026-10-19.
 - [x] One shared block `ucs-section` (29 of 30 blocks, 93.2 KB Liquid) and 9 sections: comparison table, benefits row,
       product details tabs, guarantee, before and after, shoppable image, recently viewed, how it works, email pop up (in the
       Conversion boosters embed). Editors with templates and live preview, demos, tests.
-- [ ] Verify each on Testing 3 after deploy (pop up sign up creates the customer with consent and a one use code).
+- [x] Verified on Testing 3, 2026-10-20 (cro-toolbox-45): all 9 editors open and save, templates and previews draw; on the store
+      home page benefits, how it works, before and after (drag works), shoppable image (live price, Add to cart with _source);
+      product page product tabs, guarantee, comparison table, recently viewed (live price, Add to cart). Pop up sign up with
+      popup-test-1020@example.com: customer created, SUBSCRIBED (single opt in), tag cro-popup; code WELCOME-UKESLR is 10%, once,
+      only for that customer, 14 days; applied to the cart ($749.95 to $674.96); the same email gets the same code back.
+      Not checked on the store: the Details tab (no Testing 3 product has a description; covered by the harness).
+- [x] Fix #220: Shopify wrapped the ucs-dk snippet output in BEGIN/END comments on the home page, so the block found no design.
+- [ ] Check the 14 other blocks that capture `render 'ucs-dk'` (they worked on other pages; the comments seem context dependent).
 - [ ] Omar: protected customer data form: add Email for the pop up ("creates the store's customer with marketing consent").
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, everything left: `docs/prompts/finish-website-cloud.md`)
