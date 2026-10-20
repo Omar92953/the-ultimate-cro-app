@@ -7,10 +7,12 @@
 {%- endcomment -%}
 {%- assign k = block.settings.kind -%}
 {%- capture dk -%}{%- render 'ucs-dk', key: k, pick: block.settings.design -%}{%- endcapture -%}
+{%- comment -%} Shopify can wrap app snippet output in BEGIN/END comments: keep only the handle. {%- endcomment -%}
+{%- assign dk = dk | split: '-->' | last | split: '<!--' | first | strip -%}
 {%- assign dkd = dk | append: '_draft' -%}
 {%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
 {%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
-{%- if c.k == k -%}
+{%- if c -%}
   <div class="ucs usec" data-ucs-sec="{{ k }}" data-root="{{ routes.root_url }}" data-money="{{ shop.money_format | escape }}"{% if product %} data-p="{{ product.handle }}"{% endif %} {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script>
   {%- if k == 'product_tabs' and product -%}<template data-t="desc">{{ product.description }}</template>{%- for t in c.d.tabs -%}{%- if t.mf != blank -%}{%- assign m = t.mf | split: '.' -%}{%- assign mv = product.metafields[m[0]][m[1]] -%}{%- if mv -%}<template data-t="{{ t.mf }}">{{ mv | metafield_tag }}</template>{%- endif -%}{%- endif -%}{%- endfor -%}{%- endif -%}
   </div>
