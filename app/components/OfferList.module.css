@@ -1,0 +1,35 @@
+/* Offer lists (OfferList.tsx). Colours follow the Shopify admin. */
+.list { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #fff; border-radius: 14px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.07), 0 1px 2px rgba(26, 26, 26, 0.05); }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; font-weight: 650; color: #1a1a1a; }
+.count { min-width: 22px; padding: 1px 8px; font-size: 12px; font-weight: 600; text-align: center; color: #4a4a4a; background: #f1f1f1; border-radius: 999px; }
+.filters { padding-bottom: 4px; }
+.table { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(70px, 0.7fr) minmax(110px, 1fr) minmax(60px, 0.6fr); align-items: center; gap: 12px; padding: 12px 4px; border-top: 1px solid #ebebeb; }
+.row.withActions { grid-template-columns: minmax(0, 3fr) minmax(70px, 0.7fr) minmax(110px, 1fr) minmax(60px, 0.6fr) minmax(120px, auto); }
+.header { padding-top: 4px; padding-bottom: 8px; font-size: 12px; font-weight: 550; color: #616161; border-top: 0; }
+.main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.name { font-size: 14px; font-weight: 600; color: #303030; text-decoration: none; overflow-wrap: anywhere; }
+.name:hover { text-decoration: underline; }
+.name:focus-visible { outline: 2px solid #005bd3; outline-offset: 2px; border-radius: 4px; }
+.sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #616161; }
+.type { padding: 1px 7px; font-weight: 550; color: #303030; background: #f1f1f1; border-radius: 6px; }
+.detail { min-width: 0; overflow-wrap: anywhere; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #303030; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #b5b5b5; }
+.on { background: #29845a; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.stat { font-size: 13px; font-weight: 550; color: #303030; }
+.muted { font-weight: 400; color: #8a8a8a; }
+.end { display: flex; justify-content: flex-end; gap: 6px; }
+.noMatch:not(:empty) { margin: 0; padding: 12px 4px; font-size: 13px; color: #616161; border-top: 1px solid #ebebeb; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 16px; text-align: center; font-size: 13px; color: #616161; }
+.empty strong { font-size: 15px; color: #303030; }
+@media (max-width: 760px) {
+  .header { display: none; }
+  .row, .row.withActions { grid-template-columns: 1fr auto; gap: 6px 12px; }
+  .main { grid-column: 1 / -1; }
+  .num { text-align: left; }
+  .stat::before { content: attr(data-label) ": "; font-weight: 400; color: #616161; }
+  .end { grid-column: 1 / -1; justify-content: flex-start; }
+}

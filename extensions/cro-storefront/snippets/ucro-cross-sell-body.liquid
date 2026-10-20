@@ -81,6 +81,7 @@ assign heading = r_head | default: rec_heading
 assign button_label = r_btn | default: button_label
 endif
 -%}{%- if mode != blank -%}{%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab == 'B' %} hidden{% endif %}>{%- endif -%}<ucro-cross-sell
+data-offer="{{ rule_handle }}"
 class="ucro ucro-cross{% if d %}{{ d.cls }}{% else %} ucro-cross--panel{% endif %}"
 style="{{ d.css | default: '--ucro-pt: 16px; --ucro-pb: 16px;' }}"
 data-radius="{{ d.rad | default: 'theme' }}"

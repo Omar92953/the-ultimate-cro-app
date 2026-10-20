@@ -196,7 +196,7 @@
       btn.addEventListener('click', function () {
         btn.setAttribute('aria-busy', 'true');
         btn.disabled = true;
-        addItems(picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1, properties: { _source: 'fixed_bundle' } }; }))
+        addItems(picks.map(function (v, i) { return { id: v.id, quantity: Number(d.items[i].q) || 1, properties: { _source: 'fixed_bundle', _offer: d.id } }; }))
           .then(function () {
             btn.removeAttribute('aria-busy');
             btn.disabled = false;
@@ -242,7 +242,7 @@
           c.querySelector('button').addEventListener('click', function (e) {
             var b = e.currentTarget, q = form && form.querySelector('[name="quantity"]');
             b.disabled = true;
-            json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: Number(q && q.value) || 1, properties: { _source: 'upgrade' } }] }).then(toCart).catch(function () { b.disabled = false; });
+            json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: Number(q && q.value) || 1, properties: { _source: 'upgrade', _offer: d.id } }] }).then(toCart).catch(function () { b.disabled = false; });
           });
         }).catch(function () {});
       });
@@ -270,7 +270,7 @@
           c.querySelector('button').addEventListener('click', function (e) {
             e.currentTarget.disabled = true;
             json('cart/change.js', { id: line.key, quantity: 0 })
-              .then(function () { return json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: line.quantity, properties: { _source: 'upgrade' } }] }); })
+              .then(function () { return json('cart/add.js', { items: [{ id: Number(d.to.v), quantity: line.quantity, properties: { _source: 'upgrade', _offer: d.id } }] }); })
               .then(toCart).catch(toCart);
           });
         }).catch(function () {});

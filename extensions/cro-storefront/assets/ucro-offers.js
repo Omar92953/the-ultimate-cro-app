@@ -148,7 +148,7 @@
         this.refresh();
         showError(this, '');
         var rows = this.picked(true);
-        U.add(items, 'cross_sell')
+        U.add(items, 'cross_sell', this.dataset.offer)
           .then(() => rows.forEach((r) => (r.row.querySelector('.ucro-offer__check').checked = false)))
           .catch((err) => {
             // Shopify rejects the whole request if one item can't be added (e.g. just sold out).
@@ -157,7 +157,7 @@
             var failed = [];
             return rows
               .reduce((chain, r) => chain.then(() =>
-                U.add([r.item], 'cross_sell')
+                U.add([r.item], 'cross_sell', this.dataset.offer)
                   .then(() => (r.row.querySelector('.ucro-offer__check').checked = false))
                   .catch(() => failed.push(r.row.querySelector('.ucro-offer__title').textContent.trim()))
               ), Promise.resolve())
@@ -457,7 +457,7 @@
         this.busy = true;
         if (button) button.classList.add('loading', 'ucro-is-busy');
         showError(this, '');
-        U.add(items, 'upsell')
+        U.add(items, 'upsell', this.dataset.offer)
           .catch((err) => showError(this, (err && err.message !== 'error' && err.message) || this.dataset.error))
           .finally(() => {
             this.busy = false;

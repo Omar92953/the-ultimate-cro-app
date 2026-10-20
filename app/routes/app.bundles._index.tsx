@@ -7,6 +7,9 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { cachedResults } from "../lib/value.server";
+import { OfferList, offerStats } from "../components/OfferList";
+import { PageIntro } from "../components/ui";
 import { editorLinks, getThemeStatus, listBundles } from "../lib/cro.server";
 import { listOffers } from "../lib/offers.server";
 import { DeletedToast } from "../components/DeleteOffer";
@@ -27,8 +30,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const asked = url.searchParams.get("tab");
   const tab: RecipeKey = isRecipe(asked) ? asked : "fbt";
   const links = editorLinks(session.shop);
-  const [offers, bundles, theme] = await Promise.all([listOffers(admin), listBundles(admin), getThemeStatus(admin, session.shop).catch(() => null)]);
+  const [offers, bundles, theme, results] = await Promise.all([listOffers(admin), listBundles(admin), getThemeStatus(admin, session.shop).catch(() => null), cachedResults(admin, session.shop)]);
   return {
+    results: results ? { currency: results.currency, byOffer: results.byOffer } : null,
     rows: offers.filter((o) => o.recipe).map((o) => ({ ...o, recipe: o.recipe as RecipeKey })),
     tab,
     storeWide: bundles.some((b) => b.active && b.storeWide),
@@ -37,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function BundleList() {
-  const { rows, tab, storeWide, anywhere } = useLoaderData<typeof loader>();
+  const { rows, tab, storeWide, anywhere, results } = useLoaderData<typeof loader>();
   const r = recipe(tab);
   // Active ones first, then the rest.
   const shown = rows.filter((o) => o.recipe === tab).sort((x, y) => Number(y.active) - Number(x.active));
@@ -75,45 +79,27 @@ export default function BundleList() {
           </s-section>
         ) : null}
 
-        <s-section heading={r.title} padding="none">
-          <s-box padding="base">
-            <s-text color="subdued">{`${r.about} ${r.best}.`}</s-text>
-          </s-box>
-          <s-table>
-            <s-table-header-row>
-              <s-table-header listSlot="primary">Name</s-table-header>
-              <s-table-header listSlot="inline">Status</s-table-header>
-              <s-table-header>Where it shows</s-table-header>
-              <s-table-header>Actions</s-table-header>
-            </s-table-header-row>
-            <s-table-body>
-              {shown.map((o) => (
-                <s-table-row key={`${o.type}-${o.id}`}>
-                  <s-table-cell>
-                    <s-link href={o.href}>{o.name}</s-link>
-                  </s-table-cell>
-                  <s-table-cell>
-                    <s-badge tone={o.active ? "success" : "neutral"}>{o.active ? "Active" : "Paused"}</s-badge>
-                  </s-table-cell>
-                  <s-table-cell>{o.where}</s-table-cell>
-                  <s-table-cell>
-                    <s-link href={o.href}>Edit</s-link>
-                  </s-table-cell>
-                </s-table-row>
-              ))}
-            </s-table-body>
-          </s-table>
-          {!shown.length ? (
-            <s-box padding="base">
-              <s-text color="subdued">No bundles of this type yet.</s-text>
-            </s-box>
-          ) : null}
-          <s-box padding="base">
-            <Button variant="primary" href={r.href}>
-              {r.create}
-            </Button>
-          </s-box>
-        </s-section>
+        <PageIntro text={`${r.about} ${r.best}.`} />
+        <OfferList
+          title={r.title}
+          currency={results?.currency ?? "USD"}
+          measured={!!results}
+          create={{ href: r.href, label: r.create }}
+          empty={{ title: "No bundles of this type yet", text: "Create one, or start from the recipe below." }}
+          rows={shown.map((o) => ({
+            key: `${o.type}-${o.id}`,
+            name: o.name,
+            href: o.href,
+            active: o.active,
+            detail: o.where,
+            stats: o.statKeys === null ? null : offerStats(results?.byOffer, o.statKeys),
+            actions: (
+              <Button variant="tertiary" href={o.href}>
+                Edit
+              </Button>
+            ),
+          }))}
+        />
 
         {!shown.length ? (
           <s-section heading="Start from this recipe">

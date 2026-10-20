@@ -1,7 +1,7 @@
 /**
- * Offers hub: the four groups as cards (catalog.ts OFFER_GROUPS), then every offer of every type in
- * one table (lib/offer-types.ts, lib/offers.server.ts) with filters. "Create offer" opens the type
- * picker (/app/offers/new).
+ * Offers hub: an Overview first (this month's numbers and every offer in one list with its own sales), then the
+ * four groups as cards (catalog.ts OFFER_GROUPS) and A/B tests. "Create offer" opens the type picker
+ * (/app/offers/new). Sales per offer come from the order results (results.server.ts byOffer).
  */
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
@@ -9,44 +9,27 @@ import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listOffers } from "../lib/offers.server";
+import { cachedResults } from "../lib/value.server";
 import { OFFER_TYPES } from "../lib/offer-types";
 import { recipe } from "../lib/bundle-recipes";
 import { OFFER_GROUPS, area, type OfferGroupKey } from "../lib/catalog";
 import { PLANS, limitOf, planAbove } from "../lib/plans";
+import { change, money } from "../lib/format";
 import { Button, Select, TextField } from "../components/fields";
-import { GroupCards, Pill } from "../components/ui";
+import { GroupCards, HomeRow, HomeRows, PageIntro, Panel, Pill, StatGrid, StatTile } from "../components/ui";
+import { OfferList, offerStats } from "../components/OfferList";
 import { UpgradeButton, usePlan } from "../components/Upgrade";
 import { isLocked } from "../lib/plan-gate";
 import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
-  return { offers: await listOffers(admin) };
+  const { admin, session } = await authenticate.admin(request);
+  const [offers, results] = await Promise.all([listOffers(admin), cachedResults(admin, session.shop)]);
+  return { offers, results: results ? { currency: results.currency, byOffer: results.byOffer, offers: results.offers } : null };
 };
 
-/** "2 of 3 offer slots used": every switched-on offer, any type, fills one slot (plans.ts offerSlots). */
-function SlotMeter({ used }: { used: number }) {
-  const { plan } = usePlan();
-  const slots = limitOf(plan, "offerSlots");
-  if (slots === null) return null;
-  const next = planAbove("offerSlots", slots, plan);
-  return (
-    <s-section>
-      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-        <s-stack gap="small-100">
-          <s-text type="strong">{`${Math.min(used, slots)} of ${slots} offer slots used`}</s-text>
-          <s-text color="subdued">
-            {`Any offer that's on fills a slot: upsells, cross sells, bundles, discounts and the after-purchase offer. Switch one off to free its slot.${next ? ` ${PLANS[next].name} has unlimited offers.` : ""}`}
-          </s-text>
-        </s-stack>
-        {next ? <UpgradeButton to={next} variant={used >= slots ? "primary" : "secondary"} /> : null}
-      </s-stack>
-    </s-section>
-  );
-}
-
 export default function OffersHub() {
-  const { offers } = useLoaderData<typeof loader>();
+  const { offers, results } = useLoaderData<typeof loader>();
   const { plan, trial } = usePlan();
   const [group, setGroup] = useState<"all" | OfferGroupKey>("all");
   const [status, setStatus] = useState<"all" | "on" | "off">("all");
@@ -56,109 +39,114 @@ export default function OffersHub() {
     (o) => (group === "all" || OFFER_TYPES[o.type].group === group) && (status === "all" || (status === "on") === o.active) && (!q || o.name.toLowerCase().includes(q)),
   );
   const onIn = (g: OfferGroupKey) => offers.filter((o) => o.active && OFFER_TYPES[o.type].group === g).length;
+  const on = offers.filter((o) => o.active).length;
+  const slots = limitOf(plan, "offerSlots");
+  const next = slots === null ? null : planAbove("offerSlots", slots, plan);
+  const cur = results?.offers.current;
+  const prev = results?.offers.previous;
+  const currency = results?.currency ?? "USD";
+  const aovWith = cur && cur.appOrders ? cur.appOrdersTotal / cur.appOrders : null;
+  const aovWithout = cur && cur.orders - cur.appOrders > 0 ? (cur.revenue - cur.appOrdersTotal) / (cur.orders - cur.appOrders) : null;
 
   return (
     <s-page heading="Offers" inlineSize="large">
       <Button slot="primary-action" variant="primary" href="/app/offers/new">
         Create offer
       </Button>
-      <s-stack gap="base">
-        <s-text color="subdued">{area("offers").intro}</s-text>
-        <SlotMeter used={offers.filter((o) => o.active).length} />
+      <HomeRows>
+        <PageIntro text={area("offers").intro} />
 
-        <GroupCards
-          items={OFFER_GROUPS.map((g) => {
-            const on = onIn(g.key);
-            return {
-              key: g.key,
-              title: g.title,
-              about: g.about,
-              href: g.tabs[0].href,
-              locked: g.features.every((f) => isLocked(plan, f, trial)),
-              action: <DemoButton feature={g.key === "cross_sell" ? "cross_sell" : g.key} slot="" variant="tertiary" />,
-              status: on ? <Pill tone="ok">{`${on} on`}</Pill> : <Pill>Not set up</Pill>,
-              chips: g.chips ?? g.tabs.filter((t) => t.label !== "Style").map((t) => t.label),
-            };
-          })}
-        />
+        <HomeRow
+          title="Overview"
+          subtitle="Last 30 days, from your real orders."
+          action={next ? <UpgradeButton to={next} variant={slots !== null && on >= slots ? "primary" : "secondary"} /> : null}
+          bare
+        >
+          <s-stack gap="base">
+              <Panel>
+              <StatGrid>
+                <StatTile
+                  label="Offers on"
+                  value={slots === null ? String(on) : `${Math.min(on, slots)} of ${slots}`}
+                  note={slots === null ? "Unlimited offers on your plan" : `Offer slots used${next ? `. ${PLANS[next].name} has unlimited offers.` : ""}`}
+                />
+                <StatTile label="Sales from offers" value={cur ? money(cur.appRevenue, currency) : "No data yet"} change={cur && prev ? change(cur.appRevenue, prev.appRevenue) : null} />
+                <StatTile label="Orders with offers" value={cur ? String(cur.appOrders) : "No data yet"} change={cur && prev ? change(cur.appOrders, prev.appOrders) : null} />
+                <StatTile
+                  label="Average order with offers"
+                  value={aovWith !== null ? money(aovWith, currency) : "No data yet"}
+                  note={aovWithout !== null ? `${money(aovWithout, currency)} without` : undefined}
+                />
+              </StatGrid>
+              </Panel>
+            <OfferList
+              title="All offers"
+              currency={currency}
+              measured={!!results}
+              create={{ href: "/app/offers/new", label: "Create offer" }}
+              empty={{ title: "Create your first offer", text: "Pick any kind of offer: upsell, cross sell, bundle or discount. It shows in this list with its sales." }}
+              noMatch={offers.length && !shown.length ? "No offers match these filters." : undefined}
+              filters={
+                offers.length ? (
+                  <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
+                    <TextField label="Search" placeholder="Search offers" value={query} onValue={setQuery} />
+                    <Select
+                      label="Group"
+                      value={group}
+                      onValue={(v) => setGroup(v as typeof group)}
+                      options={[{ value: "all", label: "All groups" }, ...OFFER_GROUPS.map((g) => ({ value: g.key, label: g.title }))]}
+                    />
+                    <Select
+                      label="Status"
+                      value={status}
+                      onValue={(v) => setStatus(v as typeof status)}
+                      options={[
+                        { value: "all", label: "All" },
+                        { value: "on", label: "On" },
+                        { value: "off", label: "Off" },
+                      ]}
+                    />
+                  </s-grid>
+                ) : undefined
+              }
+              rows={(offers.length ? shown : []).map((o) => ({
+                key: `${o.type}-${o.id}`,
+                name: o.name,
+                href: o.href,
+                active: o.active,
+                type: o.recipe ? recipe(o.recipe).short : OFFER_TYPES[o.type].title,
+                detail: o.where,
+                stats: o.statKeys === null ? null : offerStats(results?.byOffer, o.statKeys),
+              }))}
+            />
+          </s-stack>
+        </HomeRow>
 
-        <s-section heading="A/B tests">
+        <HomeRow title="Offer types" subtitle="Every kind of offer, grouped." bare>
+          <GroupCards
+            items={OFFER_GROUPS.map((g) => {
+              const n = onIn(g.key);
+              return {
+                key: g.key,
+                title: g.title,
+                about: g.about,
+                href: g.tabs[0].href,
+                locked: g.features.every((f) => isLocked(plan, f, trial)),
+                action: <DemoButton feature={g.key === "cross_sell" ? "cross_sell" : g.key} slot="" variant="tertiary" />,
+                status: n ? <Pill tone="ok">{`${n} on`}</Pill> : <Pill>Not set up</Pill>,
+                chips: g.chips ?? g.tabs.filter((t) => t.label !== "Style").map((t) => t.label),
+              };
+            })}
+          />
+        </HomeRow>
+
+        <HomeRow title="A/B tests" action={isLocked(plan, "ab_tests", trial) ? <Pill>Pro plan</Pill> : null}>
           <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
             <s-text color="subdued">Show half of your shoppers another version of an upsell or cross sell and see which earns more.</s-text>
-            <s-stack direction="inline" gap="small-200" alignItems="center">
-              {isLocked(plan, "ab_tests", trial) ? <Pill>Pro plan</Pill> : null}
-              <Button href="/app/offers/tests">{isLocked(plan, "ab_tests", trial) ? "See how it works" : "Open A/B tests"}</Button>
-            </s-stack>
+            <Button href="/app/offers/tests">{isLocked(plan, "ab_tests", trial) ? "See how it works" : "Open A/B tests"}</Button>
           </s-stack>
-        </s-section>
-
-        <s-section heading="All offers" padding="none">
-          {offers.length ? (
-            <s-stack gap="none">
-              {/* Same padding as the heading above (16px) and room before the table, like the other offer lists. */}
-              <s-box padding="base base large-100 base">
-                <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
-                  <TextField label="Search" placeholder="Search offers" value={query} onValue={setQuery} />
-                  <Select
-                    label="Group"
-                    value={group}
-                    onValue={(v) => setGroup(v as typeof group)}
-                    options={[{ value: "all", label: "All groups" }, ...OFFER_GROUPS.map((g) => ({ value: g.key, label: g.title }))]}
-                  />
-                  <Select
-                    label="Status"
-                    value={status}
-                    onValue={(v) => setStatus(v as typeof status)}
-                    options={[
-                      { value: "all", label: "All" },
-                      { value: "on", label: "On" },
-                      { value: "off", label: "Off" },
-                    ]}
-                  />
-                </s-grid>
-              </s-box>
-              <s-table>
-                <s-table-header-row>
-                  <s-table-header listSlot="primary">Name</s-table-header>
-                  <s-table-header listSlot="secondary">Type</s-table-header>
-                  <s-table-header listSlot="inline">Status</s-table-header>
-                  <s-table-header>Where it shows</s-table-header>
-                </s-table-header-row>
-                <s-table-body>
-                  {shown.map((o) => (
-                    <s-table-row key={`${o.type}-${o.id}`}>
-                      <s-table-cell>
-                        <s-link href={o.href}>{o.name}</s-link>
-                      </s-table-cell>
-                      <s-table-cell>{o.recipe ? recipe(o.recipe).short : OFFER_TYPES[o.type].title}</s-table-cell>
-                      <s-table-cell>
-                        <s-badge tone={o.active ? "success" : "neutral"}>{o.active ? "On" : "Off"}</s-badge>
-                      </s-table-cell>
-                      <s-table-cell>{o.where}</s-table-cell>
-                    </s-table-row>
-                  ))}
-                </s-table-body>
-              </s-table>
-              {!shown.length ? (
-                <s-box padding="base">
-                  <s-text color="subdued">No offers match these filters.</s-text>
-                </s-box>
-              ) : null}
-            </s-stack>
-          ) : (
-            <s-box padding="large-200">
-              <s-stack gap="base" alignItems="center">
-                <s-heading>Create your first offer</s-heading>
-                <s-paragraph>Pick a group above, or create any kind of offer here. Your offers then show in this list.</s-paragraph>
-                <Button variant="primary" href="/app/offers/new">
-                  Create offer
-                </Button>
-              </s-stack>
-            </s-box>
-          )}
-        </s-section>
-
-      </s-stack>
+        </HomeRow>
+      </HomeRows>
     </s-page>
   );
 }

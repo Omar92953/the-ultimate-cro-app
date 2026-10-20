@@ -112,3 +112,14 @@
 .rowFoot { display: flex; justify-content: flex-end; padding: 0 2px; }
 .rowPair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 760px) { .rowPair { grid-template-columns: minmax(0, 1fr); } }
+
+/* Number tiles (StatTile / StatGrid). */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px; background: #f7f7f7; border-radius: 10px; }
+.statLabel { font-size: 12px; color: #616161; }
+.statValue { font-size: 20px; font-weight: 700; color: #303030; font-variant-numeric: tabular-nums; }
+.statNote { font-size: 12px; color: #616161; }
+.up { font-size: 12px; color: #0c5132; }
+.down { font-size: 12px; color: #8e1f0b; }

@@ -119,6 +119,30 @@ export function HomeRow(props: { title: ReactNode; subtitle?: ReactNode; action?
   );
 }
 
+/** A number tile: label, value, change against the period before, and a short note. */
+export function StatTile({ label, value, change, note, compare = "the 30 days before" }: { label: string; value: string; change?: number | null; note?: string; compare?: string }) {
+  return (
+    <div className={styles.stat}>
+      <span className={styles.statLabel}>{label}</span>
+      <span className={styles.statValue}>{value}</span>
+      {change !== undefined && change !== null ? (
+        <span className={change >= 0 ? styles.up : styles.down}>{`${change >= 0 ? "↑" : "↓"} ${Math.abs(change)}% vs ${compare}`}</span>
+      ) : null}
+      {note ? <span className={styles.statNote}>{note}</span> : null}
+    </div>
+  );
+}
+
+/** A white panel like a Home row's body. */
+export function Panel({ children }: { children: ReactNode }) {
+  return <div className={styles.rowBody}>{children}</div>;
+}
+
+/** Up to four StatTiles in a row (two on tablets, one on phones). */
+export function StatGrid({ children }: { children: ReactNode }) {
+  return <div className={styles.stats}>{children}</div>;
+}
+
 /** Home rows stacked with even, generous spacing. */
 export function HomeRows({ children }: { children: ReactNode }) {
   return <div className={styles.rows}>{children}</div>;

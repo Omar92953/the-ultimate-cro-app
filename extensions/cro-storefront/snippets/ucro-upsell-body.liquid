@@ -78,6 +78,7 @@ if d.list
 assign list = true
 endif
 -%}{%- if renderable -%}{%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab == 'B' %} hidden{% endif %}>{%- endif -%}<ucro-upsell
+data-offer="{{ rule_handle }}"
 class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if sold_out %} is-sold-out{% endif %}{{ d.cls }}"
 style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
 data-radius="{{ d.rad | default: 'theme' }}"

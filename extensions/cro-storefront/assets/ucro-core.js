@@ -209,10 +209,12 @@
 
   // Adds items ({id, quantity, properties}) in one request, then refreshes the theme's cart.
   // Dawn-family themes: re-render their drawer/notification. Anything else: go to /cart.
-  // `source`: which widget added it (`_source` line property), so the app can credit its revenue.
-  function add(items, source) {
+  // `source`: which widget added it (`_source` line property), so the app can credit its revenue;
+  // `offer`: which offer (its handle, `_offer`), for the sales of each offer.
+  function add(items, source, offer) {
     var ui = cartUI();
-    var body = { items: items.map(function (i) { return Object.assign({}, i, { properties: Object.assign({ _source: source || 'cro' }, i.properties || {}) }); }) };
+    var mark = offer ? { _source: source || 'cro', _offer: offer } : { _source: source || 'cro' };
+    var body = { items: items.map(function (i) { return Object.assign({}, i, { properties: Object.assign({}, mark, i.properties || {}) }); }) };
     if (ui) {
       body.sections = ui.getSectionsToRender().map(function (s) { return s.id; });
       body.sections_url = window.location.pathname;
