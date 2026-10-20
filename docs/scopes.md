@@ -11,6 +11,7 @@ listing's API access justification and the protected customer data request.
 | `read_files` | Lists the videos in **Content → Files** (and images) so the merchant can pick them for the carousel, reviews and logos | Video carousel, Reviews and Logos pages |
 | `write_files` | Uploads a photo, video or logo straight from the Reviews and Logos forms (staged upload + `fileCreate`), so the merchant doesn't have to go to Content → Files first | Reviews and Logos pages |
 | `read_customers` | The customer of an order, to give them store credit (return saving rules, Pro) | Tracking & Returns |
+| `write_customers` | **Protected customer data (email).** The email pop up: adds a shopper who signs up to the store's own customers with email marketing consent (`customerCreate`, `customerEmailMarketingConsentUpdate`, tag `cro-popup`) and limits their one use welcome code to that customer. The app stores no email | Section library → Email pop up, `app/routes/proxy.subscribe.tsx` |
 | `read_store_credit_accounts`, `write_store_credit_account_transactions` | Give store credit instead of a refund (store credit accounts) | Return saving rules |
 | `write_merchant_managed_fulfillment_orders` | Hold an exchange's new shipment until the returned items arrive, and release it | Return saving rules (exchanges) |
 | `read_locations` | The location to put returned items back in stock | Return saving rules |
@@ -35,7 +36,7 @@ listing's API access justification and the protected customer data request.
   one-way order fingerprint, never the order id.
 - It doesn't use the ScriptTag API or edit theme files. All storefront code ships in the theme app
   extension, and merchants place the blocks themselves.
-- The storefront never calls the app's server. Blocks read the store's own metaobjects in Liquid, and
+- The storefront never calls the app's server, except the forms shoppers send through the app proxy (reviews, back in stock, returns, order lookups, pop up sign ups). Blocks read the store's own metaobjects in Liquid, and
   checkout logic runs inside Shopify Functions.
 
 ## Asked in the Partner Dashboard, not in the TOML (read_all_orders)
