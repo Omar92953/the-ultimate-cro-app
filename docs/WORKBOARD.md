@@ -101,7 +101,7 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       (app/lib/retention.ts), Terms data processing section, docs/security/incident-response.md, and free nightly
       encrypted backups in the private repo Omar92953/cro-toolbox-backups (docs/security/backups.md; first run OK).
 - [ ] App Store review checklist left: listing (feature image and 6 screenshots wait for final demos, screencast),
-      automated check (run last), capabilities, AI self review "Mark as done", then Submit.
+      automated check (run last), AI self review "Mark as done" after the CRO sections merge and a re-run, then Submit. Capabilities done 2026-10-19.
 
 ## App Store listing images (Omar, 2026-10-19)
 
