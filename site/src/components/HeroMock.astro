@@ -141,7 +141,8 @@ import ProductArt from "./ProductArt.astro";
     gap: 6px;
     margin-top: 6px;
   }
-  .thumbs :global(svg) {
+  .thumbs :global(svg),
+  .thumbs :global(img.product-art) {
     border-radius: 8px;
     aspect-ratio: 1;
     height: auto;
@@ -267,7 +268,8 @@ import ProductArt from "./ProductArt.astro";
     gap: 6px;
     flex-wrap: wrap;
   }
-  .fbt-row :global(svg) {
+  .fbt-row :global(svg),
+  .fbt-row :global(img.product-art) {
     width: 44px;
     height: 44px;
     border-radius: 8px;
@@ -301,7 +303,8 @@ import ProductArt from "./ProductArt.astro";
     padding: 10px 14px 10px 10px;
     animation: rise 0.8s 0.6s both cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .salespop :global(svg) {
+  .salespop :global(svg),
+  .salespop :global(img.product-art) {
     width: 42px;
     height: 42px;
     border-radius: 8px;

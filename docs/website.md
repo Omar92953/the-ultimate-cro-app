@@ -41,6 +41,12 @@ Add a line to `site/src/lib/changelog.ts` (shown on `/changelog/`) when an app c
 
 The demo build needs Node 22.18 or newer (it loads the app's TypeScript files directly).
 
+Product photos: real photos in `site/public/products/` (free Burst stock photos; source and licence of
+each in `demos/IMAGES.md`) are used by the demos and the website's product pictures. After changing
+photos or a demo, refresh the website screenshots: `npm --prefix demos run build && PLAYWRIGHT_CHROMIUM=<chromium path>
+npm --prefix demos run screenshots` (writes `site/src/assets/features/` and `bundles/`; CRO sections are
+scrolled into view automatically).
+
 ## The live demos
 
 - Addresses: `/<feature>/` for every feature key of `app/lib/catalog.ts`, underscores as hyphens
