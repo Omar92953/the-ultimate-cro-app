@@ -26,6 +26,7 @@ import { SizesSection } from "../components/SizesSection";
 import { PILLS_SIZES } from "../lib/collection-pills";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["collection_pills"], async ({ request }: LoaderFunctionArgs) => {
@@ -105,6 +106,7 @@ export default function CollectionPillsDesigner() {
       <s-stack gap="base">
         <FeatureTabs feature="collection_pills" />
         <DesignSlots base="collection_pills" blockName="Collection pills" />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the pills on your collection pages">
             Click “Add to collection pages”, drag the “Collection pills” section under the collection title and save. You can also add it to any other page.

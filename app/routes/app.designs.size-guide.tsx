@@ -32,6 +32,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -129,6 +130,7 @@ export default function SizeGuideDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="size_guide" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?template=product`, onClick: seeOnStore }} />
           <s-text color="subdued">
             Shoppers open a size chart and a size finder from the product page. The finder answers only from the height and weight ranges you set for each size. Add the Size guide block to the product page in the theme editor.
           </s-text>

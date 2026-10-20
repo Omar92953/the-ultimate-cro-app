@@ -24,6 +24,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { QUICK_ADD_SIZES } from "../lib/quick-add-design";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -101,12 +102,8 @@ export default function QuickAddDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="quick_add" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=%2Fcollections%2Fall`, onClick: seeOnStore }} />
           <s-text color="subdued">A button on every product card (collections, home, search, recommendations). Products with sizes or colours open a small picker. In the theme editor you only switch the “Quick add to cart” embed on.</s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />

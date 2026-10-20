@@ -24,6 +24,7 @@ import { SizesSection } from "../components/SizesSection";
 import { Segmented } from "../components/ui";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["stock"], async ({ request }: LoaderFunctionArgs) => {
@@ -88,11 +89,7 @@ export default function StockDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="stock" />
           <DesignSlots base="stock" blockName="Back in stock & pre-order" />
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              The standard words and look are used until you save here.
-            </s-banner>
-          ) : null}
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=product` : data.addLink, onClick: seeOnStore }} />
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>

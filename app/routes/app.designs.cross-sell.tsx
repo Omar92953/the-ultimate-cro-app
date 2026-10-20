@@ -28,6 +28,7 @@ import { linkFromRequest } from "../lib/offer-style.server";
 import { OfferStyleBanner, useStyledOffer } from "../components/OfferStyle";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
 import { computeBoughtTogether, refreshIfOld } from "../lib/bought-together.server";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["cross_sell"], async ({ request }: LoaderFunctionArgs) => {
@@ -127,15 +128,11 @@ export default function CrossSellDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="cross_sell" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: previewLink, onClick: seeOnStore }} />
           {styledOffer ? <OfferStyleBanner group="cross_sell" title="Cross sell" /> : <DesignSlots base="cross_sell" blockName="Cross sell offers" />}
           <s-text color="subdued">
             Products, headline and discount come from your Cross sell offers. Here you choose how they look. In the theme editor you only place the “Cross sell offers” block (product or cart page).
           </s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />

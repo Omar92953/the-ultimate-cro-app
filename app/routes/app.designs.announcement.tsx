@@ -23,6 +23,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { ANNOUNCEMENT_SIZES } from "../lib/announcement-design";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -104,12 +105,8 @@ export default function AnnouncementDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="announcements" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=%2F`, onClick: seeOnStore }} />
           <s-text color="subdued">Messages, icons and dates are in the Messages tab. Here you choose how the bar looks and behaves. In the theme editor you only switch the “Announcement bar” embed on.</s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />

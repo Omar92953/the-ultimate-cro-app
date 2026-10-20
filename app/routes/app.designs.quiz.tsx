@@ -24,6 +24,7 @@ import { SizesSection } from "../components/SizesSection";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["quiz"], async ({ request }: LoaderFunctionArgs) => {
@@ -89,12 +90,8 @@ export default function QuizDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="quiz" />
           <DesignSlots base="quiz" blockName="Product quiz" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=%2F`, onClick: seeOnStore }} />
           <s-text color="subdued">Each answer points to product tags (Products → a product → Tags). After the last question, the products whose tags match the answers best are shown, with add to cart. The answers are saved on the cart, so you see them on the order.</s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              The quiz shows on your store after you save here and add the “Product quiz” section.
-            </s-banner>
-          ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>

@@ -114,130 +114,125 @@ export function SectionCard(props: {
   }, [menuOpen]);
   return (
     <div className={`${s.card} ${props.off ? s.off : ""}`}>
-      <div className={s.stage}>
-        <Go className={s.stageLink} href={props.open.href} external={props.open.external} label={`Open ${props.title}`}>
-          <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-hidden="true">
-            {props.previews.map((preview, i) => (
-              <span key={i} className={s.canvas}>
-                {preview}
-              </span>
-            ))}
-          </span>
-        </Go>
-        {count > 1 ? (
-          <>
-            <button type="button" className={`${s.arrow} ${s.arrowPrev}`} aria-label={`Previous ${props.title} look`} onClick={() => go(-1)}>
-              ‹
-            </button>
-            <button type="button" className={`${s.arrow} ${s.arrowNext}`} aria-label={`Next ${props.title} look`} onClick={() => go(1)}>
-              ›
-            </button>
-            <span className={s.dots}>
-              {props.previews.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`${s.dot} ${i === index ? s.dotOn : ""}`}
-                  aria-label={`Look ${i + 1} of ${count}`}
-                  aria-current={i === index}
-                  onClick={() => setIndex(i)}
-                />
+      <div className={s.stageWrap}>
+        <div className={s.stage}>
+          <Go className={s.stageLink} href={props.open.href} external={props.open.external} label={`Open ${props.title}`}>
+            <span className={s.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-hidden="true">
+              {props.previews.map((preview, i) => (
+                <span key={i} className={s.canvas}>
+                  {preview}
+                </span>
               ))}
             </span>
-          </>
-        ) : null}
-      </div>
-      <div className={s.foot}>
-        <div className={s.head}>
-          <Go className={s.title} href={props.open.href} external={props.open.external}>
-            {props.title}
           </Go>
-          <span className={s.footEnd}>
-            {props.details ? (
-              <button type="button" className={s.iconBtn} aria-label={`Details of ${props.title}`} title="Details" onClick={() => setDrawer(true)}>
-                <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
-                  <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm.9 11.5H9.1V9h1.8v4.5ZM10 7.8a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z" fill="currentColor" stroke="none" />
-                </svg>
+          {count > 1 ? (
+            <>
+              <button type="button" className={`${s.arrow} ${s.arrowPrev}`} aria-label={`Previous ${props.title} look`} onClick={() => go(-1)}>
+                ‹
               </button>
-            ) : null}
-            {props.demo ? (
-              <a className={s.iconBtn} href={props.demo} target="_blank" rel="noopener noreferrer" aria-label={`See the live demo of ${props.title} (opens in a new tab)`} title="See live demo">
-                <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
-                  <path d="M10 5C5.5 5 2.7 8.3 2 10c.7 1.7 3.5 5 8 5s7.3-3.3 8-5c-.7-1.7-3.5-5-8-5Zm0 7.8a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6Z" fill="currentColor" stroke="none" />
-                </svg>
-              </a>
-            ) : null}
-            {props.save ? (
-              <button
-                type="button"
-                className={`${s.iconBtn} ${s.save} ${props.save.saved ? s.saveOn : ""}`}
-                aria-pressed={props.save.saved}
-                aria-label={props.save.saved ? `Remove ${props.title} from saved` : `Save ${props.title}`}
-                title={props.save.saved ? "Saved" : "Save"}
-                onClick={() => props.save!.onChange(!props.save!.saved)}
-              >
-                <svg viewBox="0 0 20 20" aria-hidden="true">
-                  <path d="M5.5 3h9A1.5 1.5 0 0 1 16 4.5V17l-6-3.6L4 17V4.5A1.5 1.5 0 0 1 5.5 3Z" />
-                </svg>
+              <button type="button" className={`${s.arrow} ${s.arrowNext}`} aria-label={`Next ${props.title} look`} onClick={() => go(1)}>
+                ›
               </button>
-            ) : null}
-            {props.menu?.length ? (
-              <div className={s.menuWrap} ref={menuRef}>
-                <button
-                  type="button"
-                  className={`${s.iconBtn} ${menuOpen ? s.iconBtnOn : ""}`}
-                  aria-haspopup="menu"
-                  aria-expanded={menuOpen}
-                  aria-label={`Manage ${props.title}`}
-                  title="Manage"
-                  onClick={() => setMenuOpen((o) => !o)}
-                >
-                  <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
-                    <circle cx="4.5" cy="10" r="1.5" />
-                    <circle cx="10" cy="10" r="1.5" />
-                    <circle cx="15.5" cy="10" r="1.5" />
-                  </svg>
-                </button>
-                {menuOpen ? (
-                  <div className={s.menu} role="menu">
-                    {[...props.menu, ...(props.demo ? [{ label: "See live demo", href: props.demo, newTab: true }] : [])].map((m) =>
-                      "onClick" in m ? (
-                        <button
-                          key={m.label}
-                          type="button"
-                          role="menuitem"
-                          className={s.menuItem}
-                          onClick={() => {
-                            setMenuOpen(false);
-                            m.onClick();
-                          }}
-                        >
-                          {m.label}
-                        </button>
-                      ) : (
-                        <span key={m.label} role="none" onClick={() => setMenuOpen(false)}>
-                          <Go className={s.menuItem} href={m.href} external={m.external} newTab={"newTab" in m ? m.newTab : false}>
-                            {m.label}
-                            {m.external || ("newTab" in m && m.newTab) ? <span aria-hidden="true"> ↗</span> : null}
-                          </Go>
-                        </span>
-                      ),
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </span>
-        </div>
-        <div className={s.statusLine}>
-          <span className={`${s.dotTone} ${s[props.status.tone]}`} aria-hidden="true" />
-          <span className={s.statusText}>{props.status.text}</span>
-          {props.next ? (
-            <Go className={s.next} href={props.next.href} external={props.next.external}>
-              {props.next.label} →
-            </Go>
+              <span className={s.dots}>
+                {props.previews.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`${s.dot} ${i === index ? s.dotOn : ""}`}
+                    aria-label={`Look ${i + 1} of ${count}`}
+                    aria-current={i === index}
+                    onClick={() => setIndex(i)}
+                  />
+                ))}
+              </span>
+            </>
           ) : null}
         </div>
+        <span className={s.hoverStatus}>
+          <span className={`${s.dotTone} ${s[props.status.tone]}`} aria-hidden="true" />
+          {props.status.text}
+        </span>
+        <span className={s.hoverTools}>
+          {props.details ? (
+            <button type="button" className={s.iconBtn} aria-label={`Details of ${props.title}`} title="Details" onClick={() => setDrawer(true)}>
+              <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm.9 11.5H9.1V9h1.8v4.5ZM10 7.8a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+          ) : null}
+          {props.demo ? (
+            <a className={s.iconBtn} href={props.demo} target="_blank" rel="noopener noreferrer" aria-label={`See the live demo of ${props.title} (opens in a new tab)`} title="See live demo">
+              <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                <path d="M10 5C5.5 5 2.7 8.3 2 10c.7 1.7 3.5 5 8 5s7.3-3.3 8-5c-.7-1.7-3.5-5-8-5Zm0 7.8a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6Z" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+          ) : null}
+          {props.save ? (
+            <button
+              type="button"
+              className={`${s.iconBtn} ${s.save} ${props.save.saved ? s.saveOn : ""}`}
+              aria-pressed={props.save.saved}
+              aria-label={props.save.saved ? `Remove ${props.title} from saved` : `Save ${props.title}`}
+              title={props.save.saved ? "Saved" : "Save"}
+              onClick={() => props.save!.onChange(!props.save!.saved)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M5.5 3h9A1.5 1.5 0 0 1 16 4.5V17l-6-3.6L4 17V4.5A1.5 1.5 0 0 1 5.5 3Z" />
+              </svg>
+            </button>
+          ) : null}
+          {props.menu?.length ? (
+            <div className={s.menuWrap} ref={menuRef}>
+              <button
+                type="button"
+                className={`${s.iconBtn} ${menuOpen ? s.iconBtnOn : ""}`}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label={`Manage ${props.title}`}
+                title="Manage"
+                onClick={() => setMenuOpen((o) => !o)}
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true" className={s.dotsIcon}>
+                  <circle cx="4.5" cy="10" r="1.5" />
+                  <circle cx="10" cy="10" r="1.5" />
+                  <circle cx="15.5" cy="10" r="1.5" />
+                </svg>
+              </button>
+              {menuOpen ? (
+                <div className={s.menu} role="menu">
+                  {[...props.menu, ...(props.demo ? [{ label: "See live demo", href: props.demo, newTab: true }] : [])].map((m) =>
+                    "onClick" in m ? (
+                      <button
+                        key={m.label}
+                        type="button"
+                        role="menuitem"
+                        className={s.menuItem}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          m.onClick();
+                        }}
+                      >
+                        {m.label}
+                      </button>
+                    ) : (
+                      <span key={m.label} role="none" onClick={() => setMenuOpen(false)}>
+                        <Go className={s.menuItem} href={m.href} external={m.external} newTab={"newTab" in m ? m.newTab : false}>
+                          {m.label}
+                          {m.external || ("newTab" in m && m.newTab) ? <span aria-hidden="true"> ↗</span> : null}
+                        </Go>
+                      </span>
+                    ),
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </span>
+      </div>
+      <div className={s.foot}>
+        <Go className={s.title} href={props.open.href} external={props.open.external}>
+          {props.title}
+        </Go>
       </div>
       {drawer && props.details && typeof document !== "undefined"
         ? createPortal(

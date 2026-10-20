@@ -26,6 +26,7 @@ import { DemoButton } from "../components/DemoButton";
 import { templateInUse } from "../components/LookPicker";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 
@@ -124,15 +125,11 @@ export default function CountdownBarDesigner() {
           options={COUNTDOWN_PLACES.map((p) => ({ value: p.key, label: p.title }))}
           onChange={(v) => navigate(`/app/designs/countdown-bar?place=${v}`)}
         />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={!!data.placed} addLink={data.addLink} addLabel={addLabel} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.place === "product" && data.sample ? `/products/${data.sample.handle}` : data.place === "cart" ? "/cart" : "/")}`, onClick: () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: `${designAction}&place=${data.place}` }) }} />
         <s-text color="subdued">
           {placeInfo.hint} Each place has its own design.{" "}
           {data.placed ? "The “Countdown” block is already there in your theme; the same block shows the right design wherever it is." : <>In your theme, add the “Countdown” block there with “{addLabel}”; the same block shows the right design wherever it is.</>}
         </s-text>
-        {!data.saved ? (
-          <s-banner tone="warning" heading="Not saved yet">
-            This countdown shows on your store once you switch it on and save.
-          </s-banner>
-        ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
