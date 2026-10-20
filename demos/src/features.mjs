@@ -21,6 +21,7 @@ const [
   "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "hero-design", "image-carousel", "collection-pills",
   "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters", "size-guide", "header",
 ].map(app));
+const secD = await app("cro-sections");
 
 const PAY_CSS = ["ucs-boosters.css"];
 
@@ -348,6 +349,39 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const sockDrawer = bundleMo("sock-drawer", { product: P["sock-drawer"], pricing: "tiers", price_rules: { tr: [[3, 3000], [6, 5500]], ex: {} }, allow_duplicates: true, steps: [step("st-socks", { label: "Pick 3 or 6 pairs", min_picks: 3, max_picks: 6, collection: collections.socks })] });
   R.anyN = await Promise.all([["Sharp and compact", "sharp"], ["Blue", "blue"]].map(async ([title, key]) => ({ title, layout: "product", product: "sock-drawer", place: "above", html: await builder("sock-drawer", sockDrawer, key) })));
 
+  // CRO sections (one shared block, ucs-section; the pop up through the boosters embed): each template of the app.
+  const pic = (id, url) => ({ id: `demo-${id}`, url, kind: "image", title: id });
+  const secContent = {
+    before_after: { before: pic("before", secD.SAMPLE_IMAGES.before), after: pic("after", secD.SAMPLE_IMAGES.after) },
+    shoppable: {
+      image: pic("look", secD.SAMPLE_IMAGES.look),
+      spots: [["studio-tee", 32, 38], ["canvas-tote", 64, 62], ["ribbed-socks", 47, 86]].map(([h, x, y]) => ({ x, y, id: String(P[h].id), handle: h, title: P[h].title, image: imgUrl(h), price: P[h].price, variant: String(P[h].variants[0].id), variants: P[h].variants.length })),
+    },
+    email_popup: { on: true, show: { delay: 1, scroll: 0, exit: false, pages: "all", every: 1 } },
+  };
+  const secOf = (kind, key) => {
+    const d = secD.defaultSec(kind);
+    const own = kind === "email_popup" && key !== "center" && key !== "bar" ? { image: pic("popup", secD.SAMPLE_IMAGES.popup) } : {};
+    return secD.toStorefrontSec(secD.applySecPreset(secD.withSecDefaults(kind, { ...d, content: { ...d.content, ...secContent[kind], ...own } }), key));
+  };
+  const onProduct = { compare_table: "below", product_tabs: "in", guarantee: "in", recently_viewed: "below" };
+  const RV = `<script>try{localStorage.setItem("ucs-rv",JSON.stringify(["cedar-candle","clay-mug","studio-tee","canvas-tote","oat-soap"]))}catch(e){}</script>`;
+  for (const kind of secD.BLOCK_KINDS) {
+    F[kind] = await Promise.all(secD.SEC_PRESETS[kind].map(async (p) => {
+      const html = await block("ucs-section", { settings: { kind }, page_type: onProduct[kind] ? "product" : "index", product: onProduct[kind] ? P["glow-serum"] : undefined, shop: shopWith({ designs: { [kind]: secOf(kind, p.key) } }) });
+      const css = ["ucs-sec.css"];
+      if (!onProduct[kind]) return { template: p.key, title: p.title, layout: "page", css, html };
+      if (onProduct[kind] === "in") return { template: p.key, title: p.title, layout: "product", product: "glow-serum", css, html };
+      return { template: p.key, title: p.title, layout: "product", product: "glow-serum", css, html: "", bottom: kind === "recently_viewed" ? RV + html : html };
+    }));
+  }
+  const popFake = `<script>try{localStorage.removeItem("ucs-pop")}catch(e){}(function(){var f=window.fetch;window.fetch=function(u,o){if(String(u).indexOf("apps/ucro/subscribe")>-1)return Promise.resolve(new Response(JSON.stringify({ok:true,code:"WELCOME-7K2QF"}),{headers:{"Content-Type":"application/json"}}));if(String(u).indexOf("/discount/")>-1)return Promise.resolve(new Response(""));return f.apply(this,arguments)}})();</script>`;
+  F.email_popup = await Promise.all(secD.SEC_PRESETS.email_popup.map(async (p) => ({
+    template: p.key, title: p.title, layout: "page", minHeight: 620,
+    html: '<div style="padding:60px 24px;text-align:center;opacity:.7">The pop up opens a second after the page loads. Try signing up: the demo shows a sample code.</div>',
+    embeds: popFake + await block("ucs-boosters", { shop: shopWith({ designs: { email_popup: secOf("email_popup", p.key) }, meta: { "$app:cro_boosters": [mo("main", { config: boostersOnly({}) })] } }) }),
+  })));
+
   // Each feature's templates as its design page in the app lists them: demo design N shows template N
   // (DEMO_TEMPLATES in app/lib/site.ts says how many; the build checks it).
   const T = {
@@ -358,6 +392,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, size_guide: sizeD.SIZE_GUIDE_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
     hero: heroD.HERO_PRESETS, videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
     header: headerD.PRESETS, track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
+    ...Object.fromEntries(secD.SEC_KINDS.map((k) => [k, secD.SEC_PRESETS[k]])),
   };
   return { features: F, recipes: R, templates: T };
 }
