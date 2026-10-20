@@ -72,6 +72,12 @@ Updated 2026-10-19.
       pricing table, pricing FAQ on upgrading and cancelling (finish-website-cloud §3, #221)
 - [x] `/changelog/` (site/src/lib/changelog.ts) and an accessibility pass: `site/scripts/check-a11y.mjs` (alt text, heading
       order, names, labels, contrast), hidden heading for the pricing plan cards, keyboard focus checked (finish-website-cloud §3, #222)
+- [x] SEO/GEO finish (finish-website-cloud §4): alternative pages show each app's own App Store listing (developer,
+      launch date, plans, what it says it does), checked 2026-10-20 with the link; llms.txt and llms-full.txt list the
+      keyword answers, bundle types, alternatives and recent changes; GEO check (10 fixed questions, monthly) with run 1
+      in `docs/research/geo-checks.md`
+- [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
+      `docs/research/geo-checks.md`) and add the columns
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
