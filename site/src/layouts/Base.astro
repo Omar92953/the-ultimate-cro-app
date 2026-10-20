@@ -46,8 +46,8 @@ if (crumbs?.length) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={page.description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {/* A page kept out of search (the 404 page) has no canonical address of its own. */}
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#0b0b0f" />

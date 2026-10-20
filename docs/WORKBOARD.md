@@ -58,6 +58,9 @@ Updated 2026-10-19.
 - [x] AI crawlers named in robots.txt, fuller llms.txt (#133); listing text with search words (#134)
 - [ ] After keyword pages: blog routine (drafts as PRs), monthly GEO check routine, MCP listing in the Claude
       and ChatGPT directories (after the MCP is tested on Testing 3)
+- [x] Search visibility (finish-website-cloud §1, #218): sitemap `<lastmod>`, IndexNow also on app file changes,
+      www and pages.dev copies noindex, 404 without canonical, `/about/`, Organization contact and `sameAs`;
+      log in `docs/research/search-visibility.md`, checklist in `docs/website.md` ("Search engines beyond Google")
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
@@ -67,6 +70,9 @@ Updated 2026-10-19.
       `google-site-verification` TXT record), sitemap-index.xml submitted (2026-10-16)
 - [x] Bing Webmaster Tools: crotoolbox.com added, sitemap-index.xml submitted (2026-10-16); IndexNow runs from GitHub
 - [ ] Check both show the sitemap as Success (Google showed "Couldn't fetch" right after adding, normal for a new property)
+- [ ] Cloudflare: Redirect Rule www to root (`docs/website.md`, "Search engines beyond Google", step 1)
+- [ ] Bing Webmaster Tools: sitemap Success, Request indexing for the home and keyword pages, Site Scan (step 2)
+- [ ] Yandex Webmaster: add the site, verify by DNS TXT on Cloudflare, submit the sitemap (step 3)
 - [ ] Cloudflare Web Analytics (`docs/website.md`, "Visibility plan")
 - [ ] Off site visibility checklist (`docs/website.md`, "Off site work")
 - [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution

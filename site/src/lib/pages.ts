@@ -50,6 +50,14 @@ export const PAGES = {
     ogTitle: "We're here to help",
     ogKicker: "Support",
   },
+  about: {
+    slug: "about",
+    path: "/about/",
+    title: "About CRO Toolbox",
+    description: `${BRAND_LINE} Who runs it, what it does, where your data is kept and how to reach us.`,
+    ogTitle: "About CRO Toolbox",
+    ogKicker: "About",
+  },
   privacy: {
     slug: "privacy",
     path: "/privacy/",
