@@ -15,7 +15,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { requireOfferSlot } from "../lib/rules.server";
 import { Button, NumberField, OptionalSetting, Switch, TextArea, TextField } from "../components/fields";
-import { Explainer } from "../components/ui";
+import { PageIntro } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
 import { EditorLayout } from "../components/EditorLayout";
 
@@ -96,11 +96,7 @@ export default function AfterPurchase() {
       <SaveControls dirty={dirty} saving={fetcher.state !== "idle"} onSave={() => save()} onDiscard={() => setC(JSON.parse(fetcher.data?.ok ? sent : JSON.stringify(data.config)))} />
       <s-stack gap="base">
         <FeatureTabs feature="post_purchase" />
-        <Explainer
-          what="Right after paying, the shopper sees one more product at a discount and adds it to the order with one click, without entering card details again."
-          how="Pick the product and the discount here. Shopify shows the offer between payment and the thank-you page, and adds it to the same order and shipment. Not shown when the product is already in the order."
-          example="“Wait, add this to your order: Travel case, EGP 300 → EGP 255 (15% off).”"
-        />
+        <PageIntro text="One more product right after payment, added to the same order in one click." />
         <s-banner tone="info" heading="Before it shows to shoppers">
           In Settings → Checkout, under Post-purchase page, choose CRO Toolbox. Shopify shows after-purchase offers for card and Shop Pay payments; publishing an app with this feature needs Shopify’s approval for post-purchase extensions.{" "}
           <s-link href={data.settings} target="_blank">

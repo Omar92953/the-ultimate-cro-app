@@ -9,7 +9,7 @@ import { alertGroups, clearTold, markTold, waitingEmails } from "../lib/stock.se
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { Button } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 
@@ -87,11 +87,7 @@ export default function StockRequests() {
       </Button>
       <s-stack gap="base">
         <FeatureTabs feature="stock" />
-        <Explainer
-          what="On sold-out products, shoppers can leave their email to hear when it's back. On products that are out of stock but still for sale, Add to cart becomes “Pre-order”."
-          how="Requests collect here. When a product is back in stock, copy or download the emails and send them a message with your email tool (for example Shopify Email), then mark them as told."
-          example="12 people asked for the Basic tee in Medium; it's back in stock, so you email them and mark them as told."
-        />
+        <PageIntro text="Shoppers ask to hear when a sold out product is back, and can pre order items that are out of stock but still for sale." />
         {data.inTheme === false ? (
           <s-banner tone="warning" heading="Not on your product page yet">
             Add the “Back in stock &amp; pre-order” block under the Add to cart button in the theme editor.

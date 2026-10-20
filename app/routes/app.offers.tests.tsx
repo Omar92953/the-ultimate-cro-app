@@ -16,7 +16,7 @@ import { isRuleError } from "../lib/rules";
 import { applyWinner, createTest, listTests, stopTest, testResults } from "../lib/ab-tests.server";
 import { MIN_ORDERS, MIN_VIEWS, type AbResult, type AbTest } from "../lib/ab-tests";
 import { Button, NumberField, Select, TextField } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -139,11 +139,7 @@ export default function AbTests() {
       <CategoryCrumb feature="ab_tests" />
       <s-stack gap="base">
         <FeatureTabs feature="ab_tests" />
-        <Explainer
-          what="Show half of your shoppers another version of an upsell or cross sell and see which one earns more."
-          how="Version A is the offer as it is. You change the words, the discount or the style for version B. Each shopper keeps one version. Results count real shoppers and real orders; we only say which is ahead when there is enough data."
-          example="Version A: 10% off the second item. Version B: 15%. After two weeks, B has 14 orders per 100 shoppers against 11, and we are 96% sure: use version B."
-        />
+        <PageIntro text="Show half of your shoppers a second version of an offer and see which one sells more." />
         {fetcher.data && !fetcher.data.ok && fetcher.data.upgrade ? <s-banner tone="warning" heading="This needs a higher plan" /> : null}
         {running.map(card)}
         <s-section heading="Start a test">

@@ -5,6 +5,7 @@
  */
 import { useState, type ReactNode } from "react";
 import styles from "./SetupGuide.module.css";
+import { HomeRow } from "./ui";
 
 export type GuideStep = { key: string; title: string; text: string; done: boolean; action: ReactNode };
 
@@ -31,38 +32,39 @@ export function SetupGuide(props: { steps: GuideStep[]; onManual: (key: string) 
   const [menu, setMenu] = useState(false);
   const shown = open ?? firstOpen;
 
-  return (
-    <section className={styles.guide} aria-label="Setup guide">
-      <div className={styles.head}>
-        <div className={styles.headText}>
-          <h2 className={styles.title}>{done === steps.length ? "Setup complete" : "Setup guide"}</h2>
-          <p className={styles.intro}>{done === steps.length ? "Your offers are live. Analytics shows what they bring in." : "Follow these steps to start selling more with CRO Toolbox."}</p>
-        </div>
-        <div className={styles.tools}>
-          <div className={styles.menuWrap}>
-            <button type="button" className={styles.iconButton} aria-label="More actions" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
-              <svg viewBox="0 0 20 20" aria-hidden="true">
-                <circle cx="5" cy="10" r="1.5" fill="currentColor" />
-                <circle cx="10" cy="10" r="1.5" fill="currentColor" />
-                <circle cx="15" cy="10" r="1.5" fill="currentColor" />
-              </svg>
+  const tools = (
+    <div className={styles.tools}>
+      <div className={styles.menuWrap}>
+        <button type="button" className={styles.iconButton} aria-label="More actions" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <circle cx="5" cy="10" r="1.5" fill="currentColor" />
+            <circle cx="10" cy="10" r="1.5" fill="currentColor" />
+            <circle cx="15" cy="10" r="1.5" fill="currentColor" />
+          </svg>
+        </button>
+        {menu ? (
+          <div className={styles.menu} role="menu">
+            <button type="button" role="menuitem" className={styles.menuItem} onClick={() => { setMenu(false); props.onHide(); }}>
+              Hide setup guide
             </button>
-            {menu ? (
-              <div className={styles.menu} role="menu">
-                <button type="button" role="menuitem" className={styles.menuItem} onClick={() => { setMenu(false); props.onHide(); }}>
-                  Hide setup guide
-                </button>
-              </div>
-            ) : null}
           </div>
-          <button type="button" className={styles.iconButton} aria-label={collapsed ? "Show steps" : "Hide steps"} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)}>
-            <svg viewBox="0 0 20 20" aria-hidden="true" style={{ transform: collapsed ? "rotate(180deg)" : undefined }}>
-              <path d="M5.5 12.5L10 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
+        ) : null}
       </div>
+      <button type="button" className={styles.iconButton} aria-label={collapsed ? "Show steps" : "Hide steps"} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)}>
+        <svg viewBox="0 0 20 20" aria-hidden="true" style={{ transform: collapsed ? "rotate(180deg)" : undefined }}>
+          <path d="M5.5 12.5L10 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
+  );
 
+  return (
+    <HomeRow
+      title={done === steps.length ? "Setup complete" : "Setup guide"}
+      subtitle={done === steps.length ? "Your offers are live. Analytics shows what they bring in." : "Follow these steps to start selling more with CRO Toolbox."}
+      action={tools}
+    >
+    <div aria-label="Setup guide">
       <div className={styles.progress}>
         <span className={styles.count}>{`${done} / ${steps.length} completed`}</span>
         <span className={styles.bar} role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={done} aria-label="Setup progress">
@@ -100,6 +102,7 @@ export function SetupGuide(props: { steps: GuideStep[]; onManual: (key: string) 
           )}
         </ol>
       ) : null}
-    </section>
+    </div>
+    </HomeRow>
   );
 }

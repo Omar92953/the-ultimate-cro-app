@@ -9,7 +9,7 @@ import { getBoosters, getRecent, refreshRecent, saveBoosters } from "../lib/boos
 import { TRUST_BADGES, type BoostersConfig, type TrustBadgeKey } from "../lib/boosters";
 import { sectionLinks } from "../lib/sections.server";
 import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
-import { Card, CardGrid, CardText, Explainer, Pill } from "../components/ui";
+import { Card, CardGrid, CardText, PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -87,11 +87,7 @@ export default function Boosters() {
         Turn on in theme
       </Button>
       <s-stack gap="base">
-        <Explainer
-          what="Four small boosters for product pages and the whole store: a sticky Add to cart bar, low-stock urgency, trust badges with your payment icons, and pop-ups of real recent purchases."
-          how="Switch on “Conversion boosters” once in the theme editor's App embeds, then turn each booster on or off and edit it here. Everything shown to shoppers is real: stock comes from your inventory and pop-ups from real orders."
-          example="A shopper scrolls down a product page: the bar with price and Add to cart follows them, “Only 3 left” shows under the price, and “Someone in Cairo bought Classic watch · 5 minutes ago” slides in."
-        />
+        <PageIntro text="Small boosters for the whole store: a sticky Add to cart bar, low stock urgency, trust badges and real recent purchases." />
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
 
         <CardGrid cols={2}>

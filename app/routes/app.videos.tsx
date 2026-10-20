@@ -8,8 +8,7 @@ import { authenticate } from "../shopify.server";
 import { editorLinks, getSlides, listProductVideos, listVideoFiles, saveSlides } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import type { Ref, Slide } from "../lib/types";
-import { Explainer } from "../components/ui";
-import { HELP } from "../lib/help";
+import { PageIntro } from "../components/ui";
 import { Button, Select, TextField } from "../components/fields";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
@@ -110,7 +109,7 @@ function VideoManager(props: { slides: Slide[]; files: VideoOption[]; shop: stri
       </Button>
       <FeatureTabs feature="videos" />
       <s-box paddingBlockEnd="base">
-        <Explainer {...HELP.videos} />
+        <PageIntro text="Short videos on your store, each linked to a product with its price and an Add to cart button." />
       </s-box>
 
       {save.data?.error ? (
