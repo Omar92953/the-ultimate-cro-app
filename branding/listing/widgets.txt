@@ -6,5 +6,10 @@ fbt        bundles          833   395   1340  775
 qty        upsell           833   360   1340  576
 cart       cart-offers      1024  500   1403  679
 post       post-purchase    460   358   1140  707
-review     product-reviews  895   361   1278  508
+review     product-reviews  895   361   1278  531
 ship       shipping-bar     833   537   1340  577
+mixmatch   bundles/mixmatch 826   374   1346  990
+benefits   benefits         196   240   1404  380
+delivery   delivery         832   622   1340  678
+thanks     thank-you        272   368   852   594
+stock      stock-urgency    826   352   1346  402

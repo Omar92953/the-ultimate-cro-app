@@ -47,11 +47,26 @@ handing it over.
 New screenshot: copy `templates/screenshot-example.html` to `templates/screenshot-<n>-<name>.html`, change the
 headline, sentence, checks and widget, add a crop to `widgets.txt` if needed, then capture and render.
 
-Needs Google Chrome (set `CHROME=/path` if it's not found) and, off macOS, ImageMagick for cropping.
+Needs Google Chrome (set `CHROME=/path` if it's not found) and, off macOS, ImageMagick for cropping. On Linux,
+headless Chrome lays the page out a little shorter than `--window-size`, which leaves a white strip at the
+bottom of `render.sh` output: render with an exact 1600 x 900 viewport there instead (Playwright
+`page.setViewportSize`, then a screenshot). Chrome as root also needs `--no-sandbox` (wrap it in a small
+script and pass it as `CHROME`).
 
 ## Status
 
 - Feature image approved (`branding/feature/feature-banner.png`), built from the current demos.
-- Waiting: Omar wants the demos to show a real product collection's photos first. After that: capture again,
-  render the feature image again and design the 6 screenshots (`docs/WORKBOARD.md`, "App Store listing images").
+- 2026-10-20: demos show real product photos (`demos/IMAGES.md`). Widgets re-captured (4 new: `mixmatch`,
+  `benefits`, `delivery`, `thanks`), feature image rendered again, and the 6 screenshots designed:
+  `templates/screenshot-1-bundles.html` to `screenshot-6-sections.html`, rendered to
+  `branding/screenshots/storefront/`. Waiting on Omar to look at them and upload.
+
+## Screenshot alt text (for the listing editor)
+
+1. `1-bundles.png`: "Frequently bought together and mix and match bundles on a product page"
+2. `2-upsells.png`: "Quantity breaks with a saving next to Add to cart"
+3. `3-cart.png`: "Free shipping bar and cross sell offers in the theme's cart drawer"
+4. `4-after-purchase.png`: "One click offer after payment and a next order code on the thank you page"
+5. `5-product-page.png`: "A stock message and a delivery estimate on a product page"
+6. `6-sections.png`: "A benefits row section in a store theme"
 - Uploading is done by Omar in the listing editor (the browser pane cannot upload files).
