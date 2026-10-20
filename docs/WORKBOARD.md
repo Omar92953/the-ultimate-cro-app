@@ -76,6 +76,7 @@ Updated 2026-10-19.
       launch date, plans, what it says it does), checked 2026-10-20 with the link; llms.txt and llms-full.txt list the
       keyword answers, bundle types, alternatives and recent changes; GEO check (10 fixed questions, monthly) with run 1
       in `docs/research/geo-checks.md`
+- [x] Articles (finish-website-cloud §5), 2 of 4: post purchase upsell examples, thank you page ideas, A/B testing offers
 - [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
       `docs/research/geo-checks.md`) and add the columns
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
