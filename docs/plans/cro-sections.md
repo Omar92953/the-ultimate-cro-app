@@ -1,12 +1,12 @@
 # CRO sections: 9 new sections in the Section library
 
 Omar, 2026-10-19: add only sections that raise conversion, included in the existing plans (Shopify App
-Pricing has no one time purchases). Status: **plan, waiting for Omar's OK.**
+Pricing has no one time purchases). Status: approved by Omar 2026-10-19, built in PR #211 (2026-10-20).
 
 ## Budget (counted on main 2026-10-19, after the Header came back)
 
 - Theme blocks: **28 of 30**. This plan adds **1** (29 of 30), one slot stays free.
-- Liquid: **89.7 of 100 KB**. The new block is about 1.5 KB; the pop up adds about 0.5 KB to an existing embed.
+- Liquid: **90.3 of 100 KB** before, **93.2 KB** after (block 2.2 KB, pop up 0.7 KB in the boosters embed).
 
 ## Design
 
@@ -38,7 +38,7 @@ prints the config and loads `ucs-sec-popup.js` (+ css) **lazily** (after load). 
 Same storage as all designs: metaobject `$app:cro_design`, handles `sec_<kind>` (live), `sec_<kind>_draft`
 (theme editor preview), `sec_<kind>_editor` (full editor state), styles 2 to 5 as `sec_<kind>_<N>`.
 No toml change for data. One TypeScript file per section in `app/lib/sections/` with its type, defaults,
-`toStorefront()` and design presets; one editor route `app.designs.sec.$kind.tsx` (EditorLayout,
+`toStorefront()` and design presets; one editor route `app.designs.cro.$kind.tsx` (EditorLayout,
 fields.tsx wrappers, Looks tab with presets, Content, Design, live preview that reuses the storefront CSS/JS).
 
 ## The 9 sections
@@ -98,10 +98,15 @@ Scope work (Omar accepted `write_customers`, 2026-10-19):
 - `test/storefront`: render the block for every kind; `test/app`: defaults, toStorefront, the subscribe
   route (signature, limits, same code for the same email).
 
-## Pull requests
+## Built (PR #211, one PR)
 
-1. `App: CRO sections 1 (block, Benefits row, Guarantee, How it works, Comparison table)`
-2. `App: CRO sections 2 (Product tabs, Before and after, Shoppable image, Recently viewed)`
-3. `App: Email pop up with a discount (write_customers)`
-
-Each: all checks, `build:theme` budget, Shopify deploy from the Mac, merge, check on Testing 3.
+- Lib `app/lib/cro-sections.ts` (types, defaults, presets, storefront copy), icons `app/lib/sec-icons.ts`.
+- Editor `app/routes/app.designs.cro.$kind.tsx`, forms `app/components/SecForms.tsx`, preview `app/components/SecPreview.tsx`
+  (runs the storefront scripts in the admin page).
+- Block `theme/blocks/ucs-section.liquid`, pop up in `theme/blocks/ucs-boosters.liquid`; assets `ucs-sec.js/.css` and
+  `ucs-sec-<kind>.js/.css`. Phone layouts use container queries, so the app preview at phone width matches.
+- Sign up: `app/routes/proxy.subscribe.tsx` (codes `app/lib/popup-code.server.ts`: HMAC of shop and email, so nothing is stored).
+- Theme status: `getThemeStatus().sections` lists the kinds placed (the block's Section setting).
+- Tests: `test/app/cro-sections.test.ts`, `test/storefront/sections.mjs` (page cro-sections.html); demos in `demos/src/features.mjs`.
+- Pop up sign ups need the shop's app proxy (already used by reviews) and the new `write_customers` scope; merchants approve
+  it on next open.
