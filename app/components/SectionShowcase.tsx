@@ -661,27 +661,6 @@ export function QuickAddShowcase() {
   );
 }
 
-export function HeroShowcase() {
-  return (
-    <Stage>
-      <span className={s.hero}>
-        <Img id={PHOTO.shopper} w={900} h={460} className={s.cover} />
-        <span className={s.heroCopy}>
-          <span className={s.tag}>NOW ON SALE</span>
-          <b className={s.heroH}>Reduce stress. Sleep peacefully.</b>
-          <span>
-            <Stars /> 4.8 · 12,000 reviews
-          </span>
-          <span className={s.row}>
-            <span className={`${s.btn} ${s.btnBlue}`}>SHOP NOW</span>
-            <span className={`${s.btn} ${s.btnDark}`}>LEARN MORE</span>
-          </span>
-        </span>
-      </span>
-    </Stage>
-  );
-}
-
 export function CountdownShowcase() {
   return (
     <Stage>
@@ -1092,21 +1071,6 @@ export function QuickAddToastShowcase() {
             <span className={`${s.btn} ${s.btnLight} ${s.outline}`}>View cart</span>
             <span className={`${s.btn} ${s.btnDark}`}>Checkout</span>
           </span>
-        </span>
-      </span>
-    </Stage>
-  );
-}
-
-export function HeroCenteredShowcase() {
-  return (
-    <Stage>
-      <span className={`${s.hero} ${s.heroCenter}`}>
-        <Img id={PHOTO.yellow} w={900} h={460} className={s.cover} />
-        <span className={s.heroBox}>
-          <b className={s.heroH}>New season</b>
-          <span>Bright colours for sunny days</span>
-          <span className={`${s.btn} ${s.btnLight}`}>Shop the collection</span>
         </span>
       </span>
     </Stage>

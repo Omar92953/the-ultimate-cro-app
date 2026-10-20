@@ -104,7 +104,7 @@ WHAT TO CLICK
 - Discounts (Offers > Discounts): buy X get Y, volume, gift. Add the products to the cart; the
   discount shows in the cart and at checkout.
 - Section library (menu): Reviews, Announcement bar, Countdown, Sticky add to cart, Trust badges,
-  Wishlist, FAQ, Logos, Hero banner, Quiz. Each has a Style tab with a live
+  Wishlist, FAQ, Logos, Quiz. Each has a Style tab with a live
   preview and an "Add to theme" button.
 - Cart & Checkout > Cart group: "Offers in your theme's cart" (turn on its app embed). Add a product:
   offers and the free shipping bar show in the cart.

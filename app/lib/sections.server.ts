@@ -378,7 +378,6 @@ export function sectionLinks(shop: string, pages: { trackHandle?: string; return
     countdown_cart: block("ucs-countdown-bar", "cart"),
     editor: base,
     boosters: embed("ucs-boosters"),
-    hero: block("ucs-hero"),
     image_carousel: block("ucs-image-carousel"),
     addons: `${base}?template=product&addAppBlockId=${key}/ucs-addons&target=mainSection`,
     header: headerBlock("ucs-header"),

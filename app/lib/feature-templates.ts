@@ -14,7 +14,6 @@ import { DELIVERY_PRESETS } from "./delivery-design";
 import { SIZE_GUIDE_PRESETS } from "./size-guide";
 import { STOCK_PRESETS } from "./stock-design";
 import { WISHLIST_PRESETS } from "./wishlist-design";
-import { HERO_PRESETS } from "./hero-design";
 import { ORDER_PAGE_PRESETS } from "./order-pages";
 import { PERSONALIZE_PRESETS } from "./personalize-design";
 import { CART_EXTRAS_PRESETS } from "./cart-extras-design";
@@ -41,7 +40,6 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   size_guide: t(SIZE_GUIDE_PRESETS),
   stock: t(STOCK_PRESETS),
   wishlist: t(WISHLIST_PRESETS),
-  hero: t(HERO_PRESETS),
   header: t(HEADER_PRESETS),
   track: t(ORDER_PAGE_PRESETS),
   returns: t(ORDER_PAGE_PRESETS),

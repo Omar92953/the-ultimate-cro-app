@@ -214,10 +214,6 @@
 .picker { position: absolute; right: -1em; top: 55%; z-index: 3; display: flex; flex-direction: column; gap: 0.8em; width: 16em; padding: 1.3em; background: #fff; border-radius: 1em; box-shadow: 0 1em 3em rgba(0, 0, 0, 0.28); }
 
 /* ---------- hero ---------- */
-.hero { position: relative; display: flex; align-items: center; width: 52em; height: 27em; overflow: hidden; color: #fff; border-radius: 1.2em; box-shadow: 0 0.4em 1.6em rgba(0, 0, 0, 0.18); }
-.hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(14, 22, 48, 0.85), rgba(14, 22, 48, 0.35) 55%, rgba(14, 22, 48, 0)); }
-.heroCopy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1em; max-width: 26em; padding: 0 3.5em; }
-.heroH { font-family: Georgia, "Times New Roman", serif; font-size: 3em; font-style: italic; line-height: 1.08; }
 
 /* ---------- countdown ---------- */
 .cd .tag { color: #fff; background: #111; }
@@ -278,8 +274,6 @@
 .progressFull { background: #7fd1a5; }
 .toast { position: absolute; right: -1em; bottom: -1em; z-index: 3; display: flex; flex-direction: column; gap: 0.7em; width: 20em; padding: 1.2em; background: #fff; border-radius: 1em; box-shadow: 0 1em 3em rgba(0, 0, 0, 0.28); }
 .outline { border: 0.1em solid #111; }
-.heroCenter { justify-content: center; }
-.heroCenter::before { background: rgba(0, 0, 0, 0.25); }
 .heroBox { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.8em; padding: 2em 3em; text-align: center; background: rgba(0, 0, 0, 0.45); border-radius: 1em; backdrop-filter: blur(0.4em); }
 .cdRow { flex-direction: row; align-items: center; justify-content: space-between; gap: 1.5em; }
 .timerPlain { display: flex; align-items: center; gap: 0.2em; font-size: 2.6em; font-weight: 800; font-variant-numeric: tabular-nums; }

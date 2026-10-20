@@ -14,11 +14,11 @@ resolveTsImports();
 const app = async (name) => import(`../../app/lib/${name}.ts`);
 
 const [
-  upsellD, crossD, bundleD, videoD, reviewsD, faqD, logosD, annD, shipD, countD, quickD, deliveryD, stockD, wishD, heroD, carouselD, pillsD,
+  upsellD, crossD, bundleD, videoD, reviewsD, faqD, logosD, annD, shipD, countD, quickD, deliveryD, stockD, wishD, carouselD, pillsD,
   orderD, persD, extrasD, addonsD, quizD, deals, boostersD, sizeD, headerD,
 ] = await Promise.all([
   "upsell-design", "cross-sell-design", "bundle-design", "video-carousel-design", "reviews-design", "faq-design", "logos-design", "announcement-design",
-  "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "hero-design", "image-carousel", "collection-pills",
+  "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "image-carousel", "collection-pills",
   "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters", "size-guide", "header",
 ].map(app));
 const secD = await app("cro-sections");
@@ -228,14 +228,9 @@ export async function buildFeatures({ block, shopWith, mo }) {
     embeds: await block("ucs-boosters", { page_type: "collection", shop: shopWith({ designs: { wishlist: wishOf(p.key) }, meta: { "$app:cro_boosters": [mo("main", { config: boostersOnly({}) })] } }) }),
   })));
 
-  // Hero banners: the demo store's banner picture.
+  // The demo store's banner picture (the Header demo's page behind the header).
   const heroImg = { media_type: "image", src: `${BASE}/img/hero-desktop.svg`, width: 2400, height: 1000, aspect_ratio: 2.4, alt: "Candles and skincare on a shelf" };
   const heroImgM = { media_type: "image", src: `${BASE}/img/hero-mobile.svg`, width: 1000, height: 1250, aspect_ratio: 0.8, alt: "Candles and skincare on a shelf" };
-  F.hero = await Promise.all(heroD.HERO_PRESETS.map(async (p) => {
-    const cfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "Our story" } }), p.key));
-    const banner = mo("hero-demo", { name: "Demo", config: cfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
-    return { template: p.key, title: p.title, layout: "page", html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] }, designs: { hero_default: { h: "hero-demo" } } }) }) };
-  }));
 
   const slide = (h, title, text, button) => ({ image: { id: `img-${h}`, url: imgUrl(h), kind: "image", title }, alt: P[h].title, title, text, link: "", button });
   const slides = [slide("cedar-candle", "Candles", "Hand poured soy wax", "Shop candles"), slide("glow-serum", "Skincare", "Gentle, every day", "Shop skincare"), slide("studio-tee", "Apparel", "Soft cotton basics", "Shop apparel"), slide("monstera-pot", "Home", "Little things for your space", "Shop home"), slide("clay-mug", "Gifts", "Ready to wrap", "Shop gifts")];
@@ -287,11 +282,9 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const linklists = { "main-menu": menu(["Shop", "Candles", "Skincare", "Gifts", "About"]) };
   F.header = await Promise.all(headerD.PRESETS.map(async (p) => {
     const cfg = headerD.toStorefrontHeader(headerD.applyPreset(headerD.withHeaderDefaults({ logo: { text: "Lumen Goods" }, button: { text: "Shop now" } }), p.key), null);
-    const heroCfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "" } }), "classic"));
-    const banner = mo("hero-demo", { name: "Demo", config: heroCfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
     return {
       template: p.key, title: p.title, layout: "page", css: ["ucs-header.css"], minHeight: 520,
-      html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] } }) }),
+      html: `<div style="position:relative;min-height:520px;background:url(${heroImg.src}) center/cover;display:grid;place-items:center;color:#fff;text-align:center"><div><h1 style="margin:0;font-size:2.4rem">Slow evenings, made better</h1><p style="margin:8px 0 0">Hand poured candles and gentle skincare.</p></div></div>`,
       embeds: await block("ucs-header", { linklists, shop: shopWith({ designs: { header: cfg } }) }),
     };
   }));
@@ -390,7 +383,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     reviews: reviewsD.REVIEW_PRESETS, product_reviews: reviewsD.PRODUCT_REVIEW_PRESETS, logos: logosD.LOGOS_PRESETS,
     announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
     quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, size_guide: sizeD.SIZE_GUIDE_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
-    hero: heroD.HERO_PRESETS, videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
+    videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
     header: headerD.PRESETS, track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
     ...Object.fromEntries(secD.SEC_KINDS.map((k) => [k, secD.SEC_PRESETS[k]])),
   };

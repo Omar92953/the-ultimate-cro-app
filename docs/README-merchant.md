@@ -14,7 +14,7 @@ customer pays.
     Add-ons and personalization are here too.
   - **Storefront:** every widget and section, grouped: social proof (reviews, sales pop-ups, trust
     badges, logos), bars & urgency (announcement, countdown, free shipping, stock urgency), product
-    page (sticky add to cart, quick add, delivery estimate, back in stock), content (hero, carousels,
+    page (sticky add to cart, quick add, delivery estimate, back in stock), content (carousels,
     FAQ, quiz, collection pills) and the header, and store pages (track order, returns).
     Filter by status (live, needs setup, off, not in my plan) or search.
   - **Storefront → Cart group** (first group): offers in your theme's cart, gift note & delivery
@@ -134,14 +134,6 @@ they picked, so **each item's stock goes down** and the items appear on the orde
   the checkout button. Needs the **Conversion boosters** app embed on (or the bar block in the header).
 - **Bar at the top of the store:** place the block in the Header area; switch it off to keep the bar
   only inside the cart.
-
-## Hero banners
-- Make banners in **Storefront → Hero banners**: a wide desktop image and a tall phone image,
-  heading, text, up to two buttons, where the text sits (separately for phones), colours and height.
-- In the theme editor add the **Hero image** section and pick a banner. With none picked it shows your
-  first banner (change the order in the list). Set **Where on the page** to "Lower down" for banners
-  that aren't at the top, so they load only when scrolled to.
-- **Preview on store** shows your unsaved changes in the theme editor only; **Save** puts them live.
 
 ## Logos, FAQ and quick add
 - **Scrolling logos and text** and **FAQ**: the logos and questions are in Storefront; the look is

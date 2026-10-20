@@ -99,7 +99,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   logos: {
     who: "For press mentions, partner brands or short selling points.",
     points: ["Logos or text in a scrolling strip or a grid", "One or two lines, grey or full colour", "Optional links"],
-    related: ["reviews", "hero"],
+    related: ["reviews", "image_carousel"],
   },
   announcements: {
     who: "For news, offers and shipping messages at the top of every page.",
@@ -152,15 +152,10 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["Hearts on product pages and product cards", "A wishlist page with add to cart and a share link", "Price dropped badges", "Saved in the shopper's browser, no account needed"],
     related: ["quick_add", "stock"],
   },
-  hero: {
-    who: "For the first thing visitors see.",
-    points: ["Separate desktop and phone images", "Heading, text and up to two buttons", "Where the text sits, colours, overlay and height", "Load only when scrolled to, for banners lower on the page"],
-    related: ["image_carousel", "announcements", "logos"],
-  },
   image_carousel: {
     who: "For collections, lookbooks and categories as scrolling pictures.",
     points: ["Each picture with a title, text, button and link", "Captions below or on the pictures", "Pictures per row, shape, arrows and dots"],
-    related: ["hero", "videos", "collection_pills"],
+    related: ["videos", "collection_pills"],
   },
   videos: {
     who: "For showing products in use, like short social videos.",
@@ -180,12 +175,12 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   collection_pills: {
     who: "For moving between collections quickly.",
     points: ["A row of buttons to your collections", "The current one highlighted", "Scroll or wrap, outline or filled"],
-    related: ["quick_add", "hero"],
+    related: ["quick_add", "image_carousel"],
   },
   header: {
     who: "For a header that looks designed without editing theme code.",
     points: ["Glass, rounded, classic, minimal and bold looks", "Your menu with dropdowns or mega menus", "Search, cart count and an optional button", "Sticky, and over the hero on the home page if you want"],
-    related: ["hero", "announcements", "collection_pills"],
+    related: ["announcements", "collection_pills"],
   },
   compare_table: {
     who: "For products that win on facts: show shoppers why yours beats the usual choice.",
@@ -216,7 +211,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   shoppable: {
     who: "For lifestyle photos that sell: shoppers tap a product in the picture and add it.",
     points: ["Up to 8 products on one picture, placed by clicking", "Dots, numbers or plus signs, with a gentle pulse", "A card with the picture, the live price and Add to cart (or View product for products with options)"],
-    related: ["image_carousel", "hero", "quick_add"],
+    related: ["image_carousel", "quick_add"],
   },
   recently_viewed: {
     who: "For bringing shoppers back to what they were already considering.",

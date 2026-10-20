@@ -88,12 +88,6 @@ const in3days = new Date(Date.now() + 3 * 86400e3).toISOString().slice(0, 16);
 const { toStorefrontAnnouncement, withAnnouncementDefaults } = await import("../../app/lib/announcement-design.ts");
 const { toStorefrontShippingBar, withShippingBarDefaults } = await import("../../app/lib/shipping-bar.ts");
 const { toStorefrontLogos, withLogosDefaults } = await import("../../app/lib/logos-design.ts");
-const { toStorefrontHero, withHeroDefaults } = await import("../../app/lib/hero-design.ts");
-const heroOf = (handle, raw, images = {}) => mo(handle, { name: handle, config: toStorefrontHero(withHeroDefaults(raw)), draft: null, ...images });
-const heroMain = heroOf("hero-main", { text: { b2: "Our story" } }, { image_desktop: photo("herod", 2400, 1000), image_mobile: photo("herom", 1000, 1250) });
-// No images, text on a box, centred, small, not full width.
-const heroBox = heroOf("hero-box", { text: { heading: "Boxed banner" }, layout: { box: true, spotDesktop: "mc", heightDesktop: "small", fullWidth: false } });
-shop.metaobjects["$app:cro_hero"] = collectionOf([heroMain, heroBox]);
 const { toStorefrontFaq, withFaqDefaults } = await import("../../app/lib/faq-design.ts");
 const faqDesign = (raw) => mo("faq", { config: toStorefrontFaq(withFaqDefaults(raw)) });
 const logosDesign = (raw) => mo("logos", { config: toStorefrontLogos(withLogosDefaults(raw)) });
@@ -107,7 +101,6 @@ shop.metaobjects["$app:cro_design"] = collectionOf([
   mo("countdown_cart", { config: toStorefrontCountdownBar(withCountdownBarDefaults({ on: true }, "cart")) }),
   announceDesign({ freeShipping: { on: true, bar: true } }),
   logosDesign({ layout: { lines: 2 } }),
-  mo("hero_default", { config: { h: "hero-main" } }),
   shipBarDesign,
 ]);
 const withDesign = (d) => ({ ...shop, metaobjects: { ...shop.metaobjects, "$app:cro_design": collectionOf([...shop.metaobjects["$app:cro_design"].values.filter((m) => m.system.handle !== d.system.handle), d]) } });
@@ -165,14 +158,12 @@ const label = (t) => `<h3 class="t">${t}</h3>`;
 
 const pages = {
   "index.html": page("All sections",
-    label("hero (desktop + mobile images)") + (await block("ucs-hero")) +
     label("countdown: home section (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar")) + "</div>" +
     label("logos (marquee, two lines)") + (await block("ucs-logos")) +
     label("reviews (carousel, all)") + (await block("ucs-reviews")) +
     label("faq (tabs + search)") + (await block("ucs-faq")),
     (await block("ucs-announcement")) + (await block("ucs-countdown-bar", { position: "bottom", mode: "daily", daily_cutoff: "23:59", text: "Order in the next" }))),
   "variants.html": page("Variants",
-    label("hero: no images, text box, centred, small") + (await block("ucs-hero", { banner: heroBox, place: "lower" })) +
     label("countdown: product page, compact (designed in the app)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "product" })) + "</div>" +
     label("countdown: cart page (daily cut-off)") + '<div class="shopify-section">' + (await block("ucs-countdown-bar", {}, { page_type: "cart" })) + "</div>" +
     label("logos: grid, colour") + (await block("ucs-logos", {}, { shop: shopLogoGrid })) +
@@ -188,7 +179,6 @@ const pages = {
     label("reviews: product page — snippet card") + (await block("ucs-product-reviews", {}, { page_type: "product", product: tee, shop: shopSnippet })) +
     label("reviews: product with none, fallback off — expect nothing") + (await block("ucs-reviews", { filter: "product", fallback: false }, { page_type: "product", product: { id: 99, title: "Lonely", url: "/products/lonely" } }))),
   "empty.html": page("Empty (theme editor)",
-    label("hero empty") + (await block("ucs-hero", {}, { shop: empty, design: true })) +
     label("logos empty") + (await block("ucs-logos", {}, { shop: empty, design: true })) +
     label("faq empty") + (await block("ucs-faq", {}, { shop: empty, design: true })) +
     label("reviews empty") + (await block("ucs-reviews", {}, { shop: empty, design: true })),
@@ -420,9 +410,6 @@ const variants = pages["variants.html"];
 check(/ucs-logos ucs-logos--grid(?![^"]*ucs-logos--gray)/.test(variants) && variants.includes("As seen in"), "logos grid design (colour, own heading) not applied");
 check(/ucs-faq ucs-faq--cards ucs-faq--chevron ucs-faq--icon-left/.test(variants) && variants.includes("--ucs-accent: #ffbd13") && variants.includes("Shipping questions") && variants.includes("ucs-faq__list--2"), "FAQ cards design / per-placement heading not applied");
 check(idx.includes('type="search"') && !/ucs-faq__list--2/.test(idx), "FAQ default design (search, 1 column) not applied");
-check(/ucs-hero ucs-hero--dv-m ucs-hero--dh-l/.test(idx) && idx.includes("Our story") && idx.includes('media="(max-width: 749px)"') && /fetchpriority="high"/.test(idx), "hero: first banner (fallback) not shown with both images");
-check(/ucs-hero ucs-hero--dv-m ucs-hero--dh-c[^"]*ucs-hero--box/.test(variants) && !/ucs-hero--dv-m ucs-hero--dh-c[^"]*ucs-hero--full/.test(variants) && variants.includes("Boxed banner") && variants.includes("--ucs-hero-hd: 420px"), "hero: picked banner design not applied");
-check(pages["empty.html"].includes("make a banner in CRO Toolbox"), "hero: empty note missing in the theme editor");
 check(/data-page="cart"[\s\S]*?"cart":\{[^<]*"on":true/.test(variants), "countdown: the cart page design is not passed to the block");
 // Reviews are built in the browser from the passed data: the product page passes only the tee's 2.
 const productReviews = (() => {
