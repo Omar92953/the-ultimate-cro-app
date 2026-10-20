@@ -18,7 +18,7 @@ import { CUSTOMERS, LIMIT_KINDS, describeChange, emptyWhen, newChangeRule, newLi
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { Button, NumberField, OptionalSetting, Select, Switch, TextArea, TextField } from "../components/fields";
-import { Explainer } from "../components/ui";
+import { PageIntro } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
 
 type PageKind = "payment" | "delivery" | "limits";
@@ -75,6 +75,12 @@ const TEXT = {
   },
 };
 
+const INTRO: Record<PageKind, string> = {
+  payment: "Hide, rename or reorder the payment methods shoppers see at checkout, based on the order.",
+  delivery: "Hide, rename or reorder the delivery options shoppers see at checkout, based on the order.",
+  limits: "Stop checkout when a cart breaks your limits, with your own message.",
+};
+
 export default function CheckoutRules() {
   const data = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
@@ -128,13 +134,9 @@ export default function CheckoutRules() {
       <s-stack gap="base">
         <FeatureTabs feature={feature} />
         {page === "limits" ? (
-          <Explainer
-            what="Stop orders that break your limits, with your own message at checkout."
-            how="A minimum order, a maximum per product, or a number of items. When the cart breaks a limit, checkout shows the message and the shopper can't pay until they fix the cart."
-            example="“The minimum order is EGP 300.” or “Face masks: you can order up to 5.”"
-          />
+          <PageIntro text={INTRO.limits} />
         ) : (
-          <Explainer what={TEXT[page].what} how={TEXT[page].how} example={TEXT[page].example} />
+          <PageIntro text={INTRO[page]} />
         )}
         {fetcher.data?.upgrade ? (
           <s-banner tone="warning" heading="Plan limit reached">

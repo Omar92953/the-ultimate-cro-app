@@ -9,7 +9,7 @@ import { addProducts, deleteItem, listItems, reorder, sectionLinks, setShown } f
 import { SECTIONS, SOURCES, isKind, itemStatus, type MediaRef, type ProductRef, type SectionItem, type SectionKind } from "../lib/sections";
 import { DeletedToast } from "../components/DeleteOffer";
 import { Button, Checkbox } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
@@ -77,6 +77,13 @@ function subtitle(kind: SectionKind, item: SectionItem): string {
   return parts.filter(Boolean).join(" · ");
 }
 
+const INTRO: Record<SectionKind, string> = {
+  reviews: "Customer reviews with photos and videos, shown in a section on your store.",
+  faq: "Questions and answers shoppers can search, grouped by topic.",
+  logos: "Logos or short lines that scroll in a strip or sit in a grid.",
+  announcements: "Rotating messages in a bar at the top of your store.",
+};
+
 export default function SectionList() {
   const data = useLoaderData<typeof loader>();
   const cfg = SECTIONS[data.kind];
@@ -141,7 +148,7 @@ export default function SectionList() {
       </Button>
       <s-stack gap="base">
         <FeatureTabs feature={featureKey} />
-        <Explainer {...cfg.help} />
+        <PageIntro text={INTRO[data.kind]} />
         {data.error ? (
           <s-banner tone="critical" heading={`Your ${cfg.plural} could not be loaded`}>
             {data.error}

@@ -10,10 +10,10 @@ import { requireOfferSlot } from "../lib/rules.server";
 import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { getDiscountStatus } from "../lib/cro.server";
-import { DEAL_TYPES, describeDeal, isDealKind } from "../lib/deals";
+import { DEAL_TYPES, describeDeal, isDealKind, type DealKind } from "../lib/deals";
 import { DeletedToast } from "../components/DeleteOffer";
 import { Button } from "../components/fields";
-import { Explainer } from "../components/ui";
+import { PageIntro } from "../components/ui";
 import { dealFeature } from "../lib/catalog";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
@@ -48,6 +48,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
+const INTRO: Record<DealKind, string> = {
+  fixed: "Chosen products sold together at a discount, added to the cart with one button.",
+  bogo: "Buy some, get others free or discounted, applied at checkout.",
+  volume: "A bigger discount the more a shopper buys from a group of products.",
+  gift: "A free gift once the cart reaches an amount or has a chosen product.",
+  upgrade: "Offer a better option in place of the one chosen, for the price difference.",
+};
+
 export default function DealList() {
   const { kind, deals, native } = useLoaderData<typeof loader>();
   const t = DEAL_TYPES[kind];
@@ -79,7 +87,7 @@ export default function DealList() {
             </s-stack>
           </s-banner>
         ) : null}
-        <Explainer what={t.what} how={t.how} example={t.example} />
+        <PageIntro text={INTRO[kind]} />
         {native ? (
           <s-banner tone="warning" heading="Not available with native discounts">
             This store uses Shopify&apos;s native discounts (Settings → Discounts), which can&apos;t apply this bundle type. Switch to the app&apos;s discount engine to use it.

@@ -16,7 +16,7 @@ import { MODULE_TYPES, newModule, type ModuleType, type ThankYouModule } from ".
 import { CategoryCrumb } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { Button, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
-import { Explainer } from "../components/ui";
+import { PageIntro } from "../components/ui";
 import { SaveControls } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -84,11 +84,7 @@ export default function ThankYouPage() {
         Open checkout editor
       </Button>
       <s-stack gap="base">
-        <Explainer
-          what="Turn the thank-you page into the start of the next order: a code to come back, a message, your socials and products to discover."
-          how="Pick the modules and their order here. Then, once, add the “CRO Toolbox thank-you page” block in the checkout editor’s Thank you page. Works on every Shopify plan."
-          example="“A thank-you gift: 10% off your next order with THANKS10” · Follow us on Instagram · You may also like (4 best sellers)."
-        />
+        <PageIntro text="Make the thank you page start the next order: a code to come back, your socials and products to discover." />
         {!data.saved ? (
           <s-banner tone="info" heading="One step in Shopify">
             In the checkout editor, open the Thank you page, click Add app block and choose CRO Toolbox thank-you page.{" "}

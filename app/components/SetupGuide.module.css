@@ -14,7 +14,7 @@
 .menuItem { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; text-align: left; color: #303030; cursor: pointer; }
 .menuItem:hover { background: #f1f1f1; }
 
-.progress { display: flex; align-items: center; gap: 12px; margin: 12px 4px 10px; }
+.progress { display: flex; align-items: center; gap: 12px; margin: 0 4px 10px; }
 .count { flex: none; font-size: 13px; color: #303030; }
 .bar { position: relative; flex: 0 1 180px; height: 6px; overflow: hidden; border-radius: 3px; background: #e3e3e3; }
 .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: #303030; transition: width 0.3s; }

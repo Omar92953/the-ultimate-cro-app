@@ -14,7 +14,7 @@ import { UpgradeButton, planPriceText } from "../components/Upgrade";
 import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
 import { Button, Select } from "../components/fields";
-import { Explainer, LinkTiles, Pill } from "../components/ui";
+import { PageIntro, LinkTiles, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -115,14 +115,12 @@ export default function SettingsPage() {
               ]}
               details="Leave this on Automatic unless you were told otherwise."
             />
-            <Explainer
-              what="Everything you set in the app is saved in your own Shopify store and read by your theme directly."
-              how={
+            <PageIntro
+              text={
                 discount?.engine === "native"
-                  ? "Discounts are real Shopify discounts: the app creates one automatic discount per upsell tier and cross sell offer. You'll see them under Discounts; edit them here, not there."
-                  : "Discounts are real Shopify discounts, applied at checkout by one automatic discount called “CRO Toolbox offers” (under Discounts)."
+                  ? "Everything you set is saved in your own store. Discounts are real Shopify discounts, one per offer, listed under Discounts."
+                  : "Everything you set is saved in your own store. Discounts are real Shopify discounts, applied by one automatic discount called “CRO Toolbox offers”."
               }
-              example="Native mode differences: an upsell's minimum quantity counts all its products together, and an “All products” cross sell discounts the offered products even when bought alone."
             />
           </s-stack>
         </s-section>

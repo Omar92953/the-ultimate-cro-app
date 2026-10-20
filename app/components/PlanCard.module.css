@@ -20,7 +20,8 @@
 .freeLines { font-size: 13px; color: #616161; }
 .freeAction { flex: none; }
 
-.planBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
+/* Sits inside a Home row (HomeRow gives the box). */
+.planBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .planBarText { display: flex; flex-direction: column; gap: 6px; flex: 1 1 320px; min-width: 0; }
 .planBarText .name { font-size: 14px; font-weight: 650; }
 .planBarLine { font-size: 13px; color: #616161; }

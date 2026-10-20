@@ -8,8 +8,7 @@ import { deleteRule, editorLinks, listRules } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
 import { Button } from "../components/fields";
-import { Explainer } from "../components/ui";
-import { HELP } from "../lib/help";
+import { PageIntro } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { OFFER_FEATURE } from "../lib/catalog";
@@ -38,6 +37,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   } catch (e) {
     return { ok: false, error: errorMessage(e), warn: false };
   }
+};
+
+const INTRO: Record<string, string> = {
+  upsell: "Offers on the product page that reward buying more or picking a bigger size.",
+  cross_sell: "Products that go well together, added in one click on the product page or in the cart.",
 };
 
 export default function RuleList() {
@@ -81,7 +85,7 @@ export default function RuleList() {
       <DeletedToast />
       <s-stack gap="base">
         <FeatureTabs feature={featureKey} />
-        <Explainer {...HELP[meta.kind]} />
+        <PageIntro text={INTRO[meta.kind]} />
 
       <s-section heading={`Your offers (${rules.length})`} padding="none">
         {rules.length ? (

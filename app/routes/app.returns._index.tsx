@@ -21,7 +21,7 @@ import { getThemeStatus } from "../lib/cro.server";
 import { orderPageContext } from "../lib/order-page-setup.server";
 import { RETURN_STATES, returnState } from "../lib/return-rules";
 import { Button, TextField } from "../components/fields";
-import { Explainer, Pill } from "../components/ui";
+import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 
@@ -289,11 +289,7 @@ export default function ReturnRequests() {
       </Button>
       <s-stack gap="base">
         <FeatureTabs feature="returns" />
-        <Explainer
-          what="Shoppers ask for a return on your Returns page. Each request is a real Shopify return."
-          how="Approve or decline it (Shopify emails the shopper), send the return label, then refund when the items arrive. Rules decide which requests are approved at once."
-          example="Order #1042: 1 × Linen shirt (Medium), “Wrong size”. You approve it, add your label link and refund it when it arrives."
-        />
+        <PageIntro text="Every return request from your Returns page. Approve it, send a label and refund it here." />
         {fresh ? <s-banner tone="warning" heading={`${fresh} new return request${fresh === 1 ? "" : "s"}`} /> : null}
         <s-section heading={data.returns.length ? `${data.returns.length} request${data.returns.length === 1 ? "" : "s"}` : "No return requests yet"}>
           {data.returns.length ? (

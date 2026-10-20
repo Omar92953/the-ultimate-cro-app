@@ -22,7 +22,8 @@ import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOve
 import { FEATURE_IDEAS_EMAIL, TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
-import { Card, CardGrid, LinkTiles, Pill } from "../components/ui";
+import { HomeRow, HomeRows, LinkTiles, Pill } from "../components/ui";
+import ui from "../components/ui.module.css";
 import { usePlan } from "../components/Upgrade";
 import { isLocked } from "../lib/plan-gate";
 import { PlanBar } from "../components/PlanCard";
@@ -229,7 +230,7 @@ export default function Home() {
       <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
         View store
       </Button>
-      <s-stack gap="base">
+      <HomeRows>
         {banner ? (
           <s-banner tone={banner.tone} heading={banner.heading}>
             <s-stack gap="small-200">
@@ -251,16 +252,16 @@ export default function Home() {
           />
         ) : null}
 
-        <PlanBar
-          plan={data.plan.key}
-          orders={data.orders}
-          trialEndsAt={data.plan.trialEndsAt}
-          action={<Button href="/app/plans" variant={data.plan.key === "free" ? "primary" : "secondary"}>{data.plan.key === "pro" ? "Your plan" : "See plans"}</Button>}
-        />
+        <HomeRow title="Your plan">
+          <PlanBar
+            plan={data.plan.key}
+            orders={data.orders}
+            trialEndsAt={data.plan.trialEndsAt}
+            action={<Button href="/app/plans" variant={data.plan.key === "free" ? "primary" : "secondary"}>{data.plan.key === "pro" ? "Your plan" : "See plans"}</Button>}
+          />
+        </HomeRow>
 
-        {/* Last 30 days */}
-        <s-section heading="Last 30 days">
-          <s-stack gap="small-300">
+        <HomeRow title="Last 30 days" action={<Button href="/app/analytics" variant="tertiary">Open Analytics</Button>}>
             {m ? (
               <div className={styles.metrics}>
                 <Metric label="Sales from the app" value={money(m.current.appRevenue, m.currency)} change={sales} />
@@ -279,20 +280,16 @@ export default function Home() {
             ) : (
               <s-paragraph>Sales from the app show here once Shopify approves the app&apos;s access to orders. Your offers and widgets work in the meantime.</s-paragraph>
             )}
-            <s-stack direction="inline" justifyContent="end">
-              <Button href="/app/analytics" variant="tertiary">Open Analytics</Button>
-            </s-stack>
-          </s-stack>
-        </s-section>
+        </HomeRow>
 
         {data.attention.length ? (
-          <s-section heading="Needs your attention">
+          <HomeRow title="Needs your attention" bare>
             <LinkTiles items={data.attention.map((a) => ({ key: a.text, title: a.text, href: a.href, external: a.external, end: a.action }))} />
-          </s-section>
+          </HomeRow>
         ) : null}
 
         {data.recommended.length ? (
-          <s-section heading="Try next">
+          <HomeRow title="Try next" bare>
             <LinkTiles
               items={data.recommended.map((k) => ({
                 key: k,
@@ -303,11 +300,11 @@ export default function Home() {
                 end: isLocked(data.plan.key, k, trial) ? <Pill>{`${PLANS[FEATURE_PLAN[k]].name} plan`}</Pill> : null,
               }))}
             />
-          </s-section>
+          </HomeRow>
         ) : null}
 
         {/* Tutorials: every one in lib/tutorials.ts; a card without a video yet says "Coming soon" */}
-        <s-section heading="Tutorials">
+        <HomeRow title="Tutorials" subtitle="Short videos for every part of the app." bare>
             <div className={styles.videos}>
               {TUTORIALS.map((t) => (
                 <button key={t.title} type="button" className={styles.video} disabled={!t.youtubeId} onClick={() => t.youtubeId && setPlaying(t)}>
@@ -326,10 +323,10 @@ export default function Home() {
                 </button>
               ))}
             </div>
-        </s-section>
+        </HomeRow>
 
-        <CardGrid cols={2}>
-          <Card title="Help">
+        <div className={ui.rowPair}>
+          <HomeRow title="Help">
             <ul className={styles.links}>
               <li><a href={helpUrl()} target="_blank" rel="noreferrer">Help center</a></li>
               <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li>
@@ -348,9 +345,9 @@ export default function Home() {
                 Show the setup guide
               </Button>
             ) : null}
-          </Card>
+          </HomeRow>
 
-          <Card title="What's new">
+          <HomeRow title="What's new">
             <ul className={styles.news}>
               {WHATS_NEW.slice(0, 4).map((n) => (
                 <li key={n.text}>
@@ -359,9 +356,9 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-          </Card>
-        </CardGrid>
-      </s-stack>
+          </HomeRow>
+        </div>
+      </HomeRows>
 
       {playing ? <VideoModal tutorial={playing} onClose={() => setPlaying(null)} /> : null}
     </s-page>

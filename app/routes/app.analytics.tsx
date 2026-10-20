@@ -15,7 +15,7 @@ import { returnSavings } from "../lib/orders-lookup.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { Button, NumberField, Switch } from "../components/fields";
-import { Explainer, Segmented } from "../components/ui";
+import { PageIntro, Segmented } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -114,11 +114,7 @@ export default function Analytics() {
   return (
     <s-page heading="Analytics" inlineSize="large">
       <s-stack gap="base">
-        <Explainer
-          what="What the app's offers and widgets sell: every item they add to a cart is marked, so orders show which one brought it in."
-          how="Numbers come from your orders of the last 60 days. The holdout test hides the widgets from a small share of shoppers; comparing how often each group orders shows the real lift, not just what passed through the widgets."
-          example="Upsell offers: EGP 12,400 from 31 orders. Holdout test: shoppers who see the app order 9% more often."
-        />
+        <PageIntro text="What the app's offers and sections sell, counted from your real orders." />
         {"error" in data.results ? (
           /not approved to access/i.test(data.results.error) ? (
             <s-banner tone="warning" heading="Analytics need access to your orders">

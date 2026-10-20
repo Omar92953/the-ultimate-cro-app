@@ -94,21 +94,34 @@ export function Segmented<T extends string>(props: { value: T; options: { value:
   );
 }
 
-/** Three equal cards that explain a cost type: what it is, how the app uses it, and a worked example. */
-export function Explainer(props: { what: ReactNode; how: ReactNode; example: ReactNode }) {
+/** One plain line under a page's title: what this page is for. */
+export function PageIntro({ text }: { text: ReactNode }) {
+  return <p className={styles.pageIntro}>{text}</p>;
+}
+
+/**
+ * A Home row: the title (and an optional link or button) sits above and outside a clean container, and an
+ * optional footer sits under it (for example "Show all sections" at the bottom right).
+ */
+export function HomeRow(props: { title: ReactNode; subtitle?: ReactNode; action?: ReactNode; footer?: ReactNode; bare?: boolean; children: ReactNode }) {
   return (
-    <CardGrid cols={3}>
-      <Card title="What it is">
-        <CardText>{props.what}</CardText>
-      </Card>
-      <Card title="How the app uses it">
-        <CardText>{props.how}</CardText>
-      </Card>
-      <Card title="Example">
-        <CardText>{props.example}</CardText>
-      </Card>
-    </CardGrid>
+    <section className={styles.row}>
+      <div className={styles.rowHead}>
+        <div className={styles.rowTitles}>
+          <h2 className={styles.rowTitle}>{props.title}</h2>
+          {props.subtitle ? <p className={styles.rowSub}>{props.subtitle}</p> : null}
+        </div>
+        {props.action ? <div className={styles.rowAction}>{props.action}</div> : null}
+      </div>
+      <div className={props.bare ? undefined : styles.rowBody}>{props.children}</div>
+      {props.footer ? <div className={styles.rowFoot}>{props.footer}</div> : null}
+    </section>
   );
+}
+
+/** Home rows stacked with even, generous spacing. */
+export function HomeRows({ children }: { children: ReactNode }) {
+  return <div className={styles.rows}>{children}</div>;
 }
 
 export type LinkTile = {
