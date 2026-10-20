@@ -1,0 +1,22 @@
+/* CRO section: before and after. --pos is where the line is (0 to 100%). */
+.usec-ba { position: relative; margin: 0; overflow: hidden; border-radius: var(--usec-r, 0); user-select: none; touch-action: pan-y; cursor: ew-resize; background: var(--usec-card, #eee); }
+.usec--dir-v .usec-ba { touch-action: pan-x; cursor: ns-resize; }
+.usec-ba__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.usec-ba__before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.usec--dir-v .usec-ba__before { clip-path: inset(0 0 calc(100% - var(--pos)) 0); }
+.usec-ba__line { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: var(--usec-ac, #fff); pointer-events: none; }
+.usec--dir-v .usec-ba__line { top: var(--pos); bottom: auto; left: 0; right: 0; width: auto; height: 2px; margin: -1px 0 0; }
+.usec-ba__knob { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--usec-ac, #fff); color: var(--usec-act, #111); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); }
+.usec--dir-v .usec-ba__knob .usec__icon { transform: rotate(90deg); }
+.usec--handle-arrows .usec-ba__knob { width: 38px; height: 56px; border-radius: 999px; }
+.usec--handle-line .usec-ba__knob { width: 14px; height: 46px; border-radius: 999px; }
+.usec--handle-line .usec-ba__line { width: 3px; }
+.usec-ba__knob .usec__icon { width: 20px; height: 20px; stroke-width: 2.4; }
+.usec-ba__label { position: absolute; top: 14px; padding: 5px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 13px; font-weight: 600; pointer-events: none; }
+.usec-ba__label--a { left: 14px; }
+.usec-ba__label--b { right: 14px; }
+.usec--dir-v .usec-ba__label--b { top: auto; bottom: 14px; left: 14px; right: auto; }
+.usec-ba__range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.usec-ba__range:focus-visible + * , .usec-ba:has(.usec-ba__range:focus-visible) .usec-ba__knob { outline: 3px solid var(--usec-act, #111); outline-offset: 2px; }
+.usec-ba__cap { margin: 12px 0 0; font-size: var(--usec-p, 15px); opacity: 0.8; }
+.usec--center .usec-ba__cap { text-align: center; }

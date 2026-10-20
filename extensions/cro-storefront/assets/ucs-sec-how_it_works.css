@@ -1,0 +1,23 @@
+/* CRO section: how it works. */
+.usec-hw { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 28px; position: relative; }
+.usec-hw__i { position: relative; display: flex; flex-direction: column; gap: 12px; }
+.usec--center .usec-hw__i { align-items: center; text-align: center; }
+.usec-hw__m { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--usec-ac, #111); color: var(--usec-act, #fff); font-size: 20px; font-weight: 700; }
+.usec-hw__m .usec__icon { width: 24px; height: 24px; }
+.usec-hw__t { margin: 0; font-size: var(--usec-t, 18px); font-weight: 650; }
+.usec-hw__p { margin: 4px 0 0; font-size: var(--usec-p, 15px); opacity: 0.8; }
+.usec--style-circles .usec-hw__i:not(:last-child)::after { content: ""; position: absolute; top: 26px; left: calc(50% + 34px); right: calc(-50% + 34px); border-top: 2px dashed var(--usec-line, #ddd); }
+.usec--style-circles.usec--left .usec-hw__i:not(:last-child)::after { left: 64px; right: -16px; }
+.usec--style-timeline .usec-hw { grid-template-columns: 1fr; gap: 0; max-width: 640px; }
+.usec--center.usec--style-timeline .usec-hw { margin: 0 auto; }
+.usec--style-timeline .usec-hw__i { flex-direction: row; align-items: flex-start; text-align: left; gap: 18px; padding-bottom: 28px; }
+.usec--style-timeline .usec-hw__i:not(:last-child)::after { content: ""; position: absolute; left: 25px; top: 52px; bottom: 0; border-left: 2px solid var(--usec-line, #ddd); }
+.usec--style-timeline .usec-hw__i > div { padding-top: 12px; }
+.usec--style-cards .usec-hw__i { padding: 26px 20px; background: var(--usec-card, #fff); border-radius: var(--usec-r, 12px); }
+@container (max-width: 640px) {
+  .usec-hw { grid-template-columns: 1fr; gap: 18px; }
+  .usec--style-circles .usec-hw__i { flex-direction: row; text-align: left; align-items: center; }
+  .usec--style-circles .usec-hw__i:not(:last-child)::after { display: none; }
+  .usec-hw__m { width: 44px; height: 44px; font-size: 17px; }
+  .usec--style-timeline .usec-hw__i:not(:last-child)::after { left: 21px; top: 44px; }
+}

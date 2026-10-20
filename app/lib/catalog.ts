@@ -24,10 +24,11 @@ export const isArea = (v: unknown): v is AreaKey => AREAS.some((a) => a.key === 
 export const area = (key: AreaKey) => AREAS.find((a) => a.key === key)!;
 
 /** Hub groups, in the order each hub shows them: the Cart group, then the Checkout group on Cart & Checkout; the rest on the Section library. */
-export type GroupKey = "cart" | "checkout" | "social" | "bars" | "product" | "content";
+export type GroupKey = "cart" | "checkout" | "convert" | "social" | "bars" | "product" | "content";
 export const GROUPS: { key: GroupKey; title: string; area: AreaKey }[] = [
   { key: "cart", title: "Cart", area: "cart" },
   { key: "checkout", title: "Checkout", area: "cart" },
+  { key: "convert", title: "Sections that sell", area: "library" },
   { key: "social", title: "Social proof", area: "library" },
   { key: "bars", title: "Bars & urgency", area: "library" },
   { key: "product", title: "Product page", area: "library" },
@@ -111,6 +112,16 @@ export const FEATURES = {
   quiz: { title: "Product quiz", area: "library", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
   collection_pills: { title: "Collection pills", area: "library", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
   header: { title: "Header", area: "library", group: "content", about: "Your store's header, designed in the app: logo, menu with dropdowns or mega menus, search, cart and glass looks.", tabs: [design("/app/designs/header")] },
+  // Section library · sections that sell (one shared theme block, lib/cro-sections.ts)
+  compare_table: { title: "Comparison table", area: "library", group: "convert", about: "Your product against the others, row by row, with ticks and crosses.", tabs: [design("/app/designs/cro/compare-table")] },
+  benefits: { title: "Benefits row", area: "library", group: "convert", about: "Short reasons to buy, each with an icon: free shipping, easy returns, secure checkout.", tabs: [design("/app/designs/cro/benefits")] },
+  product_tabs: { title: "Product details tabs", area: "library", group: "convert", about: "Details, shipping and returns in tabs or an accordion on the product page.", tabs: [design("/app/designs/cro/product-tabs")] },
+  guarantee: { title: "Guarantee", area: "library", group: "convert", about: "A money back or free returns promise with a seal, next to Add to cart.", tabs: [design("/app/designs/cro/guarantee")] },
+  before_after: { title: "Before and after", area: "library", group: "convert", about: "Two pictures with a handle shoppers drag to compare.", tabs: [design("/app/designs/cro/before-after")] },
+  shoppable: { title: "Shoppable image", area: "library", group: "convert", about: "A picture with dots on your products; a tap shows the product with Add to cart.", tabs: [design("/app/designs/cro/shoppable")] },
+  recently_viewed: { title: "Recently viewed", area: "library", group: "convert", about: "The products a shopper looked at last, with prices and Add to cart.", tabs: [design("/app/designs/cro/recently-viewed")] },
+  how_it_works: { title: "How it works", area: "library", group: "convert", about: "Three to five numbered steps that explain how buying from you works.", tabs: [design("/app/designs/cro/how-it-works")] },
+  email_popup: { title: "Email pop up", area: "library", group: "convert", about: "A pop up that collects emails with a one use discount code and adds the shopper to your customers.", tabs: [design("/app/designs/cro/email-popup")] },
   // Tracking & returns pages
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, and that sells too: recommendations, a next order discount, buy again, an after delivery message and an apology for late orders.", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },

@@ -35,6 +35,7 @@
     "ao_empty": "Add add-ons in the app: Offers & bundles → Add-ons.",
     "cp_empty": "Choose collections in the app: Sections → Collection pills.",
     "ic_empty": "Add images in the app: Sections → Image carousel.",
+    "sec_empty": "Design this section in the app first: Section library, then the section you chose here.",
     "faq_empty": "Add questions in the app: Sections → FAQ.",
     "faq_search": "Search questions",
     "faq_none": "No questions match your search.",

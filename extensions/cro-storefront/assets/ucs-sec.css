@@ -1,0 +1,22 @@
+/* CRO sections, shared look. Colours, corners, width and spacing come from the app as CSS variables
+   on the block (lib/cro-sections.ts secVars). Phone layouts use container queries, so the app preview
+   at phone width matches the store. Each kind adds its own ucs-sec-<kind>.css. */
+.usec { container-type: inline-size; display: block; color: var(--usec-fg, inherit); background: var(--usec-bg, transparent); padding: var(--usec-pt, 40px) 0 var(--usec-pb, 40px); }
+.usec *, .usec *::before, .usec *::after { box-sizing: border-box; }
+.usec__in { max-width: var(--usec-w, 1200px); margin: 0 auto; padding: 0 20px; }
+.usec--center .usec__head, .usec--center .usec__foot { text-align: center; }
+.usec__head { margin: 0 0 24px; }
+.usec__h { margin: 0; font-family: var(--font-heading-family, inherit); font-weight: var(--font-heading-weight, 600); font-size: var(--usec-h, clamp(22px, 3.2vw, 30px)); line-height: 1.2; color: inherit; }
+.usec__s { margin: 8px 0 0; font-size: var(--ucs-sub, 16px); opacity: 0.8; }
+.usec__icon { width: 28px; height: 28px; display: block; }
+.usec__btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--ucs-btn-h, 44px); padding: 0 22px; border: 0; border-radius: min(var(--usec-r, 8px), 999px); background: var(--usec-ac, #111); color: var(--usec-act, #fff); font: inherit; font-size: var(--ucs-btn-fs, 15px); font-weight: 600; text-decoration: none; cursor: pointer; }
+.usec__btn:hover { opacity: 0.9; }
+.usec__btn[disabled] { opacity: 0.45; cursor: default; }
+.usec__btn[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+.usec__btn.is-added::after { content: " \2713"; }
+.usec__foot { margin-top: 24px; }
+.usec .ucs-note, .ucs-note { padding: 16px; border: 1px dashed rgba(0, 0, 0, 0.3); border-radius: 8px; text-align: center; font-size: 14px; opacity: 0.8; }
+@container (max-width: 640px) {
+  .usec__in { padding: 0 16px; }
+  .usec__head { margin-bottom: 18px; }
+}

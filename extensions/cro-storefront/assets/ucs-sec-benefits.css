@@ -1,0 +1,25 @@
+/* CRO section: benefits row. */
+.usec-bn { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 24px; }
+.usec-bn__i { display: flex; flex-direction: column; gap: 10px; }
+.usec--center .usec-bn__i { align-items: center; text-align: center; }
+.usec-bn__ic { display: inline-flex; color: var(--usec-ac, currentColor); }
+.usec-bn__ic img { width: 40px; height: 40px; object-fit: contain; }
+.usec-bn__ic .usec__icon { width: 32px; height: 32px; }
+.usec-bn__t { margin: 0; font-size: var(--usec-t, 17px); font-weight: 650; }
+.usec-bn__p { margin: 4px 0 0; font-size: var(--usec-p, 15px); opacity: 0.8; }
+.usec--style-left .usec-bn__i { flex-direction: row; align-items: flex-start; text-align: left; }
+.usec--style-boxed .usec-bn__i { padding: 22px 18px; background: var(--usec-card, #fff); border-radius: var(--usec-r, 12px); }
+.usec--style-boxed .usec-bn__ic { width: 56px; height: 56px; border-radius: 50%; background: var(--usec-ac, #111); color: var(--usec-act, #fff); align-items: center; justify-content: center; }
+.usec--style-boxed .usec-bn__ic .usec__icon { width: 26px; height: 26px; }
+.usec--style-strip .usec-bn { gap: 16px; }
+.usec--style-strip .usec-bn__i { flex-direction: row; align-items: center; justify-content: center; text-align: left; }
+.usec--style-strip .usec-bn__ic .usec__icon { width: 24px; height: 24px; }
+.usec--style-strip .usec-bn__t { font-size: var(--usec-t, 15px); }
+.usec--style-strip .usec-bn__p { font-size: var(--usec-p, 13px); margin-top: 0; }
+@container (max-width: 640px) {
+  .usec--mobile-stack .usec-bn { grid-template-columns: 1fr; gap: 18px; }
+  .usec--mobile-two .usec-bn { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+  .usec--mobile-scroll .usec-bn { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 6px; }
+  .usec--mobile-scroll .usec-bn__i { flex: 0 0 72%; scroll-snap-align: start; }
+  .usec--mobile-stack.usec--style-top .usec-bn__i, .usec--mobile-stack.usec--style-strip .usec-bn__i { flex-direction: row; text-align: left; align-items: center; justify-content: flex-start; }
+}

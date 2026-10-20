@@ -1350,6 +1350,7 @@ export const BLOCKS = {
   returns: "ucs-order-page",
   collection_pills: "ucs-collection-pills",
   shipping_bar: "ucs-shipping-bar",
+  cro_section: "ucs-section",
 } as const;
 
 /** App embeds (switched on in App embeds) rather than blocks placed in a template. */
@@ -1360,6 +1361,8 @@ export type ThemeStatus = {
   installed: Record<keyof typeof BLOCKS, boolean>;
   /** The theme files each block sits in (templates/index.json, sections/header-group.json…). */
   files: Record<keyof typeof BLOCKS, string[]>;
+  /** The CRO sections placed (the "CRO section" block's Section setting, lib/cro-sections.ts). */
+  sections: string[];
 };
 
 /** Reads the published theme (read_themes) to see which blocks/embeds are actually in use. */
@@ -1387,7 +1390,8 @@ async function readThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
     }`,
   );
   const theme = data.themes.nodes[0];
-  if (!theme) return { themeName: null, installed, files };
+  const sections = new Set<string>();
+  if (!theme) return { themeName: null, installed, files, sections: [] };
   for (const file of theme.files.nodes) {
     const content: string = file.body?.content ?? "";
     // Blocks live in templates and section groups; settings_data.json only holds app embeds.
@@ -1400,9 +1404,12 @@ async function readThemeStatus(admin: AdminClient): Promise<ThemeStatus> {
     }
     if (file.filename === "config/settings_data.json") {
       for (const key of EMBEDS) installed[key] = embedEnabled(content, BLOCKS[key]);
+    } else {
+      // Each "CRO section" block's settings follow its type; a block without the setting shows the default (benefits).
+      for (const m of content.matchAll(/\/blocks\/ucs-section\/[^"]*"([^{}]*\{[^{}]*\})?/g)) sections.add(/"kind"\s*:\s*"(\w+)"/.exec(m[1] ?? "")?.[1] ?? "benefits");
     }
   }
-  return { themeName: theme.name, installed, files };
+  return { themeName: theme.name, installed, files, sections: [...sections] };
 }
 
 function embedEnabled(settingsData: string, handle: string) {

@@ -1,0 +1,22 @@
+/* CRO section: product details tabs / accordion. */
+.usec-pt { font-size: var(--usec-p, 15px); }
+.usec-pt__panel { line-height: 1.6; }
+.usec-pt__panel > :first-child { margin-top: 0; }
+.usec-pt__panel > :last-child { margin-bottom: 0; }
+.usec-pt__panel img { max-width: 100%; height: auto; }
+.usec-pt__item { border-bottom: 1px solid var(--usec-line, #e3e3e3); }
+.usec-pt__item:first-child { border-top: 1px solid var(--usec-line, #e3e3e3); }
+.usec-pt__item summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 2px; cursor: pointer; font-size: var(--usec-t, 16px); font-weight: 600; }
+.usec-pt__item summary::-webkit-details-marker { display: none; }
+.usec-pt__mark { position: relative; width: 14px; height: 14px; flex: none; }
+.usec-pt__mark::before, .usec-pt__mark::after { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: currentColor; transition: transform 0.2s; }
+.usec-pt__mark::after { transform: rotate(90deg); }
+.usec-pt__item[open] .usec-pt__mark::after { transform: rotate(0deg); }
+.usec-pt__item .usec-pt__panel { padding: 0 2px 18px; }
+.usec--bg .usec-pt__item, .usec-pt__item { background: transparent; }
+.usec--style-accordion .usec-pt__item { border: 0; margin-bottom: 8px; padding: 0 16px; background: var(--usec-card, #f5f5f3); border-radius: var(--usec-r, 0); }
+.usec--style-accordion .usec-pt__item:first-child { border-top: 0; }
+.usec--style-lines .usec-pt__item summary { font-size: var(--usec-t, 14px); text-transform: uppercase; letter-spacing: 0.06em; }
+.usec-pt__tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--usec-line, #e3e3e3); margin-bottom: 18px; }
+.usec-pt__tabs button { flex: none; padding: 12px 16px; border: 0; background: none; font: inherit; font-size: var(--usec-t, 15px); font-weight: 600; color: inherit; opacity: 0.6; cursor: pointer; border-radius: var(--usec-r, 8px) var(--usec-r, 8px) 0 0; }
+.usec-pt__tabs button[aria-selected="true"] { opacity: 1; background: var(--usec-card, #f5f5f3); box-shadow: inset 0 -2px 0 var(--usec-ac, #111); }

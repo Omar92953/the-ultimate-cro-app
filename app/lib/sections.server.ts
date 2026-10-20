@@ -384,5 +384,9 @@ export function sectionLinks(shop: string, pages: { trackHandle?: string; return
     header: headerBlock("ucs-header"),
     collection_pills: block("ucs-collection-pills", "collection"),
     shipping_bar: headerBlock("ucs-shipping-bar"),
+    /** The CRO sections' shared block: on the product page inside the product's own section, or as its own section. */
+    cro_section: block("ucs-section"),
+    cro_section_product: block("ucs-section", "product"),
+    cro_section_main: `${base}?template=product&addAppBlockId=${key}/ucs-section&target=mainSection`,
   };
 }

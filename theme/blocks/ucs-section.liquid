@@ -1,0 +1,42 @@
+{%- comment -%}
+  App block: one block for the CRO sections (comparison table, benefits row, product tabs, guarantee,
+  before and after, shoppable image, recently viewed, how it works). Each is designed in the app
+  (Section library), stored in $app:cro_design "<kind>". This prints the design and loads only the
+  chosen kind's files; ucs-sec.js + ucs-sec-<kind>.js build it (lib: app/lib/cro-sections.ts).
+  Product tabs also get the product description and any product metafield a tab names.
+{%- endcomment -%}
+{%- assign k = block.settings.kind -%}
+{%- capture dk -%}{%- render 'ucs-dk', key: k, pick: block.settings.design -%}{%- endcapture -%}
+{%- assign dkd = dk | append: '_draft' -%}
+{%- assign c = shop.metaobjects['$app:cro_design'][dk].config.value -%}
+{%- if request.design_mode and shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- assign c = shop.metaobjects['$app:cro_design'][dkd].config.value -%}{%- endif -%}
+{%- if c.k == k -%}
+  <div class="ucs usec" data-ucs-sec="{{ k }}" data-root="{{ routes.root_url }}" data-money="{{ shop.money_format | escape }}"{% if product %} data-p="{{ product.handle }}"{% endif %} {{ block.shopify_attributes }}><script type="application/json">{{ c | json }}</script>
+  {%- if k == 'product_tabs' and product -%}<template data-t="desc">{{ product.description }}</template>{%- for t in c.d.tabs -%}{%- if t.mf != blank -%}{%- assign m = t.mf | split: '.' -%}{%- assign mv = product.metafields[m[0]][m[1]] -%}{%- if mv -%}<template data-t="{{ t.mf }}">{{ mv | metafield_tag }}</template>{%- endif -%}{%- endif -%}{%- endfor -%}{%- endif -%}
+  </div>
+  {{ 'ucs-sec-' | append: k | append: '.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'ucs-sec.js' | asset_url }}" defer></script>
+  <script src="{{ 'ucs-sec-' | append: k | append: '.js' | asset_url }}" defer></script>
+{%- elsif request.design_mode -%}
+  <p class="ucs-note">{{ 'ucs.sec_empty' | t }}</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "CRO section",
+  "target": "section",
+  "stylesheet": "ucs-sec.css",
+  "settings": [
+    { "type": "select", "id": "kind", "label": "Section", "default": "benefits", "options": [
+      { "value": "compare_table", "label": "Comparison table" }, { "value": "benefits", "label": "Benefits row" },
+      { "value": "product_tabs", "label": "Product details tabs" }, { "value": "guarantee", "label": "Guarantee" },
+      { "value": "before_after", "label": "Before and after" }, { "value": "shoppable", "label": "Shoppable image" },
+      { "value": "recently_viewed", "label": "Recently viewed" }, { "value": "how_it_works", "label": "How it works" }
+    ] },
+    { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
+      { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }
+    ] },
+    { "type": "paragraph", "content": "Content, colours and layout are set in the app: Section library." }
+  ]
+}
+{% endschema %}

@@ -15,6 +15,7 @@ import type { HeaderConfig } from "./header";
 import type { ImageCarouselConfig } from "./image-carousel";
 import type { ReviewsDesign } from "./reviews-design";
 import type { ShippingBarConfig } from "./shipping-bar";
+import type { SecConfig } from "./cro-sections";
 import { mix, type ThemeScheme, type ThemeStyle } from "./theme-style";
 
 const line = (s: ThemeScheme, pct = 0.18) => mix(s.text, s.bg, pct);
@@ -88,3 +89,9 @@ export const matchHero = (c: HeroDesign, s: ThemeScheme): HeroDesign => ({
   scheme: s.id,
   look: { ...c.look, fg: s.text, buttonBg: s.button, buttonFg: s.buttonText, overlay: s.bg, boxBg: s.bg },
 });
+
+/** CRO sections: text, buttons and boxes in the scheme's colours; the page's own scheme keeps the page background. */
+export const matchSec = <C extends SecConfig>(c: C, s: ThemeScheme, st: ThemeStyle): C => {
+  const page = st.schemes[0]?.id === s.id && c.kind !== "email_popup";
+  return { ...c, scheme: s.id, look: { ...c.look, ownBg: !page, bg: s.bg, text: s.text, accent: s.button, accentText: s.buttonText, card: mix(s.text, s.bg, 0.05), line: line(s), radius: Math.min(st.radius.card, 40) } };
+};
