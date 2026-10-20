@@ -15,7 +15,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { getSec, saveSec } from "../lib/designs.server";
-import { SEC_META, SEC_PRESETS, SEC_SIZES, applySecPreset, kindOfSlug, type SecConfig, type SecKind } from "../lib/cro-sections";
+import { SEC_ADD, SEC_META, SEC_PRESETS, SEC_SIZES, applySecPreset, kindOfSlug, type SecConfig, type SecKind } from "../lib/cro-sections";
 import { Button, Checkbox, ColorField, NumberField, Select, TextField } from "../components/fields";
 import { Segmented } from "../components/ui";
 import { SecContentForm, SecLayoutForm } from "../components/SecForms";
@@ -41,18 +41,6 @@ function kindOf(params: LoaderFunctionArgs["params"]): SecKind {
   return k;
 }
 
-/** Where each kind is added: inside the product's own section, below it, or as a home page section. */
-const ADD: Record<SecKind, "cro_section" | "cro_section_product" | "cro_section_main" | "boosters"> = {
-  compare_table: "cro_section_product",
-  benefits: "cro_section",
-  product_tabs: "cro_section_main",
-  guarantee: "cro_section_main",
-  before_after: "cro_section",
-  shoppable: "cro_section",
-  recently_viewed: "cro_section_product",
-  how_it_works: "cro_section",
-  email_popup: "boosters",
-};
 
 export const loader = async (args: LoaderFunctionArgs) => {
   const kind = kindOf(args.params);
@@ -77,7 +65,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
       previewPath: product && handle ? `/products/${handle}` : "/",
       runtime: { css: storefrontCss("ucs-sec.css") + storefrontCss(`ucs-sec-${kind}.css`), js: storefrontCss("ucs-sec.js") + "\n" + storefrontCss(`ucs-sec-${kind}.js`) },
       inTheme,
-      addLink: sectionLinks(session.shop)[ADD[kind]],
+      addLink: sectionLinks(session.shop)[SEC_ADD[kind]],
     };
   })(args);
 };
@@ -129,7 +117,7 @@ export default function CroSectionDesigner() {
   const apply = (c: C, key: string) => applySecPreset(c, key);
   const template = useMemo(() => templateInUse(presets, cfg, apply), [presets, cfg]);
   const popup = kind === "email_popup";
-  const where = ADD[kind] === "cro_section_main" ? "inside the product information, under Add to cart" : meta.page === "Product page" ? "on the product page" : "on the home page (or any page)";
+  const where = SEC_ADD[kind] === "cro_section_main" ? "inside the product information, under Add to cart" : meta.page === "Product page" ? "on the product page" : "on the home page (or any page)";
 
   return (
     <s-page heading={meta.title} inlineSize="large">

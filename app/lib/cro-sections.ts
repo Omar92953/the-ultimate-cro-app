@@ -18,6 +18,19 @@ export const isSecKind = (v: unknown): v is SecKind => SEC_KINDS.includes(v as S
 /** The kinds placed with the "CRO section" block (the pop up lives in the Conversion boosters embed). */
 export const BLOCK_KINDS = SEC_KINDS.filter((k) => k !== "email_popup");
 
+/** Where each kind is added (a key of sectionLinks): inside the product's own section, below it, or as a home page section. */
+export const SEC_ADD: Record<SecKind, "cro_section" | "cro_section_product" | "cro_section_main" | "boosters"> = {
+  compare_table: "cro_section_product",
+  benefits: "cro_section",
+  product_tabs: "cro_section_main",
+  guarantee: "cro_section_main",
+  before_after: "cro_section",
+  shoppable: "cro_section",
+  recently_viewed: "cro_section_product",
+  how_it_works: "cro_section",
+  email_popup: "boosters",
+};
+
 /** Address part of each kind's page: /app/designs/cro/<slug>. */
 export const secSlug = (k: SecKind) => k.replace(/_/g, "-");
 export const kindOfSlug = (slug: string): SecKind | null => {

@@ -74,6 +74,15 @@ import {
   OrderLimitsShowcase,
   ThankYouShowcase,
   PostPurchaseShowcase,
+  CompareTableShowcase,
+  BenefitsShowcase,
+  ProductTabsShowcase,
+  GuaranteeShowcase,
+  BeforeAfterShowcase,
+  ShoppableShowcase,
+  RecentlyViewedShowcase,
+  HowItWorksShowcase,
+  EmailPopupShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { GroupTitle, Segmented } from "../components/ui";
@@ -86,6 +95,7 @@ import { canTry } from "../lib/plan-gate";
 import { demoUrl, hasDemo } from "../lib/site";
 import { remember } from "../lib/short-cache.server";
 import { loadHub } from "../lib/hub.server";
+import { SEC_ADD, isSecKind, secSlug, type SecKind } from "../lib/cro-sections";
 
 export const loader = timedLoader("app.library", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -187,7 +197,7 @@ const FEATURES: {
   },
 ];
 
-type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header";
+type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "size_guide" | "personalize" | "cart_extras" | "wishlist" | "quiz" | "quick_add" | "countdown_bar" | "image_carousel" | "addons" | "collection_pills" | "shipping_bar" | "header" | SecKind;
 
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
@@ -210,6 +220,16 @@ const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; 
   { key: "collection_pills", title: "Collection pills", description: "A row of buttons to your collections, with the current one highlighted.", list: null, embed: false, app: "/app/designs/collection-pills", Previews: [CollectionPillsShowcase, CollectionPillsImagesShowcase] },
   { key: "header", title: "Header", description: "Your store's header, designed in the app: logo, menu with dropdowns or mega menus, search, cart and glass looks.", list: null, embed: false, app: "/app/designs/header", Previews: [HeaderGlassShowcase, HeaderRoundedShowcase] },
   { key: "image_carousel", title: "Image carousel", description: "Pictures that scroll, each with an optional title, text, button and link.", list: null, embed: false, app: "/app/designs/image-carousel", Previews: [ImageCarouselShowcase, ImageCarouselOverlayShowcase] },
+  // Sections that sell (lib/cro-sections.ts): one shared theme block, a design page each.
+  { key: "compare_table", title: "Comparison table", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("compare_table")}`, Previews: [CompareTableShowcase] },
+  { key: "benefits", title: "Benefits row", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("benefits")}`, Previews: [BenefitsShowcase] },
+  { key: "product_tabs", title: "Product details tabs", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("product_tabs")}`, Previews: [ProductTabsShowcase] },
+  { key: "guarantee", title: "Guarantee", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("guarantee")}`, Previews: [GuaranteeShowcase] },
+  { key: "before_after", title: "Before and after", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("before_after")}`, Previews: [BeforeAfterShowcase] },
+  { key: "shoppable", title: "Shoppable image", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("shoppable")}`, Previews: [ShoppableShowcase] },
+  { key: "recently_viewed", title: "Recently viewed", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("recently_viewed")}`, Previews: [RecentlyViewedShowcase] },
+  { key: "how_it_works", title: "How it works", description: "", list: null, embed: false, app: `/app/designs/cro/${secSlug("how_it_works")}`, Previews: [HowItWorksShowcase] },
+  { key: "email_popup", title: "Email pop up", description: "", list: null, embed: true, app: `/app/designs/cro/${secSlug("email_popup")}`, cat: "boosters", Previews: [EmailPopupShowcase] },
   { key: "countdown_bar", title: "Countdown timers", description: "Timers for the header, footer, home page, product pages and cart page, each with its own design.", list: null, embed: false, app: "/app/designs/countdown-bar", cat: "boosters", Previews: [CountdownBarShowcase, CountdownShowcase, CountdownRowShowcase, CountdownBarDarkShowcase] },
 ];
 
@@ -387,14 +407,17 @@ export function FeatureHub({ area, top, hub, active }: { area: AreaKey; top?: Re
         });
         SECTION_CARDS.forEach((c) => {
           const counts = c.list ? data.sectionCounts[c.list] : null;
-          const inTheme = installed ? (installed[c.key] ?? false) : null;
-          const themeHref = data.sectionLinks[c.key];
+          const sec = isSecKind(c.key) ? c.key : null;
+          // A CRO section is on the store when its kind is placed (the shared block's "Section" setting); the pop up lives in the boosters embed.
+          const inTheme = !installed ? null : sec === "email_popup" ? (installed.boosters ?? false) : sec ? !!data.theme?.sections.includes(sec) : (installed[c.key as keyof typeof installed] ?? false);
+          const themeHref = sec ? data.sectionLinks[SEC_ADD[sec]] : data.sectionLinks[c.key as keyof typeof data.sectionLinks];
           const manage = c.app ?? (c.list ? `/app/sections/${c.list}` : null);
           let status: Status, next: Next | undefined;
           if (c.key === "shipping_bar" && !data.shipBarSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Set the goal", href: c.app! }];
           else if (c.key === "header" && !data.headerSaved) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Design the header", href: c.app! }];
           else if (c.key === "collection_pills" && !data.pillCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Choose collections", href: c.app! }];
           else if (c.key === "addons" && !data.addonCount) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add an add-on", href: c.app! }];
+          else if (sec && !data.secSaved.includes(sec)) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Design it", href: c.app! }];
           else if (c.key === "image_carousel" && !data.carouselImages) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: "Add images", href: c.app! }];
           else if (c.list && counts && !counts.total) [status, next] = [{ tone: "warning", text: "Needs setup" }, { label: SECTIONS[c.list].addLabel, href: `/app/sections/${c.list}/new` }];
           else if (inTheme === false) [status, next] = [{ tone: "warning", text: c.embed ? "Off in theme" : "Not on store" }, { label: c.embed ? "Turn on" : "Add to theme", href: themeHref, external: true }];

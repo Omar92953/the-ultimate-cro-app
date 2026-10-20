@@ -14,6 +14,16 @@ import { SECTION_KINDS, itemStatus, type SectionKind } from "./sections";
 import { getCheckoutRules } from "./checkout-rules.server";
 import { getThankYou } from "./thank-you.server";
 import { getPostPurchase } from "./post-purchase.server";
+import { gql } from "./admin.server";
+import { SEC_KINDS, type SecKind } from "./cro-sections";
+
+/** The CRO sections the merchant has saved at least once (their "<kind>_editor" design exists). One read for all nine. */
+async function savedSecs(admin: AdminClient): Promise<SecKind[]> {
+  const data = await gql(admin, `#graphql
+    query CroSecHandles { metaobjects(type: "$app:cro_design", first: 250) { nodes { handle } } }`);
+  const have = new Set<string>((data.metaobjects?.nodes ?? []).map((m: { handle: string }) => m.handle));
+  return SEC_KINDS.filter((k) => have.has(`${k}_editor`));
+}
 
 function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
   return r.status === "fulfilled" ? r.value : fallback;
@@ -42,8 +52,9 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     getCheckoutRules(admin).catch(() => null),
     getThankYou(admin).catch(() => null),
     getPostPurchase(admin).catch(() => null),
+    savedSecs(admin).catch(() => [] as SecKind[]),
   ]);
-  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, header, checkout, thankYou, postPurchase]] = await Promise.all([firstWave, secondWave]);
+  const [[settings, rules, slides, bundles, theme, discount, transform], [lists, boosters, saved, carousel, addons, pills, shipBar, header, checkout, thankYou, postPurchase, secSaved]] = await Promise.all([firstWave, secondWave]);
   const ruleList = settled(rules, []);
   const sectionCounts = Object.fromEntries(
     SECTION_KINDS.map((k, i) => {
@@ -67,6 +78,7 @@ export async function loadHub(admin: AdminClient, session: { shop: string }) {
     pillCount: pills ? pills.config.items.length : 0,
     shipBarSaved: !!shipBar?.saved,
     headerSaved: !!header?.saved,
+    secSaved,
     addonCount: addons ? addons.config.items.length + (addons.config.message.on ? 1 : 0) : 0,
     carouselImages: carousel ? carousel.config.slides.filter((x) => x.image).length : 0,
     sectionCounts,

@@ -1766,3 +1766,195 @@ export function HeaderRoundedShowcase() {
     </Stage>
   );
 }
+
+/* ------------------------------------------------- sections that sell (CRO sections, lib/cro-sections.ts) -- */
+const card = { display: "grid", gap: 6, padding: 10, borderRadius: 8, background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,0.12)" } as const;
+const tick = (on: boolean) => <b style={{ color: on ? "#1a7f37" : "#b42318" }}>{on ? "✓" : "✕"}</b>;
+
+/** Comparison table: your product against the others, row by row. */
+export function CompareTableShowcase() {
+  const rows: [string, boolean, boolean][] = [["Natural ingredients", true, false], ["Free shipping", true, true], ["30 day returns", true, false], ["Made to last", true, false]];
+  return (
+    <Fit>
+      <span style={{ ...card, width: "82%", fontSize: 11 }}>
+        <span style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr", gap: 4, textAlign: "center" }}>
+          <span />
+          <b style={{ padding: "3px 0", borderRadius: 6, background: "#111", color: "#fff" }}>Ours</b>
+          <b style={{ padding: "3px 0", color: "#616161" }}>Others</b>
+          {rows.map(([t, a, b]) => (
+            <span key={t} style={{ display: "contents" }}>
+              <span style={{ textAlign: "left", padding: "4px 0", borderTop: "1px solid #eee" }}>{t}</span>
+              <span style={{ padding: "4px 0", borderTop: "1px solid #eee" }}>{tick(a)}</span>
+              <span style={{ padding: "4px 0", borderTop: "1px solid #eee" }}>{tick(b)}</span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** Benefits row: short reasons to buy, each with an icon. */
+export function BenefitsShowcase() {
+  const items: [string, string, string][] = [["🚚", "Free shipping", "On orders over $50"], ["↩︎", "Easy returns", "30 days to change your mind"], ["🔒", "Secure checkout", "Paid safely with Shopify"]];
+  return (
+    <Fit>
+      <span style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, width: "92%", fontSize: 10, textAlign: "center" }}>
+        {items.map(([i, t, x]) => (
+          <span key={t} style={{ display: "grid", gap: 4, justifyItems: "center", padding: "12px 6px", borderRadius: 10, background: "#f6f6f4" }}>
+            <span style={{ display: "grid", placeItems: "center", width: 30, height: 30, borderRadius: 999, background: "#fff", fontSize: 14 }}>{i}</span>
+            <b style={{ fontSize: 11 }}>{t}</b>
+            <span style={{ color: "#616161" }}>{x}</span>
+          </span>
+        ))}
+      </span>
+    </Fit>
+  );
+}
+
+/** Product details tabs: details, shipping and returns in tabs. */
+export function ProductTabsShowcase() {
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 8, width: "80%", fontSize: 11 }}>
+        <span style={{ display: "flex", gap: 14, borderBottom: "1px solid #ddd" }}>
+          {["Details", "Shipping", "Returns"].map((t, i) => (
+            <b key={t} style={{ paddingBottom: 6, borderBottom: i === 0 ? "2px solid #111" : "2px solid transparent", color: i === 0 ? "#111" : "#8a8a8a" }}>
+              {t}
+            </b>
+          ))}
+        </span>
+        <span style={{ color: "#303030", lineHeight: 1.5 }}>Made in small batches from natural ingredients. Gentle enough for every day.</span>
+        <span style={{ display: "grid", gap: 3, color: "#616161" }}>
+          <span>• 50 ml glass bottle</span>
+          <span>• Vegan and cruelty free</span>
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** Guarantee: a promise with a seal next to Add to cart. */
+export function GuaranteeShowcase() {
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 8, width: "74%", fontSize: 11 }}>
+        <span style={{ display: "block", padding: "8px 0", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center", fontWeight: 600 }}>Add to cart</span>
+        <span style={{ display: "flex", gap: 10, alignItems: "center", padding: 10, borderRadius: 10, border: "1px dashed #b7c9bb", background: "#f3f8f4" }}>
+          <span style={{ display: "grid", placeItems: "center", flexShrink: 0, width: 38, height: 38, borderRadius: 999, background: "#1a7f37", color: "#fff", fontSize: 9, fontWeight: 700, lineHeight: 1.1, textAlign: "center" }}>
+            30
+            <br />
+            DAYS
+          </span>
+          <span style={{ display: "grid", gap: 2 }}>
+            <b>Money back guarantee</b>
+            <span style={{ color: "#616161" }}>Not happy? Send it back within 30 days for a full refund.</span>
+          </span>
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** Before and after: two pictures with a handle to drag between them. */
+export function BeforeAfterShowcase() {
+  return (
+    <Fit>
+      <span style={{ position: "relative", display: "block", width: "86%", height: 150, overflow: "hidden", borderRadius: 10 }}>
+        <Img id={PHOTO.pink} w={520} h={300} className={s.cover} />
+        <span style={{ position: "absolute", inset: 0, width: "50%", overflow: "hidden", filter: "grayscale(1) brightness(0.9)" }}>
+          <span style={{ position: "absolute", inset: 0, width: "200%" }}>
+            <Img id={PHOTO.pink} w={520} h={300} className={s.cover} />
+          </span>
+        </span>
+        <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 2, background: "#fff" }} />
+        <span style={{ position: "absolute", top: "50%", left: "50%", display: "grid", placeItems: "center", width: 26, height: 26, marginTop: -13, marginLeft: -13, borderRadius: 999, background: "#fff", fontSize: 11, fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>‹›</span>
+        <b style={{ position: "absolute", left: 8, bottom: 8, padding: "2px 7px", borderRadius: 999, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 10 }}>Before</b>
+        <b style={{ position: "absolute", right: 8, bottom: 8, padding: "2px 7px", borderRadius: 999, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 10 }}>After</b>
+      </span>
+    </Fit>
+  );
+}
+
+/** Shoppable image: dots on the products; a tap shows the product with Add to cart. */
+export function ShoppableShowcase() {
+  return (
+    <Fit>
+      <span style={{ position: "relative", display: "block", width: "86%", height: 160, overflow: "hidden", borderRadius: 10 }}>
+        <Img id={PHOTO.sunny} w={520} h={300} className={s.cover} />
+        {[[30, 40], [62, 28], [48, 72]].map(([x, y]) => (
+          <span key={`${x}-${y}`} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, width: 14, height: 14, borderRadius: 999, background: "#fff", boxShadow: "0 0 0 4px rgba(255,255,255,0.45)" }} />
+        ))}
+        <span style={{ position: "absolute", right: 8, top: 8, display: "flex", gap: 6, alignItems: "center", padding: 6, borderRadius: 8, background: "#fff", fontSize: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+          <span style={{ position: "relative", display: "block", width: 34, height: 34, overflow: "hidden", borderRadius: 6 }}>
+            <Img id={PRODUCTS[3].id} w={80} h={80} className={s.cover} />
+          </span>
+          <span style={{ display: "grid", gap: 2 }}>
+            <b>{PRODUCTS[3].name}</b>
+            <span>{PRODUCTS[3].price}</span>
+            <span style={{ padding: "2px 6px", borderRadius: 999, background: "#111", color: "#fff", textAlign: "center" }}>Add to cart</span>
+          </span>
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** Recently viewed: the products this shopper looked at last. */
+export function RecentlyViewedShowcase() {
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 8, width: "90%", fontSize: 10 }}>
+        <b style={{ fontSize: 13 }}>Recently viewed</b>
+        <span style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+          {PRODUCTS.slice(0, 4).map((p) => (
+            <span key={p.id} style={{ display: "grid", gap: 3 }}>
+              <span style={{ position: "relative", display: "block", aspectRatio: "1", overflow: "hidden", borderRadius: 8 }}>
+                <Img id={p.id} w={160} h={160} className={s.cover} />
+              </span>
+              <b>{p.name}</b>
+              <span style={{ color: "#616161" }}>{p.price}</span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** How it works: numbered steps. */
+export function HowItWorksShowcase() {
+  const steps: [string, string][] = [["Choose", "Pick your size and colour"], ["Order", "Pay safely in one step"], ["Enjoy", "At your door in 2 to 4 days"]];
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 10, width: "90%", fontSize: 10, textAlign: "center" }}>
+        <b style={{ fontSize: 13 }}>How it works</b>
+        <span style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {steps.map(([t, x], i) => (
+            <span key={t} style={{ display: "grid", gap: 4, justifyItems: "center" }}>
+              <span style={{ display: "grid", placeItems: "center", width: 28, height: 28, borderRadius: 999, background: "#111", color: "#fff", fontWeight: 700 }}>{i + 1}</span>
+              <b style={{ fontSize: 11 }}>{t}</b>
+              <span style={{ color: "#616161" }}>{x}</span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Fit>
+  );
+}
+
+/** Email pop up: an email box with a one use discount code. */
+export function EmailPopupShowcase() {
+  return (
+    <Fit>
+      <span style={{ position: "relative", display: "grid", placeItems: "center", width: "100%", height: "100%", background: "rgba(0,0,0,0.35)" }}>
+        <span style={{ ...card, gap: 7, width: "64%", padding: 14, fontSize: 10, textAlign: "center" }}>
+          <b style={{ fontSize: 15 }}>Get 10% off</b>
+          <span style={{ color: "#616161" }}>Join the list and get a code for your first order.</span>
+          <span style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #ccc", color: "#8a8a8a", textAlign: "left" }}>Your email</span>
+          <span style={{ padding: "6px 0", borderRadius: 999, background: "#111", color: "#fff", fontWeight: 600 }}>Get my code</span>
+        </span>
+      </span>
+    </Fit>
+  );
+}
