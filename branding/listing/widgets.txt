@@ -12,3 +12,4 @@ mixmatch   bundles/mixmatch 826   374   1346  990
 benefits   benefits         196   240   1404  380
 delivery   delivery         832   622   1340  678
 thanks     thank-you        272   368   852   594
+stock      stock-urgency    826   352   1346  402

@@ -67,6 +67,6 @@ script and pass it as `CHROME`).
 2. `2-upsells.png`: "Quantity breaks with a saving next to Add to cart"
 3. `3-cart.png`: "Free shipping bar and cross sell offers in the theme's cart drawer"
 4. `4-after-purchase.png`: "One click offer after payment and a next order code on the thank you page"
-5. `5-product-page.png`: "A review card and a delivery estimate on a product page"
+5. `5-product-page.png`: "A stock message and a delivery estimate on a product page"
 6. `6-sections.png`: "A benefits row section in a store theme"
 - Uploading is done by Omar in the listing editor (the browser pane cannot upload files).
