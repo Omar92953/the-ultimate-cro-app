@@ -134,7 +134,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   size_guide: {
     who: "For clothing, shoes and anything with sizes.",
-    points: ["A size chart window with columns like chest, waist and inseam, in cm or inches", "A drawing of the garment or your own picture", "Different charts for products, collections or tags", "A size recommendation from the height and weight ranges you set, with a snug or relaxed fit choice", "Your own fit note, like “Runs large, size down”"],
+    points: ["A size chart window with columns like chest, waist and inseam, in cm or inches", "A drawing of the garment or your own picture", "Different charts for products, collections or tags", "A size finder that asks only the questions you pick: height, weight, fit or their usual size", "Your own answers decide the size: a height and weight range per size, or “usual size → size” pairs", "Your own fit note, like “Runs large, size down”"],
     related: ["delivery", "stock", "quiz"],
   },
   delivery: {

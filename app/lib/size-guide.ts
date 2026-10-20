@@ -1,6 +1,7 @@
 /**
- * Size guide (Section library → Size guide): size charts shoppers open from the product page, and a
- * size recommendation answered only from the height and weight ranges the merchant typed for each size.
+ * Size guide (Section library → Size guide): size charts shoppers open from the product page, and a size
+ * finder that asks the questions the merchant picks (height, weight, fit, usual size) and answers only from the
+ * merchant's own ranges and "usual size → size" answers.
  * Charts are assigned to all products, or to chosen products, collections or tags (the first chart that
  * matches wins). Stored in $app:cro_design "size_guide" (storefront copy) and "size_guide_editor".
  * ucs-size-guide.js shows it; recommendSize() below is mirrored there (a test keeps them equal).
@@ -59,16 +60,24 @@ export type Chart = {
   note: string;
   /** Shown with the recommendation, typed by you: "Runs large, size down". */
   fitNote: string;
-  rec: { on: boolean; fit: boolean };
+  /**
+   * The size finder: which questions shoppers answer. `height` / `weight` use each size's ranges, `fit` moves one
+   * size down (Snug) or up (Relaxed), `usual` asks the size they usually wear and gives the size you map it to.
+   */
+  rec: { on: boolean; fit: boolean; height: boolean; weight: boolean; usual: { on: boolean; answers: UsualAnswer[] } };
   match: { all: boolean; products: { handle: string; title: string }[]; collections: { handle: string; title: string }[]; tags: string };
 };
+
+/** "If they usually wear M → recommend L": one answer of the "usual size" question. */
+export type UsualAnswer = { answer: string; size: string };
+export const MAX_USUAL = 20;
 
 export type SizeGuideDesign = {
   scheme: string;
   on: boolean;
   text: {
     title: string; chartLink: string; recLink: string; chartTab: string; recTab: string;
-    height: string; weight: string; fit: string; snug: string; regular: string; relaxed: string;
+    height: string; weight: string; fit: string; snug: string; regular: string; relaxed: string; usual: string; usualPick: string;
     find: string; result: string; noMatch: string; sizeColumn: string; close: string; cm: string; inch: string; fillIn: string;
   };
   look: { link: "underline" | "button"; accent: string; bg: string; radius: number };
@@ -96,7 +105,7 @@ export const SAMPLE_CHART: Chart = {
   ],
   note: "Measure your chest at the fullest part. Sizes are body measurements.",
   fitNote: "",
-  rec: { on: true, fit: true },
+  rec: { on: true, fit: true, height: true, weight: true, usual: { on: false, answers: [] } },
   match: { all: true, products: [], collections: [], tags: "" },
 };
 
@@ -104,8 +113,8 @@ export const DEFAULT_SIZE_GUIDE: SizeGuideDesign = {
   scheme: "",
   on: true,
   text: {
-    title: "Size guide", chartLink: "Size chart", recLink: "Size recommendation", chartTab: "Size chart", recTab: "Find my size",
-    height: "Height", weight: "Weight", fit: "How do you like it to fit?", snug: "Snug", regular: "Regular", relaxed: "Relaxed",
+    title: "Size guide", chartLink: "Size chart", recLink: "Find my size", chartTab: "Size chart", recTab: "Find my size",
+    height: "Height", weight: "Weight", fit: "How do you like it to fit?", snug: "Snug", regular: "Regular", relaxed: "Relaxed", usual: "Your usual size", usualPick: "Choose",
     find: "Find my size", result: "We recommend {size}", noMatch: "We could not find a size for these numbers. Please check the size chart.",
     sizeColumn: "Size", close: "Close", cm: "cm", inch: "in", fillIn: "Please fill in your height and weight.",
   },
@@ -171,7 +180,21 @@ function cleanChart(raw: unknown, i: number): Chart {
     rows,
     note: str(r.note, "", 300),
     fitNote: str(r.fitNote, "", 200),
-    rec: { on: bool(rec.on, true), fit: bool(rec.fit, true) },
+    rec: {
+      on: bool(rec.on, true),
+      fit: bool(rec.fit, true),
+      height: bool(rec.height, true),
+      weight: bool(rec.weight, true),
+      usual: (() => {
+        const u = obj(rec.usual);
+        const answers = list(u.answers, MAX_USUAL).flatMap((x) => {
+          const o = obj(x);
+          const answer = str(o.answer, "", 30).trim(), size = str(o.size, "", 20).trim();
+          return answer ? [{ answer, size }] : [];
+        });
+        return { on: bool(u.on, false), answers };
+      })(),
+    },
     match: { all: bool(m.all, true), products: handles(m.products), collections: handles(m.collections), tags: str(m.tags, "", 300) },
   };
 }
@@ -216,25 +239,84 @@ const inRange = (v: number, r: [number | null, number | null]) => (r[0] === null
 const used = (r: [number | null, number | null]) => r[0] !== null || r[1] !== null;
 
 /**
- * The size answered from the merchant's ranges only (height in cm, weight in kg):
- * the sizes whose height range fits, the sizes whose weight range fits; a size in both wins (the smaller
- * one if several); when none is in both, the larger of the two best fits. "Snug" goes one size down,
- * "Relaxed" one up (when the chart lets shoppers choose a fit). Null when no range fits.
+ * The size from the merchant's answers only. With "usual size" asked and answered, the size mapped to that answer;
+ * otherwise from the ranges (height in cm, weight in kg, each only when that question is asked): the sizes whose
+ * height range fits, the sizes whose weight range fits; a size in both wins (the smaller one if several); when none
+ * is in both, the larger of the two best fits. "Snug" goes one size down, "Relaxed" one up (when the fit question is
+ * asked). Null when nothing fits. ucs-size-guide.js keeps the same rules (test/app/size-guide.test.ts).
  */
-export function recommendSize(chart: Pick<Chart, "rows" | "rec">, heightCm: number | null, weightKg: number | null, fit: Fit = "regular"): { size: string; index: number } | null {
+export function recommendSize(chart: Pick<Chart, "rows" | "rec">, heightCm: number | null, weightKg: number | null, fit: Fit = "regular", usual: string | null = null): { size: string; index: number } | null {
   const rows = chart.rows;
-  const usesH = rows.some((x) => used(x.height)), usesW = rows.some((x) => used(x.weight));
-  const idx = (pick: (x: SizeRow) => [number | null, number | null], v: number | null) => (v === null ? [] : rows.flatMap((x, i) => (used(pick(x)) && inRange(v, pick(x)) ? [i] : [])));
-  const H = usesH ? idx((x) => x.height, heightCm) : [], W = usesW ? idx((x) => x.weight, weightKg) : [];
+  const rec = chart.rec;
   let at = -1;
-  const both = H.filter((i) => W.includes(i));
-  if (both.length) at = both[0];
-  else if (H.length && W.length) at = Math.max(H[0], W[0]);
-  else if (H.length) at = H[0];
-  else if (W.length) at = W[0];
+  if (usual && rec.usual?.on) {
+    const a = rec.usual.answers.find((x) => x.answer === usual);
+    if (a) at = rows.findIndex((x) => x.size === a.size);
+  }
+  if (at < 0) {
+    const usesH = rec.height !== false && rows.some((x) => used(x.height)), usesW = rec.weight !== false && rows.some((x) => used(x.weight));
+    const idx = (pick: (x: SizeRow) => [number | null, number | null], v: number | null) => (v === null ? [] : rows.flatMap((x, i) => (used(pick(x)) && inRange(v, pick(x)) ? [i] : [])));
+    const H = usesH ? idx((x) => x.height, heightCm) : [], W = usesW ? idx((x) => x.weight, weightKg) : [];
+    const both = H.filter((i) => W.includes(i));
+    if (both.length) at = both[0];
+    else if (H.length && W.length) at = Math.max(H[0], W[0]);
+    else if (H.length) at = H[0];
+    else if (W.length) at = W[0];
+  }
   if (at < 0) return null;
-  const shifted = Math.min(rows.length - 1, Math.max(0, at + (chart.rec.fit ? FIT_SHIFT[fit] : 0)));
+  const shifted = Math.min(rows.length - 1, Math.max(0, at + (rec.fit ? FIT_SHIFT[fit] : 0)));
   return { size: rows[shifted].size, index: shifted };
+}
+
+/** Which size finder questions a chart really asks (a question with nothing filled in is skipped). */
+export function finderAsks(chart: Pick<Chart, "rows" | "rec">) {
+  const rec = chart.rec;
+  return {
+    height: rec.height !== false && chart.rows.some((x) => used(x.height)),
+    weight: rec.weight !== false && chart.rows.some((x) => used(x.weight)),
+    usual: !!rec.usual?.on && rec.usual.answers.some((a) => a.answer && a.size),
+    fit: rec.fit,
+  };
+}
+
+/* ------------------------------------------------------------- starters -- */
+type Ranges = Record<string, { h: [number, number]; w: [number, number] }>;
+/** Typical body ranges (cm, kg) by size name, to start the size finder from. Merchants adjust them to their cut. */
+export const FINDER_STARTERS: { key: string; title: string; ranges: Ranges }[] = [
+  {
+    key: "tops",
+    title: "Tops",
+    ranges: { XS: { h: [150, 160], w: [45, 54] }, S: { h: [158, 168], w: [53, 62] }, M: { h: [166, 176], w: [61, 72] }, L: { h: [174, 184], w: [71, 84] }, XL: { h: [182, 192], w: [83, 96] }, XXL: { h: [188, 198], w: [95, 110] } },
+  },
+  {
+    key: "bottoms",
+    title: "Bottoms",
+    ranges: { XS: { h: [150, 160], w: [44, 53] }, S: { h: [158, 168], w: [52, 61] }, M: { h: [166, 176], w: [60, 71] }, L: { h: [174, 184], w: [70, 83] }, XL: { h: [182, 192], w: [82, 95] }, XXL: { h: [188, 198], w: [94, 108] } },
+  },
+  {
+    key: "dresses",
+    title: "Dresses",
+    ranges: { XS: { h: [150, 158], w: [42, 50] }, S: { h: [155, 163], w: [48, 56] }, M: { h: [160, 168], w: [54, 63] }, L: { h: [165, 173], w: [61, 71] }, XL: { h: [168, 176], w: [69, 80] }, XXL: { h: [170, 180], w: [78, 90] } },
+  },
+];
+const SIZE_ALIASES: Record<string, string> = { "2XL": "XXL", XXXL: "XXL", "3XL": "XXL", SMALL: "S", MEDIUM: "M", LARGE: "L", "X-SMALL": "XS", "X-LARGE": "XL", "EXTRA SMALL": "XS", "EXTRA LARGE": "XL" };
+
+/** Fills the height and weight ranges of the sizes it knows (XS to XXL); other sizes are left as they are. */
+export function applyFinderStarter(chart: Chart, key: string): Chart {
+  const st = FINDER_STARTERS.find((x) => x.key === key);
+  if (!st) return chart;
+  const rows = chart.rows.map((r) => {
+    const name = r.size.trim().toUpperCase();
+    const m = st.ranges[SIZE_ALIASES[name] ?? name];
+    return m ? { ...r, height: [m.h[0], m.h[1]] as [number, number], weight: [m.w[0], m.w[1]] as [number, number] } : r;
+  });
+  return { ...chart, rows, rec: { ...chart.rec, on: true, height: true, weight: true } };
+}
+
+/** "Your usual size": one answer per size of the chart, each giving that same size (a start for shoes and brands). */
+export function usualFromSizes(chart: Chart): Chart {
+  const answers = chart.rows.filter((r) => r.size.trim()).slice(0, MAX_USUAL).map((r) => ({ answer: r.size.trim(), size: r.size.trim() }));
+  return { ...chart, rec: { ...chart.rec, on: true, usual: { on: true, answers } } };
 }
 
 /** Converts every number in a table cell ("86 to 91") between cm and inches. */

@@ -1539,7 +1539,7 @@ export function SizeGuideShowcase() {
       <span style={{ display: "grid", gap: 7, width: "78%", fontSize: 11 }}>
         <span style={{ display: "flex", gap: 12, fontSize: 10 }}>
           <u>Size chart</u>
-          <u>Size recommendation</u>
+          <u>Find my size</u>
         </span>
         <span style={{ display: "grid", gap: 6, padding: 10, borderRadius: 8, background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,0.12)" }}>
           <b>Size guide</b>
