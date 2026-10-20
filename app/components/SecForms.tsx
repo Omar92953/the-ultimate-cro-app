@@ -222,7 +222,7 @@ export function GuaranteeContent({ cfg, content }: Props<"guarantee">) {
               { value: "shipping", label: "Free shipping" },
               { value: "secure", label: "Secure checkout" },
               { value: "quality", label: "Premium quality" },
-              { value: "image", label: "My own picture" },
+              { value: "image", label: "Own picture" },
               { value: "none", label: "No seal" },
             ]}
           />

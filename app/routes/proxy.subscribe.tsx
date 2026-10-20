@@ -4,12 +4,12 @@
  * discount code that only this customer can use. The code is derived from the shop and email, so the same email
  * gets the same code back and the app stores nothing (no email, no code). Needs write_customers and write_discounts.
  */
-import { createHmac } from "node:crypto";
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import { AdminError, gql, type AdminClient } from "../lib/admin.server";
 import { getSec } from "../lib/designs.server";
 import type { SecContent } from "../lib/cro-sections";
+import { popupCode } from "../lib/popup-code.server";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
@@ -22,13 +22,6 @@ function tooMany(key: string) {
   recent.set(key, [...list, now]);
   if (recent.size > 5000) recent.clear();
   return false;
-}
-
-const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-/** "WELCOME-7K2QF9": the same for the same shop and email, unguessable without the app's secret. */
-export function popupCode(shop: string, email: string, secret = process.env.SHOPIFY_API_SECRET ?? "") {
-  const h = createHmac("sha256", secret).update(`popup|${shop}|${email}`).digest();
-  return `WELCOME-${Array.from(h.subarray(0, 6), (b) => ALPHABET[b % ALPHABET.length]).join("")}`;
 }
 
 const CONSENT = () => ({ marketingState: "SUBSCRIBED", marketingOptInLevel: "SINGLE_OPT_IN", consentUpdatedAt: new Date().toISOString() });
