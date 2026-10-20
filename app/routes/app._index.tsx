@@ -294,13 +294,13 @@ export default function Home() {
         </HomeRow>
 
         {data.attention.length ? (
-          <HomeRow title="Needs your attention" bare>
+          <HomeRow title="Needs your attention">
             <LinkTiles items={data.attention.map((a) => ({ key: a.text, title: a.text, href: a.href, external: a.external, end: a.action }))} />
           </HomeRow>
         ) : null}
 
         {data.recommended.length ? (
-          <HomeRow title="Try next" bare>
+          <HomeRow title="Try next">
             <LinkTiles
               items={data.recommended.map((k) => ({
                 key: k,
