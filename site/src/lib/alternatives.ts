@@ -1,10 +1,9 @@
 /**
  * "X alternative" pages (/compare/<slug>-alternative/), docs/plans/seo-geo.md §3: for merchants looking
  * to switch from another app. Rules (same as competitors.ts): facts about the other app only from its
- * own public pages, with the date checked and a link. We could not open the other apps' pages from the
- * build environment on CHECKED_ALT, so these pages state nothing about their features or prices and say
- * so; the job each app is compared on comes from the SEO plan. When you check an app's own listing,
- * add what it says here with the source and date, and show it on the page.
+ * own Shopify App Store listing, opened on CHECKED_ALT, with a link; no ratings, no guesses. `listing`
+ * holds what the listing said that day (name, developer, launch date, plans, what it says it does).
+ * Check the listings again when you touch this file and update CHECKED_ALT.
  *
  * Everything about CRO Toolbox comes from the app's catalog.ts and plans.ts.
  */
@@ -16,13 +15,25 @@ import { SOURCE_PLAN } from "../../../app/lib/tracking";
 const livePlan = PLANS[SOURCE_PLAN.live].name;
 const savingPlan = PLANS[FEATURE_PLAN.return_saving].name;
 
+/** What the other app's own Shopify App Store listing said on CHECKED_ALT. */
+export type Listing = {
+  url: string;
+  /** The listing's title. */
+  title: string;
+  developer: string;
+  launched: string;
+  /** Plans and prices, one line each, as listed (USD). */
+  pricing: string[];
+  /** What the listing says the app does, in short plain lines. */
+  says: string[];
+};
+
 export type Alternative = {
   /** The address: /compare/<slug>-alternative/. */
   slug: string;
   /** The app's usual name, as merchants search for it. */
   name: string;
-  /** Its name on the Shopify App Store, as the listing's title shows in search results (not opened). */
-  listingName: string;
+  listing: Listing;
   /** The job merchants compare it on (from the SEO plan, not from the app's pages). */
   job: string;
   /** Meta description: must contain "<name> alternative", under 200 characters. */
@@ -39,8 +50,8 @@ export type Alternative = {
   faq: QA[];
 };
 
-/** The day we tried to open the other apps' own pages. */
-export const CHECKED_ALT = "October 18, 2026";
+/** The day the other apps' listings were opened and the facts below copied. */
+export const CHECKED_ALT = "October 20, 2026";
 
 /** "a Bundler alternative", "an AfterShip alternative". */
 export const article = (name: string) => (/^[aeiou]/i.test(name) ? "an" : "a");
@@ -53,14 +64,30 @@ export const altMeta = (a: Alternative): PageMeta => ({
   ogTitle: `${article(a.name) === "an" ? "An" : "A"} ${a.name} alternative`,
   ogKicker: "Compare",
 });
-/** The other app on the Shopify App Store: a search, so the link works whatever its listing address is. */
-export const appStoreSearch = (a: Pick<Alternative, "listingName">) => `https://apps.shopify.com/search?q=${encodeURIComponent(a.listingName)}`;
 
 export const ALTERNATIVES: Alternative[] = [
   {
     slug: "reconvert",
     name: "ReConvert",
-    listingName: "ReConvert",
+    listing: {
+      url: "https://apps.shopify.com/reconvert-upsell-cross-sell",
+      title: "ReConvert Post Purchase Upsell",
+      developer: "Upsell.com ex ReConvert",
+      launched: "September 26, 2018",
+      pricing: [
+        "Free: up to 50 orders or $50 upsell revenue a month",
+        "Growth $9.99 a month: 51 to 100 store orders",
+        "Growth $19.99 a month: 101 to 200 store orders",
+        "Growth $39.99 a month: 201 to 500 store orders",
+        "14 day free trial on paid plans",
+      ],
+      says: [
+        "Now called Upsell.com, formerly ReConvert.",
+        "Upsell and cross sell offers on the product page, cart, checkout and thank you page; checkout upsells need Shopify Plus.",
+        "One click post purchase upsell funnels.",
+        "AI product recommendations, frequently bought together, bundles, quantity breaks, free gifts and upsell pop ups.",
+      ],
+    },
     job: "offers after checkout and on the thank you page",
     description: "Looking for a ReConvert alternative? CRO Toolbox has a one click offer after payment, thank you page modules, upsells and cross sells for Shopify, with a free plan.",
     features: ["post_purchase", "thank_you", "upsell", "cross_sell"],
@@ -79,7 +106,25 @@ export const ALTERNATIVES: Alternative[] = [
   {
     slug: "frequently-bought-together",
     name: "Frequently Bought Together",
-    listingName: "Frequently Bought Together CBB",
+    listing: {
+      url: "https://apps.shopify.com/frequently-bought-together",
+      title: "Frequently Bought Together CBB",
+      developer: "Code Black Belt",
+      launched: "March 15, 2017",
+      pricing: [
+        "Starter: free, up to 3 manual bundles",
+        "Professional I $9.99 a month: up to 50 orders a month",
+        "Professional II $24.99 a month: up to 500 orders a month",
+        "Professional III $39.99 a month: over 500 orders a month",
+        "14 day free trial on paid plans",
+      ],
+      says: [
+        "AI, manual and global bundle recommendations with one click add to cart.",
+        "Four bundle discount types: percentage, fixed, free item or free shipping.",
+        "The widget shows on product and cart pages.",
+        "Star ratings from review apps such as Judge.me, Loox and Yotpo.",
+      ],
+    },
     job: "a frequently bought together box on product pages",
     description: "Looking for a Frequently Bought Together alternative? CRO Toolbox has a frequently bought together box with a set discount, cross sells in the cart and five more bundle types.",
     features: ["bundles", "cross_sell", "cart_offers"],
@@ -98,7 +143,24 @@ export const ALTERNATIVES: Alternative[] = [
   {
     slug: "bundler",
     name: "Bundler",
-    listingName: "Bundler",
+    listing: {
+      url: "https://apps.shopify.com/bundler-product-bundles",
+      title: "Bundler » Product Bundles App",
+      developer: "Bundler.app",
+      launched: "July 2, 2019",
+      pricing: [
+        "Free: Buy X get Y, volume discounts and quantity breaks, product page upsells, Shopify POS",
+        "Premium $9.99 a month: adds mix and match, custom landing pages, free shipping and funnel upsells",
+        "Executive $19.99 a month: adds bundle analytics",
+        "7 day free trial on paid plans",
+      ],
+      says: [
+        "Quantity breaks, classic bundles, mix and match bundles and tiered discounts.",
+        "Discounts by percentage, fixed amount or fixed price.",
+        "Bundle landing pages and upsell and cross sell offers.",
+        "Works with Shopify POS.",
+      ],
+    },
     job: "product bundles and bundle discounts",
     description: "Looking for a Bundler alternative? CRO Toolbox has six bundle types, from mix and match boxes to any 3 for one price, plus quantity breaks, priced by Shopify at checkout.",
     features: ["bundles", "upsell", "discounts"],
@@ -118,7 +180,24 @@ export const ALTERNATIVES: Alternative[] = [
   {
     slug: "aftership",
     name: "AfterShip",
-    listingName: "AfterShip Order Tracking",
+    listing: {
+      url: "https://apps.shopify.com/aftership",
+      title: "AfterShip Order Tracking",
+      developer: "AfterShip",
+      launched: "May 9, 2012",
+      pricing: [
+        "Free: 50 shipments a month",
+        "Essentials $11 a month or $108 a year: 100 shipments a month, then $0.08 per extra shipment",
+        "Premium $70 a month or $708 a year: 500 shipments a month, then $0.12 per extra shipment",
+        "7 day free trial; $1 for the first month on paid plans",
+      ],
+      says: [
+        "A branded tracking page and email and SMS shipment notifications, across 1,100+ carriers.",
+        "A shipment dashboard and analytics reports.",
+        "AI estimated delivery dates on product and checkout pages.",
+        "Product recommendations on the tracking page.",
+      ],
+    },
     job: "an order tracking page",
     description: "Looking for an AfterShip alternative? CRO Toolbox adds a Track your order page to your Shopify store, with the delivery status, carrier link, dates and product rows.",
     features: ["track", "returns"],
@@ -137,7 +216,23 @@ export const ALTERNATIVES: Alternative[] = [
   {
     slug: "loop-returns",
     name: "Loop Returns",
-    listingName: "Loop Returns & Exchanges",
+    listing: {
+      url: "https://apps.shopify.com/loop-returns",
+      title: "Loop Returns & Exchanges",
+      developer: "Loop",
+      launched: "May 27, 2021",
+      pricing: [
+        "Checkout+: free, with returns software, US and Canada domestic return labels and package protection",
+        "Essential $155 a month: adds unlimited destinations, automated return policies, carrier rate shopping and workflows",
+        "Advanced $340 a month: adds Shop Now, instant exchange, bonus credit and fraud prevention",
+      ],
+      says: [
+        "Returns, exchanges, order editing, tracking and fraud prevention.",
+        "Exchanges encouraged with bonus credit, Shop Now and instant exchanges.",
+        "Workflows, custom rules and blocklists against return fraud.",
+        "Works with Shopify POS.",
+      ],
+    },
     job: "returns and exchanges",
     description: `Looking for a Loop Returns alternative? CRO Toolbox has a returns page that creates real Shopify returns, plus exchanges and store credit with a bonus on ${savingPlan}.`,
     features: ["returns", "return_saving", "track"],
