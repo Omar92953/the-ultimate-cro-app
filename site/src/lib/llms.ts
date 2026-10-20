@@ -1,12 +1,18 @@
 /**
  * /llms.txt and /llms-full.txt: plain text summaries of CRO Toolbox for AI assistants, built from the
  * same sources as the pages (plans.ts, catalog.ts, bundle-recipes.ts), so the facts always match.
+ * Every page in the sitemap that answers a merchant's question is listed: keyword pages with their
+ * direct answer, bundle types, comparisons and alternatives, guides and help.
  */
 import { SITE_URL, SITE_NAME, INSTALL_URL } from "./site";
 import { PAGES, MORE_PAGES, FEATURE_PAGES, USE_CASE_PAGES, COMPARE_PAGES, planLine, type PageMeta } from "./pages";
 import { FEATURE_COPY } from "./features";
 import { BRAND_LINE } from "./brand";
 import { articles, guides, articleMeta, guideMeta, BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE } from "./content";
+import { KEYWORD_PAGES, keywordPath } from "./keywords";
+import { RECIPE_META, recipePath } from "./recipes";
+import { ALTERNATIVES, altMeta } from "./alternatives";
+import { CHANGELOG } from "./changelog";
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
@@ -22,7 +28,7 @@ function pricing(): string[] {
   });
 }
 
-const line = (p: PageMeta) => `- [${p.title.includes(SITE_NAME) ? "Home" : p.title}](${url(p.path)}): ${p.description}`;
+const line = (p: PageMeta) => `- [${p.path === "/" ? "Home" : p.title}](${url(p.path)}): ${p.description}`;
 
 export async function llmsTxt(): Promise<string> {
   return [
@@ -40,13 +46,22 @@ export async function llmsTxt(): Promise<string> {
     "",
     ...Object.values(FEATURE_PAGES).map(line),
     "",
+    "## Answers to common searches",
+    "",
+    ...KEYWORD_PAGES.map((p) => `- [${p.h1}](${url(keywordPath(p))}): ${p.answer}`),
+    "",
+    "## Bundle types",
+    "",
+    ...RECIPE_META.map(line),
+    "",
     "## Use cases",
     "",
     ...USE_CASE_PAGES.map(line),
     "",
-    "## Comparisons",
+    "## Comparisons and alternatives",
     "",
     ...COMPARE_PAGES.map(line),
+    ...ALTERNATIVES.map(altMeta).map(line),
     "",
     "## Guides and help",
     "",
@@ -72,9 +87,12 @@ export async function llmsFullTxt(): Promise<string> {
     for (const k of a.features) out.push(`- ${featureTitle(k)} (${url(FEATURE_PAGES[k].path)}): ${featureAbout(k)} ${FEATURE_COPY[k].who} ${planLine(k)}.`);
   }
   out.push("", "## Bundle types", "", `All six bundle types are included on every plan, within the plan's offer slots. Shopify applies bundle prices at checkout. More: ${url(MORE_PAGES.bundles.path)}`, "");
-  BUNDLE_RECIPES.forEach((r, i) => out.push(`${i + 1}. ${plain(r.title)}: ${plain(r.about)} ${plain(r.best)}.`));
+  BUNDLE_RECIPES.forEach((r, i) => out.push(`${i + 1}. ${plain(r.title)} (${url(recipePath(r.key))}): ${plain(r.about)} ${plain(r.best)}.`));
+  out.push("", "## Answers to common searches", "");
+  for (const p of KEYWORD_PAGES) out.push(`### ${p.h1}`, "", p.answer, `More: ${url(keywordPath(p))}`, "");
+  out.push("## Recent changes", "", `Full changelog: ${url(PAGES.changelog.path)}`, "");
+  for (const c of CHANGELOG.slice(0, 3)) out.push(`### ${c.date}: ${c.title}`, "", ...c.items.map((i) => `- ${i}`), "");
   out.push(
-    "",
     "## How it works",
     "",
     "1. Install the app from the Shopify App Store.",

@@ -98,6 +98,21 @@ SEO kicks in (3 to 6 months).
   "how to add bundles on Shopify"...) and logs whether CRO Toolbox is named and described correctly, in
   `docs/research/geo-checks.md`.
 
+## Status (2026-10-20)
+
+- §2 keyword pages: all eight live (`site/src/keywords/`).
+- §3 comparison and alternative pages: live; alternative pages quote each app's own App Store listing,
+  checked 2026-10-20 (`site/src/lib/alternatives.ts`), vs pages in `site/src/lib/competitors.ts`.
+- §4 guides: in progress (finish-website-cloud §5, 12 more articles).
+- §5 technical: sitemap with lastmod, IndexNow on site and app file changes, canonicals, noindex on the
+  www and pages.dev copies, JSON-LD Organization (contact, sameAs), SoftwareApplication (prices from
+  `plans.ts`, no rating), FAQPage, BreadcrumbList, Article on posts. Bing and Yandex sign in: Omar
+  (`docs/website.md`, "Search engines beyond Google").
+- §6 GEO: AI crawlers named in robots.txt; llms.txt and llms-full.txt generated from the app's files with
+  keyword answers, bundle types and alternatives; About page; the shared line from `site/src/lib/brand.ts`.
+  Profiles and mentions: drafts in `docs/outreach/`, posted by Omar.
+- §9 monthly GEO check: `docs/research/geo-checks.md` (run 1 on 2026-10-20).
+
 ## Order
 
 1. Listing keywords (me). 2. Search Console, Bing, IndexNow (Omar signs in, I set up). 3. Keyword pages

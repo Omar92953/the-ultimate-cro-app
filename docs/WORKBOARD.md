@@ -38,7 +38,14 @@ Updated 2026-10-19.
 - [x] One shared block `ucs-section` (29 of 30 blocks, 93.2 KB Liquid) and 9 sections: comparison table, benefits row,
       product details tabs, guarantee, before and after, shoppable image, recently viewed, how it works, email pop up (in the
       Conversion boosters embed). Editors with templates and live preview, demos, tests.
-- [ ] Verify each on Testing 3 after deploy (pop up sign up creates the customer with consent and a one use code).
+- [x] Verified on Testing 3, 2026-10-20 (cro-toolbox-45): all 9 editors open and save, templates and previews draw; on the store
+      home page benefits, how it works, before and after (drag works), shoppable image (live price, Add to cart with _source);
+      product page product tabs, guarantee, comparison table, recently viewed (live price, Add to cart). Pop up sign up with
+      popup-test-1020@example.com: customer created, SUBSCRIBED (single opt in), tag cro-popup; code WELCOME-UKESLR is 10%, once,
+      only for that customer, 14 days; applied to the cart ($749.95 to $674.96); the same email gets the same code back.
+      Not checked on the store: the Details tab (no Testing 3 product has a description; covered by the harness).
+- [x] Fix #220: Shopify wrapped the ucs-dk snippet output in BEGIN/END comments on the home page, so the block found no design.
+- [ ] Check the 14 other blocks that capture `render 'ucs-dk'` (they worked on other pages; the comments seem context dependent).
 - [ ] Omar: protected customer data form: add Email for the pop up ("creates the store's customer with marketing consent").
 
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, everything left: `docs/prompts/finish-website-cloud.md`)
@@ -61,6 +68,22 @@ Updated 2026-10-19.
 - [x] Search visibility (finish-website-cloud §1, #218): sitemap `<lastmod>`, IndexNow also on app file changes,
       www and pages.dev copies noindex, 404 without canonical, `/about/`, Organization contact and `sameAs`;
       log in `docs/research/search-visibility.md`, checklist in `docs/website.md` ("Search engines beyond Google")
+- [x] A page per bundle recipe (`/bundles/<recipe>/`, copy in `site/src/lib/recipes.ts`), every plan limit in the
+      pricing table, pricing FAQ on upgrading and cancelling (finish-website-cloud §3, #221)
+- [x] `/changelog/` (site/src/lib/changelog.ts) and an accessibility pass: `site/scripts/check-a11y.mjs` (alt text, heading
+      order, names, labels, contrast), hidden heading for the pricing plan cards, keyboard focus checked (finish-website-cloud §3, #222)
+- [x] SEO/GEO finish (finish-website-cloud §4): alternative pages show each app's own App Store listing (developer,
+      launch date, plans, what it says it does), checked 2026-10-20 with the link; llms.txt and llms-full.txt list the
+      keyword answers, bundle types, alternatives and recent changes; GEO check (10 fixed questions, monthly) with run 1
+      in `docs/research/geo-checks.md`
+- [x] Outreach drafts in `docs/outreach/` (finish-website-cloud §5, #226): 3 Shopify Community answers, 3 r/shopify posts,
+      2 guest post pitches with full drafts, a LinkedIn article, a dev.to/Medium article, Product Hunt text, profile texts
+- [ ] Omar: post the outreach drafts by hand (one or two a week, from `docs/outreach/README.md`) and create the
+      G2, Capterra, Crunchbase, LinkedIn page and Partner directory profiles (`docs/outreach/profiles.md`); paste each
+      profile URL into `PROFILES` in `site/src/lib/site.ts`
+- [x] Articles (finish-website-cloud §5), 1 of 4: upsell vs cross sell, bundle ideas by industry, free shipping threshold maths
+- [ ] Omar: run the GEO check in ChatGPT, Perplexity, Gemini, Copilot and Claude once a month (steps in
+      `docs/research/geo-checks.md`) and add the columns
 - [ ] Demos: replace the MDN sample clips in the video carousel demo with Omar's product videos
 
 ## Omar (outside the code)
@@ -114,8 +137,11 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       #212 (cro-toolbox-41): A/B tests wait for analytics consent, retention periods with daily cleanup
       (app/lib/retention.ts), Terms data processing section, docs/security/incident-response.md, and free nightly
       encrypted backups in the private repo Omar92953/cro-toolbox-backups (docs/security/backups.md; first run OK).
-- [ ] App Store review checklist left: listing (feature image and 6 screenshots wait for final demos, screencast),
-      automated check (run last), AI self review "Mark as done" after the CRO sections merge and a re-run, then Submit. Capabilities done 2026-10-19.
+- [x] 2026-10-20: AI self review marked done (audit re-run after the CRO sections, docs/submission-review.md);
+      Embedded and Online Store app checks green; capabilities: checkout UI extension, online store, post purchase;
+      protected customer data reasons now include "Marketing or advertising" (email pop up).
+- [ ] Left before Submit: listing feature image + 6 screenshots (after the demos show real products, cloud
+      session), screencast URL (Omar), automated check (run last), then Submit for review.
 
 ## App Store listing images (Omar, 2026-10-19)
 

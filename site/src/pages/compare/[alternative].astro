@@ -1,8 +1,8 @@
 ---
 /**
  * /compare/<app>-alternative/: for merchants looking to switch from another app (lib/alternatives.ts).
- * What CRO Toolbox does comes from the app's catalog.ts and plans.ts. About the other app we only say
- * what we checked on its own pages, with the date; today that is nothing, and the page says so.
+ * What CRO Toolbox does comes from the app's catalog.ts and plans.ts. About the other app the page only
+ * repeats its own Shopify App Store listing, with the link and the date it was opened (CHECKED_ALT).
  */
 import Base from "../../layouts/Base.astro";
 import Crumbs from "../../components/Crumbs.astro";
@@ -10,7 +10,7 @@ import Faq, { type QA } from "../../components/Faq.astro";
 import FeatureCard from "../../components/FeatureCard.astro";
 import InstallButton from "../../components/InstallButton.astro";
 import NotifyCta from "../../components/NotifyCta.astro";
-import { ALTERNATIVES, CHECKED_ALT, altMeta, altPath, appStoreSearch, article, type Alternative } from "../../lib/alternatives";
+import { ALTERNATIVES, CHECKED_ALT, altMeta, altPath, article, type Alternative } from "../../lib/alternatives";
 import { KEYWORD_PAGES, keywordPath } from "../../lib/keywords";
 import { planOf } from "../../lib/plan-lines";
 import { featurePath, MORE_PAGES, PAGES } from "../../lib/pages";
@@ -37,6 +37,7 @@ const free = PLANS.free.name;
 const keywordLinks = a.keywordPages.map((s) => KEYWORD_PAGES.find((p) => p.slug === s)).filter((p): p is (typeof KEYWORD_PAGES)[number] => Boolean(p));
 const others = ALTERNATIVES.filter((x) => x.slug !== a.slug);
 const updated = new Date(`${CHECKED_ALT} 12:00 UTC`);
+const l = a.listing;
 
 const faq: QA[] = [
   {
@@ -54,7 +55,7 @@ const faq: QA[] = [
   },
   {
     q: `What does ${a.name} cost?`,
-    a: `We couldn't open ${a.name}'s own pages to check on ${CHECKED_ALT}, so we don't state its prices. See its current listing on the Shopify App Store.`,
+    a: `Its Shopify App Store listing on ${CHECKED_ALT}: ${l.pricing.join("; ")}. Prices can change, so check <a href="${l.url}" rel="nofollow noopener" target="_blank">its listing</a> before you decide.`,
   },
 ];
 ---
@@ -66,7 +67,7 @@ const faq: QA[] = [
       <span class="eyebrow">Compare</span>
       <h1>{An} {a.name} alternative for Shopify</h1>
       <p class="lead">
-        {`If you're looking for ${an} ${a.name} alternative for ${a.job}, CRO Toolbox does it with ${list(names)}, in one app with a ${free} plan. We couldn't check ${a.name}'s current features and prices on its own pages, so this page doesn't state them: compare them on its listing before you switch.`}
+        {`If you're looking for ${an} ${a.name} alternative for ${a.job}, CRO Toolbox does it with ${list(names)}, in one app with a ${free} plan and paid plans from ${money(cheapestPaid.monthly)} a month. What ${a.name} offers below comes from its own Shopify App Store listing, checked on ${CHECKED_ALT}.`}
       </p>
       <p class="updated">Last updated <time datetime={updated.toISOString().slice(0, 10)}>{CHECKED_ALT}</time></p>
       <div class="actions">
@@ -99,10 +100,27 @@ const faq: QA[] = [
         </table>
       </div>
       <div class="about">
-        <h3>About {a.name}</h3>
-        <p>
-          {`We tried to open ${a.name}'s own pages on ${CHECKED_ALT} and couldn't from where this site is built, so this page states nothing about its features or prices. Search for `}
-          <a href={appStoreSearch(a)} rel="nofollow noopener" target="_blank">{a.listingName} on the Shopify App Store</a> to see its current listing.
+        <h3>About {a.name}, from its listing</h3>
+        <dl>
+          <dt>Listed as</dt>
+          <dd>{l.title}</dd>
+          <dt>Developer</dt>
+          <dd>{l.developer}</dd>
+          <dt>Launched</dt>
+          <dd>{l.launched}</dd>
+        </dl>
+        <div class="cols">
+          <div>
+            <h4>What the listing says it does</h4>
+            <ul>{l.says.map((t) => <li>{t}</li>)}</ul>
+          </div>
+          <div>
+            <h4>Plans on the listing</h4>
+            <ul>{l.pricing.map((t) => <li>{t}</li>)}</ul>
+          </div>
+        </div>
+        <p class="source">
+          Source: <a href={l.url} rel="nofollow noopener" target="_blank">{l.title} on the Shopify App Store</a>, checked on {CHECKED_ALT}. Prices in USD; listings change, so check it before you switch.
         </p>
       </div>
     </div>
@@ -199,8 +217,42 @@ const faq: QA[] = [
   .about h3 {
     margin: 0 0 8px;
   }
-  .about p {
+  .about dl {
+    margin: 0 0 16px;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+  }
+  .about dt {
+    font-weight: 700;
+  }
+  .about dd {
     margin: 0;
+    min-width: 0;
+  }
+  .about h4 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+  }
+  .about ul {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 6px;
+  }
+  .cols {
+    display: grid;
+    gap: 20px;
+  }
+  @media (min-width: 760px) {
+    .cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .about .source {
+    margin: 16px 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
   }
   .h3 {
     font-size: 1.3rem;

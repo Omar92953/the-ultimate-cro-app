@@ -1,5 +1,19 @@
 # App Store submission review — CRO Toolbox (2026-10-17)
 
+## Audit update (2026-10-20, afternoon): after the 9 CRO sections (cro-toolbox-45, #211, #220)
+
+**Verdict: code ready for review.** All 12 checks pass (typecheck, lint, test:app, build, graphql-codegen,
+build:theme, test:storefront, test:functions, site and demos builds, config validate, theme check). Theme: 29 of 30
+blocks, 93.3 of 100 KB Liquid (enforced limit: little room left, so new storefront features must reuse the shared
+`ucs-section` block and stay small).
+
+| New piece | Requirement | Status |
+|---|---|---|
+| Comparison table, benefits, tabs, guarantee, before and after, shoppable image, how it works | 1.1.4 factual, 5.1.4 branding | ✅ Merchant entered content only, no random numbers or app branding |
+| Recently viewed | Privacy, consent | ✅ Product handles in the shopper's browser only, never sent to our server |
+| Email pop up (`app/routes/proxy.subscribe.tsx`) | Consent, 5.1.5, abuse | ✅ Unticked consent box required, signed app proxy, bot field, 5 per hour per visitor, customer created in the store with SINGLE_OPT_IN consent, one use code only for that customer, nothing stored by the app |
+| `write_customers` scope | 3.2.x, protected customer data | ✅ Documented in docs/scopes.md and both privacy pages. ⚠️ Partner Dashboard: "Marketing or advertising" added to the Email and customer data reasons (2026-10-20) |
+
 ## Audit update (2026-10-20): re-run on main after the Header, privacy and scope changes (cro-toolbox-41)
 
 ### Verdict
@@ -24,8 +38,7 @@ graphql-codegen, build:theme, test:storefront, test:functions, site build, `shop
 | New self review rule **5.8.4** (max 3 consecutive post purchase requests) | 5.8.4 | ✅ One offer, then `done()` to the Thank you page. 5.8.2/5.8.3/5.8.6/5.8.7 also pass (fixed Pay now and Decline buttons, store product data, one CalloutBanner) |
 
 ### Needs live verification (dev store)
-- [ ] Partner Dashboard "Use theme app extensions" (Online Store checks) showed ✗ on 2026-10-19 right after the
-      capabilities were selected; it's auto-checked every 2 hours. The app has no theme writes, so recheck it.
+- [x] Partner Dashboard Online Store app checks: green on 2026-10-20.
 - [ ] Lighthouse impact with the Header block on (product, collection, home) stays well under 10 points.
 - [ ] A/B test on a storefront with a cookie banner: before consent version A and no `/apps/ucro/ab` request; after
       accepting, the version is kept from the next page.
@@ -34,7 +47,7 @@ graphql-codegen, build:theme, test:storefront, test:functions, site build, `shop
 ### Left before submitting (Omar, Partner Dashboard)
 - [ ] Feature image + 6 screenshots in the approved style (`branding/listing/`), after the demos show real products.
 - [ ] Screencast URL (3 to 8 minutes, English, setup + every core feature).
-- [ ] AI self review: re-run this audit after the CRO sections PRs merge (Omar, 2026-10-20), then "Mark as done".
+- [x] AI self review: re-run after the CRO sections and marked done (2026-10-20).
 - [ ] Automated check, then Submit for review.
 - Coming: the CRO sections work adds `write_customers` (email pop up). Re-run this audit and update the
   protected customer data form before submitting if it lands first.
