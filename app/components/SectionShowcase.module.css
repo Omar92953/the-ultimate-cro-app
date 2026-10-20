@@ -24,7 +24,7 @@
 .dot::after { content: ""; position: absolute; left: 7px; top: 12px; width: 6px; height: 6px; background: rgba(0, 0, 0, 0.22); border-radius: 50%; }
 .dotOn::after { background: #303030; }
 .dot:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; border-radius: 4px; }
-.foot { display: flex; flex: 1; flex-direction: column; gap: 1px; padding: clamp(6px, 2.6cqw, 9px) clamp(9px, 3.8cqw, 13px) clamp(7px, 3cqw, 10px); }
+.foot { display: flex; flex: 1; align-items: center; padding: clamp(8px, 3cqw, 11px) clamp(10px, 4cqw, 14px); }
 .head { display: flex; align-items: center; justify-content: space-between; gap: clamp(4px, 2.5cqw, 10px); }
 .title { min-width: 0; font-size: clamp(11px, 4.2cqw, 14px); font-weight: 600; line-height: 1.25; color: #303030; text-decoration: none; }
 /* Full names always: long ones wrap to a second line (never cut with …); the status line stays at the bottom. */
@@ -424,3 +424,14 @@
 .drawerActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .drawerPrimary { padding: 7px 14px; font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; background: #303030; border-radius: 8px; }
 .drawerLink { padding: 7px 12px; font: inherit; font-size: 13px; color: #303030; text-decoration: none; cursor: pointer; background: #f1f1f1; border: 0; border-radius: 8px; }
+
+/* Library card: only the name under the picture; status and icon buttons show over the picture on hover or
+   keyboard focus (always on touch screens). */
+.stageWrap { position: relative; }
+.hoverTools { position: absolute; right: 10px; bottom: 12px; z-index: 6; display: flex; gap: 6px; opacity: 0; transform: translateY(4px); transition: opacity 0.15s, transform 0.15s; pointer-events: none; }
+.hoverStatus { position: absolute; left: 10px; top: 10px; z-index: 6; display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 20px); padding: 3px 9px; overflow: hidden; font-size: 11px; font-weight: 550; line-height: 1.5; color: #303030; white-space: nowrap; text-overflow: ellipsis; background: rgba(255, 255, 255, 0.96); border-radius: 999px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05); opacity: 0; transition: opacity 0.15s; }
+.card:hover .hoverTools, .card:focus-within .hoverTools, .hoverTools:has(.iconBtnOn) { opacity: 1; transform: none; pointer-events: auto; }
+.card:hover .hoverStatus, .card:focus-within .hoverStatus { opacity: 1; }
+.hoverTools .iconBtn { width: 32px; height: 32px; border-radius: 50%; color: #303030; background: rgba(255, 255, 255, 0.96); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.hoverTools .iconBtn:hover, .hoverTools .iconBtnOn { background: #fff; }
+@media (hover: none) { .hoverTools, .hoverStatus { opacity: 1; transform: none; pointer-events: auto; } }

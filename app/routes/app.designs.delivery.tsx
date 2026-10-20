@@ -23,6 +23,7 @@ import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -96,14 +97,10 @@ export default function DeliveryDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="delivery" />
           <DesignSlots base="delivery" blockName="Delivery estimate" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: data.inTheme ? `https://${data.domain}/admin/themes/current/editor?template=product` : data.addLink, onClick: seeOnStore }} />
           <s-text color="subdued">
             Shows when an order placed now will arrive, with a countdown to your daily cut-off. Times use your shop’s time zone (UTC{data.tz}). Add the “Delivery estimate” block under the price or Add to cart, and on the cart page if you like.
           </s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              The estimate shows on your store after you save here.
-            </s-banner>
-          ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
           <div className={ui.layout}>

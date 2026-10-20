@@ -21,6 +21,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -85,17 +86,13 @@ export default function CartExtrasDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="cart_extras" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?template=cart`, onClick: seeOnStore }} />
           <s-text color="subdued">Shoppers tick “This is a gift”, write a message and choose a delivery date in the cart. It’s all saved on the order: the message as the order note, the rest as order details (“Gift: Yes”, “Delivery date: 2026-10-15”).</s-text>
           {cfg.where.drawer && data.boostersOn === false ? (
             <s-banner tone="warning" heading="For the cart drawer, turn on the Conversion boosters embed">
               <s-link href={data.boostersLink} target="_top">
                 Turn it on in the theme editor
               </s-link>
-            </s-banner>
-          ) : null}
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              It shows in your cart after you save here.
             </s-banner>
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />

@@ -32,6 +32,7 @@ import { LookPicker, templateInUse } from "../components/LookPicker";
 import { SizesSection } from "../components/SizesSection";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 function kindOf(params: LoaderFunctionArgs["params"]): SecKind {
@@ -145,6 +146,7 @@ export default function CroSectionDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature={kind} />
           {popup ? null : <DesignSlots base={kind} blockName="CRO section" />}
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} addLabel={popup ? "Switch on in theme" : "Add to theme"} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(data.previewPath)}`, onClick: () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction }) }} />
           {data.inTheme === false ? (
             popup ? (
               <s-banner tone="info" heading="Switch on Conversion boosters">

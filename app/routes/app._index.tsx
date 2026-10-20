@@ -29,6 +29,7 @@ import { isLocked } from "../lib/plan-gate";
 import { PlanBar } from "../components/PlanCard";
 import { SetupGuide, type GuideStep } from "../components/SetupGuide";
 import { loadHub } from "../lib/hub.server";
+import { FeatureHub } from "./app.library";
 import styles from "../components/Home.module.css";
 
 /** Theme embeds that count as "the app is switched on in your theme". */
@@ -86,6 +87,7 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
   const cur = results?.periods.current ?? null;
   return {
     shop,
+    hub,
     plan: { key: plan.plan, source: plan.source, trialEndsAt: plan.trialEndsAt },
     paused: planState.paused,
     // All of the store's orders this month (the plans' soft limit).
@@ -280,6 +282,15 @@ export default function Home() {
             ) : (
               <s-paragraph>Sales from the app show here once Shopify approves the app&apos;s access to orders. Your offers and widgets work in the meantime.</s-paragraph>
             )}
+        </HomeRow>
+
+        <HomeRow
+          title="Active sections"
+          subtitle="Live on your store now."
+          bare
+          footer={<Button href="/app/library?cat=store" variant="secondary">Show all sections</Button>}
+        >
+          <FeatureHub area="library" hub={data.hub} active={4} />
         </HomeRow>
 
         {data.attention.length ? (

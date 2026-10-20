@@ -247,10 +247,15 @@ export default function Storefront() {
  * and next step — the same cards on every hub, listed from lib/catalog.ts.
  */
 /** `top`: shown above the cards (the Cart page puts its "which cart" choice there). */
-export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
+/**
+ * The hub page of an area (Section library, Cart & Checkout). With `active`, only the grid of up to that many
+ * live cards (Home → Active sections), using `hub` data passed in by the page.
+ */
+export function FeatureHub({ area, top, hub, active }: { area: AreaKey; top?: ReactNode; hub?: Awaited<ReturnType<typeof loadHub>>; active?: number }) {
   const { plan, trial } = usePlan();
   const grouped = true;
-  const data = useLoaderData<typeof loader>();
+  const loaded = useLoaderData<typeof loader>();
+  const data = hub ?? loaded;
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
 
@@ -311,27 +316,7 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
   const discountActive =
     data.discount.engine === "native" ? data.discount.nativeCount > 0 : data.discount.status === "ACTIVE";
 
-  return (
-    <s-page heading={areaOf(area).title} inlineSize="large">
-      <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
-        View store
-      </Button>
-      <s-stack gap="base">
-      {top}
-
-      {data.loadError ? (
-        <s-banner tone="critical" heading="Something went wrong">
-          {data.loadError}
-        </s-banner>
-      ) : null}
-      {hasDiscountedOffers && !discountActive && !data.loadError ? (
-        <s-banner tone="warning" heading="Discounts aren't active yet">
-          Open any upsell or cross sell offer and click Save to switch its discount on at checkout.
-        </s-banner>
-      ) : null}
-
-
-      {(() => {
+  const body = (() => {
         /** `onStore`: it's in the theme right now (on or off), so it belongs in "On store". */
         type Entry = { key: string; reg: RegistryKey; title: string; tone: Status["tone"]; locked: boolean; onStore: boolean; el: ReactElement };
         const cards: Entry[] = [];
@@ -360,9 +345,9 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                 next={locked ? { label: "See what it does", href: e.open.href } : e.next}
                 open={locked ? { href: e.open.href } : e.open}
                 previews={e.previews.map((P, i) => <P key={i} />)}
-                menu={locked ? [{ label: "See what it does", href: e.open.href }] : e.menu}
+                menu={active ? undefined : locked ? [{ label: "See what it does", href: e.open.href }] : e.menu}
                 off={e.off || locked}
-                save={save(e.key)}
+                save={active ? undefined : save(e.key)}
                 demo={hasDemo(reg) ? demoUrl(reg) : undefined}
                 details={{ about: feature(reg).about, plan: `Plan: ${PLANS[FEATURE_PLAN[reg]].name}${canUse(plan, reg) ? " (included in yours)" : ""}` }}
               />
@@ -517,6 +502,14 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
           });
         }
 
+        if (active) {
+          const live = cards.filter((c) => c.onStore && c.tone === "success" && !c.locked).slice(0, active);
+          return live.length ? (
+            <div className={showcase.grid}>{live.map((c) => c.el)}</div>
+          ) : (
+            <div className={showcase.empty}>Nothing is live on your store yet. Open the Section library, pick a section and follow its steps.</div>
+          );
+        }
         const CATS: { key: string; title: string }[] = GROUPS.filter((g) => g.area === area);
         const groupOf = (c: Entry) => (grouped ? (feature(c.reg).group ?? "content") : area);
         const onStoreCount = cards.filter((c) => c.onStore).length;
@@ -584,7 +577,31 @@ export function FeatureHub({ area, top }: { area: AreaKey; top?: ReactNode }) {
                 : renderGroups(CATS.filter((c) => !grouped || cat === "all" || cat === c.key), "Nothing matches these filters.")}
           </>
         );
-      })()}
+      })();
+
+  if (active) return body;
+
+  return (
+    <s-page heading={areaOf(area).title} inlineSize="large">
+      <Button slot="secondary-actions" href={`https://${data.shop}`} target="_blank" icon="view">
+        View store
+      </Button>
+      <s-stack gap="base">
+      {top}
+
+      {data.loadError ? (
+        <s-banner tone="critical" heading="Something went wrong">
+          {data.loadError}
+        </s-banner>
+      ) : null}
+      {hasDiscountedOffers && !discountActive && !data.loadError ? (
+        <s-banner tone="warning" heading="Discounts aren't active yet">
+          Open any upsell or cross sell offer and click Save to switch its discount on at checkout.
+        </s-banner>
+      ) : null}
+
+
+      {body}
 
       {data.themeError ? <s-text color="subdued">Theme check unavailable: {data.themeError}</s-text> : null}
       </s-stack>

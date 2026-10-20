@@ -20,6 +20,7 @@ import { DesignTabs, Pane, PreviewFrame, type DesignTab } from "../components/De
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { SizesSection } from "../components/SizesSection";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -88,6 +89,7 @@ export default function WishlistDesigner() {
       <div className={ui.shell}>
         <s-stack gap="base">
           <FeatureTabs feature="wishlist" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.embedOn} addLink={data.embedLink} addLabel="Turn on in theme" onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?template=product`, onClick: seeOnStore }} />
           <s-text color="subdued">
             Shoppers save products with a heart and find them on your wishlist page. The list is kept in their browser; “Share my wishlist” gives a link that opens it on any device. The app makes the wishlist page for you (button below), at the address in “Page address”; the “Order & wishlist pages” block in its theme template shows it.
           </s-text>
@@ -96,11 +98,6 @@ export default function WishlistDesigner() {
               <s-link href={data.embedLink} target="_top">
                 Open App embeds
               </s-link>
-            </s-banner>
-          ) : null}
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              The wishlist shows on your store after you save here.
             </s-banner>
           ) : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />

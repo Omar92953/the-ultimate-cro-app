@@ -51,6 +51,7 @@ import { SizesSection } from "../components/SizesSection";
 import { FAQ_SIZES } from "../lib/faq-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["faq"], async ({ request }: LoaderFunctionArgs) => {
@@ -163,17 +164,13 @@ export default function FaqDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="faq" />
           <DesignSlots base="faq" blockName="FAQ" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} />
           <s-text color="subdued">
             Questions and groups are in the Questions tab. Here you choose how
             the FAQ looks and works; each copy of the section shows the design picked in its “Style” setting.
             In the theme editor each copy can still show only one group (e.g.
             Shipping) and have its own heading.
           </s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? (
             <s-banner tone="critical">{fetcher.data.error}</s-banner>
           ) : null}

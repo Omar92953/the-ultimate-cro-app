@@ -26,6 +26,7 @@ import { DemoButton } from "../components/DemoButton";
 import { templateInUse } from "../components/LookPicker";
 import { SizesSection } from "../components/SizesSection";
 import { SHIPPING_BAR_SIZES } from "../lib/shipping-bar";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -108,6 +109,7 @@ export default function ShippingBarDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="shipping_bar" />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the bar in your theme">
             Click “Add to header” and save there. You can also add the “Free shipping bar” block to product or cart pages from the theme editor. Everything else is set here.

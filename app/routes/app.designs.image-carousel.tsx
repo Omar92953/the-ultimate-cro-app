@@ -25,6 +25,7 @@ import { DemoButton } from "../components/DemoButton";
 import { SortableList, arrayMove } from "../components/Sortable";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["image_carousel"], async ({ request }: LoaderFunctionArgs) => {
@@ -89,6 +90,7 @@ export default function ImageCarouselDesigner() {
       <s-stack gap="base">
         <FeatureTabs feature="image_carousel" />
         <DesignSlots base="image_carousel" blockName="Image carousel" />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} />
         {data.inTheme === false ? (
           <s-banner tone="info" heading="Place the carousel in your theme">
             Click “Add to theme”, drop the “Image carousel” section where you want it and save. Everything else is set here.

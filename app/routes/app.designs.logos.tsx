@@ -26,6 +26,7 @@ import { SizesSection } from "../components/SizesSection";
 import { LOGOS_SIZES } from "../lib/logos-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = slottedRoute(["logos"], async ({ request }: LoaderFunctionArgs) => {
@@ -95,12 +96,8 @@ export default function LogosDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="logos" />
           <DesignSlots base="logos" blockName="Scrolling logos and text" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=%2F`, onClick: seeOnStore }} />
           <s-text color="subdued">Logos and texts are in the Logos tab. Here you choose how the strip looks and moves. In the theme editor you only place the “Scrolling logos and text” section; each copy shows the design picked in its “Design” setting.</s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />

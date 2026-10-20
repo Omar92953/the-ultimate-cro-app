@@ -23,6 +23,7 @@ import { DesignTabs, Pane, type DesignTab } from "../components/DesignTabs";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { templateInUse } from "../components/LookPicker";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -98,6 +99,7 @@ export default function HeaderDesigner() {
       <div className={ui.shell}>
       <s-stack gap="base">
         <FeatureTabs feature="header" />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.embedOn} addLink={data.embedLink} addLabel="Add to header" onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent("/")}`, onClick: () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post" }) }} />
         {data.embedOn === false ? (
           <s-banner tone="info" heading="Add the header to your theme">
             Style it here and click Save, then click “Add to header”: it’s added to your theme’s Header area. Save there. Your theme’s own header is hidden while it’s on, and comes back if you switch it off.

@@ -26,6 +26,7 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 const fmtDate = (d: string) => {
@@ -121,16 +122,12 @@ export default function ReviewsDesigner() {
       <s-stack gap="base">
         <FeatureTabs feature={feature} />
         <DesignSlots base={isProduct ? "reviews_product" : "reviews"} blockName={isProduct ? "Product page reviews" : "Customer reviews"} />
+        <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={null} addLink={data.addLink} addLabel="Add to a page" onStyles={() => setTab("looks")} preview={{ href: `https://${data.domain}/admin/themes/current/editor?previewPath=${encodeURIComponent(previewPath)}`, onClick: () => fetcher.submit({ config: JSON.stringify(cfg), intent: "draft" }, { method: "post", action: designAction }) }} />
         <s-text color="subdued">
           {isProduct
             ? "A small reviews widget for the product page, next to the price and Add to cart: this product’s reviews in a card, or its star rating. In the theme editor, add the “Product page reviews” block inside the product information."
             : "Add, edit and order the reviews in the Reviews tab. Here you choose how the section looks. Place the “Customer reviews” section on any page (home, product, collection…), usually further down."}
         </s-text>
-        {!data.saved ? (
-          <s-banner tone="info" heading="Not saved yet">
-            Your store uses the standard look until you save here.
-          </s-banner>
-        ) : null}
         {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
         <style dangerouslySetInnerHTML={{ __html: data.css }} />
         <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />

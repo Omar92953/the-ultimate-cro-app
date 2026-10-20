@@ -24,6 +24,7 @@ import { SizesSection } from "../components/SizesSection";
 import { VIDEO_SIZES } from "../lib/video-carousel-design";
 import { slottedRoute } from "../lib/design-slot.server";
 import { DesignSlots, useDesignAction } from "../components/DesignSlots";
+import { SetupSteps } from "../components/SetupSteps";
 import { SaveControls, changed } from "../components/SaveControls";
 
 /** Prices of the linked products, formatted in the shop's currency, for the preview. */
@@ -125,14 +126,10 @@ export default function VideoCarouselDesigner() {
         <s-stack gap="base">
           <FeatureTabs feature="videos" />
           <DesignSlots base="videos" blockName="Video carousel" />
+          <SetupSteps saved={data.saved} dirty={changed(cfg, data.config)} inTheme={data.inTheme} addLink={data.addLink} onStyles={() => setTab("looks")} preview={{ href: previewLink, onClick: seeOnStore }} />
           <s-text color="subdued">
             Add, order and link the videos in the Videos tab. Here you choose how the carousel looks and where it shows. In the theme editor you only place the “Video carousel” section.
           </s-text>
-          {!data.saved ? (
-            <s-banner tone="info" heading="Not saved yet">
-              Your store uses the standard look until you save here.
-            </s-banner>
-          ) : null}
           {fetcher.data?.error ? <s-banner tone="critical">{fetcher.data.error}</s-banner> : null}
           <style dangerouslySetInnerHTML={{ __html: data.css }} />
           <DesignTabs tabs={["looks", "content", "design"]} value={tab} onChange={setTab} />
