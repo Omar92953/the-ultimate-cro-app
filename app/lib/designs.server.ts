@@ -28,6 +28,7 @@ import { toStorefrontQuickAdd, withQuickAddDefaults, type QuickAddDesign } from 
 import { toStorefrontBundle, withBundleDesignDefaults, type BundleDesign } from "./bundle-design";
 import { toStorefrontUpsell, withUpsellDefaults, type UpsellDesign } from "./upsell-design";
 import { toStorefrontImageCarousel, withImageCarouselDefaults, type ImageCarouselConfig } from "./image-carousel";
+import { secImageIds, toStorefrontSec, withSecDefaults, type SecConfig, type SecKind } from "./cro-sections";
 
 /**
  * "Preview on store": unsaved changes stored as "<key>_draft". Blocks show the draft only inside the
@@ -83,7 +84,7 @@ export async function getImageCarousel(admin: AdminClient): Promise<{ config: Im
 }
 
 /** Looks up each slide's image (CDN address and size) so the storefront needs no extra Liquid. */
-async function imageFiles(admin: AdminClient, ids: string[]) {
+export async function imageFiles(admin: AdminClient, ids: string[]) {
   const out = new Map<string, { url: string; width: number; height: number }>();
   if (!ids.length) return out;
   const data = await gql(
@@ -430,5 +431,22 @@ export async function saveQuiz(admin: AdminClient, config: QuizDesign, draftOnly
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("quiz"), { config: store });
   await upsert(admin, "$app:cro_design", slotted("quiz_draft"), { config: store });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("quiz_editor"), { config: JSON.stringify(clean) });
+  return clean;
+}
+
+/* -------------------------------------------------------------- CRO sections -- */
+/** One of the nine CRO sections (lib/cro-sections.ts): handles "<kind>", "<kind>_draft", "<kind>_editor". */
+export async function getSec<K extends SecKind>(admin: AdminClient, kind: K): Promise<{ config: SecConfig<K>; saved: boolean }> {
+  const raw = await getDesign(admin, `${kind}_editor`);
+  return { config: withSecDefaults(kind, raw), saved: raw !== null };
+}
+
+export async function saveSec<K extends SecKind>(admin: AdminClient, kind: K, config: unknown, draftOnly = false) {
+  const clean = withSecDefaults(kind, config);
+  const images = await imageFiles(admin, secImageIds(clean));
+  const store = JSON.stringify(toStorefrontSec(clean, images));
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(kind), { config: store });
+  await upsert(admin, "$app:cro_design", slotted(`${kind}_draft`), { config: store });
+  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted(`${kind}_editor`), { config: JSON.stringify(clean) });
   return clean;
 }

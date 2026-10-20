@@ -1,0 +1,28 @@
+/* CRO section: comparison table. */
+.usec-ct__scroll { overflow-x: auto; }
+.usec-ct { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--usec-p, 15px); }
+.usec-ct th, .usec-ct td { padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--usec-line, #e3e3e3); vertical-align: middle; }
+.usec-ct thead th { font-size: var(--usec-t, 17px); font-weight: 700; border-bottom-width: 2px; }
+.usec-ct tbody th { text-align: left; font-weight: 500; }
+.usec-ct__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.usec--stripes .usec-ct tbody tr:nth-child(odd) > * { background: var(--usec-card, #f5f5f3); }
+.usec--highlight .usec-ct .is-us { background: var(--usec-card, #f5f5f3); }
+.usec--highlight .usec-ct thead .is-us { background: var(--usec-ac, #111); color: var(--usec-act, #fff); border-radius: var(--usec-r, 12px) var(--usec-r, 12px) 0 0; }
+.usec--highlight .usec-ct tbody tr:last-child .is-us { border-radius: 0 0 var(--usec-r, 12px) var(--usec-r, 12px); }
+.usec-ct__y, .usec-ct__n { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; align-items: center; justify-content: center; }
+.usec-ct__y { background: var(--usec-ac, #111); color: var(--usec-act, #fff); }
+.usec-ct__n { background: var(--usec-line, #e3e3e3); color: var(--usec-fg, #111); opacity: 0.7; }
+.usec-ct__y .usec__icon, .usec-ct__n .usec__icon { width: 15px; height: 15px; stroke-width: 3; }
+.usec-ct__v { font-weight: 600; }
+.usec-ct__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.usec-ct__card { padding: 20px; border: 1px solid var(--usec-line, #e3e3e3); border-radius: var(--usec-r, 12px); background: var(--usec-bg, transparent); }
+.usec-ct__card.is-us { background: var(--usec-card, #f5f5f3); }
+.usec--highlight .usec-ct__card.is-us { border: 2px solid var(--usec-ac, #111); }
+.usec-ct__name { margin: 0 0 12px; font-size: var(--usec-t, 17px); font-weight: 700; text-align: center; }
+.usec-ct__card ul { list-style: none; margin: 0; padding: 0; }
+.usec-ct__card li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--usec-line, #e3e3e3); font-size: var(--usec-p, 15px); }
+@container (max-width: 640px) {
+  .usec-ct th, .usec-ct td { padding: 10px 6px; }
+  .usec-ct thead th { font-size: 14px; }
+  .usec-ct { font-size: 14px; }
+}

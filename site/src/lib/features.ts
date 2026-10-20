@@ -187,6 +187,54 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["Glass, rounded, classic, minimal and bold looks", "Your menu with dropdowns or mega menus", "Search, cart count and an optional button", "Sticky, and over the hero on the home page if you want"],
     related: ["hero", "announcements", "collection_pills"],
   },
+  compare_table: {
+    who: "For products that win on facts: show shoppers why yours beats the usual choice.",
+    points: ["Your column against up to 3 others", "Up to 12 rows with a tick, a cross or short text", "A table or cards side by side, with your column highlighted", "Turns into a phone friendly layout by itself"],
+    related: ["benefits", "guarantee", "product_tabs"],
+  },
+  benefits: {
+    who: "For answering why buy here in one glance: shipping, returns, payment, support.",
+    points: ["Up to 6 benefits with a built in icon or your own picture", "Icons on top, on the left, in boxes or as a slim strip", "Two per row, one per row or swipe sideways on phones"],
+    related: ["guarantee", "trust_badges", "how_it_works"],
+  },
+  product_tabs: {
+    who: "For long product pages: details, shipping and returns without the endless scroll.",
+    points: ["Tabs or an accordion", "The first tab can be the product's own description", "Up to 5 more tabs with the same text on every product, or a product's own text from a metafield"],
+    related: ["size_guide", "delivery", "faq"],
+  },
+  guarantee: {
+    who: "For lowering the risk of buying: a money back or free returns promise next to Add to cart.",
+    points: ["A drawn seal (money back, free returns, free shipping, secure checkout, premium quality) or your own picture", "Title, text and a link to your policy", "Badge, centred seal, banner or a small line"],
+    related: ["trust_badges", "benefits", "compare_table"],
+    note: "Promise only what your refund policy really says.",
+  },
+  before_after: {
+    who: "For products whose result shows in a picture: skincare, cleaning, repairs, restoration.",
+    points: ["Two pictures with a handle shoppers drag", "Side to side or top to bottom", "Labels, a caption and three handle styles", "Works with a mouse, a finger and the keyboard"],
+    related: ["image_carousel", "reviews", "shoppable"],
+  },
+  shoppable: {
+    who: "For lifestyle photos that sell: shoppers tap a product in the picture and add it.",
+    points: ["Up to 8 products on one picture, placed by clicking", "Dots, numbers or plus signs, with a gentle pulse", "A card with the picture, the live price and Add to cart (or View product for products with options)"],
+    related: ["image_carousel", "hero", "quick_add"],
+  },
+  recently_viewed: {
+    who: "For bringing shoppers back to what they were already considering.",
+    points: ["The last 2 to 12 products the shopper opened, with live prices", "Cards, compact rows or a carousel", "Add to cart on each card; products with options link to their page"],
+    related: ["wishlist", "quick_add", "cross_sell"],
+    note: "The list stays in the shopper's own browser; nothing is sent to the app.",
+  },
+  how_it_works: {
+    who: "For new brands, subscriptions and anything shoppers need explained first.",
+    points: ["3 to 5 steps with numbers or icons", "Circles in a row, a timeline or cards", "An optional button to your products"],
+    related: ["benefits", "faq", "compare_table"],
+  },
+  email_popup: {
+    who: "For growing your email list with a welcome discount.",
+    points: ["Each email gets its own one use code that only that shopper can use", "Sign ups join your Shopify customers with email marketing consent and the tag cro-popup", "Shows after a delay, after scrolling or when the mouse leaves the page, on the pages you pick", "Centred, with a picture, as a bottom bar or full screen on phones"],
+    related: ["announcements", "countdown", "sales_pop"],
+    note: "The app keeps no emails: they live in your Shopify customers.",
+  },
   track: {
     who: "For fewer where is my order messages.",
     points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify", "The page sells too (Growth): recommendations, a real next order discount code, a buy again button, a how was your order message after delivery, an apology (and optional code) for late orders", "Offers above and below the tracking with real codes that expire (Pro)", "Orders older than 60 days once Shopify approves access to all orders"],

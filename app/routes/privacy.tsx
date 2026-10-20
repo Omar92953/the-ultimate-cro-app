@@ -35,6 +35,8 @@ const SECTIONS: [string, string[]][] = [
       "Return requests: when a shopper asks for a return, we store the order number, their email, the items, the reason and any note, so you can handle the request in the app.",
       "Reviews written on your store: the name, text, rating and location the shopper enters are saved in your Shopify store for you to approve. No email address is collected.",
       "Reviewer emails: if you type the email of the person behind a review so the app can check it against your orders (to tick Verified buyer), we store that email in our database. It is never shown on your store. It is deleted when you delete the review, and when you uninstall or the customer asks for deletion.",
+      "Email pop up sign ups: when a shopper signs up in the pop up, the email is sent through Shopify to the app, which adds it to the store's own Shopify customers with email marketing consent (tag cro-popup) and creates a one use discount code for that customer. The app doesn't store the email or the code; they live only in the store's Shopify admin.",
+      "Recently viewed products are kept only in the shopper's own browser and are never sent to the app.",
       "Wishlists are kept only in the shopper's own browser. Gift notes, delivery dates, personalization text and similar choices are added to the shopper's cart and order in Shopify.",
     ],
   ],

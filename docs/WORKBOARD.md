@@ -33,6 +33,14 @@ Updated 2026-10-19.
 - [x] Block G11 (Track page selling: prices, next order discount, buy again, after delivery, delay message, offer slots (Pro), editor
       "What to show", sample orders, Analytics "Track & Returns" card) merged and deployed; tested on Testing 3.
 
+## CRO sections (Omar, 2026-10-19; plan `docs/plans/cro-sections.md`, PR #211)
+
+- [x] One shared block `ucs-section` (29 of 30 blocks, 93.2 KB Liquid) and 9 sections: comparison table, benefits row,
+      product details tabs, guarantee, before and after, shoppable image, recently viewed, how it works, email pop up (in the
+      Conversion boosters embed). Editors with templates and live preview, demos, tests.
+- [ ] Verify each on Testing 3 after deploy (pop up sign up creates the customer with consent and a one use code).
+- [ ] Omar: protected customer data form: add Email for the pop up ("creates the store's customer with marketing consent").
+
 ## Website (`site/`, brief: `docs/prompts/build-website.md`, everything left: `docs/prompts/finish-website-cloud.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)

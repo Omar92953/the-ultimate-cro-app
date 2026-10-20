@@ -56,7 +56,7 @@ Design system for the feature image and screenshots: `branding/listing/README.md
   Shopify; cloud sessions add "Needs Shopify deploy" to such PR titles (`docs/TEAM.md`).
 - No dashes in UI text. Use `app/components/fields.tsx` wrappers, never raw `onChange` or boolean
   props on `s-*` elements. Never `slot="aside"` on a `large` page; editors use `EditorLayout`.
-- Storefront Liquid is edited in `theme/` and built with `npm run build:theme`; 28 of 30 theme blocks (Header back as its own block, 2026-10-19) and 92 of 100 KB of Liquid (both enforced by Shopify; counted 2026-10-19)
+- Storefront Liquid is edited in `theme/` and built with `npm run build:theme`; 29 of 30 theme blocks (Header back as its own block, 2026-10-19; one shared "CRO section" block for 8 sections, 2026-10-20) and 93 of 100 KB of Liquid (both enforced by Shopify; counted 2026-10-20)
   are used, so new storefront features go into existing blocks/embeds.
 - Shopify silently drops Function metafields over 10,000 bytes; `cro.server.ts` enforces 9,500.
 - Discount Functions and Cart Transform from custom-distribution apps only run on Plus, so Omar's
