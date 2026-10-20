@@ -150,10 +150,14 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 
 - [x] Feature image style approved: `branding/feature/feature-banner.png` (dark green to black background, logo,
       headline, real widgets as white cards with green tags; design system: `branding/listing/README.md`). Keep this style.
-- [ ] Demos (`demos/`): replace the drawn products (candle, serum, mug, soap) with a real product collection's photos.
-      Omar decides when the demos are final.
-- [ ] After that: re-capture the widgets, redo the feature image, and design all 6 listing screenshots (1600x900) in
-      the same style, then Omar uploads them. Don't upload the current feature image before then.
+- [x] Demos (`demos/`): real product photos (free Burst photos, `demos/IMAGES.md`, #219). Omar: say if the demos
+      are final or a photo should change.
+- [x] Widgets re-captured, feature image rendered again (`branding/feature/feature-banner.png`) and 6 screenshots designed
+      in the same style: `branding/screenshots/storefront/1-bundles.png` to `6-sections.png` (templates in
+      `branding/listing/templates/screenshot-*.html`; 2026-10-20, website session)
+- [ ] Omar: look at the 7 images, then upload them in the listing editor (feature image, then the screenshots in order,
+      alt text in `branding/listing/README.md`). Choose these or the app screenshots in `branding/screenshots/listing/`
+      (or mix them: up to 6 in total).
 
 ## Header back, 2026-10-19 (#208, cro-toolbox-40)
 
