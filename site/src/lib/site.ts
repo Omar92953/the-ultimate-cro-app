@@ -14,6 +14,9 @@ export const INSTALL_URL = "";
 
 /** The support email shown on the support, privacy and terms pages (Cloudflare Email Routing to the app's Gmail). */
 export const SUPPORT_EMAIL = "support@crotoolbox.com";
+/** General questions and feature requests (Cloudflare Email Routing, like support@). */
+export const INFO_EMAIL = "info@crotoolbox.com";
+export const FEATURES_EMAIL = "features@crotoolbox.com";
 
 export const SITE_NAME = "CRO Toolbox";
 /** Who runs the app (Shopify Partner organization). TODO(Omar): legal name and country. */
@@ -30,6 +33,20 @@ export const SOCIAL = {
   tiktok: "",
 };
 export type SocialKey = keyof typeof SOCIAL;
+
+/**
+ * Other profiles of CRO Toolbox (directories and company pages). They have no footer icon; the
+ * Organization schema lists them in sameAs, which helps search engines and AI assistants tie the
+ * profiles to this site. TODO(Omar): paste each address once the profile exists (docs/outreach/profiles.md).
+ */
+export const PROFILES = {
+  shopifyAppStore: "",
+  linkedin: "",
+  crunchbase: "",
+  g2: "",
+  capterra: "",
+  productHunt: "",
+};
 
 export const NOTIFY_HREF = "/#get-notified";
 
@@ -117,8 +134,9 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     ],
   },
   {
-    title: "Legal",
+    title: "Company",
     links: [
+      { label: "About", href: "/about/" },
       { label: "Privacy policy", href: "/privacy/" },
       { label: "Terms of service", href: "/terms/" },
     ],

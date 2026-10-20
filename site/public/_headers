@@ -1,3 +1,16 @@
 /demo/*
   X-Robots-Tag: noindex, nofollow
   Referrer-Policy: strict-origin-when-cross-origin
+
+# Only https://crotoolbox.com/ should be indexed. Cloudflare's own address and preview builds, and the
+# www name (until the www to root redirect rule exists in the Cloudflare dashboard, docs/website.md),
+# serve the same pages: keep them out of search engines. Every page's canonical already points to
+# https://crotoolbox.com/.
+https://crotoolbox.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.crotoolbox.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://www.crotoolbox.com/*
+  X-Robots-Tag: noindex
