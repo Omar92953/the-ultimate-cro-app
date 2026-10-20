@@ -1,5 +1,44 @@
 # App Store submission review — CRO Toolbox (2026-10-17)
 
+## Audit update (2026-10-20): re-run on main after the Header, privacy and scope changes (cro-toolbox-41)
+
+### Verdict
+**Code ready for review.** No ❌ in the code. What's left is listing assets and Partner Dashboard steps only.
+
+### Summary
+Requirements re-fetched with `shopify doc fetch` (self review list + App Store requirements). Deterministic checks
+(`check_app.mjs`): compliance webhooks subscribed and handled, no REST Admin API, no theme file writes or ScriptTags,
+55 theme editor deep links, theme extension 28 of 30 blocks, 90.3 of 100 KB Liquid, every JS file under 10 KB gz,
+Function input queries well under 3,000 bytes. Project checks all pass: typecheck, lint, test:app (176), build,
+graphql-codegen, build:theme, test:storefront, test:functions, site build, `shopify app config validate`,
+`shopify theme check`.
+
+### What changed since the 2026-10-19 run, and the verdict for each
+| Change | Requirement | Status |
+|---|---|---|
+| Plan links open our Plans page (#198) | 1.2.x billing, up and downgrade in app | ✅ Plans page buttons open Shopify's approval page per plan; no own charges |
+| `read_all_orders` (#200) | 3.2.x demonstrated need | ✅ Approved by Shopify 2026-10-19 (Track page, Returns, Check against orders) |
+| Post purchase access | 5.8.1 | ✅ Granted 2026-10-19 ("full access to the post-purchase extensions") |
+| Header restored (#208) | 1.1.4, 5.1.4, 5.1.3 | ✅ No storefront app branding, no invented data, deep link from its design page |
+| Privacy fixes (#212) | Protected customer data, consent | ✅ A/B snippet waits for analytics consent; retention cleanup; uninstall deletes every table (sessions, stock, returns, reviewer emails, feature requests, MCP, tracking, A/B views, Track codes and stats) |
+| New self review rule **5.8.4** (max 3 consecutive post purchase requests) | 5.8.4 | ✅ One offer, then `done()` to the Thank you page. 5.8.2/5.8.3/5.8.6/5.8.7 also pass (fixed Pay now and Decline buttons, store product data, one CalloutBanner) |
+
+### Needs live verification (dev store)
+- [ ] Partner Dashboard "Use theme app extensions" (Online Store checks) showed ✗ on 2026-10-19 right after the
+      capabilities were selected; it's auto-checked every 2 hours. The app has no theme writes, so recheck it.
+- [ ] Lighthouse impact with the Header block on (product, collection, home) stays well under 10 points.
+- [ ] A/B test on a storefront with a cookie banner: before consent version A and no `/apps/ucro/ab` request; after
+      accepting, the version is kept from the next page.
+- [ ] Re-run the automated checks in the Partner Dashboard last, right before submitting.
+
+### Left before submitting (Omar, Partner Dashboard)
+- [ ] Feature image + 6 screenshots in the approved style (`branding/listing/`), after the demos show real products.
+- [ ] Screencast URL (3 to 8 minutes, English, setup + every core feature).
+- [ ] AI self review: re-run this audit after the CRO sections PRs merge (Omar, 2026-10-20), then "Mark as done".
+- [ ] Automated check, then Submit for review.
+- Coming: the CRO sections work adds `write_customers` (email pop up). Re-run this audit and update the
+  protected customer data form before submitting if it lands first.
+
 ## Audit update (2026-10-18): Built for Shopify pass
 
 **Passing**

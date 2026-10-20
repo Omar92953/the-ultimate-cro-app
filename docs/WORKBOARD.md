@@ -41,7 +41,7 @@ Updated 2026-10-19.
 - [ ] Verify each on Testing 3 after deploy (pop up sign up creates the customer with consent and a one use code).
 - [ ] Omar: protected customer data form: add Email for the pop up ("creates the store's customer with marketing consent").
 
-## Website (`site/`, brief: `docs/prompts/build-website.md`, next steps: `docs/prompts/continue-website.md`)
+## Website (`site/`, brief: `docs/prompts/build-website.md`, everything left: `docs/prompts/finish-website-cloud.md`)
 
 - [x] PR 1: scaffold, home, pricing, legal pages, sitemap, llms.txt (PR #36)
 - [x] PR 2: hidden live demos for every feature in `demos/` (crotoolbox.com/demo), `app/lib/site.ts`,
@@ -109,7 +109,7 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       (app/lib/retention.ts), Terms data processing section, docs/security/incident-response.md, and free nightly
       encrypted backups in the private repo Omar92953/cro-toolbox-backups (docs/security/backups.md; first run OK).
 - [ ] App Store review checklist left: listing (feature image and 6 screenshots wait for final demos, screencast),
-      automated check (run last), capabilities, AI self review "Mark as done", then Submit.
+      automated check (run last), AI self review "Mark as done" after the CRO sections merge and a re-run, then Submit. Capabilities done 2026-10-19.
 
 ## App Store listing images (Omar, 2026-10-19)
 
