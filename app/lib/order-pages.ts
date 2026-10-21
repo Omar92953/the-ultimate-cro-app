@@ -128,11 +128,24 @@ export const DEFAULT_RECS: Recs = {
   added: "Added",
 };
 
+/** Track page: which parts of the result shoppers see (prices and recommendations have their own settings). */
+export type TrackShow = { items: boolean; estimate: boolean; place: boolean; timeline: boolean; link: boolean };
+export const DEFAULT_TRACK_SHOW: TrackShow = { items: true, estimate: true, place: true, timeline: true, link: true };
+export const TRACK_SHOW_LABEL: Record<keyof TrackShow, { label: string; details: string }> = {
+  items: { label: "The items in the order", details: "Each product with its picture and quantity." },
+  estimate: { label: "The expected delivery date", details: "When Shopify or the carrier gives one. The delivered date always shows." },
+  place: { label: "Where the parcel is now", details: "The latest place from the tracking." },
+  timeline: { label: "The tracking history", details: "Every update, newest first." },
+  link: { label: "The link to the carrier's page", details: "A “Track the parcel” button that opens the carrier's own page." },
+};
+
 export type OrderPageDesign = {
   scheme: string;
   kind: OrderPageKind;
   /** Track page: show what each item cost and the order's subtotal, shipping, discounts and total. */
   prices: boolean;
+  /** Track page: the other parts of the result. */
+  show: TrackShow;
   /** Track page only: product recommendations under the order. */
   recs: Recs;
   text: Record<string, string>;
@@ -148,6 +161,7 @@ export const defaultOrderPage = (kind: OrderPageKind): OrderPageDesign => ({
   scheme: "",
   kind,
   prices: true,
+  show: DEFAULT_TRACK_SHOW,
   recs: DEFAULT_RECS,
   text: Object.fromEntries(TEXTS[kind].map((t) => [t.key, t.def])),
   rules: { days: 30 },
@@ -194,6 +208,7 @@ export function withOrderPageDefaults(raw: unknown, kind: OrderPageKind): OrderP
     scheme: schemeId(r.scheme),
     kind,
     prices: typeof r.prices === "boolean" ? r.prices : true,
+    show: Object.fromEntries((Object.keys(DEFAULT_TRACK_SHOW) as (keyof TrackShow)[]).map((k) => [k, typeof obj(r.show)[k] === "boolean" ? (obj(r.show)[k] as boolean) : true])) as TrackShow,
     recs: withRecs(r.recs),
     text: Object.fromEntries(TEXTS[kind].map((x) => [x.key, str(t[x.key], x.def, x.max ?? (x.long ? 300 : 80))])),
     rules: { days: num(ru.days, 0, 365, d.rules.days) },
@@ -237,6 +252,8 @@ export function toStorefrontOrderPage(c: OrderPageDesign) {
     t: c.text,
     days: c.rules.days,
     prices: c.kind === "track" && c.prices,
+    // Parts of the Track page result that are switched off (missing = shown).
+    sh: c.kind === "track" ? Object.fromEntries(Object.entries(c.show).filter(([, on]) => !on).map(([k]) => [k, false])) : {},
     // The Track page asks the server for products only when a row is on (proxy.track.tsx).
     recs: c.kind === "track" && (c.recs.like.on || c.recs.complete.on)
       ? { count: c.recs.count, button: c.recs.button, added: c.recs.added, rows: (["like", "complete"] as const).filter((k) => c.recs[k].on).map((k) => ({ key: k, heading: c.recs[k].heading, source: c.recs[k].source, picks: c.recs[k].picks.map((p) => p.handle) })) }

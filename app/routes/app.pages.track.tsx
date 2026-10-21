@@ -15,7 +15,7 @@ import { getOrderPage, saveOrderPage } from "../lib/designs.server";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
-import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
+import { applyOrderPagePreset, ORDER_PAGE_PRESETS, ORDER_PAGE_SIZES, TEXTS, TRACK_SHOW_LABEL, withOrderPageDefaults, type OrderPageDesign, type OrderPageKind } from "../lib/order-pages";
 import { Checkbox, Button, ColorField, NumberField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { OrderPagePreview, type PreviewSells, type SampleOrder } from "../components/OrderPagePreview";
 import ui from "../components/PageEditor.module.css";
@@ -223,8 +223,14 @@ export default function OrderPageDesigner() {
               ) : null}
               {isTrack ? (
                 <Pane show={tab === "show"}>
-                  <s-section heading="Prices">
-                    <Switch label="Show what the order cost" details="Each item's price, then subtotal, shipping, discounts and total, in the currency the shopper paid in. Prices only: never the payment method or address." checked={cfg.prices} onValue={(v) => setCfg((c) => ({ ...c, prices: v }))} />
+                  <s-section heading="What shoppers see after the lookup">
+                    <s-stack gap="base">
+                      <s-text color="subdued">The order number, date and status always show. Choose the rest.</s-text>
+                      {(Object.keys(TRACK_SHOW_LABEL) as (keyof C["show"])[]).map((k) => (
+                        <Checkbox key={k} label={TRACK_SHOW_LABEL[k].label} details={TRACK_SHOW_LABEL[k].details} checked={cfg.show[k]} onValue={(v) => setCfg((c) => ({ ...c, show: { ...c.show, [k]: v } }))} />
+                      ))}
+                      <Checkbox label="What the order cost" details="Each item's price, then subtotal, shipping, discounts and total, in the currency the shopper paid in. Prices only: never the payment method or address." checked={cfg.prices} onValue={(v) => setCfg((c) => ({ ...c, prices: v }))} />
+                    </s-stack>
                   </s-section>
                   <s-section heading="Recommendations under the order">
                     <s-stack gap="base">
