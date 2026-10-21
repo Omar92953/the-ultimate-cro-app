@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -58,11 +58,13 @@ type C = OrderPageDesign;
 
 export default function OrderPageDesigner() {
   const data = useLoaderData<typeof loader>();
+  const openTab = useSearchParams()[0].get("open");
   const isTrack = data.kind === "track";
   const feature = isTrack ? "track" : "returns";
   const title = isTrack ? "Track order page" : "Returns page";
   const [cfg, setCfg] = useState<C>(data.config);
-  const [tab, setTab] = useState<DesignTab>("looks");
+  // Tracking & Returns links to "What the page sells" with ?open=show.
+  const [tab, setTab] = useState<DesignTab>(() => (isTrack && openTab === "show" ? "show" : "looks"));
   const [view, setView] = useState<"form" | "transit" | "delivered" | "delayed" | "items">("form");
   const step = view === "form" ? "form" : "result";
   const sample: SampleOrder = view === "delivered" || view === "delayed" ? view : "transit";
