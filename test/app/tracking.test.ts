@@ -16,8 +16,10 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type T = typeof import("../../app/lib/tracking/tracking.server");
 let T: T;
 before(async () => {
-  const sql = fs.readFileSync("prisma/migrations/20261019000000_tracking/migration.sql", "utf8");
-  for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  for (const m of ["20261019000000_tracking", "20261026000000_carrier_links"]) {
+    const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
+    for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  }
   T = await import("../../app/lib/tracking/tracking.server");
 });
 after(async () => {
@@ -111,19 +113,22 @@ test("keys are encrypted, never shown whole, and compared safely", () => {
 
 const shopifyData = buildTracking({ events: [{ status: "transit", message: "Shopify says", at: "2026-10-10T00:00:00Z" }] });
 
-test("live tracking is a Pro setting; the webhook gets a secret link", async () => {
-  await assert.rejects(T.saveSource("a.myshopify.com", "growth", "live"), /Pro plan/);
-  await assert.rejects(T.saveSource("a.myshopify.com", "growth", "own"), /Paste and test/);
+test("advanced tracking (live, own key, webhook) is a Pro setting; the webhook gets a secret link", async () => {
+  for (const s of ["live", "own", "webhook"]) await assert.rejects(T.saveSource("a.myshopify.com", "growth", s), /Pro plan/);
+  await assert.rejects(T.saveSource("a.myshopify.com", "pro", "own"), /Paste and test/);
+  await assert.rejects(T.saveKey("a.myshopify.com", "growth", "some-key-123456"), /Pro plan/);
+  process.env.TRACKING_PROVIDER_KEY = "our-account-key"; // live tracking can be chosen once our account is set up
   await T.saveSource("a.myshopify.com", "pro", "live");
+  delete process.env.TRACKING_PROVIDER_KEY;
   assert.equal((await T.getTrackingConfig("a.myshopify.com", "pro")).source, "live");
   // Downgraded: it shows as Shopify's data again.
   assert.equal((await T.getTrackingConfig("a.myshopify.com", "growth")).source, "shopify");
-  await T.saveSource("b.myshopify.com", "growth", "webhook");
-  const cfg = await T.getTrackingConfig("b.myshopify.com", "growth");
+  await T.saveSource("b.myshopify.com", "pro", "webhook");
+  const cfg = await T.getTrackingConfig("b.myshopify.com", "pro");
   assert.match(cfg.webhookUrl, /\/tracking\/hook\/b\.myshopify\.com\/[\w-]{20,}$/);
   const before = cfg.webhookUrl;
   await T.regenerateSecret("b.myshopify.com");
-  assert.notEqual((await T.getTrackingConfig("b.myshopify.com", "growth")).webhookUrl, before);
+  assert.notEqual((await T.getTrackingConfig("b.myshopify.com", "pro")).webhookUrl, before);
 });
 
 test("a pushed update shows on the Track page, from the right link only", async () => {
@@ -133,11 +138,13 @@ test("a pushed update shows on the Track page, from the right link only", async 
   assert.equal(await T.ingestPush("c.myshopify.com", secret, body), false);
   assert.equal(await T.ingestPush("b.myshopify.com", secret, { nothing: true }), false);
   assert.equal(await T.ingestPush("b.myshopify.com", secret, body), true);
-  const r = await T.resolveTracking("b.myshopify.com", "growth", { number: "RR1", carrier: "", country: "" }, shopifyData);
+  const r = await T.resolveTracking("b.myshopify.com", "pro", { number: "RR1", carrier: "", country: "" }, shopifyData);
   assert.equal(r.via, "webhook");
   assert.equal(r.tracking?.place, "Oslo, NO");
+  // Below Pro the same store shows Shopify's data (Basic tracking).
+  assert.equal((await T.resolveTracking("b.myshopify.com", "growth", { number: "RR1", carrier: "", country: "" }, shopifyData)).via, "shopify");
   // A number nothing pushed falls back to Shopify's data.
-  const other = await T.resolveTracking("b.myshopify.com", "growth", { number: "RR2", carrier: "", country: "" }, shopifyData);
+  const other = await T.resolveTracking("b.myshopify.com", "pro", { number: "RR2", carrier: "", country: "" }, shopifyData);
   assert.equal(other.via, "shopify");
   assert.equal(other.tracking?.events[0].message, "Shopify says");
 });
@@ -146,7 +153,9 @@ test("the default is Shopify's data, and live tracking without our key falls bac
   const r = await T.resolveTracking("new.myshopify.com", "pro", { number: "X1", carrier: "", country: "" }, shopifyData);
   assert.equal(r.via, "shopify");
   delete process.env.TRACKING_PROVIDER_KEY;
-  await T.saveSource("d.myshopify.com", "pro", "live");
+  // Without our account's key, live tracking can't be chosen, and a store that had it falls back.
+  await assert.rejects(T.saveSource("d.myshopify.com", "pro", "live"), /isn't switched on yet/);
+  await prisma.trackingConfig.create({ data: { shop: "d.myshopify.com", source: "live" } });
   const live = await T.resolveTracking("d.myshopify.com", "pro", { number: "X2", carrier: "", country: "" }, shopifyData);
   assert.equal(live.via, "shopify");
   assert.equal((await prisma.trackingUsage.count()), 0, "nothing counted when nothing was sent");
@@ -165,4 +174,29 @@ test("the order's prices are read in the currency the shopper paid in", async ()
   assert.equal(orderPrices({ subtotalPriceSet: set("78"), totalPriceSet: set("70.2"), totalRefundedSet: set("25.5") })?.refunded, 25.5);
   assert.equal(orderPrices({}), null);
   assert.equal(orderPrices({ subtotalPriceSet: set("10"), totalPriceSet: null }), null);
+});
+
+test("Basic tracking is Shopify's data on Growth; live, own key and webhook are Advanced tracking on Pro", async () => {
+  const { sourceAllowed } = await import("../../app/lib/tracking");
+  assert.equal(sourceAllowed("growth", "shopify"), true);
+  for (const s of ["live", "own", "webhook"] as const) {
+    assert.equal(sourceAllowed("growth", s), false, s);
+    assert.equal(sourceAllowed("pro", s), true, s);
+  }
+});
+
+test("carrier links: only https links with {number}, matched by carrier name, * for any other carrier", async () => {
+  const { carrierUrl, cleanCarrierLinks } = await import("../../app/lib/tracking");
+  const links = cleanCarrierLinks([
+    { name: "Bosta", url: "https://bosta.co/tracking-shipments?shipment-number={number}" },
+    { name: "bosta ", url: "https://other.example/{number}" }, // same carrier twice: the first wins
+    { name: "No number", url: "https://x.example/track" },
+    { name: "Plain http", url: "http://x.example/{number}" },
+    { name: "*", url: "https://parcelsapp.com/en/tracking/{number}" },
+  ]);
+  assert.equal(links.length, 2);
+  assert.equal(carrierUrl(links, "BOSTA", "AB 12"), "https://bosta.co/tracking-shipments?shipment-number=AB%2012");
+  assert.equal(carrierUrl(links, "Local courier", "99"), "https://parcelsapp.com/en/tracking/99");
+  assert.equal(carrierUrl(links, "Bosta", null), "");
+  assert.equal(carrierUrl([], "Bosta", "1"), "");
 });

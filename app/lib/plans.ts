@@ -100,7 +100,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Track order and Returns pages", "Your tracking page sells too", "Shoppable images"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Results for every offer", "Holdout test", "Track and Returns pages, basic tracking", "Your tracking page sells too", "Shoppable images"],
   },
   pro: {
     key: "pro",
@@ -112,7 +112,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
     badge: "No limits",
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Store credit and exchanges on returns", "Auto approve returns by rule", "Restock returned items", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Advanced tracking for any carrier", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
   },
 };
 

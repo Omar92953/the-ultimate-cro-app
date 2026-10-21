@@ -171,6 +171,8 @@ model TrackingConfig {
   keyLast4      String   @default("")
   provider      String   @default("")
   webhookSecret String   @default("")
+  /// Links for carriers Shopify has no link for: [{ name, url with {number} }] (lib/tracking.ts cleanCarrierLinks).
+  carrierLinks  String   @default("[]")
   updatedAt     DateTime @default(now())
 }
 

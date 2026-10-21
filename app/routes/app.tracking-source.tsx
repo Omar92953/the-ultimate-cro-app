@@ -1,6 +1,7 @@
 /**
- * Tracking & Returns → where tracking comes from (setup step 1): Shopify data, live tracking (Pro), the
- * merchant's own key, or a webhook link. The provider is never named; key steps are generic.
+ * Tracking & Returns → where tracking comes from. Basic tracking (Growth): Shopify's data. Advanced tracking (Pro):
+ * live tracking, the merchant's own tracking service key, or a webhook link from any carrier or 3PL. Plus links for
+ * carriers Shopify has no tracking link for (any plan with the Track page). Our live provider is never named.
  */
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
@@ -12,10 +13,10 @@ import { errorMessage } from "../lib/admin.server";
 import { planContext } from "../lib/rules.server";
 import { atLeast } from "../lib/plans";
 import { isRuleError } from "../lib/rules";
-import { LIVE_MONTHLY_LIMIT, type TrackSource } from "../lib/tracking";
-import { getTrackingConfig, regenerateSecret, removeKey, saveKey, saveSource } from "../lib/tracking/tracking.server";
-import { Button, PasswordField } from "../components/fields";
-import { Pill } from "../components/ui";
+import { LIVE_MONTHLY_LIMIT, MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSource } from "../lib/tracking";
+import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveKey, saveSource } from "../lib/tracking/tracking.server";
+import { Button, PasswordField, TextField } from "../components/fields";
+import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -33,6 +34,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     else if (intent === "key") await saveKey(session.shop, plan, String(form.get("key")));
     else if (intent === "remove-key") await removeKey(session.shop);
     else if (intent === "secret") await regenerateSecret(session.shop);
+    else if (intent === "links") await saveCarrierLinks(session.shop, JSON.parse(String(form.get("links") ?? "[]")));
     else throw new Error("Unknown action.");
     return { ok: true, error: null, intent, upgrade: false };
   } catch (e) {
@@ -41,10 +43,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 const CHOICES: { key: TrackSource; title: string; text: string }[] = [
-  { key: "shopify", title: "Shopify's tracking data", text: "Free, every country. Shows the status, tracking number, estimated delivery and any events Shopify has for the shipment." },
-  { key: "live", title: "Live tracking", text: `Included on Pro, up to ${LIVE_MONTHLY_LIMIT} shipments a month. Shows where the parcel is now and the full history, from most carriers worldwide. Over the limit, the page uses Shopify's data.` },
-  { key: "own", title: "Your own key", text: "Paste a key from your shipping company or tracking service. No limit from us." },
-  { key: "webhook", title: "Webhook link", text: "For carriers or services that send you updates. Give them the link and every update shows on the Track page." },
+  { key: "shopify", title: "Shopify's tracking data", text: "Free, every country, every carrier you add a tracking number for. Shows the status, the tracking number, the expected date and any updates Shopify gets from the carrier." },
+  { key: "live", title: "Live tracking", text: `Up to ${LIVE_MONTHLY_LIMIT} shipments a month, included. Where the parcel is now and its full history, from most carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
+  { key: "own", title: "Your own tracking service key", text: "Already pay for a tracking service? Paste its key and the page uses it, with no limit from us." },
+  { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page." },
 ];
 
 export default function TrackingSource() {
@@ -58,6 +60,12 @@ export default function TrackingSource() {
     setSeen(d.cfg.keyLast4);
     setKey("");
   }
+  const [links, setLinks] = useState<CarrierLink[]>(d.cfg.carrierLinks);
+  const [loadedLinks, setLoadedLinks] = useState(d.cfg.carrierLinks);
+  if (loadedLinks !== d.cfg.carrierLinks) {
+    setLoadedLinks(d.cfg.carrierLinks);
+    setLinks(d.cfg.carrierLinks);
+  }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if (!fetcher.data.ok) return void shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
@@ -68,76 +76,112 @@ export default function TrackingSource() {
   const keyFailed = !!fetcher.data && !fetcher.data.ok && !!key.trim();
   const choose = (source: TrackSource) => fetcher.submit({ intent: "source", source }, { method: "post" });
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => shopify.toast.show("Copied"), () => shopify.toast.show("Select the text and copy it", { isError: true }));
+  const linkProblems = links.map(carrierLinkProblem);
+  const linksDirty = JSON.stringify(links) !== JSON.stringify(d.cfg.carrierLinks);
+
+  const choice = (c: (typeof CHOICES)[number]) => {
+    const locked = c.key !== "shopify" && !d.cfg.advanced;
+    const unavailable = c.key === "live" && !d.cfg.liveReady;
+    const on = d.cfg.source === c.key;
+    return (
+      <s-section key={c.key} heading={c.title}>
+        <s-stack gap="small-200">
+          {on ? (
+            <s-stack direction="inline">
+              <Pill tone="ok">In use</Pill>
+            </s-stack>
+          ) : null}
+          <s-text color="subdued">{c.text}</s-text>
+          {c.key === "live" && d.cfg.advanced && d.cfg.liveReady ? <s-text color="subdued">{`${d.cfg.live.used} of ${d.cfg.live.limit} shipments used this month`}</s-text> : null}
+          {c.key === "live" && unavailable ? <s-text color="subdued">Live tracking isn&apos;t switched on yet. Use your own key or a webhook link for now.</s-text> : null}
+          {c.key === "own" && d.cfg.advanced ? (
+            <s-stack gap="small-200">
+              {d.cfg.hasKey ? (
+                <s-stack direction="inline" gap="small-200" alignItems="center">
+                  <Pill tone="ok">Connected</Pill>
+                  <s-text color="subdued">{`Key ending ${d.cfg.keyLast4}`}</s-text>
+                  <Button variant="tertiary" tone="critical" onClick={() => fetcher.submit({ intent: "remove-key" }, { method: "post" })}>
+                    Remove
+                  </Button>
+                </s-stack>
+              ) : null}
+              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. We test it before saving and keep it encrypted.</s-text>
+              <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
+              <s-stack direction="inline">
+                <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
+                  Test and save
+                </Button>
+              </s-stack>
+            </s-stack>
+          ) : null}
+          {c.key === "webhook" && d.cfg.advanced && d.cfg.webhookUrl ? (
+            <s-stack gap="small-200">
+              <s-text type="strong">{d.cfg.webhookUrl}</s-text>
+              <s-stack direction="inline" gap="small-200">
+                <Button onClick={() => copy(d.cfg.webhookUrl)}>Copy</Button>
+                <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "secret" }, { method: "post" })}>
+                  Make a new link
+                </Button>
+              </s-stack>
+              <s-text color="subdued">Send a POST with JSON: number, status (info, transit, out, delivered or problem), estimated, and events (status, city, province, country, message, at). A new link stops the old one.</s-text>
+            </s-stack>
+          ) : null}
+          <s-stack direction="inline">
+            {on ? null : locked ? (
+              <Button href="/app/plans" variant="primary">
+                See the Pro plan
+              </Button>
+            ) : unavailable ? null : (
+              <Button loading={busy && fetcher.formData?.get("source") === c.key} disabled={c.key === "own" && !d.cfg.hasKey} onClick={() => choose(c.key)}>
+                Use this
+              </Button>
+            )}
+          </s-stack>
+        </s-stack>
+      </s-section>
+    );
+  };
 
   return (
-    <s-page heading="Where should tracking come from?" inlineSize="base">
+    <s-page heading="Where tracking comes from" inlineSize="base">
       <s-link slot="breadcrumb-actions" href="/app/tracking-returns">
         Tracking &amp; Returns
       </s-link>
-      <Button slot="primary-action" href="/app/tracking-returns">
-        Back to Tracking &amp; Returns
+      <Button slot="primary-action" href="/app/tracking-shipments">
+        See your shipments
       </Button>
-      <s-stack gap="base">
-        <s-text color="subdued">The Track page always shows the carrier&apos;s tracking link too. You can change this any time.</s-text>
-        {CHOICES.map((c) => {
-          const locked = c.key === "live" && !d.pro;
-          const on = d.cfg.source === c.key;
-          return (
-            <s-section key={c.key} heading={c.title}>
-              <s-stack gap="small-200">
-                <s-stack direction="inline" gap="small-200" alignItems="center">
-                  {on ? <Pill tone="ok">In use</Pill> : locked ? <Pill>Pro plan</Pill> : null}
-                </s-stack>
-                <s-text color="subdued">{c.text}</s-text>
-                {c.key === "live" && d.pro ? <s-text color="subdued">{`${d.cfg.live.used} of ${d.cfg.live.limit} shipments used this month`}</s-text> : null}
-                {c.key === "own" ? (
-                  <s-stack gap="small-200">
-                    {d.cfg.hasKey ? (
-                      <s-stack direction="inline" gap="small-200" alignItems="center">
-                        <Pill tone="ok">Connected</Pill>
-                        <s-text color="subdued">{`Key ending ${d.cfg.keyLast4}`}</s-text>
-                        <Button variant="tertiary" tone="critical" onClick={() => fetcher.submit({ intent: "remove-key" }, { method: "post" })}>
-                          Remove
-                        </Button>
-                      </s-stack>
-                    ) : null}
-                    <s-text color="subdued">Sign in to your shipping company or tracking service, open Settings, then API or Developers, create a key and paste it here. We test it before saving.</s-text>
-                    <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
-                    <s-stack direction="inline">
-                      <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
-                        Test and save
-                      </Button>
-                    </s-stack>
-                  </s-stack>
-                ) : null}
-                {c.key === "webhook" && d.cfg.webhookUrl ? (
-                  <s-stack gap="small-200">
-                    <s-text type="strong">{d.cfg.webhookUrl}</s-text>
-                    <s-stack direction="inline" gap="small-200">
-                      <Button onClick={() => copy(d.cfg.webhookUrl)}>Copy</Button>
-                      <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "secret" }, { method: "post" })}>
-                        Make a new link
-                      </Button>
-                    </s-stack>
-                    <s-text color="subdued">Send a POST with JSON: number, status (info, transit, out, delivered or problem), estimated, and events (status, city, province, country, message, at). A new link stops the old one.</s-text>
-                  </s-stack>
-                ) : null}
-                <s-stack direction="inline">
-                  {on ? null : locked ? (
-                    <Button href="/app/plans" variant="primary">
-                      See plans
-                    </Button>
-                  ) : (
-                    <Button loading={busy && fetcher.formData?.get("source") === c.key} disabled={c.key === "own" && !d.cfg.hasKey} onClick={() => choose(c.key)}>
-                      Use this
-                    </Button>
-                  )}
-                </s-stack>
-              </s-stack>
-            </s-section>
-          );
-        })}
-      </s-stack>
+      <HomeRows>
+        <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
+        <HomeRow title="Basic tracking" subtitle="With the Track page, on Growth." bare>
+          {choice(CHOICES[0])}
+        </HomeRow>
+        <HomeRow title="Advanced tracking" subtitle={d.cfg.advanced ? "On your Pro plan. If one has nothing for a shipment, the next one is used, then Shopify's data." : "On the Pro plan: live updates for almost any carrier, in three ways."} action={d.cfg.advanced ? null : <Pill>Pro plan</Pill>} bare>
+          <s-stack gap="base">{CHOICES.slice(1).map(choice)}</s-stack>
+        </HomeRow>
+        <HomeRow title="Carriers without a tracking link" subtitle="For a local courier Shopify has no link for: the Track page builds the link from its name and your tracking number.">
+          <s-stack gap="base">
+            {links.map((l, i) => (
+              <s-grid key={i} gridTemplateColumns="minmax(0, 1fr) minmax(0, 2fr) auto" gap="small-200" alignItems="start">
+                <TextField label="Carrier name" details="As it shows on the fulfillment. * means any carrier without a link." value={l.name} maxLength={60} onValue={(v) => setLinks((x) => x.map((y, j) => (j === i ? { ...y, name: v } : y)))} />
+                <TextField label="Tracking page" placeholder="https://courier.com/track?n={number}" details="Put {number} where the tracking number goes." error={l.name || l.url ? (linkProblems[i] ?? undefined) : undefined} value={l.url} maxLength={300} onValue={(v) => setLinks((x) => x.map((y, j) => (j === i ? { ...y, url: v } : y)))} />
+                <Button variant="tertiary" tone="critical" icon="delete" accessibilityLabel={`Remove ${l.name || "this carrier"}`} onClick={() => setLinks((x) => x.filter((_, j) => j !== i))}>
+                  Remove
+                </Button>
+              </s-grid>
+            ))}
+            <s-stack direction="inline" gap="small-200">
+              {links.length < MAX_CARRIER_LINKS ? (
+                <Button icon="plus" onClick={() => setLinks((x) => [...x, { name: "", url: "" }])}>
+                  Add a carrier
+                </Button>
+              ) : null}
+              <Button variant="primary" disabled={!linksDirty || linkProblems.some(Boolean)} loading={busy && fetcher.formData?.get("intent") === "links"} onClick={() => fetcher.submit({ intent: "links", links: JSON.stringify(links) }, { method: "post" })}>
+                Save carriers
+              </Button>
+            </s-stack>
+          </s-stack>
+        </HomeRow>
+      </HomeRows>
     </s-page>
   );
 }

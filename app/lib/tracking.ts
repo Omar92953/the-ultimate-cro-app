@@ -4,6 +4,8 @@
  * Pure (no Shopify or database calls): the shopper's page, the app and the tests all use it.
  */
 
+import { atLeast, type PlanKey } from "./plans";
+
 export const TRACK_STATUSES = ["info", "transit", "out", "delivered", "problem"] as const;
 /** Info received, In transit, Out for delivery, Delivered, Problem. */
 export type TrackStatus = (typeof TRACK_STATUSES)[number];
@@ -21,7 +23,12 @@ export type Tracking = {
 
 export const TRACK_SOURCES = ["shopify", "live", "own", "webhook"] as const;
 export type TrackSource = (typeof TRACK_SOURCES)[number];
-export const SOURCE_PLAN = { shopify: "free", live: "pro", own: "growth", webhook: "growth" } as const;
+/**
+ * Basic tracking (Growth, with the Track page): Shopify's own data. Advanced tracking (Pro): live tracking from our
+ * account, the store's own tracking service key, or a webhook from any carrier or 3PL (Omar, 2026-10-21).
+ */
+export const SOURCE_PLAN = { shopify: "growth", live: "pro", own: "pro", webhook: "pro" } as const;
+export const sourceAllowed = (plan: PlanKey, s: TrackSource) => atLeast(plan, SOURCE_PLAN[s]);
 /** Live tracking included on Pro: shipments registered per month. */
 export const LIVE_MONTHLY_LIMIT = 500;
 /** Order of preference when a source has nothing (docs §9.4). */
@@ -97,4 +104,44 @@ export function isFresh(row: { checkedAt: Date | string; status: string; created
   const age = now - Date.parse(String(row.createdAt));
   if (age > 60 * 86_400_000) return true; // stopped after 60 days: nothing new is asked
   return now - Date.parse(String(row.checkedAt)) < everyHours * 3_600_000;
+}
+
+/* ---------------------------------------------------------- carrier links -- */
+/**
+ * A link for a carrier Shopify has no tracking link for (a local courier): its name as typed in the fulfillment,
+ * and its tracking page with {number} where the tracking number goes. "*" is used for any carrier without a link.
+ */
+export type CarrierLink = { name: string; url: string };
+export const MAX_CARRIER_LINKS = 20;
+const carrierKey = (v: string) => v.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "");
+
+export function cleanCarrierLinks(raw: unknown): CarrierLink[] {
+  const list = Array.isArray(raw) ? raw : [];
+  const out: CarrierLink[] = [];
+  for (const x of list) {
+    const o = x && typeof x === "object" ? (x as Record<string, unknown>) : {};
+    const name = clip(o.name, 60);
+    const url = clip(o.url, 300);
+    if (!name || !/^https:\/\/[^\s]+$/.test(url) || !url.includes("{number}")) continue;
+    if (out.some((l) => carrierKey(l.name) === carrierKey(name))) continue;
+    out.push({ name, url });
+    if (out.length >= MAX_CARRIER_LINKS) break;
+  }
+  return out;
+}
+
+/** Is this a link the merchant can save? Null when fine, else what to fix. */
+export function carrierLinkProblem(l: CarrierLink): string | null {
+  if (!l.name.trim()) return "Type the carrier's name as it shows in your fulfillments.";
+  if (!/^https:\/\/[^\s]+$/.test(l.url.trim())) return "The link must start with https://.";
+  if (!l.url.includes("{number}")) return "Put {number} where the tracking number goes.";
+  return null;
+}
+
+/** The tracking page for this shipment from the store's carrier links, or "" when none fits. */
+export function carrierUrl(links: CarrierLink[], company: string | null | undefined, number: string | null | undefined): string {
+  if (!number) return "";
+  const k = carrierKey(company ?? "");
+  const hit = (k && links.find((l) => carrierKey(l.name) === k)) || links.find((l) => l.name.trim() === "*");
+  return hit ? hit.url.split("{number}").join(encodeURIComponent(number)) : "";
 }
