@@ -27,10 +27,10 @@ export const PAGES = {
   home: {
     slug: "home",
     path: "/",
-    title: "CRO Toolbox: upsells, bundles, cart offers and more for Shopify",
+    title: "CRO Toolbox: increase AOV and LTV with upsells, bundles and more",
     description:
-      `${BRAND_LINE} Six kinds of bundles, upsells, discounts, cart offers, reviews, countdowns and checkout rules for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
-    ogTitle: "Sell more per order, with one app",
+      `${BRAND_LINE} Bundles, upsells, cart offers, a Track page that sells and returns that keep the sale, for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
+    ogTitle: "Increase AOV and LTV, with one app",
     ogKicker: "Shopify app",
   },
   pricing: {
