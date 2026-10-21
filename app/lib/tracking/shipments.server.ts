@@ -6,8 +6,8 @@
  */
 import db from "../../db.server";
 import { gql, type AdminClient } from "../admin.server";
-import type { PlanKey } from "../plans";
-import { carrierUrl, type CarrierLink, type TrackStatus, type Tracking } from "../tracking";
+import { atLeast, type PlanKey } from "../plans";
+import { carrierUrl, sourcesToTry, type CarrierLink, type TrackSource, type TrackStatus, type Tracking } from "../tracking";
 import { shopifyTracking } from "../orders-lookup.server";
 import { carrierLinksFor, resolveTracking } from "./tracking.server";
 
@@ -60,7 +60,9 @@ function rows(o: Node, links: CarrierLink[]) {
 }
 
 /** Shipments of orders placed in the last `days` days (newest first, up to 30 orders). */
-export async function recentShipments(admin: AdminClient, shop: string, days = 30): Promise<ShipmentRow[]> {
+/** `source` and `plan`: only answers the Track page would really use are shown (typed updates, then the chosen source and those after it). */
+export async function recentShipments(admin: AdminClient, shop: string, source: TrackSource, plan: PlanKey, days = 30): Promise<ShipmentRow[]> {
+  const used = new Set<string>([...(atLeast(plan, "pro") ? ["manual"] : []), ...sourcesToTry(source)]);
   const since = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
   const data = await gql(admin, `#graphql
     query CroRecentShipments($q: String!) { orders(first: 30, query: $q, sortKey: CREATED_AT, reverse: true) { nodes { id name createdAt ${FULFILLMENTS} } } }`, { q: `created_at:>=${since} (fulfillment_status:shipped OR fulfillment_status:partial)` });
@@ -70,7 +72,7 @@ export async function recentShipments(admin: AdminClient, shop: string, days = 3
   const cached = numbers.length ? await db.trackingCache.findMany({ where: { shop, number: { in: numbers } } }) : [];
   return list.map(({ tracking: _t, ...r }) => {
     void _t;
-    const c = cached.find((x) => x.number === r.number);
+    const c = cached.find((x) => x.number === r.number && used.has(x.via));
     let page: ShipmentRow["page"] = null;
     if (c) {
       try {
