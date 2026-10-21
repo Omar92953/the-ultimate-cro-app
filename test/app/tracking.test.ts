@@ -200,3 +200,60 @@ test("carrier links: only https links with {number}, matched by carrier name, * 
   assert.equal(carrierUrl(links, "Bosta", null), "");
   assert.equal(carrierUrl([], "Bosta", "1"), "");
 });
+
+test("AfterShip, TrackingMore and Ship24 answers and webhooks read into one shape", async () => {
+  const P = await import("../../app/lib/tracking/provider.server");
+  // AfterShip Tracking API 2026-07 tracking (also the webhook's msg)
+  const as = { tracking_number: "1Z999", tag: "InTransit", courier_estimated_delivery_date: { estimated_delivery_date: "2026-10-24" }, checkpoints: [
+    { checkpoint_time: "2026-10-20T08:00:00+00:00", city: "Louisville", state: "KY", country_region_name: "United States", message: "Departed facility", tag: "InTransit" },
+    { checkpoint_time: "2026-10-19T08:00:00+00:00", city: "", state: "", country_region: "USA", message: "Label created", tag: "InfoReceived" },
+  ] };
+  const a = P.fromAfterShip(as)!;
+  assert.equal(a.status, "transit");
+  assert.equal(a.place, "Louisville, KY, United States");
+  assert.equal(a.estimated, "2026-10-24T00:00:00.000Z");
+  assert.equal(P.fromAfterShip({ tag: "Pending", checkpoints: [] }), null);
+  const aPush = P.PROVIDERS.find((p) => p.id === "aftership")!.parsePush!({ event: "tracking_update", msg: { ...as, tag: "Delivered", shipment_delivery_date: "2026-10-23T10:00:00+00:00" } })!;
+  assert.equal(aPush.number, "1Z999");
+  assert.equal(aPush.tracking.status, "delivered");
+
+  // TrackingMore v4 tracking (also the webhook's data)
+  const tm = { tracking_number: "LX123", delivery_status: "pickup", scheduled_delivery_date: "2026-10-22", origin_info: { trackinfo: [
+    { checkpoint_date: "2026-10-21T09:00:00+08:00", tracking_detail: "Out for delivery", location: "Shenzhen", checkpoint_delivery_status: "pickup" },
+  ] }, destination_info: { trackinfo: [] } };
+  const t = P.fromTrackingMore(tm)!;
+  assert.equal(t.status, "out");
+  assert.equal(t.place, "Shenzhen");
+  assert.equal(P.fromTrackingMore({ delivery_status: "notfound" }), null);
+  assert.equal(P.PROVIDERS.find((p) => p.id === "trackingmore")!.parsePush!({ meta: { code: 200 }, data: tm })!.number, "LX123");
+
+  // Ship24 tracking result (trackers/track and webhooks)
+  const s24 = { tracker: { trackingNumber: "S24-1" }, shipment: { statusMilestone: "failed_attempt", delivery: { estimatedDeliveryDate: "2026-10-25T00:00:00Z" } }, events: [
+    { status: "Delivery attempted, nobody home", occurrenceDatetime: "2026-10-21T15:00:00Z", location: "Dubai", statusMilestone: "failed_attempt" },
+  ] };
+  const s = P.fromShip24(s24)!;
+  assert.equal(s.status, "problem");
+  assert.equal(s.events[0].message, "Delivery attempted, nobody home");
+  assert.equal(P.PROVIDERS.find((p) => p.id === "ship24")!.parsePush!({ trackings: [s24] })!.number, "S24-1");
+
+  // Each service's webhook is only read by its own parser.
+  const parsers = P.PROVIDERS.filter((p) => p.parsePush);
+  for (const [body, id] of [[{ msg: as }, "aftership"], [{ data: tm }, "trackingmore"], [{ trackings: [s24] }, "ship24"]] as const) {
+    assert.deepEqual(parsers.filter((p) => p.parsePush!(body)).map((p) => p.id), [id]);
+  }
+});
+
+test("typed updates (Advanced tracking) show first and can be removed", async () => {
+  await assert.rejects(T.addManualUpdate("m.myshopify.com", "growth", "LOCAL1", "Bosta", { status: "transit", place: "Cairo", message: "" }), /Pro plan/);
+  await T.addManualUpdate("m.myshopify.com", "pro", "LOCAL1", "Bosta", { status: "transit", place: "Cairo, Egypt", message: "At the hub" });
+  await T.addManualUpdate("m.myshopify.com", "pro", "LOCAL1", "Bosta", { status: "out", place: "Giza", message: "With the driver" });
+  const r = await T.resolveTracking("m.myshopify.com", "pro", { number: "LOCAL1", carrier: "Bosta", country: "" }, shopifyData);
+  assert.equal(r.via, "manual");
+  assert.equal(r.tracking?.status, "out");
+  assert.equal(r.tracking?.events.length, 2);
+  assert.equal(r.tracking?.place, "Giza");
+  // Below Pro the store's typed updates are not shown.
+  assert.equal((await T.resolveTracking("m.myshopify.com", "growth", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
+  await T.clearManualUpdates("m.myshopify.com", "LOCAL1");
+  assert.equal((await T.resolveTracking("m.myshopify.com", "pro", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
+});
