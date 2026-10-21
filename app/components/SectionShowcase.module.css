@@ -287,7 +287,7 @@
 .cdBarDark .btnLight { color: #111; }
 
 /* ---------- boosters ---------- */
-.ghostPage { display: grid; gap: 1.4em; padding: 1.5em; background: #fff; border-radius: 0.8em; }
+.ghostPage { display: grid; gap: 1.4em; padding: 1.5em; background: #fff; border-radius: 0.8em; box-shadow: 0 0 0 0.1em #e6e6e6, 0 0.3em 1.2em rgba(0, 0, 0, 0.06); }
 .stickyBar { display: flex; align-items: center; gap: 1em; margin-top: 1.4em; padding: 1em 1.2em; background: #fff; border-radius: 0.8em; box-shadow: 0 -0.2em 1.6em rgba(0, 0, 0, 0.14); }
 .stickyBarM { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; border-radius: 0.8em 0.8em 0 0; }
 .stickyImg { flex: none; width: 3.4em; height: 3.4em; object-fit: cover; border-radius: 0.5em; }
