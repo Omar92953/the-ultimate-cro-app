@@ -342,6 +342,11 @@ function TrackingTab({ d, pageStatus, pageButton, template, steps }: TabProps) {
               </s-stack>
               <Shows
                 items={[
+                  ["Items", d.design.track.show.items],
+                  ["Expected date", d.design.track.show.estimate],
+                  ["Where the parcel is", d.design.track.show.place],
+                  ["Tracking history", d.design.track.show.timeline],
+                  ["Carrier link", d.design.track.show.link],
                   ["Prices", d.design.track.prices],
                   ["Recommendations", d.design.track.recs.like.on || d.design.track.recs.complete.on],
                   ["Next order discount", d.sell.nextOrder.on],

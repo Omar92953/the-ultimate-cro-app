@@ -76,12 +76,41 @@ export function OrderPagePreview({ config: c, step, sample = "transit", sells = 
                 <p className="ucs-op__t">
                   {t.shipped}: <b>EG123456789</b> · Aramex
                 </p>
-                <p className="ucs-op__t">{t.estimated}: {sample === "delayed" ? "Oct 6, 2026" : "Oct 8, 2026"}</p>
-                <a className="ucs-btn ucs-btn--outline" href="#preview" onClick={(e) => e.preventDefault()}>
-                  {t.trackLink}
-                </a>
+                {sample === "delivered" ? (
+                  <p className="ucs-op__t">{t.delivered}: Oct 7, 2026</p>
+                ) : c.show.estimate ? (
+                  <p className="ucs-op__t">{t.estimated}: {sample === "delayed" ? "Oct 6, 2026" : "Oct 8, 2026"}</p>
+                ) : null}
+                {sample !== "delivered" && c.show.place ? (
+                  <p className="ucs-op__t">
+                    {t.where}: <b>Cairo, Egypt</b>
+                  </p>
+                ) : null}
+                {c.show.timeline ? (
+                  <>
+                    <p className="ucs-op__t">
+                      <b>{t.history}</b>
+                    </p>
+                    <ol className="ucs-op__tl">
+                      {(sample === "delivered" ? [["statusDelivered", "Oct 7, 2:10 PM", "Delivered · Giza, Egypt"]] : []).concat([["statusTransit", "Oct 5, 9:40 AM", "Arrived at the hub · Cairo, Egypt"], ["statusInfo", "Oct 4, 6:15 PM", "Label created"]]).map(([s, at, text]) => (
+                        <li key={at} className={`ucs-op__ev ucs-op__ev--${s === "statusDelivered" ? "delivered" : s === "statusTransit" ? "transit" : "info"}`}>
+                          <span className="ucs-op__evh">
+                            {t[s]} <small>{at}</small>
+                          </span>
+                          <span className="ucs-op__evt">{text}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </>
+                ) : null}
+                {c.show.link ? (
+                  <a className="ucs-btn ucs-btn--outline" href="#preview" onClick={(e) => e.preventDefault()}>
+                    {t.trackLink}
+                  </a>
+                ) : null}
               </div>
               {sells.offers.below ? <SampleOffer o={sells.offers.below} /> : null}
+              {c.show.items ? (
               <ul className="ucs-op__items">
                 {ITEMS.map((i) => (
                   <li key={i.title} className="ucs-op__item">
@@ -94,6 +123,7 @@ export function OrderPagePreview({ config: c, step, sample = "transit", sells = 
                   </li>
                 ))}
               </ul>
+              ) : null}
               {c.prices ? (
                 <div className="ucs-op__prices">
                   <div className="ucs-op__pr"><span>{t.priceSubtotal}</span><span>$130.00</span></div>

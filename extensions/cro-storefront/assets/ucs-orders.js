@@ -141,6 +141,7 @@
       priced = !!(o.prices && (!cfg || cfg.prices !== false)); // on by default, like the editor's switch
       cur0 = priced ? o.prices.currency : '';
       var ships = o.shipments.filter(function (s) { return s.number || s.url || s.delivered; });
+      var sh = (cfg && cfg.sh) || {}; // parts the merchant switched off (Track page → What it shows)
       var STEP = { info: t.statusInfo, transit: t.statusTransit, out: t.statusOut, delivered: t.statusDelivered, problem: t.statusProblem };
       var when = function (s) { try { return new Date(s).toLocaleString(locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return s; } };
       var place = function (e) { return [e.city, e.province, e.country].filter(Boolean).join(', '); };
@@ -158,17 +159,17 @@
         var label = k ? STEP[k.status] : (s.delivered ? t.delivered : nice(s.status));
         return '<div class="ucs-op__ship"><span class="ucs-op__pill">' + esc(delivered ? t.delivered : label) + '</span>' +
           (s.number ? '<p class="ucs-op__t">' + esc(t.shipped) + ': <b>' + esc(s.number) + '</b>' + (s.company ? ' · ' + esc(s.company) : '') + '</p>' : '') +
-          (delivered ? '<p class="ucs-op__t">' + esc(t.delivered) + ': ' + esc(day(delivered)) + '</p>' : estimated ? '<p class="ucs-op__t">' + esc(t.estimated) + ': ' + esc(day(estimated)) + '</p>' : '') +
-          (k && k.place && !delivered ? '<p class="ucs-op__t">' + esc(t.where) + ': <b>' + esc(k.place) + '</b></p>' : '') +
-          timeline(k) +
-          (s.url && !delivered && !(k && k.events && k.events.length) && /^(shipped|fulfilled)$/i.test(nice(s.status)) ? '<p class="ucs-op__t">' + esc(t.carrierOnly) + '</p>' : '') +
-          (s.url ? '<a class="ucs-btn ucs-btn--outline" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(t.trackLink) + '</a>' : '') + '</div>';
+          (delivered ? '<p class="ucs-op__t">' + esc(t.delivered) + ': ' + esc(day(delivered)) + '</p>' : estimated && sh.estimate !== false ? '<p class="ucs-op__t">' + esc(t.estimated) + ': ' + esc(day(estimated)) + '</p>' : '') +
+          (k && k.place && !delivered && sh.place !== false ? '<p class="ucs-op__t">' + esc(t.where) + ': <b>' + esc(k.place) + '</b></p>' : '') +
+          (sh.timeline !== false ? timeline(k) : '') +
+          (s.url && sh.link !== false ? (!delivered && !(k && k.events && k.events.length) && /^(shipped|fulfilled)$/i.test(nice(s.status)) ? '<p class="ucs-op__t">' + esc(t.carrierOnly) + '</p>' : '') +
+            '<a class="ucs-btn ucs-btn--outline" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(t.trackLink) + '</a>' : '') + '</div>';
       }).join('') : '<p class="ucs-op__t">' + esc(t.noTracking) + '</p>';
       host.innerHTML = '<div class="ucs-wrap ucs-op__wrap"><div class="ucs-op__card">' +
         '<h2 class="ucs-op__h">' + esc(o.name) + '</h2>' +
         '<p class="ucs-op__t">' + esc(t.placed) + ' ' + esc(day(o.createdAt)) + '</p>' +
         '<p class="ucs-op__pills"><span class="ucs-op__pill">' + esc(o.cancelled ? nice('CANCELED') : nice(o.fulfillment)) + '</span><span class="ucs-op__pill ucs-op__pill--soft">' + esc(nice(o.payment)) + '</span></p>' +
-        delayBox(o.delay) + afterBox(o.afterDelivery) + offerBox(o.offers && o.offers.above, 'above') + tracking + offerBox(o.offers && o.offers.below, 'below') + items(o.items, false) + (priced ? priceRows(o.prices) : '') + nextBox(o.nextOrder) + buyAgainBox(o.buyAgain) + recRows(o.recs) +
+        delayBox(o.delay) + afterBox(o.afterDelivery) + offerBox(o.offers && o.offers.above, 'above') + tracking + offerBox(o.offers && o.offers.below, 'below') + (sh.items !== false ? items(o.items, false) : '') + (priced ? priceRows(o.prices) : '') + nextBox(o.nextOrder) + buyAgainBox(o.buyAgain) + recRows(o.recs) +
         '<button type="button" class="ucs-btn ucs-btn--outline ucs-op__again">' + esc(t.again) + '</button></div></div>';
       host.querySelector('.ucs-op__again').addEventListener('click', lookupForm);
       host.querySelectorAll('.ucs-op__offer').forEach(function (box) {
