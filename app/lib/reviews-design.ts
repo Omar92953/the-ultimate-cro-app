@@ -13,7 +13,8 @@ export type ReviewsDesign = {
   text: { heading: string; sub: string; headingSize: number; basedOn: string; readMore: string; readLess: string; verified: string; reviewFor: string };
   summary: { show: boolean; average: boolean; stars: boolean; count: boolean };
   which: { filter: "all" | "featured" | "product"; fallback: boolean; limit: number };
-  layout: { mode: "carousel" | "grid" | "masonry" | "list" | "badge"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "sides" | "dots" | "both" | "swipe"; arrowSize: number };
+  /** `effect` (carousel only): "row" side by side, or "coverflow" with one large card in the centre and the others behind it (like Image carousel 2). */
+  layout: { mode: "carousel" | "grid" | "masonry" | "list" | "badge"; effect: "row" | "coverflow"; perDesktop: number; perMobile: 1 | 2; cardWidth: number; autoplay: number; nav: "arrows" | "sides" | "dots" | "both" | "swipe"; arrowSize: number };
   card: {
     style: "classic" | "chat" | "minimal" | "snippet";
     text: boolean;
@@ -66,7 +67,7 @@ export const DEFAULT_REVIEWS: ReviewsDesign = {
   },
   summary: { show: true, average: true, stars: true, count: true },
   which: { filter: "all", fallback: true, limit: 12 },
-  layout: { mode: "carousel", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
+  layout: { mode: "carousel", effect: "row", perDesktop: 3, perMobile: 1, cardWidth: 0, autoplay: 0, nav: "arrows", arrowSize: 40 },
   card: { style: "classic", text: true, media: true, stars: true, source: true, verified: false, location: true, date: true, product: true, clamp: 5, videoAutoplay: true, photoFit: "whole", photoFocus: "center", photoShape: "tallest", align: "left", textFirst: false },
   fill: { kind: "color", color: "#111111", pattern: "chat", image: null, imageUrl: null },
   list: { perPage: 5, sort: true, bars: true, more: "Show more reviews", sortBy: "Sort by", newest: "Newest", highest: "Highest rating", lowest: "Lowest rating", photos: "With photos" },
@@ -85,6 +86,18 @@ export const REVIEW_PRESETS: { key: string; title: string; patch: Patch }[] = [
   { key: "chat", title: "Chat screenshots", patch: { card: { style: "chat" }, look: { star: "#f5a623", radius: 18, defaultCard: true, transparentBg: true }, fill: { kind: "pattern", pattern: "chat", color: "#e9e2d7" } } },
   { key: "minimal", title: "Minimal", patch: { card: { style: "minimal" }, look: { star: "#111111", radius: 6, defaultCard: true, transparentBg: true }, fill: { kind: "color", color: "#f4f4f4" } } },
   { key: "dark", title: "Dark", patch: { card: { style: "classic" }, look: { star: "#ffd166", cardBg: "#1c1c1e", cardText: "#ffffff", bg: "#111111", radius: 16, defaultCard: false, transparentBg: false }, fill: { kind: "color", color: "#2a2a2c" } } },
+  {
+    // One large review in the centre, the others smaller behind it (Image carousel 2's look). Photos are cropped to
+    // fill and kept centred; a review set to show its whole photo sits on the colour fill.
+    key: "coverflow",
+    title: "Coverflow",
+    patch: {
+      layout: { mode: "carousel", effect: "coverflow", nav: "both", autoplay: 0, cardWidth: 0 },
+      card: { style: "classic", media: true, photoFit: "crop", photoFocus: "center", photoShape: "portrait", align: "center", clamp: 4 },
+      look: { star: "#f5a623", cardBg: "#ffffff", radius: 18, defaultCard: false, transparentBg: true },
+      fill: { kind: "color", color: "#f1ece4" },
+    },
+  },
   { key: "warm", title: "Warm", patch: { card: { style: "classic" }, look: { star: "#c2410c", cardBg: "#fffaf3", cardText: "#3b2a1a", bg: "#f6efe6", radius: 20, defaultCard: false, transparentBg: false }, fill: { kind: "pattern", pattern: "dots", color: "#eadfce" } } },
   {
     key: "saying",
@@ -163,7 +176,9 @@ export const PRODUCT_REVIEW_PRESETS: { key: string; title: string; patch: Patch 
 export function applyReviewPreset(c: ReviewsDesign, key: string): ReviewsDesign {
   const p = [...REVIEW_PRESETS, ...PRODUCT_REVIEW_PRESETS].find((x) => x.key === key);
   if (!p) return c;
-  return { ...c, card: { ...c.card, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text }, list: { ...c.list, ...p.patch.list }, write: { ...c.write, ...p.patch.write }, summary: { ...c.summary, ...p.patch.summary }, which: { ...c.which, ...p.patch.which }, space: { ...c.space, ...p.patch.space } };
+  // Leaving Coverflow puts back the card settings it changed, so the next template looks like its picture.
+  const undo = c.layout.effect === "coverflow" && p.patch.layout?.effect !== "coverflow" ? { photoFit: DEFAULT_REVIEWS.card.photoFit, photoShape: DEFAULT_REVIEWS.card.photoShape, align: DEFAULT_REVIEWS.card.align, clamp: DEFAULT_REVIEWS.card.clamp } : {};
+  return { ...c, card: { ...c.card, ...undo, ...p.patch.card }, look: { ...c.look, ...p.patch.look }, layout: { ...c.layout, effect: "row", ...p.patch.layout }, fill: { ...c.fill, ...p.patch.fill }, product: { ...c.product, ...p.patch.product }, text: { ...c.text, ...p.patch.text }, list: { ...c.list, ...p.patch.list }, write: { ...c.write, ...p.patch.write }, summary: { ...c.summary, ...p.patch.summary }, which: { ...c.which, ...p.patch.which }, space: { ...c.space, ...p.patch.space } };
 }
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
@@ -200,6 +215,7 @@ export function withReviewsDefaults(raw: unknown, place: ReviewsPlace = "home"):
     which: { filter: pick(w.filter, ["all", "featured", "product"] as const, d.which.filter), fallback: bool(w.fallback, d.which.fallback), limit: num(w.limit, 1, 60, d.which.limit) },
     layout: {
       mode: pick(l.mode, ["carousel", "grid", "masonry", "list", "badge"] as const, d.layout.mode),
+      effect: pick(l.effect, ["row", "coverflow"] as const, d.layout.effect),
       perDesktop: num(l.perDesktop, 1, 6, d.layout.perDesktop),
       perMobile: Number(l.perMobile) === 2 ? 2 : 1,
       // 0 = cards fill the row
@@ -329,6 +345,7 @@ export function reviewsClass(c: ReviewsDesign) {
     `ucs-rv--nav-${c.layout.nav}`,
     c.card.clamp === 0 ? "ucs-rv--full" : "",
     c.layout.cardWidth ? "ucs-rv--cw" : "",
+    c.layout.mode === "carousel" && c.layout.effect === "coverflow" ? "ucs-rv--flow" : "",
     c.icon.position !== "auto" ? `ucs-rv--ic-${c.icon.position}` : "",
     c.card.photoShape !== "tallest" ? `ucs-rv--shape-${c.card.photoShape}` : "",
     c.card.align === "center" ? "ucs-rv--center" : "",

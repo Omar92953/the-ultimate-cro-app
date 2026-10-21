@@ -84,6 +84,7 @@ import {
   HowItWorksShowcase,
   EmailPopupShowcase,
   CoverflowShowcase,
+  ReviewsCoverflowShowcase,
 } from "../components/SectionShowcase";
 import showcase from "../components/SectionShowcase.module.css";
 import { GroupTitle, Segmented } from "../components/ui";
@@ -203,7 +204,7 @@ type SectionCardKey = SectionKind | "product_reviews" | "stock" | "delivery" | "
 /** Sections and boosters, shown in the same card format as the features above. */
 /** `app`: designed in the app (the theme editor only switches it on). */
 const SECTION_CARDS: { key: SectionCardKey; title: string; description: string; list: SectionKind | null; embed: boolean; app?: string; cat?: "offers" | "boosters"; Previews: (() => JSX.Element)[] }[] = [
-  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
+  { key: "reviews", title: "Customer reviews", description: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", list: "reviews", embed: false, Previews: [ReviewsShowcase, ReviewsCoverflowShowcase, ReviewsChatShowcase, ReviewsPhotosShowcase] },
   { key: "product_reviews", title: "Product page reviews", description: "A review card or the star rating next to the price and Add to cart.", list: null, embed: false, app: "/app/designs/product-reviews", Previews: [ProductReviewsShowcase] },
   { key: "quiz", title: "Product quiz", description: "A few questions that lead shoppers to the right products, with add to cart.", list: null, embed: false, app: "/app/designs/quiz", Previews: [QuizShowcase] },
   { key: "faq", title: "FAQ", description: "Questions and answers with search and group buttons.", list: "faq", embed: false, Previews: [FaqShowcase, FaqCardsShowcase] },

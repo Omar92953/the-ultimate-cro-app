@@ -2,8 +2,9 @@
  * Live preview of the reviews section: the same markup and stylesheet as ucs-reviews.js, built from
  * the merchant's real reviews (up to the design's limit). Carousels scroll with their arrows.
  */
-import { useRef, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { reviewsClass, reviewsVars, type ReviewsDesign } from "../lib/reviews-design";
+import { flowStyle } from "../lib/image-carousel";
 
 export type PreviewReview = {
   name: string;
@@ -39,11 +40,22 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
   const sm = c.summary;
   const showSummary = sm.show && rated.length > 0 && (sm.average || sm.stars || sm.count);
   const vars = reviewsVars(c) as CSSProperties;
+  const flow = c.layout.mode === "carousel" && c.layout.effect === "coverflow";
   const go = (dir: number) => {
     const t = track.current;
     const first = t?.querySelector(".ucs-rv__card") as HTMLElement | null;
-    if (t && first) t.scrollBy({ left: dir * (first.offsetWidth + 16), behavior: "smooth" });
+    if (t && first) t.scrollBy({ left: dir * (first.offsetWidth + (flow ? 0 : 16)), behavior: "smooth" });
   };
+  // Coverflow: draw each card by its distance from the centre, like the storefront script.
+  const drawFlow = () => {
+    const t = track.current;
+    if (!t) return;
+    const cards = Array.from(t.querySelectorAll<HTMLElement>(".ucs-rv__card"));
+    const mid = t.scrollLeft + t.clientWidth / 2;
+    const w = cards[0]?.offsetWidth || 1;
+    for (const el of cards) Object.assign(el.style, flow ? flowStyle((el.offsetLeft + el.offsetWidth / 2 - mid) / w) : { transform: "", zIndex: "", opacity: "" });
+  };
+  useEffect(drawFlow);
 
   const summaryEl = showSummary ? (
     <div className="ucs-rv__summary">
@@ -149,7 +161,8 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
           </div>
         ) : null}
         <div className="ucs-rv__viewport">
-          <div className="ucs-rv__track" ref={track}>
+          <div className="ucs-rv__track" ref={track} onScroll={flow ? drawFlow : undefined} style={flow ? ({ "--ucs-flow-n": String(shown.length) } as CSSProperties) : undefined}>
+            {flow ? <div className="ucs-rv__pad" aria-hidden="true" /> : null}
             {shown.map((r, i) => {
               const fromProd = !r.media && !!r.product?.image;
               const media = r.media ?? (fromProd ? { kind: "image" as const, url: r.product!.image! } : null);
@@ -228,6 +241,7 @@ export function ReviewsPreview({ config: c, reviews }: { config: ReviewsDesign; 
                 </article>
               );
             })}
+            {flow ? <div className="ucs-rv__pad" aria-hidden="true" /> : null}
           </div>
           {sides ? navEl : null}
         </div>

@@ -516,6 +516,14 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 .ucs-rv__badge .ucs-rv__stars { font-size: var(--ucs-rv-sst, 16px); }
 .ucs-rv__badge .ucs-rv__avg { font-size: var(--ucs-rv-avg, 1em); font-weight: 700; }
 .ucs-rv__badge .ucs-rv__count { font-size: var(--ucs-rv-cnt, 0.9em); text-decoration: underline; text-underline-offset: 3px; }
+/* Coverflow reviews (Reviews → Coverflow): one large card in the centre, the others smaller behind it, drawn by
+   ucs-reviews.js from each card's distance to the centre. Spacer columns let the first and last cards centre too. */
+.ucs-rv.ucs-rv--flow .ucs-rv__track { --ucs-flow-w: var(--ucs-rv-cw, min(34%, 380px)); position: relative; grid-template-columns: calc(50% - var(--ucs-flow-w) / 2) repeat(var(--ucs-flow-n, 6), var(--ucs-flow-w)) calc(50% - var(--ucs-flow-w) / 2); grid-auto-columns: var(--ucs-flow-w); column-gap: 0; align-items: center; justify-content: start; padding: 26px 0 30px; }
+.ucs-rv--flow .ucs-rv__card { scroll-snap-align: center; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16); transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+.ucs-rv__pad { pointer-events: none; }
+.ucs-rv--flow .ucs-rv__nav, .ucs-rv--flow .ucs-rv__arrow { position: relative; z-index: 20; }
+@media (max-width: 749px) { .ucs-rv.ucs-rv--flow .ucs-rv__track { --ucs-flow-w: 72%; } }
+@media (prefers-reduced-motion: reduce) { .ucs-rv--flow .ucs-rv__card { transition: none; } }
 /* ---- Back in stock & pre-order (product page) ------------------------------------------ */
 .ucs-st { margin: 12px 0; }
 .ucs-st--box .ucs-st__form { padding: 16px; border-radius: var(--ucs-st-r, 12px); background: var(--ucs-st-bg, #f6f6f6); }
