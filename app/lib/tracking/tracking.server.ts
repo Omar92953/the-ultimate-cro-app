@@ -8,7 +8,7 @@ import db from "../../db.server";
 import type { PlanKey } from "../plans";
 import { atLeast } from "../plans";
 import { RuleError } from "../rules";
-import { LIVE_MONTHLY_LIMIT, TRACK_SOURCES, buildTracking, isFresh, sourcesToTry, type TrackSource, type Tracking } from "../tracking";
+import { LIVE_MONTHLY_LIMIT, TRACK_SOURCES, buildTracking, cleanCarrierLinks, isFresh, sourceAllowed, sourcesToTry, type CarrierLink, type TrackSource, type Tracking } from "../tracking";
 import { detectProvider, ownAccount, providerById, PROVIDERS, type Provider, type Shipment } from "./provider.server";
 import { decrypt, encrypt, last4, newSecret, sameSecret } from "./secret.server";
 
@@ -22,7 +22,13 @@ export async function getTrackingConfig(shop: string, plan: PlanKey) {
   const source = (TRACK_SOURCES as readonly string[]).includes(c?.source ?? "") ? (c!.source as TrackSource) : "shopify";
   return {
     chosen: !!c,
-    source: source === "live" && !atLeast(plan, "pro") ? ("shopify" as TrackSource) : source,
+    // Advanced sources on a plan below Pro fall back to Basic tracking (Shopify's data).
+    source: sourceAllowed(plan, source) ? source : ("shopify" as TrackSource),
+    /** Advanced tracking (live, own key, webhook) is on this plan. */
+    advanced: atLeast(plan, "pro"),
+    /** Our live tracking account is set up (TRACKING_PROVIDER_KEY); without it live tracking can't be chosen. */
+    liveReady: !!ownAccount().key,
+    carrierLinks: readLinks(c?.carrierLinks),
     keyLast4: c?.keyCipher ? c.keyLast4 : "",
     hasKey: !!c?.keyCipher,
     webhookUrl: c?.webhookSecret ? `${appBase()}/tracking/hook/${encodeURIComponent(shop)}/${c.webhookSecret}` : "",
@@ -33,7 +39,8 @@ export async function getTrackingConfig(shop: string, plan: PlanKey) {
 export async function saveSource(shop: string, plan: PlanKey, source: string) {
   if (!(TRACK_SOURCES as readonly string[]).includes(source)) throw new RuleError("Choose where tracking should come from.", "input", false);
   const s = source as TrackSource;
-  if (s === "live" && !atLeast(plan, "pro")) throw new RuleError("Live tracking is included on the Pro plan.", "plan");
+  if (!sourceAllowed(plan, s)) throw new RuleError("Advanced tracking (live tracking, your own key or a webhook link) is on the Pro plan.", "plan");
+  if (s === "live" && !ownAccount().key) throw new RuleError("Live tracking isn't switched on yet. Use your own key or a webhook link for now.", "input", false);
   const cur = await db.trackingConfig.findUnique({ where: { shop } });
   if (s === "own" && !cur?.keyCipher) throw new RuleError("Paste and test your key first.", "input", false);
   const webhookSecret = s === "webhook" && !cur?.webhookSecret ? newSecret() : (cur?.webhookSecret ?? "");
@@ -42,12 +49,32 @@ export async function saveSource(shop: string, plan: PlanKey, source: string) {
 
 /** Tests the key against every supported service; saves it encrypted only when one accepts it. */
 export async function saveKey(shop: string, plan: PlanKey, raw: string) {
+  if (!atLeast(plan, "pro")) throw new RuleError("Your own tracking key is part of Advanced tracking, on the Pro plan.", "plan");
   const key = raw.trim();
   if (key.length < 8 || key.length > 200 || /\s/.test(key)) throw new RuleError("That does not look like a key. Paste it exactly as the service shows it.", "input", false);
   const found = await detectProvider(key);
   if (!found.ok) throw new RuleError(found.error, "input", false);
   await db.trackingConfig.upsert({ where: { shop }, create: { shop, source: "own", keyCipher: encrypt(key), keyLast4: last4(key), provider: found.provider.id }, update: { keyCipher: encrypt(key), keyLast4: last4(key), provider: found.provider.id, source: "own", updatedAt: new Date() } });
-  void plan;
+}
+
+/* ----------------------------------------------------------- carrier links -- */
+const readLinks = (raw: string | null | undefined): CarrierLink[] => {
+  try {
+    return cleanCarrierLinks(JSON.parse(raw ?? "[]"));
+  } catch {
+    return [];
+  }
+};
+
+/** Links for carriers Shopify has no tracking link for (Basic and Advanced tracking). */
+export async function saveCarrierLinks(shop: string, raw: unknown) {
+  const links = cleanCarrierLinks(raw);
+  await db.trackingConfig.upsert({ where: { shop }, create: { shop, carrierLinks: JSON.stringify(links) }, update: { carrierLinks: JSON.stringify(links), updatedAt: new Date() } });
+  return links;
+}
+
+export async function carrierLinksFor(shop: string): Promise<CarrierLink[]> {
+  return readLinks((await db.trackingConfig.findUnique({ where: { shop }, select: { carrierLinks: true } }))?.carrierLinks);
 }
 
 export async function removeKey(shop: string) {
@@ -138,7 +165,8 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
 export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, shopify: Tracking | null): Promise<{ tracking: Tracking | null; via: TrackSource }> {
   if (!s.number) return { tracking: shopify, via: "shopify" };
   const cfg = await db.trackingConfig.findUnique({ where: { shop } });
-  const chosen = (TRACK_SOURCES as readonly string[]).includes(cfg?.source ?? "") ? (cfg!.source as TrackSource) : "shopify";
+  const picked = (TRACK_SOURCES as readonly string[]).includes(cfg?.source ?? "") ? (cfg!.source as TrackSource) : "shopify";
+  const chosen = sourceAllowed(plan, picked) ? picked : "shopify";
   for (const src of sourcesToTry(chosen)) {
     if (src === "webhook") {
       const row = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: s.number } } });

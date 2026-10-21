@@ -13,7 +13,8 @@ import { getPlan } from "../lib/billing.server";
 import { EXTRA_PLAN, atLeast } from "../lib/plans";
 import { trackOffersFor } from "../lib/track-offers.server";
 import { readRecRequest, trackRecs } from "../lib/track-recs.server";
-import { resolveTracking } from "../lib/tracking/tracking.server";
+import { carrierLinksFor, resolveTracking } from "../lib/tracking/tracking.server";
+import { carrierUrl } from "../lib/tracking";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.public.appProxy(request);
@@ -28,12 +29,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!order) return json({ ok: false, notFound: true });
     // Where each shipment's tracking comes from is the store's choice (lib/tracking/tracking.server.ts); Shopify's own data is the fallback.
     const { plan } = await getPlan(admin, session.shop);
+    // A carrier Shopify has no link for (a local courier) gets the store's own link pattern.
+    const links = order.shipments.some((s) => s.number && !s.url) ? await carrierLinksFor(session.shop).catch(() => []) : [];
     const shipments = await Promise.all(
       order.shipments.slice(0, 5).map(async (s) => {
         const r = await resolveTracking(session.shop, plan, { number: s.number ?? "", carrier: s.company ?? "", country: "" }, s.tracking).catch(() => ({ tracking: s.tracking }));
         const { tracking: _own, ...rest } = s;
         void _own;
-        return { ...rest, tracking: r.tracking };
+        return { ...rest, url: s.url || carrierUrl(links, s.company, s.number) || null, tracking: r.tracking };
       }),
     );
     // "You may also like" / "Complete your order": only when the page asks for them (its own settings), and a failure never hides the order.

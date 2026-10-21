@@ -382,13 +382,20 @@ function TrackingTab({ d, pageStatus, pageButton, template, steps }: TabProps) {
         />
       </HomeRow>
 
+      <HomeRow title="Shipments" action={<Button variant="tertiary" href="/app/tracking-source">Where tracking comes from</Button>}>
+        <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+          <s-text color="subdued">{`Every shipment of the last 30 days and what your Track page shows for it, with “Check now”. Tracking comes from ${sourceName.toLowerCase()}.`}</s-text>
+          <Button href="/app/tracking-shipments">See your shipments</Button>
+        </s-stack>
+      </HomeRow>
+
       <HomeRow title="Set up tracking">
         <Checks
           checks={[
             {
               done: !!d.tracking?.chosen,
               title: "Where should tracking come from?",
-              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Shopify's data is the default and is free. Pro stores can use live tracking, their own key or a webhook link.",
+              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Basic tracking uses Shopify's data and is free. Advanced tracking on Pro adds live tracking, your own tracking service key or a webhook link from any carrier.",
               action: { label: d.tracking?.chosen ? "Change" : "Choose", href: "/app/tracking-source" },
             },
             ...steps,
