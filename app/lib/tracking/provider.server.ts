@@ -42,6 +42,37 @@ export function fromTrackInfo(info: unknown): Tracking | null {
   return built;
 }
 
+/**
+ * 17TRACK's carrier code for the carrier name Shopify has ("Bosta", "Aramex", "J&T Express (EG)"), so a local
+ * courier's number isn't left to auto-detection. Only an unambiguous name match counts. Exported for the tests.
+ */
+export function carrierKeyFrom(list: { key: number; _name: string }[], company: string): number | null {
+  const norm = (v: string) => v.toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9\u0600-\u06ff]+/g, "");
+  const want = norm(company);
+  if (!want) return null;
+  const exact = list.filter((c) => c._name.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff()]+/g, "") === company.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff()]+/g, ""));
+  if (exact.length === 1) return exact[0].key;
+  const loose = list.filter((c) => norm(c._name) === want);
+  return loose.length === 1 ? loose[0].key : null;
+}
+
+// 17TRACK's public list of carriers its API knows (about 3,500), read once a day.
+const CARRIER_LIST = "https://res.17track.net/asset/carrier/info/apicarrier.all.json";
+let carriers: { at: number; list: { key: number; _name: string }[] } | null = null;
+async function seventeenCarrier(company: string): Promise<number | null> {
+  if (!company.trim()) return null;
+  if (!carriers || Date.now() - carriers.at > 86_400_000) {
+    try {
+      const res = await fetch(CARRIER_LIST, { signal: AbortSignal.timeout(6000) });
+      const list = res.ok ? ((await res.json()) as { key: number; _name: string }[]) : [];
+      carriers = { at: Date.now(), list: Array.isArray(list) ? list.filter((c) => typeof c?.key === "number" && typeof c?._name === "string") : [] };
+    } catch {
+      carriers = { at: Date.now() - 86_400_000 + 3_600_000, list: carriers?.list ?? [] }; // try again in an hour
+    }
+  }
+  return carrierKeyFrom(carriers.list, company);
+}
+
 async function call(key: string, path: string, body: unknown) {
   const res = await fetch(`${SEVENTEEN}${path}`, { method: "POST", headers: { "Content-Type": "application/json", "17token": key }, body: JSON.stringify(body), signal: AbortSignal.timeout(6000) });
   if (res.status === 401 || res.status === 403) return { code: -1, data: {} as Json };
@@ -60,10 +91,12 @@ const seventeen: Provider = {
     }
   },
   async register(key, s) {
-    await call(key, "/register", [{ number: s.number }]);
+    const carrier = await seventeenCarrier(s.carrier).catch(() => null);
+    await call(key, "/register", [carrier ? { number: s.number, carrier } : { number: s.number }]);
   },
   async fetch(key, s) {
-    const r = await call(key, "/gettrackinfo", [{ number: s.number }]);
+    const carrier = await seventeenCarrier(s.carrier).catch(() => null);
+    const r = await call(key, "/gettrackinfo", [carrier ? { number: s.number, carrier } : { number: s.number }]);
     if (r.code !== 0) return null;
     return fromTrackInfo(o(arr(r.data.accepted)[0]).track_info);
   },

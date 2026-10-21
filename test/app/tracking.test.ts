@@ -257,3 +257,22 @@ test("typed updates (Advanced tracking) show first and can be removed", async ()
   await T.clearManualUpdates("m.myshopify.com", "LOCAL1");
   assert.equal((await T.resolveTracking("m.myshopify.com", "pro", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
 });
+
+test("17TRACK carrier codes come from Shopify's carrier name, only when the match is unambiguous", async () => {
+  const { carrierKeyFrom } = await import("../../app/lib/tracking/provider.server");
+  const list = [
+    { key: 100487, _name: "Bosta" },
+    { key: 100821, _name: "MyLerz" },
+    { key: 101069, _name: "Mylerz (DZ)" },
+    { key: 1, _name: "J&T Express (EG)" },
+    { key: 2, _name: "J&T Express (ID)" },
+    { key: 100006, _name: "Aramex" },
+  ];
+  assert.equal(carrierKeyFrom(list, "Bosta"), 100487);
+  assert.equal(carrierKeyFrom(list, "bosta "), 100487);
+  assert.equal(carrierKeyFrom(list, "MyLerz"), 100821); // the exact name wins over "Mylerz (DZ)"
+  assert.equal(carrierKeyFrom(list, "J&T Express (EG)"), 1);
+  assert.equal(carrierKeyFrom(list, "J&T Express"), null); // several countries: left to auto-detection
+  assert.equal(carrierKeyFrom(list, "Some local courier"), null);
+  assert.equal(carrierKeyFrom(list, ""), null);
+});
