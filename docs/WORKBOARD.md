@@ -194,7 +194,7 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
       `/app/plans`; the AI assistant pages and MCP replies link to the Plans page inside the admin (#198).
       Test: no file in app/, extensions/, theme/, site/src links to `pricing_plans`.
 - [x] Testing 3: Settings → Change plan opens our Plans page. Approval pages open for all 4 handles (free,
-      starter, growth, pro); prices match plans.ts: $5.99/$59, $14.99/$149, $24.99/$249 a year. Nothing approved.
+      starter, growth, pro); prices match plans.ts: $5.99/$59, $19.99/$199, $39.99/$399 a year. Nothing approved.
 - Shopify controls (cannot change): its hosted pricing_plans page still exists and Shopify may link to it from
   its own screens (App Store listing, Settings → Apps). The app never sends anyone there. Welcome link per plan
   (Partner Dashboard → App Pricing → plan → Welcome link) can be `/app/plans` or `/app`; `?plan_handle` refreshes

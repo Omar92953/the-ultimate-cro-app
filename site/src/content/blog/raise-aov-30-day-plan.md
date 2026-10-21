@@ -84,7 +84,7 @@ At the end of the week, review the whole month against your week 1 numbers, over
 - **Average order value** in Shopify's Analytics, always over the same number of days before and after.
 - **Number of orders and conversion rate.** A higher AOV with fewer orders is not a win.
 - **Units per order**, or the share of orders with more than one item.
-- **Sales from each offer** in CRO Toolbox's **Analytics**: the last 30 days compared with the 30 before, with results for each offer and bundle. The Free plan shows its own results for 1 offer, Starter ($5.99 a month) for 3, and Growth ($14.99 a month) for every offer.
+- **Sales from each offer** in CRO Toolbox's **Analytics**: the last 30 days compared with the 30 before, with results for each offer and bundle. The Free plan shows its own results for 1 offer, Starter ($5.99 a month) for 3, and Growth ($19.99 a month) for every offer.
 - **The holdout test**, on the Growth plan and above: a share of shoppers sees no app widgets, so you can compare what shoppers with and without them spend. See [analytics and the holdout test](/help/analytics/).
 - **What the discounts cost you.** Bigger orders at a lower margin may not leave you better off.
 

@@ -60,7 +60,7 @@ Write the same rules into your return policy. The [Shopify return policy templat
 
 ## How does CRO Toolbox handle store credit and exchanges?
 
-CRO Toolbox's [Return saving rules](/features/return-saving/) add store credit and exchanges to your Returns page. They are on the Pro plan ($24.99 a month, with a 14 day free trial). The Returns page itself is on the Growth plan.
+CRO Toolbox's [Return saving rules](/features/return-saving/) add store credit and exchanges to your Returns page. They are on the Pro plan ($39.99 a month, with a 14 day free trial). The Returns page itself is on the Growth plan.
 
 - **Store credit instead of a refund**, with an optional bonus. Credit is given as a refund to store credit on the customer's account, so the order shows the money as refunded, and the bonus is added on top. The shopper sees the credit on the Returns page.
 - **Exchanges** for another size or colour of the same product that is in stock. The shopper sees the price difference before sending. When you approve, the app makes the Shopify return with the exchange, and the new shipment waits on hold until you click **Items arrived: ship the exchange**. If the new item costs more (when you allow that), you send the invoice from the order in Shopify; if it costs less, the difference is refunded.

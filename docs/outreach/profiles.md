@@ -21,7 +21,7 @@ assistants trust what many places agree on. After each profile is live, paste it
 - **Logo:** `branding/app-icon.png` (square icon), `branding/logo-wordmark-black.png` · **Banner:** `branding/feature/feature-banner.png`
 - **Screenshots:** `branding/screenshots/listing/` (6, 1600 x 900)
 - **Pricing:** Free plan (50 orders a month, 3 offers on at once). Starter $5.99 a month ($59 a year),
-  Growth $14.99 a month ($149 a year), Pro $24.99 a month ($249 a year). 14 day free trial on paid
+  Growth $19.99 a month ($199 a year), Pro $39.99 a month ($399 a year). 14 day free trial on paid
   plans. Billed through Shopify.
 
 ## Short description (about 160 characters)

@@ -51,7 +51,7 @@ A bigger discount often looks good on acceptance alone. Revenue per shopper tell
 
 ## How do A/B tests work in CRO Toolbox?
 
-A/B tests are on the Pro plan, at $24.99 a month. You can test an upsell offer or a cross sell offer:
+A/B tests are on the Pro plan, at $39.99 a month. You can test an upsell offer or a cross sell offer:
 
 - Version A is the offer as it is saved. Version B changes the words, the discount or the style.
 - Half of your shoppers see version B, and each shopper keeps one version.
@@ -76,7 +76,7 @@ More on the feature: [A/B tests feature page](/features/ab-tests/).
 
 An A/B test compares two versions of one offer. A holdout test answers a different question: what do the app's widgets add to your sales overall?
 
-In the holdout test, a share of shoppers, picked at random and kept for their visits, see your store without the app's widgets. Orders from each group are compared. It is on the Growth plan and above, from $14.99 a month.
+In the holdout test, a share of shoppers, picked at random and kept for their visits, see your store without the app's widgets. Orders from each group are compared. It is on the Growth plan and above, from $19.99 a month.
 
 To run it:
 

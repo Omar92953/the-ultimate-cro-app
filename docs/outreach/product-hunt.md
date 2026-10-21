@@ -35,5 +35,5 @@ A few things it does differently:
 - Everything is a theme block you place in the theme editor; your theme's code is never edited.
 - The Track your order and Returns pages are made for you, and returns become real Shopify returns.
 
-There's a free plan; paid plans are $5.99, $14.99 and $24.99 a month with a 14 day trial.
+There's a free plan; paid plans are $5.99, $19.99 and $39.99 a month with a 14 day trial.
 I'd love feedback, especially on what you'd need before switching from the apps you use now.

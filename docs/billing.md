@@ -2,9 +2,9 @@
 
 Everything about prices and limits lives in **`app/lib/plans.ts`** — change a number there and the
 whole app follows. Tutorials live in `app/lib/tutorials.ts`. The values were confirmed
-with Omar on 2026-10-14: Free / Starter $5.99 / Growth $14.99 / Pro $24.99, 14-day trial.
+with Omar on 2026-10-14: Free / Starter $5.99 / Growth $19.99 / Pro $39.99, 14-day trial.
 
-Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; prices $5.99 / $59, $14.99 / $149, $24.99 / $249 a year; 14-day trials on the paid plans; every plan button opens Shopify's plan page (`target="_top"`); a failed plan check locks nothing.
+Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; prices $5.99 / $59, $19.99 / $199, $39.99 / $399 a year; 14-day trials on the paid plans; every plan button opens Shopify's plan page (`target="_top"`); a failed plan check locks nothing.
 
 ## How it works
 
@@ -64,8 +64,8 @@ Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; pr
    |---|---|---|---|---|
    | `free` | Free | $0 | — | — |
    | `starter` | Starter | $5.99 | $59 | 14 days |
-   | `growth` | Growth | $14.99 | $149 | 14 days |
-   | `pro` | Pro | $24.99 | $249 | 14 days |
+   | `growth` | Growth | $19.99 | $199 | 14 days |
+   | `pro` | Pro | $39.99 | $399 | 14 days |
 
    Use the `highlights` lines from `plans.ts` as each plan's "Top features". If a handle has to be
    different, change `handle` in `plans.ts` to match.

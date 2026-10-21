@@ -12,7 +12,7 @@ from his own accounts, and edits it to sound like him.
   one: `CRO Toolbox is a Shopify app for bundles, upsells and cross sells.` (`site/src/lib/brand.ts`,
   `docs/listing.md`).
 - **Facts from the app's files only.** Prices from `app/lib/plans.ts`: Free; Starter $5.99 a month;
-  Growth $14.99; Pro $24.99; yearly $59, $149, $249; 14 day free trial. No invented numbers, results or
+  Growth $19.99; Pro $39.99; yearly $59, $199, $399; 14 day free trial. No invented numbers, results or
   reviews. If a price changes, update these drafts.
 - **Links.** Use https://crotoolbox.com (and the Shopify App Store link once the app is live there,
   shown here as `[App Store link]`). Add `?utm_source=<site>&utm_medium=outreach` so Cloudflare Web

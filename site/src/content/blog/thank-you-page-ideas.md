@@ -51,7 +51,7 @@ Pick the collection with care. Good choices are refills, accessories or a small 
 
 ## What about Buy again?
 
-Buy again is not one of the thank you page modules in CRO Toolbox. It lives on the Track page, which customers open when they check their delivery. The app's Track page can show a discount code for the next order, Buy again, a message for delayed orders and product recommendations under the order. The Track page is on the Growth plan at $14.99 a month. See the [order tracking page](/shopify-order-tracking-page/) for details.
+Buy again is not one of the thank you page modules in CRO Toolbox. It lives on the Track page, which customers open when they check their delivery. The app's Track page can show a discount code for the next order, Buy again, a message for delayed orders and product recommendations under the order. The Track page is on the Growth plan at $19.99 a month. See the [order tracking page](/shopify-order-tracking-page/) for details.
 
 ## What should I leave off?
 

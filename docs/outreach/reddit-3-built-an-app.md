@@ -24,7 +24,7 @@ What it does:
 - A Track your order page and a returns page that creates real Shopify returns.
 - Works with any Online Store 2.0 theme, without editing the theme's code.
 
-Pricing: a free plan, then $5.99, $14.99 or $24.99 a month, each with a 14 day free trial.
+Pricing: a free plan, then $5.99, $19.99 or $39.99 a month, each with a 14 day free trial.
 
 Live demos and details: https://crotoolbox.com/?utm_source=reddit&utm_medium=outreach
 

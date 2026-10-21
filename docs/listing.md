@@ -45,8 +45,8 @@ approval (section 4) before review; if it is not approved yet, swap feature 4 fo
 `Payment and delivery rules, order limits and thank-you page modules` (67).
 
 **Pricing (entered as Shopify App Pricing plans in the Partner Dashboard, same as `plans.ts`):**
-Free (50 orders a month, 3 offers on at once); Starter $5.99 a month (500 orders); Growth $14.99 a
-month (1,000 orders); Pro $24.99 a month (unlimited); yearly $59 / $149 / $249; 14-day trial on
+Free (50 orders a month, 3 offers on at once); Starter $5.99 a month (500 orders); Growth $19.99 a
+month (1,000 orders); Pro $39.99 a month (unlimited); yearly $59 / $199 / $399; 14-day trial on
 paid plans. Prices go only in the pricing section, never in the text above or in screenshots.
 What each plan adds (keep in step with `highlights` in `plans.ts`; list only what works): Growth includes "Your tracking page sells too" (the Track page with product recommendations, a next order discount code, buy again, an after delivery message and an apology for late orders), Pro includes unlimited orders, A/B tests for upsells and cross sells, return saving rules (store credit, exchanges), Track page offer slots (an offer above and one below the tracking, with real codes that expire) and priority support.
 
@@ -181,7 +181,7 @@ deploy; reviewers reject broken pages (2.1.1).
 
 - [ ] Choose the **distribution method** (public, App Store). It is permanent.
 - [ ] Request **protected customer data** access (section 4 answers), then turn the `orders/create` subscription back on in `shopify.app.toml` and deploy.
-- [x] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $14.99, $24.99; yearly; 14-day trial) and check the plan handles the app reads.
+- [x] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $19.99, $39.99; yearly; 14-day trial) and check the plan handles the app reads.
 - [x] SUPPORT_EMAIL `support@crotoolbox.com` (render.yaml) and support URL for the listing (2026-10-18).
 - [ ] Add the **emergency developer contact** (email and phone).
 - [ ] Upload the **icon** (`branding/app-icon.png`, 1200 x 1200), 3 to 6 **screenshots**, the feature image or video, and the **screencast**.
