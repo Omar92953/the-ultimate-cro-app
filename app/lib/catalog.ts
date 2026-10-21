@@ -2,7 +2,7 @@
  * The map of the app, in one place. The side menu, the hub pages, every page's breadcrumb, the
  * tabs at the top of each feature and the plan locks all come from here, so they always agree:
  *
- *   Menu:     (Home) · Offers · Tracking & Returns · Section library · Cart & Checkout · Analytics · Settings
+ *   Menu:     (Home) · Offers · Loyalty · Section library · Tracking & Returns · Cart & Checkout · Analytics · Settings
  *   A hub:    every area lists its features (the Section library and Cart & Checkout by group)
  *   A page:   breadcrumb = its area's hub · heading = the feature · tabs = the feature's pages
  *             (e.g. Customer reviews: Reviews | Design)
@@ -12,10 +12,11 @@
 import { DEAL_TYPES, type DealKind } from "./deals";
 import { BUNDLE_RECIPES } from "./bundle-recipes";
 
-export type AreaKey = "offers" | "tracking" | "library" | "cart";
+export type AreaKey = "offers" | "loyalty" | "tracking" | "library" | "cart";
 
 export const AREAS: { key: AreaKey; title: string; href: string; intro: string }[] = [
   { key: "offers", title: "Offers", href: "/app/offers", intro: "Raise the order value with upsells, bundles, cross sells and discounts." },
+  { key: "loyalty", title: "Loyalty", href: "/app/loyalty", intro: "Bring shoppers back and raise their lifetime value (LTV): points for every order, rewards they spend, VIP tiers and referrals." },
   { key: "library", title: "Section library", href: "/app/library", intro: "Ready-made sections for your store: reviews, banners, bars, timers, product-page tools and more. Pick one, preview it, add it to your theme." },
   { key: "tracking", title: "Tracking & Returns", href: "/app/tracking-returns", intro: "Order tracking and returns pages that also sell: offers, a next order discount and buy again on the Track page, store credit and exchanges instead of refunds on Returns. Handle every return here: approve, send a label, refund." },
   { key: "cart", title: "Cart & Checkout", href: "/app/cart-checkout", intro: "The cart first (cart offers, free shipping bar, gift note), then inside Shopify checkout: payment and delivery rules, order limits, the thank-you page and a one-click offer after payment." },
@@ -125,6 +126,8 @@ export const FEATURES = {
   // Tracking & returns pages
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, and that sells too: recommendations, a next order discount, buy again, an after delivery message and an apology for late orders.", tabs: [design("/app/pages/track")], paths: ["/app/tracking-source", "/app/tracking-shipments"] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
+  // Loyalty (Pro): one feature with its own menu item and pages under /app/loyalty.
+  loyalty: { title: "Loyalty program", area: "loyalty", about: "Points for orders and signups, rewards shoppers spend, store credit cashback, VIP tiers and referrals, to bring shoppers back.", tabs: [{ label: "Home", href: "/app/loyalty" }, { label: "Earn points", href: "/app/loyalty/earn" }, { label: "Members", href: "/app/loyalty/members" }] },
   // Checkout
   return_saving: { title: "Return saving rules", area: "tracking", about: "Offer store credit (with a bonus) or an exchange before a refund, approve returns by rule and put returned items back in stock.", tabs: [{ label: "Saving rules", href: "/app/returns/saving" }] },
   payment_rules: { title: "Payment rules", area: "cart", group: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
@@ -137,6 +140,8 @@ export const FEATURES = {
 
 export type FeatureKey = keyof typeof FEATURES;
 export const FEATURE_KEYS = Object.keys(FEATURES) as FeatureKey[];
+/** In the app but not on the website yet (still being built): the site leaves them out of every list and page. */
+export const SITE_HIDDEN: readonly FeatureKey[] = ["loyalty"];
 export const feature = (key: FeatureKey): Feature => FEATURES[key];
 /** A feature's main page (its first tab). */
 export const featureHref = (key: FeatureKey) => FEATURES[key].tabs[0].href;

@@ -302,6 +302,23 @@ export async function buildFeatures({ block, shopWith, mo }) {
   F.track = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("track")));
   F.returns = await Promise.all(orderD.ORDER_PAGE_PRESETS.map(orderPage("returns")));
   // Return saving rules (Pro): the same Returns page, where the shopper can choose store credit (the demo backend offers it with a 10% bonus).
+  // Loyalty (Pro): the rewards panel as members see it. The real storefront widget replaces this picture when it ships.
+  F.loyalty = [{
+    title: "Rewards panel", layout: "page",
+    html: `<div style="max-width:380px;margin:40px auto;font-family:inherit;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.18)">
+      <div style="background:#111;color:#fff;padding:22px 20px"><small style="opacity:.75">Welcome back</small><div style="font-size:28px;font-weight:700;margin-top:4px">1,250 points</div><small style="opacity:.75">Gold member · 250 points to Platinum</small></div>
+      <div style="background:#fff;padding:18px 20px;display:grid;gap:12px">
+        <b>Ways to earn</b>
+        <div style="display:flex;justify-content:space-between"><span>Every order</span><span>1 point per $1</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Create an account</span><span>100 points</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Your birthday</span><span>200 points</span></div>
+        <b style="margin-top:6px">Rewards</b>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span>$10 off your order</span><span style="background:#111;color:#fff;border-radius:999px;padding:6px 12px">1,000 points</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span>Free shipping</span><span style="background:#111;color:#fff;border-radius:999px;padding:6px 12px">500 points</span></div>
+        <b style="margin-top:6px">Refer a friend</b><span>They get 10% off, you get 500 points.</span>
+      </div></div>`,
+  }];
+
   F.return_saving = (await Promise.all(orderD.ORDER_PAGE_PRESETS.slice(0, 2).map(orderPage("returns")))).map((x, i) => ({ ...x, title: i ? "Store credit, plain" : "Store credit with a bonus" }));
 
   // ---------------------------------------------------------------------------- Bundles --

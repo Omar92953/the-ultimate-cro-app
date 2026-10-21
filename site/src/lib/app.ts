@@ -11,7 +11,12 @@ import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, type Pl
 import { BUNDLE_RECIPES, type Recipe, type RecipeKey } from "../../../app/lib/bundle-recipes";
 import { OFFER_TYPES, type OfferTypeKey } from "../../../app/lib/offer-types";
 export { RETENTION_DAYS } from "../../../app/lib/retention";
-import { FEATURES, FEATURE_KEYS, AREAS, featuresIn, type FeatureKey, type AreaKey } from "../../../app/lib/catalog";
+import { FEATURES, FEATURE_KEYS as ALL_FEATURE_KEYS, AREAS as ALL_AREAS, SITE_HIDDEN, featuresIn as allFeaturesIn, type FeatureKey, type AreaKey } from "../../../app/lib/catalog";
+
+/** Features still being built (catalog.ts SITE_HIDDEN) are left out of the website until they launch. */
+const FEATURE_KEYS = ALL_FEATURE_KEYS.filter((k) => !SITE_HIDDEN.includes(k));
+const featuresIn = (a: AreaKey) => allFeaturesIn(a).filter((k) => !SITE_HIDDEN.includes(k));
+const AREAS = ALL_AREAS.filter((a) => featuresIn(a.key).length > 0);
 
 export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
 export { BUNDLE_RECIPES, OFFER_TYPES };

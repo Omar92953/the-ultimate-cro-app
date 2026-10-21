@@ -9,6 +9,7 @@ import { recentForOrders, redactRecent } from "../lib/boosters.server";
 import { alertsForEmail, redactEmail, redactShop } from "../lib/stock.server";
 import { redactReviewerEmail, redactReviewerEmails, reviewerEmailsFor } from "../lib/reviewer-email.server";
 import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/orders-lookup.server";
+import { loyaltyHeldFor, redactLoyaltyCustomer, removeShopLoyalty } from "../lib/loyalty/program.server";
 
 /**
  * Mandatory privacy webhooks (customers/data_request, customers/redact, shop/redact).
@@ -17,7 +18,8 @@ import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/o
  * App Store review checks. What the app keeps about customers: only the sales pop-up list
  * ($app:cro_recent) — product, purchase time, a one-way fingerprint of the order id and, if the merchant turned it on, the
  * shipping city; and back-in-stock requests (StockAlert: the email a shopper typed and the variant
- * they want); return requests (order number, email, items, reason); and the email a merchant typed to check a review against orders. No names or addresses. So:
+ * they want); return requests (order number, email, items, reason); the email a merchant typed to check a review against orders; and loyalty
+ * members (customer id, email, points and their history). No names or addresses. So:
  *  - customers/data_request: count (never log) what's held for the listed orders and the customer's email
  *  - customers/redact: remove those orders from the list and that email's back-in-stock requests, return requests and reviewer emails
  *  - shop/redact (48h after uninstall): delete sessions, back-in-stock requests and reviewer emails for the shop;
@@ -45,14 +47,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const alerts = email ? await alertsForEmail(shop, email) : [];
       const returns = email ? await returnsForEmail(shop, email) : [];
       const reviewers = email ? await reviewerEmailsFor(shop, email) : [];
+      const loyalty = await loyaltyHeldFor(shop, String(payload?.customer?.id ?? ""), email);
       // Counts only: customer data never goes into the server logs.
-      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests, ${reviewers.length} reviewer emails`);
+      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests, ${reviewers.length} reviewer emails, ${loyalty.members} loyalty members with ${loyalty.events} point changes`);
       break;
     }
     case "CUSTOMERS_REDACT": {
       const removed = admin ? await redactRecent(admin, payload?.orders_to_redact ?? []) : 0;
       const email = String(payload?.customer?.email ?? "");
-      const gone = email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count : 0;
+      const gone = (email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count : 0) + (await redactLoyaltyCustomer(shop, String(payload?.customer?.id ?? ""), email));
       console.log(`[redact] ${shop}: removed ${removed} sales pop-up entries, ${gone} back-in-stock requests`);
       break;
     }
@@ -66,6 +69,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await removeShopTracking(shop);
       await removeShopAb(shop);
       await removeShopTrackCodes(shop);
+      await removeShopLoyalty(shop);
       break;
     default:
       break;
