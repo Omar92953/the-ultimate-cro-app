@@ -88,7 +88,7 @@ For the wider picture of conversion rate optimization, see [Shopify CRO](/shopif
 2. Open **Section library → Sticky add to cart**. It opens the **Conversion boosters** page, where you switch on **Show the sticky bar** and **Show trust badges**, turn on stock urgency and set its threshold, then save.
 3. For blocks such as the delivery estimate, the size guide, the FAQ and product page reviews, open each one in the **Section library**, set the content and style with the live preview, then click **Add to theme** and place the block in the theme editor. Click **Save** there.
 4. Open a product page on your phone and check what shows above the Add to cart button.
-5. Watch your add to cart rate and conversion rate in Shopify's Analytics. On the Growth plan ($14.99 a month) and above, the [holdout test](/help/analytics/) shows a share of shoppers no app widgets, so you can compare.
+5. Watch your add to cart rate and conversion rate in Shopify's Analytics. On the Growth plan ($19.99 a month) and above, the [holdout test](/help/analytics/) shows a share of shoppers no app widgets, so you can compare.
 
 The [bars and product page tools guide](/help/bars-and-product-tools/) and the [storefront sections guide](/help/storefront-sections/) cover each widget's settings.
 

@@ -83,7 +83,7 @@ The full walkthrough is in the help guide [Track order and returns pages](/help/
 
 ## Which plan do I need?
 
-The Track order page, with its next order discount, Buy again, recommendations, after delivery message and late order apology, is on the Growth plan ($14.99 a month or $149 a year, with a 14 day free trial). Live tracking and Track page offers are on the Pro plan ($24.99 a month). The same setup also gives you a Returns page; see the [Returns feature](/features/returns/). Plans are on the [pricing](/pricing/) page.
+The Track order page, with its next order discount, Buy again, recommendations, after delivery message and late order apology, is on the Growth plan ($19.99 a month or $199 a year, with a 14 day free trial). Live tracking and Track page offers are on the Pro plan ($39.99 a month). The same setup also gives you a Returns page; see the [Returns feature](/features/returns/). Plans are on the [pricing](/pricing/) page.
 
 ## Quick checklist
 

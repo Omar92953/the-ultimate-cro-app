@@ -108,13 +108,13 @@ Each request from the Returns page becomes a real Shopify return that you approv
 
 Each setup step turns green when it is done. The full walkthrough is in the help guide [Track order and returns pages](/help/track-and-returns-pages/).
 
-The Returns page is on the Growth plan ($14.99 a month, with a 14 day free trial). See [pricing](/pricing/).
+The Returns page is on the Growth plan ($19.99 a month, with a 14 day free trial). See [pricing](/pricing/).
 
 ## Should my policy offer store credit or exchanges?
 
 Only if your Returns page offers them too. A policy that promises an exchange the page can't make sends shoppers back to email.
 
-In CRO Toolbox, store credit with an optional bonus and exchanges for another size or colour are part of [Return saving rules](/features/return-saving/), on the Pro plan ($24.99 a month). Refunds to the original payment stay available for every shopper, so keep the refund section of your policy as it is. For when credit makes sense and how big a bonus to give, read [Store credit vs refunds on Shopify](/blog/store-credit-vs-refunds/).
+In CRO Toolbox, store credit with an optional bonus and exchanges for another size or colour are part of [Return saving rules](/features/return-saving/), on the Pro plan ($39.99 a month). Refunds to the original payment stay available for every shopper, so keep the refund section of your policy as it is. For when credit makes sense and how big a bonus to give, read [Store credit vs refunds on Shopify](/blog/store-credit-vs-refunds/).
 
 ## How often should I update the policy?
 

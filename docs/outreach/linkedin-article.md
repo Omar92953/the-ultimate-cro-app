@@ -33,7 +33,7 @@ wishlist, a size guide, payment and delivery rules, and analytics for each offer
 
 **Pricing**
 
-A free plan, then $5.99, $14.99 or $24.99 a month, each with a 14 day free trial.
+A free plan, then $5.99, $19.99 or $39.99 a month, each with a 14 day free trial.
 
 **What I learned**
 

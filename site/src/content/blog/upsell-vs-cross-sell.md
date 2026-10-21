@@ -92,11 +92,11 @@ Not always. An upsell usually needs one, because "Buy 2" without a saving gives 
 
 ## Which plan do I need?
 
-Upsell offers and cross sell offers are both on the Free plan, which allows 3 offers on at once and 50 orders a month. Paid plans start with Starter at $5.99 a month, with unlimited offers on at once. A/B tests for upsells and cross sells are on Pro at $24.99 a month. See [pricing](/pricing/).
+Upsell offers and cross sell offers are both on the Free plan, which allows 3 offers on at once and 50 orders a month. Paid plans start with Starter at $5.99 a month, with unlimited offers on at once. A/B tests for upsells and cross sells are on Pro at $39.99 a month. See [pricing](/pricing/).
 
 ## How do I know which one works?
 
-Change one thing at a time and compare average order value over the same number of days before and after. CRO Toolbox's **Analytics** shows sales from each offer. On Growth ($14.99 a month) and above, the **holdout test** keeps a share of shoppers without app widgets, so you can compare what shoppers with and without them spend.
+Change one thing at a time and compare average order value over the same number of days before and after. CRO Toolbox's **Analytics** shows sales from each offer. On Growth ($19.99 a month) and above, the **holdout test** keeps a share of shoppers without app widgets, so you can compare what shoppers with and without them spend.
 
 ## Quick checklist
 

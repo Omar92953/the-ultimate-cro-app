@@ -67,7 +67,7 @@ Copy the structure and the kinds of pages, never their text, images or brand. Wr
 4. **Features**: one page per area and per main feature (upsell, cross-sell, bundles, discounts, cart
    drawer, reviews, countdown, video carousel...), each explaining what it does, who it's for, the
    options, and screenshots or short videos of the storefront and the admin.
-5. **Pricing**: Free, Starter $5.99, Growth $14.99, Pro $24.99 (yearly $59 / $149 / $249), 14-day
+5. **Pricing**: Free, Starter $5.99, Growth $19.99, Pro $39.99 (yearly $59 / $199 / $399), 14-day
    trial, orders per month 50 / 500 / 1,000 / unlimited, what each plan includes. Read the numbers
    from `app/lib/plans.ts` (import it at build time if practical, so the site never goes out of date).
 6. **Compare**: `/compare/cro-toolbox-vs-<app>/` pages (Bundler, Simple Bundles, Fast Bundle, Kaching,

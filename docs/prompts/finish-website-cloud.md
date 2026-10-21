@@ -74,7 +74,7 @@ Also: replace the sample clips in the video carousel demo once Omar provides his
 ## 3. Pages and pricing
 
 - Pricing page: plans, prices, yearly prices, trials and limits come from `app/lib/plans.ts` (Free, Starter
-  $5.99 or $59 a year, Growth $14.99 or $149, Pro $24.99 or $249, 14 day trial; billed by Shopify, no one time
+  $5.99 or $59 a year, Growth $19.99 or $199, Pro $39.99 or $399, 14 day trial; billed by Shopify, no one time
   purchases). Make sure every page that mentions a price or plan reads it from there, the comparison table
   shows every limit, and the FAQ explains trials, upgrades, downgrades and cancelling in Shopify.
 - A page for every feature in `catalog.ts` (including the Header, Tracking & Returns, and every new CRO

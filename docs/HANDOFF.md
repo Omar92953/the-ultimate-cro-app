@@ -74,7 +74,7 @@ only run on the Mac.
 
 ## What's done (merged in PR #1–#5)
 - Plans/billing via Shopify App Pricing (reads plan only; never charges). Prices: Free / Starter $5.99 /
-  Growth $14.99 / Pro $24.99 (yearly $59/$149/$249), 14-day trial. Free = 3 offer slots shared by every
+  Growth $19.99 / Pro $39.99 (yearly $59/$199/$399), 14-day trial. Free = 3 offer slots shared by every
   offer type, 3 checkout rules, 1 countdown, 2 thank-you modules, try 1 Starter feature free. Each plan
   gets a taste of the next. "Cancel or change your plan anytime" on paid plans.
 - Bundles matching Simple Bundles: bundle products (native fixed bundles, stock from items), price tiers,

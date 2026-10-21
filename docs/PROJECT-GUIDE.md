@@ -23,7 +23,7 @@ Admin menu: **Home · Offers · Tracking & Returns · Storefront · Checkout · 
 | Analytics | Sales from the app, per offer and per bundle stats |
 
 Plans (only in `app/lib/plans.ts`): **Free** (3 offer slots, 50 orders a month), **Starter**
-$5.99 (500 orders), **Growth** $14.99 (1,000), **Pro** $24.99 (unlimited); yearly $59/$149/$249;
+$5.99 (500 orders), **Growth** $19.99 (1,000), **Pro** $39.99 (unlimited); yearly $59/$199/$399;
 14-day trial. The orders limit counts all store orders in the calendar month and is soft (a banner,
 nothing switches off). Every bundle feature is Free within the offer slots. Billing runs through
 Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `docs/billing.md`).
@@ -235,7 +235,7 @@ features and sends people to the App Store listing.
   "See live demo" buttons (`demoUrl()` in `app/lib/site.ts`). The website links to them only from its keyword pages (nofollow).
 - **Pages**: home; one page per feature (the 6 bundle recipes, upsell, cross-sell, video carousel,
   cart drawer, reviews, countdown...) with real screenshots from Testing2; pricing (from
-  `app/lib/plans.ts`: Free / $5.99 / $14.99 / $24.99, orders per month, 14-day trial); help center
+  `app/lib/plans.ts`: Free / $5.99 / $19.99 / $39.99, orders per month, 14-day trial); help center
   (adapt `docs/README-merchant.md`); comparisons ("CRO Toolbox vs Bundler / Rebuy"); FAQ; blog with
   how-to articles ("How to add Frequently bought together in Dawn", "Mix and match bundles on
   Shopify"); privacy policy and support page (needed for the App Store listing, see `docs/listing.md`).
