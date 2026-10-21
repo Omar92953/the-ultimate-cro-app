@@ -1983,3 +1983,30 @@ export function CoverflowShowcase() {
     </Fit>
   );
 }
+
+/** Customer reviews, Coverflow template: one large review card in the centre, the others smaller behind it. */
+export function ReviewsCoverflowShowcase() {
+  const at = (d: number) => ({ transform: `translateX(${d * 62}%) scale(${1 - Math.abs(d) * 0.16})`, zIndex: 3 - Math.abs(d), filter: d ? "brightness(0.92)" : undefined });
+  const people = [PHOTO.pink, PHOTO.yellow, PHOTO.shopper, PHOTO.sunny, PHOTO.pink];
+  return (
+    <Fit>
+      <span style={{ display: "grid", gap: 8, justifyItems: "center", width: "100%", fontSize: 9 }}>
+        <b style={{ fontSize: 13 }}>What our customers say</b>
+        <span style={{ position: "relative", display: "block", width: 100, height: 132 }}>
+          {people.map((id, i) => (
+            <span key={i} style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 10, background: "#fff", boxShadow: "0 6px 16px rgba(0,0,0,0.16)", ...at(i - 2) }}>
+              <span style={{ position: "relative", display: "block", height: 74 }}>
+                <Img id={id} w={220} h={160} className={s.cover} />
+              </span>
+              <span style={{ display: "grid", gap: 2, padding: "5px 6px", textAlign: "center" }}>
+                <span style={{ color: "#f5a623", letterSpacing: 1 }}>★★★★★</span>
+                <span style={{ color: "#303030" }}>Love the fit and the colour.</span>
+                <b>Sara M.</b>
+              </span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Fit>
+  );
+}

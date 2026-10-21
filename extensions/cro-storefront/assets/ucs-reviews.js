@@ -121,7 +121,19 @@
     };
     var arrows = root.querySelectorAll('.ucs-rv__arrow');
     var rtl = getComputedStyle(track).direction === 'rtl';
+    // Coverflow: each card is drawn by its distance from the centre (same maths as image-carousel.ts flowStyle).
+    var flow = root.classList.contains('ucs-rv--flow');
+    var draw = function () {
+      var mid = Math.abs(track.scrollLeft) + track.clientWidth / 2, w = step() || 1;
+      track.querySelectorAll('.ucs-rv__card').forEach(function (el) {
+        var d = (el.offsetLeft + el.offsetWidth / 2 - mid) / w, a = Math.min(Math.abs(d), 3.5);
+        el.style.transform = 'translateX(' + (-d * 16).toFixed(1) + '%) scale(' + (1 - a * 0.12).toFixed(3) + ')';
+        el.style.zIndex = String(10 - Math.round(a * 2));
+        el.style.opacity = a > 3.2 ? '0' : '1';
+      });
+    };
     var update = function () {
+      if (flow) draw();
       var max = track.scrollWidth - track.clientWidth - 2;
       var x = Math.abs(track.scrollLeft);
       arrows.forEach(function (a) {
@@ -310,8 +322,10 @@
         '<button type="button" class="ucs-rv__arrow" data-dir="1" aria-label="Next"><span class="ucs-i ucs-i--chev-r" aria-hidden="true"></span></button></div>' : '';
       // Arrows on the sides sit over the cards; otherwise below them.
       var sides = carousel && c.l.nav === 'sides';
-      html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + '>' +
-        shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + '</div>' + (sides ? nav : '') + '</div>';
+      // Coverflow: a spacer on each side so the first and last cards can sit in the centre.
+      var pad = carousel && /ucs-rv--flow/.test(c.cls) ? '<div class="ucs-rv__pad" aria-hidden="true"></div>' : '';
+      html += '<div class="ucs-rv__viewport"><div class="ucs-rv__track"' + (carousel ? ' tabindex="0" aria-roledescription="carousel" aria-label="' + esc(t.heading || 'Reviews') + '"' : '') + (pad ? ' style="--ucs-flow-n:' + shown.length + '"' : '') + '>' +
+        pad + shown.map(function (r) { return card(r, c, t, only, shop); }).join('') + pad + '</div>' + (sides ? nav : '') + '</div>';
       if (carousel && !sides) html += nav;
     }
     if (isList && shown.length > ls.perPage) html += '<div class="ucs-rv__more-at"><button type="button" class="ucs-btn ucs-btn--outline ucs-rv__page">' + esc(ls.more) + '</button></div>';

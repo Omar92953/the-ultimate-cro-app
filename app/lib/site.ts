@@ -52,7 +52,7 @@ export const DEMO_RECIPES: RecipeKey[] = ["fbt", "kit", "mixmatch", "growing", "
  */
 export const DEMO_TEMPLATES: Partial<Record<FeatureKey, number>> = {
   upsell: 6, cross_sell: 6, personalize: 4, cart_extras: 4,
-  reviews: 6, product_reviews: 3, logos: 6, announcements: 6, countdown: 6, shipping_bar: 6,
+  reviews: 7, product_reviews: 3, logos: 6, announcements: 6, countdown: 6, shipping_bar: 6,
   quick_add: 5, delivery: 4, size_guide: 4, stock: 4, wishlist: 4, videos: 6, faq: 6, quiz: 4,
   header: 6, track: 4, returns: 4,
   compare_table: 4, benefits: 4, product_tabs: 4, guarantee: 4, before_after: 3, shoppable: 3, recently_viewed: 3, how_it_works: 4, email_popup: 4,

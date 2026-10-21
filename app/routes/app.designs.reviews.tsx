@@ -225,9 +225,19 @@ export default function ReviewsDesigner() {
 
             <Pane show={tab === "design"}><s-section heading="Layout and scrolling">
               <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <Select label="Layout" value={cfg.layout.mode} onValue={(v) => layout({ mode: v as C["layout"]["mode"] })} options={isProduct ? [{ value: "carousel", label: "Cards, one at a time" }, { value: "badge", label: "Star rating line" }] : [{ value: "carousel", label: "Carousel" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }, { value: "list", label: "List (full reviews, with sorting)" }]} />
-                <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
-                <Select label="Per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
+                {/* Coverflow is a carousel drawn with one large card in the centre (layout.effect). */}
+                <Select
+                  label="Layout"
+                  value={!isProduct && cfg.layout.mode === "carousel" && cfg.layout.effect === "coverflow" ? "coverflow" : cfg.layout.mode}
+                  onValue={(v) => layout(v === "coverflow" ? { mode: "carousel", effect: "coverflow" } : { mode: v as C["layout"]["mode"], effect: "row" })}
+                  options={isProduct ? [{ value: "carousel", label: "Cards, one at a time" }, { value: "badge", label: "Star rating line" }] : [{ value: "carousel", label: "Carousel" }, { value: "coverflow", label: "Coverflow (one large card in the centre)" }, { value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry (different heights)" }, { value: "list", label: "List (full reviews, with sorting)" }]}
+                />
+                {cfg.layout.effect === "coverflow" && cfg.layout.mode === "carousel" ? null : (
+                  <>
+                    <NumberField label="Per row on desktop" min={1} max={6} step={1} value={cfg.layout.perDesktop} onValue={(v) => layout({ perDesktop: v })} />
+                    <Select label="Per row on phones" value={String(cfg.layout.perMobile)} onValue={(v) => layout({ perMobile: Number(v) === 2 ? 2 : 1 })} options={[{ value: "1", label: "1 (with a peek of the next)" }, { value: "2", label: "2" }]} />
+                  </>
+                )}
                 <OptionalSetting label="Fixed card width" details="Off: cards fill the row." initiallyOn={cfg.layout.cardWidth > 0} onOn={() => layout({ cardWidth: 300 })} onOff={() => layout({ cardWidth: 0 })}>
 <NumberField label="Card width" suffix="px" min={160} max={600} step={10} value={cfg.layout.cardWidth} onValue={(v) => layout({ cardWidth: Math.max(160, v) })} />
 </OptionalSetting>
