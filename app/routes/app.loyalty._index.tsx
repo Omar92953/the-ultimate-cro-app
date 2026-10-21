@@ -15,8 +15,8 @@ import { getProgram, programStats, setProgramOn } from "../lib/loyalty/program.s
 import { syncShop } from "../lib/loyalty/sync.server";
 import { pointsLabel } from "../lib/loyalty/config";
 import { eventLabel } from "../lib/loyalty/labels";
-import { Button, Select, Switch } from "../components/fields";
-import { HomeRow, HomeRows, PageIntro, Panel, Pill, StatGrid, StatTile } from "../components/ui";
+import { Button, Switch } from "../components/fields";
+import { HomeRow, HomeRows, PageIntro, Panel, Pill, Segmented, StatGrid, StatTile } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
 import css from "../components/TrackingHub.module.css";
 
@@ -86,16 +86,19 @@ export default function LoyaltyHome() {
               onValue={(v) => fetcher.submit({ intent: "on", on: String(v), past }, { method: "post" })}
             />
             {!d.on && !d.syncedAt ? (
-              <Select
-                label="When it starts"
-                value={past}
-                onValue={setPast}
-                options={[
-                  { value: "0", label: "Orders paid from now on" },
-                  { value: "30", label: "Also orders of the last 30 days" },
-                  { value: "90", label: "Also orders of the last 90 days" },
-                ]}
-              />
+              <s-stack gap="small-200">
+                <s-text>Which orders earn points when it starts</s-text>
+                <Segmented
+                  label="Which orders earn points when it starts"
+                  value={past}
+                  onChange={setPast}
+                  options={[
+                    { value: "0", label: "From now on" },
+                    { value: "30", label: "Also the last 30 days" },
+                    { value: "90", label: "Also the last 90 days" },
+                  ]}
+                />
+              </s-stack>
             ) : null}
             {on && d.syncedAt ? (
               <s-stack direction="inline" gap="small-200" alignItems="center">
