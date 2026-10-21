@@ -4,7 +4,7 @@
 @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .card { position: relative; display: flex; flex-direction: column; container-type: inline-size; background: #fff; border-radius: 14px; box-shadow: 0 1px 0 rgba(26, 26, 26, 0.07), 0 0 0 1px rgba(26, 26, 26, 0.08); }
-.stage { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px 14px 0 0; background: #f4f4f5; container-type: inline-size; }
+.stage { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px 14px 0 0; background: #fff; border-bottom: 1px solid #ededed; container-type: inline-size; }
 .stageLink { position: absolute; inset: 0; display: block; overflow: hidden; color: #111; text-decoration: none; }
 .stageLink:focus-visible { outline: 2px solid #005bd3; outline-offset: -2px; }
 .track { position: absolute; inset: 0; display: flex; transition: transform 0.35s ease; }
@@ -264,7 +264,7 @@
 .search { padding: 0.6em 1em; color: #888; background: #fff; border: 0.1em solid #d4d4d4; border-radius: 2em; }
 .centerSelf { align-self: center; }
 .markGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4em 2em; width: 100%; font-size: 1.6em; color: #555; }
-.markGrid i { padding: 0.6em 0; font-style: normal; text-align: center; background: #fff; border-radius: 0.4em; }
+.markGrid i { padding: 0.6em 0; font-style: normal; text-align: center; background: #f4f4f5; border-radius: 0.4em; }
 .annCenter { justify-content: center; }
 .annGreen { background: #0c5132; }
 .annBlue { margin-bottom: 0.8em; background: #1f3a8a; border-radius: 0.6em; }
