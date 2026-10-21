@@ -99,7 +99,10 @@ const fromRow = (data: string): Tracking | null => {
   }
 };
 
-async function store(shop: string, s: Shipment, via: TrackSource, t: Tracking) {
+/** Where a cached answer came from: a tracking source, or the merchant's own typed updates. */
+export type TrackVia = TrackSource | "manual";
+
+async function store(shop: string, s: Shipment, via: TrackVia, t: Tracking) {
   await db.trackingCache.upsert({
     where: { shop_number: { shop, number: s.number } },
     create: { shop, number: s.number, carrier: s.carrier.slice(0, 60), via, status: t.status, data: toRow(t) },
@@ -162,8 +165,14 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
 }
 
 /** Tracking for one shipment from the first source that has it; `shopify` is what Shopify itself knows. */
-export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, shopify: Tracking | null): Promise<{ tracking: Tracking | null; via: TrackSource }> {
+export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, shopify: Tracking | null): Promise<{ tracking: Tracking | null; via: TrackVia }> {
   if (!s.number) return { tracking: shopify, via: "shopify" };
+  // Updates the merchant typed (a courier with no system) come first: they are the store's own word.
+  if (atLeast(plan, "pro")) {
+    const typed = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: s.number } } });
+    const t = typed?.via === "manual" ? fromRow(typed.data) : null;
+    if (t) return { tracking: t, via: "manual" };
+  }
   const cfg = await db.trackingConfig.findUnique({ where: { shop } });
   const picked = (TRACK_SOURCES as readonly string[]).includes(cfg?.source ?? "") ? (cfg!.source as TrackSource) : "shopify";
   const chosen = sourceAllowed(plan, picked) ? picked : "shopify";
@@ -186,6 +195,25 @@ export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, 
     }
   }
   return { tracking: shopify, via: "shopify" };
+}
+
+/** Adds one update the merchant typed for a shipment (Advanced tracking): it shows on the Track page from then on. */
+export async function addManualUpdate(shop: string, plan: PlanKey, number: string, carrier: string, input: { status: unknown; place: unknown; message: unknown }) {
+  if (!atLeast(plan, "pro")) throw new RuleError("Typing your own tracking updates is part of Advanced tracking, on the Pro plan.", "plan");
+  const n = String(number).trim().slice(0, 80);
+  if (!n) throw new RuleError("This shipment has no tracking number.", "input", false);
+  const row = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: n } } });
+  const before = row?.via === "manual" ? (fromRow(row.data)?.events ?? []) : [];
+  const [city, province, country] = String(input.place ?? "").split(",").map((x) => x.trim());
+  const event = { status: input.status, city: city ?? "", province: province ?? "", country: country ?? "", message: String(input.message ?? ""), at: new Date().toISOString() };
+  const t = buildTracking({ events: [event, ...before] });
+  await store(shop, { number: n, carrier: carrier.slice(0, 60), country: "" }, "manual", t);
+  return t;
+}
+
+/** Removes the typed updates of a shipment: the Track page goes back to the store's tracking source. */
+export async function clearManualUpdates(shop: string, number: string) {
+  await db.trackingCache.deleteMany({ where: { shop, number: String(number).slice(0, 80), via: "manual" } });
 }
 
 export async function removeShopTracking(shop: string) {

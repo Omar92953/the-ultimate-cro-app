@@ -45,8 +45,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 const CHOICES: { key: TrackSource; title: string; text: string }[] = [
   { key: "shopify", title: "Shopify's tracking data", text: "Free, every country, every carrier you add a tracking number for. Shows the status, the tracking number, the expected date and any updates Shopify gets from the carrier." },
   { key: "live", title: "Live tracking", text: `Up to ${LIVE_MONTHLY_LIMIT} shipments a month, included. Where the parcel is now and its full history, from most carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
-  { key: "own", title: "Your own tracking service key", text: "Already pay for a tracking service? Paste its key and the page uses it, with no limit from us." },
-  { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page." },
+  { key: "own", title: "Your own tracking service key", text: "Already use 17TRACK, AfterShip, TrackingMore or Ship24? Paste its key and the page uses it, with no limit from us. Between them they follow thousands of carriers worldwide." },
+  { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
 
 export default function TrackingSource() {
@@ -105,7 +105,7 @@ export default function TrackingSource() {
                   </Button>
                 </s-stack>
               ) : null}
-              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. We test it before saving and keep it encrypted.</s-text>
+              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. We find which service it belongs to, test it before saving and keep it encrypted.</s-text>
               <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
               <s-stack direction="inline">
                 <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
@@ -157,6 +157,12 @@ export default function TrackingSource() {
         </HomeRow>
         <HomeRow title="Advanced tracking" subtitle={d.cfg.advanced ? "On your Pro plan. If one has nothing for a shipment, the next one is used, then Shopify's data." : "On the Pro plan: live updates for almost any carrier, in three ways."} action={d.cfg.advanced ? null : <Pill>Pro plan</Pill>} bare>
           <s-stack gap="base">{CHOICES.slice(1).map(choice)}</s-stack>
+        </HomeRow>
+        <HomeRow title="A courier with no tracking system" subtitle="On Advanced tracking you can type the updates yourself.">
+          <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+            <s-text color="subdued">Open Shipments, choose “Add update” on a shipment and type its status and place. The Track page shows your updates first.</s-text>
+            <Button href="/app/tracking-shipments">Open Shipments</Button>
+          </s-stack>
         </HomeRow>
         <HomeRow title="Carriers without a tracking link" subtitle="For a local courier Shopify has no link for: the Track page builds the link from its name and your tracking number.">
           <s-stack gap="base">
