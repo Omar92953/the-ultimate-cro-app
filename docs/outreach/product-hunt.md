@@ -15,7 +15,7 @@ Hunt's current launch guidelines first; never ask for upvotes.
 **Pricing:** Free (free plan; paid plans with a free trial)
 
 **Description (260 max):**
-CRO Toolbox is a Shopify app for bundles, upsells and cross sells. Six bundle types, quantity breaks,
+CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV). Six bundle types, quantity breaks,
 cart offers, a one click offer after payment, a free shipping bar, reviews, an order tracking page and
 returns. Any Online Store 2.0 theme, no code.
 

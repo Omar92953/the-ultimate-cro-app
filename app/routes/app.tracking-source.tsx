@@ -44,7 +44,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 const CHOICES: { key: TrackSource; title: string; text: string }[] = [
   { key: "shopify", title: "Shopify's tracking data", text: "Free, every country, every carrier you add a tracking number for. Shows the status, the tracking number, the expected date and any updates Shopify gets from the carrier." },
-  { key: "live", title: "Live tracking", text: `Up to ${LIVE_MONTHLY_LIMIT} shipments a month, included. Where the parcel is now and its full history, from most carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
+  { key: "live", title: "Live tracking", text: `Up to ${LIVE_MONTHLY_LIMIT} shipments a month, included. Where the parcel is now and its full history, from 3,500+ carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
   { key: "own", title: "Your own tracking service key", text: "Already use 17TRACK, AfterShip, TrackingMore or Ship24? Paste its key and the page uses it, with no limit from us. Between them they follow thousands of carriers worldwide." },
   { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
@@ -152,6 +152,13 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
+        <HomeRow title="Any shipping company" subtitle="Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:">
+          <s-stack gap="small-200">
+            <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service (Pro).</s-text>
+            <s-text>• You type its updates on a shipment in Shipments (Pro).</s-text>
+            <s-text>• Its own tracking page is linked from every shipment, from the carrier links below (Growth and Pro).</s-text>
+          </s-stack>
+        </HomeRow>
         <HomeRow title="Basic tracking" subtitle="With the Track page, on Growth." bare>
           {choice(CHOICES[0])}
         </HomeRow>

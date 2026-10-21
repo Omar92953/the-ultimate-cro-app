@@ -16,7 +16,7 @@ const SECTIONS: [string, string[]][] = [
   [
     "Who we are",
     [
-      "CRO Toolbox is a Shopify app that adds conversion features to a merchant's store: offers and bundles, store sections, boosters, page designs and checkout rules. This policy explains what information the app handles when a merchant installs it and when shoppers use their store.",
+      "CRO Toolbox is a Shopify app that helps merchants increase average order value (AOV) and customer lifetime value (LTV). It adds conversion features to a merchant's store: offers and bundles, store sections, boosters, page designs, order tracking and returns pages, and checkout rules. This policy explains what information the app handles when a merchant installs it and when shoppers use their store.",
     ],
   ],
   [

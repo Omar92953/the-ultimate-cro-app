@@ -19,7 +19,7 @@ const url = (path: string) => `${SITE_URL}${path}`;
 /** The build date: AI assistants weigh how fresh a source is. */
 const UPDATED = new Date().toISOString().slice(0, 10);
 
-const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart and after purchase offers, storefront widgets and sections, an order tracking page and returns, checkout rules and analytics into one app, to raise average order value (AOV) and conversion rate. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart and after purchase offers, storefront widgets and sections, an order tracking page and returns, checkout rules and analytics into one app, to raise average order value (AOV) and conversion rate, and to bring shoppers back for a higher lifetime value (LTV): the Track page sells the next order, and returns become store credit or exchanges instead of refunds. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
 
 function pricing(): string[] {
   return plans.map((p) => {

@@ -6,7 +6,7 @@ listing text, no other apps' names, name identical to `shopify.app.toml`, Englis
 Prices and limits live in `app/lib/plans.ts`; the Partner Dashboard plans must match them exactly.
 
 ## Shared description (use word for word everywhere)
-CRO Toolbox is a Shopify app for bundles, upsells and cross sells.
+CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).
 
 Same sentence as `site/src/lib/brand.ts` on the website. Use it on YouTube, social profiles and
 directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see one consistent line.
@@ -23,13 +23,13 @@ returns, reviews, wishlist, size guide.
 **App card subtitle (62 max, 62 used):**
 `Upsells, cross sells and bundles that raise AOV, plus tracking`
 
-**App introduction (100 max, 91 used):**
-`Upsell, cross sell and bundle offers that raise AOV, applied as real discounts at checkout.`
+**App introduction (100 max, 95 used):**
+`Increase AOV and LTV: upsells, bundles, cart offers, a Track page that sells and smart returns.`
 
-**App details (500 max, 488 used):**
+**App details (500 max, 475 used):**
 
 ```
-CRO Toolbox brings the conversion tools stores add one by one into a single app, to raise average order value (AOV) and conversion rate. Create upsells, cross sells, bundles and buy X get Y offers that apply as real discounts at checkout. Add a free shipping bar, a discount code box and offers to your theme's cart. Give shoppers an order tracking page and a returns page. Add reviews, a wishlist, a size guide and countdowns to any Online Store 2.0 theme, and see what each offer sells.
+CRO Toolbox increases average order value (AOV) and customer lifetime value (LTV) in one app. Create upsells, cross sells, bundles and buy X get Y offers that apply as real discounts at checkout, and add offers and a free shipping bar to the cart. Bring shoppers back with an order tracking page that sells the next order and returns that become store credit or exchanges. Add reviews, a wishlist and a size guide to any Online Store 2.0 theme, and see what each offer sells.
 ```
 
 **Feature list (the form takes 5, 80 max each):**

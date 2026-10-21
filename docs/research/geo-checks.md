@@ -13,7 +13,7 @@ at the end, with the date it was added.
 3. For each answer write down:
    - **Named**: is CRO Toolbox named? (yes / no)
    - **Correct**: if named, are the facts right? (plans and prices from `app/lib/plans.ts`, the shared
-     line "CRO Toolbox is a Shopify app for bundles, upsells and cross sells.")
+     line "CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).")
    - **Cited**: is a crotoolbox.com page or the App Store listing linked? Which one?
    - **Apps named instead**: the first three apps it recommends.
 4. A cloud session can run the same questions through its web search tool (it is one search engine,

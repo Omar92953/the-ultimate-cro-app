@@ -22,7 +22,7 @@ import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOve
 import { FEATURE_IDEAS_EMAIL, TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
-import { HomeRow, HomeRows, LinkTiles, Pill } from "../components/ui";
+import { HomeRow, HomeRows, LinkTiles, PageIntro, Pill } from "../components/ui";
 import ui from "../components/ui.module.css";
 import { usePlan } from "../components/Upgrade";
 import { isLocked } from "../lib/plan-gate";
@@ -233,6 +233,7 @@ export default function Home() {
         View store
       </Button>
       <HomeRows>
+        <PageIntro text="Increase average order value (AOV) and customer lifetime value (LTV): offers and bundles make each order bigger, and a Track page that sells and returns that keep the sale bring shoppers back." />
         {banner ? (
           <s-banner tone={banner.tone} heading={banner.heading}>
             <s-stack gap="small-200">

@@ -11,7 +11,7 @@ Running a Shopify store, I ended up with one app per job: one for bundles, one f
 free shipping bar, one for order tracking, one for returns. Each had its own settings, its own styles,
 its own bill, and its own script on every product page.
 
-So I built CRO Toolbox. In one line: CRO Toolbox is a Shopify app for bundles, upsells and cross sells.
+So I built CRO Toolbox. In one line: CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).
 
 **What I wanted it to do differently**
 
