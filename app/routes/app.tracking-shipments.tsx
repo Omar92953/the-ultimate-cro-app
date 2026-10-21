@@ -21,7 +21,8 @@ import css from "../components/OfferList.module.css";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const { plan } = await planContext(admin, session.shop);
-  const [shipments, cfg] = await Promise.all([recentShipments(admin, session.shop).catch(() => null), getTrackingConfig(session.shop, plan)]);
+  const cfg = await getTrackingConfig(session.shop, plan);
+  const shipments = await recentShipments(admin, session.shop, cfg.source, plan).catch(() => null);
   return { shipments, source: cfg.source, advanced: cfg.advanced };
 };
 
