@@ -174,6 +174,7 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   post_purchase: "free",
   ab_tests: "pro",
   return_saving: "pro",
+  loyalty: "pro",
 };
 
 /** Things inside a page that need a plan (the page itself stays open). */

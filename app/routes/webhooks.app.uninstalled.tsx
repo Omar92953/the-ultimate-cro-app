@@ -5,6 +5,7 @@ import { removeShopMcp } from "../lib/mcp/auth.server";
 import { removeShopTracking } from "../lib/tracking/tracking.server";
 import { removeShopAb } from "../lib/ab-tests.server";
 import { removeShopTrackCodes } from "../lib/track-sell.server";
+import { removeShopLoyalty } from "../lib/loyalty/program.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, session, topic } = await authenticate.webhook(request);
@@ -21,6 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   await removeShopTracking(shop);
   await removeShopAb(shop);
   await removeShopTrackCodes(shop);
+  await removeShopLoyalty(shop);
 
   return new Response();
 };

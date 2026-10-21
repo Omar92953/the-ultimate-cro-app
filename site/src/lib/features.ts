@@ -157,6 +157,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["Each picture with a title, text, button and link", "Captions below or on the pictures", "Pictures per row, shape, arrows and dots"],
     related: ["videos", "collection_pills"],
   },
+  loyalty: {
+    who: "For stores that want shoppers to come back and spend again.",
+    points: ["Points for orders, signups, birthdays and reviews", "Rewards shoppers spend: discounts, free shipping, free products or store credit", "VIP tiers and referrals"],
+    related: ["returns", "track"],
+  },
   coverflow: {
     who: "For lookbooks, customer photos and new arrivals that deserve one big picture at a time.",
     points: ["One large picture in the centre, the others smaller behind it", "Turns with arrows, dots, a swipe or by itself", "Each picture with a title, text, button and link", "Works next to Image carousel: use both on one store"],

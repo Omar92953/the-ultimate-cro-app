@@ -102,8 +102,8 @@ test("pages map to features, and locked pages say which plan they need", () => {
   assert.equal(areaForPath("/app/offers/upsell/new"), "offers");
   assert.equal(areaForPath("/app/designs/quiz"), "library");
   assert.equal(areaForPath("/app/checkout/limits"), "cart");
-  // Menu: Offers, Section library, Tracking & Returns, Cart & Checkout (Omar, 2026-10-18; Cart group first, then Checkout).
-  assert.deepEqual(AREAS.map((a) => a.title), ["Offers", "Section library", "Tracking & Returns", "Cart & Checkout"]);
+  // Menu: Offers, Loyalty, Section library, Tracking & Returns, Cart & Checkout (Omar, 2026-10-18; Loyalty 2026-10-21, next to Offers: AOV then LTV).
+  assert.deepEqual(AREAS.map((a) => a.title), ["Offers", "Loyalty", "Section library", "Tracking & Returns", "Cart & Checkout"]);
   assert.equal(areaForPath("/app/cart"), null);
   assert.equal(areaForPath("/app/cart-checkout"), "cart");
   assert.equal(areaForPath("/app/designs/cart-extras"), "cart");

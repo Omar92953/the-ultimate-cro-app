@@ -249,3 +249,65 @@ model ReviewerEmail {
   @@unique([shop, reviewId])
   @@index([shop, email])
 }
+
+/// Loyalty program (Pro), one per store: its settings (lib/loyalty/config.ts) and where the order sync is up to.
+model LoyaltyProgram {
+  shop      String    @id
+  on        Boolean   @default(false)
+  config    String    @default("{}")
+  /// Orders and customers changed after this were not read yet (lib/loyalty/sync.server.ts).
+  syncedAt  DateTime?
+  updatedAt DateTime  @default(now())
+}
+
+/// A customer in a store's loyalty program. `points` can be used now; `pending` becomes usable after the pending days.
+model LoyaltyMember {
+  id           Int       @id @default(autoincrement())
+  shop         String
+  customerId   String
+  email        String    @default("")
+  firstName    String    @default("")
+  locale       String    @default("")
+  /// "MM-DD", typed by the shopper.
+  birthday     String    @default("")
+  points       Int       @default(0)
+  pending      Int       @default(0)
+  lifetime     Int       @default(0)
+  spent        Float     @default(0)
+  orders       Int       @default(0)
+  tier         String    @default("")
+  tierSince    DateTime?
+  referralCode String    @default("")
+  referredBy   Int?
+  emailOptOut  Boolean   @default(false)
+  blocked      Boolean   @default(false)
+  joinedAt     DateTime  @default(now())
+  lastActivity DateTime  @default(now())
+
+  @@unique([shop, customerId])
+  @@index([shop, email])
+  @@index([shop, referralCode])
+}
+
+/// Every change to a member's points. `dedupe` makes a change happen once (an order's points, a signup bonus).
+model LoyaltyEvent {
+  id          Int       @id @default(autoincrement())
+  shop        String
+  memberId    Int
+  kind        String
+  points      Int
+  /// pending, available, expired
+  status      String    @default("available")
+  orderId     String    @default("")
+  /// Money of the order this change is about (order: its net total; refund: negative), for spend based tiers.
+  amount      Float     @default(0)
+  note        String    @default("")
+  dedupe      String?
+  availableAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  @@unique([shop, dedupe])
+  @@index([shop, memberId, createdAt])
+  @@index([status, availableAt])
+  @@index([shop, orderId])
+}
