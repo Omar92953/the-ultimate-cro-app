@@ -35,6 +35,10 @@ services:
         sync: false        # Postmark → the server → API Tokens: sends the loyalty emails. Empty: no emails are sent
       - key: POSTMARK_ACCOUNT_TOKEN
         sync: false        # Postmark → Account → API Tokens: adds merchants' own sender domains (Loyalty → Emails)
+      - key: APP_EVENTS_CLIENT_ID
+        sync: false        # Dev Dashboard → API key for the App Events API: bills the units over a plan limit (usage meters)
+      - key: APP_EVENTS_CLIENT_SECRET
+        sync: false        # the same key's secret
       - key: SUPPORT_EMAIL
         value: support@crotoolbox.com   # shown on /privacy, Home and Settings (Cloudflare Email Routing to crotoolbox.app@gmail.com)
       - key: DATABASE_URL

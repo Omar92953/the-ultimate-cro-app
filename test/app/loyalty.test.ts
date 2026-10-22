@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations"]) {
+  for (const m of ["20261019000000_tracking", "20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations", "20261102000000_usage_extras"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -786,7 +786,7 @@ test("emails are skipped when the service isn't ready, failed when Shopify's add
   const mail = fakeMail();
   await E.sendQueued(storeAdmin(), shop, c, now, mail.provider);
   assert.equal(mail.sent.length, 0);
-  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, dedupe: "t2" } })).reason, "Monthly limit of 10,000 reached");
+  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, dedupe: "t2" } })).reason, "Monthly email limit reached");
   await prisma.loyaltyEmail.deleteMany({ where: { shop } });
 });
 
@@ -1098,4 +1098,84 @@ test("Flow's Add loyalty points: once per run, takes points away with a negative
   const ev = await prisma.loyaltyEvent.findFirstOrThrow({ where: { shop, kind: "flow", points: 100 } });
   assert.equal(ev.note, "First review");
   assert.equal((await run({ customer_id: 6, points: 10 }, "run3", flowAdmin({ customer: { locale: "", tags: ["Wholesale"], defaultEmailAddress: null } }))).message, "This customer has a tag that keeps them out of the loyalty program.");
+});
+
+/* ------------------------------------------------------------- plans ---- */
+test("Growth runs loyalty without the Pro parts (kept for an upgrade)", async () => {
+  const { forPlan } = await import("../../app/lib/loyalty/config");
+  const { accessFor, planned } = await import("../../app/lib/loyalty/plan.server");
+  const full = withLoyaltyDefaults({
+    tiers: { on: true },
+    campaigns: [{ name: "Double", multiplier: 2, from: "2026-11-01", to: "2026-11-30" }],
+    productRules: [{ kind: "products", items: [{ id: "gid://shopify/Product/1", title: "A" }], perUnit: 2 }],
+    cashback: { on: true, percent: 5 },
+    affiliates: [{ id: "a1", code: "SARAH10" }],
+    emails: { on: true, sender: { email: "hi@sara.test" } },
+  });
+  assert.equal(forPlan(full, true), full, "Pro: everything as saved");
+  const g = forPlan(full, false);
+  assert.deepEqual([g.tiers.on, g.campaigns.length, g.productRules.length, g.cashback.on, g.affiliates[0].on, g.affiliates[0].code, g.emails.sender.email, g.emails.on], [false, 0, 0, false, false, "SARAH10", "", true]);
+  assert.equal(full.tiers.on, true, "the saved settings are not changed");
+  assert.deepEqual(accessFor("growth"), { plan: "growth", on: true, pro: false, ordersExtra: false, emailsExtra: false });
+  assert.equal(accessFor("starter").on, false);
+  assert.deepEqual(planned(full, accessFor("pro", { loyaltyOrders: true })).usage, { plan: "pro", ordersExtra: true, emailsExtra: false });
+});
+
+test("loyalty orders a month: past the plan's limit orders earn nothing, unless the store allows extra (then each is billed once)", async () => {
+  const { planned, accessFor } = await import("../../app/lib/loyalty/plan.server");
+  const { PLANS } = await import("../../app/lib/plans");
+  const U = await import("../../app/lib/usage.server");
+  const shop = "pl1.myshopify.com";
+  const was = PLANS.growth.limits.loyaltyOrders;
+  PLANS.growth.limits.loyaltyOrders = 1;
+  try {
+    const c = planned(cfg({ pendingDays: 0 }), accessFor("growth"));
+    const now = new Date();
+    await P.syncOrder(shop, c, order({ id: "1", createdAt: now.toISOString(), customer: who("1", "a@example.com") }), now);
+    assert.equal(await P.syncOrder(shop, c, order({ id: "2", createdAt: now.toISOString(), customer: who("1", "a@example.com") }), now), null, "the second order of the month earns nothing");
+    assert.equal((await member(shop, "1")).points, 50);
+    await U.setExtra(shop, "loyaltyOrders", true);
+    const extra = planned(cfg({ pendingDays: 0 }), accessFor("growth", await U.extrasFor(shop)));
+    await P.syncOrder(shop, extra, order({ id: "3", createdAt: now.toISOString(), customer: who("1", "a@example.com") }), now);
+    await P.syncOrder(shop, extra, order({ id: "3", createdAt: now.toISOString(), customer: who("1", "a@example.com") }), now);
+    assert.equal((await member(shop, "1")).points, 100);
+    assert.equal(await prisma.usageEvent.count({ where: { shop, meter: "loyaltyOrders" } }), 1, "billed once");
+    const bars = await U.usageSummary(shop, "growth");
+    const orders = bars.find((b) => b.meter === "loyaltyOrders")!;
+    assert.deepEqual([orders.used, orders.limit, orders.extra, orders.over, orders.price, orders.per], [2, 1, true, 1, 5, 100]);
+    assert.deepEqual(bars.map((b) => b.meter), ["liveShipments", "loyaltyOrders", "loyaltyEmails"]);
+    assert.deepEqual(await U.usageSummary(shop, "starter"), [], "no bars below Growth");
+  } finally {
+    PLANS.growth.limits.loyaltyOrders = was;
+  }
+});
+
+test("units over a limit go to Shopify App Pricing once each, as billable events", async () => {
+  const U = await import("../../app/lib/usage.server");
+  const shop = "pl2.myshopify.com";
+  const now = new Date();
+  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 10, "ship:A"), true, "within the limit");
+  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 200, "ship:B"), false, "at the limit, extra off");
+  await U.setExtra(shop, "liveShipments", true);
+  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 200, "ship:B"), true);
+  assert.equal(await U.allowUnit(shop, "starter", "liveShipments", 0, "ship:C"), false, "not on Starter at all");
+  const calls: { url: string; body: Record<string, unknown> }[] = [];
+  const http = (async (url: string, init?: RequestInit) => {
+    calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")) });
+    return new Response(JSON.stringify(url.includes("access_token") ? { access_token: "tok", expires_in: 3600 } : {}), { status: url.includes("access_token") ? 200 : 202 });
+  }) as typeof fetch;
+  assert.equal(await U.reportUsage(async () => "123", http, now), 0, "no App Events key yet: kept queued");
+  process.env.APP_EVENTS_CLIENT_ID = "id";
+  process.env.APP_EVENTS_CLIENT_SECRET = "secret";
+  try {
+    assert.ok((await U.reportUsage(async () => "123", http, now)) >= 1, "every store's queued units");
+    const ev = calls.find((c) => c.url.endsWith("/events") && c.body.event_handle === "live-shipments")!;
+    assert.equal(ev.url, "https://api.shopify.com/app/2026-10/events");
+    assert.deepEqual([ev.body.event_handle, (ev.body.attributes as { value: number }).value, ev.body.shop_id], ["live-shipments", 1, "123"]);
+    assert.equal(String(ev.body.idempotency_key).length <= 64, true);
+    assert.equal(await U.reportUsage(async () => "123", http, now), 0, "sent once");
+  } finally {
+    delete process.env.APP_EVENTS_CLIENT_ID;
+    delete process.env.APP_EVENTS_CLIENT_SECRET;
+  }
 });

@@ -223,6 +223,9 @@ export async function sendEvents(shop: string, c: LoyaltyConfig, http: Fetch = f
   return out;
 }
 
+/** Events that can't go out on this plan: marked skipped with the reason. */
+export const skipEvents = (shop: string, reason: string) => db.loyaltyOutbox.updateMany({ where: { shop, status: "queued" }, data: { status: "skipped", reason } });
+
 /* ------------------------------------------------------------- reviews -- */
 type JudgeMeReview = { id: number; rating?: number; hidden?: boolean; curated?: string; reviewer?: { email?: string | null } | null; pictures?: unknown[] | null };
 
@@ -295,7 +298,7 @@ export async function reviewApproved(admin: AdminClient, shop: string, reviewId:
   if (!email) return null;
   const p = await getProgram(shop);
   if (!p.on || !p.config.earn.review.on) return null;
-  if (!atLeast((await getPlan(admin, shop)).plan, "pro")) return null;
+  if (!atLeast((await getPlan(admin, shop)).plan, "growth")) return null;
   return approvedReviewPoints(shop, p.config, reviewId, email, photo);
 }
 

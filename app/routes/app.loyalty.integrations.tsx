@@ -17,20 +17,23 @@ import { EVENT_NAMES, INTEGRATIONS, INTEGRATION_INFO, type IntegrationKind } fro
 import { Button, PasswordField, Switch } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { loyaltyAccess } from "../lib/loyalty/plan.server";
+import { ProNote } from "../components/ProNote";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const [list, p, flow] = await Promise.all([integrationList(session.shop), getProgram(session.shop), db.loyaltyIntegration.findUnique({ where: { shop_kind: { shop: session.shop, kind: "flow" } }, select: { on: true } })]);
-  return { list, reviewsOn: p.config.earn.review.on, events: [...new Set(Object.values(EVENT_NAMES))], flowOn: !!flow?.on };
+  const { admin, session } = await authenticate.admin(request);
+  const [list, p, flow, access] = await Promise.all([integrationList(session.shop), getProgram(session.shop), db.loyaltyIntegration.findUnique({ where: { shop_kind: { shop: session.shop, kind: "flow" } }, select: { on: true } }), loyaltyAccess(admin, session.shop)]);
+  return { pro: access.pro, list, reviewsOn: p.config.earn.review.on, events: [...new Set(Object.values(EVENT_NAMES))], flowOn: !!flow?.on };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   const intent = String(form.get("intent"));
   const kind = String(form.get("kind")) as IntegrationKind;
   if (!(INTEGRATIONS as readonly string[]).includes(kind)) return { ok: false, error: "Unknown service", message: "" };
   try {
+    if (intent === "connect" && !(await loyaltyAccess(admin, session.shop)).pro) throw new Error("Integrations are on the Pro plan.");
     if (intent === "connect") await connect(session.shop, kind, String(form.get("key") ?? ""));
     else if (intent === "on") await setIntegrationOn(session.shop, kind, form.get("on") === "true");
     else if (intent === "disconnect") await disconnect(session.shop, kind);
@@ -64,6 +67,7 @@ export default function LoyaltyIntegrations() {
       <HomeRows>
         <FeatureTabs feature="loyalty" />
         <PageIntro text="Connect the tools you already use. Your keys are stored encrypted and only their last 4 characters are shown." />
+        {d.pro ? null : <ProNote text="Klaviyo, Omnisend, Judge.me and Shopify Flow work on the Pro plan. Product reviews from Customer reviews earn points on your plan too." />}
 
         {INTEGRATIONS.map((k) => {
           const s = d.list[k];

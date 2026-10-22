@@ -7,7 +7,7 @@
  */
 import { PLANS, PLAN_KEYS, FEATURE_PLAN, money, type PlanKey } from "../lib/app";
 import type { KeywordPage } from "../lib/keywords";
-import { TRACK_STATUSES, TRACK_STATUS_LABEL, SOURCE_PLAN, LIVE_MONTHLY_LIMIT } from "../../../app/lib/tracking";
+import { TRACK_STATUSES, TRACK_STATUS_LABEL, SOURCE_PLAN, liveLimit } from "../../../app/lib/tracking";
 
 const trackPlan = PLANS[FEATURE_PLAN.track];
 const livePlan = PLANS[SOURCE_PLAN.live].name;
@@ -70,7 +70,7 @@ const page: KeywordPage = {
     head: ["Source", "What it gives", "Plan"],
     rows: [
       ["Shopify's tracking data", "The status, tracking number, estimated delivery and any events Shopify has for the shipment. Every country, at no extra cost.", sourcePlan("shopify")],
-      ["Live tracking", `Where the parcel is now and the full history, from most carriers worldwide. Up to ${LIVE_MONTHLY_LIMIT} shipments a month; over the limit the page uses Shopify's data.`, sourcePlan("live")],
+      ["Live tracking", `Where the parcel is now and the full history, from most carriers worldwide. Up to ${liveLimit("growth")} shipments a month on Growth and ${liveLimit("pro")} on Pro; over the limit the page uses Shopify's data.`, sourcePlan("live")],
       ["Your own key", "A key from your shipping company or tracking service. No limit from us.", sourcePlan("own")],
       ["Webhook link", "For carriers or services that send you updates: every update shows on the page.", sourcePlan("webhook")],
     ],
@@ -95,7 +95,7 @@ const page: KeywordPage = {
     },
     {
       q: "Where does the tracking information come from?",
-      a: `From Shopify's tracking data by default. On ${livePlan}, live tracking shows where the parcel is now from most carriers, up to ${LIVE_MONTHLY_LIMIT} shipments a month. You can also use your own key from a shipping company or tracking service, or a webhook link.`,
+      a: `From Shopify's tracking data by default. On ${livePlan}, live tracking shows where the parcel is now from most carriers, up to ${liveLimit("growth")} shipments a month (${liveLimit("pro")} on Pro). You can also use your own key from a shipping company or tracking service, or a webhook link.`,
     },
     {
       q: "Can I show products on the tracking page?",

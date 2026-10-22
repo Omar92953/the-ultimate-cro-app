@@ -7,8 +7,11 @@ import { upsert } from "../cro.server";
 import type { AdminClient } from "../admin.server";
 import { toStorefrontLoyalty } from "./config";
 import { getProgram } from "./program.server";
+import { loyaltyAccess, planned } from "./plan.server";
 
 export async function publishLoyalty(admin: AdminClient, shop: string) {
   const p = await getProgram(shop);
-  await upsert(admin, "$app:cro_design", "loyalty", { config: JSON.stringify(toStorefrontLoyalty(p.config, p.on)) });
+  const access = await loyaltyAccess(admin, shop);
+  // The widget shows what this plan runs (no VIP tiers or campaigns on Growth).
+  await upsert(admin, "$app:cro_design", "loyalty", { config: JSON.stringify(toStorefrontLoyalty(planned(p.config, access), p.on && access.on)) });
 }

@@ -15,6 +15,7 @@ import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
 import { eventTargets, queueEvents } from "./integrations.server";
+import { allowUnit } from "../usage.server";
 import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, validEmail, type EmailKind } from "./emails";
 
 const DAY = 86_400_000;
@@ -267,7 +268,7 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
     else if (m.emailOptOut) refuse(q.id, "Unsubscribed");
     else if (!validEmail(m.email)) refuse(q.id, "No email address");
     else if (isReminder(kind) && !m.emailMarketing) refuse(q.id, "Not subscribed to email marketing");
-    else if (used >= MONTHLY_EMAILS) refuse(q.id, `Monthly limit of ${MONTHLY_EMAILS.toLocaleString("en-US")} reached`);
+    else if (c.usage ? !(await allowUnit(shop, c.usage.plan, "loyaltyEmails", used, `email:${q.id}`, c.usage.emailsExtra, now)) : used >= MONTHLY_EMAILS) refuse(q.id, "Monthly email limit reached");
     else {
       used++;
       let data: EmailData = {};
@@ -292,10 +293,10 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
 }
 
 /** A test email of one kind with sample words, to an address the store types (logged as a test). */
-export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider()) {
+export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider(), limit = MONTHLY_EMAILS) {
   if (!validEmail(to)) throw new Error("Type the address to send the test to.");
   if (!provider.ready()) throw new Error("The email service is not set up yet.");
-  if ((await emailsThisMonth(shop)) >= MONTHLY_EMAILS) throw new Error("This month's emails are used up.");
+  if ((await emailsThisMonth(shop)) >= limit) throw new Error("This month's emails are used up.");
   const store = await storeInfo(admin);
   const from = await fromFor(shop, c, store, provider);
   const row = await db.loyaltyEmail.create({ data: { shop, memberId: null, kind, to, status: "queued", reason: "Test", data: "{}" } });

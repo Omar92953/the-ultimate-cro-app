@@ -6,6 +6,7 @@
 import db from "../../db.server";
 import { withLoyaltyDefaults, excludedTags, type LoyaltyConfig } from "./config";
 import { notify } from "./mailer.server";
+import { allowUnit, usedThisMonth } from "../usage.server";
 import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
@@ -43,8 +44,11 @@ export async function setProgramOn(shop: string, on: boolean, pastDays = 0) {
 /* ----------------------------------------------------------------- members -- */
 type Customer = NonNullable<OrderFacts["customer"]>;
 
-/** The member for this customer: found, or made when `create` (with a referral code nobody in the store has). */
-export async function memberFor(shop: string, c: Customer, create: boolean) {
+/**
+ * The member for this customer: found, or made when `create` (with a referral code nobody in the store has).
+ * `cap`: no new member once the store has this many (the Growth plan's limit).
+ */
+export async function memberFor(shop: string, c: Customer, create: boolean, cap: number | null = null) {
   const found = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: c.id } } });
   if (found) {
     // Keep the contact details fresh (they are used for the member's emails).
@@ -55,6 +59,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
     return found;
   }
   if (!create) return null;
+  if (cap !== null && (await db.loyaltyMember.count({ where: { shop } })) >= cap) return null;
   for (let i = 0; i < 5; i++) {
     const referralCode = newReferralCode();
     if (await db.loyaltyMember.findFirst({ where: { shop, referralCode }, select: { id: true } })) continue;
@@ -139,6 +144,8 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const pendingNow = c.pendingDays > 0;
 
   if (!orderRow && (target > 0 || credit > 0)) {
+    // The plan's loyalty orders a month (plans.ts): past it, orders earn nothing unless the store allows extra.
+    if (c.usage && !(await allowUnit(shop, c.usage.plan, "loyaltyOrders", await usedThisMonth(shop, "loyaltyOrders", now), `order:${o.id}`, c.usage.ordersExtra, now))) return null;
     await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
     await db.loyaltyMember.update({ where: { id: m.id }, data: { orders: { increment: 1 } } });
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {

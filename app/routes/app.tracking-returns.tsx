@@ -395,7 +395,7 @@ function TrackingTab({ d, pageStatus, pageButton, template, steps }: TabProps) {
             {
               done: !!d.tracking?.chosen,
               title: "Where should tracking come from?",
-              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Basic tracking uses Shopify's data and is free. Advanced tracking on Pro adds live tracking, your own tracking service key or a webhook link from any carrier.",
+              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Tracking uses Shopify's data, live tracking for 3,500+ carriers, your own tracking service key or a webhook link from any carrier.",
               action: { label: d.tracking?.chosen ? "Change" : "Choose", href: "/app/tracking-source" },
             },
             ...steps,
