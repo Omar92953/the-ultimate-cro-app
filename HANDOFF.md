@@ -1,89 +1,143 @@
-# Handoff: CRO Toolbox lead role (2026-10-19)
+# Handoff: CRO Toolbox lead role (2026-10-22)
 
-Written by the supervisor session (Omar's Mac, Claude desktop app) that ran reviews, Shopify deploys and
-Testing 3 checks from 2026-10-15 to 2026-10-19. The next session takes over ALL of that work. Everything is in
-the repo; never rely on old chats. Trust `CLAUDE.md` and `docs/WORKBOARD.md` over this file where they differ.
+Written by the lead session on Omar's Mac (Claude desktop app, Code tab). It ran building, reviews, Shopify
+deploys, merges and Testing 3 checks from 2026-10-19 to 2026-10-22. Omar asked to hand off to his main Claude
+account, which takes over **all** of that work. Everything is in the repo; never rely on old chats. Where
+`CLAUDE.md` or `docs/WORKBOARD.md` differ from this file, trust them.
 
 ## How to start
 
-1. Claude desktop app → **Code** tab → new session in `~/Workspace/the-ultimate-cro-app` (or
-   `~/Workspace/cro-terminal`, a second full clone of the same repo) → model **Opus 5.5**.
+1. Claude desktop app → **Code** tab → new session in `~/Workspace/the-ultimate-cro-app` → model **Opus 5.5**.
 2. Say: **"Read HANDOFF.md and CLAUDE.md and follow them."**
-3. `git fetch --prune && git checkout main && git pull`, then read `docs/TEAM.md`, `docs/WORKBOARD.md`
-   (sections "Review run 2026-10-19" and "Verified on Testing 3, 2026-10-18"), `docs/submission-review.md`,
-   `docs/PROJECT-GUIDE.md`, then `gh pr list`.
+3. Run `git fetch --prune && git checkout main && git pull`. Then read `docs/TEAM.md`, `docs/WORKBOARD.md`
+   (section "Loyalty and pre-final audit"), `docs/plans/loyalty.md`, `docs/PROJECT-GUIDE.md` and
+   `docs/submission-review.md`, and run `gh pr list`.
+4. Continue with **draft PR #260** (loyalty referrals): `git checkout claude/loyalty-referrals`. If typecheck
+   complains about Prisma models, run `npx prisma generate`, then `npx prisma migrate deploy` for the local
+   dev.sqlite.
 
-## Your role (what the supervisor did)
+## Your role
 
-- Build, review and ship. One `claude/<topic>` branch per change → all checks → PR → (Shopify deploy if
-  `extensions/`, `theme/` or `shopify.app.toml` changed) → merge → verify on Testing 3 → note it on the workboard.
-- Checks: `npm run typecheck`, `lint`, `test:app`, `build`, `graphql-codegen`, `build:theme`,
-  `test:storefront`, `test:functions`, `npm --prefix site run build`, `shopify app config validate`,
-  `shopify theme check --path extensions/cro-storefront`. If typecheck complains about Prisma models, run
-  `npx prisma generate` first.
-- Deploy from the Mac: `NODE_OPTIONS=--dns-result-order=ipv4first shopify app deploy --allow-updates --message "..."`
-  (deploy the reviewed commit, then merge). `shopify app versions list` shows what is live.
-- Render (`https://cro-toolbox.onrender.com`) auto-deploys `main` (service `srv-db5plrnavr4c739kvhh0`). If it skips
-  a merge: Render dashboard → Manual Deploy → Deploy latest commit. Server timing logs: search `[timing]`.
-  `SCOPES` comes from `render.yaml` (Blueprint) and must equal `shopify.app.toml` scopes.
-- Optional helper: the second Claude account runs headless from a terminal tab:
-  `cd ~/Workspace/cro-terminal && claude2 -p "Read .claude-task.md and do the task in it." --model claude-opus-5-5 --permission-mode auto 2>&1 | tee .claude2-log.txt`
-  (write the task to `.claude-task.md`, which is git-excluded; ask it to end with a `REPORT:` block; it cannot
-  merge its own PRs, you review and merge). It is not required: you can do the work yourself.
+- Build, review and ship. Omar made the lead responsible for building, reviewing, deploying, merging, testing on
+  Testing 3, and guiding his Partner Dashboard steps one click at a time.
+- Shipping steps, in order:
+  1. One `claude/<topic>` branch per change.
+  2. All checks pass.
+  3. Open a PR.
+  4. If `extensions/`, `theme/` or `shopify.app.toml` changed, deploy to Shopify.
+  5. Merge.
+  6. Verify on Testing 3.
+  7. Note it on the workboard.
+- Checks:
+  - `npm run typecheck`, `lint`, `test:app`, `build`, `graphql-codegen`, `build:theme`, `test:storefront`,
+    `test:functions`
+  - `npm --prefix site run build` (it builds the demos too)
+  - `shopify app config validate`
+  - `shopify theme check --path extensions/cro-storefront`
+- Deploy from the Mac: `NODE_OPTIONS=--dns-result-order=ipv4first shopify app deploy --allow-updates --message "..."`.
+  Deploy the reviewed commit, then merge. `shopify app versions list` shows what is live.
+- Read-only GraphQL checks and introspection on Testing 3:
+  `shopify app execute -s testing-3-xsslpo6d.myshopify.com --no-input -q '...'`.
+- Render (`https://cro-toolbox.onrender.com`, service `srv-db5plrnavr4c739kvhh0`):
+  - Auto-deploys `main` and runs `prisma migrate deploy` on start.
+  - If it skips a merge: Manual Deploy → Deploy latest commit.
+  - `SCOPES` comes from `render.yaml` and must equal the scopes in `shopify.app.toml`.
+
+## Where things stand (2026-10-22)
+
+- Live: Shopify app version **cro-toolbox-55** (the last deploy; check with `shopify app versions list`). Render
+  runs `main` (last merge #259). Website crotoolbox.com is live on Cloudflare Pages.
+- Shipped since 2026-10-19 (#208 to #259):
+  - Header block back.
+  - Home rows rounded, all cards white.
+  - Image carousel 2 (coverflow, `ucs-coverflow`), and a Customer reviews template in that look (colour fill,
+    crop, centering).
+  - The 9 CRO sections shown in the library.
+  - Size chart grid fixed.
+  - Tracking & Returns split into two tabs. Track page output switches. Tracking stays by email, with no postal
+    code lookup (Omar).
+  - Tracking for any carrier:
+    - **Basic tracking** (Growth): Shopify's carriers.
+    - **Advanced tracking** (Pro): 17TRACK live tracking with 3,500+ carriers and the carrier code passed through
+      (Bosta, MyLerz, J&T Express (EG), Aramex, SMSA, iMile and more). AfterShip, TrackingMore and Ship24 keys
+      also work.
+    - Carrier links and hand-typed updates cover any courier.
+    - A Shipments page.
+  - New prices **in the code**: Growth $19.99 ($199 a year), Pro $39.99 ($399 a year).
+  - Positioning everywhere: "CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value
+    (LTV)". It is in the listing text in `docs/listing.md`, the app Home, the website, `llms.txt` and the privacy page.
+  - Loyalty (Pro) parts 1 to 4: see `docs/plans/loyalty.md`.
+- **Prices don't match yet.** The Partner Dashboard App Pricing plans still have the old prices (Starter $5.99,
+  Growth $14.99, Pro $24.99). Omar wants every Partner Dashboard change done **once, at the very end**, after his
+  audits. Until then, the plans page in the app shows the new prices while Shopify would charge the old ones.
+  Don't launch before that update.
+- Protected customer data:
+  - **email** is approved. **firstName is not** ("This app is not approved to use the firstName field"), so the
+    app never reads names.
+  - Order webhooks need approval, so loyalty polls the Admin API.
+- Theme budget: 29 of 30 blocks, about 92 KB of 100 KB Liquid (both limits are enforced by Shopify). New storefront
+  features go into existing blocks and embeds. Each storefront JS file must stay under 10 KB gzipped.
+
+## Open work, in order
+
+1. **Loyalty part 5, referrals and affiliate links: draft PR #260.** The tables are done; the full design is in the
+   PR description (config, discounts, fraud checks, proxy, widget, admin page, tests). Finish it, run the checks,
+   deploy (it changes `extensions/`), merge, then check the Referrals page on Testing 3.
+2. **Loyalty parts 6 to 10** (`docs/plans/loyalty.md`, status table rows 7 to 11):
+   - **Emails**: Postmark (Platform plan) behind a small provider interface, so Resend can replace it.
+     - Default sender: "Store name <rewards@mail.crotoolbox.com>", with Reply-To the store's email.
+     - **The store's own sender**, the way Essent does it: the merchant types an address, the app shows 3 DNS
+       records (ownership TXT, DKIM TXT, Return-Path CNAME) from Postmark's domain API, and a **Verify** button.
+       If the domain stops verifying, emails fall back to the default sender.
+     - One-click unsubscribe, bounces, a log, a test send, and fair use of 10,000 a month per store.
+     - Reminder emails go only to members subscribed to email marketing.
+     - Omar confirmed this approach after asking "are you sure that we should use our email ... not the stores
+       email like how does the app i sent you sends their emails".
+   - **Integrations**: Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action.
+   - **Extensions**: customer account UI extension, points on the thank you and order status pages, Plus checkout
+     redeem (Omar: "include the shopify plus features"), POS UI extension.
+   - Loyalty analytics, CSV import and export, languages.
+   - Website and docs: remove "loyalty" from `SITE_HIDDEN`, add the feature page, help, privacy (Postmark, Klaviyo,
+     Omnisend) and the pricing highlight.
+3. **Pre-final audit leftovers** (Omar's audit list; the other items are done):
+   - **Analytics rebuild with A/B test results.** Omar approved the suggestion: tests are still created on the
+     Offers page, and their results are added to Analytics.
+   - **Cart Discount code** box.
+   - **Branding lines and store credit incentives** on the Track and Returns pages.
+4. **Listing images**: Omar said "leave the listing images to be decided just create all the listing images and we
+   will choose after that". Make every candidate in the approved style (`branding/listing/README.md`; the
+   screenshots must include the Track and Returns pages, see `docs/WORKBOARD.md` "Later"). Omar picks.
+5. **Final App Store audit** (skill `shopify-app-store-audit`, plus Shopify's AI self-review page), then the single
+   Partner Dashboard update with Omar.
+
+## Omar's steps (together, at the end, unless he says otherwise)
+
+- Partner Dashboard, once:
+  - new prices on all plans, monthly and yearly;
+  - protected customer data: add Name and birthday, the loyalty purpose, and Postmark, Klaviyo and Omnisend as
+    processors;
+  - network access for the checkout and customer account extensions;
+  - listing text with the AOV and LTV lines (`docs/listing.md`), the Loyalty category, and the chosen listing images.
+- Postmark: sign up, add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type the server token into
+  Render as `POSTMARK_SERVER_TOKEN` himself.
+- Testing 3: sign in as a customer and place one test order himself, to check loyalty end to end.
+- Test Connect Claude end to end (claude.ai → Settings → Connectors → `https://cro-toolbox.onrender.com/mcp`).
 
 ## Testing
 
 - **Testing 3**: `testing-3-xsslpo6d.myshopify.com`. Always use store URLs
-  `admin.shopify.com/store/testing-3-xsslpo6d/...` (a store-less admin URL can land on another store).
-- It is on the **Pro** test plan ($0 on dev stores). Omar approved switching plans on test stores without asking:
-  `.../charges/the-ultimate-cro-app/plans/<free|starter|growth|pro>?interval=EVERY_30_DAYS|ANNUAL`.
-- Storefront password: Omar types it himself in the browser pane (never type passwords).
-- Test orders: Draft orders → customer Ayumu Hirano → product → Collect payment → Mark as paid, then fulfil and
-  mark delivered. Orders #1001 to #1006 are used up (returns done). Returns page: `/pages/returns`;
-  Track page: `/pages/track-your-order`.
-- Test data on Testing 3: mix and match bundle "Guard test box" ($30, pick 2); A/B test ended with version B
-  headline on the "You and your friend" upsell; #1006 has UPS test tracking 1Z999AA10123456784; Live tracking is on.
-- Never modify the live store `ms6vwv-3n` (Backrooms). Never `shopify app dev clean`.
-
-## Where things stand (2026-10-19)
-
-- Live: Shopify **cro-toolbox-39**, Render on `main`. Website crotoolbox.com live (Cloudflare Pages).
-- Shopify AI self review (`shopify doc fetch --url https://shopify.dev/docs/apps/launch/app-store-review/app-store-ai-self-review-requirements`,
-  AI Toolkit skill "App Store Review"): passes except Omar's Partner Dashboard items. Fixed 2026-10-19:
-  1.1.15 (refunds only via returnProcess; no gift card or discount code paybacks; `write_gift_cards` removed) and
-  2.3.1 (no typed store address on `/mcp/authorize`; one click "Open CRO Toolbox in Shopify" plus a code backup).
-- Guest returns: "Refund to my original payment" or "Sign in to get store credit" (unverified whether sign in links
-  a guest order; credit only when the order has a customer).
-- All 54 admin pages open; 8 storefront pages show no app errors. Storefront impact estimated well under 10
-  Lighthouse points (`docs/submission-review.md`).
-- Live tracking: 17TRACK API trial (200 numbers, account 17track@crotoolbox.com), `TRACKING_PROVIDER_KEY` and
-  `TRACKING_KEY_SECRET` set on Render.
-- Email: support@, info@, features@, pro@, 17track@, omar@crotoolbox.com forward to crotoolbox.app@gmail.com.
-- App Pricing plans exist in the Partner Dashboard (Free, Starter $5.99, Growth $14.99, Pro $24.99, 14 day trial),
-  seen on Testing 3 on 2026-10-19. Yearly prices and the growth/free handles not yet checked.
-- Omar's decisions: keep all scopes required at install (no optional scopes for launch); no feature requests
-  promise anywhere (features@ is only "Suggest a feature"); UI text neutral, never first person, no dashes.
-
-## Open work, in order
-
-1. **Done 2026-10-19 (#198, see WORKBOARD "Plans page only").** Omar's request (2026-10-19): "I don't want Shopify's pricing_plans page to be where people subscribe, I want
-   our page." Make sure every in-app link goes to `/app/plans`, whose buttons open the direct approval page
-   (`planApproveUrl` in `app/lib/plans.ts`), never `/charges/<handle>/pricing_plans`; add a test. Check Shopify's
-   App Pricing docs for any setting (welcome link / landing page) that keeps merchants out of the hosted page on
-   install; tell Omar plainly what Shopify controls and cannot be changed. Verify yearly prices and all 4 handles
-   on Testing 3 without approving anything.
-2. **(post purchase access and read_all_orders approved 2026-10-19, scope live in cro-toolbox-39)** **Omar's Partner Dashboard steps** (guide him click by click): post purchase extension access (rule 5.8.1),
-   `read_all_orders` request (reason: Track page, returns and "Check against orders" beyond 60 days), then the
-   App Store listing (icon, 3 to 6 screenshots 1600x900, optional video, demo screencast; text in
-   `docs/listing.md`), public distribution, submit.
-   Open question for Omar: ship the first version without the after purchase offer if that approval is late?
-3. Needs Omar: test Connect Claude end to end (claude.ai → Settings → Connectors → `https://cro-toolbox.onrender.com/mcp`).
-4. After launch: review request in the app, own style per offer type, booster CSS only where used, optional scopes if
-   installs drop, blog and GEO routines, Omar's videos in the video carousel demo, Built for Shopify (50 paid installs
-   and 5 reviews first). See `docs/WORKBOARD.md`.
+  `admin.shopify.com/store/testing-3-xsslpo6d/apps/the-ultimate-cro-app/app/...`.
+- Loyalty needs Pro. Switching plans on test stores without asking is approved:
+  `.../charges/the-ultimate-cro-app/plans/<free|starter|growth|pro>?interval=EVERY_30_DAYS|ANNUAL`. The plan costs $0
+  on dev stores.
+- The storefront password is typed by Omar himself. Never type passwords or secrets, and never print `.env`.
+- Test orders: Draft orders → customer Ayumu Hirano → product → Collect payment → Mark as paid. Orders #1001 to
+  #1006 are used up. #1006 has UPS test tracking and shows Delivered through 17TRACK.
+- Never modify the live store `ms6vwv-3n` (Backrooms). Never run `shopify app dev clean`.
 
 ## Talking to Omar
 
-Short messages, often screenshots. Explain plainly, say exactly what to click, one step at a time. He likes you
-to do things yourself and to test in the browser before reporting. Ask only when he must choose; when a fix forces
-him to give something up, explain the trade off and ask.
+- Short messages, often screenshots. Explain plainly, say exactly what to click, one step at a time.
+- He likes you to do things yourself and to test in the browser before reporting.
+- Ask questions as **plain text**, never with answer buttons or AskUserQuestion boxes.
+- UI text: no dashes, never first person.

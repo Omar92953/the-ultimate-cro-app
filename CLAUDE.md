@@ -15,9 +15,12 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
-## Status (2026-10-18)
+## Status (2026-10-22)
 
-- Live: Shopify app version **cro-toolbox-34**, admin on Render (`https://cro-toolbox.onrender.com`,
+- Lead handoff 2026-10-22: read `HANDOFF.md`. Loyalty (Pro) is being built in parts (`docs/plans/loyalty.md`,
+  draft PR #260 next). New prices are in the code; the Partner Dashboard still has the old ones (Omar updates it
+  once, at the end).
+- Live: Shopify app version **cro-toolbox-55**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
   Test store: **Testing 3** `testing-3-xsslpo6d` (back on the Free plan; switch to a $0 test plan to test paid features).
 - Block G done: G1 to G11, MCP read/build tools (offers, discounts, bundles). Tested on Testing 3 on
