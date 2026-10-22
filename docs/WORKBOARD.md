@@ -12,7 +12,7 @@ Updated 2026-10-22.
 - [ ] Loyalty parts 7 to 10: integrations, customer account, checkout (Plus) and POS, analytics, CSV and languages,
       website (`docs/plans/loyalty.md`)
 - [x] Analytics rebuild with A/B test results: an A/B tests tab and a running tests card on the overview; tests are still created on the Offers page (#262)
-- [ ] Cart Discount code box
+- [ ] Cart Discount code box (in progress: each applied code shows what it took off, clearer reasons; branch claude/cart-code-savings. Own feature card waits for Omar)
 - [ ] Branding lines and store credit incentives on the Track and Returns pages: **PR #263 ready** (needs Shopify deploy, then the test plan in the PR on Testing 3)
 - [ ] All candidate listing images, for Omar to choose
 - [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, protected customer data,
