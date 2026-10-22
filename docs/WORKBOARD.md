@@ -10,7 +10,7 @@ Updated 2026-10-22.
 - [ ] Loyalty part 5: referrals and affiliate links, **draft PR #260** (tables done, design in the PR)
 - [ ] Loyalty parts 6 to 10: Postmark emails with the store's own sender, integrations, customer account, checkout
       (Plus) and POS, analytics, CSV and languages, website (`docs/plans/loyalty.md`)
-- [ ] Analytics rebuild with A/B test results (tests are still created on the Offers page)
+- [ ] Analytics rebuild with A/B test results (tests are still created on the Offers page) — **draft PR in progress, branch claude/analytics-ab-results**
 - [ ] Cart Discount code box
 - [ ] Branding lines and store credit incentives on the Track and Returns pages
 - [ ] All candidate listing images, for Omar to choose
