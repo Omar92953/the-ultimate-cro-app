@@ -177,11 +177,12 @@ export async function verifySender(shop: string, provider: MailProvider = mailPr
 }
 export const removeSender = (shop: string) => saveSender(shop, undefined);
 
-type Store = { name: string; email: string; url: string; currency: string };
+type Store = { name: string; email: string; url: string; currency: string; address?: string };
 async function storeInfo(admin: AdminClient): Promise<Store> {
   const d = await gql(admin, `#graphql
-    query CroLoyaltyStore { shop { name email contactEmail currencyCode primaryDomain { url } } }`);
-  return { name: String(d.shop?.name ?? "Our store"), email: String(d.shop?.contactEmail || d.shop?.email || ""), url: String(d.shop?.primaryDomain?.url ?? "").replace(/\/$/, ""), currency: String(d.shop?.currencyCode ?? "USD") };
+    query CroLoyaltyStore { shop { name email contactEmail currencyCode primaryDomain { url } billingAddress { formatted } } }`);
+  const address = ((d.shop?.billingAddress?.formatted ?? []) as string[]).filter(Boolean).join(", ");
+  return { name: String(d.shop?.name ?? "Our store"), email: String(d.shop?.contactEmail || d.shop?.email || ""), url: String(d.shop?.primaryDomain?.url ?? "").replace(/\/$/, ""), currency: String(d.shop?.currencyCode ?? "USD"), address };
 }
 
 const display = (name: string) => `"${name.replace(/["\\\r\n<>]/g, "").slice(0, 60)}"`;

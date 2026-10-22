@@ -1179,3 +1179,10 @@ test("units over a limit go to Shopify App Pricing once each, as billable events
     delete process.env.APP_EVENTS_CLIENT_SECRET;
   }
 });
+
+test("every email shows the store's postal address under the small print (CAN-SPAM)", async () => {
+  const { renderEmail, DEFAULT_EMAILS } = await import("../../app/lib/loyalty/emails");
+  const r = renderEmail(DEFAULT_EMAILS, "expiring", { name: "Sara Shop", url: "https://sara.example", address: "12 Nile St, Cairo, Egypt" }, { balance: "500 points", date: "December 1" }, "https://u.example");
+  assert.match(r.html, /Sara Shop, 12 Nile St, Cairo, Egypt<br><a href="https:\/\/u\.example"/);
+  assert.match(r.text, /Sara Shop, 12 Nile St, Cairo, Egypt\nUnsubscribe/);
+});
