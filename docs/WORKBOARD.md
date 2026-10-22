@@ -12,6 +12,7 @@ Updated 2026-10-22.
 - [x] Loyalty part 7a: Klaviyo, Omnisend, Judge.me and review points (#268)
 - [ ] Loyalty parts 7b to 10: Shopify Flow, customer account, checkout (Plus) and POS, analytics, CSV and languages,
       website (`docs/plans/loyalty.md`)
+- [ ] Loyalty part 10 (without languages): analytics page and members CSV export and import, **in progress, branch claude/loyalty-analytics**
 - [x] Analytics rebuild with A/B test results: an A/B tests tab and a running tests card on the overview; tests are still created on the Offers page (#262)
 - [ ] Cart Discount code box: **PR #266 ready** (each applied code shows what it took off, clearer reasons; needs Shopify deploy, then its test plan on Testing 3). Own feature card in the Cart group waits for Omar's answer
 - [ ] Branding lines and store credit incentives on the Track and Returns pages: **PR #263 ready** (needs Shopify deploy, then the test plan in the PR on Testing 3)
