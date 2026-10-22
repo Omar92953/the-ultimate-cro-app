@@ -104,3 +104,9 @@ export async function reportUsage(shopIds: (shop: string) => Promise<string | nu
   }
   return sent;
 }
+
+/** shop/redact: the store's "allow extra" choices and its billed or queued usage units. */
+export async function removeShopUsage(shop: string) {
+  await db.usageEvent.deleteMany({ where: { shop } });
+  await db.usageExtra.deleteMany({ where: { shop } });
+}
