@@ -13,6 +13,7 @@ export const EVENT_LABEL: Record<string, string> = {
   review: "Review",
   social: "Followed on social media",
   referral: "Referral",
+  referral_back: "Referral taken back",
   flow: "Shopify Flow",
   campaign: "Bonus campaign",
   tier: "New tier bonus",
@@ -20,5 +21,5 @@ export const EVENT_LABEL: Record<string, string> = {
 
 export const eventLabel = (kind: string, note: string) => {
   const base = EVENT_LABEL[kind] ?? kind;
-  return note && (kind === "order" || kind === "refund" || kind === "cancel" || kind === "first_order") ? `${base} ${note}` : note && kind === "adjust" ? `${base}: ${note}` : base;
+  return note && ["order", "refund", "cancel", "first_order", "referral", "referral_back"].includes(kind) ? `${base} ${note}` : note && kind === "adjust" ? `${base}: ${note}` : base;
 };

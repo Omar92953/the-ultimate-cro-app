@@ -287,7 +287,7 @@ export async function programStats(shop: string, days = 30) {
     newMembers: await db.loyaltyMember.count({ where: { shop, joinedAt: { gte: since } } }),
     points: sums._sum.points ?? 0,
     pending: sums._sum.pending ?? 0,
-    earned: by(["order", "first_order", "signup"]),
+    earned: by(["order", "first_order", "signup", "referral"]),
     takenBack: -by(["refund", "cancel"]),
     expired: -by(["expire"]),
   };
@@ -295,6 +295,7 @@ export async function programStats(shop: string, days = 30) {
 
 /** Uninstall or shop/redact: every loyalty row of the store. */
 export async function removeShopLoyalty(shop: string) {
+  await db.loyaltyReferral.deleteMany({ where: { shop } });
   await db.loyaltyReward.deleteMany({ where: { shop } });
   await db.loyaltyEvent.deleteMany({ where: { shop } });
   await db.loyaltyMember.deleteMany({ where: { shop } });
@@ -304,8 +305,14 @@ export async function removeShopLoyalty(shop: string) {
 /** customers/redact: that customer's member and ledger (by id, and by email when Shopify sends only that). */
 export async function redactLoyaltyCustomer(shop: string, customerId: string, email: string) {
   const ms = await db.loyaltyMember.findMany({ where: { shop, OR: [...(customerId ? [{ customerId }] : []), ...(email ? [{ email: email.toLowerCase() }] : [])] }, select: { id: true } });
-  if (!ms.length) return 0;
+  if (!ms.length) {
+    if (customerId) await db.loyaltyReferral.deleteMany({ where: { shop, friendCustomerId: customerId } });
+    return 0;
+  }
   const ids = ms.map((m) => m.id);
+  // Referrals they made, and those where they were the friend.
+  await db.loyaltyReferral.deleteMany({ where: { shop, OR: [{ referrerId: { in: ids } }, ...(customerId ? [{ friendCustomerId: customerId }] : [])] } });
+  await db.loyaltyMember.updateMany({ where: { shop, referredBy: { in: ids } }, data: { referredBy: null } });
   await db.loyaltyReward.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyEvent.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyMember.deleteMany({ where: { shop, id: { in: ids } } });
@@ -315,6 +322,8 @@ export async function redactLoyaltyCustomer(shop: string, customerId: string, em
 /** customers/data_request: how many loyalty rows the store holds for that customer (counts only, never logged in full). */
 export async function loyaltyHeldFor(shop: string, customerId: string, email: string) {
   const ms = await db.loyaltyMember.findMany({ where: { shop, OR: [...(customerId ? [{ customerId }] : []), ...(email ? [{ email: email.toLowerCase() }] : [])] }, select: { id: true } });
-  const events = ms.length ? await db.loyaltyEvent.count({ where: { shop, memberId: { in: ms.map((m) => m.id) } } }) : 0;
-  return { members: ms.length, events };
+  const ids = ms.map((m) => m.id);
+  const events = ms.length ? await db.loyaltyEvent.count({ where: { shop, memberId: { in: ids } } }) : 0;
+  const referrals = await db.loyaltyReferral.count({ where: { shop, OR: [...(ids.length ? [{ referrerId: { in: ids } }] : []), ...(customerId ? [{ friendCustomerId: customerId }] : [])] } });
+  return { members: ms.length, events, referrals };
 }

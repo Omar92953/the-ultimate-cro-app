@@ -18,6 +18,8 @@ export type OrderFacts = {
   taxes: number;
   /** The order's lines now (after refunds and every discount), for product and collection rules. Absent: the subtotal counts at the main rate. */
   lines?: { productId: string; collectionIds: string[]; amount: number }[];
+  /** The discount codes used (referral and affiliate codes are matched to their member or affiliate). */
+  codes?: string[];
 };
 
 /** Money that earns points for this order (0 when it isn't paid or was cancelled). */

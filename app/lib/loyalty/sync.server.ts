@@ -14,6 +14,7 @@ import { getPlan } from "../billing.server";
 import type { LoyaltyConfig } from "./config";
 import type { OrderFacts } from "./points";
 import { birthdayPoints, expireInactive, getProgram, releasePending, reviewTiers, syncOrder, syncSignup } from "./program.server";
+import { getReferralState, matchCodes, refreshMemberCodes, syncReferralDiscounts } from "./referrals.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
 type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string } | null } | null;
@@ -22,6 +23,7 @@ type OrderNode = {
   name: string;
   createdAt: string;
   cancelledAt: string | null;
+  discountCodes?: string[];
   displayFinancialStatus: string | null;
   currentSubtotalPriceSet: Money;
   currentShippingPriceSet: Money;
@@ -30,7 +32,7 @@ type OrderNode = {
   lineItems?: { nodes: { currentQuantity: number; discountedUnitPriceAfterAllDiscountsSet: Money; product: { id: string } | null }[] };
 };
 
-const ORDER_FIELDS = `id name createdAt cancelledAt displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress } }`;
+const ORDER_FIELDS = `id name createdAt cancelledAt discountCodes displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress } }`;
 // Lines only when the store has product or collection rules (they make the query heavier).
 const LINE_FIELDS = `lineItems(first: 30) { nodes { currentQuantity discountedUnitPriceAfterAllDiscountsSet { shopMoney { amount } } product { id } } }`;
 const fieldsFor = (c: LoyaltyConfig) => (c.productRules.length ? `${ORDER_FIELDS} ${LINE_FIELDS}` : ORDER_FIELDS);
@@ -51,6 +53,7 @@ export function factsFromNode(n: OrderNode): OrderFacts {
     subtotal: amount(n.currentSubtotalPriceSet),
     shipping: amount(n.currentShippingPriceSet),
     taxes: amount(n.currentTotalTaxSet),
+    ...(n.discountCodes?.length ? { codes: n.discountCodes } : {}),
     ...(n.lineItems
       ? { lines: n.lineItems.nodes.filter((l) => l.product && l.currentQuantity > 0).map((l) => ({ productId: l.product!.id, collectionIds: [] as string[], amount: Math.round(amount(l.discountedUnitPriceAfterAllDiscountsSet) * l.currentQuantity * 100) / 100 })) }
       : {}),
@@ -80,7 +83,10 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
       query CroLoyaltyOrders($q: String!, $after: String, $first: Int!) { orders(first: $first, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { ${fieldsFor(c)} } } }`, { q, after, first: c.productRules.length ? 25 : 50 });
     const facts = data.orders.nodes.map(factsFromNode);
     await fillCollections(admin, c, facts).catch(() => null);
-    for (const f of facts) if ((await syncOrder(shop, c, f).catch((e) => (console.error(`[loyalty] order ${shop}:`, e), null)))) orders++;
+    for (const f of facts) {
+      if (await syncOrder(shop, c, f).catch((e) => (console.error(`[loyalty] order ${shop}:`, e), null))) orders++;
+      if (f.codes?.length) await matchCodes(admin, shop, c, f).catch((e) => console.error(`[loyalty] codes ${shop}:`, e instanceof Error ? e.message : e));
+    }
     if (!data.orders.pageInfo.hasNextPage) break;
     after = data.orders.pageInfo.endCursor;
   }
@@ -106,13 +112,18 @@ export async function syncShop(shop: string, admin: AdminClient) {
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
   if (!p?.on) return null;
   const { plan } = await getPlan(admin, shop);
-  if (!atLeast(plan, "pro")) return null;
   const { config } = await getProgram(shop);
+  if (!atLeast(plan, "pro")) {
+    // Left Pro: referral and affiliate codes stop working (kept, so they work again on Pro).
+    await syncReferralDiscounts(admin, shop, config, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
+    return null;
+  }
   const started = new Date();
   const since = new Date((p.syncedAt ?? started).getTime() - 5 * 60_000);
   const done = await readChanges(admin, shop, config, since);
   await db.loyaltyProgram.update({ where: { shop }, data: { syncedAt: started } });
   await expireInactive(shop, config);
+  await refreshMemberCodes(admin, shop, await getReferralState(shop)).catch((e) => console.error(`[loyalty] referral codes ${shop}:`, e instanceof Error ? e.message : e));
   await issueCashback(admin, shop).catch((e) => console.error(`[loyalty] cashback ${shop}:`, e instanceof Error ? e.message : e));
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.
@@ -126,9 +137,9 @@ export async function syncShop(shop: string, admin: AdminClient) {
 }
 const dailyDone = new Map<string, string>();
 
-/** Cashback mode: an order's store credit, once its pending days are over (the credit net of refunds by then). */
+/** Cashback mode and referral gifts: an order's store credit, once its pending days are over (the credit net of refunds by then). */
 export async function issueCashback(admin: AdminClient, shop: string) {
-  const due = await db.loyaltyEvent.findMany({ where: { shop, kind: "order", status: "available", credit: { gt: 0 }, issuedAt: null }, take: 50 });
+  const due = await db.loyaltyEvent.findMany({ where: { shop, kind: { in: ["order", "referral"] }, status: "available", credit: { gt: 0 }, issuedAt: null }, take: 50 });
   if (!due.length) return 0;
   const cur = await gql(admin, `#graphql
     query CroLoyaltyCurrency { shop { currencyCode } }`);
@@ -173,7 +184,10 @@ export async function syncCustomer(shop: string, admin: AdminClient, customerId:
     query CroLoyaltyMemberOrders($id: ID!) { customer(id: $id) { orders(first: 10, sortKey: CREATED_AT, reverse: true) { nodes { ${fieldsFor(config)} } } } }`, { id: `gid://shopify/Customer/${customerId}` });
   const facts = ((data.customer?.orders?.nodes ?? []) as OrderNode[]).map(factsFromNode);
   await fillCollections(admin, config, facts).catch(() => null);
-  for (const f of facts) await syncOrder(shop, config, f);
+  for (const f of facts) {
+    await syncOrder(shop, config, f);
+    if (f.codes?.length) await matchCodes(admin, shop, config, f);
+  }
 }
 
 declare global {

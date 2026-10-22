@@ -158,3 +158,13 @@ export function compareGroups(a: GroupStats, b: GroupStats): AbResult {
   const leader = pa === pb ? null : pb > pa ? "B" : "A";
   return { ...base, leader, sure, verdict: sure >= 95 ? "clear" : sure >= 80 ? "likely" : "close" };
 }
+
+/** One line for a test on the Analytics overview. */
+export function testSummary(r: AbResult | undefined): string {
+  if (!r || r.verdict === "wait") return "Collecting shoppers";
+  if (r.verdict === "close") return "No clear difference yet";
+  return `Version ${r.leader} ahead, ${r.sure}% sure`;
+}
+
+/** What version B changes, in words a merchant knows. */
+export const AB_CHANGE_LABELS: Record<string, string> = { headline: "headline", subheadline: "text under the headline", buttonLabel: "button", discountLabel: "discount label", discountPercent: "discount", tiers: "tier discounts", design: "style" };

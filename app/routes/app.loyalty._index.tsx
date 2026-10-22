@@ -13,6 +13,7 @@ import { errorMessage } from "../lib/admin.server";
 import { area } from "../lib/catalog";
 import { getProgram, programStats, setProgramOn } from "../lib/loyalty/program.server";
 import { syncShop } from "../lib/loyalty/sync.server";
+import { syncReferralDiscounts } from "../lib/loyalty/referrals.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
@@ -51,8 +52,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const intent = String(form.get("intent"));
     if (intent === "on") {
-      await setProgramOn(session.shop, form.get("on") === "true", Number(form.get("past") ?? 0));
+      const on = form.get("on") === "true";
+      await setProgramOn(session.shop, on, Number(form.get("past") ?? 0));
       await publishLoyalty(admin, session.shop);
+      // Referral and affiliate codes work only while the program is on.
+      const errors = await syncReferralDiscounts(admin, session.shop, (await getProgram(session.shop)).config, on);
+      if (errors.length) return { ok: false, error: errors.join(" "), intent };
     }
     else if (intent === "sync") await syncShop(session.shop, admin);
     return { ok: true, error: null, intent };

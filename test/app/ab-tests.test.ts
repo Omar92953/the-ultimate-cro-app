@@ -12,7 +12,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 (globalThis as unknown as { prismaGlobal: PrismaClient }).prismaGlobal = prisma;
 Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOPIFY_APP_URL: "https://app.example", SCOPES: "read_products" });
 
-import { applyOverrides, changesDiscount, cleanOverrides, compareGroups, functionAb, normalCdf, toStorefrontAbTests, validateTest, type AbTest } from "../../app/lib/ab-tests";
+import { applyOverrides, changesDiscount, cleanOverrides, compareGroups, functionAb, normalCdf, testSummary, toStorefrontAbTests, validateTest, type AbTest } from "../../app/lib/ab-tests";
 import { buildDiscountConfig } from "../../app/lib/cro.server";
 import type { Rule } from "../../app/lib/types";
 
@@ -137,4 +137,11 @@ test("uninstall removes the store's counted views", async () => {
   await S.removeShopAb("s.myshopify.com");
   assert.equal(await prisma.abView.count({ where: { shop: "s.myshopify.com" } }), 0);
   assert.equal(await prisma.abView.count({ where: { shop: "other.myshopify.com" } }), 1);
+});
+
+test("testSummary says what the Analytics overview shows for a test", () => {
+  assert.equal(testSummary(undefined), "Collecting shoppers");
+  assert.equal(testSummary(compareGroups({ views: 10, orders: 1, revenue: 5, adds: 1 }, { views: 10, orders: 1, revenue: 5, adds: 1 })), "Collecting shoppers");
+  assert.equal(testSummary(compareGroups({ views: 1000, orders: 50, revenue: 0, adds: 0 }, { views: 1000, orders: 51, revenue: 0, adds: 0 })), "No clear difference yet");
+  assert.match(testSummary(compareGroups({ views: 1000, orders: 20, revenue: 0, adds: 0 }, { views: 1000, orders: 80, revenue: 0, adds: 0 })), /^Version B ahead, \d+(\.\d)?% sure$/);
 });

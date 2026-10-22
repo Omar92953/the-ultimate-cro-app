@@ -1,6 +1,7 @@
 /*
  * CRO Toolbox — loyalty program (Pro): the rewards launcher and panel, "Earn X points" on product pages and in
- * the cart, and a small "You earned" note. The program (rules, rewards, words, look) comes from the Conversion
+ * the cart, a small "You earned" note, and Refer a friend (the member's link, and a banner for the friend who
+ * lands on ?ref=CODE). The program (rules, rewards, words, look) comes from the Conversion
  * boosters embed (#ucs-loy-data); a member's own points come from the app proxy, which Shopify signs with the
  * logged in customer, so nothing here can read or spend anyone else's points.
  */
@@ -24,6 +25,9 @@
   var today = new Date().toISOString().slice(0, 10);
   var camp = (c.ca || []).filter(function (x) { return x.f <= today && today <= x.t; })[0];
   var tierName = function (id) { var l = (c.ti && c.ti.l) || []; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i].n; return ''; };
+  var rf = c.rf;
+  var offer = function (k, v) { return k === 'percent' ? String(t.offPercent).replace('{x}', v) : k === 'amount' ? String(t.offAmount).replace('{x}', fmtMoney(v)) : t.freeShip; };
+  var gift = function () { return rf.g === 'credit' ? String(t.creditGift).replace('{x}', fmtMoney(rf.gv)) : pts(rf.gv); };
   var post = function (body) {
     return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
@@ -48,6 +52,7 @@
     if (c.per) list.push([t.orderWay, pts(Math.round(c.per * 100) / 100) + ' / ' + perMoney()]);
     if (c.su) list.push([t.signupWay, pts(c.su)]);
     if (c.fo) list.push([t.firstWay, pts(c.fo)]);
+    if (rf) list.push([t.referWay, gift()]);
     var m = me && me.member, extra = '';
     if (c.bd) extra += '<li><span>' + esc(t.birthdayWay) + '</span>' + (m && !m.bday ? '<span class="ucs-loy__bd"><input type="date" aria-label="' + esc(t.birthdayAsk) + '"><button type="button" class="ucs-loy__btn" data-bday>' + esc(t.birthdaySave) + '</button></span>' : '<b>' + esc(pts(c.bd)) + '</b>') + '</li>';
     if (c.so) (c.so.l || []).forEach(function (l) {
@@ -71,6 +76,16 @@
       return g.code ? '<li class="ucs-loy__code"><span>' + esc(g.title) + '<br><code>' + esc(g.code) + '</code></span><span><button type="button" class="ucs-loy__btn ucs-loy__btn--soft" data-copy="' + esc(g.code) + '">' + esc(t.copy) + '</button> <button type="button" class="ucs-loy__btn" data-apply="' + esc(g.code) + '">' + esc(t.apply) + '</button></span></li>' : '';
     }).join('') + '</ul>';
   };
+  /* The member's link and share buttons (only once their code works). */
+  var refer = function (m) {
+    if (!rf || !m || !m.ref) return '';
+    var e = encodeURIComponent, link = location.origin + root + '?ref=' + e(m.ref);
+    var msgText = String(t.shareText).replace('{friend}', offer(rf.k, rf.v)) + ' ' + link;
+    var share = [['WhatsApp', 'https://wa.me/?text=' + e(msgText)], ['X', 'https://x.com/intent/post?text=' + e(msgText)], ['Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + e(link)], [t.email, 'mailto:?body=' + e(msgText)]];
+    return '<h3>' + esc(t.referTitle) + '</h3><p class="ucs-loy__ref-x">' + esc(String(t.referText).replace('{friend}', offer(rf.k, rf.v)).replace('{gift}', gift())) + '</p>' +
+      '<div class="ucs-loy__ref"><input readonly value="' + esc(link) + '" aria-label="' + esc(t.referLink) + '"><button type="button" class="ucs-loy__btn" data-copy="' + esc(link) + '">' + esc(t.copy) + '</button></div>' +
+      '<p class="ucs-loy__share">' + share.map(function (x) { return '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + esc(x[0]) + '</a>'; }).join('') + '</p>';
+  };
   var draw = function () {
     var h = msg ? '<p class="ucs-loy__msg" role="status">' + esc(msg) + '</p>' : '';
     if (me && me.member) {
@@ -78,7 +93,7 @@
       h += '<div class="ucs-loy__head"><small>' + esc(t.have) + '</small><strong>' + esc(pts(m.points)) + '</strong>' + (m.pending ? '<small>' + esc(fill(t.pending, m.pending)) + '</small>' : '') +
         (m.tier ? '<span class="ucs-loy__tier">' + esc(String(t.tier).replace('{tier}', m.tier.n)) + '</span>' : '') +
         (m.next ? '<small>' + esc(String(t.nextTier).replace('{n}', m.next.spent ? fmtMoney(m.next.need) : pts(m.next.need)).replace('{tier}', m.next.n)) + '</small>' : '') + '</div>' +
-        got(m.rewards) + rewards(m.points) + ways() +
+        got(m.rewards) + rewards(m.points) + refer(m) + ways() +
         (m.history && m.history.length ? '<h3>' + esc(t.history) + '</h3><ul class="ucs-loy__list ucs-loy__hist">' + m.history.map(function (e) { return '<li><span>' + esc(e.l) + '<br><small>' + esc(e.d) + '</small></span><b>' + (!e.p && e.cr ? (e.cr > 0 ? '+' : '') + esc(fmtMoney(e.cr)) : (e.p > 0 ? '+' : '') + esc(Number(e.p).toLocaleString())) + '</b></li>'; }).join('') + '</ul>' : '');
     } else if (D.in && me && me.canJoin) {
       h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-join>' + esc(t.joinNow) + '</button></div>' + ways() + rewards(null);
@@ -101,6 +116,7 @@
     pageEl.innerHTML = '<div class="ucs-loyp" style="--ucs-loy-a:' + esc(w.a || '#111') + ';--ucs-loy-oa:' + esc(w.oa || '#fff') + ';--ucs-loy-r:' + (w.r == null ? 18 : w.r) + 'px">' +
       '<section class="ucs-loyp__hero"><h1>' + esc(pg.title || t.title) + '</h1>' + (pg.sub ? '<p>' + esc(pg.sub) + '</p>' : '') + (msg ? '<p class="ucs-loy__msg" role="status">' + esc(msg) + '</p>' : '') + top + '</section>' +
       ((pg.how || []).length ? '<ol class="ucs-loyp__how">' + pg.how.map(function (x, i) { return '<li><span>' + (i + 1) + '</span><b>' + esc(x.t) + '</b><small>' + esc(x.x) + '</small></li>'; }).join('') + '</ol>' : '') +
+      (m && m.ref && rf ? '<section class="ucs-loyp__refer">' + refer(m) + '</section>' : '') +
       '<div class="ucs-loyp__cols"><section>' + ways() + '</section><section>' + (m ? got(m.rewards) : '') + rewards(m ? m.points : null) + '</section></div>' +
       ((pg.faq || []).length ? '<section class="ucs-loyp__faq">' + pg.faq.map(function (x) { return '<details><summary>' + esc(x.q) + '</summary><p>' + esc(x.a) + '</p></details>'; }).join('') + '</section>' : '') + '</div>';
   };
@@ -141,20 +157,35 @@
   body.addEventListener('click', act);
   if (pageEl) { pageEl.addEventListener('click', act); drawPage(); }
 
+  /* ---------- A friend arrives on ?ref=CODE: the discount goes on the cart and a banner says so ---------- */
+  var toast = function (text, wide) {
+    var n = document.createElement('div');
+    n.className = 'ucs-loy__toast' + (wide ? ' ucs-loy__toast--wide' : '');
+    n.setAttribute('role', 'status');
+    n.textContent = text;
+    box.appendChild(n);
+    setTimeout(function () { n.remove(); }, wide ? 9000 : 6000);
+  };
+  var refCode = null;
+  try { refCode = new URLSearchParams(location.search).get('ref'); } catch (e) { refCode = null; }
+  if (refCode && /^[A-Za-z0-9_-]{3,30}$/.test(refCode)) {
+    try { var u = new URL(location.href); u.searchParams.delete('ref'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch (e) { /* the address keeps ?ref */ }
+    post({ intent: 'ref', code: refCode }).then(function (r) {
+      if (!r || !r.ok || !r.ref) return;
+      fetch(root + 'discount/' + encodeURIComponent(refCode), { credentials: 'same-origin' }).then(function () {
+        toast(String(t.refBanner).replace('{friend}', offer(r.ref.k, r.ref.v)), true);
+        document.dispatchEvent(new CustomEvent('ucs:cart:changed'));
+      }).catch(function () {});
+    });
+  }
+
   /* ---------- "You earned" when a member's points went up since their last visit ---------- */
   if (D.in) {
     load('me').then(function (r) {
       if (!r || !r.member) return;
       var now = r.member.points + r.member.pending, before = null;
       try { before = Number(localStorage.getItem('ucs-loy-total')); localStorage.setItem('ucs-loy-total', String(now)); } catch (e) { before = null; }
-      if (before && now > before) {
-        var n = document.createElement('div');
-        n.className = 'ucs-loy__toast';
-        n.setAttribute('role', 'status');
-        n.textContent = fill(t.earned, now - before);
-        box.appendChild(n);
-        setTimeout(function () { n.remove(); }, 6000);
-      }
+      if (before && now > before) toast(fill(t.earned, now - before));
     });
   }
 

@@ -7,10 +7,10 @@ Updated 2026-10-22.
 ## Loyalty and pre-final audit (lead, 2026-10-22; details in `HANDOFF.md`)
 
 - [x] Loyalty (Pro) parts 1 to 4 (#255 to #259): core, rewards and widget, Rewards page and Look, VIP tiers and more
-- [ ] Loyalty part 5: referrals and affiliate links, **draft PR #260** (tables done, design in the PR)
+- [x] Loyalty part 5: referrals and affiliate links (#260)
 - [ ] Loyalty parts 6 to 10: Postmark emails with the store's own sender, integrations, customer account, checkout
       (Plus) and POS, analytics, CSV and languages, website (`docs/plans/loyalty.md`)
-- [ ] Analytics rebuild with A/B test results (tests are still created on the Offers page)
+- [x] Analytics rebuild with A/B test results: an A/B tests tab and a running tests card on the overview; tests are still created on the Offers page (#262)
 - [ ] Cart Discount code box
 - [ ] Branding lines and store credit incentives on the Track and Returns pages: **PR #263 ready** (needs Shopify deploy, then the test plan in the PR on Testing 3)
 - [ ] All candidate listing images, for Omar to choose

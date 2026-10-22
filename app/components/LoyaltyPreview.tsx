@@ -14,7 +14,30 @@ export function LoyaltyPreview({ config: c, view }: { config: LoyaltyConfig; vie
   const fill = (s: string, n: number) => s.replace("{n}", pts(n));
   const have = view === "member" ? 1250 : null;
   const vars = { "--ucs-loy-a": c.widget.accent, "--ucs-loy-oa": c.widget.onAccent, "--ucs-loy-r": `${c.widget.radius}px` } as CSSProperties;
-  const ways = [c.earn.order.on ? [t.orderWay, `${pts(c.earn.order.perUnit)} / $1`] : null, c.earn.signup.on ? [t.signupWay, pts(c.earn.signup.points)] : null, c.earn.firstOrder.on ? [t.firstWay, pts(c.earn.firstOrder.points)] : null].filter(Boolean) as string[][];
+  const r = c.referral;
+  const offer = r.friend.kind === "percent" ? t.offPercent.replace("{x}", String(r.friend.value)) : r.friend.kind === "amount" ? t.offAmount.replace("{x}", `$${r.friend.value}`) : t.freeShip;
+  const gift = r.gift.kind === "credit" ? t.creditGift.replace("{x}", `$${r.gift.value}`) : pts(r.gift.value);
+  const ways = [c.earn.order.on ? [t.orderWay, `${pts(c.earn.order.perUnit)} / $1`] : null, c.earn.signup.on ? [t.signupWay, pts(c.earn.signup.points)] : null, c.earn.firstOrder.on ? [t.firstWay, pts(c.earn.firstOrder.points)] : null, r.on ? [t.referWay, gift] : null].filter(Boolean) as string[][];
+  const link = "https://your-store.com/?ref=K7M2QXP";
+  const referEl = r.on ? (
+    <>
+      <h3>{t.referTitle}</h3>
+      <p className="ucs-loy__ref-x">{t.referText.replace("{friend}", offer).replace("{gift}", gift)}</p>
+      <div className="ucs-loy__ref">
+        <input readOnly value={link} aria-label={t.referLink} />
+        <button type="button" className="ucs-loy__btn">
+          {t.copy}
+        </button>
+      </div>
+      <p className="ucs-loy__share">
+        {["WhatsApp", "X", "Facebook", t.email].map((x) => (
+          <a key={x} href="#preview" onClick={(e) => e.preventDefault()}>
+            {x}
+          </a>
+        ))}
+      </p>
+    </>
+  ) : null;
   const waysEl = (
     <>
       <h3>{t.earn}</h3>
@@ -116,6 +139,7 @@ export function LoyaltyPreview({ config: c, view }: { config: LoyaltyConfig; vie
               </div>
             )}
             {rewardsEl}
+            {have !== null ? referEl : null}
             {waysEl}
           </div>
         </div>

@@ -257,6 +257,8 @@ model LoyaltyProgram {
   config    String    @default("{}")
   /// Orders and customers changed after this were not read yet (lib/loyalty/sync.server.ts).
   syncedAt  DateTime?
+  /// Ids the app keeps for the program: the referral discount, each affiliate's discount (JSON).
+  state     String    @default("{}")
   updatedAt DateTime  @default(now())
 }
 
@@ -281,6 +283,8 @@ model LoyaltyMember {
   tierTagged   String    @default("")
   referralCode String    @default("")
   referredBy   Int?
+  /// The referral discount (its number in LoyaltyProgram.state) the member's code was added to; 0 = never.
+  codeGen      Int       @default(0)
   emailOptOut  Boolean   @default(false)
   blocked      Boolean   @default(false)
   joinedAt     DateTime  @default(now())
@@ -338,4 +342,26 @@ model LoyaltyReward {
 
   @@index([shop, memberId, createdAt])
   @@index([shop, code])
+}
+
+/// A referral (a friend's first order with a member's code) or an affiliate sale (an order with a creator's code).
+model LoyaltyReferral {
+  id               Int       @id @default(autoincrement())
+  shop             String
+  kind             String
+  /// The member who referred (referrals); null for affiliates.
+  referrerId       Int?
+  affiliateId      String    @default("")
+  friendCustomerId String    @default("")
+  orderId          String
+  orderName        String    @default("")
+  amount           Float     @default(0)
+  /// rewarded, refused (with the reason), reversed
+  status           String
+  reason           String    @default("")
+  createdAt        DateTime  @default(now())
+
+  @@unique([shop, kind, orderId])
+  @@index([shop, referrerId])
+  @@index([shop, affiliateId])
 }
