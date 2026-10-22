@@ -10,13 +10,13 @@ import db from "../db.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { getPlan } from "../lib/billing.server";
 import { atLeast } from "../lib/plans";
-import { getProgram, memberFor } from "../lib/loyalty/program.server";
+import { getProgram, memberFor, setBirthday, socialPoints, tierValue } from "../lib/loyalty/program.server";
 import { syncCustomer } from "../lib/loyalty/sync.server";
 import { NotEnoughPoints, memberRewards, redeem } from "../lib/loyalty/rewards.server";
 import { eventLabel } from "../lib/loyalty/labels";
 import { AdminError, gql } from "../lib/admin.server";
 import { excludedTags } from "../lib/loyalty/config";
-import { isExcluded } from "../lib/loyalty/points";
+import { isExcluded, nextTier } from "../lib/loyalty/points";
 
 // A member's own orders are read again when they open the widget, at most once a minute (per server process).
 const lastRead = new Map<string, number>();
@@ -58,11 +58,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (m.blocked) return json({ ok: true, member: null, guest: false, canJoin: false });
 
     let got = null;
+    if (intent === "birthday") await setBirthday(shop, m.id, String(body.date ?? ""));
+    if (intent === "social") await socialPoints(shop, program.config, m.id, String(body.network ?? ""));
     if (intent === "redeem") {
       got = await redeem(admin, shop, program.config, m.id, String(body.reward ?? ""));
       m = (await db.loyaltyMember.findUnique({ where: { id: m.id } }))!;
     }
-    const history = await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id }, orderBy: { createdAt: "desc" }, take: 12, select: { kind: true, note: true, points: true, status: true, createdAt: true } });
+    const history = await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id }, orderBy: { createdAt: "desc" }, take: 12, select: { kind: true, note: true, points: true, credit: true, status: true, createdAt: true } });
+    const c = program.config;
+    const tier = c.tiers.on ? c.tiers.list.find((t) => t.id === m!.tier) ?? null : null;
+    const next = c.tiers.on ? nextTier(c, await tierValue(shop, c, m.id)) : null;
+    const followed = c.earn.social.on ? (await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id, kind: "social" }, select: { note: true } })).map((e) => e.note) : [];
     return json({
       ok: true,
       got,
@@ -70,7 +76,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         points: m.points,
         pending: m.pending,
         code: m.referralCode,
-        history: history.map((e) => ({ l: eventLabel(e.kind, e.note), p: e.points, s: e.status, d: e.createdAt.toISOString().slice(0, 10) })),
+        history: history.map((e) => ({ l: eventLabel(e.kind, e.note), p: e.points, cr: e.credit, s: e.status, d: e.createdAt.toISOString().slice(0, 10) })),
+        tier: tier ? { id: tier.id, n: tier.name } : null,
+        next: next ? { n: next.tier.name, need: next.need, spent: c.tiers.basis === "spent" } : null,
+        bday: !!m.birthday,
+        followed,
         rewards: await memberRewards(shop, m.id),
       },
     });

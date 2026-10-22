@@ -5,7 +5,7 @@
  */
 import db from "../../db.server";
 import { withLoyaltyDefaults, excludedTags, type LoyaltyConfig } from "./config";
-import { isExcluded, newReferralCode, orderBase, orderPoints, type OrderFacts } from "./points";
+import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
 
@@ -67,7 +67,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
   return null;
 }
 
-export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; note?: string; dedupe?: string; availableAt?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
+export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; multiplier?: number; credit?: number; note?: string; dedupe?: string; availableAt?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
 
 export class NotEnoughPoints extends Error {
   constructor() {
@@ -92,7 +92,7 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
       const m = await tx.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
       let points = ch.points;
       if (points < 0) points = -Math.min(-points, Math.max(0, status === "pending" ? m.pending : m.points));
-      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date() } });
+      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date() } });
       const earned = points > 0 && !["adjust", "import"].includes(ch.kind) ? points : 0;
       await tx.loyaltyMember.update({
         where: { id: memberId },
@@ -119,34 +119,103 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
  */
 export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, now = new Date()) {
   if (!o.customer || isExcluded(o.customer.tags, excludedTags(c))) return null;
-  const target = orderPoints(c, o);
   const existing = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: o.customer.id } } });
-  if (!existing && (!c.autoJoin || target <= 0)) return null;
+  const rows = existing ? await db.loyaltyEvent.findMany({ where: { shop, memberId: existing.id, orderId: o.id, kind: { in: ["order", "refund", "cancel"] } } }) : [];
+  const orderRow = rows.find((r) => r.kind === "order");
+  // An order keeps the multiplier it was first earned with (tier and campaign), so a later refund uses the same.
+  const multiplier = orderRow ? orderRow.multiplier : multiplierFor(c, existing?.tier ?? "", o.createdAt);
+  const cashback = orderRow ? orderRow.credit > 0 || (orderRow.points === 0 && c.cashback.on) : c.cashback.on;
+  const target = cashback ? 0 : orderPoints(c, o, multiplier);
+  const credit = cashback ? orderCredit(c, o) : 0;
+  if (!existing && (!c.autoJoin || (target <= 0 && credit <= 0))) return null;
   const m = existing ?? (await memberFor(shop, o.customer, true));
   if (!m || m.blocked) return null;
-  const rows = await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id, orderId: o.id, kind: { in: ["order", "refund", "cancel"] } } });
   const current = rows.reduce((n, r) => n + r.points, 0);
+  const currentCredit = Math.round(rows.reduce((n, r) => n + r.credit, 0) * 100) / 100;
   const net = orderBase({ ...c, earn: { ...c.earn, order: { ...c.earn.order, shipping: true, taxes: true } } }, o);
   const pendingUntil = new Date(now.getTime() + c.pendingDays * DAY);
   const pendingNow = c.pendingDays > 0;
-  const orderRow = rows.find((r) => r.kind === "order");
 
-  if (!orderRow && target > 0) {
-    await record(shop, m.id, { kind: "order", points: target, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
+  if (!orderRow && (target > 0 || credit > 0)) {
+    await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
     await db.loyaltyMember.update({ where: { id: m.id }, data: { orders: { increment: 1 } } });
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {
       await record(shop, m.id, { kind: "first_order", points: c.earn.firstOrder.points, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, note: o.name, dedupe: `first:${m.id}` });
     }
-    return { member: m.id, points: target };
+    await updateTier(shop, c, m.id);
+    return { member: m.id, points: target, credit };
   }
-  if (orderRow && target < current) {
+  if (orderRow && (target < current || credit < currentCredit)) {
     // A refund or cancellation: taken back from the same place the points are now (pending or usable).
+    // Store credit already given stays given (Shopify has it); only credit still waiting is lowered.
     const still = orderRow.status === "pending";
     const spentBack = rows.reduce((n, r) => n + r.amount, 0) - net;
-    await record(shop, m.id, { kind: o.cancelled ? "cancel" : "refund", points: target - current, status: still ? "pending" : "available", availableAt: orderRow.availableAt, orderId: o.id, amount: -Math.max(0, spentBack), note: o.name, dedupe: `${o.cancelled ? "cancel" : "refund"}:${o.id}:${target}` });
-    return { member: m.id, points: target - current };
+    const creditBack = orderRow.issuedAt ? 0 : Math.round((credit - currentCredit) * 100) / 100;
+    await record(shop, m.id, { kind: o.cancelled ? "cancel" : "refund", points: target - current, credit: creditBack, status: still ? "pending" : "available", availableAt: orderRow.availableAt, orderId: o.id, amount: -Math.max(0, spentBack), note: o.name, dedupe: `${o.cancelled ? "cancel" : "refund"}:${o.id}:${target}:${credit}` });
+    await updateTier(shop, c, m.id);
+    return { member: m.id, points: target - current, credit: creditBack };
   }
   return null;
+}
+
+/* ------------------------------------------------------------------ tiers -- */
+/** What a member's tier is measured on: points earned or money spent, over their lifetime or the last 12 months. */
+export async function tierValue(shop: string, c: LoyaltyConfig, memberId: number, now = new Date()) {
+  const m = await db.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
+  if (c.tiers.period === "lifetime") return c.tiers.basis === "spent" ? m.spent : m.lifetime;
+  const since = new Date(now.getTime() - 365 * DAY);
+  if (c.tiers.basis === "spent") {
+    const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since } }, _sum: { amount: true } });
+    return s._sum.amount ?? 0;
+  }
+  const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since }, points: { gt: 0 }, kind: { notIn: ["adjust", "import"] } }, _sum: { points: true } });
+  return s._sum.points ?? 0;
+}
+
+/** Moves a member to the tier they reached (up or down) and gives that tier's bonus the first time. */
+export async function updateTier(shop: string, c: LoyaltyConfig, memberId: number, now = new Date()) {
+  if (!c.tiers.on) return null;
+  const t = tierFor(c, await tierValue(shop, c, memberId, now));
+  const id = t?.id ?? "";
+  const m = await db.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
+  if (m.tier === id) return null;
+  await db.loyaltyMember.update({ where: { id: memberId }, data: { tier: id, tierSince: now } });
+  if (t && t.bonus > 0) await record(shop, memberId, { kind: "tier", points: t.bonus, note: t.name, dedupe: `tier:${memberId}:${t.id}` });
+  return t;
+}
+
+/** Every member's tier again (daily, for tiers measured over the last 12 months). */
+export async function reviewTiers(shop: string, c: LoyaltyConfig, now = new Date()) {
+  if (!c.tiers.on) return 0;
+  let changed = 0;
+  for (const m of await db.loyaltyMember.findMany({ where: { shop, blocked: false }, select: { id: true } })) if (await updateTier(shop, c, m.id, now)) changed++;
+  return changed;
+}
+
+/* --------------------------------------------------------- birthday, social -- */
+/** The member adds their birthday ("MM-DD") once; the store can change it later. */
+export async function setBirthday(shop: string, memberId: number, mmdd: string) {
+  if (!/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(mmdd)) return false;
+  const done = await db.loyaltyMember.updateMany({ where: { id: memberId, shop, birthday: "" }, data: { birthday: mmdd } });
+  return done.count > 0;
+}
+
+/** Birthday points for members whose birthday is today (once a year). */
+export async function birthdayPoints(shop: string, c: LoyaltyConfig, now = new Date()) {
+  if (!c.earn.birthday.on || c.earn.birthday.points <= 0) return 0;
+  const today = now.toISOString().slice(5, 10);
+  const year = now.getUTCFullYear();
+  let n = 0;
+  for (const m of await db.loyaltyMember.findMany({ where: { shop, birthday: today, blocked: false }, select: { id: true } })) {
+    if (await record(shop, m.id, { kind: "birthday", points: c.earn.birthday.points, note: String(year), dedupe: `birthday:${m.id}:${year}` })) n++;
+  }
+  return n;
+}
+
+/** Points for following the store on one network, once per network. */
+export async function socialPoints(shop: string, c: LoyaltyConfig, memberId: number, network: string) {
+  if (!c.earn.social.on || !c.earn.social.links.some((l) => l.network === network)) return null;
+  return record(shop, memberId, { kind: "social", points: c.earn.social.points, note: network, dedupe: `social:${memberId}:${network}` });
 }
 
 /* ---------------------------------------------------------------- signups -- */

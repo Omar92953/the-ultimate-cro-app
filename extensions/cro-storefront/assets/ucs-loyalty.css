@@ -27,6 +27,10 @@
 .ucs-loy__btn--soft { color: var(--ucs-loy-a, #111); background: #f1f1f1; }
 .ucs-loy__btn--wide { display: block; margin-top: 8px; padding: 11px 14px; }
 .ucs-loy__link { margin-top: 4px; font-size: 13px; color: inherit; text-align: center; }
+.ucs-loy__tier { align-self: flex-start; padding: 3px 10px; font-size: 12px; font-weight: 700; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border-radius: 999px; }
+.ucs-loy__camp { margin: 0 0 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; background: #fff7e0; border-radius: 10px; }
+.ucs-loy__bd { display: inline-flex; gap: 6px; }
+.ucs-loy__bd input { max-width: 140px; padding: 6px; font: inherit; font-size: 13px; border: 1px solid #ccc; border-radius: 8px; }
 .ucs-loy__msg { margin: 0 0 10px; padding: 10px 12px; font-size: 13px; background: #f3f8f4; border-radius: 10px; }
 .ucs-loy__wait { margin: 20px 0; text-align: center; color: #666; }
 .ucs-loy__toast { position: absolute; bottom: 64px; padding: 10px 14px; font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }

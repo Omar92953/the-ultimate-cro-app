@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "LoyaltyEvent" ADD COLUMN "multiplier" DOUBLE PRECISION NOT NULL DEFAULT 1;
+ALTER TABLE "LoyaltyEvent" ADD COLUMN "credit" DOUBLE PRECISION NOT NULL DEFAULT 0;
+ALTER TABLE "LoyaltyEvent" ADD COLUMN "issuedAt" TIMESTAMP(3);
+
+-- AlterTable
+ALTER TABLE "LoyaltyMember" ADD COLUMN "tierTagged" TEXT NOT NULL DEFAULT '';

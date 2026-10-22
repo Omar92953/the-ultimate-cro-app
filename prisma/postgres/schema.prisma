@@ -277,6 +277,8 @@ model LoyaltyMember {
   orders       Int       @default(0)
   tier         String    @default("")
   tierSince    DateTime?
+  /// The tier whose customer tag is on the customer in Shopify (the job brings it in line with `tier`).
+  tierTagged   String    @default("")
   referralCode String    @default("")
   referredBy   Int?
   emailOptOut  Boolean   @default(false)
@@ -301,6 +303,11 @@ model LoyaltyEvent {
   orderId     String    @default("")
   /// Money of the order this change is about (order: its net total; refund: negative), for spend based tiers.
   amount      Float     @default(0)
+  /// Order points: the VIP tier and campaign multiplier they were earned with (kept, so refunds use the same).
+  multiplier  Float     @default(1)
+  /// Cashback mode: store credit this order earns (refunds negative); given when usable (`issuedAt`).
+  credit      Float     @default(0)
+  issuedAt    DateTime?
   note        String    @default("")
   dedupe      String?
   availableAt DateTime  @default(now())
