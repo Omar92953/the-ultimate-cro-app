@@ -17,7 +17,7 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 7 | Emails with Postmark and the store's own sender | Done (#265): 11 emails, Emails page with preview and test send, own sender with DNS records and Verify, one-click unsubscribe, bounces, log, 10,000 a month |
 | 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | Klaviyo, Omnisend, Judge.me and review points done (#268); Shopify Flow next (7b) |
 | 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | To do |
-| 10 | Loyalty analytics, CSV import and export, languages | To do |
+| 10 | Loyalty analytics, CSV import and export, languages | Analytics and CSV in #269; languages to do |
 | 11 | Website (remove "loyalty" from `SITE_HIDDEN` in `app/lib/catalog.ts`, feature page, help, privacy with Postmark, Klaviyo and Omnisend, pricing highlight), docs, App Store audit, Partner Dashboard list | To do |
 
 Rows follow the plan's "Work, in PRs" list below. Commit messages and PR titles count loyalty parts from the core
