@@ -14,6 +14,8 @@
       assign kind = 'returns'
     elsif pages.wishlistHandle != blank and page.handle == pages.wishlistHandle
       assign kind = 'wishlist'
+    elsif pages.loyaltyHandle != blank and page.handle == pages.loyaltyHandle
+      assign kind = 'loyalty'
     endif
     if kind == ''
       assign show = false
@@ -41,6 +43,8 @@
 -%}
 {%- if show == false -%}
   {%- if request.design_mode -%}<p {{ block.shopify_attributes }} style="padding:16px;text-align:center">Order pages block: it shows here only on the pages made in the app (CRO Toolbox → Tracking & Returns). It is hidden on every other page.</p>{%- endif -%}
+{%- elsif kind == 'loyalty' -%}
+<div data-ucs-loy-page {{ block.shopify_attributes }}>{%- if request.design_mode -%}<p style="padding:24px;text-align:center">The Rewards page shows here (turn on the Conversion boosters embed and the program in the app: Loyalty).</p>{%- endif -%}</div>
 {%- elsif kind == 'wishlist' -%}
 <div data-ucs-orders="wishlist" {{ block.shopify_attributes }}>{%- if request.design_mode -%}<p style="padding:24px;text-align:center">The wishlist shows here (turn on the Conversion boosters embed and set up Boosters → Wishlist in the app).</p>{%- endif -%}</div>
 {%- else -%}
@@ -57,7 +61,7 @@
   "target": "section",
   "stylesheet": "ucs-sections.css",
   "settings": [
-    { "type": "select", "id": "page", "label": "Page", "default": "auto", "options": [ { "value": "auto", "label": "Automatic (by page)" }, { "value": "track", "label": "Track order" }, { "value": "returns", "label": "Returns" }, { "value": "wishlist", "label": "Wishlist" } ] },
+    { "type": "select", "id": "page", "label": "Page", "default": "auto", "options": [ { "value": "auto", "label": "Automatic (by page)" }, { "value": "track", "label": "Track order" }, { "value": "returns", "label": "Returns" }, { "value": "wishlist", "label": "Wishlist" }, { "value": "loyalty", "label": "Rewards" } ] },
     { "type": "select", "id": "design", "label": "Style", "default": "1", "info": "Which of the styles made in the app to show.", "options": [
       { "value": "1", "label": "Style 1" }, { "value": "2", "label": "Style 2" }, { "value": "3", "label": "Style 3" }, { "value": "4", "label": "Style 4" }, { "value": "5", "label": "Style 5" }
     ] },

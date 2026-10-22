@@ -30,11 +30,13 @@
   box.className = 'ucs-loy ucs-loy--' + (w.pos === 'left' ? 'left' : 'right');
   box.style.setProperty('--ucs-loy-a', w.a || '#111');
   box.style.setProperty('--ucs-loy-oa', w.oa || '#fff');
-  box.innerHTML = '<button type="button" class="ucs-loy__launch" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg><span>' + esc(t.launcher) + '</span></button>' +
+  box.style.setProperty('--ucs-loy-r', (w.r == null ? 18 : w.r) + 'px');
+  box.innerHTML = '<button type="button" class="ucs-loy__launch' + (w.l === 'icon' ? ' ucs-loy__launch--icon' : '') + '" aria-expanded="false" aria-label="' + esc(t.launcher) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg><span>' + esc(t.launcher) + '</span></button>' +
     '<div class="ucs-loy__panel" role="dialog" aria-label="' + esc(t.title) + '" hidden><div class="ucs-loy__top"><b>' + esc(t.title) + '</b><button type="button" class="ucs-loy__x" aria-label="Close">×</button></div><div class="ucs-loy__body"></div></div>';
   document.body.appendChild(box);
   var launch = box.querySelector('.ucs-loy__launch'), panel = box.querySelector('.ucs-loy__panel'), body = box.querySelector('.ucs-loy__body');
   var me = null, msg = '';
+  var pageEl = document.querySelector('[data-ucs-loy-page]'), pg = c.pg || {};
 
   var ways = function () {
     var list = [];
@@ -71,6 +73,21 @@
       h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(D.reg) + '">' + esc(t.join) + '</a><a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></div>' + ways() + rewards(null);
     }
     body.innerHTML = h;
+    if (pageEl) drawPage();
+  };
+  /* The Rewards page (Order & wishlist pages block on the page the app made): the same program, laid out wide. */
+  var drawPage = function () {
+    var m = me && me.member;
+    var top = m
+      ? '<p class="ucs-loyp__pts"><small>' + esc(t.have) + '</small><strong>' + esc(pts(m.points)) + '</strong>' + (m.pending ? '<small>' + esc(fill(t.pending, m.pending)) + '</small>' : '') + '</p>'
+      : D.in && me && me.canJoin
+        ? '<button type="button" class="ucs-loy__btn" data-join>' + esc(t.joinNow) + '</button>'
+        : D.in ? '' : '<p class="ucs-loyp__cta"><a class="ucs-loy__btn" href="' + esc(D.reg) + '">' + esc(t.join) + '</a> <a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></p>';
+    pageEl.innerHTML = '<div class="ucs-loyp" style="--ucs-loy-a:' + esc(w.a || '#111') + ';--ucs-loy-oa:' + esc(w.oa || '#fff') + ';--ucs-loy-r:' + (w.r == null ? 18 : w.r) + 'px">' +
+      '<section class="ucs-loyp__hero"><h1>' + esc(pg.title || t.title) + '</h1>' + (pg.sub ? '<p>' + esc(pg.sub) + '</p>' : '') + (msg ? '<p class="ucs-loy__msg" role="status">' + esc(msg) + '</p>' : '') + top + '</section>' +
+      ((pg.how || []).length ? '<ol class="ucs-loyp__how">' + pg.how.map(function (x, i) { return '<li><span>' + (i + 1) + '</span><b>' + esc(x.t) + '</b><small>' + esc(x.x) + '</small></li>'; }).join('') + '</ol>' : '') +
+      '<div class="ucs-loyp__cols"><section>' + ways() + '</section><section>' + (m ? got(m.rewards) : '') + rewards(m ? m.points : null) + '</section></div>' +
+      ((pg.faq || []).length ? '<section class="ucs-loyp__faq">' + pg.faq.map(function (x) { return '<details><summary>' + esc(x.q) + '</summary><p>' + esc(x.a) + '</p></details>'; }).join('') + '</section>' : '') + '</div>';
   };
   var load = function (intent, extra) {
     var b = { intent: intent };
@@ -89,7 +106,7 @@
   launch.addEventListener('click', function () { open(panel.hidden); });
   box.querySelector('.ucs-loy__x').addEventListener('click', function () { open(false); launch.focus(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { open(false); launch.focus(); } });
-  body.addEventListener('click', function (e) {
+  var act = function (e) {
     var b = e.target.closest('button');
     if (!b) return;
     if (b.hasAttribute('data-join')) { b.disabled = true; load('join'); }
@@ -98,7 +115,9 @@
     else if (b.getAttribute('data-apply')) {
       fetch(root + 'discount/' + encodeURIComponent(b.getAttribute('data-apply')), { credentials: 'same-origin' }).then(function () { msg = t.applied; draw(); document.dispatchEvent(new CustomEvent('ucs:cart:changed')); });
     }
-  });
+  };
+  body.addEventListener('click', act);
+  if (pageEl) { pageEl.addEventListener('click', act); drawPage(); }
 
   /* ---------- "You earned" when a member's points went up since their last visit ---------- */
   if (D.in) {

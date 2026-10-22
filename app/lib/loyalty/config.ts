@@ -71,7 +71,39 @@ export type LoyaltyConfig = {
   cashback: { on: boolean; percent: number };
   rewards: Reward[];
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
-  widget: { position: "left" | "right"; accent: string; onAccent: string; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
+  widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
+  /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
+  page: { title: string; sub: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+};
+
+export const MAX_FAQ = 8;
+export const DEFAULT_PAGE: LoyaltyConfig["page"] = {
+  title: "Rewards",
+  sub: "Earn points on every order and turn them into rewards.",
+  how: [
+    { t: "Join", x: "Create an account to start earning." },
+    { t: "Earn", x: "Get points on every order and more." },
+    { t: "Spend", x: "Turn your points into rewards at checkout." },
+  ],
+  faq: [
+    { q: "How do I earn points?", a: "You earn points on every paid order, and more for the things listed under Ways to earn." },
+    { q: "When can I use my points?", a: "Points from an order can be used once the order can no longer be returned." },
+    { q: "How do I use a reward?", a: "Open Rewards, choose a reward and use the code at checkout. Store credit is used at checkout by itself." },
+  ],
+};
+
+type Patch = Partial<Pick<LoyaltyConfig["widget"], "accent" | "onAccent" | "radius" | "launcher">>;
+/** Templates for the widget's look (Loyalty → Look). */
+export const LOYALTY_PRESETS: { key: string; title: string; patch: Patch }[] = [
+  { key: "classic", title: "Classic black", patch: { accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text" } },
+  { key: "soft", title: "Soft sand", patch: { accent: "#efe6da", onAccent: "#3b2a1a", radius: 22, launcher: "text" } },
+  { key: "bold", title: "Bold blue", patch: { accent: "#2563eb", onAccent: "#ffffff", radius: 14, launcher: "text" } },
+  { key: "gold", title: "Gold", patch: { accent: "#9a6b12", onAccent: "#ffffff", radius: 10, launcher: "text" } },
+  { key: "icon", title: "Icon only", patch: { accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "icon" } },
+];
+export const applyLoyaltyPreset = (c: LoyaltyConfig, key: string): LoyaltyConfig => {
+  const p = LOYALTY_PRESETS.find((x) => x.key === key);
+  return p ? { ...c, widget: { ...c.widget, ...p.patch } } : c;
 };
 
 export const DEFAULT_LOYALTY: LoyaltyConfig = {
@@ -90,7 +122,8 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
     { id: "r1", on: true, kind: "percent", title: "10% off your order", points: 500, value: 10, minimum: 0, days: 30, product: null },
     { id: "r2", on: true, kind: "shipping", title: "Free shipping", points: 300, value: 0, minimum: 0, days: 30, product: null },
   ],
-  widget: { position: "right", accent: "#111111", onAccent: "#ffffff", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
+  widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
+  page: DEFAULT_PAGE,
 };
 
 function cleanReward(raw: unknown, i: number): Reward | null {
@@ -145,10 +178,18 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
         position: pick(w.position, ["left", "right"] as const, d.widget.position),
         accent: color(w.accent, d.widget.accent),
         onAccent: color(w.onAccent, d.widget.onAccent),
+        radius: num(w.radius, 0, 28, d.widget.radius),
+        launcher: pick(w.launcher, ["text", "icon"] as const, d.widget.launcher),
         productPoints: bool(w.productPoints, d.widget.productPoints),
         cartPoints: bool(w.cartPoints, d.widget.cartPoints),
         texts: Object.fromEntries((Object.keys(WIDGET_TEXTS) as (keyof typeof WIDGET_TEXTS)[]).map((k) => [k, str(t[k], WIDGET_TEXTS[k], 200).trim() || WIDGET_TEXTS[k]])) as WidgetTexts,
       };
+    })(),
+    page: (() => {
+      const g = obj(r.page);
+      const how = Array.isArray(g.how) ? g.how.slice(0, 4).map((x) => ({ t: str(obj(x).t, "", 40).trim(), x: str(obj(x).x, "", 160).trim() })).filter((x) => x.t) : DEFAULT_PAGE.how;
+      const faq = Array.isArray(g.faq) ? g.faq.slice(0, MAX_FAQ).map((x) => ({ q: str(obj(x).q, "", 160).trim(), a: str(obj(x).a, "", 600).trim() })).filter((x) => x.q && x.a) : DEFAULT_PAGE.faq;
+      return { title: str(g.title, DEFAULT_PAGE.title, 60).trim() || DEFAULT_PAGE.title, sub: str(g.sub, DEFAULT_PAGE.sub, 200), how, faq };
     })(),
   };
 }
@@ -164,8 +205,9 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     su: c.earn.signup.on ? c.earn.signup.points : 0,
     fo: c.earn.firstOrder.on ? c.earn.firstOrder.points : 0,
     rw: c.rewards.filter((r) => r.on).map((r) => ({ id: r.id, t: r.title, p: r.points, k: r.kind })),
-    w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, pp: c.widget.productPoints, cp: c.widget.cartPoints },
+    w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
+    pg: c.page,
   };
 }
 

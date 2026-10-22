@@ -33,7 +33,7 @@ function fakeAdmin(existing: Record<string, { id: string; handle: string; title:
 test("it makes the page and saves both handles for the block", async () => {
   const { createOrderPage, getOrderPages } = await import("../../app/lib/order-page-setup.server");
   const f = fakeAdmin();
-  assert.deepEqual(await getOrderPages(f.admin), { track: null, returns: null, wishlist: null });
+  assert.deepEqual(await getOrderPages(f.admin), { track: null, returns: null, wishlist: null, loyalty: null });
   const t = await createOrderPage(f.admin, "track");
   const r = await createOrderPage(f.admin, "returns");
   assert.deepEqual(f.created, ["track-your-order", "returns"]);
@@ -82,4 +82,12 @@ test("the Wishlist page is made and remembered like the other two", async () => 
   await createOrderPage(f.admin, "wishlist");
   assert.equal((await getOrderPages(f.admin)).wishlist?.handle, "wishlist");
   assert.equal(JSON.parse(f.store.get("order_pages")!).wishlistHandle, "wishlist");
+});
+
+test("the Rewards page (loyalty) is made and remembered like the others", async () => {
+  const { createOrderPage, getOrderPages } = await import("../../app/lib/order-page-setup.server");
+  const f = fakeAdmin();
+  await createOrderPage(f.admin, "loyalty");
+  assert.equal((await getOrderPages(f.admin)).loyalty?.handle, "rewards");
+  assert.equal(JSON.parse(f.store.get("order_pages")!).loyaltyHandle, "rewards");
 });

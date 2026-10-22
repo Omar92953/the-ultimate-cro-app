@@ -8,14 +8,15 @@ import { AdminError, gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
 import { sectionLinks } from "./sections.server";
 
-export type OrderPageKind = "track" | "returns" | "wishlist";
+export type OrderPageKind = "track" | "returns" | "wishlist" | "loyalty";
 export type StorePage = { id: string; handle: string; title: string };
-export type OrderPages = { track: StorePage | null; returns: StorePage | null; wishlist: StorePage | null };
+export type OrderPages = { track: StorePage | null; returns: StorePage | null; wishlist: StorePage | null; loyalty: StorePage | null };
 
 const TITLES: Record<OrderPageKind, { title: string; handle: string }> = {
   track: { title: "Track your order", handle: "track-your-order" },
   returns: { title: "Returns", handle: "returns" },
   wishlist: { title: "Wishlist", handle: "wishlist" },
+  loyalty: { title: "Rewards", handle: "rewards" },
 };
 
 export async function getOrderPages(admin: AdminClient): Promise<OrderPages> {
@@ -31,15 +32,15 @@ export async function getOrderPages(admin: AdminClient): Promise<OrderPages> {
     const o = v && typeof v === "object" ? (v as Record<string, unknown>) : null;
     return o && typeof o.id === "string" && typeof o.handle === "string" ? { id: o.id, handle: o.handle, title: typeof o.title === "string" ? o.title : "" } : null;
   };
-  return { track: page(raw.track), returns: page(raw.returns), wishlist: page(raw.wishlist) };
+  return { track: page(raw.track), returns: page(raw.returns), wishlist: page(raw.wishlist), loyalty: page(raw.loyalty) };
 }
 
 const save = (admin: AdminClient, pages: OrderPages) =>
   upsert(admin, "$app:cro_design", "order_pages", {
     config: JSON.stringify({
-      track: pages.track, returns: pages.returns, wishlist: pages.wishlist,
+      track: pages.track, returns: pages.returns, wishlist: pages.wishlist, loyalty: pages.loyalty,
       // The block reads these flat handles.
-      trackHandle: pages.track?.handle ?? "", returnsHandle: pages.returns?.handle ?? "", wishlistHandle: pages.wishlist?.handle ?? "",
+      trackHandle: pages.track?.handle ?? "", returnsHandle: pages.returns?.handle ?? "", wishlistHandle: pages.wishlist?.handle ?? "", loyaltyHandle: pages.loyalty?.handle ?? "",
     }),
   });
 
@@ -67,10 +68,10 @@ export const templateFile = (suffix: string | null | undefined) => (suffix ? `te
 
 /** What the Track, Returns and Wishlist screens need: editor links that open the app's own pages, and whether the block is in the template those pages really use. */
 export async function orderPageContext(admin: AdminClient, shop: string, theme: { files: Record<string, string[]> } | null) {
-  const pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null, wishlist: null }) as OrderPages);
+  const pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null, wishlist: null, loyalty: null }) as OrderPages);
   const links = sectionLinks(shop, { trackHandle: pages.track?.handle, returnsHandle: pages.returns?.handle });
   // Each made page can have its own template (templateSuffix): the block must be in that one, not in any page.*.json.
-  const made = ([pages.track, pages.returns, pages.wishlist].filter(Boolean) as StorePage[]).map((p) => p.id);
+  const made = ([pages.track, pages.returns, pages.wishlist, pages.loyalty].filter(Boolean) as StorePage[]).map((p) => p.id);
   let suffixes = new Map<string, string | null>();
   if (made.length) {
     const d = await gql(admin, `#graphql
@@ -81,6 +82,7 @@ export async function orderPageContext(admin: AdminClient, shop: string, theme: 
   const hasBlock = (p: StorePage | null) => !p || files.has(templateFile(suffixes.get(p.id)));
   const inPageTemplate = !!theme && !!(pages.track || pages.returns) && hasBlock(pages.track) && hasBlock(pages.returns);
   const wishlistInTemplate = !!theme && !!pages.wishlist && hasBlock(pages.wishlist);
+  const loyaltyInTemplate = !!theme && !!pages.loyalty && hasBlock(pages.loyalty);
   const editor = (kind: OrderPageKind) => `https://${shop}/admin/themes/current/editor?template=${encodeURIComponent(suffixes.get(pages[kind]?.id ?? "") ? `page.${suffixes.get(pages[kind]!.id)}` : "page")}&previewPath=${encodeURIComponent(`/pages/${pages[kind]?.handle ?? TITLES[kind].handle}`)}`;
-  return { pages, links, inPageTemplate, wishlistInTemplate, editor };
+  return { pages, links, inPageTemplate, wishlistInTemplate, loyaltyInTemplate, editor };
 }
