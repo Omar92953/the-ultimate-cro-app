@@ -31,10 +31,10 @@ export function AbResults({ r, money }: { r: AbResult; money: (v: number) => str
       </s-grid>
       <s-text>
         {r.verdict === "wait"
-          ? `Not enough shoppers yet: each version needs ${MIN_VIEWS} shoppers and the two together ${MIN_ORDERS} orders before we say which is ahead.`
+          ? `Not enough shoppers yet: each version needs ${MIN_VIEWS} shoppers and the two together ${MIN_ORDERS} orders before one can be called ahead.`
           : r.verdict === "close"
             ? `No clear difference yet${r.leader ? ` (version ${r.leader} is slightly ahead, ${r.sure}% sure)` : ""}. Let it run longer.`
-            : `Version ${r.leader} is ahead and we are ${r.sure}% sure${r.verdict === "likely" ? " (likely, not certain)" : ""}.`}
+            : `Version ${r.leader} is ahead, ${r.sure}% sure${r.verdict === "likely" ? " (likely, not certain)" : ""}.`}
       </s-text>
     </s-stack>
   );
