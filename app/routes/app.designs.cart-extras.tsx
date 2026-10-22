@@ -125,7 +125,7 @@ export default function CartExtrasDesigner() {
               <Pane show={tab === "content"}>
                 <s-section heading="Discount code">
                   <s-stack gap="base">
-                    <Switch label="Show a discount code box" details="Shoppers type a code and it is applied to the cart (page and drawer). Invalid codes show your message." checked={cfg.code.on} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, on: v } }))} />
+                    <Switch label="Show a discount code box" details="Shoppers type a code and it is applied to the cart (page and drawer). Each code shows what it took off; a code that doesn't work says why when it can." checked={cfg.code.on} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, on: v } }))} />
                     {cfg.code.on ? (
                       <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                         <TextField label="Label" value={cfg.code.label} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, label: v } }))} />
@@ -134,6 +134,12 @@ export default function CartExtrasDesigner() {
                         <TextField label="Applied code" details="{code} = the code" value={cfg.code.applied} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, applied: v } }))} />
                         <TextField label="Remove link" value={cfg.code.remove} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, remove: v } }))} />
                         <TextField label="Message for a code that doesn't work" value={cfg.code.invalid} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, invalid: v } }))} />
+                        <TextField label="Saving next to a code" details="{amount} = what the code takes off the cart" value={cfg.code.saved} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, saved: v } }))} />
+                        <TextField label="When the saving shows only at checkout" details="For example free shipping codes" value={cfg.code.later} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, later: v } }))} />
+                        <TextField label="Empty box" value={cfg.code.empty} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, empty: v } }))} />
+                        <TextField label="Code already applied" details="{code} = the code" value={cfg.code.already} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, already: v } }))} />
+                        <TextField label="Codes that don't combine" details="{code} = the new code, {other} = the code already applied" value={cfg.code.combine} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, combine: v } }))} />
+                        <TextField label="Code couldn't be checked" details="When the store can't be reached" value={cfg.code.error} onValue={(v) => setCfg((c) => ({ ...c, code: { ...c.code, error: v } }))} />
                       </s-grid>
                     ) : null}
                   </s-stack>

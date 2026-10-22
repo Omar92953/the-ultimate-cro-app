@@ -19,3 +19,4 @@
 .ucs-ce__tag { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(127, 127, 127, 0.14); font-size: 0.9em; }
 .ucs-ce__rm { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 0.9em; text-decoration: underline; opacity: 0.75; cursor: pointer; }
 .ucs-ce--stack .ucs-ce__codeRow { flex-direction: column; }
+.ucs-ce__save { opacity: 0.75; font-weight: 400; }

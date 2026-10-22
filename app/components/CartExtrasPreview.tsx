@@ -49,7 +49,9 @@ export function CartExtrasPreview({ config: c }: { config: CartExtrasDesign }) {
             {applied ? (
               <ul className="ucs-ce__applied">
                 <li className="ucs-ce__tag">
-                  <span>{c.code.applied.replace("{code}", applied)}</span>
+                  <span>
+                    {c.code.applied.replace("{code}", applied)} <small className="ucs-ce__save">{c.code.saved.replace("{amount}", "EGP 125.00")}</small>
+                  </span>
                   <button type="button" className="ucs-ce__rm" onClick={() => setApplied("")}>
                     {c.code.remove}
                   </button>
