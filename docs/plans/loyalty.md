@@ -13,7 +13,7 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 3 | Rewards and redemption, store credit, app proxy, widget, product and cart points | Done (#257) |
 | 4 | Rewards page, Look editor, demo, library entry | Done (#258) |
 | 5 | VIP tiers, campaigns, product and collection rules, birthday, social follows, cashback | Done (#259) |
-| 6 | Referrals and affiliate links with fraud checks | **In progress: draft PR #260** (tables done; full design in the PR) |
+| 6 | Referrals and affiliate links with fraud checks | Done (#260): one "Loyalty referrals" discount holds every member code, affiliate discounts, fraud rules, gifts pending then usable and taken back on refunds, Referrals page, widget link and share buttons, `?ref=` banner |
 | 7 | Emails with Postmark and the store's own sender | To do |
 | 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | To do |
 | 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | To do |

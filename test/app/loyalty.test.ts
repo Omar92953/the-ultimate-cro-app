@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers"]) {
+  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -146,7 +146,7 @@ test("points expire after days without activity", async () => {
 
 test("privacy: a customer's loyalty rows are counted and removed; uninstall removes the store's", async () => {
   const shop = "a.myshopify.com";
-  assert.deepEqual(await P.loyaltyHeldFor(shop, "77", ""), { members: 1, events: 3 });
+  assert.deepEqual(await P.loyaltyHeldFor(shop, "77", ""), { members: 1, events: 3, referrals: 0 });
   assert.equal(await P.redactLoyaltyCustomer(shop, "", "sara@example.com"), 1);
   assert.equal(await prisma.loyaltyEvent.count({ where: { shop } }), 0);
   await P.syncOrder("g.myshopify.com", cfg(), order());
@@ -388,4 +388,268 @@ test("a reward only some tiers can get is refused for others", async () => {
   await P.syncOrder(shop, c, order({ subtotal: 100, customer: { id: "404", email: "", firstName: "", locale: "", tags: [] } }));
   const m = await member(shop, "404");
   await assert.rejects(R.redeem(fakeAdmin().admin, shop, c, m.id, "g"), /for Gold members/);
+});
+
+/* -------------------------------------------------------------- referrals -- */
+const DAY = 86_400_000;
+type RF = typeof import("../../app/lib/loyalty/referrals.server");
+const rf = (): Promise<RF> => import("../../app/lib/loyalty/referrals.server");
+const who = (id: string, email: string) => ({ id, email, firstName: "", locale: "", tags: [] as string[] });
+
+/** A fake Admin API for the referral discounts: ids it made, deleted ones, and each customer's first order. */
+function refAdmin(first: Record<string, string> = {}) {
+  const calls: Call[] = [];
+  const live = new Set<string>();
+  let next = 100;
+  const admin = {
+    graphql: async (query: string, opts?: { variables?: Record<string, unknown> }) => {
+      const v = opts?.variables ?? {};
+      calls.push({ query, variables: v });
+      const ok = { userErrors: [] as unknown[] };
+      const made = () => {
+        const id = `gid://shopify/DiscountCodeNode/${next++}`;
+        live.add(id);
+        return { ...ok, codeDiscountNode: { id } };
+      };
+      let data: Record<string, unknown>;
+      if (query.includes("discountCodeBasicCreate")) data = { discountCodeBasicCreate: made() };
+      else if (query.includes("discountCodeFreeShippingCreate")) data = { discountCodeFreeShippingCreate: made() };
+      else if (query.includes("discountCodeDelete")) {
+        live.delete(String(v.id));
+        data = { discountCodeDelete: { ...ok, deletedCodeDiscountId: v.id } };
+      } else if (query.includes("CroRefExists")) data = { node: live.has(String(v.id)) ? { id: v.id } : null };
+      else if (query.includes("CroRefFirst")) {
+        const cid = String(v.id).split("/").pop()!;
+        data = { customer: { orders: { nodes: first[cid] ? [{ id: `gid://shopify/Order/${first[cid]}` }] : [] } } };
+      } else if (query.includes("storeCreditAccountCredit")) data = { storeCreditAccountCredit: ok };
+      else if (query.includes("currencyCode")) data = { shop: { currencyCode: "EGP" } };
+      else data = { result: ok };
+      return new Response(JSON.stringify({ data }));
+    },
+  };
+  const named = (name: string) => calls.filter((x) => x.query.includes(name));
+  return { admin: admin as never, calls, live, named };
+}
+
+test("referral and affiliate settings are cleaned; the storefront gets the friend's offer only when on", async () => {
+  const { toStorefrontLoyalty } = await import("../../app/lib/loyalty/config");
+  const c = withLoyaltyDefaults({
+    referral: { on: true, friend: { kind: "amount", value: "7.5", minimum: -3 }, gift: { kind: "credit", value: 4 }, monthly: -1 },
+    affiliates: [{ id: "a1", name: "", code: " sarah 10!", kind: "shipping", value: 50, commission: 12.5 }, { id: "a2", code: "sarah10" }, { id: "a3", code: "ab" }],
+  });
+  assert.deepEqual(c.referral, { on: true, friend: { kind: "amount", value: 7.5, minimum: 0 }, gift: { kind: "credit", value: 4 }, monthly: 0 });
+  assert.deepEqual(c.affiliates, [{ id: "a1", on: true, name: "SARAH10", code: "SARAH10", kind: "shipping", value: 0, minimum: 0, commission: 12.5 }]);
+  assert.deepEqual(withLoyaltyDefaults({ referral: { friend: { kind: "percent", value: 250 } } }).referral.friend, { kind: "percent", value: 100, minimum: 0 });
+  assert.deepEqual(toStorefrontLoyalty(c, true).rf, { k: "amount", v: 7.5, m: 0, g: "credit", gv: 4 });
+  assert.equal(toStorefrontLoyalty(DEFAULT_LOYALTY, true).rf, null);
+});
+
+test("the referral fraud rules, in plain words", async () => {
+  const { referralRefusal } = await rf();
+  const ok = { referrer: { blocked: false, customerId: "1", email: "m@example.com" }, friend: { id: "2", email: "f@example.com" }, friendReferredBefore: false, rewardedLast30: 0, monthly: 10, firstOrder: true };
+  assert.equal(referralRefusal(ok), "");
+  assert.equal(referralRefusal({ ...ok, referrer: { ...ok.referrer, blocked: true } }), "The member is blocked");
+  assert.equal(referralRefusal({ ...ok, friend: null }), "The order has no customer");
+  assert.equal(referralRefusal({ ...ok, friend: { id: "1", email: "x@example.com" } }), "The member used their own code");
+  assert.equal(referralRefusal({ ...ok, friend: { id: "3", email: "m@example.com" } }), "The member used their own code", "same email, other account");
+  assert.equal(referralRefusal({ ...ok, friendReferredBefore: true }), "This friend was referred before");
+  assert.equal(referralRefusal({ ...ok, rewardedLast30: 10 }), "The member reached 10 referrals in 30 days");
+  assert.equal(referralRefusal({ ...ok, rewardedLast30: 99, monthly: 0 }), "", "0 = no limit");
+  assert.equal(referralRefusal({ ...ok, firstOrder: false }), "Not the friend's first order");
+});
+
+test("the friend's discount: for everyone, once per customer, a minimum removed on update", async () => {
+  const { friendDiscountInput } = await rf();
+  const make = friendDiscountInput({ kind: "percent", value: 10, minimum: 0 }, { title: "Loyalty referrals", code: "REFER-1", oncePerCustomer: true, tags: ["cro-loyalty", "cro-referral"] });
+  const i = make.input as Record<string, unknown>;
+  assert.equal(make.kind, "basic");
+  assert.equal(i.code, "REFER-1");
+  assert.deepEqual(i.context, { all: "ALL" });
+  assert.equal(i.appliesOncePerCustomer, true);
+  assert.deepEqual(i.tags, ["cro-loyalty", "cro-referral"]);
+  assert.equal(i.minimumRequirement, undefined);
+  assert.deepEqual(i.customerGets, { value: { percentage: 0.1 }, items: { all: true } });
+  const up = friendDiscountInput({ kind: "amount", value: 5, minimum: 0 }, { title: "T", oncePerCustomer: false, tags: [] }).input as Record<string, unknown>;
+  assert.equal(up.code, undefined, "the code is never changed on update");
+  assert.equal(up.startsAt, undefined);
+  assert.deepEqual(up.minimumRequirement, { quantity: { greaterThanOrEqualToQuantity: null }, subtotal: { greaterThanOrEqualToSubtotal: null } });
+  assert.deepEqual((up.customerGets as { value: unknown }).value, { discountAmount: { amount: "5.00", appliesOnEachItem: false } });
+  const ship = friendDiscountInput({ kind: "shipping", value: 0, minimum: 30 }, { title: "T", code: "S", oncePerCustomer: true, tags: [] });
+  assert.equal(ship.kind, "shipping");
+  assert.deepEqual((ship.input as Record<string, unknown>).minimumRequirement, { subtotal: { greaterThanOrEqualToSubtotal: "30.00" } });
+  assert.deepEqual((ship.input as Record<string, unknown>).destination, { all: true });
+});
+
+test("referral discounts: made when on, turned off, made again when the type changes, with member codes added again", async () => {
+  const R = await rf();
+  const shop = "ref1.myshopify.com";
+  const c = await P.saveProgramConfig(shop, { referral: { on: true } });
+  const fa = refAdmin();
+  assert.deepEqual(await R.syncReferralDiscounts(fa.admin, shop, c, true), []);
+  let s = await R.getReferralState(shop);
+  assert.equal(s.ref?.gen, 1);
+  assert.equal(s.ref?.kind, "basic");
+  assert.equal(s.ref?.on, true);
+  assert.match(String((fa.named("discountCodeBasicCreate")[0].variables.d as { code: string }).code), /^REFER-[0-9A-F]{8}$/);
+
+  await P.syncOrder(shop, c, order({ id: "5001", customer: who("500", "m500@example.com") }));
+  const m = await member(shop, "500");
+  assert.equal(await R.ensureMemberCode(fa.admin, s, m), true);
+  assert.deepEqual(fa.named("discountRedeemCodeBulkAdd")[0].variables, { id: s.ref!.id, codes: [{ code: m.referralCode }] });
+  assert.equal(await R.ensureMemberCode(fa.admin, s, await member(shop, "500")), false, "added once");
+
+  // Saving again with nothing changed: no update call.
+  await R.syncReferralDiscounts(fa.admin, shop, c, true);
+  assert.equal(fa.named("discountCodeBasicUpdate").length, 0);
+  const more = withLoyaltyDefaults({ ...c, referral: { ...c.referral, friend: { kind: "percent", value: 15, minimum: 0 } } });
+  await R.syncReferralDiscounts(fa.admin, shop, more, true);
+  assert.equal(fa.named("discountCodeBasicUpdate").length, 1);
+
+  await R.syncReferralDiscounts(fa.admin, shop, c, false);
+  s = await R.getReferralState(shop);
+  assert.equal(s.ref?.on, false);
+  assert.equal(fa.named("discountCodeDeactivate").length, 1);
+  assert.equal(await R.codeOffer(fa.admin, shop, c, m.referralCode), null, "an off discount gives nothing");
+
+  const ship = withLoyaltyDefaults({ ...c, referral: { ...c.referral, friend: { kind: "shipping", value: 0, minimum: 0 } } });
+  const old = s.ref!.id;
+  assert.deepEqual(await R.syncReferralDiscounts(fa.admin, shop, ship, true), []);
+  s = await R.getReferralState(shop);
+  assert.equal(s.ref?.gen, 2);
+  assert.equal(s.ref?.kind, "shipping");
+  assert.equal(fa.live.has(old), false, "the old discount is deleted");
+  assert.deepEqual(fa.named("discountRedeemCodeBulkAdd").at(-1)!.variables, { id: s.ref!.id, codes: [{ code: m.referralCode }] });
+  assert.equal((await member(shop, "500")).codeGen, 2);
+
+  // Deleted in Shopify by the store: made again on the next save.
+  fa.live.delete(s.ref!.id);
+  await R.syncReferralDiscounts(fa.admin, shop, ship, true);
+  assert.equal((await R.getReferralState(shop)).ref?.gen, 3);
+
+  assert.deepEqual(await R.codeOffer(fa.admin, shop, ship, m.referralCode.toLowerCase()), { k: "shipping", v: 0, m: 0 });
+  assert.equal(await R.codeOffer(fa.admin, shop, ship, "NOBODY1"), null);
+});
+
+test("affiliate discounts: one per affiliate, made again for a new code, deleted when removed", async () => {
+  const R = await rf();
+  const shop = "ref5.myshopify.com";
+  const aff = { id: "a1", on: true, name: "Sarah", code: "SARAH10", kind: "percent", value: 10, minimum: 0, commission: 10 };
+  const c = await P.saveProgramConfig(shop, { affiliates: [aff] });
+  const fa = refAdmin();
+  assert.deepEqual(await R.syncReferralDiscounts(fa.admin, shop, c, true), []);
+  const first = (await R.getReferralState(shop)).aff!.a1;
+  assert.equal(first.code, "SARAH10");
+  assert.equal((fa.named("discountCodeBasicCreate")[0].variables.d as { code: string; appliesOncePerCustomer: boolean }).appliesOncePerCustomer, false);
+  assert.deepEqual(await R.codeOffer(fa.admin, shop, c, "sarah10"), { k: "percent", v: 10, m: 0 });
+  const renamed = withLoyaltyDefaults({ ...c, affiliates: [{ ...aff, code: "SARAH20" }] });
+  await R.syncReferralDiscounts(fa.admin, shop, renamed, true);
+  const second = (await R.getReferralState(shop)).aff!.a1;
+  assert.notEqual(second.id, first.id);
+  assert.equal(fa.live.has(first.id), false);
+  await R.syncReferralDiscounts(fa.admin, shop, withLoyaltyDefaults({ ...c, affiliates: [] }), true);
+  assert.deepEqual((await R.getReferralState(shop)).aff, {});
+  assert.equal(fa.live.has(second.id), false);
+});
+
+test("a friend's first order: the gift is pending, then usable, once however often it is read; a full refund takes it back", async () => {
+  const R = await rf();
+  const shop = "ref2.myshopify.com";
+  const c = cfg({ pendingDays: 14, referral: { on: true, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 } });
+  await P.syncOrder(shop, c, order({ id: "6001", customer: who("600", "member@example.com") }));
+  const m = await member(shop, "600");
+  const fa = refAdmin({ "601": "6002" });
+  const now = new Date();
+  const friendOrder = order({ id: "6002", name: "#6002", customer: who("601", "friend@example.com"), codes: [m.referralCode.toLowerCase()] });
+  await P.syncOrder(shop, c, friendOrder);
+  await R.matchCodes(fa.admin, shop, c, friendOrder, now);
+  await R.matchCodes(fa.admin, shop, c, friendOrder, now);
+  const rows = await prisma.loyaltyReferral.findMany({ where: { shop, kind: "referral" } });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].status, "rewarded");
+  assert.equal(rows[0].referrerId, m.id);
+  assert.equal((await member(shop, "600")).pending, m.pending + 200);
+  assert.equal((await member(shop, "601")).referredBy, m.id, "the friend's member knows who referred them");
+
+  await P.releasePending(new Date(now.getTime() + 15 * DAY));
+  const after = await member(shop, "600");
+  assert.equal(after.points, m.points + m.pending + 200);
+  assert.equal(after.pending, 0);
+
+  await R.matchCodes(fa.admin, shop, c, { ...friendOrder, subtotal: 0 }, now);
+  await R.matchCodes(fa.admin, shop, c, { ...friendOrder, subtotal: 0 }, now);
+  assert.equal((await member(shop, "600")).points, after.points - 200);
+  assert.equal((await prisma.loyaltyReferral.findFirstOrThrow({ where: { shop, kind: "referral" } })).status, "reversed");
+  assert.equal(await prisma.loyaltyEvent.count({ where: { shop, kind: "referral_back" } }), 1);
+});
+
+test("refused referrals: the member's own code, a friend's second order, the monthly limit", async () => {
+  const R = await rf();
+  const shop = "ref3.myshopify.com";
+  const c = cfg({ pendingDays: 0, referral: { on: true, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 100 }, monthly: 1 } });
+  await P.syncOrder(shop, c, order({ id: "7001", customer: who("700", "m7@example.com") }));
+  const m = await member(shop, "700");
+  const fa = refAdmin({ "700": "7001", "701": "7100", "702": "7003", "703": "7004" });
+  const code = [m.referralCode];
+  await R.matchCodes(fa.admin, shop, c, order({ id: "7002", customer: who("700", "m7@example.com"), codes: code }));
+  await R.matchCodes(fa.admin, shop, c, order({ id: "7101", customer: who("701", "f1@example.com"), codes: code }));
+  await R.matchCodes(fa.admin, shop, c, order({ id: "7003", customer: who("702", "f2@example.com"), codes: code }));
+  await R.matchCodes(fa.admin, shop, c, order({ id: "7004", customer: who("703", "f3@example.com"), codes: code }));
+  await R.matchCodes(fa.admin, shop, c, order({ id: "7005", customer: who("704", "f4@example.com"), codes: code, paid: false }));
+  const rows = await prisma.loyaltyReferral.findMany({ where: { shop }, orderBy: { orderId: "asc" } });
+  assert.deepEqual(rows.map((r) => [r.orderId, r.status, r.reason]), [
+    ["7002", "refused", "The member used their own code"],
+    ["7003", "rewarded", ""],
+    ["7004", "refused", "The member reached 1 referrals in 30 days"],
+    ["7101", "refused", "Not the friend's first order"],
+  ]);
+  assert.equal((await member(shop, "700")).points, m.points + 100);
+  const stats = await R.referralStats(shop);
+  assert.equal(stats.referred, 1);
+  assert.equal(stats.refused, 3);
+  assert.equal(stats.latest[0].member, "m7@example.com");
+});
+
+test("store credit gifts go to the member's store credit once usable", async () => {
+  const R = await rf();
+  const { issueCashback } = await import("../../app/lib/loyalty/sync.server");
+  const shop = "ref6.myshopify.com";
+  const c = cfg({ pendingDays: 0, referral: { on: true, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "credit", value: 5 }, monthly: 0 } });
+  await P.syncOrder(shop, c, order({ id: "9001", customer: who("900", "m9@example.com") }));
+  const m = await member(shop, "900");
+  const fa = refAdmin({ "901": "9002" });
+  await R.matchCodes(fa.admin, shop, c, order({ id: "9002", customer: who("901", "f9@example.com"), codes: [m.referralCode] }));
+  assert.equal((await member(shop, "900")).points, m.points, "no points for a credit gift");
+  assert.equal(await issueCashback(fa.admin, shop), 1);
+  assert.equal(await issueCashback(fa.admin, shop), 0, "given once");
+  assert.deepEqual(fa.named("storeCreditAccountCredit")[0].variables, { id: "gid://shopify/Customer/900", input: { creditAmount: { amount: "5.00", currencyCode: "EGP" } } });
+});
+
+test("affiliate sales: one row per order, kept net of refunds, nothing for an order not paid yet", async () => {
+  const R = await rf();
+  const shop = "ref4.myshopify.com";
+  const c = cfg({ affiliates: [{ id: "a1", on: true, name: "Sarah", code: "SARAH10", kind: "percent", value: 10, minimum: 0, commission: 10 }] });
+  const fa = refAdmin();
+  const o = order({ id: "8001", subtotal: 80, customer: who("800", "b@example.com"), codes: ["sarah10"] });
+  await R.matchCodes(fa.admin, shop, c, { ...o, paid: false });
+  assert.equal(await prisma.loyaltyReferral.count({ where: { shop } }), 0);
+  await R.matchCodes(fa.admin, shop, c, o);
+  await R.matchCodes(fa.admin, shop, c, o);
+  await R.matchCodes(fa.admin, shop, c, { ...o, subtotal: 30 });
+  let row = await prisma.loyaltyReferral.findFirstOrThrow({ where: { shop } });
+  assert.deepEqual([row.kind, row.affiliateId, row.amount, row.status], ["affiliate", "a1", 30, "counted"]);
+  assert.deepEqual((await R.referralStats(shop)).affiliates.a1, { orders: 1, sales: 30 });
+  await R.matchCodes(fa.admin, shop, c, { ...o, cancelled: true });
+  row = await prisma.loyaltyReferral.findFirstOrThrow({ where: { shop } });
+  assert.deepEqual([row.amount, row.status], [0, "reversed"]);
+  assert.equal(await prisma.loyaltyReferral.count({ where: { shop } }), 1);
+});
+
+test("privacy: referral rows are counted and removed for the member and the friend; uninstall removes them", async () => {
+  const shop = "ref2.myshopify.com";
+  assert.equal((await P.loyaltyHeldFor(shop, "601", "")).referrals, 1, "as the friend");
+  assert.equal((await P.loyaltyHeldFor(shop, "600", "")).referrals, 1, "as the member");
+  await P.redactLoyaltyCustomer(shop, "601", "");
+  assert.equal(await prisma.loyaltyReferral.count({ where: { shop } }), 0);
+  await P.removeShopLoyalty("ref4.myshopify.com");
+  assert.equal(await prisma.loyaltyReferral.count({ where: { shop: "ref4.myshopify.com" } }), 0);
 });

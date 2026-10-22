@@ -1,7 +1,8 @@
 /**
  * The loyalty widget on the store posts here through the app proxy (/apps/ucro/loyalty). Shopify signs every
  * request and adds `logged_in_customer_id`, so a shopper only ever sees and spends their own points.
- * Intents: "me" (balance, history, rewards got), "join" (when joining is manual), "redeem" (spend points).
+ * Intents: "me" (balance, history, rewards got), "join" (when joining is manual), "redeem" (spend points),
+ * "ref" (what a shared referral or affiliate code gives; works for guests too).
  * Only on Pro with the program on.
  */
 import type { ActionFunctionArgs } from "react-router";
@@ -12,6 +13,7 @@ import { getPlan } from "../lib/billing.server";
 import { atLeast } from "../lib/plans";
 import { getProgram, memberFor, setBirthday, socialPoints, tierValue } from "../lib/loyalty/program.server";
 import { syncCustomer } from "../lib/loyalty/sync.server";
+import { codeOffer, ensureMemberCode, getReferralState } from "../lib/loyalty/referrals.server";
 import { NotEnoughPoints, memberRewards, redeem } from "../lib/loyalty/rewards.server";
 import { eventLabel } from "../lib/loyalty/labels";
 import { AdminError, gql } from "../lib/admin.server";
@@ -32,10 +34,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!program.on) return json({ ok: false, error: "off" });
   const { plan } = await getPlan(admin, shop);
   if (!atLeast(plan, "pro")) return json({ ok: false, error: "off" });
+  const intent = String(body.intent ?? "me");
+  if (intent === "ref") {
+    const ref = await codeOffer(admin, shop, program.config, String(body.code ?? "")).catch(() => null);
+    return json({ ok: true, ref });
+  }
   const customerId = new URL(request.url).searchParams.get("logged_in_customer_id") ?? "";
   if (!/^\d+$/.test(customerId)) return json({ ok: true, member: null, guest: true });
 
-  const intent = String(body.intent ?? "me");
   try {
     if (intent === "me") {
       const key = `${shop}|${customerId}`;
@@ -68,6 +74,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const c = program.config;
     const tier = c.tiers.on ? c.tiers.list.find((t) => t.id === m!.tier) ?? null : null;
     const next = c.tiers.on ? nextTier(c, await tierValue(shop, c, m.id)) : null;
+    // The member's code works only once it is on the referral discount (added the first time it is shown).
+    let ref: string | null = null;
+    if (c.referral.on && m.referralCode) {
+      const s = await getReferralState(shop);
+      if (s.ref?.on && (await ensureMemberCode(admin, s, m).then(() => true, () => false))) ref = m.referralCode;
+    }
     const followed = c.earn.social.on ? (await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id, kind: "social" }, select: { note: true } })).map((e) => e.note) : [];
     return json({
       ok: true,
@@ -76,6 +88,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         points: m.points,
         pending: m.pending,
         code: m.referralCode,
+        ref,
         history: history.map((e) => ({ l: eventLabel(e.kind, e.note), p: e.points, cr: e.credit, s: e.status, d: e.createdAt.toISOString().slice(0, 10) })),
         tier: tier ? { id: tier.id, n: tier.name } : null,
         next: next ? { n: next.tier.name, need: next.need, spent: c.tiers.basis === "spent" } : null,
