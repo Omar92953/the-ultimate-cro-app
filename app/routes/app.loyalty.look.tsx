@@ -63,6 +63,7 @@ const TEXT_GROUPS: { title: string; keys: [TextKey, string][] }[] = [
   { title: "Shoppers who aren't members", keys: [["guestTitle", "Title"], ["guestText", "Text"], ["join", "Create an account"], ["signIn", "Sign in"], ["joinNow", "Join (signed in)"]] },
   { title: "Rewards", keys: [["get", "Get a reward"], ["more", "Points still needed ({n})"], ["code", "Codes heading"], ["copy", "Copy"], ["copied", "After copying"], ["apply", "Use the code"], ["applied", "After using"], ["credit", "After store credit"], ["error", "Something went wrong"]] },
   { title: "Ways to earn", keys: [["orderWay", "Orders"], ["signupWay", "Account"], ["firstWay", "First order"]] },
+  { title: "Referrals", keys: [["referTitle", "Heading"], ["referText", "Text ({friend}, {gift})"], ["referLink", "Link label"], ["shareText", "Shared message ({friend})"], ["refBanner", "Friend arrives ({friend})"], ["referWay", "Ways to earn"], ["offPercent", "Percent off ({x})"], ["offAmount", "Amount off ({x})"], ["freeShip", "Free shipping"], ["creditGift", "Store credit gift ({x})"], ["email", "Share by email"]] },
   { title: "On the store", keys: [["product", "Product page ({n})"], ["cart", "Cart ({n})"], ["earned", "Points went up ({n})"]] },
 ];
 

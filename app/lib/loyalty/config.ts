@@ -28,6 +28,17 @@ export const SOCIAL_NETWORKS = ["instagram", "tiktok", "facebook", "x", "youtube
 export type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
 export const SOCIAL_LABEL: Record<SocialNetwork, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", x: "X", youtube: "YouTube" };
 export const MAX_REWARDS = 12;
+/** What a referred friend gets on their first order: a percent or amount off, or free shipping. */
+export const FRIEND_KINDS = ["percent", "amount", "shipping"] as const;
+export type FriendKind = (typeof FRIEND_KINDS)[number];
+/**
+ * A creator or partner with their own discount code. Orders with it are counted as their sales; `commission`
+ * is the percent of those sales the store owes them (only shown: the app pays nobody).
+ */
+export type Affiliate = { id: string; on: boolean; name: string; code: string; kind: FriendKind; value: number; minimum: number; commission: number };
+export const MAX_AFFILIATES = 50;
+/** Affiliate codes: upper case letters, digits, _ and -, 3 to 30 characters. */
+export const cleanCode = (v: unknown) => String(v ?? "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
 
 /** Every word of the storefront widget (the look editor and languages come later on the same object). */
 export const WIDGET_TEXTS = {
@@ -68,6 +79,17 @@ export const WIDGET_TEXTS = {
   signupWay: "Create an account",
   firstWay: "Your first order",
   error: "Something went wrong. Please try again.",
+  referTitle: "Refer a friend",
+  referText: "Give a friend {friend} on their first order. You get {gift} when they order.",
+  referLink: "Your link",
+  shareText: "Here is {friend} for your first order:",
+  refBanner: "A friend gave you {friend}. It is added at checkout.",
+  offPercent: "{x}% off",
+  offAmount: "{x} off",
+  freeShip: "free shipping",
+  creditGift: "{x} in store credit",
+  referWay: "Refer a friend",
+  email: "Email",
 } as const;
 export type WidgetTexts = Record<keyof typeof WIDGET_TEXTS, string>;
 
@@ -101,6 +123,12 @@ export type LoyaltyConfig = {
   /** Earn store credit (a percent of each order) instead of points. */
   cashback: { on: boolean; percent: number };
   rewards: Reward[];
+  /**
+   * Refer a friend: each member's code gives a friend `friend` on their first order; the member gets `gift`
+   * (points or store credit) once that order is paid, at most `monthly` times every 30 days (0 = no limit).
+   */
+  referral: { on: boolean; friend: { kind: FriendKind; value: number; minimum: number }; gift: { kind: "points" | "credit"; value: number }; monthly: number };
+  affiliates: Affiliate[];
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
@@ -168,6 +196,8 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
     { id: "r1", on: true, kind: "percent", title: "10% off your order", points: 500, value: 10, minimum: 0, days: 30, product: null, tiers: [] },
     { id: "r2", on: true, kind: "shipping", title: "Free shipping", points: 300, value: 0, minimum: 0, days: 30, product: null, tiers: [] },
   ],
+  referral: { on: false, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 },
+  affiliates: [],
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
 };
@@ -191,6 +221,34 @@ function cleanReward(raw: unknown, i: number): Reward | null {
     product,
     tiers: Array.isArray(r.tiers) ? r.tiers.map(String).filter((x) => /^[a-z0-9]{1,12}$/i.test(x)).slice(0, MAX_TIERS) : [],
   };
+}
+
+const money = (v: unknown, min: number) => Math.max(min, Math.min(100000, Math.round((Number(v) || 0) * 100) / 100));
+/** A friend's discount value: percent 1 to 100, an amount, nothing for free shipping. */
+const friendValue = (kind: FriendKind, v: unknown, d: number) => (kind === "percent" ? num(v, 1, 100, d) : kind === "amount" ? money(v, 0.01) : 0);
+
+function cleanReferral(raw: unknown, d: LoyaltyConfig["referral"]): LoyaltyConfig["referral"] {
+  const r = obj(raw), f = obj(r.friend), g = obj(r.gift);
+  const kind = pick(f.kind, FRIEND_KINDS, d.friend.kind);
+  const gift = pick(g.kind, ["points", "credit"] as const, d.gift.kind);
+  return {
+    on: bool(r.on, d.on),
+    friend: { kind, value: friendValue(kind, f.value ?? d.friend.value, d.friend.value), minimum: money(f.minimum, 0) },
+    gift: { kind: gift, value: gift === "points" ? num(g.value, 1, 100000, d.gift.value) : money(g.value ?? 5, 0.01) },
+    monthly: num(r.monthly, 0, 1000, d.monthly),
+  };
+}
+
+function cleanAffiliates(raw: unknown): Affiliate[] {
+  const list = (Array.isArray(raw) ? raw : []).slice(0, MAX_AFFILIATES).flatMap((x, i) => {
+    const o = obj(x);
+    const code = cleanCode(o.code);
+    if (code.length < 3) return [];
+    const kind = pick(o.kind, FRIEND_KINDS, "percent");
+    return [{ id: idOk(o.id, i, "a"), on: bool(o.on, true), name: str(o.name, "", 60).trim() || code, code, kind, value: friendValue(kind, o.value, 10), minimum: money(o.minimum, 0), commission: Math.max(0, Math.min(100, Math.round((Number(o.commission) || 0) * 100) / 100)) }];
+  });
+  // Ids and codes unique (the first one wins).
+  return list.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.code === x.code) === i);
 }
 
 const idOk = (v: unknown, i: number, prefix: string) => (/^[a-z0-9]{1,12}$/i.test(String(v)) ? String(v) : `${prefix}${i + 1}`);
@@ -268,6 +326,8 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
     rewards: Array.isArray(r.rewards)
       ? r.rewards.slice(0, MAX_REWARDS).map(cleanReward).filter((x): x is Reward => !!x).filter((x, i, a) => a.findIndex((y) => y.id === x.id) === i)
       : d.rewards,
+    referral: cleanReferral(r.referral, d.referral),
+    affiliates: cleanAffiliates(r.affiliates),
     widget: (() => {
       const w = obj(r.widget), t = obj(w.texts);
       return {
@@ -304,6 +364,7 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     bd: c.earn.birthday.on ? c.earn.birthday.points : 0,
     so: c.earn.social.on ? { p: c.earn.social.points, l: c.earn.social.links } : null,
     ti: c.tiers.on ? { b: c.tiers.basis, l: c.tiers.list.map((x) => ({ id: x.id, n: x.name, m: x.min, x: x.multiplier })) } : null,
+    rf: c.referral.on ? { k: c.referral.friend.kind, v: c.referral.friend.value, m: c.referral.friend.minimum, g: c.referral.gift.kind, gv: c.referral.gift.value } : null,
     ca: c.campaigns.map((x) => ({ n: x.name, x: x.multiplier, f: x.from, t: x.to })),
     w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
