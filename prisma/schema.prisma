@@ -390,3 +390,39 @@ model LoyaltyEmail {
   @@index([shop, memberId])
   @@index([shop, createdAt])
 }
+
+/// A connected service for the loyalty program (Klaviyo, Omnisend, Judge.me, Shopify Flow): its key (encrypted), on or off.
+model LoyaltyIntegration {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  kind      String
+  /// The API key, encrypted (lib/tracking/secret.server.ts); "" for Shopify Flow.
+  key       String   @default("")
+  last4     String   @default("")
+  on        Boolean  @default(true)
+  /// Where it got to (Judge.me: the last review read), JSON.
+  state     String   @default("{}")
+  error     String   @default("")
+  updatedAt DateTime @default(now())
+
+  @@unique([shop, kind])
+}
+
+/// A loyalty event for a connected service (points earned, reward redeemed...): queued, then sent or failed.
+model LoyaltyOutbox {
+  id        Int       @id @default(autoincrement())
+  shop      String
+  memberId  Int
+  target    String
+  kind      String
+  data      String    @default("{}")
+  dedupe    String?
+  status    String    @default("queued")
+  reason    String    @default("")
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@unique([shop, dedupe])
+  @@index([shop, status])
+  @@index([shop, memberId])
+}

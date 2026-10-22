@@ -9,7 +9,8 @@ Updated 2026-10-22.
 - [x] Loyalty (Pro) parts 1 to 4 (#255 to #259): core, rewards and widget, Rewards page and Look, VIP tiers and more
 - [x] Loyalty part 5: referrals and affiliate links (#260)
 - [x] Loyalty part 6: Postmark emails with the store's own sender (#265)
-- [ ] Loyalty parts 7 to 10: integrations, customer account, checkout (Plus) and POS, analytics, CSV and languages,
+- [x] Loyalty part 7a: Klaviyo, Omnisend, Judge.me and review points (#268)
+- [ ] Loyalty parts 7b to 10: Shopify Flow, customer account, checkout (Plus) and POS, analytics, CSV and languages,
       website (`docs/plans/loyalty.md`)
 - [x] Analytics rebuild with A/B test results: an A/B tests tab and a running tests card on the overview; tests are still created on the Offers page (#262)
 - [ ] Cart Discount code box

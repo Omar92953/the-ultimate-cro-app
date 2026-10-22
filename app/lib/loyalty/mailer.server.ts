@@ -14,6 +14,7 @@ import db from "../../db.server";
 import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
+import { eventTargets, queueEvents } from "./integrations.server";
 import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, validEmail, type EmailKind } from "./emails";
 
 const DAY = 86_400_000;
@@ -66,22 +67,28 @@ export async function providerEvent(body: Record<string, unknown>) {
 /* ----------------------------------------------------------------- queue -- */
 export type EmailData = { points?: number; credit?: number; order?: string; date?: string; reward?: string; code?: string; tier?: string; giftPoints?: number; giftCredit?: number; lifetime?: number };
 
-/** Queues one email for a member (when emails and that email are on). The same `dedupe` is queued once. */
+/**
+ * A loyalty event for a member: the email (when emails and that email are on) and the event for Klaviyo and
+ * Omnisend (when connected). The same `dedupe` is queued once. True when anything was queued.
+ */
 export async function notify(shop: string, c: LoyaltyConfig, memberId: number, kind: EmailKind, data: EmailData = {}, dedupe?: string) {
-  if (!c.emails.on || !c.emails.texts[kind].on) return false;
+  const events = await queueEvents(shop, memberId, kind, data, dedupe).catch(() => 0);
+  if (!c.emails.on || !c.emails.texts[kind].on) return events > 0;
   try {
     await db.loyaltyEmail.create({ data: { shop, memberId, kind, data: JSON.stringify(data), dedupe: dedupe ?? null } });
     return true;
   } catch {
-    return false; // Queued before.
+    return events > 0; // The email was queued before.
   }
 }
 
 /** The scheduled emails: welcome for new members, reward ready, points expiring, the monthly summary. */
 export async function queueScheduled(shop: string, c: LoyaltyConfig, now = new Date()) {
-  if (!c.emails.on) return 0;
+  // Each one is looked for when its email is on, or when Klaviyo or Omnisend should get the event.
+  const events = (await eventTargets(shop).catch(() => [])).length > 0;
+  if (!c.emails.on && !events) return 0;
   let n = 0;
-  const on = (k: EmailKind) => c.emails.texts[k].on;
+  const on = (k: EmailKind) => (c.emails.on && c.emails.texts[k].on) || (events && k !== "summary");
   const base = { shop, blocked: false, emailOptOut: false };
   if (on("welcome")) {
     for (const m of await db.loyaltyMember.findMany({ where: { ...base, joinedAt: { gte: new Date(now.getTime() - DAY) } }, select: { id: true }, take: 500 }))
