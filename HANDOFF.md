@@ -116,7 +116,8 @@ account, which takes over **all** of that work. Everything is in the repo; never
   - new prices on all plans, monthly and yearly;
   - protected customer data: add Name and birthday, the loyalty purpose, and Postmark, Klaviyo and Omnisend as
     processors;
-  - network access for the checkout and customer account extensions;
+  - network access for the checkout and customer account extensions (then put `network_access = true` back in
+    `extensions/cro-loyalty-checkout/shopify.extension.toml` and deploy: it turns on spending points in Plus checkout);
   - listing text with the AOV and LTV lines (`docs/listing.md`), the Loyalty category, and the chosen listing images.
 - Shopify App Pricing usage meters (part of the single Partner Dashboard update): on Growth and Pro, monthly, add
   meters with the handles `live-shipments` ($0.04 each), `loyalty-orders` ($0.05 each) and `loyalty-emails` ($0.002

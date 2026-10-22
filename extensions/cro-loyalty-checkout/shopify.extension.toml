@@ -20,8 +20,9 @@ target = "purchase.thank-you.block.render"
 module = "./src/Redeem.jsx"
 target = "purchase.checkout.reductions.render-after"
 
-[extensions.capabilities]
-network_access = true
+# network_access = true is added back with Omar's final Partner Dashboard update (network access approval):
+# Shopify won't release a version with it before then. Without it, the reward codes still apply and the
+# "spend points" part stays hidden (its call to the app fails quietly).
 
 [[extensions.metafields]]
 namespace = "$app"
