@@ -1021,3 +1021,81 @@ test("review points: Judge.me reviews after the last read, more with a photo, ne
   assert.equal(await S.approvedReviewPoints(shop, cfg(), "gid://shopify/Metaobject/2", "h@example.com"), null, "review points off");
   assert.equal((await member(shop, "980")).points, before + 75 + 50 + 50);
 });
+
+/* -------------------------------------------------------------- Flow --- */
+/** A fake Admin API for Flow: the plan, a customer to look up, and the triggers sent. */
+function flowAdmin(o: { plan?: string; customer?: Record<string, unknown> | null } = {}) {
+  const triggers: Record<string, unknown>[] = [];
+  const admin = {
+    graphql: async (query: string, opts?: { variables?: Record<string, unknown> }) => {
+      const v = opts?.variables ?? {};
+      let data: Record<string, unknown> = {};
+      if (query.includes("CroActiveSubscriptions")) data = { currentAppInstallation: { activeSubscriptions: [{ name: o.plan ?? "Pro", status: "ACTIVE", trialDays: 0, createdAt: "2026-01-01T00:00:00Z" }] } };
+      else if (query.includes("CroFlowCustomer")) data = { customer: o.customer === undefined ? { locale: "en", tags: [], defaultEmailAddress: { emailAddress: "Flow@Example.com", marketingState: "SUBSCRIBED" } } : o.customer };
+      else if (query.includes("flowTriggerReceive")) {
+        triggers.push(v);
+        data = { flowTriggerReceive: { userErrors: [] } };
+      }
+      return new Response(JSON.stringify({ data }));
+    },
+  };
+  return { admin: admin as never, triggers };
+}
+
+test("Flow calls are checked against the app's secret", async () => {
+  const S = await ig();
+  const { createHmac } = await import("node:crypto");
+  const prev = process.env.SHOPIFY_API_SECRET;
+  process.env.SHOPIFY_API_SECRET = "flow-secret";
+  const raw = JSON.stringify({ a: 1 });
+  const good = createHmac("sha256", "flow-secret").update(raw).digest("base64");
+  assert.equal(S.flowSigned(raw, good), true);
+  assert.equal(S.flowSigned(raw + " ", good), false);
+  assert.equal(S.flowSigned(raw, null), false);
+  process.env.SHOPIFY_API_SECRET = prev;
+});
+
+test("Flow triggers: sent only while a workflow uses them, for the events Flow has, with the customer", async () => {
+  const S = await ig();
+  const shop = "fl1.myshopify.com";
+  const c = cfg({ pendingDays: 0 });
+  await P.syncOrder(shop, c, order({ id: "9901", createdAt: new Date().toISOString(), customer: who("991", "f1@example.com") }));
+  assert.equal(await prisma.loyaltyOutbox.count({ where: { shop } }), 0, "no workflow yet");
+  await S.flowLifecycle(shop, { flow_trigger_definition_id: "d1", has_enabled_flow: true, timestamp: "2026-10-22T10:00:00Z" });
+  await S.flowLifecycle(shop, { flow_trigger_definition_id: "d1", has_enabled_flow: false, timestamp: "2026-10-22T09:00:00Z" });
+  assert.deepEqual(await S.eventTargets(shop), ["flow"], "older news is ignored");
+  const m = await member(shop, "991");
+  const E = await ml();
+  await E.notify(shop, c, m.id, "earned", { points: 50, order: "#9901" }, "e1");
+  await E.notify(shop, c, m.id, "welcome", {}, "w1");
+  await E.notify(shop, c, m.id, "tier", { tier: "Gold" }, "t1");
+  assert.deepEqual((await prisma.loyaltyOutbox.findMany({ where: { shop }, orderBy: { id: "asc" } })).map((r) => r.kind), ["earned", "tier"], "Flow has no welcome trigger");
+  const fa = flowAdmin();
+  assert.deepEqual(await S.sendEvents(shop, c, fetch, new Date(), fa.admin), { sent: 2, skipped: 0, failed: 0 });
+  assert.deepEqual(fa.triggers, [
+    { handle: "loyalty-points-earned", payload: { customer_id: 991, Points: 50, Balance: m.points, "Order name": "#9901" } },
+    { handle: "loyalty-tier-changed", payload: { customer_id: 991, Tier: "Gold", "Moved up": true } },
+  ]);
+  await S.flowLifecycle(shop, { flow_trigger_definition_id: "d1", has_enabled_flow: false, timestamp: "2026-10-22T11:00:00Z" });
+  assert.deepEqual(await S.eventTargets(shop), []);
+});
+
+test("Flow's Add loyalty points: once per run, takes points away with a negative number, makes the member, says why it can't", async () => {
+  const S = await ig();
+  const shop = "fl2.myshopify.com";
+  const run = (props: Record<string, unknown>, id = "run1", fa = flowAdmin()) => S.flowAddPoints(fa.admin, shop, { handle: "loyalty-add-points", action_run_id: id, properties: props });
+  await P.saveProgramConfig(shop, { pendingDays: 0, excludeTags: "wholesale" });
+  assert.deepEqual(await run({ customer_id: "gid://shopify/Customer/5", points: 100 }), { status: 422, message: "The loyalty program is off in CRO Toolbox." });
+  await P.setProgramOn(shop, true);
+  assert.equal((await run({ customer_id: "gid://shopify/Customer/5", points: 0 })).message, "Points must be a whole number other than 0.");
+  assert.equal((await S.flowAddPoints(flowAdmin().admin, shop, { handle: "other" })).status, 400);
+  assert.deepEqual(await run({ customer_id: "gid://shopify/Customer/5", points: 100, note: "First review" }), { status: 200, message: "" });
+  assert.deepEqual(await run({ customer_id: "gid://shopify/Customer/5", points: 100, note: "First review" }), { status: 200, message: "" }, "Flow retried the same run");
+  const m = await member(shop, "5");
+  assert.deepEqual([m.points, m.email, m.emailMarketing], [100, "flow@example.com", true]);
+  await run({ customer_id: 5, points: -30 }, "run2");
+  assert.equal((await member(shop, "5")).points, 70);
+  const ev = await prisma.loyaltyEvent.findFirstOrThrow({ where: { shop, kind: "flow", points: 100 } });
+  assert.equal(ev.note, "First review");
+  assert.equal((await run({ customer_id: 6, points: 10 }, "run3", flowAdmin({ customer: { locale: "", tags: ["Wholesale"], defaultEmailAddress: null } }))).message, "This customer has a tag that keeps them out of the loyalty program.");
+});

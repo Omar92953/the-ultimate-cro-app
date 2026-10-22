@@ -21,3 +21,14 @@ export const EVENT_NAMES: Record<string, string> = {
   birthday: "Loyalty birthday points",
   expiring: "Loyalty points expiring",
 };
+
+/** The Shopify Flow trigger (extensions/cro-flow-*) each loyalty event starts. */
+export const FLOW_TRIGGERS: Record<string, string> = {
+  earned: "loyalty-points-earned",
+  reward: "loyalty-reward-redeemed",
+  credit: "loyalty-reward-redeemed",
+  tier: "loyalty-tier-changed",
+  tierDown: "loyalty-tier-changed",
+  expiring: "loyalty-points-expiring",
+};
+export const FLOW_ACTION = "loyalty-add-points";

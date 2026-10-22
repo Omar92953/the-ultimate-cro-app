@@ -1,0 +1,23 @@
+[[extensions]]
+name = "Loyalty reward redeemed"
+type = "flow_trigger"
+handle = "loyalty-reward-redeemed"
+uid = "59f5d8f1-bb6c-5c46-65f1-523b65f00149e97e8c02"
+description = "A loyalty member spent points on a reward (CRO Toolbox)."
+
+[settings]
+
+  [[settings.fields]]
+  type = "customer_reference"
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Reward"
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Code"
+
+  [[settings.fields]]
+  type = "number_decimal"
+  key = "Balance"

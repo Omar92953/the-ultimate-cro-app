@@ -1,0 +1,23 @@
+[[extensions]]
+name = "Loyalty points earned"
+type = "flow_trigger"
+handle = "loyalty-points-earned"
+uid = "0f2b11a1-7945-16fc-2d89-bad24b314beba04d6b32"
+description = "A loyalty member earned points or store credit for an order (CRO Toolbox)."
+
+[settings]
+
+  [[settings.fields]]
+  type = "customer_reference"
+
+  [[settings.fields]]
+  type = "number_decimal"
+  key = "Points"
+
+  [[settings.fields]]
+  type = "number_decimal"
+  key = "Balance"
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Order name"

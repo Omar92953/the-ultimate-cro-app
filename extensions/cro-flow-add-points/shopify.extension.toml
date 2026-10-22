@@ -1,0 +1,27 @@
+[[extensions]]
+name = "Add loyalty points"
+type = "flow_action"
+handle = "loyalty-add-points"
+uid = "7bae84a2-73ce-0bf4-0de3-7a99fbecd515acc078ca"
+description = "Add points to a customer's loyalty balance, or take them away with a negative number (CRO Toolbox)."
+runtime_url = "/flow/loyalty-points"
+
+[settings]
+
+  [[settings.fields]]
+  type = "customer_reference"
+  required = true
+
+  [[settings.fields]]
+  type = "number_decimal"
+  key = "points"
+  name = "Points"
+  description = "Whole points. A negative number takes points away."
+  required = true
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "note"
+  name = "Note"
+  description = "Shown in the member's history."
+  required = false

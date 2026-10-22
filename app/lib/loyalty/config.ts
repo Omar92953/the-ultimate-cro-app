@@ -55,6 +55,7 @@ export const WIDGET_TEXTS = {
   birthdaySave: "Save",
   birthdayDone: "Birthday saved",
   followWay: "Follow us on {network}",
+  reviewWay: "Write a product review",
   follow: "Follow",
   campaign: "{x} points until {date}",
   tierOnly: "For {tiers} members",

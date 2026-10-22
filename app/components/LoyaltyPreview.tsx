@@ -17,7 +17,7 @@ export function LoyaltyPreview({ config: c, view }: { config: LoyaltyConfig; vie
   const r = c.referral;
   const offer = r.friend.kind === "percent" ? t.offPercent.replace("{x}", String(r.friend.value)) : r.friend.kind === "amount" ? t.offAmount.replace("{x}", `$${r.friend.value}`) : t.freeShip;
   const gift = r.gift.kind === "credit" ? t.creditGift.replace("{x}", `$${r.gift.value}`) : pts(r.gift.value);
-  const ways = [c.earn.order.on ? [t.orderWay, `${pts(c.earn.order.perUnit)} / $1`] : null, c.earn.signup.on ? [t.signupWay, pts(c.earn.signup.points)] : null, c.earn.firstOrder.on ? [t.firstWay, pts(c.earn.firstOrder.points)] : null, r.on ? [t.referWay, gift] : null].filter(Boolean) as string[][];
+  const ways = [c.earn.order.on ? [t.orderWay, `${pts(c.earn.order.perUnit)} / $1`] : null, c.earn.signup.on ? [t.signupWay, pts(c.earn.signup.points)] : null, c.earn.firstOrder.on ? [t.firstWay, pts(c.earn.firstOrder.points)] : null, r.on ? [t.referWay, gift] : null, c.earn.review.on ? [t.reviewWay, pts(c.earn.review.points)] : null].filter(Boolean) as string[][];
   const link = "https://your-store.com/?ref=K7M2QXP";
   const referEl = r.on ? (
     <>

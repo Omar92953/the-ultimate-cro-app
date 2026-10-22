@@ -53,6 +53,7 @@
     if (c.su) list.push([t.signupWay, pts(c.su)]);
     if (c.fo) list.push([t.firstWay, pts(c.fo)]);
     if (rf) list.push([t.referWay, gift()]);
+    if (c.rv) list.push([t.reviewWay, pts(c.rv)]);
     var m = me && me.member, extra = '';
     if (c.bd) extra += '<li><span>' + esc(t.birthdayWay) + '</span>' + (m && !m.bday ? '<span class="ucs-loy__bd"><input type="date" aria-label="' + esc(t.birthdayAsk) + '"><button type="button" class="ucs-loy__btn" data-bday>' + esc(t.birthdaySave) + '</button></span>' : '<b>' + esc(pts(c.bd)) + '</b>') + '</li>';
     if (c.so) (c.so.l || []).forEach(function (l) {
