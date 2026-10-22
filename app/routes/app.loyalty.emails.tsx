@@ -13,7 +13,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
 import { DEFAULT_FROM, emailLog, getSender, removeSender, sendTest, setupSender, verifySender } from "../lib/loyalty/mailer.server";
 import { mailProvider } from "../lib/email/provider.server";
-import { EMAIL_INFO, EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isReminder, renderEmail, type EmailKind, type EmailText } from "../lib/loyalty/emails";
+import { EMAIL_INFO, EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, type EmailKind, type EmailText } from "../lib/loyalty/emails";
 import { pointsLabel, withLoyaltyDefaults, type LoyaltyConfig } from "../lib/loyalty/config";
 import { Button, ColorField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
@@ -92,7 +92,8 @@ export default function LoyaltyEmails() {
   const [loaded, setLoaded] = useState(d.config);
   const [kind, setKind] = useState<EmailKind>("earned");
   const [to, setTo] = useState(d.store.email);
-  const [senderEmail, setSenderEmail] = useState(d.sender?.email || d.config.emails.sender.email || d.store.email);
+  // A free mailbox (Gmail...) can't be verified, so it isn't offered as the sender.
+  const [senderEmail, setSenderEmail] = useState(d.sender?.email || d.config.emails.sender.email || (isFreeMailbox(d.store.email) ? "" : d.store.email));
   const [senderName, setSenderName] = useState(d.config.emails.sender.name);
   if (loaded !== d.config) {
     setLoaded(d.config);
@@ -144,6 +145,7 @@ export default function LoyaltyEmails() {
         <HomeRow title="Sender" subtitle={`Emails come from ${from}${own ? "" : `, and replies go to ${d.store.email || "your store's email"}`}.`}>
           <s-stack gap="base">
             <s-text>Send from your own address (recommended): emails show your address, and inboxes trust them more. Add 3 DNS records where your domain is managed, then click Verify.</s-text>
+            {isFreeMailbox(d.store.email) && !d.sender ? <s-text color="subdued">{`Your store's email (${d.store.email}) is a free address, which can't send for a store. Use an address at your own domain, or keep the default sender.`}</s-text> : null}
             <s-grid gridTemplateColumns="minmax(0, 1.4fr) minmax(0, 1fr) auto" gap="base" alignItems="end">
               <TextField label="Your sender address" placeholder="hello@yourstore.com" maxLength={254} value={senderEmail} onValue={setSenderEmail} />
               <TextField label="Sender name" placeholder={d.store.name} maxLength={60} value={senderName} onValue={setSenderName} />
