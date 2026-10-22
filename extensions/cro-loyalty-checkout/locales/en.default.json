@@ -1,0 +1,17 @@
+{
+  "name": "CRO Toolbox loyalty",
+  "earns": "This order earns {{points}}",
+  "earnsCredit": "This order earns {{amount}} in store credit",
+  "after": "They are added once the order is final.",
+  "balance": "You have {{points}} ready to use",
+  "title": "Your rewards",
+  "codes": "Your reward codes",
+  "apply": "Apply",
+  "spend": "Use your {{unit}}",
+  "use": "Use {{points}}",
+  "notEnough": "{{points}} more to go",
+  "applied": "Reward applied",
+  "failed": "That reward could not be used. Your points were not spent.",
+  "codeFailed": "That code could not be applied.",
+  "balanceShort": "{{points}} ready"
+}

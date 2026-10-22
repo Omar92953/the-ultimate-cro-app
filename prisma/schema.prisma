@@ -290,6 +290,9 @@ model LoyaltyMember {
   blocked      Boolean   @default(false)
   joinedAt     DateTime  @default(now())
   lastActivity DateTime  @default(now())
+  /// Set by Prisma on every change; the customer metafield $app:loyalty is written again when it is newer than `pushedAt`.
+  changedAt    DateTime? @updatedAt
+  pushedAt     DateTime?
 
   @@unique([shop, customerId])
   @@index([shop, email])

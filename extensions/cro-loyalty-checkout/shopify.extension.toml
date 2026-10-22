@@ -1,0 +1,28 @@
+# Loyalty in checkout (app: Loyalty). Merchants add the blocks in the checkout editor:
+#   Thank you page: what this order earns and the member's balance (any plan of Shopify).
+#   Order summary, under the discount field (Shopify Plus checkout): the member's reward codes to apply, and
+#   rewards to spend points on. Spending calls the app (app/routes/api.loyalty.checkout.tsx) with the checkout
+#   session token, so it needs network access (approved in the Partner Dashboard); the codes work without it.
+# Points, tier and codes come from the app's metafields $app:loyalty on the customer and the shop.
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "cro-loyalty-checkout"
+type = "ui_extension"
+uid = "60c211c3-6e20-d89f-1c57-9ba360727d3ee4644023"
+
+[[extensions.targeting]]
+module = "./src/ThankYou.jsx"
+target = "purchase.thank-you.block.render"
+
+[[extensions.targeting]]
+module = "./src/Redeem.jsx"
+target = "purchase.checkout.reductions.render-after"
+
+[extensions.capabilities]
+network_access = true
+
+[[extensions.metafields]]
+namespace = "$app"
+key = "loyalty"

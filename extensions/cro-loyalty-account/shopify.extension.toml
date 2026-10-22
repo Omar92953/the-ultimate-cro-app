@@ -1,0 +1,27 @@
+# Loyalty on the new customer accounts (app: Loyalty). Merchants add the blocks in the checkout and accounts
+# editor: Profile shows the member's points, tier, reward codes and referral link; Order status shows what the
+# order earned. Everything comes from the app's metafields $app:loyalty on the customer and the shop
+# (app/lib/loyalty/account.ts), so no network access is needed.
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "cro-loyalty-account"
+type = "ui_extension"
+uid = "adae8305-e1c7-03dd-75c7-1f322e39d3f9d023f43f"
+
+[[extensions.targeting]]
+module = "./src/Profile.jsx"
+target = "customer-account.profile.block.render"
+
+[[extensions.targeting]]
+module = "./src/OrderStatus.jsx"
+target = "customer-account.order-status.block.render"
+
+# The Profile block reads the signed in customer's metafield with the Customer Account API (scope
+# customer_read_customers, metafield definitions in shopify.app.toml with customer_account read access).
+
+# Loaded with the order on the Order status page (customer and shop).
+[[extensions.metafields]]
+namespace = "$app"
+key = "loyalty"

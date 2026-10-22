@@ -1,0 +1,20 @@
+{
+  "name": "CRO Toolbox loyalty",
+  "title": "Loyalty",
+  "ready": "{{points}} ready",
+  "pending": "{{points}} pending",
+  "tier": "{{tier}} member",
+  "notMember": "Not a member yet. They join with their first paid order.",
+  "blocked": "This customer can't use rewards.",
+  "off": "The loyalty program is off.",
+  "error": "Points could not be loaded. Check the connection and try again.",
+  "use": "Use points",
+  "spend": "Use {{points}}",
+  "more": "{{points}} more to go",
+  "added": "{{reward}} added to the cart",
+  "credit": "{{reward}} added to the customer's store credit",
+  "code": "Code {{code}}: add it to the cart if it isn't there",
+  "failed": "The reward could not be made. No points were spent.",
+  "none": "No rewards to use yet.",
+  "loading": "Loading"
+}

@@ -1,7 +1,7 @@
 # Access scopes and why each is needed
 
 The app asks for these scopes (set in `shopify.app.toml` → `[access_scopes]`). Nothing else: no
-customer accounts, no script tags, no theme writes. Paste these reasons into the App Store
+script tags, no theme writes. Paste these reasons into the App Store
 listing's API access justification and the protected customer data request.
 
 | Scope | Why the app needs it | Where it's used |
@@ -12,6 +12,7 @@ listing's API access justification and the protected customer data request.
 | `write_files` | Uploads a photo, video or logo straight from the Reviews and Logos forms (staged upload + `fileCreate`), so the merchant doesn't have to go to Content → Files first | Reviews and Logos pages |
 | `read_customers` | The customer of an order, to give them store credit (return saving rules, Pro) | Tracking & Returns |
 | `write_customers` | **Protected customer data (email).** The email pop up: adds a shopper who signs up to the store's own customers with email marketing consent (`customerCreate`, `customerEmailMarketingConsentUpdate`, tag `cro-popup`) and limits their one use welcome code to that customer. The app stores no email | Section library → Email pop up, `app/routes/proxy.subscribe.tsx` |
+| `customer_read_customers` | **Customer Account API.** The loyalty block on the customer account Profile page reads the signed in customer's own points, tier and reward codes from the app's customer metafield `$app:loyalty` (read only; the app never writes through it). Also lets the Plus checkout session token say which customer is signed in, to spend points there | Loyalty → customer account and checkout extensions (`extensions/cro-loyalty-account`, `extensions/cro-loyalty-checkout`) |
 | `read_store_credit_accounts`, `write_store_credit_account_transactions` | Give store credit instead of a refund (store credit accounts) | Return saving rules |
 | `write_merchant_managed_fulfillment_orders` | Hold an exchange's new shipment until the returned items arrive, and release it | Return saving rules (exchanges) |
 | `read_locations` | The location to put returned items back in stock | Return saving rules |
