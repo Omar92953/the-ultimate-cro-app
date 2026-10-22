@@ -19,6 +19,7 @@ import { mailProvider } from "../email/provider.server";
 import { judgeMeReviews, sendEvents, skipEvents } from "./integrations.server";
 import { accessFor, planned } from "./plan.server";
 import { extrasFor, reportUsage } from "../usage.server";
+import { pushAccounts } from "./account.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
 type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
@@ -114,13 +115,19 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
 /** One store: reads what changed since the last read (5 minutes of overlap, so nothing in between is missed). */
 export async function syncShop(shop: string, admin: AdminClient) {
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
-  if (!p?.on) return null;
+  const accounts = (config: LoyaltyConfig, active: boolean) => pushAccounts(admin, shop, config, active).catch((e) => console.error(`[loyalty] account metafields ${shop}:`, e instanceof Error ? e.message : e));
+  // Off: the extensions on customer accounts, checkout and POS hide the program (written once).
+  if (!p?.on) {
+    if (p) await accounts((await getProgram(shop)).config, false);
+    return null;
+  }
   const { plan } = await getPlan(admin, shop);
   const access = accessFor(plan, await extrasFor(shop));
   const { config: saved } = await getProgram(shop);
   if (!access.on) {
     // Below Growth: referral and affiliate codes stop working (kept, so they work again after an upgrade).
     await syncReferralDiscounts(admin, shop, saved, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
+    await accounts(saved, false);
     return null;
   }
   // Growth runs without the Pro parts (config.ts forPlan), with its member and email limits.
@@ -150,6 +157,8 @@ export async function syncShop(shop: string, admin: AdminClient) {
     await birthdayPoints(shop, config, started);
     if (config.tiers.period === "year") await reviewTiers(shop, config, started);
   }
+  // Last, so the metafields have this run's points, tiers and codes.
+  await accounts(config, true);
   return done;
 }
 const dailyDone = new Map<string, string>();
@@ -221,7 +230,8 @@ export function startLoyaltyJobs() {
     running = true;
     try {
       const { unauthenticated } = await import("../../shopify.server");
-      for (const p of await db.loyaltyProgram.findMany({ where: { on: true }, select: { shop: true } })) {
+      // Also stores that turned the program off in the last 20 minutes, so their extensions hide it.
+      for (const p of await db.loyaltyProgram.findMany({ where: { OR: [{ on: true }, { updatedAt: { gte: new Date(Date.now() - 20 * 60_000) } }] }, select: { shop: true } })) {
         try {
           const { admin } = await unauthenticated.admin(p.shop);
           await syncShop(p.shop, admin);
