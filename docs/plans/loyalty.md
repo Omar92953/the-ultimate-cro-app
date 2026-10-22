@@ -15,7 +15,7 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 5 | VIP tiers, campaigns, product and collection rules, birthday, social follows, cashback | Done (#259) |
 | 6 | Referrals and affiliate links with fraud checks | Done (#260): one "Loyalty referrals" discount holds every member code, affiliate discounts, fraud rules, gifts pending then usable and taken back on refunds, Referrals page, widget link and share buttons, `?ref=` banner |
 | 7 | Emails with Postmark and the store's own sender | Done (#265): 11 emails, Emails page with preview and test send, own sender with DNS records and Verify, one-click unsubscribe, bounces, log, 10,000 a month |
-| 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | Klaviyo, Omnisend, Judge.me and review points done (#268); Shopify Flow next (7b) |
+| 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | Done: Klaviyo, Omnisend, Judge.me and review points (#268); Shopify Flow, 4 triggers, the Add loyalty points action and the lifecycle callback (#270) |
 | 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | To do |
 | 10 | Loyalty analytics, CSV import and export, languages | To do |
 | 11 | Website (remove "loyalty" from `SITE_HIDDEN` in `app/lib/catalog.ts`, feature page, help, privacy with Postmark, Klaviyo and Omnisend, pricing highlight), docs, App Store audit, Partner Dashboard list | To do |

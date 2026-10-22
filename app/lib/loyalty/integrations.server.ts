@@ -3,19 +3,24 @@
  * last 4 characters):
  *   Klaviyo and Omnisend: every loyalty event (points earned, reward redeemed, tier changed, points expiring...)
  *     goes to the member's profile there with their points, tier and referral code, for the store's own flows;
- *   Judge.me: published reviews earn review points, like approved reviews from the app's Customer reviews.
+ *   Judge.me: published reviews earn review points, like approved reviews from the app's Customer reviews;
+ *   Shopify Flow: triggers (extensions/cro-flow-*) once the store has a workflow using them, and the
+ *     "Add loyalty points" action.
  * Events wait in LoyaltyOutbox and go out with the loyalty run (sync.server.ts), so a slow service never
  * slows an order or the widget.
  */
 import db from "../../db.server";
 import { decrypt, encrypt, last4 } from "../tracking/secret.server";
 import type { LoyaltyConfig } from "./config";
-import { getProgram, record } from "./program.server";
+import { getProgram, memberFor, record } from "./program.server";
 import { getPlan } from "../billing.server";
 import { atLeast } from "../plans";
-import type { AdminClient } from "../admin.server";
+import { gql, type AdminClient } from "../admin.server";
+import { excludedTags } from "./config";
+import { isExcluded } from "./points";
 
-import { EVENT_NAMES, EVENT_TARGETS, INTEGRATIONS, INTEGRATION_INFO, type IntegrationKind } from "./integrations";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { EVENT_NAMES, EVENT_TARGETS, FLOW_ACTION, FLOW_TRIGGERS, INTEGRATIONS, INTEGRATION_INFO, type IntegrationKind } from "./integrations";
 
 export { EVENT_NAMES, INTEGRATIONS, INTEGRATION_INFO, type IntegrationKind };
 
@@ -24,13 +29,14 @@ const KLAVIYO_REVISION = "2026-10-15";
 
 /* ------------------------------------------------------------- connect -- */
 // Which event services are on, per store (a minute per server process; forgotten when the store changes them).
-const cache = new Map<string, { at: number; targets: IntegrationKind[] }>();
+type Target = IntegrationKind | "flow";
+const cache = new Map<string, { at: number; targets: Target[] }>();
 export const forgetTargets = (shop: string) => cache.delete(shop);
-export async function eventTargets(shop: string): Promise<IntegrationKind[]> {
+export async function eventTargets(shop: string): Promise<Target[]> {
   const hit = cache.get(shop);
   if (hit && Date.now() - hit.at < 60_000) return hit.targets;
-  const rows = await db.loyaltyIntegration.findMany({ where: { shop, on: true, kind: { in: EVENT_TARGETS } }, select: { kind: true } });
-  const targets = rows.map((r) => r.kind as IntegrationKind);
+  const rows = await db.loyaltyIntegration.findMany({ where: { shop, on: true, kind: { in: [...EVENT_TARGETS, "flow"] } }, select: { kind: true } });
+  const targets = rows.map((r) => r.kind as Target);
   cache.set(shop, { at: Date.now(), targets });
   if (cache.size > 5000) cache.clear();
   return targets;
@@ -87,10 +93,10 @@ export type EventData = { points?: number; credit?: number; order?: string; date
 
 /** Queues one loyalty event for each event service the store has on. The same `dedupe` is queued once per service. */
 export async function queueEvents(shop: string, memberId: number, kind: string, data: EventData, dedupe?: string) {
-  const name = EVENT_NAMES[kind];
-  if (!name) return 0;
+  if (!EVENT_NAMES[kind] && !FLOW_TRIGGERS[kind]) return 0;
   let n = 0;
   for (const target of await eventTargets(shop)) {
+    if (target === "flow" ? !FLOW_TRIGGERS[kind] : !EVENT_NAMES[kind]) continue;
     try {
       await db.loyaltyOutbox.create({ data: { shop, memberId, target, kind, data: JSON.stringify(data), dedupe: dedupe ? `${target}:${dedupe}` : null } });
       n++;
@@ -101,7 +107,7 @@ export async function queueEvents(shop: string, memberId: number, kind: string, 
   return n;
 }
 
-type Member = { id: number; email: string; points: number; pending: number; lifetime: number; tier: string; referralCode: string; blocked: boolean };
+type Member = { id: number; customerId: string; email: string; points: number; pending: number; lifetime: number; tier: string; referralCode: string; blocked: boolean };
 
 /** What the services keep on the member's profile. */
 export function profileProperties(c: LoyaltyConfig, m: Member) {
@@ -155,23 +161,47 @@ export function eventRequest(target: IntegrationKind, key: string, c: LoyaltyCon
   };
 }
 
+/** The Shopify Flow trigger payload for one event: its fields by their names in extensions/cro-flow-* (exported for the tests). */
+export function flowPayload(c: LoyaltyConfig, m: Member, row: { kind: string; data: string }) {
+  let d: EventData = {};
+  try {
+    d = JSON.parse(row.data || "{}");
+  } catch {
+    d = {};
+  }
+  const customer_id = Number(m.customerId);
+  if (row.kind === "earned") return { customer_id, Points: d.points ?? 0, Balance: m.points, "Order name": d.order ?? "" };
+  if (row.kind === "reward" || row.kind === "credit") return { customer_id, Reward: d.reward ?? "", Code: d.code ?? "", Balance: m.points };
+  if (row.kind === "tier" || row.kind === "tierDown") return { customer_id, Tier: d.tier ?? "", "Moved up": row.kind === "tier" };
+  return { customer_id, Balance: m.points, "Expires on": (d.date ?? "").slice(0, 10) };
+}
+
 /** Sends what is queued for one store (up to 200 a run). A refused key turns that service's sending off with the reason. */
-export async function sendEvents(shop: string, c: LoyaltyConfig, http: Fetch = fetch, now = new Date()) {
+export async function sendEvents(shop: string, c: LoyaltyConfig, http: Fetch = fetch, now = new Date(), admin?: AdminClient) {
   const rows = await db.loyaltyOutbox.findMany({ where: { shop, status: "queued" }, orderBy: { id: "asc" }, take: 200 });
   const out = { sent: 0, skipped: 0, failed: 0 };
   if (!rows.length) return out;
-  const integrations = await db.loyaltyIntegration.findMany({ where: { shop, kind: { in: EVENT_TARGETS } } });
+  const integrations = await db.loyaltyIntegration.findMany({ where: { shop, kind: { in: [...EVENT_TARGETS, "flow"] } } });
   const members = await db.loyaltyMember.findMany({ where: { shop, id: { in: [...new Set(rows.map((r) => r.memberId))] } } });
   const refused = new Set<string>();
   const done = (id: number, data: { status: string; reason?: string; sentAt?: Date }) => db.loyaltyOutbox.update({ where: { id }, data: { reason: "", ...data } });
   for (const r of rows) {
     const i = integrations.find((x) => x.kind === r.target);
     const m = members.find((x) => x.id === r.memberId);
-    const key = i ? decrypt(i.key) : null;
-    const skip = !i || !i.on || refused.has(r.target) ? "Not connected" : !key ? "The key can't be read; connect again" : !m || m.blocked ? "Not a member" : !m.email ? "No email address" : r.createdAt.getTime() < now.getTime() - 3 * 86_400_000 ? "Waited too long" : "";
+    const flow = r.target === "flow";
+    const key = i && !flow ? decrypt(i.key) : "";
+    const skip = !i || !i.on || refused.has(r.target) ? "Not connected" : flow && !admin ? "Not connected" : !flow && !key ? "The key can't be read; connect again" : !m || m.blocked ? "Not a member" : !m.email ? "No email address" : r.createdAt.getTime() < now.getTime() - 3 * 86_400_000 ? "Waited too long" : "";
     if (skip) {
       await done(r.id, { status: "skipped", reason: skip });
       out.skipped++;
+      continue;
+    }
+    if (flow) {
+      const sent = await gql(admin!, `#graphql
+        mutation CroFlowTrigger($handle: String!, $payload: JSON!) { flowTriggerReceive(handle: $handle, payload: $payload) { userErrors { field message } } }`, { handle: FLOW_TRIGGERS[r.kind], payload: flowPayload(c, m!, r) }).then(() => "", (e) => (e instanceof Error ? e.message : "Not sent"));
+      await done(r.id, sent ? { status: "failed", reason: sent.slice(0, 200) } : { status: "sent", sentAt: now });
+      if (sent) out.failed++;
+      else out.sent++;
       continue;
     }
     const req = eventRequest(r.target as IntegrationKind, key!, c, m!, r);
@@ -267,4 +297,71 @@ export async function reviewApproved(admin: AdminClient, shop: string, reviewId:
   if (!p.on || !p.config.earn.review.on) return null;
   if (!atLeast((await getPlan(admin, shop)).plan, "pro")) return null;
   return approvedReviewPoints(shop, p.config, reviewId, email, photo);
+}
+
+/* ---------------------------------------------------------------- Flow --- */
+/** Flow signs its calls like webhooks: base64 HMAC SHA256 of the raw body with the app's secret. */
+export function flowSigned(raw: string, header: string | null) {
+  const want = Buffer.from(createHmac("sha256", process.env.SHOPIFY_API_SECRET || "").update(raw, "utf8").digest("base64"));
+  const got = Buffer.from(String(header ?? ""));
+  return want.length === got.length && timingSafeEqual(want, got);
+}
+
+/** Flow says whether the store has a workflow using a loyalty trigger: triggers are sent only then. */
+export async function flowLifecycle(shop: string, body: { flow_trigger_definition_id?: string; has_enabled_flow?: boolean; timestamp?: string }) {
+  const id = String(body.flow_trigger_definition_id ?? "");
+  if (!id) return;
+  const row = await db.loyaltyIntegration.findUnique({ where: { shop_kind: { shop, kind: "flow" } } });
+  let defs: Record<string, { on: boolean; at: string }> = {};
+  try {
+    defs = JSON.parse(row?.state || "{}").defs ?? {};
+  } catch {
+    defs = {};
+  }
+  const at = String(body.timestamp ?? new Date().toISOString());
+  // Older news than what is kept changes nothing.
+  if (defs[id] && defs[id].at > at) return;
+  defs[id] = { on: !!body.has_enabled_flow, at };
+  const on = Object.values(defs).some((d) => d.on);
+  const state = JSON.stringify({ defs });
+  await db.loyaltyIntegration.upsert({ where: { shop_kind: { shop, kind: "flow" } }, create: { shop, kind: "flow", on, state }, update: { on, state, updatedAt: new Date() } });
+  forgetTargets(shop);
+}
+
+const customerNumber = (v: unknown) => {
+  const s = String(v ?? "");
+  const n = s.match(/(\d+)$/)?.[1] ?? "";
+  return /^\d{1,20}$/.test(n) ? n : "";
+};
+
+/**
+ * The "Add loyalty points" action: adds (or with a negative number takes away) points for a customer, once
+ * per action run. The customer joins the program when they aren't a member yet. Errors come back to Flow in
+ * plain words (Flow shows a 4xx `message` to the merchant and doesn't retry it).
+ */
+export async function flowAddPoints(admin: AdminClient, shop: string, body: { handle?: string; action_run_id?: string; properties?: Record<string, unknown> }): Promise<{ status: number; message: string }> {
+  if (body.handle && body.handle !== FLOW_ACTION) return { status: 400, message: "Unknown action." };
+  const p = await getProgram(shop);
+  if (!p.on) return { status: 422, message: "The loyalty program is off in CRO Toolbox." };
+  if (!atLeast((await getPlan(admin, shop)).plan, "pro")) return { status: 422, message: "The loyalty program needs the Pro plan of CRO Toolbox." };
+  const props = body.properties ?? {};
+  const customerId = customerNumber(props.customer_id);
+  const points = Math.round(Number(props.points));
+  if (!customerId) return { status: 422, message: "No customer for this action." };
+  if (!Number.isFinite(points) || points === 0 || Math.abs(points) > 1_000_000) return { status: 422, message: "Points must be a whole number other than 0." };
+  let m = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId } } });
+  if (!m) {
+    const d = await gql(admin, `#graphql
+      query CroFlowCustomer($id: ID!) { customer(id: $id) { locale tags defaultEmailAddress { emailAddress marketingState } } }`, { id: `gid://shopify/Customer/${customerId}` });
+    if (!d.customer) return { status: 422, message: "This customer doesn't exist any more." };
+    const tags: string[] = d.customer.tags ?? [];
+    if (isExcluded(tags, excludedTags(p.config))) return { status: 422, message: "This customer has a tag that keeps them out of the loyalty program." };
+    m = await memberFor(shop, { id: customerId, email: String(d.customer.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: d.customer.locale ?? "", tags, marketing: d.customer.defaultEmailAddress?.marketingState === "SUBSCRIBED" }, true);
+  }
+  if (!m) return { status: 500, message: "The member could not be made. Try again." };
+  if (m.blocked) return { status: 422, message: "This member is blocked in CRO Toolbox." };
+  const note = String(props.note ?? "").trim().slice(0, 200) || "Shopify Flow";
+  const runId = String(body.action_run_id ?? "").slice(0, 120);
+  await record(shop, m.id, { kind: "flow", points, note, ...(runId ? { dedupe: `flow:${runId}` } : {}) });
+  return { status: 200, message: "" };
 }

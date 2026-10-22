@@ -1,0 +1,19 @@
+[[extensions]]
+name = "Loyalty tier changed"
+type = "flow_trigger"
+handle = "loyalty-tier-changed"
+uid = "b92fac4e-80e2-0bf7-9ecd-99da4f06845f09ec6ea1"
+description = "A loyalty member moved to another VIP tier (CRO Toolbox)."
+
+[settings]
+
+  [[settings.fields]]
+  type = "customer_reference"
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Tier"
+
+  [[settings.fields]]
+  type = "boolean"
+  key = "Moved up"

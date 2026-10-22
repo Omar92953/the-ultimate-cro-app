@@ -131,7 +131,7 @@ export async function syncShop(shop: string, admin: AdminClient) {
   // Emails last, so the ones the changes above queued go out in this run.
   await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
   await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
-  await sendEvents(shop, config).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
+  await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
   await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.

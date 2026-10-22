@@ -1,0 +1,6 @@
+[[extensions]]
+name = "Loyalty triggers in use"
+type = "flow_trigger_lifecycle_callback"
+handle = "loyalty-flow-lifecycle"
+uid = "36e79e49-6044-25a9-2dbc-56bf86d2950039fd485e"
+url = "/flow/lifecycle"

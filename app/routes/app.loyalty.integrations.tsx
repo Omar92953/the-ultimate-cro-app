@@ -11,6 +11,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getProgram } from "../lib/loyalty/program.server";
+import db from "../db.server";
 import { connect, disconnect, integrationList, setIntegrationOn } from "../lib/loyalty/integrations.server";
 import { EVENT_NAMES, INTEGRATIONS, INTEGRATION_INFO, type IntegrationKind } from "../lib/loyalty/integrations";
 import { Button, PasswordField, Switch } from "../components/fields";
@@ -19,8 +20,8 @@ import { FeatureTabs } from "../components/FeatureNav";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const [list, p] = await Promise.all([integrationList(session.shop), getProgram(session.shop)]);
-  return { list, reviewsOn: p.config.earn.review.on, events: [...new Set(Object.values(EVENT_NAMES))] };
+  const [list, p, flow] = await Promise.all([integrationList(session.shop), getProgram(session.shop), db.loyaltyIntegration.findUnique({ where: { shop_kind: { shop: session.shop, kind: "flow" } }, select: { on: true } })]);
+  return { list, reviewsOn: p.config.earn.review.on, events: [...new Set(Object.values(EVENT_NAMES))], flowOn: !!flow?.on };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -101,6 +102,17 @@ export default function LoyaltyIntegrations() {
             </HomeRow>
           );
         })}
+
+        <HomeRow title="Shopify Flow" action={<Pill tone={d.flowOn ? "ok" : undefined}>{d.flowOn ? "In use" : "Not used yet"}</Pill>}>
+          <s-stack gap="small-200">
+            <s-text>Nothing to connect: in Shopify Flow, search for CRO Toolbox.</s-text>
+            <s-unordered-list>
+              <s-list-item>Triggers: Loyalty points earned, Loyalty reward redeemed, Loyalty tier changed, Loyalty points expiring. Each one comes with the customer, so a workflow can tag them, send an email or add them to a segment.</s-list-item>
+              <s-list-item>Action: Add loyalty points (a negative number takes points away), for example points for a customer&apos;s first review or a tag.</s-list-item>
+            </s-unordered-list>
+            <s-text color="subdued">Triggers are sent once a workflow that uses them is turned on.</s-text>
+          </s-stack>
+        </HomeRow>
 
         <HomeRow title="Events Klaviyo and Omnisend get">
           <s-stack gap="small-200">

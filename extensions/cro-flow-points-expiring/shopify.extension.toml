@@ -1,0 +1,19 @@
+[[extensions]]
+name = "Loyalty points expiring"
+type = "flow_trigger"
+handle = "loyalty-points-expiring"
+uid = "9580a66e-e637-a92b-30b5-7036871e0ec00fc0918c"
+description = "A loyalty member's points expire in 14 days (CRO Toolbox)."
+
+[settings]
+
+  [[settings.fields]]
+  type = "customer_reference"
+
+  [[settings.fields]]
+  type = "number_decimal"
+  key = "Balance"
+
+  [[settings.fields]]
+  type = "single_line_text_field"
+  key = "Expires on"
