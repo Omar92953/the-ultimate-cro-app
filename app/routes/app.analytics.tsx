@@ -15,19 +15,25 @@ import { returnSavings } from "../lib/orders-lookup.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
 import { Button, NumberField, Switch } from "../components/fields";
-import { PageIntro, Segmented } from "../components/ui";
+import { PageIntro, Pill, Segmented } from "../components/ui";
+import { AbResults } from "../components/AbResults";
+import { listTests, testResults } from "../lib/ab-tests.server";
+import { AB_CHANGE_LABELS, testSummary, type AbResult } from "../lib/ab-tests";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
-  const [raw, theme, info, lookups, kept] = await Promise.all([
+  const [raw, theme, info, lookups, kept, tests] = await Promise.all([
     // Shared with Home (same key as value.server.ts cachedResults): the slow order read runs once per shop every 10 minutes.
     remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp, session.shop), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
     getPlan(admin, session.shop),
     lookupsSince(session.shop, 30).catch(() => 0),
     returnSavings(session.shop, 30).catch(() => null),
+    listTests(admin).catch(() => []),
   ]);
+  // A/B test results (tests are created on the Offers page): the running ones and the latest ended ones.
+  const abResults = await testResults(admin, session.shop, tests.slice(0, 10)).catch(() => ({}) as Record<string, AbResult>);
   // Results per widget and per bundle: the plan shows its top N (plans.ts offerStats); the rest
   // are summed into one teaser row, so the merchant sees there's more to see.
   const n = limitOf(info.plan, "offerStats");
@@ -42,7 +48,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const { bySource, byBundle, ...rest } = raw;
     results = { ...rest, sources: cut(bySource), bundles: cut(byBundle) };
   }
-  return { lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
+  return { tests, abResults, lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -63,7 +69,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 /** "+12%" against the 30 days before; null when there's nothing to compare. */
 const change = (now: number, before: number) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
 
-type Tab = "overview" | "offers" | "bundles" | "track" | "holdout";
+type Tab = "overview" | "offers" | "bundles" | "tests" | "track" | "holdout";
 
 export default function Analytics() {
   const data = useLoaderData<typeof loader>();
@@ -100,6 +106,7 @@ export default function Analytics() {
       </s-box>
     ) : null;
 
+  const running = data.tests.filter((t) => t.status === "running");
   const cur = r?.periods.current;
   const prev = r?.periods.previous;
   const kpis = cur && prev
@@ -135,6 +142,7 @@ export default function Analytics() {
             { value: "overview", label: "Overview" },
             { value: "offers", label: "Offers and widgets" },
             { value: "bundles", label: "Bundles" },
+            { value: "tests", label: "A/B tests" },
             { value: "track", label: "Track & Returns" },
             { value: "holdout", label: "Holdout test" },
           ]}
@@ -161,6 +169,60 @@ export default function Analytics() {
               <s-text color="subdued">{`Last 60 days: ${r.orders} orders · ${fmt(r.revenue)} in sales.`}</s-text>
             </s-stack>
           </s-section>
+        ) : null}
+
+        {tab === "overview" && running.length ? (
+          <s-section heading="A/B tests running">
+            <s-stack gap="small-200">
+              {running.map((t) => (
+                <s-stack key={t.id} direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+                  <s-text>{t.name}</s-text>
+                  <s-text color="subdued">{testSummary(data.abResults[t.id])}</s-text>
+                </s-stack>
+              ))}
+              <s-stack direction="inline">
+                <Button variant="tertiary" onClick={() => setTab("tests")}>
+                  See the results
+                </Button>
+              </s-stack>
+            </s-stack>
+          </s-section>
+        ) : null}
+
+        {tab === "tests" ? (
+          <s-stack gap="base">
+            <s-text color="subdued">Half of the shoppers see the offer as saved (version A), half see version B. Orders are counted from your real orders. Tests are created and ended on the Offers page.</s-text>
+            {data.tests.length ? (
+              data.tests.map((t) => (
+                <s-section key={t.id} heading={t.name}>
+                  <s-stack gap="small-200">
+                    <s-stack direction="inline" gap="small-200" alignItems="center">
+                      <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
+                      <s-text color="subdued">{`Started ${new Date(t.startedAt).toLocaleDateString()}${t.endedAt ? `, ended ${new Date(t.endedAt).toLocaleDateString()}` : ""}`}</s-text>
+                    </s-stack>
+                    <s-text color="subdued">{`Version B changes: ${Object.keys(t.b).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.`}</s-text>
+                    {data.abResults[t.id] ? <AbResults r={data.abResults[t.id]} money={fmt} /> : null}
+                    {t.status === "running" ? (
+                      <s-stack direction="inline">
+                        <s-link href="/app/offers/tests">Choose a winner or stop the test</s-link>
+                      </s-stack>
+                    ) : null}
+                  </s-stack>
+                </s-section>
+              ))
+            ) : atLeast(plan, "pro") ? (
+              <s-section heading="No tests yet">
+                <s-stack gap="small-200">
+                  <s-paragraph>Show half of your shoppers a second version of an upsell or cross sell. The results appear here.</s-paragraph>
+                  <s-stack direction="inline">
+                    <s-link href="/app/offers/tests">Start a test</s-link>
+                  </s-stack>
+                </s-stack>
+              </s-section>
+            ) : (
+              <UpgradeCard needs="pro" title="A/B tests are on the Pro plan" text="Test two versions of an offer and see which one sells more." />
+            )}
+          </s-stack>
         ) : null}
 
         {tab === "offers" && r ? (

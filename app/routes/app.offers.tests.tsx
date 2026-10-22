@@ -14,10 +14,11 @@ import { listRules } from "../lib/cro.server";
 import { planContext } from "../lib/rules.server";
 import { isRuleError } from "../lib/rules";
 import { applyWinner, createTest, listTests, stopTest, testResults } from "../lib/ab-tests.server";
-import { MIN_ORDERS, MIN_VIEWS, type AbResult, type AbTest } from "../lib/ab-tests";
+import { AB_CHANGE_LABELS, type AbResult, type AbTest } from "../lib/ab-tests";
 import { Button, NumberField, Select, TextField } from "../components/fields";
 import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
+import { AbResults as Results } from "../components/AbResults";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -47,46 +48,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { ok: false, error: errorMessage(e), intent: "", upgrade: isRuleError(e) && e.upgrade };
   }
 };
-
-const n = (v: number | null, digits = 1) => (v === null ? "none yet" : v.toFixed(digits));
-
-function Results({ r, money }: { r: AbResult; money: (v: number) => string }) {
-  const per100 = (x: number | null) => (x === null ? "none yet" : n(x * 100));
-  return (
-    <s-stack gap="small-200">
-      <s-grid gridTemplateColumns="2fr 1fr 1fr" gap="small-200">
-        <s-text color="subdued"> </s-text>
-        <s-text type="strong">Version A</s-text>
-        <s-text type="strong">Version B</s-text>
-        <s-text>Shoppers who saw it</s-text>
-        <s-text>{r.a.views}</s-text>
-        <s-text>{r.b.views}</s-text>
-        <s-text>Added the offer (orders)</s-text>
-        <s-text>{r.a.adds}</s-text>
-        <s-text>{r.b.adds}</s-text>
-        <s-text>Orders</s-text>
-        <s-text>{r.a.orders}</s-text>
-        <s-text>{r.b.orders}</s-text>
-        <s-text>Orders per 100 shoppers</s-text>
-        <s-text>{per100(r.rate.a)}</s-text>
-        <s-text>{per100(r.rate.b)}</s-text>
-        <s-text>Revenue</s-text>
-        <s-text>{money(r.a.revenue)}</s-text>
-        <s-text>{money(r.b.revenue)}</s-text>
-        <s-text>Revenue per shopper</s-text>
-        <s-text>{r.perView.a === null ? "none yet" : money(r.perView.a)}</s-text>
-        <s-text>{r.perView.b === null ? "none yet" : money(r.perView.b)}</s-text>
-      </s-grid>
-      <s-text>
-        {r.verdict === "wait"
-          ? `Not enough shoppers yet: each version needs ${MIN_VIEWS} shoppers and the two together ${MIN_ORDERS} orders before we say which is ahead.`
-          : r.verdict === "close"
-            ? `No clear difference yet${r.leader ? ` (version ${r.leader} is slightly ahead, ${r.sure}% sure)` : ""}. Let it run longer.`
-            : `Version ${r.leader} is ahead and we are ${r.sure}% sure${r.verdict === "likely" ? " (likely, not certain)" : ""}.`}
-      </s-text>
-    </s-stack>
-  );
-}
 
 export default function AbTests() {
   const d = useLoaderData<typeof loader>();
@@ -121,7 +82,7 @@ export default function AbTests() {
           <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
           <s-text color="subdued">Started {new Date(t.startedAt).toLocaleDateString()}{t.endedAt ? `, ended ${new Date(t.endedAt).toLocaleDateString()}` : ""}</s-text>
         </s-stack>
-        <s-text color="subdued">Version B changes: {Object.keys(t.b).map((k) => ({ headline: "headline", subheadline: "text under the headline", buttonLabel: "button", discountLabel: "discount label", discountPercent: "discount", tiers: "tier discounts", design: "style" })[k] ?? k).join(", ")}.</s-text>
+        <s-text color="subdued">Version B changes: {Object.keys(t.b).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.</s-text>
         {d.results[t.id] ? <Results r={d.results[t.id]} money={money} /> : null}
         {t.status === "running" ? (
           <s-stack direction="inline" gap="small-200">
