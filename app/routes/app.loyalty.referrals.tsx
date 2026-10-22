@@ -90,7 +90,7 @@ export default function LoyaltyReferrals() {
         <HomeRow title="Refer a friend">
           <s-stack gap="base">
             <Switch label="Referrals are on" details={d.on ? "Members see their link in the rewards widget and on the Rewards page." : "Codes start working when the program is on (Loyalty home)."} checked={ref.on} onValue={(v) => setRef({ on: v })} />
-            <s-grid gridTemplateColumns="minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
+            <s-grid gridTemplateColumns="minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="start">
               <Select label="The friend gets" value={ref.friend.kind} options={KIND_OPTIONS} onValue={(v) => setFriend({ kind: v as FriendKind, value: v === "percent" ? Math.min(100, Math.max(1, Math.round(ref.friend.value))) : ref.friend.value })} />
               {ref.friend.kind === "shipping" ? <span /> : <NumberField label={ref.friend.kind === "percent" ? "Percent off" : "Amount off"} suffix={ref.friend.kind === "percent" ? "%" : d.currency} min={ref.friend.kind === "percent" ? 1 : 0.01} max={ref.friend.kind === "percent" ? 100 : 100000} step={1} value={ref.friend.value} onValue={(v) => setFriend({ value: v })} />}
               <NumberField label="Order minimum" details="0 = no minimum" suffix={d.currency} min={0} max={100000} step={5} value={ref.friend.minimum} onValue={(v) => setFriend({ minimum: v })} />
@@ -99,7 +99,7 @@ export default function LoyaltyReferrals() {
               <s-text>The member gets</s-text>
               <Segmented label="The member gets" value={ref.gift.kind} onChange={(v) => setRef({ gift: { kind: v, value: v === ref.gift.kind ? ref.gift.value : v === "points" ? 200 : 5 } })} options={[{ value: "points", label: `${cfg.unit.many[0].toUpperCase()}${cfg.unit.many.slice(1)}` }, { value: "credit", label: "Store credit" }]} />
             </s-stack>
-            <s-grid gridTemplateColumns="minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
+            <s-grid gridTemplateColumns="minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="start">
               <NumberField label={ref.gift.kind === "points" ? "Gift" : "Store credit"} suffix={ref.gift.kind === "points" ? cfg.unit.many : d.currency} min={ref.gift.kind === "points" ? 1 : 0.01} max={100000} step={ref.gift.kind === "points" ? 50 : 1} value={ref.gift.value} onValue={(v) => setRef({ gift: { ...ref.gift, value: v } })} />
               <NumberField label="Rewarded referrals per member" details="In any 30 days. 0 = no limit" min={0} max={1000} step={1} value={ref.monthly} onValue={(v) => setRef({ monthly: v })} />
             </s-grid>
@@ -161,7 +161,7 @@ export default function LoyaltyReferrals() {
                         Remove
                       </Button>
                     </s-stack>
-                    <s-grid gridTemplateColumns="minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="end">
+                    <s-grid gridTemplateColumns="minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)" gap="base" alignItems="start">
                       <TextField label="Name" maxLength={60} value={a.name} onValue={(v) => setAff(i, { name: v })} />
                       <TextField label="Code" maxLength={30} value={a.code} error={a.code.length < 3 ? "At least 3 letters or digits" : dup ? "Another affiliate has this code" : undefined} details="Letters and digits, no spaces" onValue={(v) => setAff(i, { code: cleanCode(v) })} />
                       <NumberField label="Commission" details="Percent of their sales" suffix="%" min={0} max={100} step={1} value={a.commission} onValue={(v) => setAff(i, { commission: v })} />
