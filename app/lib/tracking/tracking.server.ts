@@ -8,6 +8,7 @@ import db from "../../db.server";
 import type { PlanKey } from "../plans";
 import { atLeast } from "../plans";
 import { RuleError } from "../rules";
+import { allowUnit } from "../usage.server";
 import { liveLimit, TRACK_SOURCES, buildTracking, cleanCarrierLinks, isFresh, sourceAllowed, sourcesToTry, type CarrierLink, type TrackSource, type Tracking } from "../tracking";
 import { detectProvider, ownAccount, providerById, PROVIDERS, type Provider, type Shipment } from "./provider.server";
 import { decrypt, encrypt, last4, newSecret, sameSecret } from "./secret.server";
@@ -141,7 +142,8 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
       if (!mine) {
         if (via === "live") {
           const used = await db.trackingUsage.upsert({ where: { shop_month: { shop, month: month() } }, create: { shop, month: month(), count: 0 }, update: {} });
-          if (used.count >= liveLimit(plan) || !atLeast(plan, "growth")) return null;
+          // The plan's live tracked shipments a month; past it, Shopify's data unless the store allows extra.
+          if (!atLeast(plan, "growth") || !(await allowUnit(shop, plan, "liveShipments", used.count, `ship:${s.number}`))) return null;
           await db.trackingUsage.update({ where: { shop_month: { shop, month: month() } }, data: { count: { increment: 1 } } });
         }
         await provider.register(key, s);

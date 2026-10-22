@@ -15,6 +15,7 @@ import type { DiscountMode } from "../lib/types";
 import { errorMessage } from "../lib/admin.server";
 import { Button, Select } from "../components/fields";
 import { PageIntro, LinkTiles, Pill } from "../components/ui";
+import { UsageBars } from "../components/UsageBars";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -143,6 +144,13 @@ export default function SettingsPage() {
               <UpgradeButton variant="secondary">Change plan</UpgradeButton>
             </s-stack>
             {REFERRAL.live ? <ReferralBox referral={data.referral} /> : null}
+          </s-stack>
+        </s-section>
+
+        <s-section heading="Usage this month">
+          <s-stack gap="base">
+            <s-paragraph>Your plan includes these each month. Turn on extra for one to keep it going past the limit; it is added to your Shopify bill. Off, nothing more is charged.</s-paragraph>
+            <UsageBars />
           </s-stack>
         </s-section>
 

@@ -5,6 +5,7 @@
  * Shared by client and server; no dashes or first person in the texts.
  */
 import { color, num, pick, str } from "../designs";
+import type { PlanKey } from "../plans";
 import { DEFAULT_EMAILS, withEmailDefaults, type EmailSettings } from "./emails";
 
 export const REWARD_KINDS = ["amount", "percent", "shipping", "product", "credit"] as const;
@@ -135,8 +136,8 @@ export type LoyaltyConfig = {
   affiliates: Affiliate[];
   /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
   emails: EmailSettings;
-  /** Set by `forPlan` only, never saved: no new members once the store has this many (Growth). */
-  memberCap?: number | null;
+  /** Set by plan.server.ts `planned` only, never saved: the plan, for the monthly limits (plans.ts METERS). */
+  usage?: { plan: PlanKey; ordersExtra: boolean; emailsExtra: boolean };
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
@@ -386,13 +387,13 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
 }
 
 /**
- * Growth has the loyalty program within its limits (plans.ts loyaltyMembers, loyaltyEmails); these parts are
+ * Growth has the loyalty program within its limits (plans.ts loyaltyOrders, loyaltyEmails); these parts are
  * Pro only (Omar, 2026-10-22). Growth keeps the store's Pro settings saved but runs without them, so they come
  * back on an upgrade: affiliate codes are turned off, not deleted.
  */
 export const LOYALTY_PRO = ["VIP tiers", "bonus campaigns", "product and collection rules", "cashback", "affiliate links", "Klaviyo, Omnisend, Judge.me and Shopify Flow", "sending from your own address"] as const;
-export function forPlan(c: LoyaltyConfig, pro: boolean, memberCap: number | null = null): LoyaltyConfig {
-  if (pro) return memberCap === null ? c : { ...c, memberCap };
+export function forPlan(c: LoyaltyConfig, pro: boolean): LoyaltyConfig {
+  if (pro) return c;
   return {
     ...c,
     tiers: { ...c.tiers, on: false },
@@ -401,7 +402,6 @@ export function forPlan(c: LoyaltyConfig, pro: boolean, memberCap: number | null
     cashback: { ...c.cashback, on: false },
     affiliates: c.affiliates.map((x) => ({ ...x, on: false })),
     emails: { ...c.emails, sender: { email: "", name: "" } },
-    memberCap,
   };
 }
 

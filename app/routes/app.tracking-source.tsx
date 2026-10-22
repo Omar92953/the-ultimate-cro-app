@@ -17,6 +17,7 @@ import { MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSour
 import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveKey, saveSource } from "../lib/tracking/tracking.server";
 import { Button, PasswordField, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
+import { UsageBars } from "../components/UsageBars";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -159,6 +160,11 @@ export default function TrackingSource() {
             <s-text>• Its own tracking page is linked from every shipment, from the carrier links below.</s-text>
           </s-stack>
         </HomeRow>
+        {d.cfg.advanced ? (
+          <HomeRow title="This month's live tracking">
+            <UsageBars only={["liveShipments"]} />
+          </HomeRow>
+        ) : null}
         <HomeRow title="Tracking" subtitle={d.cfg.advanced ? `On your plan: every way below, with ${d.cfg.live.limit.toLocaleString()} live tracked shipments a month. If one has nothing for a shipment, the next one is used, then Shopify's data.` : "On the Growth and Pro plans: live updates for almost any carrier."} action={d.cfg.advanced ? null : <Pill>Growth plan</Pill>} bare>
           <s-stack gap="base">{choices(d.cfg.live.limit).map(choice)}</s-stack>
         </HomeRow>

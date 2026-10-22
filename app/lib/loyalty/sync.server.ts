@@ -18,6 +18,7 @@ import { pruneEmails, queueScheduled, sendQueued, webhookUrl } from "./mailer.se
 import { mailProvider } from "../email/provider.server";
 import { judgeMeReviews, sendEvents, skipEvents } from "./integrations.server";
 import { accessFor, planned } from "./plan.server";
+import { extrasFor, reportUsage } from "../usage.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
 type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
@@ -115,7 +116,7 @@ export async function syncShop(shop: string, admin: AdminClient) {
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
   if (!p?.on) return null;
   const { plan } = await getPlan(admin, shop);
-  const access = accessFor(plan);
+  const access = accessFor(plan, await extrasFor(shop));
   const { config: saved } = await getProgram(shop);
   if (!access.on) {
     // Below Growth: referral and affiliate codes stop working (kept, so they work again after an upgrade).
@@ -136,7 +137,7 @@ export async function syncShop(shop: string, admin: AdminClient) {
   await issueCashback(admin, shop).catch((e) => console.error(`[loyalty] cashback ${shop}:`, e instanceof Error ? e.message : e));
   // Emails last, so the ones the changes above queued go out in this run.
   await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
-  await sendQueued(admin, shop, config, started, undefined, access.emails).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
+  await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
   if (access.pro) {
     await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
     await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
@@ -230,6 +231,16 @@ export function startLoyaltyJobs() {
       }
       await releasePending();
       await pruneEmails().catch(() => null);
+      // Units over a plan limit (any store, tracking too) go to Shopify App Pricing as billable events.
+      const ids = new Map<string, string>();
+      await reportUsage(async (shop) => {
+        if (!ids.has(shop)) {
+          const { admin } = await unauthenticated.admin(shop);
+          ids.set(shop, String((await gql(admin, `#graphql
+            query CroShopId { shop { id } } `)).shop?.id ?? "").split("/").pop() ?? "");
+        }
+        return ids.get(shop) || null;
+      }).catch((e) => console.error("[usage] report:", e instanceof Error ? e.message : e));
     } finally {
       running = false;
     }

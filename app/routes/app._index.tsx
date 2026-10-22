@@ -31,6 +31,7 @@ import { SetupGuide, type GuideStep } from "../components/SetupGuide";
 import { loadHub } from "../lib/hub.server";
 import { FeatureHub } from "./app.library";
 import styles from "../components/Home.module.css";
+import { UsageBars } from "../components/UsageBars";
 
 /** Theme embeds that count as "the app is switched on in your theme". */
 
@@ -234,6 +235,8 @@ export default function Home() {
       </Button>
       <HomeRows>
         <PageIntro text="Increase average order value (AOV) and customer lifetime value (LTV): offers and bundles make each order bigger, and a Track page that sells and returns that keep the sale bring shoppers back." />
+        {/* Only when a monthly limit is at 80% or more. */}
+        <UsageBars warnOnly />
         {banner ? (
           <s-banner tone={banner.tone} heading={banner.heading}>
             <s-stack gap="small-200">

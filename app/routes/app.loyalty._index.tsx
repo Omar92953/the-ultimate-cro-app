@@ -23,22 +23,21 @@ import { eventLabel } from "../lib/loyalty/labels";
 import { Button, Switch } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Panel, Pill, Segmented, StatGrid, StatTile } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { UsageBars } from "../components/UsageBars";
 import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
-  const [program, stats, latest, theme, access] = await Promise.all([
+  const [program, stats, latest, theme] = await Promise.all([
     getProgram(shop),
     programStats(shop),
     db.loyaltyEvent.findMany({ where: { shop }, orderBy: { createdAt: "desc" }, take: 8, select: { id: true, kind: true, points: true, note: true, status: true, createdAt: true, memberId: true } }),
     getThemeStatus(admin, shop).catch(() => null),
-    loyaltyAccess(admin, shop),
   ]);
   const members = await db.loyaltyMember.findMany({ where: { id: { in: [...new Set(latest.map((e) => e.memberId))] } }, select: { id: true, email: true } });
   return {
     on: program.on,
-    memberCap: access.memberCap,
     saved: program.saved,
     syncedAt: program.syncedAt?.toISOString() ?? null,
     config: program.config,
@@ -118,7 +117,6 @@ export default function LoyaltyHome() {
                 />
               </s-stack>
             ) : null}
-            {d.memberCap !== null ? <s-text color="subdued">{`Your plan includes up to ${d.memberCap.toLocaleString()} members (${s.members.toLocaleString()} now). At the limit new customers stop joining; members keep earning and spending. Pro has no limit.`}</s-text> : null}
             {on && d.syncedAt ? (
               <s-stack direction="inline" gap="small-200" alignItems="center">
                 <s-text color="subdued">{`New orders and accounts are checked every 10 minutes. Last check: ${new Date(d.syncedAt).toLocaleString()}.`}</s-text>
@@ -128,6 +126,10 @@ export default function LoyaltyHome() {
               </s-stack>
             ) : null}
           </s-stack>
+        </HomeRow>
+
+        <HomeRow title="This month's limits">
+          <UsageBars only={["loyaltyOrders", "loyaltyEmails"]} />
         </HomeRow>
 
         <HomeRow title="Last 30 days" bare>

@@ -427,3 +427,32 @@ model LoyaltyOutbox {
   @@index([shop, status])
   @@index([shop, memberId])
 }
+
+/// A plan limit the store lets go over (Settings → Usage): "liveShipments", "loyaltyOrders" or "loyaltyEmails". Off unless turned on.
+model UsageExtra {
+  shop      String
+  meter     String
+  on        Boolean  @default(false)
+  updatedAt DateTime @default(now())
+
+  @@id([shop, meter])
+}
+
+/// One unit over a plan limit with extra on, reported to Shopify App Pricing (App Events API) as a billable event.
+model UsageEvent {
+  id        Int       @id @default(autoincrement())
+  shop      String
+  meter     String
+  /// "2026-10": the calendar month it counts in.
+  month     String
+  /// Unique: the same unit is never billed twice.
+  key       String
+  status    String    @default("queued")
+  reason    String    @default("")
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@unique([shop, key])
+  @@index([status])
+  @@index([shop, meter, month])
+}

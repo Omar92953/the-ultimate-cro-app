@@ -57,7 +57,7 @@ account, which takes over **all** of that work. Everything is in the repo; never
   - Tracking & Returns split into two tabs. Track page output switches. Tracking stays by email, with no postal
     code lookup (Omar).
   - Tracking for any carrier:
-    - One tracking on Growth and Pro (Omar, 2026-10-22): Shopify's data, 17TRACK live tracking (150 shipments a
+    - One tracking on Growth and Pro (Omar, 2026-10-22): Shopify's data, 17TRACK live tracking (200 shipments a
       month on Growth, 500 on Pro) with 3,500+ carriers and the carrier code passed through
       (Bosta, MyLerz, J&T Express (EG), Aramex, SMSA, iMile and more). AfterShip, TrackingMore and Ship24 keys
       also work.
@@ -118,7 +118,11 @@ account, which takes over **all** of that work. Everything is in the repo; never
     processors;
   - network access for the checkout and customer account extensions;
   - listing text with the AOV and LTV lines (`docs/listing.md`), the Loyalty category, and the chosen listing images.
-- Postmark: sign up, add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type two tokens into Render
+- Shopify App Pricing usage meters (part of the single Partner Dashboard update): on Growth and Pro, monthly, add
+  meters with the handles `live-shipments` ($0.04 each), `loyalty-orders` ($0.05 each) and `loyalty-emails` ($0.002
+  each). Then make an API key in the Dev Dashboard for the App Events API and type it into Render as
+  `APP_EVENTS_CLIENT_ID` and `APP_EVENTS_CLIENT_SECRET` himself. Until then extra units are kept and not billed.
+- Postmark: sign up (with postmark@crotoolbox.com), add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type two tokens into Render
   himself: `POSTMARK_SERVER_TOKEN` (the server's API token, sends emails) and `POSTMARK_ACCOUNT_TOKEN` (the account
   API token, adds merchants' own sender domains). The bounce webhook is made by the app on its own.
 - Testing 3: sign in as a customer and place one test order himself, to check loyalty end to end.

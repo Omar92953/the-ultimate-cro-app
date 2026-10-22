@@ -20,6 +20,8 @@ import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
 import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
 import { ProNote } from "../components/ProNote";
+import { UsageBars } from "../components/UsageBars";
+import { limitOf } from "../lib/plans";
 import { SaveControls, changed } from "../components/SaveControls";
 import css from "../components/TrackingHub.module.css";
 
@@ -39,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     saved: p.saved,
     programOn: p.on,
     pro: access.pro,
-    emailLimit: access.emails,
+    emailLimit: limitOf(access.plan, "loyaltyEmails") ?? MONTHLY_EMAILS,
     log,
     sender,
     ready: provider.ready(),
@@ -79,7 +81,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // The words on the page now, saved or not.
       const access = await loyaltyAccess(admin, session.shop);
       const draft = planned(withLoyaltyDefaults({ ...config, ...JSON.parse(String(form.get("config") ?? "{}")) }), access);
-      const sent = await sendTest(admin, session.shop, draft, String(form.get("kind")) as EmailKind, String(form.get("to") ?? "").trim(), undefined, access.emails);
+      const sent = await sendTest(admin, session.shop, draft, String(form.get("kind")) as EmailKind, String(form.get("to") ?? "").trim(), undefined, limitOf(access.plan, "loyaltyEmails") ?? MONTHLY_EMAILS);
       return { ok: true, error: null, intent, message: `Test sent from ${sent.from}` };
     }
     return { ok: false, error: "Unknown action", intent, message: "" };
@@ -140,7 +142,8 @@ export default function LoyaltyEmails() {
         <HomeRow title="Emails">
           <s-stack gap="base">
             <Switch label="Emails are on" details={d.programOn ? undefined : "They start when the program is on (Loyalty home)."} checked={e.on} onValue={(v) => setEmails({ on: v })} />
-            <s-text color="subdued">{`Up to ${d.emailLimit.toLocaleString()} emails a month are included on your plan${d.pro ? "" : ` (${MONTHLY_EMAILS.toLocaleString()} on Pro)`}. Sent this month: ${d.log.month.toLocaleString()}.`}</s-text>
+            <s-text color="subdued">{`Up to ${d.emailLimit.toLocaleString()} emails a month are included on your plan. Sent this month: ${d.log.month.toLocaleString()}.`}</s-text>
+            <UsageBars only={["loyaltyEmails"]} />
             {!d.ready ? (
               <s-banner tone="warning" heading="Emails can't be sent yet">
                 <s-paragraph>The email service is still being set up. Settings are saved now and emails start once it is ready.</s-paragraph>

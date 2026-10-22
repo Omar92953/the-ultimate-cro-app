@@ -159,8 +159,7 @@ export async function applyImport(admin: AdminClient, shop: string, c: LoyaltyCo
     if (p.status !== "change" && p.status !== "new") continue;
     let id = p.memberId;
     if (!id && p.customer) {
-      const m = await memberFor(shop, { id: p.customer.id, email: p.customer.email, firstName: "", locale: p.customer.locale, tags: p.customer.tags, marketing: p.customer.marketing }, true, c.memberCap ?? null);
-      // At the plan's member limit nobody new joins (the rest of the file still updates members).
+      const m = await memberFor(shop, { id: p.customer.id, email: p.customer.email, firstName: "", locale: p.customer.locale, tags: p.customer.tags, marketing: p.customer.marketing }, true);
       if (!m) continue;
       id = m.id;
       created++;

@@ -177,10 +177,10 @@ test("the order's prices are read in the currency the shopper paid in", async ()
   assert.equal(orderPrices({ subtotalPriceSet: set("10"), totalPriceSet: null }), null);
 });
 
-test("every tracking source is on Growth and Pro, with live tracking limits of 150 and 500 shipments a month", async () => {
+test("every tracking source is on Growth and Pro, with live tracking limits of 200 and 500 shipments a month", async () => {
   const { sourceAllowed, liveLimit } = await import("../../app/lib/tracking");
   assert.equal(sourceAllowed("growth", "shopify"), true);
-  assert.deepEqual([liveLimit("growth"), liveLimit("pro"), liveLimit("starter")], [150, 500, 0]);
+  assert.deepEqual([liveLimit("growth"), liveLimit("pro"), liveLimit("starter")], [200, 500, 0]);
   for (const s of ["live", "own", "webhook"] as const) {
     assert.equal(sourceAllowed("starter", s), false, s);
     assert.equal(sourceAllowed("growth", s), true, s);

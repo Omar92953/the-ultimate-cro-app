@@ -15,6 +15,7 @@ import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
 import { eventTargets, queueEvents } from "./integrations.server";
+import { allowUnit } from "../usage.server";
 import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, validEmail, type EmailKind } from "./emails";
 
 const DAY = 86_400_000;
@@ -239,7 +240,7 @@ const monthStart = (now: Date) => new Date(Date.UTC(now.getUTCFullYear(), now.ge
 export const emailsThisMonth = (shop: string, now = new Date()) => db.loyaltyEmail.count({ where: { shop, status: "sent", sentAt: { gte: monthStart(now) } } });
 
 /** Sends what is queued for one store (up to 500 a run). Returns the counts. */
-export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyConfig, now = new Date(), provider: MailProvider = mailProvider(), limit = MONTHLY_EMAILS) {
+export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyConfig, now = new Date(), provider: MailProvider = mailProvider()) {
   const queued = await db.loyaltyEmail.findMany({ where: { shop, status: "queued" }, orderBy: { id: "asc" }, take: 500 });
   const out = { sent: 0, skipped: 0, failed: 0 };
   if (!queued.length) return out;
@@ -267,7 +268,7 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
     else if (m.emailOptOut) refuse(q.id, "Unsubscribed");
     else if (!validEmail(m.email)) refuse(q.id, "No email address");
     else if (isReminder(kind) && !m.emailMarketing) refuse(q.id, "Not subscribed to email marketing");
-    else if (used >= limit) refuse(q.id, `Monthly limit of ${limit.toLocaleString("en-US")} reached`);
+    else if (c.usage ? !(await allowUnit(shop, c.usage.plan, "loyaltyEmails", used, `email:${q.id}`, c.usage.emailsExtra, now)) : used >= MONTHLY_EMAILS) refuse(q.id, "Monthly email limit reached");
     else {
       used++;
       let data: EmailData = {};

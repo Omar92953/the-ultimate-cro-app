@@ -6,6 +6,7 @@
 import db from "../../db.server";
 import { withLoyaltyDefaults, excludedTags, type LoyaltyConfig } from "./config";
 import { notify } from "./mailer.server";
+import { allowUnit, usedThisMonth } from "../usage.server";
 import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
@@ -134,7 +135,7 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const target = cashback ? 0 : orderPoints(c, o, multiplier);
   const credit = cashback ? orderCredit(c, o) : 0;
   if (!existing && (!c.autoJoin || (target <= 0 && credit <= 0))) return null;
-  const m = existing ?? (await memberFor(shop, o.customer, true, c.memberCap ?? null));
+  const m = existing ?? (await memberFor(shop, o.customer, true));
   if (!m || m.blocked) return null;
   const current = rows.reduce((n, r) => n + r.points, 0);
   const currentCredit = Math.round(rows.reduce((n, r) => n + r.credit, 0) * 100) / 100;
@@ -143,6 +144,8 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const pendingNow = c.pendingDays > 0;
 
   if (!orderRow && (target > 0 || credit > 0)) {
+    // The plan's loyalty orders a month (plans.ts): past it, orders earn nothing unless the store allows extra.
+    if (c.usage && !(await allowUnit(shop, c.usage.plan, "loyaltyOrders", await usedThisMonth(shop, "loyaltyOrders", now), `order:${o.id}`, c.usage.ordersExtra, now))) return null;
     await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
     await db.loyaltyMember.update({ where: { id: m.id }, data: { orders: { increment: 1 } } });
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {
@@ -237,7 +240,7 @@ export async function socialPoints(shop: string, c: LoyaltyConfig, memberId: num
 export async function syncSignup(shop: string, c: LoyaltyConfig, customer: Customer & { accountActive: boolean }) {
   if (!customer.accountActive || isExcluded(customer.tags, excludedTags(c))) return null;
   if (!c.autoJoin && !(await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: customer.id } } }))) return null;
-  const m = await memberFor(shop, customer, true, c.memberCap ?? null);
+  const m = await memberFor(shop, customer, true);
   if (!m || m.blocked || !c.earn.signup.on || c.earn.signup.points <= 0) return null;
   return record(shop, m.id, { kind: "signup", points: c.earn.signup.points, note: "Account created", dedupe: `signup:${customer.id}` });
 }
