@@ -18,6 +18,8 @@ export type AccountMember = {
   tier: string;
   referralCode: string;
   blocked: boolean;
+  /** "MM-DD", typed by the shopper in the widget. In the metafield so the store sees it in Shopify (App Store 5.1.5). */
+  birthday?: string;
 };
 export type AccountReward = { title: string; code: string; expiresAt: Date | null; createdAt: Date };
 export type AccountOrderPoints = { orderId: string; points: number; pending: boolean };
@@ -48,6 +50,7 @@ export function memberPayload(c: LoyaltyConfig, m: AccountMember, rewards: Accou
     l: !m.blocked && c.referral.on && storeUrl && m.referralCode ? `${storeUrl.replace(/\/+$/, "")}/?ref=${encodeURIComponent(m.referralCode)}` : "",
     u: [c.unit.one, c.unit.many],
     b: m.blocked,
+    bd: m.birthday ?? "",
     rw: m.blocked ? [] : codes,
     o: Object.fromEntries([...byOrder].filter(([, x]) => x.p > 0).slice(0, MAX_ORDERS)),
   };

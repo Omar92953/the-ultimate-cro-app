@@ -10,7 +10,7 @@ import { RETENTION_DAYS as R } from "../lib/retention";
 
 export const meta: MetaFunction = () => [{ title: "Privacy policy | CRO Toolbox" }];
 
-export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 22, 2026" });
+export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 23, 2026" });
 
 const SECTIONS: [string, string[]][] = [
   [
@@ -38,6 +38,7 @@ const SECTIONS: [string, string[]][] = [
       "Email pop up sign ups: when a shopper signs up in the pop up, the email is sent through Shopify to the app, which adds it to the store's own Shopify customers with email marketing consent (tag cro-popup) and creates a one use discount code for that customer. The app doesn't store the email or the code; they live only in the store's Shopify admin.",
       "Recently viewed products are kept only in the shopper's own browser and are never sent to the app.",
       "Wishlists are kept only in the shopper's own browser. Gift notes, delivery dates, personalization text and similar choices are added to the shopper's cart and order in Shopify.",
+      "Loyalty program (only if you turn it on): for each member we store their Shopify customer id, email address, language, whether they are subscribed to your email marketing, their points and every change to them (orders, refunds, rewards), their tier, their referral code, the reward codes they got, the birthday they choose to add (day and month only), the friends' orders that used their referral code, and a log of the loyalty emails sent to them (kept 90 days). Points, tier, codes and birthday are also written to the customer in your Shopify admin. Names are never read.",
     ],
   ],
   [
@@ -49,8 +50,8 @@ const SECTIONS: [string, string[]][] = [
   [
     "How long we keep it and how it's deleted",
     [
-      "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock requests, return requests and reviewer emails and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
-      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests, return requests and reviewer emails), which we do.",
+      "When a customer asks a merchant to delete their data, Shopify tells the app and we delete that customer's back-in-stock requests, return requests, reviewer emails and loyalty data (member, points history, rewards, referrals, emails and events) and remove their orders from the sales pop-up list. When Shopify asks for a customer's data, we report what we hold.",
+      "When you uninstall the app, Shopify removes the data the app saved in your store, and 48 hours later Shopify asks us to delete everything we hold for your store (your access token, back-in-stock requests, return requests, reviewer emails and all loyalty data), which we do.",
       `While the app is installed, old records are deleted automatically every day: back-in-stock requests ${R.stockAlertSent} days after the shopper was told (or after ${R.stockAlertWaiting / 365} year if never sent), return requests and reviewer emails after ${R.returnRequest / 365} years, live tracking answers ${R.trackingCache} days after the last check, and Track page discount codes ${R.trackCode} days after they end.`,
       "The database is encrypted at rest and backed up every night; each backup is encrypted and kept for 14 days.",
     ],

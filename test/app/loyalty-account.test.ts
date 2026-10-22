@@ -162,3 +162,9 @@ test("counter helpers: the store from the token, the customer id, and the reward
   assert.deepEqual(C.rewardsFor(c, { points: 60, tier: "" }, true).map((r) => [r.id, r.enough]), [["code", false]]);
   assert.deepEqual(C.rewardsFor(c, { points: 60, tier: "gold" }, false).map((r) => [r.id, r.enough]), [["code", false], ["credit", true], ["vip", true]]);
 });
+
+test("the birthday a shopper typed is in their metafield, so the store sees it in Shopify (5.1.5)", () => {
+  const p = memberPayload(cfg, { points: 0, pending: 0, tier: "", referralCode: "X1", blocked: false, birthday: "04-17" }, [], [], "", NOW);
+  assert.equal(p.bd, "04-17");
+  assert.equal(memberPayload(cfg, { points: 0, pending: 0, tier: "", referralCode: "X1", blocked: false }, [], [], "", NOW).bd, "");
+});
