@@ -12,6 +12,10 @@ import { getTrackSell } from "../lib/track-sell.server";
 import { DEFAULT_TRACK_SELL, withTrackSellDefaults, type TrackSell } from "../lib/track-sell";
 import { orderPageContext } from "../lib/order-page-setup.server";
 import { getOrderPage, saveOrderPage } from "../lib/designs.server";
+import { getPlan } from "../lib/billing.server";
+import { atLeast } from "../lib/plans";
+import { getReturnRules } from "../lib/shopify-returns.server";
+import { storeCreditBonus } from "../lib/return-rules";
 import { getThemeStyle } from "../lib/theme-style.server";
 import { FALLBACK_STYLE } from "../lib/theme-style";
 import { ThemeLook } from "../components/ThemeStyle";
@@ -39,7 +43,9 @@ export const loader = slottedRoute(["track_page", "returns_page"], async ({ requ
   const ctx = await orderPageContext(admin, session.shop, theme);
   const offers = (await getTrackOffers(admin).catch(() => ({ offers: [] }))).offers.filter((o) => o.active).map((o) => ({ id: o.id, slot: o.slot, kind: o.kind, headline: o.headline, text: o.text, button: o.button }));
   const sell = await getTrackSell(admin).catch(() => ({ sell: DEFAULT_TRACK_SELL, saved: false }));
-  return { offers, sell: sell.sell, kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
+  // The store credit bonus the Returns page gives (Pro), shown in the after delivery preview like on the store.
+  const creditBonus = kind === "track" && atLeast((await getPlan(admin, session.shop)).plan, "pro") ? await getReturnRules(admin).then(({ rules }) => storeCreditBonus(rules.saving)).catch(() => 0) : 0;
+  return { creditBonus, offers, sell: sell.sell, kind, config, saved, style, domain: session.shop, css: storefrontCss("ucs-sections.css"), inTheme: ctx.inPageTemplate && !!ctx.pages[kind], pageMade: !!ctx.pages[kind], seeLink: ctx.editor(kind), addLink: kind === "track" ? ctx.links.track : ctx.links.returns };
 });
 
 export const action = slottedRoute(["track_page", "returns_page"], async ({ request }: ActionFunctionArgs) => {
@@ -91,7 +97,7 @@ export default function OrderPageDesigner() {
   const groups = [...new Set(TEXTS[data.kind].map((t) => t.group))];
   // What the page sells (next order discount…): its own Save, shared by every style (lib/track-sell.ts).
   const [sell, setSell] = useState<TrackSell>(data.sell);
-  const sells: PreviewSells = { next: sell.nextOrder.on, buyAgain: sell.buyAgain.on, after: sell.afterDelivery.on, late: sell.delay.on, offers: { above: data.offers.find((o) => o.slot === "above") ?? null, below: data.offers.find((o) => o.slot === "below") ?? null } };
+  const sells: PreviewSells = { next: sell.nextOrder.on, buyAgain: sell.buyAgain.on, after: sell.afterDelivery.on, late: sell.delay.on, creditBonus: data.creditBonus, offers: { above: data.offers.find((o) => o.slot === "above") ?? null, below: data.offers.find((o) => o.slot === "below") ?? null } };
   const sellFetcher = useFetcher<{ ok: boolean; error: string | null }>();
   useEffect(() => {
     if (sellFetcher.state !== "idle" || !sellFetcher.data) return;

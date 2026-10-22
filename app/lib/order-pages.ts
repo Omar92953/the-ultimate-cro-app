@@ -61,6 +61,8 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "priceTax", label: "Taxes", def: "Taxes", group: "Prices" },
     { key: "priceTotal", label: "Total", def: "Total", group: "Prices" },
     { key: "priceRefunded", label: "Refunded", def: "Refunded", group: "Prices" },
+    { key: "creditNote", label: "Store credit bonus by the returns link (use {bonus})", def: "Choose store credit and get {bonus} extra.", group: "After delivery" },
+    { key: "brand", label: "Lines about your store (one per line)", def: "", long: true, max: 300, group: "Store lines" },
     { key: "carrierOnly", label: "Live updates are on the carrier's page", def: "Live updates are on the carrier's page. Open the tracking link.", long: true, group: "Result" },
   ],
   returns: [
@@ -75,6 +77,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "optRefund", label: "Refund option", def: "Refund to my original payment ({amount})", group: "Paying back" },
     { key: "optCredit", label: "Store credit option", def: "Store credit ({amount})", group: "Paying back" },
     { key: "optCreditBonus", label: "Store credit with a bonus", def: "Get {amount} store credit instead of a {refund} refund", group: "Paying back" },
+    { key: "creditBadge", label: "Store credit bonus badge (use {bonus})", def: "{bonus} extra", group: "Paying back" },
     { key: "optExchange", label: "Exchange option", def: "Exchange for another size or colour", group: "Paying back" },
     { key: "exChoose", label: "Choose the new item", def: "Choose the new one for {item}", group: "Paying back" },
     { key: "exSame", label: "Same price", def: "same price", group: "Paying back" },
@@ -103,6 +106,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "shopperPays", label: "Shopper pays shipping", def: "You pay for the return shipping.", long: true, group: "After" },
     { key: "merchantPays", label: "We send a label", def: "We will email you a return label.", long: true, group: "After" },
     { key: "nothing", label: "Nothing to return", def: "Nothing in this order can be returned.", long: true, group: "After" },
+    { key: "brand", label: "Lines about your store (one per line)", def: "", long: true, max: 300, group: "Store lines" },
   ],
 };
 

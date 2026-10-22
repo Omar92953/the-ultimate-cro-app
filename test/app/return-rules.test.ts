@@ -1,7 +1,7 @@
 /** Return rules and the words for returns (app/lib/return-rules.ts). Run: npm run test:app */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { creditFor, matchesAutoRule, withSaving, DEFAULT_RETURN_RULES, excludedTags, reasonCode, returnState, withReturnRulesDefaults } from "../../app/lib/return-rules";
+import { creditFor, storeCreditBonus, matchesAutoRule, withSaving, DEFAULT_RETURN_RULES, excludedTags, reasonCode, returnState, withReturnRulesDefaults } from "../../app/lib/return-rules";
 import { FEATURE_PLAN } from "../../app/lib/plans";
 import { AREAS, FEATURES, featuresForPath } from "../../app/lib/catalog";
 
@@ -76,4 +76,11 @@ test("credit is the refund value plus the bonus, to the cent", () => {
   assert.equal(creditFor(50, 10), 55);
   assert.equal(creditFor(33.33, 15), 38.33);
   assert.equal(creditFor(20, 0), 20);
+});
+
+test("storeCreditBonus is the bonus only while store credit is on", () => {
+  assert.equal(storeCreditBonus(undefined), 0);
+  assert.equal(storeCreditBonus({ credit: { on: false, bonus: 10 } }), 0);
+  assert.equal(storeCreditBonus({ credit: { on: true, bonus: 10 } }), 10);
+  assert.equal(storeCreditBonus({ credit: { on: true, bonus: 500 } }), 100);
 });

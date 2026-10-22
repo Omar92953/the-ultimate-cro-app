@@ -106,6 +106,12 @@ export function matchesAutoRule(rules: AutoRule[], c: RuleContext): boolean {
 /** What the shopper reads on the Returns page once the money or credit was given (Shopify still calls the return "Open"). */
 export const settledSay = (status: string, creditKind: string) => (status === "refunded" ? "Refunded" : creditKind === "store_credit" ? "Store credit given" : "Credit given");
 
+/** The extra percent a shopper gets for choosing store credit (0 when store credit is off). */
+export const storeCreditBonus = (saving: unknown) => {
+  const c = withSaving(saving).credit;
+  return c.on ? c.bonus : 0;
+};
+
 /** The credit for returned items worth `amount`: the bonus on top, rounded to cents. */
 export const creditFor = (amount: number, bonusPct: number) => Math.round(amount * (1 + bonusPct / 100) * 100) / 100;
 
