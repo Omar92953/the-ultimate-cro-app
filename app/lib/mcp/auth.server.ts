@@ -31,7 +31,20 @@ const validRedirect = (u: string) => {
   }
 };
 
-export async function registerClient(body: { client_name?: unknown; redirect_uris?: unknown }) {
+/** Registrations per visitor in the last 10 minutes (per server process): the endpoint is public, so nobody can fill the table. */
+const REGISTER_MAX = 10;
+const registered = new Map<string, number[]>();
+function tooManyRegistrations(from: string) {
+  const now = Date.now();
+  const list = (registered.get(from) ?? []).filter((t) => now - t < 10 * 60_000);
+  if (list.length >= REGISTER_MAX) return true;
+  registered.set(from, [...list, now]);
+  if (registered.size > 5000) registered.clear();
+  return false;
+}
+
+export async function registerClient(body: { client_name?: unknown; redirect_uris?: unknown }, from = "") {
+  if (tooManyRegistrations(from)) throw new Error("Too many registrations. Try again in a few minutes.");
   const uris = Array.isArray(body.redirect_uris) ? body.redirect_uris.filter((u): u is string => typeof u === "string") : [];
   if (!uris.length || uris.length > 10 || !uris.every(validRedirect)) throw new Error("redirect_uris must be https (or http on localhost) addresses.");
   const name = typeof body.client_name === "string" && body.client_name.trim() ? body.client_name.trim().slice(0, 80) : "AI assistant";
@@ -129,13 +142,18 @@ export async function exchange(form: URLSearchParams) {
     const code = form.get("code") ?? "";
     const r = code ? await db.mcpRequest.findFirst({ where: { codeHash: sha(code) } }) : null;
     if (!r || r.expiresAt < new Date() || r.clientId !== form.get("client_id") || r.redirectUri !== form.get("redirect_uri") || !pkceOk(form.get("code_verifier") ?? "", r.challenge)) throw new Error("invalid_grant");
-    await db.mcpRequest.delete({ where: { id: r.id } }); // a code works once
+    // A code works once, also when two requests bring it at the same moment: only one of them removes it.
+    const claimed = await db.mcpRequest.deleteMany({ where: { id: r.id, codeHash: r.codeHash } });
+    if (claimed.count !== 1) throw new Error("invalid_grant");
     const client = await db.mcpClient.findUnique({ where: { id: r.clientId } });
     return issue({ shop: r.shop, kind: "oauth", name: client?.name ?? "AI assistant", scope: r.scope === "build" ? "build" : "read", allowPublish: r.allowPublish }, ACCESS_MS, true);
   }
   if (type === "refresh_token") {
     const g = await db.mcpGrant.findFirst({ where: { refreshHash: sha(form.get("refresh_token") ?? ""), kind: "oauth", revokedAt: null } });
     if (!g || !g.refreshExpires || g.refreshExpires < new Date()) throw new Error("invalid_grant");
+    // A refresh token works once: claimed before the new one is made, so two requests at once can't both use it.
+    const claimed = await db.mcpGrant.updateMany({ where: { id: g.id, refreshHash: g.refreshHash }, data: { refreshHash: "" } });
+    if (claimed.count !== 1) throw new Error("invalid_grant");
     return issue({ shop: g.shop, kind: "oauth", name: g.name, scope: g.scope === "build" ? "build" : "read", allowPublish: g.allowPublish }, ACCESS_MS, true, g.id);
   }
   throw new Error("unsupported_grant_type");

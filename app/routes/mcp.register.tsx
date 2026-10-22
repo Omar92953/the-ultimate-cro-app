@@ -10,7 +10,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   try {
     const body = await request.json();
-    return Response.json(await registerClient(body && typeof body === "object" ? body : {}), { status: 201, headers: { ...CORS, "Cache-Control": "no-store" } });
+    const from = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+    return Response.json(await registerClient(body && typeof body === "object" ? body : {}, from), { status: 201, headers: { ...CORS, "Cache-Control": "no-store" } });
   } catch (e) {
     return Response.json({ error: "invalid_client_metadata", error_description: e instanceof Error ? e.message : "Bad request" }, { status: 400, headers: CORS });
   }
