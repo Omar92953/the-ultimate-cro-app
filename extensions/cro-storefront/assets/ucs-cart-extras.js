@@ -22,11 +22,24 @@
   var loading = null;
 
   function load() {
-    if (!loading) loading = fetch(root + 'cart.js', { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (c) { state = { attributes: c.attributes || {}, note: c.note || '', codes: codesOf(c) }; return state; });
+    if (!loading) loading = fetch(root + 'cart.js', { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (c) { state = { attributes: c.attributes || {}, note: c.note || '' }; keep(c); return state; });
     return loading;
   }
   // The codes that work on this cart (an unusable code stays in cart.discount_codes with applicable: false).
   function codesOf(cart) { return (cart.discount_codes || []).filter(function (x) { return x.applicable; }).map(function (x) { return x.code; }); }
+  var lc = function (x) { return String(x).toLowerCase(); };
+  var has = function (list, code) { return list.map(lc).indexOf(lc(code)) > -1; };
+  // What each code takes off the cart, in cents: order discounts and product discounts on each line. Shipping codes count at checkout (0 here).
+  function savedOf(cart) {
+    var m = {}, add = function (a, n) { if (a && a.type === 'discount_code') { var k = lc(a.key || a.title); m[k] = (m[k] || 0) + (Number(n) || 0); } };
+    (cart.cart_level_discount_applications || []).forEach(function (a) { add(a, a.total_allocated_amount); });
+    (cart.items || []).forEach(function (i) { (i.line_level_discount_allocations || []).forEach(function (x) { add(x.discount_application, x.amount); }); });
+    return m;
+  }
+  function keep(cart) { state.codes = codesOf(cart); state.saved = savedOf(cart); state.cur = cart.currency; }
+  function money(cents) {
+    try { return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: 'currency', currency: state.cur }).format(cents / 100); } catch (e) { return (cents / 100).toFixed(2); }
+  }
   function cartUI() {
     var el = document.querySelector('cart-drawer') || document.querySelector('cart-notification');
     return el && typeof el.renderContents === 'function' && typeof el.getSectionsToRender === 'function' ? el : null;
@@ -112,30 +125,37 @@
       var show = function (text) { msg.textContent = text || ''; msg.hidden = !text; };
       var paint = function () {
         list.innerHTML = (state.codes || []).map(function (code) {
-          return '<li class="ucs-ce__tag"><span>' + esc(c.c.applied.replace('{code}', code)) + '</span><button type="button" class="ucs-ce__rm" data-ce-remove="' + esc(code) + '">' + esc(c.c.remove) + '</button></li>';
+          var off = (state.saved || {})[lc(code)];
+          return '<li class="ucs-ce__tag"><span>' + esc(c.c.applied.replace('{code}', code)) + ' <small class="ucs-ce__save">' + esc(off > 0 ? c.c.saved.replace('{amount}', money(off)) : c.c.later) + '</small></span><button type="button" class="ucs-ce__rm" data-ce-remove="' + esc(code) + '">' + esc(c.c.remove) + '</button></li>';
         }).join('');
       };
       var run = function (next, typed) {
         btn.disabled = true;
         show('');
+        var before = state.codes || [];
+        var combine = function (others) { return c.c.combine.replace(/\{code\}/g, typed).replace(/\{other\}/g, others.join(', ')); };
         return sendCodes(next).then(function (data) {
-          var ok = codesOf(data);
-          if (typed && ok.indexOf(typed) === -1 && ok.map(function (x) { return x.toLowerCase(); }).indexOf(typed.toLowerCase()) === -1) {
-            // Not a code this cart can use: put the earlier codes back and say so.
-            return sendCodes(state.codes || []).then(function () { show(c.c.invalid); });
+          var ok = codesOf(data), lost = typed ? before.filter(function (x) { return !has(ok, x); }) : [];
+          if (typed && !has(ok, typed)) {
+            // Not usable here. If it works on its own, it just doesn't combine with the codes already on the cart.
+            var alone = before.length ? sendCodes([typed]).then(function (d) { return has(codesOf(d), typed); }) : Promise.resolve(false);
+            return alone.then(function (yes) { return sendCodes(before).then(function () { show(yes ? combine(before) : c.c.invalid); }); });
           }
-          state.codes = ok;
+          // It works, but Shopify dropped a code already on the cart: keep the earlier codes and say which one is in the way.
+          if (lost.length) return sendCodes(before).then(function () { show(combine(lost)); });
+          keep(data);
           paint();
           field.value = '';
           refreshTheme(data);
-        }).catch(function () { show(c.c.invalid); }).then(function () { btn.disabled = false; });
+        }).catch(function () { show(c.c.error); }).then(function () { btn.disabled = false; });
       };
       host.addEventListener('click', function (e) {
         var rm = e.target.closest && e.target.closest('[data-ce-remove]');
         if (rm) { var gone = rm.getAttribute('data-ce-remove'); return run((state.codes || []).filter(function (x) { return x !== gone; }), ''); }
         if (e.target.closest && e.target.closest('[data-ce="apply"]')) {
           var typed = field.value.trim();
-          if (!typed) return show(c.c.invalid);
+          if (!typed) return show(c.c.empty);
+          if (has(state.codes || [], typed)) return show(c.c.already.replace(/\{code\}/g, typed));
           run((state.codes || []).concat(typed), typed);
         }
       });

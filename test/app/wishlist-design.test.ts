@@ -27,6 +27,17 @@ test("the discount code box is off until chosen, and its texts reach the store c
   assert.match(c.c?.applied ?? "", /\{code\}/);
 });
 
+test("the discount code box says what each code took off and why a code can't be used", () => {
+  const c = toStorefrontCartExtras(withCartExtrasDefaults({ code: { on: true, saved: "Saved {amount}" } })).c!;
+  assert.equal(c.saved, "Saved {amount}");
+  assert.match(c.later, /checkout/);
+  assert.match(c.combine, /\{code\}.*\{other\}/);
+  assert.match(c.already, /\{code\}/);
+  for (const t of [c.saved, c.later, c.empty, c.already, c.combine, c.error]) assert.doesNotMatch(t, /\s[-–—]\s|--/, "no dashes in shopper text");
+  // Stores that saved the box before these texts existed get the defaults.
+  assert.equal(withCartExtrasDefaults({ code: { on: true, applied: "{code} ok" } }).code.error, "The code couldn't be checked. Please try again.");
+});
+
 test("the floating button defaults to the right and to an automatic height; the no variant texts are kept", async () => {
   const { withWishlistDefaults } = await import("../../app/lib/wishlist-design");
   const d = withWishlistDefaults({});

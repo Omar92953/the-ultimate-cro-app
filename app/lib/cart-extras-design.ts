@@ -19,7 +19,13 @@ export type CartExtrasDesign = {
   heading: string;
   gift: { on: boolean; label: string; attr: string };
   note: { on: boolean; label: string; placeholder: string; max: number; onlyGift: boolean };
-  code: { on: boolean; label: string; placeholder: string; button: string; applied: string; invalid: string; remove: string };
+  code: {
+    on: boolean; label: string; placeholder: string; button: string; applied: string; invalid: string; remove: string;
+    /** Next to an applied code: what it took off ({amount}), or "later" when the cart can't say (free shipping, applied at checkout). */
+    saved: string; later: string;
+    /** Clearer reasons: an empty box, a code already on the cart, two codes that don't combine ({code}, {other}), a failed check. */
+    empty: string; already: string; combine: string; error: string;
+  };
   date: { on: boolean; label: string; attr: string; minDays: number; maxDays: number; daysOff: number[]; required: boolean; requiredText: string; slots: string; slotLabel: string; slotAttr: string };
   where: { page: boolean; drawer: boolean };
   look: { style: "box" | "plain"; bg: string; accent: string; radius: number; codeLayout: "inline" | "stacked" };
@@ -31,7 +37,7 @@ export const DEFAULT_CART_EXTRAS: CartExtrasDesign = {
   heading: "Gift and delivery",
   gift: { on: true, label: "This is a gift", attr: "Gift" },
   note: { on: true, label: "Gift message", placeholder: "Write a message and we'll add it to a card", max: 250, onlyGift: true },
-  code: { on: false, label: "Discount code", placeholder: "Enter your code", button: "Apply", applied: "{code} applied", invalid: "This code can't be used on your cart", remove: "Remove" },
+  code: { on: false, label: "Discount code", placeholder: "Enter your code", button: "Apply", applied: "{code} applied", invalid: "This code can't be used on your cart", remove: "Remove", saved: "{amount} off", later: "Shown at checkout", empty: "Type a code first", already: "{code} is already applied", combine: "{code} can't be used together with {other}. Remove {other} to use it.", error: "The code couldn't be checked. Please try again." },
   date: { on: true, label: "Delivery date", attr: "Delivery date", minDays: 2, maxDays: 30, daysOff: [5], required: false, requiredText: "Please choose a delivery date", slots: "", slotLabel: "Time", slotAttr: "Delivery time" },
   where: { page: true, drawer: true },
   look: { style: "box", bg: "#f6f6f6", accent: "#121212", radius: 10, codeLayout: "inline" },
@@ -72,6 +78,12 @@ export function withCartExtrasDefaults(raw: unknown): CartExtrasDesign {
       applied: str(cd.applied, d.code.applied, 60),
       invalid: str(cd.invalid, d.code.invalid, 120),
       remove: str(cd.remove, d.code.remove, 30),
+      saved: str(cd.saved, d.code.saved, 60),
+      later: str(cd.later, d.code.later, 60),
+      empty: str(cd.empty, d.code.empty, 120),
+      already: str(cd.already, d.code.already, 120),
+      combine: str(cd.combine, d.code.combine, 160),
+      error: str(cd.error, d.code.error, 120),
     },
     date: {
       on: bool(dt.on, d.date.on),
