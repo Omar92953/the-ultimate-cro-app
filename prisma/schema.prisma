@@ -310,3 +310,24 @@ model LoyaltyEvent {
   @@index([status, availableAt])
   @@index([shop, orderId])
 }
+
+/// A reward a member got for points: a one use discount code for them only, or store credit.
+model LoyaltyReward {
+  id         Int       @id @default(autoincrement())
+  shop       String
+  memberId   Int
+  rewardId   String
+  kind       String
+  title      String
+  points     Int
+  value      Float     @default(0)
+  code       String    @default("")
+  discountId String    @default("")
+  expiresAt  DateTime?
+  usedAt     DateTime?
+  orderId    String    @default("")
+  createdAt  DateTime  @default(now())
+
+  @@index([shop, memberId, createdAt])
+  @@index([shop, code])
+}

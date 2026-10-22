@@ -13,6 +13,9 @@ import { errorMessage } from "../lib/admin.server";
 import { area } from "../lib/catalog";
 import { getProgram, programStats, setProgramOn } from "../lib/loyalty/program.server";
 import { syncShop } from "../lib/loyalty/sync.server";
+import { publishLoyalty } from "../lib/loyalty/storefront.server";
+import { getThemeStatus } from "../lib/cro.server";
+import { sectionLinks } from "../lib/sections.server";
 import { pointsLabel } from "../lib/loyalty/config";
 import { eventLabel } from "../lib/loyalty/labels";
 import { Button, Switch } from "../components/fields";
@@ -21,12 +24,13 @@ import { FeatureTabs } from "../components/FeatureNav";
 import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
-  const [program, stats, latest] = await Promise.all([
+  const [program, stats, latest, theme] = await Promise.all([
     getProgram(shop),
     programStats(shop),
     db.loyaltyEvent.findMany({ where: { shop }, orderBy: { createdAt: "desc" }, take: 8, select: { id: true, kind: true, points: true, note: true, status: true, createdAt: true, memberId: true } }),
+    getThemeStatus(admin, shop).catch(() => null),
   ]);
   const members = await db.loyaltyMember.findMany({ where: { id: { in: [...new Set(latest.map((e) => e.memberId))] } }, select: { id: true, email: true } });
   return {
@@ -34,6 +38,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     saved: program.saved,
     syncedAt: program.syncedAt?.toISOString() ?? null,
     config: program.config,
+    embedOn: theme ? theme.installed.boosters : null,
+    embedLink: sectionLinks(shop).boosters,
     stats,
     latest: latest.map((e) => ({ ...e, createdAt: e.createdAt.toISOString(), email: members.find((m) => m.id === e.memberId)?.email ?? "" })),
   };
@@ -44,7 +50,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   try {
     const intent = String(form.get("intent"));
-    if (intent === "on") await setProgramOn(session.shop, form.get("on") === "true", Number(form.get("past") ?? 0));
+    if (intent === "on") {
+      await setProgramOn(session.shop, form.get("on") === "true", Number(form.get("past") ?? 0));
+      await publishLoyalty(admin, session.shop);
+    }
     else if (intent === "sync") await syncShop(session.shop, admin);
     return { ok: true, error: null, intent };
   } catch (e) {
@@ -126,7 +135,9 @@ export default function LoyaltyHome() {
           <div className={css.checks}>
             {[
               { done: d.saved, title: "Choose how members earn", text: `Now: ${pointsLabel(c, Math.max(1, Math.round(c.earn.order.perUnit)))} per 1 of your currency on paid orders${c.earn.signup.on ? `, ${pointsLabel(c, c.earn.signup.points)} for a new account` : ""}${c.pendingDays ? `, usable after ${c.pendingDays} days` : ""}.`, href: "/app/loyalty/earn", label: "Earning rules" },
-              { done: on, title: "Turn the program on", text: "Orders paid from then on earn points. Older orders don't, so nobody gets points twice.", href: undefined, label: "" },
+              { done: c.rewards.some((r) => r.on), title: "Choose the rewards", text: c.rewards.filter((r) => r.on).map((r) => `${r.title} for ${pointsLabel(c, r.points)}`).join(", ") || "Nothing members can spend points on yet.", href: "/app/loyalty/rewards", label: "Rewards" },
+              { done: d.embedOn === true, title: "Show the widget on your store", text: "Turn on the Conversion boosters embed in your theme (App embeds). The rewards button shows on every page.", href: d.embedOn === true ? undefined : d.embedLink, label: "Open the theme editor", external: true },
+              { done: on, title: "Turn the program on", text: "Choose which orders earn above and switch it on.", href: undefined, label: "" },
             ].map((x, n) => (
               <div key={x.title} className={css.check}>
                 <div className={css.checkMain}>
@@ -136,7 +147,11 @@ export default function LoyaltyHome() {
                     {x.text}
                   </span>
                 </div>
-                {x.href ? <Button href={x.href}>{x.label}</Button> : null}
+                {x.href ? (
+                  <Button href={x.href} target={"external" in x && x.external ? "_top" : undefined}>
+                    {x.label}
+                  </Button>
+                ) : null}
               </div>
             ))}
           </div>
