@@ -297,7 +297,7 @@ export async function programStats(shop: string, days = 30) {
     newMembers: await db.loyaltyMember.count({ where: { shop, joinedAt: { gte: since } } }),
     points: sums._sum.points ?? 0,
     pending: sums._sum.pending ?? 0,
-    earned: by(["order", "first_order", "signup", "referral"]),
+    earned: by(["order", "first_order", "signup", "referral", "review"]),
     takenBack: -by(["refund", "cancel"]),
     expired: -by(["expire"]),
   };
@@ -305,6 +305,8 @@ export async function programStats(shop: string, days = 30) {
 
 /** Uninstall or shop/redact: every loyalty row of the store. */
 export async function removeShopLoyalty(shop: string) {
+  await db.loyaltyOutbox.deleteMany({ where: { shop } });
+  await db.loyaltyIntegration.deleteMany({ where: { shop } });
   await db.loyaltyEmail.deleteMany({ where: { shop } });
   await db.loyaltyReferral.deleteMany({ where: { shop } });
   await db.loyaltyReward.deleteMany({ where: { shop } });
@@ -328,6 +330,7 @@ export async function redactLoyaltyCustomer(shop: string, customerId: string, em
   await db.loyaltyReward.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyEvent.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyEmail.deleteMany({ where: { shop, OR: [{ memberId: { in: ids } }, ...(email ? [{ to: email.toLowerCase() }] : [])] } });
+  await db.loyaltyOutbox.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyMember.deleteMany({ where: { shop, id: { in: ids } } });
   return ids.length;
 }

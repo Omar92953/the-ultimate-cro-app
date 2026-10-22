@@ -14,6 +14,8 @@ import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
 import { SortableList, arrayMove } from "../components/Sortable";
+import { reviewApproved } from "../lib/loyalty/integrations.server";
+import { getReviewerEmail } from "../lib/reviewer-email.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -30,14 +32,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const kind = params.kind;
   if (!isKind(kind)) return { ok: false, error: "Unknown list." };
   const form = await request.formData();
   const intent = String(form.get("intent"));
   try {
     if (intent === "reorder") await reorder(admin, kind, JSON.parse(String(form.get("ids"))) as string[]);
-    else if (intent === "shown") await setShown(admin, kind, String(form.get("id")), form.get("shown") === "true");
+    else if (intent === "shown") {
+      const id = String(form.get("id"));
+      await setShown(admin, kind, id, form.get("shown") === "true");
+      // An approved review earns its writer loyalty review points (once).
+      if (kind === "reviews" && form.get("shown") === "true") await reviewApproved(admin, session.shop, id, await getReviewerEmail(session.shop, id)).catch(() => null);
+    }
     else if (intent === "delete") await deleteItem(admin, kind, String(form.get("id")));
     else if (intent === "products") {
       const n = await addProducts(admin, kind, JSON.parse(String(form.get("ids"))) as string[], JSON.parse(String(form.get("products"))) as string[]);

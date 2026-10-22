@@ -17,6 +17,7 @@ import { birthdayPoints, expireInactive, getProgram, releasePending, reviewTiers
 import { getReferralState, matchCodes, refreshMemberCodes, syncReferralDiscounts } from "./referrals.server";
 import { pruneEmails, queueScheduled, sendQueued, webhookUrl } from "./mailer.server";
 import { mailProvider } from "../email/provider.server";
+import { judgeMeReviews, sendEvents } from "./integrations.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
 type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
@@ -130,6 +131,8 @@ export async function syncShop(shop: string, admin: AdminClient) {
   // Emails last, so the ones the changes above queued go out in this run.
   await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
   await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
+  await sendEvents(shop, config).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
+  await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.
   const today = started.toISOString().slice(0, 10);

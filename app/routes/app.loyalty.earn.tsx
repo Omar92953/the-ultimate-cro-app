@@ -113,6 +113,18 @@ export default function LoyaltyEarn() {
           </s-stack>
         </HomeRow>
 
+        <HomeRow title="Product reviews">
+          <s-stack gap="base">
+            <Switch label="Points for a product review" details="Once per review: reviews from Customer reviews when you approve them (written by a signed in member), and Judge.me reviews once published (connect Judge.me on Integrations)." checked={cfg.earn.review.on} onValue={(v) => earn("review", { on: v })} />
+            {cfg.earn.review.on ? (
+              <s-grid gridTemplateColumns="1fr 1fr" gap="base">
+                <NumberField label="Review points" suffix={cfg.unit.many} min={0} max={100000} step={10} value={cfg.earn.review.points} onValue={(v) => earn("review", { points: v })} />
+                <NumberField label="More with a photo" suffix={cfg.unit.many} min={0} max={100000} step={10} value={cfg.earn.review.photo} onValue={(v) => earn("review", { photo: v })} />
+              </s-grid>
+            ) : null}
+          </s-stack>
+        </HomeRow>
+
         <HomeRow title="Bonus campaigns">
           <s-stack gap="base">
             <s-text color="subdued">Orders placed between two dates earn more, for example double points for a weekend sale. The widget says so while it runs.</s-text>

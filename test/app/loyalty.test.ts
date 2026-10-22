@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails"]) {
+  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -899,4 +899,125 @@ test("tier and reward emails; privacy removes a member's emails and counts them"
   await E.sendQueued(storeAdmin(), shop, c, new Date(), fakeMail().provider);
   await P.redactLoyaltyCustomer(shop, "960", "");
   assert.equal(await prisma.loyaltyEmail.count({ where: { shop } }), 0);
+});
+
+/* ----------------------------------------------------------- integrations -- */
+type I = typeof import("../../app/lib/loyalty/integrations.server");
+const ig = (): Promise<I> => import("../../app/lib/loyalty/integrations.server");
+
+/** A fake web for the services: answers by address, and keeps every call. */
+function fakeWeb(answer: (url: string, init?: RequestInit) => { status: number; body?: unknown }) {
+  const calls: { url: string; init?: RequestInit }[] = [];
+  const http = (async (url: string, init?: RequestInit) => {
+    calls.push({ url, init });
+    const a = answer(url, init);
+    return new Response(JSON.stringify(a.body ?? {}), { status: a.status });
+  }) as typeof fetch;
+  return { http, calls };
+}
+
+test("review points settings are cleaned", () => {
+  const c = withLoyaltyDefaults({ earn: { review: { on: true, points: "75", photo: -4 } } });
+  assert.deepEqual(c.earn.review, { on: true, points: 75, photo: 0 });
+  assert.deepEqual(withLoyaltyDefaults(null).earn.review, { on: false, points: 50, photo: 50 });
+});
+
+test("connecting a service: a refused key is not saved; a good one is stored encrypted, shown by its last 4", async () => {
+  const S = await ig();
+  const shop = "in1.myshopify.com";
+  const refused = fakeWeb(() => ({ status: 401 }));
+  await assert.rejects(S.connect(shop, "klaviyo", "pk_wrongwrongwrong", refused.http), /Klaviyo refused this key/);
+  await assert.rejects(S.connect(shop, "klaviyo", "short", refused.http), /Paste the private api key/);
+  assert.equal(await prisma.loyaltyIntegration.count({ where: { shop } }), 0);
+  const ok = fakeWeb(() => ({ status: 200 }));
+  await S.connect(shop, "klaviyo", "pk_live_1234567890abcd", ok.http);
+  const row = await prisma.loyaltyIntegration.findFirstOrThrow({ where: { shop, kind: "klaviyo" } });
+  assert.equal(row.last4, "abcd");
+  assert.doesNotMatch(row.key, /pk_live/);
+  assert.equal((ok.calls[0].init?.headers as Record<string, string>).Authorization, "Klaviyo-API-Key pk_live_1234567890abcd");
+  assert.deepEqual(await S.eventTargets(shop), ["klaviyo"]);
+  const list = await S.integrationList(shop);
+  assert.deepEqual([list.klaviyo.connected, list.klaviyo.last4, list.omnisend.connected], [true, "abcd", false]);
+  // Judge.me starts after the newest review there now.
+  const jm = fakeWeb(() => ({ status: 200, body: { reviews: [{ id: 40 }, { id: 42 }] } }));
+  await S.connect(shop, "judgeme", "jm_token_123456", jm.http);
+  assert.equal(JSON.parse((await prisma.loyaltyIntegration.findFirstOrThrow({ where: { shop, kind: "judgeme" } })).state).cursor, 42);
+  assert.deepEqual(await S.eventTargets(shop), ["klaviyo"], "Judge.me gets no events");
+  await S.setIntegrationOn(shop, "klaviyo", false);
+  assert.deepEqual(await S.eventTargets(shop), []);
+  await S.disconnect(shop, "klaviyo");
+  assert.equal(await prisma.loyaltyIntegration.count({ where: { shop, kind: "klaviyo" } }), 1 - 1);
+});
+
+test("loyalty events go to Klaviyo and Omnisend even with emails off, once each, with the member's profile", async () => {
+  const S = await ig();
+  const E = await ml();
+  const shop = "in2.myshopify.com";
+  const ok = fakeWeb(() => ({ status: 200 }));
+  await S.connect(shop, "klaviyo", "pk_live_aaaabbbbcccc", ok.http);
+  await S.connect(shop, "omnisend", "omni_key_ddddeeee", ok.http);
+  const c = cfg({ pendingDays: 0, referral: { ...DEFAULT_LOYALTY.referral, on: true } });
+  await P.syncOrder(shop, c, order({ id: "9701", createdAt: new Date().toISOString(), customer: who("970", "g@example.com") }));
+  const m = await member(shop, "970");
+  const rows = await prisma.loyaltyOutbox.findMany({ where: { shop }, orderBy: { id: "asc" } });
+  assert.deepEqual(rows.map((r) => `${r.target}:${r.kind}`), ["klaviyo:earned", "omnisend:earned"]);
+  assert.equal(await prisma.loyaltyEmail.count({ where: { shop } }), 0, "emails are off");
+  assert.equal(await E.notify(shop, c, m.id, "earned", {}, "earned:9701"), false, "queued once");
+
+  const k = S.eventRequest("klaviyo", "pk_x", c, m, rows[0]);
+  const kb = JSON.parse(k.init.body).data.attributes;
+  assert.equal(k.url, "https://a.klaviyo.com/api/events");
+  assert.equal(k.init.headers.revision, "2026-10-15");
+  assert.equal(kb.metric.data.attributes.name, "Loyalty points earned");
+  assert.equal(kb.profile.data.attributes.email, "g@example.com");
+  assert.equal(kb.profile.data.attributes.properties["Loyalty points"], 50);
+  assert.equal(kb.profile.data.attributes.properties["Loyalty referral code"], m.referralCode);
+  assert.deepEqual([kb.properties.points, kb.properties.order, kb.properties.balance], [50, "#1001", 50]);
+  assert.equal(kb.unique_id, `cro-loyalty-${rows[0].id}`);
+  const o = S.eventRequest("omnisend", "omni", c, m, rows[1]);
+  const ob = JSON.parse(o.init.body);
+  assert.deepEqual([o.url, o.init.headers["X-API-KEY"], ob.eventName, ob.origin, ob.contact.email, ob.contact.customProperties.loyaltyPoints], ["https://api.omnisend.com/v5/events", "omni", "Loyalty points earned", "api", "g@example.com", 50]);
+
+  const web = fakeWeb((url) => ({ status: url.includes("klaviyo") ? 202 : 401 }));
+  await E.notify(shop, c, m.id, "tier", { tier: "Gold" }, "t-9701");
+  const out = await S.sendEvents(shop, c, web.http);
+  assert.deepEqual(out, { sent: 2, skipped: 1, failed: 1 }, "Omnisend refused once, its next event waits as not connected");
+  const omni = await prisma.loyaltyIntegration.findFirstOrThrow({ where: { shop, kind: "omnisend" } });
+  assert.deepEqual([omni.on, omni.error], [false, "Omnisend refused the key. Connect it again."]);
+  assert.deepEqual(await S.eventTargets(shop), ["klaviyo"]);
+  // Privacy: a member's events go with them.
+  await P.redactLoyaltyCustomer(shop, "970", "");
+  assert.equal(await prisma.loyaltyOutbox.count({ where: { shop } }), 0);
+  await P.removeShopLoyalty(shop);
+  assert.equal(await prisma.loyaltyIntegration.count({ where: { shop } }), 0);
+});
+
+test("review points: Judge.me reviews after the last read, more with a photo, never twice; approved app reviews once", async () => {
+  const S = await ig();
+  const shop = "in3.myshopify.com";
+  const c = cfg({ pendingDays: 0, earn: { ...DEFAULT_LOYALTY.earn, review: { on: true, points: 50, photo: 25 } } });
+  await P.syncOrder(shop, c, order({ id: "9801", customer: who("980", "h@example.com") }));
+  const before = (await member(shop, "980")).points;
+  await S.connect(shop, "judgeme", "jm_token_abcdef", fakeWeb(() => ({ status: 200, body: { reviews: [{ id: 10 }] } })).http);
+  const reviews = [
+    { id: 9, reviewer: { email: "h@example.com" } },
+    { id: 11, reviewer: { email: "H@example.com" }, pictures: [{ urls: {} }] },
+    { id: 12, reviewer: { email: "h@example.com" }, curated: "spam" },
+    { id: 13, reviewer: { email: "h@example.com" }, hidden: true },
+    { id: 14, reviewer: { email: "nobody@example.com" } },
+    { id: 15, reviewer: { email: "h@example.com" } },
+  ];
+  const web = fakeWeb((url) => ({ status: 200, body: { reviews: url.includes("page=1") ? reviews : [] } }));
+  assert.equal(await S.judgeMeReviews(shop, cfg(), web.http), 0, "review points off: Judge.me isn't read");
+  assert.equal(web.calls.length, 0);
+  assert.equal(await S.judgeMeReviews(shop, c, web.http), 2, "reviews 11 and 15");
+  assert.match(web.calls[0].url, /published=true/);
+  assert.equal((await member(shop, "980")).points, before + 75 + 50, "review 11 with a photo, review 15");
+  assert.equal(await S.judgeMeReviews(shop, c, web.http), 0, "nothing twice");
+  assert.equal(JSON.parse((await prisma.loyaltyIntegration.findFirstOrThrow({ where: { shop, kind: "judgeme" } })).state).cursor, 15);
+  const own = await S.approvedReviewPoints(shop, c, "gid://shopify/Metaobject/1", "h@example.com");
+  assert.ok(own);
+  assert.equal(await S.approvedReviewPoints(shop, c, "gid://shopify/Metaobject/1", "h@example.com"), null, "once per review");
+  assert.equal(await S.approvedReviewPoints(shop, cfg(), "gid://shopify/Metaobject/2", "h@example.com"), null, "review points off");
+  assert.equal((await member(shop, "980")).points, before + 75 + 50 + 50);
 });

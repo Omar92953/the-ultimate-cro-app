@@ -18,6 +18,7 @@ import { DemoButton } from "../components/DemoButton";
 import { LIST_FEATURE } from "../lib/catalog";
 import { applyOrderCheck } from "../lib/verified-check";
 import { checkReviewerOrders, getReviewerEmail, removeReviewerEmail, setReviewerEmail } from "../lib/reviewer-email.server";
+import { reviewApproved } from "../lib/loyalty/integrations.server";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -45,8 +46,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       if (kind === "reviews") await removeReviewerEmail(session.shop, id);
       return redirect(`/app/sections/${kind}?deleted=${done}`);
     }
-    const saved = await saveItem(admin, kind, JSON.parse(String(form.get("item"))) as SectionItem);
+    const item = JSON.parse(String(form.get("item"))) as SectionItem;
+    const saved = await saveItem(admin, kind, item);
     if (kind === "reviews" && form.has("email")) await setReviewerEmail(session.shop, saved.id, String(form.get("email")));
+    // A review saved as shown is approved: its writer's loyalty review points (once; more with a photo).
+    if (kind === "reviews" && item.values.active === true) await reviewApproved(admin, session.shop, saved.id, await getReviewerEmail(session.shop, saved.id), !!item.values.media).catch(() => null);
     return { ok: true, error: null, next: String(form.get("next") || "list"), check: null };
   } catch (e) {
     return { ok: false, error: errorMessage(e), next: null, check: null };

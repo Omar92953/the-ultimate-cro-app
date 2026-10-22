@@ -112,6 +112,8 @@ export type LoyaltyConfig = {
     birthday: { on: boolean; points: number };
     /** Points for following the store, once per network (the shopper's word: networks can't confirm a follow). */
     social: { on: boolean; points: number; links: { network: SocialNetwork; url: string }[] };
+    /** A product review (the app's Customer reviews once approved, or Judge.me once published); `photo` more with a photo. */
+    review: { on: boolean; points: number; photo: number };
   };
   /** VIP tiers by points earned or money spent, over the member's lifetime or the last 12 months. */
   tiers: { on: boolean; basis: "points" | "spent"; period: "lifetime" | "year"; tag: boolean; list: Tier[] };
@@ -178,6 +180,7 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
     firstOrder: { on: false, points: 50 },
     birthday: { on: false, points: 200 },
     social: { on: false, points: 50, links: [] },
+    review: { on: false, points: 50, photo: 50 },
   },
   tiers: {
     on: false,
@@ -311,6 +314,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
           return /^https:\/\/\S+$/.test(url) ? [{ network, url }] : [];
         }).filter((x, i, a) => a.findIndex((y) => y.network === x.network) === i),
       },
+      review: { on: bool(obj(e.review).on, d.earn.review.on), points: num(obj(e.review).points, 0, 100000, d.earn.review.points), photo: num(obj(e.review).photo, 0, 100000, d.earn.review.photo) },
     },
     tiers: cleanTiers(r.tiers, d.tiers),
     campaigns: (Array.isArray(r.campaigns) ? r.campaigns : []).slice(0, MAX_CAMPAIGNS).flatMap((x, i) => {
@@ -368,6 +372,7 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     rw: c.rewards.filter((r) => r.on).map((r) => ({ id: r.id, t: r.title, p: r.points, k: r.kind, tr: r.tiers })),
     bd: c.earn.birthday.on ? c.earn.birthday.points : 0,
     so: c.earn.social.on ? { p: c.earn.social.points, l: c.earn.social.links } : null,
+    rv: c.earn.review.on ? c.earn.review.points : 0,
     ti: c.tiers.on ? { b: c.tiers.basis, l: c.tiers.list.map((x) => ({ id: x.id, n: x.name, m: x.min, x: x.multiplier })) } : null,
     rf: c.referral.on ? { k: c.referral.friend.kind, v: c.referral.friend.value, m: c.referral.friend.minimum, g: c.referral.gift.kind, gv: c.referral.gift.value } : null,
     ca: c.campaigns.map((x) => ({ n: x.name, x: x.multiplier, f: x.from, t: x.to })),
