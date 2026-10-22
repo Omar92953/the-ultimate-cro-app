@@ -49,7 +49,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const reviewers = email ? await reviewerEmailsFor(shop, email) : [];
       const loyalty = await loyaltyHeldFor(shop, String(payload?.customer?.id ?? ""), email);
       // Counts only: customer data never goes into the server logs.
-      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests, ${reviewers.length} reviewer emails, ${loyalty.members} loyalty members with ${loyalty.events} point changes and ${loyalty.referrals} referrals`);
+      console.log(`[data_request] ${shop}: ${held.length} sales pop-up entries, ${alerts.length} back-in-stock requests, ${returns.length} return requests, ${reviewers.length} reviewer emails, ${loyalty.members} loyalty members with ${loyalty.events} point changes and ${loyalty.referrals} referrals and ${loyalty.emails} loyalty emails`);
       break;
     }
     case "CUSTOMERS_REDACT": {

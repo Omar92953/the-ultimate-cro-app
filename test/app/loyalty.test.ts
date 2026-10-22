@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals"]) {
+  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -146,7 +146,7 @@ test("points expire after days without activity", async () => {
 
 test("privacy: a customer's loyalty rows are counted and removed; uninstall removes the store's", async () => {
   const shop = "a.myshopify.com";
-  assert.deepEqual(await P.loyaltyHeldFor(shop, "77", ""), { members: 1, events: 3, referrals: 0 });
+  assert.deepEqual(await P.loyaltyHeldFor(shop, "77", ""), { members: 1, events: 3, referrals: 0, emails: 0 });
   assert.equal(await P.redactLoyaltyCustomer(shop, "", "sara@example.com"), 1);
   assert.equal(await prisma.loyaltyEvent.count({ where: { shop } }), 0);
   await P.syncOrder("g.myshopify.com", cfg(), order());
@@ -183,7 +183,7 @@ test("an Admin API order reads into the engine's shape", async () => {
     currentSubtotalPriceSet: { shopMoney: { amount: "24.95", currencyCode: "USD" } }, currentShippingPriceSet: { shopMoney: { amount: "5" } }, currentTotalTaxSet: null,
     customer: { id: "gid://shopify/Customer/9", locale: "en", tags: ["vip"], state: "DISABLED", defaultEmailAddress: { emailAddress: "Sara@Example.com" } },
   });
-  assert.deepEqual(f, { id: "123", name: "#1006", createdAt: "2026-10-18T00:00:00Z", customer: { id: "9", email: "sara@example.com", firstName: "", locale: "en", tags: ["vip"] }, paid: true, cancelled: false, subtotal: 24.95, shipping: 5, taxes: 0 });
+  assert.deepEqual(f, { id: "123", name: "#1006", createdAt: "2026-10-18T00:00:00Z", customer: { id: "9", email: "sara@example.com", firstName: "", locale: "en", tags: ["vip"], marketing: false }, paid: true, cancelled: false, subtotal: 24.95, shipping: 5, taxes: 0 });
   assert.equal(factsFromNode({ ...{ id: "gid://shopify/Order/1", name: "#1", createdAt: "", cancelledAt: null, currentSubtotalPriceSet: null, currentShippingPriceSet: null, currentTotalTaxSet: null, customer: null }, displayFinancialStatus: "PENDING" }).paid, false);
 });
 
@@ -652,4 +652,251 @@ test("privacy: referral rows are counted and removed for the member and the frie
   assert.equal(await prisma.loyaltyReferral.count({ where: { shop } }), 0);
   await P.removeShopLoyalty("ref4.myshopify.com");
   assert.equal(await prisma.loyaltyReferral.count({ where: { shop: "ref4.myshopify.com" } }), 0);
+});
+
+/* ----------------------------------------------------------------- emails -- */
+type M = typeof import("../../app/lib/loyalty/mailer.server");
+const ml = (): Promise<M> => import("../../app/lib/loyalty/mailer.server");
+type OutMail = import("../../app/lib/email/provider.server").OutMail;
+type MailProvider = import("../../app/lib/email/provider.server").MailProvider;
+
+/** A fake email service: what was sent, and a sending domain whose DKIM can be switched. */
+function fakeMail(o: { ready?: boolean; domains?: boolean; fail?: boolean } = {}) {
+  const sent: OutMail[] = [];
+  let dkim = false;
+  const rec = (domain: string) => ({ id: "77", domain, dkimHost: `pm123._domainkey.${domain}`, dkimValue: "k=rsa;p=ABC", returnPathHost: `pm-bounces.${domain}`, returnPathValue: "pm.mtasv.net", dkimVerified: dkim, returnPathVerified: dkim });
+  let domain = "";
+  const provider: MailProvider = {
+    ready: () => o.ready ?? true,
+    domainsReady: () => o.domains ?? true,
+    send: async (ms) => {
+      sent.push(...ms);
+      return ms.map((_, i) => (o.fail ? { ok: false, id: "", error: "Inactive recipient" } : { ok: true, id: `pm-${sent.length - ms.length + i}`, error: "" }));
+    },
+    addDomain: async (d) => ((domain = d), rec(d)),
+    getDomain: async () => rec(domain),
+    verifyDomain: async () => rec(domain),
+    ensureWebhook: async () => {},
+  };
+  return { provider, sent, setDkim: (v: boolean) => (dkim = v) };
+}
+const storeAdmin = () =>
+  ({ graphql: async () => new Response(JSON.stringify({ data: { shop: { name: "Sara's <Shop>", email: "owner@sara.example", contactEmail: "help@sara.example", currencyCode: "EGP", primaryDomain: { url: "https://sara.example" } } } })) }) as never;
+const withEmails = (patch: Record<string, unknown> = {}) => withLoyaltyDefaults({ ...DEFAULT_LOYALTY, pendingDays: 0, emails: { on: true, ...patch } });
+
+test("email settings are cleaned: a bad sender or logo is dropped, lines stay one line, defaults are complete", async () => {
+  const { withEmailDefaults, DEFAULT_EMAILS, EMAIL_KINDS } = await import("../../app/lib/loyalty/emails");
+  assert.deepEqual(withEmailDefaults(undefined), DEFAULT_EMAILS);
+  const e = withEmailDefaults({ on: true, sender: { email: "not an email", name: 'Sara "<x>"' }, logo: "http://insecure.example/logo.png", texts: { earned: { subject: "You\nearned {points}", body: "" } } });
+  assert.equal(e.on, true);
+  assert.deepEqual(e.sender, { email: "", name: "Sara x" });
+  assert.equal(e.logo, "");
+  assert.equal(e.texts.earned.subject, "You earned {points}");
+  assert.equal(e.texts.earned.body, DEFAULT_EMAILS.texts.earned.body, "an empty text gets its default back");
+  assert.equal(Object.keys(e.texts).length, EMAIL_KINDS.length);
+  assert.equal(withEmailDefaults({ sender: { email: "Hello@Sara.Example" } }).sender.email, "hello@sara.example");
+});
+
+test("an email is filled in and escaped, with the unsubscribe link in the HTML and the text", async () => {
+  const { renderEmail, DEFAULT_EMAILS } = await import("../../app/lib/loyalty/emails");
+  const r = renderEmail({ ...DEFAULT_EMAILS, accent: "#ffcc00" }, "earned", { name: "Sara's <Shop>", url: "https://sara.example" }, { points: "120 points", order: "#1042", date: "November 30", balance: "500 points" }, "https://app.example/email/unsubscribe?t=abc");
+  assert.equal(r.subject, "You earned 120 points");
+  assert.match(r.html, /120 points for order #1042/);
+  assert.match(r.html, /Sara&#39;s &lt;Shop&gt;/);
+  assert.doesNotMatch(r.html, /<Shop>/);
+  assert.match(r.html, /href="https:\/\/app\.example\/email\/unsubscribe\?t=abc"/);
+  assert.match(r.html, /background:#ffcc00;color:#111111/, "dark text on a light button");
+  assert.match(r.text, /They can be used from November 30\. Your balance: 500 points\./);
+  assert.match(r.text, /Unsubscribe: https:\/\/app\.example\/email\/unsubscribe\?t=abc/);
+});
+
+test("unsubscribe links are signed per member; a changed link does nothing", async () => {
+  const E = await ml();
+  const shop = "em0.myshopify.com";
+  await P.syncOrder(shop, cfg(), order({ id: "9901", customer: who("990", "u@example.com") }));
+  const m = await member(shop, "990");
+  const t = E.unsubToken(shop, m.id);
+  assert.deepEqual(E.readUnsubToken(t), { shop, memberId: m.id });
+  assert.equal(E.readUnsubToken(t.slice(0, -1) + (t.endsWith("A") ? "B" : "A")), null);
+  assert.equal(E.readUnsubToken(E.unsubToken(shop, m.id).replace(/^[^.]+/, Buffer.from(`${shop}|${m.id + 1}`).toString("base64url"))), null, "another member's id with this signature");
+  assert.equal(await E.unsubscribe("nonsense"), null);
+  await E.unsubscribe(t);
+  assert.equal((await member(shop, "990")).emailOptOut, true);
+});
+
+test("emails: queued by events only when on, sent with the default sender, reminders only with marketing consent", async () => {
+  const E = await ml();
+  const shop = "em1.myshopify.com";
+  const off = cfg({ pendingDays: 0 });
+  await P.syncOrder(shop, off, order({ id: "9101", createdAt: new Date().toISOString(), customer: who("910", "a@example.com") }));
+  assert.equal(await prisma.loyaltyEmail.count({ where: { shop } }), 0, "emails off: nothing queued");
+
+  const c = withEmails();
+  await P.syncOrder(shop, c, order({ id: "9102", createdAt: new Date().toISOString(), customer: { ...who("911", "b@example.com"), marketing: true } }));
+  await P.syncOrder(shop, c, order({ id: "9103", createdAt: "2026-01-01T00:00:00Z", customer: who("912", "old@example.com") }));
+  assert.deepEqual((await prisma.loyaltyEmail.findMany({ where: { shop } })).map((e) => e.kind), ["earned"], "an old order counted when the program starts sends nothing");
+  await E.queueScheduled(shop, c);
+  const b = await member(shop, "911");
+  assert.equal(b.emailMarketing, true);
+  await P.birthdayPoints(shop, withEmails(), new Date());
+  await E.notify(shop, c, (await member(shop, "912")).id, "expiring", { date: "2026-12-01T00:00:00Z" }, "x1");
+  await E.notify(shop, c, (await member(shop, "912")).id, "expiring", { date: "2026-12-01T00:00:00Z" }, "x1");
+
+  const mail = fakeMail();
+  const done = await E.sendQueued(storeAdmin(), shop, c, new Date(), mail.provider);
+  const rows = await prisma.loyaltyEmail.findMany({ where: { shop }, orderBy: { id: "asc" } });
+  assert.equal(rows.filter((r) => r.kind === "expiring").length, 1, "the same reminder is queued once");
+  assert.equal(rows.find((r) => r.kind === "expiring")!.reason, "Not subscribed to email marketing");
+  const earned = mail.sent.find((x) => x.tag === "loyalty-earned")!;
+  assert.equal(earned.to, "b@example.com");
+  assert.equal(earned.from, '"Sara\'s Shop" <rewards@mail.crotoolbox.com>');
+  assert.equal(earned.replyTo, "help@sara.example");
+  assert.equal(earned.stream, "account");
+  assert.equal(earned.subject, "You earned 50 points");
+  assert.match(earned.headers[0].value, /^<.*\/email\/unsubscribe\?t=.+>$/);
+  assert.deepEqual(earned.headers[1], { name: "List-Unsubscribe-Post", value: "List-Unsubscribe=One-Click" });
+  assert.equal(earned.metadata.member, String(b.id));
+  assert.ok(mail.sent.some((x) => x.tag === "loyalty-welcome"), "welcome for new members");
+  assert.equal(done.sent, mail.sent.length);
+  assert.ok(rows.every((r) => r.status !== "queued"));
+  assert.equal(rows.find((r) => r.kind === "earned")!.providerId.startsWith("pm-"), true);
+
+  // Unsubscribed: skipped with the reason.
+  await prisma.loyaltyMember.update({ where: { id: b.id }, data: { emailOptOut: true } });
+  await E.notify(shop, c, b.id, "reward", { reward: "10% off", code: "RWD-1" }, "r1");
+  await E.sendQueued(storeAdmin(), shop, c, new Date(), mail.provider);
+  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, dedupe: "r1" } })).reason, "Unsubscribed");
+});
+
+test("emails are skipped when the service isn't ready, failed when Shopify's address bounces at once, and stop at the monthly limit", async () => {
+  const E = await ml();
+  const shop = "em2.myshopify.com";
+  const c = withEmails();
+  await P.syncOrder(shop, c, order({ id: "9201", createdAt: new Date().toISOString(), customer: who("920", "c@example.com") }));
+  await E.sendQueued(storeAdmin(), shop, c, new Date(), fakeMail({ ready: false }).provider);
+  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, kind: "earned" } })).reason, "The email service is not set up yet");
+  const m = await member(shop, "920");
+  await E.notify(shop, c, m.id, "tier", { tier: "Gold" }, "t1");
+  await E.sendQueued(storeAdmin(), shop, c, new Date(), fakeMail({ fail: true }).provider);
+  const failed = await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, dedupe: "t1" } });
+  assert.deepEqual([failed.status, failed.reason], ["failed", "Inactive recipient"]);
+  const now = new Date();
+  await prisma.loyaltyEmail.createMany({ data: Array.from({ length: 10_000 }, () => ({ shop, kind: "earned", status: "sent", sentAt: now })) });
+  await E.notify(shop, c, m.id, "tier", { tier: "Gold" }, "t2");
+  const mail = fakeMail();
+  await E.sendQueued(storeAdmin(), shop, c, now, mail.provider);
+  assert.equal(mail.sent.length, 0);
+  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, dedupe: "t2" } })).reason, "Monthly limit of 10,000 reached");
+  await prisma.loyaltyEmail.deleteMany({ where: { shop } });
+});
+
+test("the store's own sender: free mailboxes refused, used once verified, back to the default if it stops verifying", async () => {
+  const E = await ml();
+  const shop = "em3.myshopify.com";
+  await P.saveProgramConfig(shop, {});
+  const mail = fakeMail();
+  await assert.rejects(E.setupSender(shop, "store@gmail.com", mail.provider), /Free email addresses/);
+  await assert.rejects(E.setupSender(shop, "nope", mail.provider), /full email address/);
+  await assert.rejects(E.setupSender(shop, "hi@sara.test", fakeMail({ domains: false }).provider), /not set up/);
+  const s = await E.setupSender(shop, "Hi@Sara.test", mail.provider);
+  assert.deepEqual([s.email, s.domain, s.verified], ["hi@sara.test", "sara.test", false]);
+  assert.equal(s.records?.returnPathValue, "pm.mtasv.net");
+  const c = withEmails({ sender: { email: "hi@sara.test", name: "Sara" } });
+  const store = { name: "Sara's Shop", email: "help@sara.example", url: "https://sara.example", currency: "EGP" };
+  assert.equal((await E.fromFor(shop, c, store, mail.provider)).own, false, "not verified yet: the default sender");
+  mail.setDkim(true);
+  assert.equal((await E.verifySender(shop, mail.provider))?.verified, true);
+  const own = await E.fromFor(shop, c, store, mail.provider);
+  assert.deepEqual(own, { from: '"Sara" <hi@sara.test>', replyTo: "", own: true });
+  mail.setDkim(false);
+  assert.equal((await E.fromFor(shop, c, store, mail.provider, new Date(Date.now() + 2 * DAY))).own, false, "checked again a day later");
+  assert.equal(((await prisma.loyaltyProgram.findUniqueOrThrow({ where: { shop } })).state.includes('"verified":false')), true);
+  await E.removeSender(shop);
+  assert.equal(await E.getSender(shop), null);
+});
+
+test("bounces and spam complaints stop a member's emails; soft bounces don't", async () => {
+  const E = await ml();
+  const shop = "em4.myshopify.com";
+  await P.syncOrder(shop, cfg(), order({ id: "9401", customer: who("940", "d@example.com") }));
+  const m = await member(shop, "940");
+  await prisma.loyaltyEmail.create({ data: { shop, memberId: m.id, kind: "earned", status: "sent", providerId: "pm-x" } });
+  assert.equal(await E.providerEvent({ RecordType: "Bounce", Type: "SoftBounce", MessageID: "pm-x", Metadata: { shop, member: String(m.id) } }), false);
+  assert.equal((await member(shop, "940")).emailOptOut, false);
+  assert.equal(await E.providerEvent({ RecordType: "Bounce", Type: "HardBounce", MessageID: "pm-x", Metadata: { shop, member: String(m.id) } }), true);
+  assert.equal((await member(shop, "940")).emailOptOut, true);
+  assert.equal((await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, providerId: "pm-x" } })).status, "bounced");
+});
+
+test("the Postmark client: one batch per stream, the right streams and headers, errors per email, a domain added before", async () => {
+  const { postmark } = await import("../../app/lib/email/provider.server");
+  const calls: { url: string; init: RequestInit }[] = [];
+  const http = (async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    if (url.endsWith("/email/batch")) {
+      const n = (JSON.parse(String(init.body)) as unknown[]).length;
+      return new Response(JSON.stringify(Array.from({ length: n }, (_, i) => (i === 0 ? { ErrorCode: 0, MessageID: `id-${calls.length}` } : { ErrorCode: 406, Message: "Inactive recipient" }))));
+    }
+    if (url.endsWith("/domains") && init.method === "POST") return new Response(JSON.stringify({ ErrorCode: 503, Message: "This domain already exists." }), { status: 422 });
+    if (url.includes("/domains?")) return new Response(JSON.stringify({ Domains: [{ ID: 5, Name: "sara.test" }] }));
+    if (url.endsWith("/domains/5")) return new Response(JSON.stringify({ ID: 5, Name: "sara.test", DKIMVerified: false, DKIMPendingHost: "x._domainkey.sara.test", DKIMPendingTextValue: "k=rsa", ReturnPathDomain: "pm-bounces.sara.test", ReturnPathDomainCNAMEValue: "pm.mtasv.net", ReturnPathDomainVerified: false }));
+    return new Response("{}", { status: 404 });
+  }) as typeof fetch;
+  const pm = postmark({ server: "srv", account: "acc", broadcast: "rewards-reminders" }, http);
+  const mk = (to: string, stream: "account" | "reminder") => ({ from: "a@b.test", to, subject: "S", html: "<p>h</p>", text: "h", stream, headers: [{ name: "List-Unsubscribe", value: "<https://x>" }], tag: "t", metadata: { shop: "s" } });
+  const res = await pm.send([mk("1@x.test", "account"), mk("2@x.test", "reminder"), mk("3@x.test", "account")]);
+  assert.deepEqual(res.map((r) => r.ok), [true, true, false]);
+  assert.equal(res[2].error, "Inactive recipient");
+  const batches = calls.filter((c) => c.url.endsWith("/email/batch")).map((c) => JSON.parse(String(c.init.body)) as { MessageStream: string; To: string; Headers: unknown[] }[]);
+  assert.deepEqual(batches.map((b) => b.map((x) => `${x.MessageStream}:${x.To}`)), [["outbound:1@x.test", "outbound:3@x.test"], ["rewards-reminders:2@x.test"]]);
+  assert.deepEqual(batches[0][0].Headers, [{ Name: "List-Unsubscribe", Value: "<https://x>" }]);
+  assert.equal((calls[0].init.headers as Record<string, string>)["X-Postmark-Server-Token"], "srv");
+  const d = await pm.addDomain("sara.test");
+  assert.deepEqual([d.id, d.dkimHost, d.dkimValue, d.returnPathHost], ["5", "x._domainkey.sara.test", "k=rsa", "pm-bounces.sara.test"]);
+  assert.equal(postmark({ server: "", account: "" }, http).ready(), false);
+});
+
+test("scheduled emails: reward ready once until more is earned, points expiring 14 days before, the summary on the 1st", async () => {
+  const E = await ml();
+  const shop = "em5.myshopify.com";
+  const c = withEmails({ texts: { summary: { on: true } } });
+  const exp = withLoyaltyDefaults({ ...c, expiry: { on: true, days: 60 } });
+  await P.syncOrder(shop, exp, order({ id: "9501", subtotal: 600, customer: { ...who("950", "e@example.com"), marketing: true } }));
+  const m = await member(shop, "950");
+  const kinds = async () => (await prisma.loyaltyEmail.findMany({ where: { shop, memberId: m.id }, orderBy: { id: "asc" } })).map((e) => e.kind);
+  await E.queueScheduled(shop, exp, new Date("2026-11-10T00:00:00Z"));
+  await E.queueScheduled(shop, exp, new Date("2026-11-10T01:00:00Z"));
+  assert.equal((await kinds()).filter((k) => k === "ready").length, 1);
+  const ready = await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, kind: "ready" } });
+  assert.equal(JSON.parse(ready.data).reward, "10% off your order", "the best reward the points get");
+  await E.queueScheduled(shop, exp, new Date("2026-12-20T00:00:00Z"));
+  assert.equal((await kinds()).filter((k) => k === "ready").length, 1, "nothing earned since: no new one");
+  await prisma.loyaltyMember.update({ where: { id: m.id }, data: { lastActivity: new Date("2026-11-01T00:00:00Z") } });
+  await E.queueScheduled(shop, exp, new Date("2026-12-20T00:00:00Z"));
+  const e = await prisma.loyaltyEmail.findMany({ where: { shop, kind: "expiring" }, orderBy: { id: "asc" } });
+  assert.equal(e.length, 2, "one for each time the points were about to expire");
+  assert.equal(JSON.parse(e[1].data).date, "2026-12-31T00:00:00.000Z", "60 days after the last activity");
+  await E.queueScheduled(shop, exp, new Date("2026-12-01T05:00:00Z"));
+  assert.equal((await kinds()).filter((k) => k === "summary").length, 1);
+  await E.queueScheduled(shop, exp, new Date("2026-12-01T06:00:00Z"));
+  assert.equal((await kinds()).filter((k) => k === "summary").length, 1, "one a month");
+});
+
+test("tier and reward emails; privacy removes a member's emails and counts them", async () => {
+  const E = await ml();
+  const R = await import("../../app/lib/loyalty/rewards.server");
+  const shop = "em6.myshopify.com";
+  const c = withLoyaltyDefaults({ ...withEmails(), tiers: { ...DEFAULT_LOYALTY.tiers, on: true } });
+  await P.syncOrder(shop, c, order({ id: "9601", subtotal: 700, createdAt: new Date().toISOString(), customer: who("960", "f@example.com") }));
+  const m = await member(shop, "960");
+  const tier = await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, kind: "tier" } });
+  assert.equal(JSON.parse(tier.data).tier, "Silver");
+  await R.redeem(fakeAdmin().admin, shop, c, m.id, "r1");
+  const reward = await prisma.loyaltyEmail.findFirstOrThrow({ where: { shop, kind: "reward" } });
+  assert.match(JSON.parse(reward.data).code, /^RWD-/);
+  assert.deepEqual((await prisma.loyaltyEmail.findMany({ where: { shop }, orderBy: { id: "asc" } })).map((x) => x.kind), ["tier", "earned", "reward"]);
+  assert.equal((await P.loyaltyHeldFor(shop, "960", "")).emails, 3);
+  await E.sendQueued(storeAdmin(), shop, c, new Date(), fakeMail().provider);
+  await P.redactLoyaltyCustomer(shop, "960", "");
+  assert.equal(await prisma.loyaltyEmail.count({ where: { shop } }), 0);
 });

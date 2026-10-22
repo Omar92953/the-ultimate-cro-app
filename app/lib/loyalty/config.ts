@@ -5,6 +5,7 @@
  * Shared by client and server; no dashes or first person in the texts.
  */
 import { color, num, pick, str } from "../designs";
+import { DEFAULT_EMAILS, withEmailDefaults, type EmailSettings } from "./emails";
 
 export const REWARD_KINDS = ["amount", "percent", "shipping", "product", "credit"] as const;
 export type RewardKind = (typeof REWARD_KINDS)[number];
@@ -129,6 +130,8 @@ export type LoyaltyConfig = {
    */
   referral: { on: boolean; friend: { kind: FriendKind; value: number; minimum: number }; gift: { kind: "points" | "credit"; value: number }; monthly: number };
   affiliates: Affiliate[];
+  /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
+  emails: EmailSettings;
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
@@ -198,6 +201,7 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   ],
   referral: { on: false, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 },
   affiliates: [],
+  emails: DEFAULT_EMAILS,
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
 };
@@ -328,6 +332,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
       : d.rewards,
     referral: cleanReferral(r.referral, d.referral),
     affiliates: cleanAffiliates(r.affiliates),
+    emails: withEmailDefaults(r.emails),
     widget: (() => {
       const w = obj(r.widget), t = obj(w.texts);
       return {

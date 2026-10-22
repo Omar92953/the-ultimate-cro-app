@@ -55,10 +55,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!m && intent === "join") {
       // Joining from the widget: the customer's email and tags from Shopify (excluded tags can't join).
       const c = await gql(admin, `#graphql
-        query CroLoyaltyJoin($id: ID!) { customer(id: $id) { locale tags defaultEmailAddress { emailAddress } } }`, { id: `gid://shopify/Customer/${customerId}` }).catch(() => null);
+        query CroLoyaltyJoin($id: ID!) { customer(id: $id) { locale tags defaultEmailAddress { emailAddress marketingState } } }`, { id: `gid://shopify/Customer/${customerId}` }).catch(() => null);
       const tags: string[] = c?.customer?.tags ?? [];
       if (isExcluded(tags, excludedTags(program.config))) return json({ ok: true, member: null, guest: false, canJoin: false });
-      m = await memberFor(shop, { id: customerId, email: String(c?.customer?.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c?.customer?.locale ?? "", tags }, true);
+      m = await memberFor(shop, { id: customerId, email: String(c?.customer?.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c?.customer?.locale ?? "", tags, marketing: c?.customer?.defaultEmailAddress?.marketingState === "SUBSCRIBED" }, true);
     }
     if (!m) return json({ ok: true, member: null, guest: false, canJoin: true });
     if (m.blocked) return json({ ok: true, member: null, guest: false, canJoin: false });

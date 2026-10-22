@@ -10,6 +10,7 @@ import db from "../../db.server";
 import { AdminError, gql, type AdminClient } from "../admin.server";
 import type { LoyaltyConfig, Reward } from "./config";
 import { NotEnoughPoints, record } from "./program.server";
+import { notify } from "./mailer.server";
 
 const DAY = 86_400_000;
 export const LOYALTY_TAG = "cro-loyalty";
@@ -88,10 +89,12 @@ export async function redeem(admin: AdminClient, shop: string, c: LoyaltyConfig,
     if (r.kind === "credit") {
       await giveCredit(admin, r, m.customerId);
       const row = await db.loyaltyReward.create({ data: { shop, memberId: m.id, rewardId: r.id, kind: r.kind, title: r.title, points: r.points, value: r.value } });
+      await notify(shop, c, m.id, "credit", { reward: r.title }, `reward:${row.id}`);
       return { id: row.id, title: r.title, kind: r.kind, code: "", expiresAt: null };
     }
     const made = await makeCode(admin, r, m.customerId);
     const row = await db.loyaltyReward.create({ data: { shop, memberId: m.id, rewardId: r.id, kind: r.kind, title: r.title, points: r.points, value: r.value, code: made.code, discountId: made.discountId, expiresAt: made.expiresAt } });
+    await notify(shop, c, m.id, "reward", { reward: r.title, code: made.code, date: made.expiresAt.toISOString() }, `reward:${row.id}`);
     return { id: row.id, title: r.title, kind: r.kind, code: made.code, expiresAt: made.expiresAt.toISOString() };
   } catch (e) {
     // Shopify refused: the member gets the points back at once.

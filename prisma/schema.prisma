@@ -284,6 +284,8 @@ model LoyaltyMember {
   referredBy   Int?
   /// The referral discount (its number in LoyaltyProgram.state) the member's code was added to; 0 = never.
   codeGen      Int       @default(0)
+  /// Subscribed to email marketing in Shopify (reminder emails go only to them).
+  emailMarketing Boolean @default(false)
   emailOptOut  Boolean   @default(false)
   blocked      Boolean   @default(false)
   joinedAt     DateTime  @default(now())
@@ -363,4 +365,28 @@ model LoyaltyReferral {
   @@unique([shop, kind, orderId])
   @@index([shop, referrerId])
   @@index([shop, affiliateId])
+}
+
+/// One loyalty email: queued by an event, then sent, skipped (with the reason) or failed. Kept 90 days.
+model LoyaltyEmail {
+  id         Int       @id @default(autoincrement())
+  shop       String
+  memberId   Int?
+  /// The address it went to (kept for the log; deleted with the member).
+  to         String    @default("")
+  kind       String
+  /// queued, sent, skipped, failed, bounced
+  status     String    @default("queued")
+  reason     String    @default("")
+  /// The words that fill the email ({points}, {code}...), JSON.
+  data       String    @default("{}")
+  dedupe     String?
+  providerId String    @default("")
+  createdAt  DateTime  @default(now())
+  sentAt     DateTime?
+
+  @@unique([shop, dedupe])
+  @@index([shop, status])
+  @@index([shop, memberId])
+  @@index([shop, createdAt])
 }

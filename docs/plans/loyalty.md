@@ -14,7 +14,7 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 4 | Rewards page, Look editor, demo, library entry | Done (#258) |
 | 5 | VIP tiers, campaigns, product and collection rules, birthday, social follows, cashback | Done (#259) |
 | 6 | Referrals and affiliate links with fraud checks | Done (#260): one "Loyalty referrals" discount holds every member code, affiliate discounts, fraud rules, gifts pending then usable and taken back on refunds, Referrals page, widget link and share buttons, `?ref=` banner |
-| 7 | Emails with Postmark and the store's own sender | To do |
+| 7 | Emails with Postmark and the store's own sender | Done (#265): 11 emails, Emails page with preview and test send, own sender with DNS records and Verify, one-click unsubscribe, bounces, log, 10,000 a month |
 | 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | To do |
 | 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | To do |
 | 10 | Loyalty analytics, CSV import and export, languages | To do |
@@ -170,9 +170,10 @@ privacy and compliance webhooks must delete every new table; Omar types every se
     App Store audit re-run, list of Partner Dashboard changes for the final update.
 
 ### Omar's steps (later, together, at the end unless he says otherwise)
-- Postmark: sign up, add the DNS records for mail.crotoolbox.com in Cloudflare, paste the server token into
-  Render as `POSTMARK_SERVER_TOKEN` (he types it). Needed before emails can be sent to real inboxes; until then
-  emails use Postmark's test token in tests.
+- Postmark: sign up, add the DNS records for mail.crotoolbox.com in Cloudflare, type `POSTMARK_SERVER_TOKEN`
+  (sends) and `POSTMARK_ACCOUNT_TOKEN` (merchants' sender domains) into Render (he types them). Needed before
+  emails reach real inboxes; until then every email is logged as skipped with the reason. The app makes the
+  bounce webhook itself.
 - Partner Dashboard, once: new prices, protected customer data (first name, birthday, loyalty purpose,
   Postmark / Klaviyo / Omnisend as processors), network access for the checkout and customer account
   extensions, listing text with the AOV and LTV positioning, Loyalty category.

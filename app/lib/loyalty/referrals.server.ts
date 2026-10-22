@@ -18,6 +18,7 @@ import { AdminError, errorMessage, gql, type AdminClient } from "../admin.server
 import { cleanCode, type Affiliate, type FriendKind, type LoyaltyConfig } from "./config";
 import type { OrderFacts } from "./points";
 import { record } from "./program.server";
+import { notify } from "./mailer.server";
 import { LOYALTY_TAG } from "./rewards.server";
 
 const DAY = 86_400_000;
@@ -300,6 +301,7 @@ async function referralOrder(admin: AdminClient, shop: string, c: LoyaltyConfig,
   const g = c.referral.gift;
   await record(shop, m.id, { kind: "referral", points: g.kind === "points" ? g.value : 0, credit: g.kind === "credit" ? g.value : 0, status: c.pendingDays > 0 ? "pending" : "available", availableAt: new Date(now.getTime() + c.pendingDays * DAY), orderId: o.id, note: o.name, dedupe: `ref:${o.id}` });
   if (friend) await db.loyaltyMember.updateMany({ where: { shop, customerId: friend.id, referredBy: null }, data: { referredBy: m.id } });
+  await notify(shop, c, m.id, "referral", g.kind === "points" ? { giftPoints: g.value } : { giftCredit: g.value }, `referral:${o.id}`);
   return "rewarded";
 }
 

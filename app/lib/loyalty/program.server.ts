@@ -5,6 +5,7 @@
  */
 import db from "../../db.server";
 import { withLoyaltyDefaults, excludedTags, type LoyaltyConfig } from "./config";
+import { notify } from "./mailer.server";
 import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
@@ -47,8 +48,9 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
   const found = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: c.id } } });
   if (found) {
     // Keep the contact details fresh (they are used for the member's emails).
-    if ((c.email && c.email !== found.email) || (c.firstName && c.firstName !== found.firstName) || (c.locale && c.locale !== found.locale)) {
-      return db.loyaltyMember.update({ where: { id: found.id }, data: { email: c.email || found.email, firstName: c.firstName || found.firstName, locale: c.locale || found.locale } });
+    const marketing = c.marketing ?? found.emailMarketing;
+    if ((c.email && c.email !== found.email) || (c.firstName && c.firstName !== found.firstName) || (c.locale && c.locale !== found.locale) || marketing !== found.emailMarketing) {
+      return db.loyaltyMember.update({ where: { id: found.id }, data: { email: c.email || found.email, firstName: c.firstName || found.firstName, locale: c.locale || found.locale, emailMarketing: marketing } });
     }
     return found;
   }
@@ -57,7 +59,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
     const referralCode = newReferralCode();
     if (await db.loyaltyMember.findFirst({ where: { shop, referralCode }, select: { id: true } })) continue;
     try {
-      return await db.loyaltyMember.create({ data: { shop, customerId: c.id, email: c.email, firstName: c.firstName, locale: c.locale, referralCode } });
+      return await db.loyaltyMember.create({ data: { shop, customerId: c.id, email: c.email, firstName: c.firstName, locale: c.locale, referralCode, emailMarketing: !!c.marketing } });
     } catch {
       // Made at the same moment by another read: use that one.
       const again = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: c.id } } });
@@ -143,6 +145,8 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
       await record(shop, m.id, { kind: "first_order", points: c.earn.firstOrder.points, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, note: o.name, dedupe: `first:${m.id}` });
     }
     await updateTier(shop, c, m.id);
+    // Only for recent orders: counting past orders when the program starts sends nothing.
+    if (now.getTime() - new Date(o.createdAt).getTime() < 7 * DAY) await notify(shop, c, m.id, "earned", { points: target, credit, order: o.name, date: (pendingNow ? pendingUntil : now).toISOString() }, `earned:${o.id}`);
     return { member: m.id, points: target, credit };
   }
   if (orderRow && (target < current || credit < currentCredit)) {
@@ -180,6 +184,9 @@ export async function updateTier(shop: string, c: LoyaltyConfig, memberId: numbe
   const m = await db.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
   if (m.tier === id) return null;
   await db.loyaltyMember.update({ where: { id: memberId }, data: { tier: id, tierSince: now } });
+  const before = c.tiers.list.find((x) => x.id === m.tier);
+  // A member's first placement (in the lowest tier) isn't news; moving up or down is.
+  if (t && (before || t.min > 0)) await notify(shop, c, memberId, !before || t.min > before.min ? "tier" : "tierDown", { tier: t.name }, `tier:${memberId}:${t.id}:${now.toISOString().slice(0, 10)}`);
   if (t && t.bonus > 0) await record(shop, memberId, { kind: "tier", points: t.bonus, note: t.name, dedupe: `tier:${memberId}:${t.id}` });
   return t;
 }
@@ -207,7 +214,10 @@ export async function birthdayPoints(shop: string, c: LoyaltyConfig, now = new D
   const year = now.getUTCFullYear();
   let n = 0;
   for (const m of await db.loyaltyMember.findMany({ where: { shop, birthday: today, blocked: false }, select: { id: true } })) {
-    if (await record(shop, m.id, { kind: "birthday", points: c.earn.birthday.points, note: String(year), dedupe: `birthday:${m.id}:${year}` })) n++;
+    if (await record(shop, m.id, { kind: "birthday", points: c.earn.birthday.points, note: String(year), dedupe: `birthday:${m.id}:${year}` })) {
+      n++;
+      await notify(shop, c, m.id, "birthday", { points: c.earn.birthday.points }, `birthday:${m.id}:${year}`);
+    }
   }
   return n;
 }
@@ -295,6 +305,7 @@ export async function programStats(shop: string, days = 30) {
 
 /** Uninstall or shop/redact: every loyalty row of the store. */
 export async function removeShopLoyalty(shop: string) {
+  await db.loyaltyEmail.deleteMany({ where: { shop } });
   await db.loyaltyReferral.deleteMany({ where: { shop } });
   await db.loyaltyReward.deleteMany({ where: { shop } });
   await db.loyaltyEvent.deleteMany({ where: { shop } });
@@ -307,6 +318,7 @@ export async function redactLoyaltyCustomer(shop: string, customerId: string, em
   const ms = await db.loyaltyMember.findMany({ where: { shop, OR: [...(customerId ? [{ customerId }] : []), ...(email ? [{ email: email.toLowerCase() }] : [])] }, select: { id: true } });
   if (!ms.length) {
     if (customerId) await db.loyaltyReferral.deleteMany({ where: { shop, friendCustomerId: customerId } });
+    if (email) await db.loyaltyEmail.deleteMany({ where: { shop, to: email.toLowerCase() } });
     return 0;
   }
   const ids = ms.map((m) => m.id);
@@ -315,6 +327,7 @@ export async function redactLoyaltyCustomer(shop: string, customerId: string, em
   await db.loyaltyMember.updateMany({ where: { shop, referredBy: { in: ids } }, data: { referredBy: null } });
   await db.loyaltyReward.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyEvent.deleteMany({ where: { shop, memberId: { in: ids } } });
+  await db.loyaltyEmail.deleteMany({ where: { shop, OR: [{ memberId: { in: ids } }, ...(email ? [{ to: email.toLowerCase() }] : [])] } });
   await db.loyaltyMember.deleteMany({ where: { shop, id: { in: ids } } });
   return ids.length;
 }
@@ -325,5 +338,6 @@ export async function loyaltyHeldFor(shop: string, customerId: string, email: st
   const ids = ms.map((m) => m.id);
   const events = ms.length ? await db.loyaltyEvent.count({ where: { shop, memberId: { in: ids } } }) : 0;
   const referrals = await db.loyaltyReferral.count({ where: { shop, OR: [...(ids.length ? [{ referrerId: { in: ids } }] : []), ...(customerId ? [{ friendCustomerId: customerId }] : [])] } });
-  return { members: ms.length, events, referrals };
+  const emails = await db.loyaltyEmail.count({ where: { shop, OR: [...(ids.length ? [{ memberId: { in: ids } }] : []), ...(email ? [{ to: email.toLowerCase() }] : [])] } });
+  return { members: ms.length, events, referrals, emails };
 }

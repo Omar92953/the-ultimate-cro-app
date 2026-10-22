@@ -9,7 +9,7 @@ export type OrderFacts = {
   id: string;
   name: string;
   createdAt: string;
-  customer: { id: string; email: string; firstName: string; locale: string; tags: string[] } | null;
+  customer: { id: string; email: string; firstName: string; locale: string; tags: string[]; /** Subscribed to email marketing (absent: not known). */ marketing?: boolean } | null;
   /** Paid (or paid and then refunded): points count. Pending payment (cash on delivery): not yet. */
   paid: boolean;
   cancelled: boolean;

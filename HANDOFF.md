@@ -118,8 +118,9 @@ account, which takes over **all** of that work. Everything is in the repo; never
     processors;
   - network access for the checkout and customer account extensions;
   - listing text with the AOV and LTV lines (`docs/listing.md`), the Loyalty category, and the chosen listing images.
-- Postmark: sign up, add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type the server token into
-  Render as `POSTMARK_SERVER_TOKEN` himself.
+- Postmark: sign up, add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type two tokens into Render
+  himself: `POSTMARK_SERVER_TOKEN` (the server's API token, sends emails) and `POSTMARK_ACCOUNT_TOKEN` (the account
+  API token, adds merchants' own sender domains). The bounce webhook is made by the app on its own.
 - Testing 3: sign in as a customer and place one test order himself, to check loyalty end to end.
 - Test Connect Claude end to end (claude.ai → Settings → Connectors → `https://cro-toolbox.onrender.com/mcp`).
 
