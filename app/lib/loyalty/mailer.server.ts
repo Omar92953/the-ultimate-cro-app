@@ -239,7 +239,7 @@ const monthStart = (now: Date) => new Date(Date.UTC(now.getUTCFullYear(), now.ge
 export const emailsThisMonth = (shop: string, now = new Date()) => db.loyaltyEmail.count({ where: { shop, status: "sent", sentAt: { gte: monthStart(now) } } });
 
 /** Sends what is queued for one store (up to 500 a run). Returns the counts. */
-export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyConfig, now = new Date(), provider: MailProvider = mailProvider()) {
+export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyConfig, now = new Date(), provider: MailProvider = mailProvider(), limit = MONTHLY_EMAILS) {
   const queued = await db.loyaltyEmail.findMany({ where: { shop, status: "queued" }, orderBy: { id: "asc" }, take: 500 });
   const out = { sent: 0, skipped: 0, failed: 0 };
   if (!queued.length) return out;
@@ -267,7 +267,7 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
     else if (m.emailOptOut) refuse(q.id, "Unsubscribed");
     else if (!validEmail(m.email)) refuse(q.id, "No email address");
     else if (isReminder(kind) && !m.emailMarketing) refuse(q.id, "Not subscribed to email marketing");
-    else if (used >= MONTHLY_EMAILS) refuse(q.id, `Monthly limit of ${MONTHLY_EMAILS.toLocaleString("en-US")} reached`);
+    else if (used >= limit) refuse(q.id, `Monthly limit of ${limit.toLocaleString("en-US")} reached`);
     else {
       used++;
       let data: EmailData = {};
@@ -292,10 +292,10 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
 }
 
 /** A test email of one kind with sample words, to an address the store types (logged as a test). */
-export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider()) {
+export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider(), limit = MONTHLY_EMAILS) {
   if (!validEmail(to)) throw new Error("Type the address to send the test to.");
   if (!provider.ready()) throw new Error("The email service is not set up yet.");
-  if ((await emailsThisMonth(shop)) >= MONTHLY_EMAILS) throw new Error("This month's emails are used up.");
+  if ((await emailsThisMonth(shop)) >= limit) throw new Error("This month's emails are used up.");
   const store = await storeInfo(admin);
   const from = await fromFor(shop, c, store, provider);
   const row = await db.loyaltyEmail.create({ data: { shop, memberId: null, kind, to, status: "queued", reason: "Test", data: "{}" } });

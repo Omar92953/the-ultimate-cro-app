@@ -32,7 +32,7 @@ Shoppers look up their order with the order number and the email used for the or
 In **Tracking & Returns** you choose the source:
 
 - **Shopify's tracking data** is the default: the status, tracking number, estimated delivery and any events Shopify has for the shipment, in every country.
-- **Live tracking** on the Pro plan shows where the parcel is now and the full history, from most carriers worldwide, for up to 500 shipments a month. Over the limit the page uses Shopify's data.
+- **Live tracking** on the Growth and Pro plans shows where the parcel is now and the full history, from most carriers worldwide, for up to 150 shipments a month on Growth and 500 on Pro. Over the limit the page uses Shopify's data.
 - **Your own key** from your shipping company or tracking service, or a **webhook link** for carriers or services that send you updates.
 
 Until Shopify approves the app's access to all orders, orders older than 60 days can't be found on the page. Details on the [Shopify order tracking page](/shopify-order-tracking-page/) overview.

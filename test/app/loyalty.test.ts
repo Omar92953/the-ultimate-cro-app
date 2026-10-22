@@ -1099,3 +1099,35 @@ test("Flow's Add loyalty points: once per run, takes points away with a negative
   assert.equal(ev.note, "First review");
   assert.equal((await run({ customer_id: 6, points: 10 }, "run3", flowAdmin({ customer: { locale: "", tags: ["Wholesale"], defaultEmailAddress: null } }))).message, "This customer has a tag that keeps them out of the loyalty program.");
 });
+
+/* ------------------------------------------------------------- plans ---- */
+test("Growth runs loyalty without the Pro parts (kept for an upgrade); each plan's limits", async () => {
+  const { forPlan } = await import("../../app/lib/loyalty/config");
+  const { accessFor } = await import("../../app/lib/loyalty/plan.server");
+  const full = withLoyaltyDefaults({
+    tiers: { on: true },
+    campaigns: [{ name: "Double", multiplier: 2, from: "2026-11-01", to: "2026-11-30" }],
+    productRules: [{ kind: "products", items: [{ id: "gid://shopify/Product/1", title: "A" }], perUnit: 2 }],
+    cashback: { on: true, percent: 5 },
+    affiliates: [{ id: "a1", code: "SARAH10" }],
+    emails: { on: true, sender: { email: "hi@sara.test" } },
+  });
+  assert.equal(forPlan(full, true), full, "Pro: everything as saved");
+  const g = forPlan(full, false, 1000);
+  assert.deepEqual([g.tiers.on, g.campaigns.length, g.productRules.length, g.cashback.on, g.affiliates[0].on, g.affiliates[0].code, g.emails.sender.email, g.emails.on, g.memberCap], [false, 0, 0, false, false, "SARAH10", "", true, 1000]);
+  assert.equal(full.tiers.on, true, "the saved settings are not changed");
+  assert.deepEqual(accessFor("growth"), { plan: "growth", on: true, pro: false, memberCap: 1000, emails: 1000 });
+  assert.deepEqual(accessFor("pro"), { plan: "pro", on: true, pro: true, memberCap: null, emails: 10000 });
+  assert.equal(accessFor("starter").on, false);
+});
+
+test("the Growth member limit: no new members at the limit, members keep earning", async () => {
+  const { forPlan } = await import("../../app/lib/loyalty/config");
+  const shop = "pl1.myshopify.com";
+  const c = forPlan(cfg({ pendingDays: 0 }), false, 1);
+  await P.syncOrder(shop, c, order({ id: "1", customer: who("1", "a@example.com") }));
+  assert.equal(await P.syncOrder(shop, c, order({ id: "2", customer: who("2", "b@example.com") })), null, "the second customer doesn't join");
+  assert.equal(await prisma.loyaltyMember.count({ where: { shop } }), 1);
+  await P.syncOrder(shop, c, order({ id: "3", customer: who("1", "a@example.com") }));
+  assert.equal((await member(shop, "1")).points, 100, "the member still earns");
+});

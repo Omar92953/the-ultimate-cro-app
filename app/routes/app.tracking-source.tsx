@@ -1,6 +1,6 @@
 /**
- * Tracking & Returns → where tracking comes from. Basic tracking (Growth): Shopify's data. Advanced tracking (Pro):
- * live tracking, the merchant's own tracking service key, or a webhook link from any carrier or 3PL. Plus links for
+ * Tracking & Returns → where tracking comes from (Growth and Pro): Shopify's data, live tracking (a monthly number of
+ * shipments by plan), the merchant's own tracking service key, or a webhook link from any carrier or 3PL. Plus links for
  * carriers Shopify has no tracking link for (any plan with the Track page). Our live provider is never named.
  */
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import { errorMessage } from "../lib/admin.server";
 import { planContext } from "../lib/rules.server";
 import { atLeast } from "../lib/plans";
 import { isRuleError } from "../lib/rules";
-import { LIVE_MONTHLY_LIMIT, MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSource } from "../lib/tracking";
+import { MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSource } from "../lib/tracking";
 import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveKey, saveSource } from "../lib/tracking/tracking.server";
 import { Button, PasswordField, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
@@ -42,9 +42,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
-const CHOICES: { key: TrackSource; title: string; text: string }[] = [
+const choices = (live: number): { key: TrackSource; title: string; text: string }[] => [
   { key: "shopify", title: "Shopify's tracking data", text: "Free, every country, every carrier you add a tracking number for. Shows the status, the tracking number, the expected date and any updates Shopify gets from the carrier." },
-  { key: "live", title: "Live tracking", text: `Up to ${LIVE_MONTHLY_LIMIT} shipments a month, included. Where the parcel is now and its full history, from 3,500+ carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
+  { key: "live", title: "Live tracking", text: `Up to ${live.toLocaleString()} shipments a month, included on your plan. Where the parcel is now and its full history, from 3,500+ carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
   { key: "own", title: "Your own tracking service key", text: "Already use 17TRACK, AfterShip, TrackingMore or Ship24? Paste its key and the page uses it, with no limit from us. Between them they follow thousands of carriers worldwide." },
   { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
@@ -79,7 +79,7 @@ export default function TrackingSource() {
   const linkProblems = links.map(carrierLinkProblem);
   const linksDirty = JSON.stringify(links) !== JSON.stringify(d.cfg.carrierLinks);
 
-  const choice = (c: (typeof CHOICES)[number]) => {
+  const choice = (c: ReturnType<typeof choices>[number]) => {
     const locked = c.key !== "shopify" && !d.cfg.advanced;
     const unavailable = c.key === "live" && !d.cfg.liveReady;
     const on = d.cfg.source === c.key;
@@ -129,7 +129,7 @@ export default function TrackingSource() {
           <s-stack direction="inline">
             {on ? null : locked ? (
               <Button href="/app/plans" variant="primary">
-                See the Pro plan
+                See the plans
               </Button>
             ) : unavailable ? null : (
               <Button loading={busy && fetcher.formData?.get("source") === c.key} disabled={c.key === "own" && !d.cfg.hasKey} onClick={() => choose(c.key)}>
@@ -154,18 +154,15 @@ export default function TrackingSource() {
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
         <HomeRow title="Any shipping company" subtitle="Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:">
           <s-stack gap="small-200">
-            <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service (Pro).</s-text>
-            <s-text>• You type its updates on a shipment in Shipments (Pro).</s-text>
-            <s-text>• Its own tracking page is linked from every shipment, from the carrier links below (Growth and Pro).</s-text>
+            <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service.</s-text>
+            <s-text>• You type its updates on a shipment in Shipments.</s-text>
+            <s-text>• Its own tracking page is linked from every shipment, from the carrier links below.</s-text>
           </s-stack>
         </HomeRow>
-        <HomeRow title="Basic tracking" subtitle="With the Track page, on Growth." bare>
-          {choice(CHOICES[0])}
+        <HomeRow title="Tracking" subtitle={d.cfg.advanced ? `On your plan: every way below, with ${d.cfg.live.limit.toLocaleString()} live tracked shipments a month. If one has nothing for a shipment, the next one is used, then Shopify's data.` : "On the Growth and Pro plans: live updates for almost any carrier."} action={d.cfg.advanced ? null : <Pill>Growth plan</Pill>} bare>
+          <s-stack gap="base">{choices(d.cfg.live.limit).map(choice)}</s-stack>
         </HomeRow>
-        <HomeRow title="Advanced tracking" subtitle={d.cfg.advanced ? "On your Pro plan. If one has nothing for a shipment, the next one is used, then Shopify's data." : "On the Pro plan: live updates for almost any carrier, in three ways."} action={d.cfg.advanced ? null : <Pill>Pro plan</Pill>} bare>
-          <s-stack gap="base">{CHOICES.slice(1).map(choice)}</s-stack>
-        </HomeRow>
-        <HomeRow title="A courier with no tracking system" subtitle="On Advanced tracking you can type the updates yourself.">
+        <HomeRow title="A courier with no tracking system" subtitle="Type its updates yourself.">
           <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
             <s-text color="subdued">Open Shipments, choose “Add update” on a shipment and type its status and place. The Track page shows your updates first.</s-text>
             <Button href="/app/tracking-shipments">Open Shipments</Button>

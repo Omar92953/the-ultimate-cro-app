@@ -57,8 +57,8 @@ account, which takes over **all** of that work. Everything is in the repo; never
   - Tracking & Returns split into two tabs. Track page output switches. Tracking stays by email, with no postal
     code lookup (Omar).
   - Tracking for any carrier:
-    - **Basic tracking** (Growth): Shopify's carriers.
-    - **Advanced tracking** (Pro): 17TRACK live tracking with 3,500+ carriers and the carrier code passed through
+    - One tracking on Growth and Pro (Omar, 2026-10-22): Shopify's data, 17TRACK live tracking (150 shipments a
+      month on Growth, 500 on Pro) with 3,500+ carriers and the carrier code passed through
       (Bosta, MyLerz, J&T Express (EG), Aramex, SMSA, iMile and more). AfterShip, TrackingMore and Ship24 keys
       also work.
     - Carrier links and hand-typed updates cover any courier.

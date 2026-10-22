@@ -44,7 +44,11 @@ How it works today (read the code before changing it):
 Omar wants a full loyalty program inside CRO Toolbox, with every feature of Essent Loyalty Program Rewards
 (points, store credit cashback, VIP tiers, referrals and affiliate links, emails, POS, Klaviyo / Omnisend /
 Judge.me / Flow, customer account page, loyalty page, analytics, languages), **including the Shopify Plus
-checkout features**, **Pro plan only**, with emails sent by a **paid email service** (best option chosen below).
+checkout features**, with emails sent by a **paid email service** (best option chosen below). **Plans (Omar,
+2026-10-22): Growth and Pro.** Growth: points, rewards, widget and Rewards page, referrals, birthday, social and
+review points, emails, up to 1,000 members and 1,000 emails a month. Pro: everything (VIP tiers, campaigns,
+product rules, cashback, affiliates, integrations, own sender, checkout and POS), no member limit, 10,000 emails.
+Limits live in `app/lib/plans.ts`; Pro only parts in `forPlan` (`app/lib/loyalty/config.ts`).
 Partner Dashboard changes (prices, protected customer data, network access, listing) are done **once, at the
 very end**, after his next messages and audits. He also asked that the **plan cards show how many shipping
 companies** tracking works with. The rest of the audit (Analytics with A/B results, cart Discount code,

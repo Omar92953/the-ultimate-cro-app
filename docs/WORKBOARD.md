@@ -6,6 +6,8 @@ Updated 2026-10-22.
 
 ## Loyalty and pre-final audit (lead, 2026-10-22; details in `HANDOFF.md`)
 
+- [x] Tracking and loyalty on Growth and Pro, with limits (Omar, 2026-10-22): live tracking 150 or 500 shipments a month; loyalty on Growth up to 1,000 members and 1,000 emails, Pro parts kept for an upgrade
+
 - [x] Loyalty (Pro) parts 1 to 4 (#255 to #259): core, rewards and widget, Rewards page and Look, VIP tiers and more
 - [x] Loyalty part 5: referrals and affiliate links (#260)
 - [x] Loyalty part 6: Postmark emails with the store's own sender (#265)

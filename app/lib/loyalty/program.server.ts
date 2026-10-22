@@ -43,8 +43,11 @@ export async function setProgramOn(shop: string, on: boolean, pastDays = 0) {
 /* ----------------------------------------------------------------- members -- */
 type Customer = NonNullable<OrderFacts["customer"]>;
 
-/** The member for this customer: found, or made when `create` (with a referral code nobody in the store has). */
-export async function memberFor(shop: string, c: Customer, create: boolean) {
+/**
+ * The member for this customer: found, or made when `create` (with a referral code nobody in the store has).
+ * `cap`: no new member once the store has this many (the Growth plan's limit).
+ */
+export async function memberFor(shop: string, c: Customer, create: boolean, cap: number | null = null) {
   const found = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: c.id } } });
   if (found) {
     // Keep the contact details fresh (they are used for the member's emails).
@@ -55,6 +58,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
     return found;
   }
   if (!create) return null;
+  if (cap !== null && (await db.loyaltyMember.count({ where: { shop } })) >= cap) return null;
   for (let i = 0; i < 5; i++) {
     const referralCode = newReferralCode();
     if (await db.loyaltyMember.findFirst({ where: { shop, referralCode }, select: { id: true } })) continue;
@@ -130,7 +134,7 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const target = cashback ? 0 : orderPoints(c, o, multiplier);
   const credit = cashback ? orderCredit(c, o) : 0;
   if (!existing && (!c.autoJoin || (target <= 0 && credit <= 0))) return null;
-  const m = existing ?? (await memberFor(shop, o.customer, true));
+  const m = existing ?? (await memberFor(shop, o.customer, true, c.memberCap ?? null));
   if (!m || m.blocked) return null;
   const current = rows.reduce((n, r) => n + r.points, 0);
   const currentCredit = Math.round(rows.reduce((n, r) => n + r.credit, 0) * 100) / 100;
@@ -233,7 +237,7 @@ export async function socialPoints(shop: string, c: LoyaltyConfig, memberId: num
 export async function syncSignup(shop: string, c: LoyaltyConfig, customer: Customer & { accountActive: boolean }) {
   if (!customer.accountActive || isExcluded(customer.tags, excludedTags(c))) return null;
   if (!c.autoJoin && !(await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: customer.id } } }))) return null;
-  const m = await memberFor(shop, customer, true);
+  const m = await memberFor(shop, customer, true, c.memberCap ?? null);
   if (!m || m.blocked || !c.earn.signup.on || c.earn.signup.points <= 0) return null;
   return record(shop, m.id, { kind: "signup", points: c.earn.signup.points, note: "Account created", dedupe: `signup:${customer.id}` });
 }

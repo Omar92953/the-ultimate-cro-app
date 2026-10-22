@@ -18,23 +18,28 @@ import { pointsLabel, withLoyaltyDefaults, type LoyaltyConfig } from "../lib/loy
 import { Button, ColorField, Select, Switch, TextArea, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
+import { ProNote } from "../components/ProNote";
 import { SaveControls, changed } from "../components/SaveControls";
 import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [p, log, sender, shop] = await Promise.all([
+  const [p, log, sender, shop, access] = await Promise.all([
     getProgram(session.shop),
     emailLog(session.shop),
     getSender(session.shop),
     gql(admin, `#graphql
       query CroLoyaltyEmailShop { shop { name email contactEmail primaryDomain { url } } }`).catch(() => null),
+    loyaltyAccess(admin, session.shop),
   ]);
   const provider = mailProvider();
   return {
     config: p.config,
     saved: p.saved,
     programOn: p.on,
+    pro: access.pro,
+    emailLimit: access.emails,
     log,
     sender,
     ready: provider.ready(),
@@ -55,6 +60,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return { ok: true, error: null, intent, message: "Saved" };
     }
     if (intent === "sender") {
+      if (!(await loyaltyAccess(admin, session.shop)).pro) throw new Error("Sending from your own address is on the Pro plan.");
       const email = String(form.get("email") ?? "");
       const s = await setupSender(session.shop, email);
       await saveProgramConfig(session.shop, { ...config, emails: { ...config.emails, sender: { email: s.email, name: String(form.get("name") ?? "") } } });
@@ -71,8 +77,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     if (intent === "test") {
       // The words on the page now, saved or not.
-      const draft = withLoyaltyDefaults({ ...config, ...JSON.parse(String(form.get("config") ?? "{}")) });
-      const sent = await sendTest(admin, session.shop, draft, String(form.get("kind")) as EmailKind, String(form.get("to") ?? "").trim());
+      const access = await loyaltyAccess(admin, session.shop);
+      const draft = planned(withLoyaltyDefaults({ ...config, ...JSON.parse(String(form.get("config") ?? "{}")) }), access);
+      const sent = await sendTest(admin, session.shop, draft, String(form.get("kind")) as EmailKind, String(form.get("to") ?? "").trim(), undefined, access.emails);
       return { ok: true, error: null, intent, message: `Test sent from ${sent.from}` };
     }
     return { ok: false, error: "Unknown action", intent, message: "" };
@@ -109,7 +116,7 @@ export default function LoyaltyEmails() {
   const setEmails = (patch: Partial<C["emails"]>) => setCfg((c) => ({ ...c, emails: { ...c.emails, ...patch } }));
   const setText = (k: EmailKind, patch: Partial<EmailText>) => setEmails({ texts: { ...e.texts, [k]: { ...e.texts[k], ...patch } } });
   const busy = (i: string) => fetcher.state !== "idle" && fetcher.formData?.get("intent") === i;
-  const own = d.sender && d.sender.verified && e.sender.email === d.sender.email;
+  const own = d.pro && d.sender && d.sender.verified && e.sender.email === d.sender.email;
   const from = own ? `${e.sender.name || d.store.name} <${e.sender.email}>` : `${d.store.name} <${d.defaultFrom}>`;
   const words = useMemo(() => ({ ...SAMPLE_WORDS, unit: cfg.unit.many, balance: pointsLabel(cfg, 1250), points: pointsLabel(cfg, 120), gift: pointsLabel(cfg, 200) }), [cfg]);
   const preview = useMemo(() => renderEmail(e, kind, { name: d.store.name, url: d.store.url }, words, "#unsubscribe", d.store.url), [e, kind, d.store, words]);
@@ -133,7 +140,7 @@ export default function LoyaltyEmails() {
         <HomeRow title="Emails">
           <s-stack gap="base">
             <Switch label="Emails are on" details={d.programOn ? undefined : "They start when the program is on (Loyalty home)."} checked={e.on} onValue={(v) => setEmails({ on: v })} />
-            <s-text color="subdued">{`Up to ${MONTHLY_EMAILS.toLocaleString()} emails a month are included. Sent this month: ${d.log.month.toLocaleString()}.`}</s-text>
+            <s-text color="subdued">{`Up to ${d.emailLimit.toLocaleString()} emails a month are included on your plan${d.pro ? "" : ` (${MONTHLY_EMAILS.toLocaleString()} on Pro)`}. Sent this month: ${d.log.month.toLocaleString()}.`}</s-text>
             {!d.ready ? (
               <s-banner tone="warning" heading="Emails can't be sent yet">
                 <s-paragraph>The email service is still being set up. Settings are saved now and emails start once it is ready.</s-paragraph>
@@ -144,12 +151,13 @@ export default function LoyaltyEmails() {
 
         <HomeRow title="Sender" subtitle={`Emails come from ${from}${own ? "" : `, and replies go to ${d.store.email || "your store's email"}`}.`}>
           <s-stack gap="base">
+            {d.pro ? null : <ProNote text="Sending from your own address is on the Pro plan. On your plan, emails come from the default sender with your address as Reply To." />}
             <s-text>Send from your own address (recommended): emails show your address, and inboxes trust them more. Add 3 DNS records where your domain is managed, then click Verify.</s-text>
             {isFreeMailbox(d.store.email) && !d.sender ? <s-text color="subdued">{`Your store's email (${d.store.email}) is a free address, which can't send for a store. Use an address at your own domain, or keep the default sender.`}</s-text> : null}
             <s-grid gridTemplateColumns="minmax(0, 1.4fr) minmax(0, 1fr) auto" gap="base" alignItems="end">
               <TextField label="Your sender address" placeholder="hello@yourstore.com" maxLength={254} value={senderEmail} onValue={setSenderEmail} />
               <TextField label="Sender name" placeholder={d.store.name} maxLength={60} value={senderName} onValue={setSenderName} />
-              <Button loading={busy("sender")} disabled={!d.domainsReady} onClick={() => fetcher.submit({ intent: "sender", email: senderEmail, name: senderName }, { method: "post" })}>
+              <Button loading={busy("sender")} disabled={!d.domainsReady || !d.pro} onClick={() => fetcher.submit({ intent: "sender", email: senderEmail, name: senderName }, { method: "post" })}>
                 {d.sender ? "Update" : "Get the DNS records"}
               </Button>
             </s-grid>

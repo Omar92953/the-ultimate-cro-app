@@ -3,14 +3,13 @@
  * request and adds `logged_in_customer_id`, so a shopper only ever sees and spends their own points.
  * Intents: "me" (balance, history, rewards got), "join" (when joining is manual), "redeem" (spend points),
  * "ref" (what a shared referral or affiliate code gives; works for guests too).
- * Only on Pro with the program on.
+ * From Growth with the program on (Pro parts only on Pro).
  */
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
-import { getPlan } from "../lib/billing.server";
-import { atLeast } from "../lib/plans";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
 import { getProgram, memberFor, setBirthday, socialPoints, tierValue } from "../lib/loyalty/program.server";
 import { syncCustomer } from "../lib/loyalty/sync.server";
 import { codeOffer, ensureMemberCode, getReferralState } from "../lib/loyalty/referrals.server";
@@ -32,8 +31,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (tooMany(request, shop, "loyalty", 40)) return json({ ok: false, error: "too many" }, 429);
   const program = await getProgram(shop);
   if (!program.on) return json({ ok: false, error: "off" });
-  const { plan } = await getPlan(admin, shop);
-  if (!atLeast(plan, "pro")) return json({ ok: false, error: "off" });
+  const access = await loyaltyAccess(admin, shop);
+  if (!access.on) return json({ ok: false, error: "off" });
+  // The program as this plan runs it (Growth: without the Pro parts, with the member limit).
+  program.config = planned(program.config, access);
   const intent = String(body.intent ?? "me");
   if (intent === "ref") {
     const ref = await codeOffer(admin, shop, program.config, String(body.code ?? "")).catch(() => null);
@@ -58,7 +59,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         query CroLoyaltyJoin($id: ID!) { customer(id: $id) { locale tags defaultEmailAddress { emailAddress marketingState } } }`, { id: `gid://shopify/Customer/${customerId}` }).catch(() => null);
       const tags: string[] = c?.customer?.tags ?? [];
       if (isExcluded(tags, excludedTags(program.config))) return json({ ok: true, member: null, guest: false, canJoin: false });
-      m = await memberFor(shop, { id: customerId, email: String(c?.customer?.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c?.customer?.locale ?? "", tags, marketing: c?.customer?.defaultEmailAddress?.marketingState === "SUBSCRIBED" }, true);
+      m = await memberFor(shop, { id: customerId, email: String(c?.customer?.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c?.customer?.locale ?? "", tags, marketing: c?.customer?.defaultEmailAddress?.marketingState === "SUBSCRIBED" }, true, program.config.memberCap ?? null);
     }
     if (!m) return json({ ok: true, member: null, guest: false, canJoin: true });
     if (m.blocked) return json({ ok: true, member: null, guest: false, canJoin: false });

@@ -1,5 +1,5 @@
 /**
- * Loyalty program settings (Pro): how members earn points, when points can be used and when they expire.
+ * Loyalty program settings (Growth and Pro; Pro only parts in `forPlan`): how members earn points, when points can be used and when they expire.
  * Stored per store in LoyaltyProgram.config (lib/loyalty/program.server.ts). Rewards, tiers, referrals,
  * emails and the storefront look are added to this same object by their own pages.
  * Shared by client and server; no dashes or first person in the texts.
@@ -135,6 +135,8 @@ export type LoyaltyConfig = {
   affiliates: Affiliate[];
   /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
   emails: EmailSettings;
+  /** Set by `forPlan` only, never saved: no new members once the store has this many (Growth). */
+  memberCap?: number | null;
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
@@ -380,6 +382,26 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
     pg: c.page,
+  };
+}
+
+/**
+ * Growth has the loyalty program within its limits (plans.ts loyaltyMembers, loyaltyEmails); these parts are
+ * Pro only (Omar, 2026-10-22). Growth keeps the store's Pro settings saved but runs without them, so they come
+ * back on an upgrade: affiliate codes are turned off, not deleted.
+ */
+export const LOYALTY_PRO = ["VIP tiers", "bonus campaigns", "product and collection rules", "cashback", "affiliate links", "Klaviyo, Omnisend, Judge.me and Shopify Flow", "sending from your own address"] as const;
+export function forPlan(c: LoyaltyConfig, pro: boolean, memberCap: number | null = null): LoyaltyConfig {
+  if (pro) return memberCap === null ? c : { ...c, memberCap };
+  return {
+    ...c,
+    tiers: { ...c.tiers, on: false },
+    campaigns: [],
+    productRules: [],
+    cashback: { ...c.cashback, on: false },
+    affiliates: c.affiliates.map((x) => ({ ...x, on: false })),
+    emails: { ...c.emails, sender: { email: "", name: "" } },
+    memberCap,
   };
 }
 
