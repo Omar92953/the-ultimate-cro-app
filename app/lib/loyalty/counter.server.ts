@@ -5,22 +5,21 @@
  */
 import db from "../../db.server";
 import { unauthenticated } from "../../shopify.server";
-import { getPlan } from "../billing.server";
-import { atLeast } from "../plans";
 import { errorMessage } from "../admin.server";
 import { getProgram } from "./program.server";
+import { loyaltyAccess, planned } from "./plan.server";
 import { NotEnoughPoints, redeem } from "./rewards.server";
 import { pushMemberAccounts } from "./account.server";
 export { customerIdOf, rewardsFor, shopOf, summaryOf } from "./counter";
 
-/** The store's admin and program, when loyalty is on and the plan includes it; otherwise null. */
+/** The store's admin and program as its plan runs it (Growth without the Pro parts), when loyalty is on; otherwise null. */
 export async function counterContext(shop: string) {
   const program = await getProgram(shop);
   if (!program.on) return null;
   const { admin } = await unauthenticated.admin(shop);
-  const { plan } = await getPlan(admin, shop);
-  if (!atLeast(plan, "pro")) return null;
-  return { admin, config: program.config };
+  const access = await loyaltyAccess(admin, shop);
+  if (!access.on) return null;
+  return { admin, config: planned(program.config, access) };
 }
 
 export async function memberOf(shop: string, customerId: string) {

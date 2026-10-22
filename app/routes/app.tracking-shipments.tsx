@@ -55,7 +55,7 @@ export default function Shipments() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
-  // Advanced tracking: the merchant can type an update for a courier that has no tracking system.
+  // The merchant can type an update for a courier that has no tracking system.
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState({ status: "transit", place: "", message: "" });
   // A saved update closes its form.

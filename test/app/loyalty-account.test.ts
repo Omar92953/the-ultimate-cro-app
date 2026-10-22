@@ -17,7 +17,7 @@ type S = typeof import("../../app/lib/loyalty/account.server");
 type P = typeof import("../../app/lib/loyalty/program.server");
 let S: S, P: P;
 before(async () => {
-  for (const m of fs.readdirSync("prisma/migrations").filter((x) => x.includes("loyalty")).sort()) {
+  for (const m of fs.readdirSync("prisma/migrations").filter((x) => /loyalty|usage_extras|_tracking/.test(x)).sort()) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }

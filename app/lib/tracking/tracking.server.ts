@@ -1,6 +1,6 @@
 /**
  * Where a shipment's tracking comes from, per store (docs/research/tracking-returns.md §9):
- * webhook pushes, the merchant's own key, our included live tracking (Pro, 500 shipments a month), then
+ * webhook pushes, the merchant's own key, our included live tracking (Growth 150, Pro 500 shipments a month), then
  * Shopify's own fulfillment data. The shopper's page reads the cache; the provider is asked for a new number
  * once, then a few times a day in the background, and not at all after delivery or 60 days.
  */
@@ -8,7 +8,8 @@ import db from "../../db.server";
 import type { PlanKey } from "../plans";
 import { atLeast } from "../plans";
 import { RuleError } from "../rules";
-import { LIVE_MONTHLY_LIMIT, TRACK_SOURCES, buildTracking, cleanCarrierLinks, isFresh, sourceAllowed, sourcesToTry, type CarrierLink, type TrackSource, type Tracking } from "../tracking";
+import { allowUnit } from "../usage.server";
+import { liveLimit, TRACK_SOURCES, buildTracking, cleanCarrierLinks, isFresh, sourceAllowed, sourcesToTry, type CarrierLink, type TrackSource, type Tracking } from "../tracking";
 import { detectProvider, ownAccount, providerById, PROVIDERS, type Provider, type Shipment } from "./provider.server";
 import { decrypt, encrypt, last4, newSecret, sameSecret } from "./secret.server";
 
@@ -22,24 +23,24 @@ export async function getTrackingConfig(shop: string, plan: PlanKey) {
   const source = (TRACK_SOURCES as readonly string[]).includes(c?.source ?? "") ? (c!.source as TrackSource) : "shopify";
   return {
     chosen: !!c,
-    // Advanced sources on a plan below Pro fall back to Basic tracking (Shopify's data).
+    // Below Growth (no Track page) every source falls back to Shopify's data.
     source: sourceAllowed(plan, source) ? source : ("shopify" as TrackSource),
-    /** Advanced tracking (live, own key, webhook) is on this plan. */
-    advanced: atLeast(plan, "pro"),
+    /** Every tracking source (live, own key, webhook, typed updates) is on this plan. */
+    advanced: atLeast(plan, "growth"),
     /** Our live tracking account is set up (TRACKING_PROVIDER_KEY); without it live tracking can't be chosen. */
     liveReady: !!ownAccount().key,
     carrierLinks: readLinks(c?.carrierLinks),
     keyLast4: c?.keyCipher ? c.keyLast4 : "",
     hasKey: !!c?.keyCipher,
     webhookUrl: c?.webhookSecret ? `${appBase()}/tracking/hook/${encodeURIComponent(shop)}/${c.webhookSecret}` : "",
-    live: { used, limit: LIVE_MONTHLY_LIMIT, available: atLeast(plan, "pro") },
+    live: { used, limit: liveLimit(plan), available: atLeast(plan, "growth") },
   };
 }
 
 export async function saveSource(shop: string, plan: PlanKey, source: string) {
   if (!(TRACK_SOURCES as readonly string[]).includes(source)) throw new RuleError("Choose where tracking should come from.", "input", false);
   const s = source as TrackSource;
-  if (!sourceAllowed(plan, s)) throw new RuleError("Advanced tracking (live tracking, your own key or a webhook link) is on the Pro plan.", "plan");
+  if (!sourceAllowed(plan, s)) throw new RuleError("Tracking (live tracking, your own key or a webhook link) is on the Growth and Pro plans.", "plan");
   if (s === "live" && !ownAccount().key) throw new RuleError("Live tracking isn't switched on yet. Use your own key or a webhook link for now.", "input", false);
   const cur = await db.trackingConfig.findUnique({ where: { shop } });
   if (s === "own" && !cur?.keyCipher) throw new RuleError("Paste and test your key first.", "input", false);
@@ -49,7 +50,7 @@ export async function saveSource(shop: string, plan: PlanKey, source: string) {
 
 /** Tests the key against every supported service; saves it encrypted only when one accepts it. */
 export async function saveKey(shop: string, plan: PlanKey, raw: string) {
-  if (!atLeast(plan, "pro")) throw new RuleError("Your own tracking key is part of Advanced tracking, on the Pro plan.", "plan");
+  if (!atLeast(plan, "growth")) throw new RuleError("Your own tracking key is on the Growth and Pro plans.", "plan");
   const key = raw.trim();
   if (key.length < 8 || key.length > 200 || /\s/.test(key)) throw new RuleError("That does not look like a key. Paste it exactly as the service shows it.", "input", false);
   const found = await detectProvider(key);
@@ -66,7 +67,7 @@ const readLinks = (raw: string | null | undefined): CarrierLink[] => {
   }
 };
 
-/** Links for carriers Shopify has no tracking link for (Basic and Advanced tracking). */
+/** Links for carriers Shopify has no tracking link for. */
 export async function saveCarrierLinks(shop: string, raw: unknown) {
   const links = cleanCarrierLinks(raw);
   await db.trackingConfig.upsert({ where: { shop }, create: { shop, carrierLinks: JSON.stringify(links) }, update: { carrierLinks: JSON.stringify(links), updatedAt: new Date() } });
@@ -141,7 +142,8 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
       if (!mine) {
         if (via === "live") {
           const used = await db.trackingUsage.upsert({ where: { shop_month: { shop, month: month() } }, create: { shop, month: month(), count: 0 }, update: {} });
-          if (used.count >= LIVE_MONTHLY_LIMIT || !atLeast(plan, "pro")) return null;
+          // The plan's live tracked shipments a month; past it, Shopify's data unless the store allows extra.
+          if (!atLeast(plan, "growth") || !(await allowUnit(shop, plan, "liveShipments", used.count, `ship:${s.number}`))) return null;
           await db.trackingUsage.update({ where: { shop_month: { shop, month: month() } }, data: { count: { increment: 1 } } });
         }
         await provider.register(key, s);
@@ -168,7 +170,7 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
 export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, shopify: Tracking | null): Promise<{ tracking: Tracking | null; via: TrackVia }> {
   if (!s.number) return { tracking: shopify, via: "shopify" };
   // Updates the merchant typed (a courier with no system) come first: they are the store's own word.
-  if (atLeast(plan, "pro")) {
+  if (atLeast(plan, "growth")) {
     const typed = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: s.number } } });
     const t = typed?.via === "manual" ? fromRow(typed.data) : null;
     if (t) return { tracking: t, via: "manual" };
@@ -186,7 +188,7 @@ export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, 
       const provider = providerById(cfg.provider);
       const t = key && provider ? await viaProvider(shop, "own", provider, key, s, plan) : null;
       if (t) return { tracking: t, via: "own" };
-    } else if (src === "live" && atLeast(plan, "pro")) {
+    } else if (src === "live" && atLeast(plan, "growth")) {
       const acct = ownAccount();
       const t = acct.key ? await viaProvider(shop, "live", acct.provider, acct.key, s, plan) : null;
       if (t) return { tracking: t, via: "live" };
@@ -197,9 +199,9 @@ export async function resolveTracking(shop: string, plan: PlanKey, s: Shipment, 
   return { tracking: shopify, via: "shopify" };
 }
 
-/** Adds one update the merchant typed for a shipment (Advanced tracking): it shows on the Track page from then on. */
+/** Adds one update the merchant typed for a shipment: it shows on the Track page from then on. */
 export async function addManualUpdate(shop: string, plan: PlanKey, number: string, carrier: string, input: { status: unknown; place: unknown; message: unknown }) {
-  if (!atLeast(plan, "pro")) throw new RuleError("Typing your own tracking updates is part of Advanced tracking, on the Pro plan.", "plan");
+  if (!atLeast(plan, "growth")) throw new RuleError("Typing your own tracking updates is on the Growth and Pro plans.", "plan");
   const n = String(number).trim().slice(0, 80);
   if (!n) throw new RuleError("This shipment has no tracking number.", "input", false);
   const row = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: n } } });

@@ -113,16 +113,17 @@ test("keys are encrypted, never shown whole, and compared safely", () => {
 
 const shopifyData = buildTracking({ events: [{ status: "transit", message: "Shopify says", at: "2026-10-10T00:00:00Z" }] });
 
-test("advanced tracking (live, own key, webhook) is a Pro setting; the webhook gets a secret link", async () => {
-  for (const s of ["live", "own", "webhook"]) await assert.rejects(T.saveSource("a.myshopify.com", "growth", s), /Pro plan/);
+test("every tracking source (live, own key, webhook) is on Growth and Pro; the webhook gets a secret link", async () => {
+  for (const s of ["live", "own", "webhook"]) await assert.rejects(T.saveSource("a.myshopify.com", "starter", s), /Growth and Pro/);
   await assert.rejects(T.saveSource("a.myshopify.com", "pro", "own"), /Paste and test/);
-  await assert.rejects(T.saveKey("a.myshopify.com", "growth", "some-key-123456"), /Pro plan/);
+  await assert.rejects(T.saveKey("a.myshopify.com", "starter", "some-key-123456"), /Growth and Pro/);
   process.env.TRACKING_PROVIDER_KEY = "our-account-key"; // live tracking can be chosen once our account is set up
   await T.saveSource("a.myshopify.com", "pro", "live");
   delete process.env.TRACKING_PROVIDER_KEY;
   assert.equal((await T.getTrackingConfig("a.myshopify.com", "pro")).source, "live");
   // Downgraded: it shows as Shopify's data again.
-  assert.equal((await T.getTrackingConfig("a.myshopify.com", "growth")).source, "shopify");
+  assert.equal((await T.getTrackingConfig("a.myshopify.com", "growth")).source, "live", "Growth keeps live tracking");
+  assert.equal((await T.getTrackingConfig("a.myshopify.com", "starter")).source, "shopify");
   await T.saveSource("b.myshopify.com", "pro", "webhook");
   const cfg = await T.getTrackingConfig("b.myshopify.com", "pro");
   assert.match(cfg.webhookUrl, /\/tracking\/hook\/b\.myshopify\.com\/[\w-]{20,}$/);
@@ -141,8 +142,8 @@ test("a pushed update shows on the Track page, from the right link only", async 
   const r = await T.resolveTracking("b.myshopify.com", "pro", { number: "RR1", carrier: "", country: "" }, shopifyData);
   assert.equal(r.via, "webhook");
   assert.equal(r.tracking?.place, "Oslo, NO");
-  // Below Pro the same store shows Shopify's data (Basic tracking).
-  assert.equal((await T.resolveTracking("b.myshopify.com", "growth", { number: "RR1", carrier: "", country: "" }, shopifyData)).via, "shopify");
+  // Below Growth the same store shows Shopify's data.
+  assert.equal((await T.resolveTracking("b.myshopify.com", "starter", { number: "RR1", carrier: "", country: "" }, shopifyData)).via, "shopify");
   // A number nothing pushed falls back to Shopify's data.
   const other = await T.resolveTracking("b.myshopify.com", "pro", { number: "RR2", carrier: "", country: "" }, shopifyData);
   assert.equal(other.via, "shopify");
@@ -176,11 +177,13 @@ test("the order's prices are read in the currency the shopper paid in", async ()
   assert.equal(orderPrices({ subtotalPriceSet: set("10"), totalPriceSet: null }), null);
 });
 
-test("Basic tracking is Shopify's data on Growth; live, own key and webhook are Advanced tracking on Pro", async () => {
-  const { sourceAllowed } = await import("../../app/lib/tracking");
+test("every tracking source is on Growth and Pro, with live tracking limits of 200 and 500 shipments a month", async () => {
+  const { sourceAllowed, liveLimit } = await import("../../app/lib/tracking");
   assert.equal(sourceAllowed("growth", "shopify"), true);
+  assert.deepEqual([liveLimit("growth"), liveLimit("pro"), liveLimit("starter")], [200, 500, 0]);
   for (const s of ["live", "own", "webhook"] as const) {
-    assert.equal(sourceAllowed("growth", s), false, s);
+    assert.equal(sourceAllowed("starter", s), false, s);
+    assert.equal(sourceAllowed("growth", s), true, s);
     assert.equal(sourceAllowed("pro", s), true, s);
   }
 });
@@ -243,8 +246,8 @@ test("AfterShip, TrackingMore and Ship24 answers and webhooks read into one shap
   }
 });
 
-test("typed updates (Advanced tracking) show first and can be removed", async () => {
-  await assert.rejects(T.addManualUpdate("m.myshopify.com", "growth", "LOCAL1", "Bosta", { status: "transit", place: "Cairo", message: "" }), /Pro plan/);
+test("typed updates show first and can be removed", async () => {
+  await assert.rejects(T.addManualUpdate("m.myshopify.com", "starter", "LOCAL1", "Bosta", { status: "transit", place: "Cairo", message: "" }), /Growth and Pro/);
   await T.addManualUpdate("m.myshopify.com", "pro", "LOCAL1", "Bosta", { status: "transit", place: "Cairo, Egypt", message: "At the hub" });
   await T.addManualUpdate("m.myshopify.com", "pro", "LOCAL1", "Bosta", { status: "out", place: "Giza", message: "With the driver" });
   const r = await T.resolveTracking("m.myshopify.com", "pro", { number: "LOCAL1", carrier: "Bosta", country: "" }, shopifyData);
@@ -252,8 +255,8 @@ test("typed updates (Advanced tracking) show first and can be removed", async ()
   assert.equal(r.tracking?.status, "out");
   assert.equal(r.tracking?.events.length, 2);
   assert.equal(r.tracking?.place, "Giza");
-  // Below Pro the store's typed updates are not shown.
-  assert.equal((await T.resolveTracking("m.myshopify.com", "growth", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
+  // Below Growth the store's typed updates are not shown.
+  assert.equal((await T.resolveTracking("m.myshopify.com", "starter", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
   await T.clearManualUpdates("m.myshopify.com", "LOCAL1");
   assert.equal((await T.resolveTracking("m.myshopify.com", "pro", { number: "LOCAL1", carrier: "", country: "" }, shopifyData)).via, "shopify");
 });

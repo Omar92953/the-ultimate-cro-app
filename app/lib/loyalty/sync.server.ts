@@ -9,7 +9,6 @@
  */
 import db from "../../db.server";
 import { gql, type AdminClient } from "../admin.server";
-import { atLeast } from "../plans";
 import { getPlan } from "../billing.server";
 import type { LoyaltyConfig } from "./config";
 import type { OrderFacts } from "./points";
@@ -17,7 +16,9 @@ import { birthdayPoints, expireInactive, getProgram, releasePending, reviewTiers
 import { getReferralState, matchCodes, refreshMemberCodes, syncReferralDiscounts } from "./referrals.server";
 import { pruneEmails, queueScheduled, sendQueued, webhookUrl } from "./mailer.server";
 import { mailProvider } from "../email/provider.server";
-import { judgeMeReviews, sendEvents } from "./integrations.server";
+import { judgeMeReviews, sendEvents, skipEvents } from "./integrations.server";
+import { accessFor, planned } from "./plan.server";
+import { extrasFor, reportUsage } from "../usage.server";
 import { pushAccounts } from "./account.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
@@ -121,12 +122,18 @@ export async function syncShop(shop: string, admin: AdminClient) {
     return null;
   }
   const { plan } = await getPlan(admin, shop);
-  const { config } = await getProgram(shop);
-  if (!atLeast(plan, "pro")) {
-    // Left Pro: referral and affiliate codes stop working (kept, so they work again on Pro).
-    await syncReferralDiscounts(admin, shop, config, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
-    await accounts(config, false);
+  const access = accessFor(plan, await extrasFor(shop));
+  const { config: saved } = await getProgram(shop);
+  if (!access.on) {
+    // Below Growth: referral and affiliate codes stop working (kept, so they work again after an upgrade).
+    await syncReferralDiscounts(admin, shop, saved, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
+    await accounts(saved, false);
     return null;
+  }
+  // Growth runs without the Pro parts (config.ts forPlan), with its member and email limits.
+  const config = planned(saved, access);
+  if (!access.pro && Object.values((await getReferralState(shop)).aff ?? {}).some((a) => a.on)) {
+    await syncReferralDiscounts(admin, shop, config, true).catch((e) => console.error(`[loyalty] affiliates ${shop}:`, e instanceof Error ? e.message : e));
   }
   const started = new Date();
   const since = new Date((p.syncedAt ?? started).getTime() - 5 * 60_000);
@@ -138,8 +145,10 @@ export async function syncShop(shop: string, admin: AdminClient) {
   // Emails last, so the ones the changes above queued go out in this run.
   await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
   await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
-  await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
-  await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
+  if (access.pro) {
+    await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
+    await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
+  } else await skipEvents(shop, "Needs the Pro plan").catch(() => null);
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.
   const today = started.toISOString().slice(0, 10);
@@ -232,6 +241,16 @@ export function startLoyaltyJobs() {
       }
       await releasePending();
       await pruneEmails().catch(() => null);
+      // Units over a plan limit (any store, tracking too) go to Shopify App Pricing as billable events.
+      const ids = new Map<string, string>();
+      await reportUsage(async (shop) => {
+        if (!ids.has(shop)) {
+          const { admin } = await unauthenticated.admin(shop);
+          ids.set(shop, String((await gql(admin, `#graphql
+            query CroShopId { shop { id } } `)).shop?.id ?? "").split("/").pop() ?? "");
+        }
+        return ids.get(shop) || null;
+      }).catch((e) => console.error("[usage] report:", e instanceof Error ? e.message : e));
     } finally {
       running = false;
     }

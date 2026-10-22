@@ -9,6 +9,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { getProgram, listMembers } from "../lib/loyalty/program.server";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
 import { MAX_IMPORT_ROWS, applyImport, membersCsv, planImport, previewOf, readImport } from "../lib/loyalty/csv.server";
 import type { ImportMode } from "../lib/loyalty/csv.server";
 import { errorMessage } from "../lib/admin.server";
@@ -29,7 +30,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const intent = String(form.get("intent"));
   try {
-    const { config } = await getProgram(session.shop);
+    // The program as this plan runs it: on Growth, the member limit applies to new members from the file.
+    const config = planned((await getProgram(session.shop)).config, await loyaltyAccess(admin, session.shop));
     if (intent === "export") return { ok: true as const, intent, ...(await membersCsv(session.shop, config)) };
     const text = String(form.get("csv") ?? "");
     const mode: ImportMode = form.get("mode") === "add" ? "add" : "set";
