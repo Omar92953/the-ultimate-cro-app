@@ -27,6 +27,8 @@ export const isRuleError = (e: unknown): e is RuleError => e instanceof RuleErro
 
 /** Shopify silently ignores Function metafields over 10,000 bytes; keep a margin. */
 export const FUNCTION_METAFIELD_LIMIT = 9500;
+/** The size Shopify counts: UTF-8 bytes, not characters (an Arabic label is 2 bytes a letter). */
+export const functionBytes = (value: string) => new TextEncoder().encode(value).length;
 
 const needsPlan = (p: PlanKey) => `This needs the ${PLANS[p].name} plan.`;
 
@@ -54,7 +56,8 @@ export function requireStyleSlot(plan: PlanKey, slot: number) {
 
 /** A Function's metafield must stay under Shopify's size limit. */
 export function requireFunctionSize(value: string, what: string) {
-  if (value.length > FUNCTION_METAFIELD_LIMIT) throw new RuleError(`${what} is too large for Shopify's checkout engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use collections instead of long product lists.`, "input", false);
+  const bytes = functionBytes(value);
+  if (bytes > FUNCTION_METAFIELD_LIMIT) throw new RuleError(`${what} is too large for Shopify's checkout engine (${bytes} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use collections instead of long product lists.`, "input", false);
 }
 
 /**
