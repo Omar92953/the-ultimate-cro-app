@@ -15,9 +15,11 @@ import type { LoyaltyConfig } from "./config";
 import type { OrderFacts } from "./points";
 import { birthdayPoints, expireInactive, getProgram, releasePending, reviewTiers, syncOrder, syncSignup } from "./program.server";
 import { getReferralState, matchCodes, refreshMemberCodes, syncReferralDiscounts } from "./referrals.server";
+import { pruneEmails, queueScheduled, sendQueued, webhookUrl } from "./mailer.server";
+import { mailProvider } from "../email/provider.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
-type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string } | null } | null;
+type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
 type OrderNode = {
   id: string;
   name: string;
@@ -32,7 +34,7 @@ type OrderNode = {
   lineItems?: { nodes: { currentQuantity: number; discountedUnitPriceAfterAllDiscountsSet: Money; product: { id: string } | null }[] };
 };
 
-const ORDER_FIELDS = `id name createdAt cancelledAt discountCodes displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress } }`;
+const ORDER_FIELDS = `id name createdAt cancelledAt discountCodes displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress marketingState } }`;
 // Lines only when the store has product or collection rules (they make the query heavier).
 const LINE_FIELDS = `lineItems(first: 30) { nodes { currentQuantity discountedUnitPriceAfterAllDiscountsSet { shopMoney { amount } } product { id } } }`;
 const fieldsFor = (c: LoyaltyConfig) => (c.productRules.length ? `${ORDER_FIELDS} ${LINE_FIELDS}` : ORDER_FIELDS);
@@ -47,7 +49,7 @@ export function factsFromNode(n: OrderNode): OrderFacts {
     id: idOf(n.id),
     name: n.name,
     createdAt: n.createdAt,
-    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [] } : null,
+    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [], marketing: c.defaultEmailAddress?.marketingState === "SUBSCRIBED" } : null,
     paid: PAID.has(String(n.displayFinancialStatus ?? "")),
     cancelled: !!n.cancelledAt,
     subtotal: amount(n.currentSubtotalPriceSet),
@@ -95,9 +97,9 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
     after = null;
     for (let page = 0; page < 10; page++) {
       const data: { customers: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: NonNullable<CustomerNode>[] } } = await gql(admin, `#graphql
-        query CroLoyaltyCustomers($q: String!, $after: String) { customers(first: 50, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { id locale tags state defaultEmailAddress { emailAddress } } } }`, { q, after });
+        query CroLoyaltyCustomers($q: String!, $after: String) { customers(first: 50, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { id locale tags state defaultEmailAddress { emailAddress marketingState } } } }`, { q, after });
       for (const n of data.customers.nodes) {
-        const done = await syncSignup(shop, c, { id: idOf(n.id), email: (n.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: n.locale ?? "", tags: n.tags ?? [], accountActive: n.state === "ENABLED" }).catch(() => null);
+        const done = await syncSignup(shop, c, { id: idOf(n.id), email: (n.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: n.locale ?? "", tags: n.tags ?? [], marketing: n.defaultEmailAddress?.marketingState === "SUBSCRIBED", accountActive: n.state === "ENABLED" }).catch(() => null);
         if (done) signups++;
       }
       if (!data.customers.pageInfo.hasNextPage) break;
@@ -125,6 +127,9 @@ export async function syncShop(shop: string, admin: AdminClient) {
   await expireInactive(shop, config);
   await refreshMemberCodes(admin, shop, await getReferralState(shop)).catch((e) => console.error(`[loyalty] referral codes ${shop}:`, e instanceof Error ? e.message : e));
   await issueCashback(admin, shop).catch((e) => console.error(`[loyalty] cashback ${shop}:`, e instanceof Error ? e.message : e));
+  // Emails last, so the ones the changes above queued go out in this run.
+  await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
+  await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.
   const today = started.toISOString().slice(0, 10);
@@ -213,10 +218,13 @@ export function startLoyaltyJobs() {
         }
       }
       await releasePending();
+      await pruneEmails().catch(() => null);
     } finally {
       running = false;
     }
   };
+  // Bounces and spam complaints come back to /webhooks/postmark (made once, when the email service is set).
+  if (mailProvider().ready() && process.env.SHOPIFY_APP_URL) mailProvider().ensureWebhook(webhookUrl()).catch((e) => console.error("[loyalty] postmark webhook:", e instanceof Error ? e.message : e));
   setTimeout(run, 90_000);
   globalThis.croLoyaltyTimer = setInterval(run, 10 * 60_000);
 }

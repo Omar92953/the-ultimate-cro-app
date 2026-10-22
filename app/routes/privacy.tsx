@@ -10,7 +10,7 @@ import { RETENTION_DAYS as R } from "../lib/retention";
 
 export const meta: MetaFunction = () => [{ title: "Privacy policy | CRO Toolbox" }];
 
-export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 19, 2026" });
+export const loader = async () => ({ email: process.env.SUPPORT_EMAIL || "", updated: "October 22, 2026" });
 
 const SECTIONS: [string, string[]][] = [
   [
@@ -43,7 +43,7 @@ const SECTIONS: [string, string[]][] = [
   [
     "How we use it",
     [
-      "Only to provide the app's features to the merchant who installed it. We don't sell information, use it for advertising, or share it with anyone except the services that host the app (application hosting and a managed database), which process it on our behalf. If a store turns on live tracking, the tracking number of a shipment is also sent to our tracking data provider, 17TRACK, to get its delivery events. If a store connects its own tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its own key, the tracking number is sent to that service on the store's behalf. Nothing else about the order or the shopper is sent.",
+      "Only to provide the app's features to the merchant who installed it. We don't sell information, use it for advertising, or share it with anyone except the services that host the app (application hosting and a managed database), which process it on our behalf. If a store turns on live tracking, the tracking number of a shipment is also sent to our tracking data provider, 17TRACK, to get its delivery events. If a store connects its own tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its own key, the tracking number is sent to that service on the store's behalf. Nothing else about the order or the shopper is sent. If a store turns on loyalty emails, the member's email address and the email itself (points, reward codes) are sent to our email provider, Postmark, to deliver it.",
     ],
   ],
   [
