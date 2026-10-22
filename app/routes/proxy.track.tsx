@@ -15,6 +15,8 @@ import { trackOffersFor } from "../lib/track-offers.server";
 import { readRecRequest, trackRecs } from "../lib/track-recs.server";
 import { carrierLinksFor, resolveTracking } from "../lib/tracking/tracking.server";
 import { carrierUrl } from "../lib/tracking";
+import { getReturnRules } from "../lib/shopify-returns.server";
+import { storeCreditBonus } from "../lib/return-rules";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.public.appProxy(request);
@@ -68,6 +70,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         reviewUrl: ad.review === "url" ? ad.reviewUrl : "",
         reviews: ad.review === "product" ? order.items.filter((i) => i.handle).slice(0, 5).map((i) => ({ title: i.title, handle: i.handle })) : [],
         returnsHandle: pages?.returns?.handle ?? "",
+        // Store credit with a bonus on the Returns page (Pro): said next to the link, so a return can stay a sale.
+        creditBonus: pages?.returns?.handle && atLeast(plan, "pro") ? await getReturnRules(admin).then(({ rules }) => storeCreditBonus(rules.saving)).catch(() => 0) : 0,
         ...(friend ? { friend: { ...friend, currency: order.currency } } : {}),
       };
     }

@@ -12,7 +12,7 @@ Updated 2026-10-22.
       (Plus) and POS, analytics, CSV and languages, website (`docs/plans/loyalty.md`)
 - [ ] Analytics rebuild with A/B test results (tests are still created on the Offers page)
 - [ ] Cart Discount code box
-- [ ] Branding lines and store credit incentives on the Track and Returns pages (draft PR in progress, branch claude/track-returns-incentives)
+- [ ] Branding lines and store credit incentives on the Track and Returns pages: **PR #263 ready** (needs Shopify deploy, then the test plan in the PR on Testing 3)
 - [ ] All candidate listing images, for Omar to choose
 - [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, protected customer data,
       network access, listing)

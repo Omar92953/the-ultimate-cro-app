@@ -18,7 +18,7 @@ const ITEMS = [
 ];
 
 /** What the Track page sells, as the preview needs it (the settings in lib/track-sell.ts and the live Track page offers). */
-export type PreviewSells = { next: boolean; buyAgain: boolean; after: boolean; late: boolean; offers: { above: PreviewOffer | null; below: PreviewOffer | null } };
+export type PreviewSells = { next: boolean; buyAgain: boolean; after: boolean; late: boolean; creditBonus?: number; offers: { above: PreviewOffer | null; below: PreviewOffer | null } };
 export type PreviewOffer = { headline: string; text: string; button: string; kind: string };
 export const NO_SELLS: PreviewSells = { next: false, buyAgain: false, after: false, late: false, offers: { above: null, below: null } };
 /** The sample orders the editor shows: on its way, delivered (after delivery mode) and late (delay message). */
@@ -67,7 +67,7 @@ export function OrderPagePreview({ config: c, step, sample = "transit", sells = 
                   <p className="ucs-op__t"><b>{t.afterTitle}</b></p>
                   <p className="ucs-op__t">{t.afterSub}</p>
                   <p className="ucs-op__links"><span className="ucs-btn">{t.reviewButton}</span></p>
-                  <p className="ucs-op__t"><u>{t.returnLink}</u></p>
+                  <p className="ucs-op__t"><u>{t.returnLink}</u>{sells.creditBonus ? <small> {t.creditNote.replace("{bonus}", `${sells.creditBonus}%`)}</small> : null}</p>
                 </div>
               ) : null}
               {sells.offers.above ? <SampleOffer o={sells.offers.above} /> : null}
@@ -211,6 +211,13 @@ export function OrderPagePreview({ config: c, step, sample = "transit", sells = 
             </>
           )}
         </div>
+        {t.brand ? (
+          <ul className="ucs-op__brand">
+            {t.brand.split("\n").filter(Boolean).map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </div>
   );

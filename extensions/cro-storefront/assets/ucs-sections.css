@@ -636,6 +636,10 @@ a.ucs-ic__card:hover .ucs-ic__media img { transform: scale(1.03); }
 
 /* Returns page: how to be paid back, and the credit given */
 .ucs-op__opts { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.ucs-op__badge { display: inline-block; margin-left: 4px; padding: 1px 8px; border-radius: 999px; background: var(--ucs-accent, #121212); color: var(--ucs-on-accent, #fff); font-size: 0.85em; font-weight: 600; }
+.ucs-op__brand { display: grid; gap: 4px; margin: 14px auto 0; padding: 0; max-width: var(--ucs-op-max, 640px); list-style: none; font-size: var(--ucs-op-t, 15px); opacity: 0.8; }
+.ucs-op--center .ucs-op__brand { text-align: center; }
+.ucs-op__brand li::before { content: "\2713\00a0"; }
 .ucs-op__opts legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
 .ucs-op__opts label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .ucs-op__code { padding: 2px 8px; border-radius: 6px; background: rgba(127, 127, 127, 0.15); font-weight: 700; letter-spacing: 0.04em; }

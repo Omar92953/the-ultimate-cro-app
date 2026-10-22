@@ -283,6 +283,15 @@ const mockOrders = `<script>(function(){const f=window.fetch;const order={name:"
 pages["orders.html"] = page("Track order & Returns", mockOrders +
   label("track order page") + (await block("ucs-order-page", { page: "track" }, { page_type: "page" })) +
   label("returns page") + (await block("ucs-order-page", { page: "returns" }, { page_type: "page" })));
+// Store lines on both pages, the store credit bonus by the after delivery returns link, and the bonus badge on the Returns page.
+const { toStorefrontOrderPage, withOrderPageDefaults } = await import("../../app/lib/order-pages.ts");
+const opDesign = (kind) => mo(`${kind}_page`, { config: toStorefrontOrderPage(withOrderPageDefaults({ text: { brand: "Free returns within 30 days\nQuestions? help@example.com" } }, kind)) });
+const incentiveShop = withDesign(opDesign("returns"));
+const incentiveShopTrack = withDesign(opDesign("track"));
+const mockIncentives = `<script>(function(){const f=window.fetch;const items=[{key:"11",title:"Linen shirt",variant:"Medium",quantity:1,image:null,price:"70.00"}];const order={name:"#1002",createdAt:"2026-10-03T10:00:00Z",cancelled:false,payment:"PAID",fulfillment:"FULFILLED",currency:"USD",items,shipments:[{status:"DELIVERED",company:"Aramex",number:"EG1",url:"https://example.com/track",delivered:"2026-10-07T00:00:00Z",estimated:null,tracking:null}],afterDelivery:{reviewUrl:"",reviews:[],returnsHandle:"returns",creditBonus:10}};window.fetch=async(u,o)=>{u=String(u);if(u.includes("/apps/ucro/track"))return new Response(JSON.stringify({ok:true,order}));if(u.includes("/apps/ucro/returns"))return new Response(JSON.stringify({ok:true,order:{name:"#1002",currency:"USD",items},options:{credit:{bonus:10},signIn:null,exchange:null},credits:[],returns:[]}));return f(u,o)}})();</script>`;
+pages["order-pages-incentives.html"] = page("Track and Returns: store lines and store credit bonus", mockIncentives +
+  label("track order page: store lines; look up any order to see the bonus by the returns link") + (await block("ucs-order-page", { page: "track" }, { page_type: "page", shop: incentiveShopTrack })) +
+  label("returns page: store lines; look up, tick the item: store credit first with a 10% extra badge, refund still chosen") + (await block("ucs-order-page", { page: "returns" }, { page_type: "page", shop: incentiveShop })));
 const { toStorefrontDelivery, withDeliveryDefaults } = await import("../../app/lib/delivery-design.ts");
 const deliveryShop = withDesign(mo("delivery", { config: toStorefrontDelivery(withDeliveryDefaults({ rules: { zones: [{ countries: "SA", min: 5, max: 7 }] } })) }));
 const { toStorefrontSizeGuide, withSizeGuideDefaults, SAMPLE_CHART } = await import("../../app/lib/size-guide.ts");
