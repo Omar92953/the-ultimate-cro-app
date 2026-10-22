@@ -270,3 +270,21 @@ test("store credit rewards go to the customer's store credit in the store's curr
   assert.deepEqual(credit.variables, { id: "gid://shopify/Customer/301", input: { creditAmount: { amount: "10.00", currencyCode: "EGP" } } });
   assert.equal((await member(shop, "301")).points, 50);
 });
+
+test("the Rewards page content and the widget look are cleaned; templates only change the look", async () => {
+  const { applyLoyaltyPreset, toStorefrontLoyalty } = await import("../../app/lib/loyalty/config");
+  const c = withLoyaltyDefaults({ page: { title: "", how: [{ t: "Join", x: "x" }, { t: "", x: "dropped" }], faq: [{ q: "Q", a: "" }, { q: "When?", a: "Soon" }] }, widget: { radius: 99, launcher: "icon", accent: "red" } });
+  assert.equal(c.page.title, "Rewards");
+  assert.deepEqual(c.page.how, [{ t: "Join", x: "x" }]);
+  assert.deepEqual(c.page.faq, [{ q: "When?", a: "Soon" }]);
+  assert.equal(c.widget.radius, 28);
+  assert.equal(c.widget.launcher, "icon");
+  assert.equal(c.widget.accent, "#111111", "not a colour: the default");
+  const gold = applyLoyaltyPreset(c, "gold");
+  assert.equal(gold.widget.accent, "#9a6b12");
+  assert.deepEqual(gold.page, c.page);
+  assert.equal(applyLoyaltyPreset(c, "nope"), c);
+  const sf = toStorefrontLoyalty(c, true);
+  assert.equal(sf.w.l, "icon");
+  assert.deepEqual(sf.pg.faq, [{ q: "When?", a: "Soon" }]);
+});

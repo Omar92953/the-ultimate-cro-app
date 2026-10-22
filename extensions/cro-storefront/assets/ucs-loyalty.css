@@ -3,9 +3,11 @@
 .ucs-loy--right { right: 20px; }
 .ucs-loy--left { left: 20px; }
 .ucs-loy__launch { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; font: inherit; font-weight: 600; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border: 0; border-radius: 999px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); cursor: pointer; }
+.ucs-loy__launch--icon { padding: 14px; }
+.ucs-loy__launch--icon span { display: none; }
 .ucs-loy__launch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .ucs-loy__launch:focus-visible, .ucs-loy__btn:focus-visible, .ucs-loy__x:focus-visible { outline: 2px solid var(--ucs-loy-a, #111); outline-offset: 2px; }
-.ucs-loy__panel { position: absolute; bottom: 64px; width: min(380px, calc(100vw - 32px)); max-height: min(640px, calc(100vh - 120px)); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 18px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22); }
+.ucs-loy__panel { position: absolute; bottom: 64px; width: min(380px, calc(100vw - 32px)); max-height: min(640px, calc(100vh - 120px)); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: var(--ucs-loy-r, 18px); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22); }
 .ucs-loy--right .ucs-loy__panel { right: 0; }
 .ucs-loy--left .ucs-loy__panel { left: 0; }
 .ucs-loy__panel[hidden] { display: none; }
@@ -42,3 +44,22 @@
   .ucs-loy__panel:not([hidden]) { animation: ucs-loy-in 0.18s ease-out; }
   @keyframes ucs-loy-in { from { opacity: 0; transform: translateY(8px); } }
 }
+/* The Rewards page */
+.ucs-loyp { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; color: inherit; }
+.ucs-loyp__hero { padding: 40px 24px; text-align: center; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border-radius: var(--ucs-loy-r, 18px); }
+.ucs-loyp__hero h1 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 44px); line-height: 1.1; color: inherit; }
+.ucs-loyp__hero p { margin: 0 auto 16px; max-width: 560px; opacity: 0.9; }
+.ucs-loyp__hero .ucs-loy__btn { color: var(--ucs-loy-a, #111); background: var(--ucs-loy-oa, #fff); }
+.ucs-loyp__hero .ucs-loy__link { color: inherit; margin-left: 12px; }
+.ucs-loyp__pts { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.ucs-loyp__pts strong { font-size: 32px; }
+.ucs-loyp__how { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 28px 0; padding: 0; list-style: none; }
+.ucs-loyp__how li { display: flex; flex-direction: column; gap: 6px; padding: 20px; background: rgba(127, 127, 127, 0.08); border-radius: var(--ucs-loy-r, 18px); }
+.ucs-loyp__how span { display: grid; place-items: center; width: 32px; height: 32px; font-weight: 700; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border-radius: 50%; }
+.ucs-loyp__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.ucs-loyp__cols section { padding: 20px; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: var(--ucs-loy-r, 18px); }
+.ucs-loyp__cols h3 { margin-top: 0; }
+.ucs-loyp__faq { margin-top: 28px; }
+.ucs-loyp__faq details { padding: 14px 0; border-bottom: 1px solid rgba(127, 127, 127, 0.25); }
+.ucs-loyp__faq summary { font-weight: 600; cursor: pointer; }
+.ucs-loyp__faq p { margin: 8px 0 0; }

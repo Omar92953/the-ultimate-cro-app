@@ -1,7 +1,7 @@
 /**
  * Loyalty → Rewards: what members spend points on (amount or percent off, free shipping, a free product,
- * store credit) and the storefront widget's basics (side, colours, points on product pages and in the cart).
- * Saving also saves the storefront copy (lib/loyalty/storefront.server.ts).
+ * store credit). The widget's look is on Loyalty → Look. Saving also saves the storefront copy
+ * (lib/loyalty/storefront.server.ts).
  */
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
@@ -13,8 +13,8 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { MAX_REWARDS, REWARD_KINDS, REWARD_KIND_LABEL, type LoyaltyConfig, type Reward, type RewardKind } from "../lib/loyalty/config";
-import { Button, Checkbox, ColorField, NumberField, Select, Switch, TextField } from "../components/fields";
-import { HomeRow, HomeRows, PageIntro, Segmented } from "../components/ui";
+import { Button, NumberField, Select, Switch, TextField } from "../components/fields";
+import { HomeRow, HomeRows, PageIntro } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
 
@@ -73,8 +73,6 @@ export default function LoyaltyRewards() {
         return patch.title === undefined && r.title === auto(r) ? { ...next, title: auto(next) } : next;
       }),
     }));
-  const widget = (patch: Partial<C["widget"]>) => setCfg((c) => ({ ...c, widget: { ...c.widget, ...patch } }));
-  const text = (k: keyof C["widget"]["texts"], v: string) => setCfg((c) => ({ ...c, widget: { ...c.widget, texts: { ...c.widget.texts, [k]: v } } }));
   async function pickProduct(i: number) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const selected: any = await shopify.resourcePicker({ type: "product", multiple: false, action: "select" } as any);
@@ -129,23 +127,6 @@ export default function LoyaltyRewards() {
           </s-stack>
         </HomeRow>
 
-        <HomeRow title="Rewards widget on your store">
-          <s-stack gap="base">
-            <s-stack gap="small-200">
-              <s-text>Button side</s-text>
-              <Segmented label="Button side" value={cfg.widget.position} onChange={(v) => widget({ position: v })} options={[{ value: "left", label: "Bottom left" }, { value: "right", label: "Bottom right" }]} />
-            </s-stack>
-            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap="base">
-              <ColorField label="Main colour" value={cfg.widget.accent} onValue={(v) => widget({ accent: v })} />
-              <ColorField label="Text on the main colour" value={cfg.widget.onAccent} onValue={(v) => widget({ onAccent: v })} />
-              <TextField label="Button text" maxLength={30} value={cfg.widget.texts.launcher} onValue={(v) => text("launcher", v)} />
-              <TextField label="Panel title" maxLength={40} value={cfg.widget.texts.title} onValue={(v) => text("title", v)} />
-            </s-grid>
-            <Checkbox label="“Earn X points with this” on product pages" checked={cfg.widget.productPoints} onValue={(v) => widget({ productPoints: v })} />
-            <Checkbox label="“Earn X points with this order” in the cart" checked={cfg.widget.cartPoints} onValue={(v) => widget({ cartPoints: v })} />
-            <s-text color="subdued">The widget shows on your store once the program is on and the Conversion boosters embed is on in your theme.</s-text>
-          </s-stack>
-        </HomeRow>
       </HomeRows>
     </s-page>
   );
