@@ -8,6 +8,8 @@ import { authenticate } from "../shopify.server";
 import { saveItem } from "../lib/sections.server";
 import { forgetShop } from "../lib/short-cache.server";
 import type { SectionItem } from "../lib/sections";
+import db from "../db.server";
+import { setReviewerEmail } from "../lib/reviewer-email.server";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
@@ -80,7 +82,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     },
   };
   try {
-    await saveItem(admin, "reviews", item);
+    const saved = await saveItem(admin, "reviews", item);
+    // A signed in loyalty member: the review keeps their email, so approving it gives their review points.
+    const customerId = new URL(request.url).searchParams.get("logged_in_customer_id") ?? "";
+    if (saved?.id && /^\d+$/.test(customerId)) {
+      const m = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop: session.shop, customerId } }, select: { email: true } }).catch(() => null);
+      if (m?.email) await setReviewerEmail(session.shop, saved.id, m.email).catch(() => null);
+    }
     forgetShop(session.shop);
     return json({ ok: true });
   } catch {
