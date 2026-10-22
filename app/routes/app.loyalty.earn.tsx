@@ -7,6 +7,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
+import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { pointsLabel, type LoyaltyConfig } from "../lib/loyalty/config";
 import { Checkbox, NumberField, Switch, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro } from "../components/ui";
@@ -20,10 +21,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   try {
     const config = await saveProgramConfig(session.shop, JSON.parse(String(form.get("config"))));
+    await publishLoyalty(admin, session.shop);
     return { ok: true, error: null, config };
   } catch (e) {
     return { ok: false, error: errorMessage(e), config: null };

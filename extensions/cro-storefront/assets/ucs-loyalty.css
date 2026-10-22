@@ -1,0 +1,44 @@
+/* CRO Toolbox — loyalty widget (ucs-loyalty.js): launcher, panel, product and cart points. */
+.ucs-loy { position: fixed; bottom: 20px; z-index: 2147483000; font: inherit; color: #111; }
+.ucs-loy--right { right: 20px; }
+.ucs-loy--left { left: 20px; }
+.ucs-loy__launch { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; font: inherit; font-weight: 600; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border: 0; border-radius: 999px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); cursor: pointer; }
+.ucs-loy__launch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ucs-loy__launch:focus-visible, .ucs-loy__btn:focus-visible, .ucs-loy__x:focus-visible { outline: 2px solid var(--ucs-loy-a, #111); outline-offset: 2px; }
+.ucs-loy__panel { position: absolute; bottom: 64px; width: min(380px, calc(100vw - 32px)); max-height: min(640px, calc(100vh - 120px)); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 18px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22); }
+.ucs-loy--right .ucs-loy__panel { right: 0; }
+.ucs-loy--left .ucs-loy__panel { left: 0; }
+.ucs-loy__panel[hidden] { display: none; }
+.ucs-loy__top { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); }
+.ucs-loy__x { width: 32px; height: 32px; font-size: 22px; line-height: 1; color: inherit; background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+.ucs-loy__body { padding: 16px 18px 20px; overflow-y: auto; }
+.ucs-loy__head { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 14px; border-bottom: 1px solid #eee; }
+.ucs-loy__head strong { font-size: 24px; line-height: 1.2; }
+.ucs-loy__head small { color: #666; }
+.ucs-loy__body h3 { margin: 16px 0 8px; font-size: 14px; }
+.ucs-loy__list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.ucs-loy__list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ucs-loy__list small { color: #666; }
+.ucs-loy__list code { font-weight: 700; letter-spacing: 0.04em; }
+.ucs-loy__btn { display: inline-block; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ucs-loy-oa, #fff); text-align: center; text-decoration: none; background: var(--ucs-loy-a, #111); border: 0; border-radius: 999px; cursor: pointer; }
+.ucs-loy__btn[disabled] { opacity: 0.5; cursor: default; }
+.ucs-loy__btn--soft { color: var(--ucs-loy-a, #111); background: #f1f1f1; }
+.ucs-loy__btn--wide { display: block; margin-top: 8px; padding: 11px 14px; }
+.ucs-loy__link { margin-top: 4px; font-size: 13px; color: inherit; text-align: center; }
+.ucs-loy__msg { margin: 0 0 10px; padding: 10px 12px; font-size: 13px; background: #f3f8f4; border-radius: 10px; }
+.ucs-loy__wait { margin: 20px 0; text-align: center; color: #666; }
+.ucs-loy__toast { position: absolute; bottom: 64px; padding: 10px 14px; font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--ucs-loy-oa, #fff); background: var(--ucs-loy-a, #111); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+.ucs-loy--right .ucs-loy__toast { right: 0; }
+.ucs-loy--left .ucs-loy__toast { left: 0; }
+.ucs-loy__line { margin: 10px 0; font-size: 14px; font-weight: 600; color: var(--ucs-loy-a, #111); }
+@media (max-width: 749px) {
+  .ucs-loy { bottom: 14px; }
+  .ucs-loy--right { right: 14px; }
+  .ucs-loy--left { left: 14px; }
+  .ucs-loy__launch span { display: none; }
+  .ucs-loy__launch { padding: 14px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ucs-loy__panel:not([hidden]) { animation: ucs-loy-in 0.18s ease-out; }
+  @keyframes ucs-loy-in { from { opacity: 0; transform: translateY(8px); } }
+}

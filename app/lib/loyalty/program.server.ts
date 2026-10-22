@@ -67,7 +67,13 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
   return null;
 }
 
-export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; note?: string; dedupe?: string; availableAt?: Date };
+export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; note?: string; dedupe?: string; availableAt?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
+
+export class NotEnoughPoints extends Error {
+  constructor() {
+    super("NOT_ENOUGH");
+  }
+}
 
 /**
  * Adds one change to a member's points and their balance together. A change with a `dedupe` key that was
@@ -78,6 +84,11 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
   try {
     return await db.$transaction(async (tx) => {
       if (ch.dedupe && (await tx.loyaltyEvent.findUnique({ where: { shop_dedupe: { shop, dedupe: ch.dedupe } }, select: { id: true } }))) return null;
+      if (ch.strict && ch.points < 0) {
+        const took = await tx.loyaltyMember.updateMany({ where: { id: memberId, points: { gte: -ch.points }, blocked: false }, data: { points: { increment: ch.points }, lastActivity: new Date() } });
+        if (!took.count) throw new NotEnoughPoints();
+        return tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points: ch.points, status: "available", orderId: ch.orderId ?? "", note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null } });
+      }
       const m = await tx.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
       let points = ch.points;
       if (points < 0) points = -Math.min(-points, Math.max(0, status === "pending" ? m.pending : m.points));
@@ -215,6 +226,7 @@ export async function programStats(shop: string, days = 30) {
 
 /** Uninstall or shop/redact: every loyalty row of the store. */
 export async function removeShopLoyalty(shop: string) {
+  await db.loyaltyReward.deleteMany({ where: { shop } });
   await db.loyaltyEvent.deleteMany({ where: { shop } });
   await db.loyaltyMember.deleteMany({ where: { shop } });
   await db.loyaltyProgram.deleteMany({ where: { shop } });
@@ -225,6 +237,7 @@ export async function redactLoyaltyCustomer(shop: string, customerId: string, em
   const ms = await db.loyaltyMember.findMany({ where: { shop, OR: [...(customerId ? [{ customerId }] : []), ...(email ? [{ email: email.toLowerCase() }] : [])] }, select: { id: true } });
   if (!ms.length) return 0;
   const ids = ms.map((m) => m.id);
+  await db.loyaltyReward.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyEvent.deleteMany({ where: { shop, memberId: { in: ids } } });
   await db.loyaltyMember.deleteMany({ where: { shop, id: { in: ids } } });
   return ids.length;

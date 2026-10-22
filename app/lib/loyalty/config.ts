@@ -4,7 +4,49 @@
  * emails and the storefront look are added to this same object by their own pages.
  * Shared by client and server; no dashes or first person in the texts.
  */
-import { num, str } from "../designs";
+import { color, num, pick, str } from "../designs";
+
+export const REWARD_KINDS = ["amount", "percent", "shipping", "product", "credit"] as const;
+export type RewardKind = (typeof REWARD_KINDS)[number];
+export const REWARD_KIND_LABEL: Record<RewardKind, string> = { amount: "Amount off the order", percent: "Percent off the order", shipping: "Free shipping", product: "A free product", credit: "Store credit" };
+/**
+ * A reward members spend points on. Codes are one use Shopify discount codes for that customer only, valid
+ * `days` days; store credit goes straight to the customer's store credit (used at checkout by itself).
+ */
+export type Reward = { id: string; on: boolean; kind: RewardKind; title: string; points: number; value: number; minimum: number; days: number; product: { id: string; title: string; price: number } | null };
+export const MAX_REWARDS = 12;
+
+/** Every word of the storefront widget (the look editor and languages come later on the same object). */
+export const WIDGET_TEXTS = {
+  launcher: "Rewards",
+  title: "Rewards",
+  guestTitle: "Join and earn rewards",
+  guestText: "Earn points on every order and spend them on rewards.",
+  join: "Create an account",
+  signIn: "Sign in",
+  joinNow: "Join the program",
+  have: "You have",
+  pending: "{n} more on the way",
+  earn: "Ways to earn",
+  rewards: "Rewards",
+  history: "Your history",
+  get: "Get it",
+  more: "{n} more to go",
+  code: "Your code",
+  copy: "Copy",
+  copied: "Copied",
+  apply: "Use it now",
+  applied: "Added to your cart",
+  credit: "Added to your store credit. It is used at checkout.",
+  product: "Earn {n} with this",
+  cart: "Earn {n} with this order",
+  earned: "You earned {n}",
+  orderWay: "Every order",
+  signupWay: "Create an account",
+  firstWay: "Your first order",
+  error: "Something went wrong. Please try again.",
+} as const;
+export type WidgetTexts = Record<keyof typeof WIDGET_TEXTS, string>;
 
 export type LoyaltyConfig = {
   /** What points are called on the store ("point" / "points"). */
@@ -27,6 +69,9 @@ export type LoyaltyConfig = {
   expiry: { on: boolean; days: number };
   /** Earn store credit (a percent of each order) instead of points. */
   cashback: { on: boolean; percent: number };
+  rewards: Reward[];
+  /** The storefront widget: launcher, panel, points on product pages and in the cart. */
+  widget: { position: "left" | "right"; accent: string; onAccent: string; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
 };
 
 export const DEFAULT_LOYALTY: LoyaltyConfig = {
@@ -41,7 +86,32 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   pendingDays: 14,
   expiry: { on: false, days: 365 },
   cashback: { on: false, percent: 5 },
+  rewards: [
+    { id: "r1", on: true, kind: "percent", title: "10% off your order", points: 500, value: 10, minimum: 0, days: 30, product: null },
+    { id: "r2", on: true, kind: "shipping", title: "Free shipping", points: 300, value: 0, minimum: 0, days: 30, product: null },
+  ],
+  widget: { position: "right", accent: "#111111", onAccent: "#ffffff", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
 };
+
+function cleanReward(raw: unknown, i: number): Reward | null {
+  const r = obj(raw);
+  const kind = pick(r.kind, REWARD_KINDS, "amount");
+  const p = obj(r.product);
+  const product = kind === "product" && typeof p.id === "string" && /^gid:\/\/shopify\/Product\/\d+$/.test(p.id) ? { id: p.id, title: str(p.title, "Product", 120), price: Math.max(0, Math.round((Number(p.price) || 0) * 100) / 100) } : null;
+  if (kind === "product" && !product) return null;
+  const value = kind === "percent" ? num(r.value, 1, 100, 10) : kind === "shipping" || kind === "product" ? 0 : Math.max(0.01, Math.min(100000, Math.round((Number(r.value) || 0) * 100) / 100));
+  return {
+    id: /^[a-z0-9]{1,12}$/i.test(String(r.id)) ? String(r.id) : `r${i + 1}`,
+    on: bool(r.on, true),
+    kind,
+    title: str(r.title, "", 60).trim() || REWARD_KIND_LABEL[kind],
+    points: num(r.points, 1, 1_000_000, 500),
+    value,
+    minimum: Math.max(0, Math.min(100000, Math.round((Number(r.minimum) || 0) * 100) / 100)),
+    days: num(r.days, 1, 365, 30),
+    product,
+  };
+}
 
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 const bool = (v: unknown, d: boolean) => (typeof v === "boolean" ? v : d);
@@ -66,6 +136,36 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
     pendingDays: num(r.pendingDays, 0, 90, d.pendingDays),
     expiry: { on: bool(x.on, d.expiry.on), days: num(x.days, 30, 3650, d.expiry.days) },
     cashback: { on: bool(c.on, d.cashback.on), percent: num(c.percent, 1, 50, d.cashback.percent) },
+    rewards: Array.isArray(r.rewards)
+      ? r.rewards.slice(0, MAX_REWARDS).map(cleanReward).filter((x): x is Reward => !!x).filter((x, i, a) => a.findIndex((y) => y.id === x.id) === i)
+      : d.rewards,
+    widget: (() => {
+      const w = obj(r.widget), t = obj(w.texts);
+      return {
+        position: pick(w.position, ["left", "right"] as const, d.widget.position),
+        accent: color(w.accent, d.widget.accent),
+        onAccent: color(w.onAccent, d.widget.onAccent),
+        productPoints: bool(w.productPoints, d.widget.productPoints),
+        cartPoints: bool(w.cartPoints, d.widget.cartPoints),
+        texts: Object.fromEntries((Object.keys(WIDGET_TEXTS) as (keyof typeof WIDGET_TEXTS)[]).map((k) => [k, str(t[k], WIDGET_TEXTS[k], 200).trim() || WIDGET_TEXTS[k]])) as WidgetTexts,
+      };
+    })(),
+  };
+}
+
+/** What the storefront widget gets (theme embed JSON, $app:cro_design "loyalty"): no member data, only the program. */
+export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
+  return {
+    on,
+    u: c.unit,
+    per: c.earn.order.on ? c.earn.order.perUnit : 0,
+    sh: c.earn.order.shipping,
+    tx: c.earn.order.taxes,
+    su: c.earn.signup.on ? c.earn.signup.points : 0,
+    fo: c.earn.firstOrder.on ? c.earn.firstOrder.points : 0,
+    rw: c.rewards.filter((r) => r.on).map((r) => ({ id: r.id, t: r.title, p: r.points, k: r.kind })),
+    w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, pp: c.widget.productPoints, cp: c.widget.cartPoints },
+    t: c.widget.texts,
   };
 }
 

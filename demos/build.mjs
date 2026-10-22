@@ -107,7 +107,7 @@ async function block(name, { settings = {}, shop = shopWith(), page_type = "inde
     shop,
     request: { design_mode: false, page_type },
     template: { name: page_type },
-    routes: { root_url: STORE_ROOT, all_products_collection_url: `${STORE_ROOT}collections/all`, collections_url: `${STORE_ROOT}collections`, cart_url: `${STORE_ROOT}cart` },
+    routes: { root_url: STORE_ROOT, all_products_collection_url: `${STORE_ROOT}collections/all`, collections_url: `${STORE_ROOT}collections`, cart_url: `${STORE_ROOT}cart`, account_login_url: `${STORE_ROOT}account/login`, account_register_url: `${STORE_ROOT}account/register` },
     cart: cart ?? { total_price: cartTotal, items: [], item_count: 0 },
     product,
     collection,
