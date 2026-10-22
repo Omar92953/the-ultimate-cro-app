@@ -13,7 +13,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { MAX_REWARDS, REWARD_KINDS, REWARD_KIND_LABEL, type LoyaltyConfig, type Reward, type RewardKind } from "../lib/loyalty/config";
-import { Button, NumberField, Select, Switch, TextField } from "../components/fields";
+import { Button, Checkbox, NumberField, Select, Switch, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -114,12 +114,22 @@ export default function LoyaltyRewards() {
                     </s-stack>
                   ) : null}
                   <TextField label="Name shoppers see" maxLength={60} value={r.title} onValue={(v) => setReward(i, { title: v })} />
+                  {cfg.tiers.on ? (
+                    <s-stack gap="small-200">
+                      <s-text>Only for these VIP tiers (none ticked: everyone)</s-text>
+                      <s-stack direction="inline" gap="base">
+                        {cfg.tiers.list.map((t) => (
+                          <Checkbox key={t.id} label={t.name} checked={r.tiers.includes(t.id)} onValue={(v) => setReward(i, { tiers: v ? [...r.tiers, t.id] : r.tiers.filter((x) => x !== t.id) })} />
+                        ))}
+                      </s-stack>
+                    </s-stack>
+                  ) : null}
                 </s-stack>
               </s-box>
             ))}
             {cfg.rewards.length < MAX_REWARDS ? (
               <s-stack direction="inline">
-                <Button icon="plus" onClick={() => setCfg((c) => ({ ...c, rewards: [...c.rewards, { id: newId(), on: true, kind: "amount", title: `${money(10)} off your order`, points: 1000, value: 10, minimum: 0, days: 30, product: null }] }))}>
+                <Button icon="plus" onClick={() => setCfg((c) => ({ ...c, rewards: [...c.rewards, { id: newId(), on: true, kind: "amount", title: `${money(10)} off your order`, points: 1000, value: 10, minimum: 0, days: 30, product: null, tiers: [] }] }))}>
                   Add a reward
                 </Button>
               </s-stack>

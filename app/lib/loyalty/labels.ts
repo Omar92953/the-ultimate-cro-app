@@ -15,6 +15,7 @@ export const EVENT_LABEL: Record<string, string> = {
   referral: "Referral",
   flow: "Shopify Flow",
   campaign: "Bonus campaign",
+  tier: "New tier bonus",
 };
 
 export const eventLabel = (kind: string, note: string) => {

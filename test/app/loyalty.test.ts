@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards"]) {
+  for (const m of ["20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -222,7 +222,7 @@ test("rewards are cleaned: kinds, values, a free product needs its product", () 
 test("each reward kind makes the right Shopify discount, for that customer only", async () => {
   const { rewardDiscountInput } = await import("../../app/lib/loyalty/rewards.server");
   const end = new Date("2026-12-01T00:00:00Z");
-  const base = { id: "x", on: true, title: "Reward", points: 100, value: 5, minimum: 20, days: 30, product: null };
+  const base = { id: "x", on: true, title: "Reward", points: 100, value: 5, minimum: 20, days: 30, product: null, tiers: [] as string[] };
   const amount = rewardDiscountInput({ ...base, kind: "amount" }, "RWD-1", "gid://shopify/Customer/7", end);
   assert.equal(amount.kind, "basic");
   assert.deepEqual((amount.input as { context: unknown }).context, { customers: { add: ["gid://shopify/Customer/7"] } });
@@ -260,7 +260,7 @@ test("spending points: all or nothing, a code is kept, and points come back when
 test("store credit rewards go to the customer's store credit in the store's currency", async () => {
   const R = await import("../../app/lib/loyalty/rewards.server");
   const shop = "s.myshopify.com";
-  const c = cfg({ pendingDays: 0, rewards: [{ id: "cr", on: true, kind: "credit", title: "10 store credit", points: 100, value: 10, minimum: 0, days: 30, product: null }] });
+  const c = cfg({ pendingDays: 0, rewards: [{ id: "cr", on: true, kind: "credit", title: "10 store credit", points: 100, value: 10, minimum: 0, days: 30, product: null, tiers: [] }] });
   await P.syncOrder(shop, c, order({ subtotal: 150, customer: { id: "301", email: "s@example.com", firstName: "", locale: "", tags: [] } }));
   const m = await member(shop, "301");
   const fa = fakeAdmin();
@@ -287,4 +287,105 @@ test("the Rewards page content and the widget look are cleaned; templates only c
   const sf = toStorefrontLoyalty(c, true);
   assert.equal(sf.w.l, "icon");
   assert.deepEqual(sf.pg.faq, [{ q: "When?", a: "Soon" }]);
+});
+
+/* ------------------------------------------------- tiers, campaigns, rules -- */
+const tiered = (patch: Partial<LoyaltyConfig> = {}) =>
+  cfg({ pendingDays: 0, tiers: { ...DEFAULT_LOYALTY.tiers, on: true }, ...patch });
+
+test("tiers: the highest reached, the next one and how far; multipliers from the tier and a campaign", async () => {
+  const { multiplierFor, nextTier, tierFor } = await import("../../app/lib/loyalty/points");
+  const c = tiered({ campaigns: [{ id: "c1", name: "Double", multiplier: 2, from: "2026-11-27", to: "2026-11-30" }] });
+  assert.equal(tierFor(c, 0)?.name, "Bronze");
+  assert.equal(tierFor(c, 1499)?.name, "Silver");
+  assert.equal(tierFor(c, 1500)?.name, "Gold");
+  assert.deepEqual(nextTier(c, 1200) && { n: nextTier(c, 1200)!.tier.name, need: nextTier(c, 1200)!.need }, { n: "Gold", need: 300 });
+  assert.equal(nextTier(c, 5000), null);
+  assert.equal(multiplierFor(c, "t3", "2026-11-28T10:00:00Z"), 3, "Gold 1.5 times a double campaign");
+  assert.equal(multiplierFor(c, "t2", "2026-12-01T10:00:00Z"), 1.25);
+  assert.equal(multiplierFor(cfg(), "t3", "2026-11-28T10:00:00Z"), 1, "tiers off, no campaign");
+});
+
+test("product and collection rules: own rate, none, and the first rule wins", async () => {
+  const { orderPoints } = await import("../../app/lib/loyalty/points");
+  const c = withLoyaltyDefaults({ productRules: [
+    { id: "p1", kind: "products", items: [{ id: "gid://shopify/Product/1", title: "Gift card" }], perUnit: 0 },
+    { id: "p2", kind: "collections", items: [{ id: "gid://shopify/Collection/5", title: "New" }], perUnit: 3 },
+  ] });
+  const o = order({ subtotal: 100, lines: [
+    { productId: "gid://shopify/Product/1", collectionIds: ["gid://shopify/Collection/5"], amount: 50 },
+    { productId: "gid://shopify/Product/2", collectionIds: ["gid://shopify/Collection/5"], amount: 20 },
+    { productId: "gid://shopify/Product/3", collectionIds: [], amount: 30 },
+  ] });
+  assert.equal(orderPoints(c, o), 0 + 60 + 30);
+  assert.equal(orderPoints(c, order({ subtotal: 100 })), 100, "no lines: the main rate");
+});
+
+test("a member moves up a tier with their orders, gets its bonus once, and earns with its multiplier", async () => {
+  const shop = "t.myshopify.com";
+  const c = tiered();
+  const cust = { id: "400", email: "t@example.com", firstName: "", locale: "", tags: [] };
+  await P.syncOrder(shop, c, order({ id: "a1", subtotal: 600, customer: cust }));
+  let m = await member(shop, "400");
+  assert.equal(m.tier, "t2");
+  assert.equal(m.points, 600 + 50, "Silver bonus");
+  await P.syncOrder(shop, c, order({ id: "a2", subtotal: 100, customer: cust }));
+  m = await member(shop, "400");
+  assert.equal(m.points, 650 + 125, "100 at Silver's 1.25");
+  // A refund on the second order uses the multiplier it was earned with, even after the tier changed.
+  await prisma.loyaltyMember.update({ where: { id: m.id }, data: { tier: "t3" } });
+  await P.syncOrder(shop, c, order({ id: "a2", subtotal: 40, customer: cust }));
+  assert.equal((await member(shop, "400")).points, 775 - 75);
+  assert.equal(await prisma.loyaltyEvent.count({ where: { shop, kind: "tier" } }), 1);
+});
+
+test("tiers over the last 12 months: members move down when their points are old", async () => {
+  const shop = "u.myshopify.com";
+  const c = tiered({ tiers: { ...DEFAULT_LOYALTY.tiers, on: true, period: "year" } });
+  await P.syncOrder(shop, c, order({ subtotal: 600, customer: { id: "401", email: "", firstName: "", locale: "", tags: [] } }));
+  assert.equal((await member(shop, "401")).tier, "t2");
+  await P.reviewTiers(shop, c, new Date(Date.now() + 400 * 86_400_000));
+  assert.equal((await member(shop, "401")).tier, "t1");
+});
+
+test("cashback: an order earns store credit instead of points, given once when usable", async () => {
+  const S = await import("../../app/lib/loyalty/sync.server");
+  const shop = "v.myshopify.com";
+  const c = cfg({ pendingDays: 0, cashback: { on: true, percent: 5 } });
+  await P.syncOrder(shop, c, order({ subtotal: 200, customer: { id: "402", email: "", firstName: "", locale: "", tags: [] } }));
+  const m = await member(shop, "402");
+  assert.equal(m.points, 0);
+  const e = await prisma.loyaltyEvent.findFirstOrThrow({ where: { shop, kind: "order" } });
+  assert.equal(e.credit, 10);
+  const fa = fakeAdmin();
+  assert.equal(await S.issueCashback(fa.admin, shop), 1);
+  assert.equal(await S.issueCashback(fa.admin, shop), 0, "never twice");
+  const call = fa.calls.find((x) => x.query.includes("storeCreditAccountCredit"))!;
+  assert.deepEqual(call.variables, { id: "gid://shopify/Customer/402", input: { creditAmount: { amount: "10.00", currencyCode: "EGP" } } });
+});
+
+test("birthday points once a year; a birthday is set once; follows count once per network", async () => {
+  const shop = "w.myshopify.com";
+  const c = cfg({ pendingDays: 0, earn: { ...DEFAULT_LOYALTY.earn, birthday: { on: true, points: 200 }, social: { on: true, points: 50, links: [{ network: "instagram", url: "https://instagram.com/store" }] } } });
+  await P.syncOrder(shop, c, order({ subtotal: 10, customer: { id: "403", email: "", firstName: "", locale: "", tags: [] } }));
+  const m = await member(shop, "403");
+  assert.equal(await P.setBirthday(shop, m.id, "13-40"), false);
+  assert.equal(await P.setBirthday(shop, m.id, "03-14"), true);
+  assert.equal(await P.setBirthday(shop, m.id, "04-01"), false, "only once");
+  const day = new Date("2027-03-14T08:00:00Z");
+  assert.equal(await P.birthdayPoints(shop, c, day), 1);
+  assert.equal(await P.birthdayPoints(shop, c, day), 0);
+  assert.ok(await P.socialPoints(shop, c, m.id, "instagram"));
+  assert.equal(await P.socialPoints(shop, c, m.id, "instagram"), null);
+  assert.equal(await P.socialPoints(shop, c, m.id, "tiktok"), null, "not a network the store listed");
+  assert.equal((await member(shop, "403")).points, 10 + 200 + 50);
+});
+
+test("a reward only some tiers can get is refused for others", async () => {
+  const R = await import("../../app/lib/loyalty/rewards.server");
+  const shop = "x.myshopify.com";
+  const c = tiered({ rewards: [{ id: "g", on: true, kind: "shipping", title: "Free shipping", points: 10, value: 0, minimum: 0, days: 30, product: null, tiers: ["t3"] }] });
+  await P.syncOrder(shop, c, order({ subtotal: 100, customer: { id: "404", email: "", firstName: "", locale: "", tags: [] } }));
+  const m = await member(shop, "404");
+  await assert.rejects(R.redeem(fakeAdmin().admin, shop, c, m.id, "g"), /for Gold members/);
 });

@@ -18,7 +18,12 @@
   var unit = function (n) { return n === 1 ? (c.u && c.u.one) || 'point' : (c.u && c.u.many) || 'points'; };
   var pts = function (n) { return Number(n).toLocaleString() + ' ' + unit(Math.abs(n)); };
   var fill = function (s, n) { return String(s || '').replace('{n}', pts(n)); };
-  var perMoney = function () { return String(D.fmt || '{{amount}}').replace(/\{\{\s*\w+\s*\}\}/, '1').replace(/<[^>]*>/g, ''); };
+  var fmtMoney = function (n) { return String(D.fmt || '{{amount}}').replace(/\{\{\s*\w+\s*\}\}/, Number(n).toFixed(n % 1 ? 2 : 0)).replace(/<[^>]*>/g, ''); };
+  var perMoney = function () { return fmtMoney(1); };
+  var NET = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', x: 'X', youtube: 'YouTube' };
+  var today = new Date().toISOString().slice(0, 10);
+  var camp = (c.ca || []).filter(function (x) { return x.f <= today && today <= x.t; })[0];
+  var tierName = function (id) { var l = (c.ti && c.ti.l) || []; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i].n; return ''; };
   var post = function (body) {
     return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
@@ -43,12 +48,20 @@
     if (c.per) list.push([t.orderWay, pts(Math.round(c.per * 100) / 100) + ' / ' + perMoney()]);
     if (c.su) list.push([t.signupWay, pts(c.su)]);
     if (c.fo) list.push([t.firstWay, pts(c.fo)]);
-    return '<h3>' + esc(t.earn) + '</h3><ul class="ucs-loy__list">' + list.map(function (x) { return '<li><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b></li>'; }).join('') + '</ul>';
+    var m = me && me.member, extra = '';
+    if (c.bd) extra += '<li><span>' + esc(t.birthdayWay) + '</span>' + (m && !m.bday ? '<span class="ucs-loy__bd"><input type="date" aria-label="' + esc(t.birthdayAsk) + '"><button type="button" class="ucs-loy__btn" data-bday>' + esc(t.birthdaySave) + '</button></span>' : '<b>' + esc(pts(c.bd)) + '</b>') + '</li>';
+    if (c.so) (c.so.l || []).forEach(function (l) {
+      var done = m && (m.followed || []).indexOf(l.network) > -1;
+      extra += '<li><span>' + esc(String(t.followWay).replace('{network}', NET[l.network] || l.network)) + '</span>' + (m && !done ? '<a class="ucs-loy__btn" href="' + esc(l.url) + '" target="_blank" rel="noopener" data-follow="' + esc(l.network) + '">' + esc(t.follow) + ' · ' + esc(pts(c.so.p)) + '</a>' : '<b>' + (done ? '✓' : esc(pts(c.so.p))) + '</b>') + '</li>';
+    });
+    return '<h3>' + esc(t.earn) + '</h3>' + (camp ? '<p class="ucs-loy__camp">' + esc(String(t.campaign).replace('{x}', camp.x + 'x').replace('{date}', camp.t)) + '</p>' : '') + '<ul class="ucs-loy__list">' + list.map(function (x) { return '<li><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b></li>'; }).join('') + extra + '</ul>';
   };
   var rewards = function (have) {
     return '<h3>' + esc(t.rewards) + '</h3><ul class="ucs-loy__list">' + (c.rw || []).map(function (r) {
       var short = have == null ? 0 : r.p - have;
-      var act = have == null ? '<b>' + esc(pts(r.p)) + '</b>' : short > 0 ? '<small>' + esc(fill(t.more, short)) + '</small>' : '<button type="button" class="ucs-loy__btn" data-get="' + esc(r.id) + '">' + esc(t.get) + ' · ' + esc(pts(r.p)) + '</button>';
+      var mt = me && me.member && me.member.tier ? me.member.tier.id : '';
+      var locked = c.ti && r.tr && r.tr.length && r.tr.indexOf(mt) < 0;
+      var act = locked ? '<small>' + esc(String(t.tierOnly).replace('{tiers}', r.tr.map(tierName).join(', '))) + '</small>' : have == null ? '<b>' + esc(pts(r.p)) + '</b>' : short > 0 ? '<small>' + esc(fill(t.more, short)) + '</small>' : '<button type="button" class="ucs-loy__btn" data-get="' + esc(r.id) + '">' + esc(t.get) + ' · ' + esc(pts(r.p)) + '</button>';
       return '<li><span>' + esc(r.t) + '</span>' + act + '</li>';
     }).join('') + '</ul>';
   };
@@ -62,9 +75,11 @@
     var h = msg ? '<p class="ucs-loy__msg" role="status">' + esc(msg) + '</p>' : '';
     if (me && me.member) {
       var m = me.member;
-      h += '<div class="ucs-loy__head"><small>' + esc(t.have) + '</small><strong>' + esc(pts(m.points)) + '</strong>' + (m.pending ? '<small>' + esc(fill(t.pending, m.pending)) + '</small>' : '') + '</div>' +
+      h += '<div class="ucs-loy__head"><small>' + esc(t.have) + '</small><strong>' + esc(pts(m.points)) + '</strong>' + (m.pending ? '<small>' + esc(fill(t.pending, m.pending)) + '</small>' : '') +
+        (m.tier ? '<span class="ucs-loy__tier">' + esc(String(t.tier).replace('{tier}', m.tier.n)) + '</span>' : '') +
+        (m.next ? '<small>' + esc(String(t.nextTier).replace('{n}', m.next.spent ? fmtMoney(m.next.need) : pts(m.next.need)).replace('{tier}', m.next.n)) + '</small>' : '') + '</div>' +
         got(m.rewards) + rewards(m.points) + ways() +
-        (m.history && m.history.length ? '<h3>' + esc(t.history) + '</h3><ul class="ucs-loy__list ucs-loy__hist">' + m.history.map(function (e) { return '<li><span>' + esc(e.l) + '<br><small>' + esc(e.d) + '</small></span><b>' + (e.p > 0 ? '+' : '') + esc(Number(e.p).toLocaleString()) + '</b></li>'; }).join('') + '</ul>' : '');
+        (m.history && m.history.length ? '<h3>' + esc(t.history) + '</h3><ul class="ucs-loy__list ucs-loy__hist">' + m.history.map(function (e) { return '<li><span>' + esc(e.l) + '<br><small>' + esc(e.d) + '</small></span><b>' + (!e.p && e.cr ? (e.cr > 0 ? '+' : '') + esc(fmtMoney(e.cr)) : (e.p > 0 ? '+' : '') + esc(Number(e.p).toLocaleString())) + '</b></li>'; }).join('') + '</ul>' : '');
     } else if (D.in && me && me.canJoin) {
       h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-join>' + esc(t.joinNow) + '</button></div>' + ways() + rewards(null);
     } else if (D.in && !me) {
@@ -107,8 +122,15 @@
   box.querySelector('.ucs-loy__x').addEventListener('click', function () { open(false); launch.focus(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { open(false); launch.focus(); } });
   var act = function (e) {
+    var f = e.target.closest('[data-follow]');
+    if (f) { load('social', { network: f.getAttribute('data-follow') }); return; }
     var b = e.target.closest('button');
     if (!b) return;
+    if (b.hasAttribute('data-bday')) {
+      var v = (b.previousElementSibling && b.previousElementSibling.value) || '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { b.disabled = true; load('birthday', { date: v.slice(5) }).then(function () { msg = t.birthdayDone; draw(); }); }
+      return;
+    }
     if (b.hasAttribute('data-join')) { b.disabled = true; load('join'); }
     else if (b.getAttribute('data-get')) { b.disabled = true; msg = ''; load('redeem', { reward: b.getAttribute('data-get') }).then(function (r) { if (r && r.ok && r.got) { msg = r.got.code ? '' : t.credit; draw(); } }); }
     else if (b.getAttribute('data-copy')) { try { navigator.clipboard.writeText(b.getAttribute('data-copy')); b.textContent = t.copied; } catch (x) { b.textContent = b.getAttribute('data-copy'); } }

@@ -77,6 +77,10 @@ export async function redeem(admin: AdminClient, shop: string, c: LoyaltyConfig,
   if (!r) throw new AdminError("This reward isn't available any more.");
   const m = await db.loyaltyMember.findFirst({ where: { id: memberId, shop } });
   if (!m || m.blocked) throw new AdminError("This account can't use rewards.");
+  if (r.tiers.length && c.tiers.on && !r.tiers.includes(m.tier)) {
+    const names = c.tiers.list.filter((t) => r.tiers.includes(t.id)).map((t) => t.name).join(", ");
+    throw new AdminError(`This reward is for ${names} members.`);
+  }
   if (m.points < r.points) throw new NotEnoughPoints();
   const nonce = randomBytes(6).toString("hex");
   await record(shop, m.id, { kind: "redeem", points: -r.points, note: r.title, dedupe: `redeem:${m.id}:${nonce}`, strict: true });
