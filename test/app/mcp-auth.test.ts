@@ -20,8 +20,10 @@ type Limits = typeof import("../../app/lib/mcp/limits.server");
 let A: Auth, L: Limits;
 
 before(async () => {
-  const sql = fs.readFileSync("prisma/migrations/20261018000000_mcp/migration.sql", "utf8");
-  for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  for (const m of ["20261018000000_mcp", "20261104000000_mcp_client_used"]) {
+    const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
+    for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  }
   A = await import("../../app/lib/mcp/auth.server");
   L = await import("../../app/lib/mcp/limits.server");
 });

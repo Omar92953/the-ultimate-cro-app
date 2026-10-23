@@ -3,6 +3,7 @@
  * The metafield needs a definition that checkout may read (storefront PUBLIC_READ); it's made once.
  */
 import { jwtVerify, SignJWT } from "jose";
+import { appSecret } from "./app-secret.server";
 import { AdminError, gql, type AdminClient } from "./admin.server";
 import { POST_PURCHASE_METAFIELD, offerChanges, withPostPurchaseDefaults, type PostPurchaseConfig } from "./post-purchase";
 
@@ -62,7 +63,7 @@ export async function refreshPostPurchaseUrl(admin: AdminClient) {
   if (saved && config.url !== appUrl()) await savePostPurchase(admin, shopId, config);
 }
 
-const secret = () => new TextEncoder().encode(process.env.SHOPIFY_API_SECRET || "");
+const secret = () => new TextEncoder().encode(appSecret());
 
 /**
  * Checks the token Shopify gave the extension (signed with the app's secret) and returns the shop

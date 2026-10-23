@@ -2,6 +2,7 @@
  * The webhook link a store gives its carrier or tracking service (Tracking & Returns → where tracking comes from).
  * POST a tracking update; the secret in the address says which store it is for. Public: no admin session.
  */
+import { tooLarge } from "../lib/body-limit.server";
 import type { ActionFunctionArgs } from "react-router";
 import { ingestPush } from "../lib/tracking/tracking.server";
 
@@ -9,6 +10,7 @@ export const loader = () => new Response("Use POST.", { status: 405, headers: { 
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   if (request.method !== "POST") return new Response("Use POST.", { status: 405, headers: { Allow: "POST" } });
+  if (tooLarge(request, 256 * 1024)) return new Response("Too large", { status: 413 });
   const raw = await request.text();
   if (raw.length > 256 * 1024) return new Response("Too large", { status: 413 });
   let body: unknown;

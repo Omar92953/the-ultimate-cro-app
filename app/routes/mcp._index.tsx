@@ -2,6 +2,7 @@
  * The MCP endpoint (streamable HTTP, stateless): POST one JSON-RPC message or a batch with a bearer token.
  * Docs: docs/plans/mcp-server.md. Not part of the app UI; no Shopify admin session here.
  */
+import { tooLarge } from "../lib/body-limit.server";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { appUrl, grantFor } from "../lib/mcp/auth.server";
 import { handleBody } from "../lib/mcp/server.server";
@@ -21,6 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!grant) {
     return json({ error: "unauthorized" }, 401, { "WWW-Authenticate": `Bearer resource_metadata="${appUrl()}/.well-known/oauth-protected-resource"` });
   }
+  if (tooLarge(request, MAX_BYTES)) return new Response("Too large", { status: 413 });
   const raw = await request.text();
   if (raw.length > MAX_BYTES) return json({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Request too large" } }, 413);
   let body: unknown;

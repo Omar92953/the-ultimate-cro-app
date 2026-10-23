@@ -92,7 +92,12 @@ export async function handleRpc(grant: Grant, msg: Rpc) {
 
 export async function handleBody(grant: Grant, body: unknown): Promise<unknown> {
   if (Array.isArray(body)) {
-    const out = (await Promise.all(body.slice(0, 20).map((m) => handleRpc(grant, m as Rpc)))).filter((x) => x !== null);
+    // One after another: each call's rate check sees the calls before it in the same batch.
+    const out: unknown[] = [];
+    for (const m of body.slice(0, 20)) {
+      const r = await handleRpc(grant, m as Rpc);
+      if (r !== null) out.push(r);
+    }
     return out.length ? out : null;
   }
   if (!body || typeof body !== "object") return fail(null, -32700, "Parse error");

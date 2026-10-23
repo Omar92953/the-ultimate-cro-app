@@ -141,10 +141,14 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
     try {
       if (!mine) {
         if (via === "live") {
-          const used = await db.trackingUsage.upsert({ where: { shop_month: { shop, month: month() } }, create: { shop, month: month(), count: 0 }, update: {} });
+          if (!atLeast(plan, "growth")) return null;
+          // Counted first, then checked: two new shipments at the same moment can't both take the last one left.
+          const used = await db.trackingUsage.upsert({ where: { shop_month: { shop, month: month() } }, create: { shop, month: month(), count: 1 }, update: { count: { increment: 1 } } });
           // The plan's live tracked shipments a month; past it, Shopify's data unless the store allows extra.
-          if (!atLeast(plan, "growth") || !(await allowUnit(shop, plan, "liveShipments", used.count, `ship:${s.number}`))) return null;
-          await db.trackingUsage.update({ where: { shop_month: { shop, month: month() } }, data: { count: { increment: 1 } } });
+          if (!(await allowUnit(shop, plan, "liveShipments", used.count - 1, `ship:${s.number}`))) {
+            await db.trackingUsage.update({ where: { shop_month: { shop, month: month() } }, data: { count: { decrement: 1 } } });
+            return null;
+          }
         }
         await provider.register(key, s);
       }

@@ -2,6 +2,7 @@
  * Shopify Flow's "Add loyalty points" action (extensions/cro-flow-add-points) posts here. Flow signs the body
  * with the app's secret; each action run counts once (lib/loyalty/integrations.server.ts `flowAddPoints`).
  */
+import { tooLarge } from "../lib/body-limit.server";
 import type { ActionFunctionArgs } from "react-router";
 import { flowAddPoints, flowSigned } from "../lib/loyalty/integrations.server";
 
@@ -10,6 +11,7 @@ const reply = (status: number, message = "") => new Response(JSON.stringify(mess
 export const loader = () => new Response("Use POST.", { status: 405, headers: { Allow: "POST" } });
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  if (tooLarge(request, 256 * 1024)) return new Response("Too large", { status: 413 });
   const raw = await request.text();
   if (!flowSigned(raw, request.headers.get("x-shopify-hmac-sha256"))) return reply(401, "Not signed by Shopify.");
   let body: { shopify_domain?: string; handle?: string; action_run_id?: string; properties?: Record<string, unknown> };
