@@ -17,7 +17,9 @@
  * remembered and switched back on after an upgrade.
  */
 import { gql, type AdminClient } from "./admin.server";
-import { listBundles, listDeals, listRules, syncBundles, syncDiscounts, upsert } from "./cro.server";
+import { listBundles, listDeals, listRules, remove, syncBundles, syncDiscounts, upsert } from "./cro.server";
+import { parkPlan, parkedHandle } from "./plan-park";
+import { setTestsPaused } from "./ab-tests.server";
 import { forgetShop, remember } from "./short-cache.server";
 import { timed } from "./timing.server";
 import { listKitIds } from "./kits.server";
@@ -26,7 +28,7 @@ import { getPostPurchase } from "./post-purchase.server";
 import { getCheckoutRules, saveCheckoutRules } from "./checkout-rules.server";
 import type { CheckoutKind } from "./checkout-rules";
 import type { FeatureKey } from "./catalog";
-import { DEFAULT_APP_HANDLE, FEATURE_PLAN, PLAN_KEYS, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
+import { DEFAULT_APP_HANDLE, FEATURE_PLAN, PLAN_KEYS, atLeast, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
 
 export type PlanInfo = {
   plan: PlanKey;
@@ -149,7 +151,11 @@ export function getMonthlyOrders(admin: AdminClient, shop: string): Promise<numb
 /* ----------------------------------------------- keeping within the plan -- */
 
 type PausedItem = { type: "rule" | "bundle" | "deal" | "checkout"; handle: string; name: string; limit: LimitKey };
-export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null; trial?: FeatureKey | null };
+/**
+ * `parked`: storefront designs of features the plan locks, moved aside (plan-park.ts). `tried`: features a Free store
+ * tried before moving its trial to another one; they keep working on the store until the plan changes.
+ */
+export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null; trial?: FeatureKey | null; parked?: string[]; tried?: FeatureKey[] };
 const EMPTY_STATE: PlanState = { plan: null, paused: [], at: null, trial: null };
 
 export async function getPlanState(admin: AdminClient): Promise<PlanState> {
@@ -158,7 +164,7 @@ export async function getPlanState(admin: AdminClient): Promise<PlanState> {
   try {
     const v = JSON.parse(data.metaobjectByHandle?.field?.value ?? "null");
     return v && Array.isArray(v.paused)
-      ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null, trial: typeof v.trial === "string" && v.trial in FEATURE_PLAN ? (v.trial as FeatureKey) : null }
+      ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null, trial: typeof v.trial === "string" && v.trial in FEATURE_PLAN ? (v.trial as FeatureKey) : null, parked: Array.isArray(v.parked) ? v.parked.filter((h: unknown): h is string => typeof h === "string") : [], tried: Array.isArray(v.tried) ? v.tried.filter((f: unknown): f is FeatureKey => typeof f === "string" && f in FEATURE_PLAN) : [] }
       : EMPTY_STATE;
   } catch {
     return EMPTY_STATE;
@@ -173,9 +179,13 @@ async function savePlanState(admin: AdminClient, state: PlanState) {
  * Free stores try 1 Starter feature of their choice (plans.ts `trialFeatures`). Choosing another
  * one moves the trial: the old one keeps working on the store but can't be edited.
  */
-export async function setTrialFeature(admin: AdminClient, key: FeatureKey | null) {
+export async function setTrialFeature(admin: AdminClient, key: FeatureKey | null, shop?: string) {
   const state = await getPlanState(admin);
-  await savePlanState(admin, { ...state, trial: key });
+  // The feature tried before keeps working on the store (see above) until the plan changes.
+  const tried = [...new Set([...(state.tried ?? []), ...(state.trial && state.trial !== key ? [state.trial] : [])])];
+  await savePlanState(admin, { ...state, trial: key, tried });
+  // The next page load checks the plan again, so a feature chosen now comes back on the store if it was moved aside.
+  if (shop) applied.delete(shop);
 }
 
 const TYPE: Record<Exclude<PausedItem["type"], "checkout">, string> = { rule: "$app:cro_rule", bundle: "$app:cro_bundle", deal: "$app:cro_deal" };
@@ -188,7 +198,43 @@ const CHECKOUT_KINDS: CheckoutKind[] = ["payment", "delivery", "validation"];
  * products (real products) and the after-purchase offer fill slots but are never switched off, so
  * the others are paused first. Checkout rules count payment, delivery and order limits together.
  */
-export async function applyPlanLimits(admin: AdminClient, plan: PlanKey): Promise<PlanState> {
+/** One $app:cro_design row: its id and settings, or null. */
+async function designRow(admin: AdminClient, handle: string): Promise<{ id: string; config: string } | null> {
+  const d = await gql(admin, `#graphql
+    query CroDesignRow($handle: String!) { metaobjectByHandle(handle: { type: "$app:cro_design", handle: $handle }) { id field(key: "config") { value } } }`, { handle });
+  return d.metaobjectByHandle?.id ? { id: d.metaobjectByHandle.id, config: d.metaobjectByHandle.field?.value ?? "" } : null;
+}
+
+/**
+ * Storefront designs of features the plan locks are moved aside ("<handle>__off": the theme block draws nothing), and
+ * moved back when the plan includes them again (plan-park.ts). Returns the handles parked now.
+ */
+async function parkFeatures(admin: AdminClient, plan: PlanKey, state: PlanState) {
+  // Features tried on this plan stay on (until the plan changes, when `tried` is cleared below).
+  const tried = state.plan === plan ? state.tried ?? [] : [];
+  const { park, unpark } = parkPlan(plan, state.trial ?? null, state.parked ?? [], tried);
+  const parked = new Set(state.parked ?? []);
+  for (const h of park) {
+    const row = await designRow(admin, h);
+    if (row) {
+      await upsert(admin, "$app:cro_design", parkedHandle(h), { config: row.config });
+      await remove(admin, row.id);
+    }
+    parked.add(h);
+  }
+  for (const h of unpark) {
+    const row = await designRow(admin, parkedHandle(h));
+    // Saved again while parked (an upgrade in between): the newer design stays.
+    if (row && !(await designRow(admin, h))) await upsert(admin, "$app:cro_design", h, { config: row.config });
+    if (row) await remove(admin, row.id);
+    parked.delete(h);
+  }
+  return { parked: [...parked], changed: park.length + unpark.length > 0 };
+}
+
+export type PlanSync = { discounts: (admin: AdminClient) => Promise<unknown>; bundles: (admin: AdminClient) => Promise<unknown> };
+
+export async function applyPlanLimits(admin: AdminClient, plan: PlanKey, sync: PlanSync = { discounts: syncDiscounts, bundles: syncBundles }): Promise<PlanState> {
   const [rules, bundles, deals, kits, post, checkout, state] = await Promise.all([
     listRules(admin),
     listBundles(admin),
@@ -224,7 +270,10 @@ export async function applyPlanLimits(admin: AdminClient, plan: PlanKey): Promis
     const activeNow = items.filter((i) => i.active).length - over.length;
     if (!over.length) turnOn.push(...canResume(paused.filter((p) => p.limit === key), activeNow, limit));
   }
-  if (!turnOff.length && !turnOn.length && state.plan === plan) return { ...state, paused };
+  // Theme features the plan locks, and A/B tests below Pro (paused, running again after an upgrade).
+  const features = await parkFeatures(admin, plan, state);
+  const ab = await setTestsPaused(admin, !atLeast(plan, FEATURE_PLAN.ab_tests)).catch(() => ({ moved: 0, discounts: false }));
+  if (!turnOff.length && !turnOn.length && state.plan === plan && !features.changed && !ab.moved) return { ...state, paused, parked: features.parked };
 
   const changes = [...turnOff.map((i) => ({ ...i, on: false })), ...turnOn.map((p) => ({ ...p, on: true }))];
   for (const c of changes) if (c.type !== "checkout") await upsert(admin, TYPE[c.type], c.handle, { active: String(c.on) });
@@ -239,9 +288,9 @@ export async function applyPlanLimits(admin: AdminClient, plan: PlanKey): Promis
   }
   const resumed = new Set(turnOn.map((p) => `${p.type}:${p.handle}`));
   paused = [...paused.filter((p) => !resumed.has(`${p.type}:${p.handle}`)), ...turnOff.map(({ type, handle, name, limit }) => ({ type, handle, name, limit }))];
-  if (changes.some((c) => c.type === "rule" || c.type === "deal")) await syncDiscounts(admin);
-  if (changes.some((c) => c.type === "bundle")) await syncBundles(admin);
-  const next: PlanState = { ...state, plan, paused, at: new Date().toISOString() };
+  if (changes.some((c) => c.type === "rule" || c.type === "deal") || ab.discounts) await sync.discounts(admin);
+  if (changes.some((c) => c.type === "bundle")) await sync.bundles(admin);
+  const next: PlanState = { ...state, plan, paused, parked: features.parked, tried: state.plan === plan ? state.tried ?? [] : [], at: new Date().toISOString() };
   await savePlanState(admin, next);
   return next;
 }
