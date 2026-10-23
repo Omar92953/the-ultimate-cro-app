@@ -11,6 +11,7 @@ import { getSec } from "../lib/designs.server";
 import type { SecContent } from "../lib/cro-sections";
 import { popupCode } from "../lib/popup-code.server";
 import { popupEmail, subscribe } from "../lib/popup-subscribe.server";
+import { storefrontOpen } from "../lib/rules.server";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
@@ -65,6 +66,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (body.ok !== true) return json({ ok: false, error: "Please tick the box to sign up." }, 400);
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
   if (tooMany(`${session.shop}|${ip}`)) return json({ ok: false, error: "Please wait a little and try again." }, 429);
+  // The email pop up is a Starter feature: after a downgrade it takes no more sign ups (its settings are kept).
+  if (!(await storefrontOpen(admin, session.shop, "email_popup"))) return json({ ok: false, error: "Sign ups are closed right now." }, 403);
   try {
     const { config } = await getSec(admin, "email_popup");
     if (!config.content.on) return json({ ok: false, error: "Sign ups are closed right now." }, 403);
