@@ -141,7 +141,7 @@ export const FEATURES = {
 export type FeatureKey = keyof typeof FEATURES;
 export const FEATURE_KEYS = Object.keys(FEATURES) as FeatureKey[];
 /** In the app but not on the website yet (still being built): the site leaves them out of every list and page. */
-export const SITE_HIDDEN: readonly FeatureKey[] = ["loyalty"];
+export const SITE_HIDDEN: readonly FeatureKey[] = [];
 export const feature = (key: FeatureKey): Feature => FEATURES[key];
 /** A feature's main page (its first tab). */
 export const featureHref = (key: FeatureKey) => FEATURES[key].tabs[0].href;

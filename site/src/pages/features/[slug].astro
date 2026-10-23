@@ -62,9 +62,10 @@ const siteArea = area ? SITE_AREAS.find((a) => a.key === area)! : null;
 const copy = feature ? FEATURE_COPY[feature] : null;
 const templates = feature ? TEMPLATES[feature] : undefined;
 const steps = feature
-  ? CHECKOUT_ONLY.includes(feature)
+  ? FEATURE_COPY[feature].steps ??
+    (CHECKOUT_ONLY.includes(feature)
     ? ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE.cart} → ${featureTitle(feature)} in the app and set it up.`, "Switch it on and check a test order at checkout."]
-    : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Section library"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."]
+    : ["Install CRO Toolbox from the Shopify App Store.", `Open ${WHERE[FEATURES[feature].area] ?? "Section library"} → ${featureTitle(feature)} in the app, pick a template and set it up with the live preview.`, "Click Add to theme: the theme editor opens with the block ready. Place it and save."])
   : [];
 const schema = faq.length ? [faqPage(faq)] : [];
 /** The help guide that covers this feature, and articles written about it. */
