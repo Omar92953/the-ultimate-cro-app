@@ -125,6 +125,12 @@ export async function buildFeatures({ block, shopWith, mo }) {
     template: p.key, title: p.title, layout: "cart", cartSeed: seed,
     html: await block("ucs-cart-extras", { page_type: "cart", shop: shopWith({ designs: { cart_extras: extrasOf(p.key) } }) }),
   })));
+  // Discount code box: the same block with only the code box on.
+  const codeOf = (key) => extrasD.toStorefrontCartExtras(extrasD.applyCartExtrasPreset(extrasD.withCartExtrasDefaults({ heading: "Have a code?", gift: { on: false }, note: { on: false }, date: { on: false }, code: { on: true } }), key));
+  F.cart_code = await Promise.all(extrasD.CART_EXTRAS_PRESETS.map(async (p) => ({
+    template: p.key, title: p.title, layout: "cart", cartSeed: seed,
+    html: await block("ucs-cart-extras", { page_type: "cart", shop: shopWith({ designs: { cart_extras: codeOf(p.key) } }) }),
+  })));
 
   // ------------------------------------------------------------------------- Storefront --
   const reviewsOf = (key, place = "home") => reviewsD.toStorefrontReviews(reviewsD.applyReviewPreset(reviewsD.withReviewsDefaults({}, place), key));
@@ -393,6 +399,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   const T = {
     upsell: upsellD.UPSELL_PRESETS, cross_sell: crossD.CROSS_SELL_PRESETS, personalize: persD.PERSONALIZE_PRESETS,
     cart_extras: extrasD.CART_EXTRAS_PRESETS,
+    cart_code: extrasD.CART_EXTRAS_PRESETS,
     reviews: reviewsD.REVIEW_PRESETS, product_reviews: reviewsD.PRODUCT_REVIEW_PRESETS, logos: logosD.LOGOS_PRESETS,
     announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
     quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, size_guide: sizeD.SIZE_GUIDE_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,

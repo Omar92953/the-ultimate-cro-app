@@ -83,6 +83,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: ["This is a gift, with a gift message", "A delivery date picker, with time slots if you want", "A discount code box on the cart page and in the cart drawer, with applied codes and an error for codes that do not work", "Gift and date details saved on the order"],
     related: ["addons", "cart_offers", "delivery"],
   },
+  cart_code: {
+    who: "For stores that share discount codes and want shoppers to use them before checkout.",
+    points: ["A discount code box on the cart page and in the theme's cart drawer", "Each applied code shows what it takes off the cart, and can be removed", "Clear reasons when a code can't be used: already applied, doesn't combine with another code, not valid for the cart", "Every word, the button place and the look are yours"],
+    related: ["cart_extras", "shipping_bar"],
+  },
   reviews: {
     who: "For every store: proof from real customers next to your products.",
     points: ["Text, photo and video reviews", "Badges for WhatsApp, Instagram, TikTok and Google reviews", "Carousel, grid, masonry or a full list with stars summary", "Shoppers can write reviews you approve first", "Review data for Google on product pages"],

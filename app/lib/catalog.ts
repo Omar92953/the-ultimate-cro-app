@@ -87,6 +87,7 @@ export const FEATURES = {
   // Storefront · cart
   cart_offers: { title: "Offers in your theme's cart", area: "cart", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
   cart_extras: { title: "Gift note & delivery date", area: "cart", group: "cart", about: "“This is a gift”, a gift message, a delivery date and a discount code box in the cart. Gift and date details are saved on the order.", tabs: [design("/app/designs/cart-extras")] },
+  cart_code: { title: "Discount code box", area: "cart", group: "cart", about: "A box in the cart where shoppers apply a discount code and see what it takes off, with a clear reason when a code can't be used.", tabs: [design("/app/designs/cart-code")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "library", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
   product_reviews: { title: "Product page reviews", area: "library", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },

@@ -138,6 +138,8 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   // Cart (these sit in the Storefront hub, group Cart)
   cart_offers: "free",
   cart_extras: "starter",
+  // Same design and theme block as cart_extras (plan-park.ts parks them together), so the same plan.
+  cart_code: "starter",
   // Storefront
   reviews: "free",
   product_reviews: "free",
