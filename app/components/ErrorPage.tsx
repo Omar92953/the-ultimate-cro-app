@@ -28,4 +28,4 @@ export function ErrorPage({ title, text, help }: { title: string; text: string; 
 }
 
 export const NOT_FOUND = { title: "This page doesn't exist", text: "It may have moved when the menu changed. Use the menu on the left to find what you need.", help: "getting-started" };
-export const FAILED = { title: "This page couldn't load", text: "Shopify didn't answer in time or something went wrong on our side. Try again in a moment; if it keeps happening, email support from Settings.", help: "good-to-know" };
+export const FAILED = { title: "This page couldn't load", text: "Shopify didn't answer in time or something went wrong in CRO Toolbox. Try again in a moment; if it keeps happening, email support from Settings.", help: "good-to-know" };
