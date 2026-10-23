@@ -10,6 +10,7 @@ import { AdminError, gql, type AdminClient } from "../lib/admin.server";
 import { getSec } from "../lib/designs.server";
 import type { SecContent } from "../lib/cro-sections";
 import { popupCode } from "../lib/popup-code.server";
+import { popupEmail, subscribe } from "../lib/popup-subscribe.server";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
@@ -22,29 +23,6 @@ function tooMany(key: string) {
   recent.set(key, [...list, now]);
   if (recent.size > 5000) recent.clear();
   return false;
-}
-
-const CONSENT = () => ({ marketingState: "SUBSCRIBED", marketingOptInLevel: "SINGLE_OPT_IN", consentUpdatedAt: new Date().toISOString() });
-
-/** Finds or creates the customer and sets email marketing consent. Returns the customer id. */
-async function subscribe(admin: AdminClient, email: string): Promise<string> {
-  const found = await gql(admin, `#graphql
-    query CroPopupCustomer($q: String!) { customers(first: 1, query: $q) { nodes { id emailMarketingConsent { marketingState } } } }`, { q: `email:"${email.replace(/"/g, "")}"` });
-  const c = found.customers?.nodes?.[0];
-  if (!c) {
-    const made = await gql(admin, `#graphql
-      mutation CroPopupCreate($input: CustomerInput!) { customerCreate(input: $input) { customer { id } userErrors { field message } } }`, { input: { email, tags: ["cro-popup"], emailMarketingConsent: CONSENT() } });
-    const id = made.customerCreate?.customer?.id;
-    if (!id) throw new AdminError(made.customerCreate?.userErrors?.[0]?.message ?? "Customer not created");
-    return id;
-  }
-  if (c.emailMarketingConsent?.marketingState !== "SUBSCRIBED") {
-    await gql(admin, `#graphql
-      mutation CroPopupConsent($input: CustomerEmailMarketingConsentUpdateInput!) { customerEmailMarketingConsentUpdate(input: $input) { userErrors { field message } } }`, { input: { customerId: c.id, emailMarketingConsent: CONSENT() } });
-  }
-  await gql(admin, `#graphql
-    mutation CroPopupTag($id: ID!, $tags: [String!]!) { tagsAdd(id: $id, tags: $tags) { userErrors { field message } } }`, { id: c.id, tags: ["cro-popup"] });
-  return c.id;
 }
 
 /** The customer's own code: once, only for them, product discounts may combine. Already made = same code. */
@@ -82,8 +60,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ ok: false, error: "Something went wrong. Please try again." }, 400);
   }
   if (String(body.company ?? "").trim()) return json({ ok: true, code: "" });
-  const email = String(body.email ?? "").trim().toLowerCase().slice(0, 120);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ ok: false, error: "Please enter a valid email." }, 400);
+  const email = popupEmail(body.email);
+  if (!email) return json({ ok: false, error: "Please enter a valid email." }, 400);
   if (body.ok !== true) return json({ ok: false, error: "Please tick the box to sign up." }, 400);
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
   if (tooMany(`${session.shop}|${ip}`)) return json({ ok: false, error: "Please wait a little and try again." }, 429);
