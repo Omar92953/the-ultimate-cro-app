@@ -8,6 +8,7 @@ import { PLANS, PLAN_KEYS, EXTRA_PLAN, FEATURE_PLAN, cheapestPaid, money, featur
 import type { KeywordPage } from "../lib/keywords";
 import { planOf, freeLimits } from "../lib/plan-lines";
 import { FEATURE_COPY } from "../lib/features";
+import { featurePath } from "../lib/pages";
 
 const holdout = PLANS[EXTRA_PLAN.holdoutTest].name;
 const abPlan = PLANS[FEATURE_PLAN.ab_tests].name;
@@ -71,7 +72,7 @@ const page: KeywordPage = {
     heading: "Conversion tools in CRO Toolbox",
     caption: "Each conversion tool in CRO Toolbox, what it does and the plan that includes it",
     head: ["Tool", "What it does", "Plan"],
-    rows: tools.map((k) => [`<a href="/features/${k.replace(/_/g, "-")}/">${featureTitle(k)}</a>`, featureAbout(k), planOf(k)]),
+    rows: tools.map((k) => [`<a href="${featurePath(k)}">${featureTitle(k)}</a>`, featureAbout(k), planOf(k)]),
   },
   features: ["product_reviews", "trust_badges", "sticky_atc", "delivery", "stock_urgency", "ab_tests"],
   demos: [
