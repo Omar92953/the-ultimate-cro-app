@@ -146,4 +146,5 @@ account, which takes over **all** of that work. Everything is in the repo; never
 - Short messages, often screenshots. Explain plainly, say exactly what to click, one step at a time.
 - He likes you to do things yourself and to test in the browser before reporting.
 - Ask questions as **plain text**, never with answer buttons or AskUserQuestion boxes.
-- UI text: no dashes, never first person.
+- UI text: no dashes, never first person (the app's own words; storefront defaults in the store's or the shopper's
+  voice, like "We'll email you" or "Find my order", stay as they are: Omar, 2026-10-24).
