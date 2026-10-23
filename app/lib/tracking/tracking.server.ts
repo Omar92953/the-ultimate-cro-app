@@ -225,7 +225,9 @@ export async function removeShopTracking(shop: string) {
 }
 
 /** Old cache rows (past the 60 day window plus a month) and usage older than a year. */
-export async function sweepTracking() {
-  await db.trackingCache.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 90 * 86_400_000) } } });
+export async function sweepTracking(now = new Date()) {
+  await db.trackingCache.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 90 * 86_400_000) } } });
+  const yearAgo = new Date(now.getTime() - 365 * 86_400_000).toISOString().slice(0, 7);
+  await db.trackingUsage.deleteMany({ where: { month: { lt: yearAgo } } });
 }
 

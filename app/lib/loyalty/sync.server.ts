@@ -236,6 +236,36 @@ declare global {
   var croLoyaltyTimer: ReturnType<typeof setInterval> | undefined;
 }
 
+/** A store's run gets this long before the next store starts. */
+const STORE_BUDGET_MS = 3 * 60_000;
+const inFlight = new Set<string>();
+
+/**
+ * Each store in turn, at most `budgetMs` each: a store that takes longer goes on in the background and is skipped by
+ * the next runs until it is done, so one slow store never delays the others (and never runs twice at once).
+ */
+export async function runStores(shops: string[], one: (shop: string) => Promise<unknown>, budgetMs = STORE_BUDGET_MS) {
+  for (const shop of shops) {
+    if (inFlight.has(shop)) {
+      console.error(`[loyalty] ${shop}: the earlier run is still going, skipped this time`);
+      continue;
+    }
+    inFlight.add(shop);
+    const work = one(shop)
+      .catch((e) => console.error(`[loyalty] ${shop}:`, e instanceof Error ? e.message : e))
+      .finally(() => inFlight.delete(shop));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<"late">((r) => (timer = setTimeout(() => r("late"), budgetMs)));
+    if ((await Promise.race([work.then(() => "done" as const), late])) === "late") console.error(`[loyalty] ${shop}: over ${Math.round(budgetMs / 1000)} seconds, the next stores go on`);
+    clearTimeout(timer);
+  }
+}
+
+/** The steps after the stores, each on its own: one failing never skips the next. */
+export async function afterStores(steps: [string, () => Promise<unknown>][]) {
+  for (const [name, step] of steps) await step().catch((e) => console.error(`[loyalty] ${name}:`, e instanceof Error ? e.message : e));
+}
+
 /** Every 10 minutes: each store with loyalty on, then pending points that are due. Not in tests or local development. */
 export function startLoyaltyJobs() {
   if (globalThis.croLoyaltyTimer || process.env.NODE_ENV !== "production") return;
@@ -246,26 +276,26 @@ export function startLoyaltyJobs() {
     try {
       const { unauthenticated } = await import("../../shopify.server");
       // Also stores that turned the program off in the last 20 minutes, so their extensions hide it.
-      for (const p of await db.loyaltyProgram.findMany({ where: { OR: [{ on: true }, { updatedAt: { gte: new Date(Date.now() - 20 * 60_000) } }] }, select: { shop: true } })) {
-        try {
-          const { admin } = await unauthenticated.admin(p.shop);
-          await syncShop(p.shop, admin);
-        } catch (e) {
-          console.error(`[loyalty] ${p.shop}:`, e instanceof Error ? e.message : e);
-        }
-      }
-      await releasePending();
-      await pruneEmails().catch(() => null);
+      const shops = (await db.loyaltyProgram.findMany({ where: { OR: [{ on: true }, { updatedAt: { gte: new Date(Date.now() - 20 * 60_000) } }] }, select: { shop: true } })).map((p) => p.shop);
+      await runStores(shops, async (shop) => {
+        const { admin } = await unauthenticated.admin(shop);
+        await syncShop(shop, admin);
+      });
       // Units over a plan limit (any store, tracking too) go to Shopify App Pricing as billable events.
       const ids = new Map<string, string>();
-      await reportUsage(async (shop) => {
+      const usage = () => reportUsage(async (shop) => {
         if (!ids.has(shop)) {
           const { admin } = await unauthenticated.admin(shop);
           ids.set(shop, String((await gql(admin, `#graphql
             query CroShopId { shop { id } } `)).shop?.id ?? "").split("/").pop() ?? "");
         }
         return ids.get(shop) || null;
-      }).catch((e) => console.error("[usage] report:", e instanceof Error ? e.message : e));
+      });
+      await afterStores([
+        ["pending points", () => releasePending()],
+        ["old emails", () => pruneEmails()],
+        ["usage report", usage],
+      ]);
     } finally {
       running = false;
     }
