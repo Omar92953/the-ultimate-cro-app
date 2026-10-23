@@ -6,7 +6,7 @@
  */
 import { color, num, pick, str } from "../designs";
 import type { PlanKey } from "../plans";
-import { DEFAULT_EMAILS, withEmailDefaults, type EmailSettings } from "./emails";
+import { DEFAULT_EMAILS, EMAIL_KINDS, withEmailDefaults, type EmailKind, type EmailSettings } from "./emails";
 
 export const REWARD_KINDS = ["amount", "percent", "shipping", "product", "credit"] as const;
 export type RewardKind = (typeof REWARD_KINDS)[number];
@@ -142,7 +142,87 @@ export type LoyaltyConfig = {
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
   page: { title: string; sub: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+  /** The store's other languages (Loyalty → Languages, languages.ts). */
+  languages: LoyaltyLanguage[];
 };
+
+/**
+ * Texts in one more store language. Shoppers see the language their store page is in, emails go in the language of
+ * the customer's account; an empty text uses the main language's (the program's own settings).
+ */
+export type LoyaltyLanguage = {
+  /** The store language's code, lower case: "fr", "pt-br". */
+  code: string;
+  texts: Partial<WidgetTexts>;
+  unit: { one: string; many: string };
+  /** The Rewards page; `how` and `faq` follow the main page's items by their place. */
+  page: { title: string; sub: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+  /** Reward titles by reward id. */
+  rewards: Record<string, string>;
+  emails: Partial<Record<EmailKind, { subject: string; heading: string; body: string; button: string }>>;
+  footer: string;
+  unsubscribe: string;
+};
+export const MAX_LANGUAGES = 10;
+const LANG_CODE = /^[a-z]{2,3}(-[a-z0-9]{2,4})?$/;
+
+/** The languages, cleaned: known text keys only, each text cut to its main text's length, empties left out. */
+export function cleanLanguages(raw: unknown): LoyaltyLanguage[] {
+  const line = (v: unknown, max: number) => (typeof v === "string" ? v.replace(/[\r\n]+/g, " ").slice(0, max).trim() : "");
+  const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max).trim() : "");
+  const seen = new Set<string>();
+  const out: LoyaltyLanguage[] = [];
+  for (const x of Array.isArray(raw) ? raw : []) {
+    const l = obj(x);
+    const code = String(l.code ?? "").toLowerCase().trim();
+    if (!LANG_CODE.test(code) || seen.has(code) || out.length >= MAX_LANGUAGES) continue;
+    seen.add(code);
+    const t = obj(l.texts), u = obj(l.unit), g = obj(l.page), rw = obj(l.rewards), em = obj(l.emails);
+    const list = (v: unknown, n: number) => (Array.isArray(v) ? v.slice(0, n).map(obj) : []);
+    out.push({
+      code,
+      texts: Object.fromEntries((Object.keys(WIDGET_TEXTS) as (keyof typeof WIDGET_TEXTS)[]).map((k) => [k, line(t[k], 200)]).filter(([, v]) => v)) as Partial<WidgetTexts>,
+      unit: { one: line(u.one, 20), many: line(u.many, 20) },
+      page: {
+        title: line(g.title, 60),
+        sub: line(g.sub, 200),
+        how: list(g.how, 4).map((h) => ({ t: line(h.t, 40), x: line(h.x, 160) })),
+        faq: list(g.faq, MAX_FAQ).map((f) => ({ q: line(f.q, 160), a: text(f.a, 600) })),
+      },
+      rewards: Object.fromEntries(Object.entries(rw).filter(([id]) => /^[a-z0-9]{1,12}$/i.test(id)).slice(0, 50).map(([id, v]) => [id, line(v, 80)]).filter(([, v]) => v)),
+      emails: Object.fromEntries(
+        EMAIL_KINDS.map((k) => {
+          const e = obj(em[k]);
+          return [k, { subject: line(e.subject, 120), heading: line(e.heading, 120), body: text(e.body, 600), button: line(e.button, 40) }] as const;
+        }).filter(([, e]) => e.subject || e.heading || e.body || e.button),
+      ),
+      footer: line(l.footer, 300),
+      unsubscribe: line(l.unsubscribe, 40),
+    });
+  }
+  return out;
+}
+
+/** Only the texts a language fills in, for the storefront copy ("lg"): the widget's words, points name, page, rewards. */
+type StorefrontPage = { title?: string; sub?: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+function storefrontLanguages(c: LoyaltyConfig) {
+  return Object.fromEntries(
+    c.languages.map((l) => [
+      l.code,
+      {
+        t: l.texts,
+        u: l.unit.one || l.unit.many ? { one: l.unit.one || c.unit.one, many: l.unit.many || c.unit.many } : null,
+        pg: {
+          ...(l.page.title ? { title: l.page.title } : {}),
+          ...(l.page.sub ? { sub: l.page.sub } : {}),
+          how: c.page.how.map((h, i) => ({ t: l.page.how[i]?.t || h.t, x: l.page.how[i]?.x || h.x })),
+          faq: c.page.faq.map((f, i) => ({ q: l.page.faq[i]?.q || f.q, a: l.page.faq[i]?.a || f.a })),
+        } as StorefrontPage,
+        rw: l.rewards,
+      },
+    ]),
+  );
+}
 
 export const MAX_FAQ = 8;
 export const DEFAULT_PAGE: LoyaltyConfig["page"] = {
@@ -211,6 +291,7 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   emails: DEFAULT_EMAILS,
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
+  languages: [],
 };
 
 function cleanReward(raw: unknown, i: number): Reward | null {
@@ -360,6 +441,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
       const faq = Array.isArray(g.faq) ? g.faq.slice(0, MAX_FAQ).map((x) => ({ q: str(obj(x).q, "", 160).trim(), a: str(obj(x).a, "", 600).trim() })).filter((x) => x.q && x.a) : DEFAULT_PAGE.faq;
       return { title: str(g.title, DEFAULT_PAGE.title, 60).trim() || DEFAULT_PAGE.title, sub: str(g.sub, DEFAULT_PAGE.sub, 200), how, faq };
     })(),
+    languages: cleanLanguages(r.languages),
   };
 }
 
@@ -383,6 +465,7 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
     pg: c.page,
+    lg: c.languages.length ? storefrontLanguages(c) : null,
   };
 }
 

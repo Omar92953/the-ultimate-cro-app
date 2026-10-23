@@ -56,6 +56,8 @@ export type EmailSettings = {
   accent: string;
   /** The small print at the bottom, before the unsubscribe link. */
   footer: string;
+  /** The unsubscribe link's word in another language (languages.ts `inLanguage`); "Unsubscribe" when empty. */
+  unsubscribe?: string;
   texts: Record<EmailKind, EmailText>;
 };
 
@@ -135,9 +137,9 @@ export function renderEmail(s: EmailSettings, kind: EmailKind, store: EmailStore
     `<tr><td align="center" style="padding:16px 28px 0"><h1 style="margin:0;font-size:26px;line-height:1.25;color:#111111">${escHtml(heading)}</h1></td></tr>` +
     `<tr><td align="center" style="padding:14px 28px 0;font-size:16px;line-height:1.55;color:#333333">${escHtml(body).replace(/\n/g, "<br>")}</td></tr>` +
     (t.button && href ? `<tr><td align="center" style="padding:24px 28px 8px"><a href="${escHtml(href)}" style="display:inline-block;padding:13px 26px;border-radius:999px;background:${s.accent};color:${btn};font-weight:600;font-size:15px;text-decoration:none">${escHtml(fillWords(t.button, w))}</a></td></tr>` : "") +
-    `<tr><td align="center" style="padding:24px 28px 28px;font-size:12px;line-height:1.5;color:#777777">${escHtml(footer)}${store.address ? `<br>${escHtml(store.name)}, ${escHtml(store.address)}` : ""}<br><a href="${escHtml(unsubscribeUrl)}" style="color:#777777">Unsubscribe</a></td></tr>` +
+    `<tr><td align="center" style="padding:24px 28px 28px;font-size:12px;line-height:1.5;color:#777777">${escHtml(footer)}${store.address ? `<br>${escHtml(store.name)}, ${escHtml(store.address)}` : ""}<br><a href="${escHtml(unsubscribeUrl)}" style="color:#777777">${escHtml(s.unsubscribe || "Unsubscribe")}</a></td></tr>` +
     `</table></td></tr></table></body></html>`;
-  const text = [store.name, "", heading, "", body, ...(t.button && href ? ["", `${fillWords(t.button, w)}: ${href}`] : []), "", footer, ...(store.address ? [`${store.name}, ${store.address}`] : []), `Unsubscribe: ${unsubscribeUrl}`].join("\n");
+  const text = [store.name, "", heading, "", body, ...(t.button && href ? ["", `${fillWords(t.button, w)}: ${href}`] : []), "", footer, ...(store.address ? [`${store.name}, ${store.address}`] : []), `${s.unsubscribe || "Unsubscribe"}: ${unsubscribeUrl}`].join("\n");
   return { subject, html, text };
 }
 

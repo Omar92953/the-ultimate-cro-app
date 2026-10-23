@@ -15,6 +15,7 @@ import { appSecret } from "../app-secret.server";
 import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
+import { inLanguage, languageFor } from "./languages";
 import { eventTargets, queueEvents } from "./integrations.server";
 import { allowUnit } from "../usage.server";
 import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, validEmail, type EmailKind } from "./emails";
@@ -202,9 +203,17 @@ export async function fromFor(shop: string, c: LoyaltyConfig, store: Store, prov
 }
 
 /** The words of one email, formatted for the store (points with its unit, money in its currency, dates). */
-export function wordsFor(c: LoyaltyConfig, currency: string, balance: number, d: EmailData): Record<string, string> {
-  const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
-  const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" }) : "");
+/** `locale`: dates and money in the member's language when the store added it (else English). */
+export function wordsFor(c: LoyaltyConfig, currency: string, balance: number, d: EmailData, locale = "en-US"): Record<string, string> {
+  const intl = (() => {
+    try {
+      return Intl.getCanonicalLocales(locale)[0] ?? "en-US";
+    } catch {
+      return "en-US";
+    }
+  })();
+  const money = (n: number) => new Intl.NumberFormat(intl, { style: "currency", currency }).format(n);
+  const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(intl, { month: "long", day: "numeric", timeZone: "UTC" }) : "");
   return {
     unit: c.unit.many,
     balance: pointsLabel(c, balance),
@@ -279,7 +288,10 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
       } catch {
         data = {};
       }
-      ready.push({ row: q, mail: mailFor(shop, c, store, from, kind, m.email, m.id, wordsFor(c, store.currency, m.points, data), q.id) });
+      // In the language of the customer's account when the store added it (Loyalty → Languages).
+      const lc = inLanguage(c, m.locale);
+      const lang = languageFor(c, m.locale);
+      ready.push({ row: q, mail: mailFor(shop, lc, store, from, kind, m.email, m.id, wordsFor(lc, store.currency, m.points, data, lang ? m.locale : undefined), q.id) });
     }
   }
   for (const [why, ids] of reasons) await skip(ids, why);
