@@ -100,7 +100,7 @@ export function LockedPage({ lock }: { lock: PageLock }) {
         <UpgradeCard
           needs={lock.needs}
           title={`${f.title} is on the ${PLANS[lock.needs].name} plan`}
-          text={`${f.about} Your store is on the ${PLANS[plan].name} plan. If you set this up before, it keeps working on your store as it is; upgrade to change it.`}
+          text={`${f.about} Your store is on the ${PLANS[plan].name} plan. If you set this up before, it is off on your store for now and every setting is kept; upgrade to turn it back on.`}
         />
       </s-stack>
     </s-page>

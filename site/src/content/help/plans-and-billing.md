@@ -18,6 +18,6 @@ It counts all of your store's orders in a calendar month, not only orders with a
 
 ## What happens when I downgrade or cancel?
 
-Nothing is deleted. Offers over the new plan's limits are switched off and come back on when you upgrade again.
+Nothing is deleted. Offers over the new plan's limits, and features the new plan doesn't include, are switched off with their settings kept, and come back on when you upgrade again.
 
 See [pricing](/pricing/) for every plan and its limits.
