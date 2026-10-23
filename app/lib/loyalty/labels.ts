@@ -9,6 +9,7 @@ export const EVENT_LABEL: Record<string, string> = {
   adjust: "Changed by the store",
   import: "Imported",
   redeem: "Reward",
+  redeem_back: "Reward not made, points returned",
   birthday: "Birthday",
   review: "Review",
   social: "Followed on social media",

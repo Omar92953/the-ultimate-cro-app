@@ -131,6 +131,9 @@ export async function ingestPush(shop: string, secret: string, body: unknown): P
 /* ------------------------------------------------------------------ resolve -- */
 const inflight = new Set<string>();
 
+/** A shipment counted for the month whose registration with the provider failed: it is registered again next time. */
+const UNREGISTERED = '{"unregistered":true}';
+
 async function viaProvider(shop: string, via: "own" | "live", provider: Provider, key: string, s: Shipment, plan: PlanKey): Promise<Tracking | null> {
   const row = await db.trackingCache.findUnique({ where: { shop_number: { shop, number: s.number } } });
   const mine = row && row.via === via ? row : null;
@@ -139,14 +142,21 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
     if (inflight.has(flight)) return null;
     inflight.add(flight);
     try {
-      if (!mine) {
-        if (via === "live") {
+      // Counted already: a cached row, or one left when the first registration failed (registered again, not counted again).
+      const unregistered = !!mine && mine.data === UNREGISTERED;
+      if (!mine || unregistered) {
+        if (via === "live" && !mine) {
           const used = await db.trackingUsage.upsert({ where: { shop_month: { shop, month: month() } }, create: { shop, month: month(), count: 0 }, update: {} });
           // The plan's live tracked shipments a month; past it, Shopify's data unless the store allows extra.
           if (!atLeast(plan, "growth") || !(await allowUnit(shop, plan, "liveShipments", used.count, `ship:${s.number}`))) return null;
           await db.trackingUsage.update({ where: { shop_month: { shop, month: month() } }, data: { count: { increment: 1 } } });
         }
-        await provider.register(key, s);
+        try {
+          await provider.register(key, s);
+        } catch (e) {
+          if (!mine) await db.trackingCache.create({ data: { shop, number: s.number, carrier: s.carrier.slice(0, 60), via, status: "info", data: UNREGISTERED } }).catch(() => null);
+          throw e;
+        }
       }
       const t = await provider.fetch(key, s);
       if (t) await store(shop, s, via, t);
@@ -158,7 +168,8 @@ async function viaProvider(shop: string, via: "own" | "live", provider: Provider
       inflight.delete(flight);
     }
   };
-  if (mine) {
+  // A placeholder left by a failed registration is no answer: try again now.
+  if (mine && mine.data !== UNREGISTERED) {
     const cached = fromRow(mine.data);
     if (!isFresh(mine)) void refresh(); // answered from the cache now, refreshed in the background
     return cached;

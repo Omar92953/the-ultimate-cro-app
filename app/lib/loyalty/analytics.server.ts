@@ -27,7 +27,7 @@ export type AnalyticsInput = {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 /** Ledger kinds that are not earned: the store's own changes, imports, spending, and points taken back or expired. */
-const NOT_EARNED = new Set(["adjust", "import", "redeem", "refund", "cancel", "expire", "referral_back"]);
+const NOT_EARNED = new Set(["adjust", "import", "redeem", "redeem_back", "refund", "cancel", "expire", "referral_back"]);
 
 /** Share of customers with an order in the period who ordered at least twice in it; null with nobody to count. */
 const repeatRate = (counts: number[]) => (counts.length ? round2((counts.filter((n) => n >= 2).length / counts.length) * 100) : null);
@@ -49,7 +49,8 @@ export function summarize(x: AnalyticsInput, days: Period, now = new Date()) {
   const sum = (pick: (e: AnalyticsInput["events"][number]) => boolean) => ev.filter(pick).reduce((n, e) => n + e.points, 0);
   const points = {
     earned: sum((e) => e.points > 0 && !NOT_EARNED.has(e.kind)),
-    spent: -sum((e) => e.kind === "redeem"),
+    // Net of rewards Shopify refused (their points came back).
+    spent: -sum((e) => e.kind === "redeem" || e.kind === "redeem_back"),
     expired: -sum((e) => e.kind === "expire"),
     takenBack: -sum((e) => ["refund", "cancel", "referral_back"].includes(e.kind)),
     byStore: sum((e) => e.kind === "adjust" || e.kind === "import"),
