@@ -52,14 +52,17 @@
     found.offers.forEach(function (o) {
       var li = document.createElement('li');
       li.className = 'ucro-drawer__item';
-      li.innerHTML = (o.img ? '<img src="' + o.img + '" alt="" width="56" height="56" loading="lazy">' : '<span></span>') +
+      li.innerHTML = (o.img ? '<img alt="" width="56" height="56" loading="lazy">' : '<span></span>') +
         '<span class="ucro-drawer__body"><a class="ucro-drawer__title"></a><span class="ucro-drawer__prices"><span data-ucro-price></span></span></span>' +
         '<button type="button" class="ucro-btn ucro-drawer__add"></button>';
       var a = li.querySelector('a');
       a.textContent = o.title;
       a.href = o.url;
       var img = li.querySelector('img');
-      if (img) img.alt = o.title;
+      if (img) {
+        img.alt = o.title;
+        img.src = o.img; // set as a property, never built into HTML
+      }
       var price = li.querySelector('[data-ucro-price]');
       var btn = li.querySelector('button');
       btn.textContent = data.add;

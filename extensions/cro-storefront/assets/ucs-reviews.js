@@ -300,7 +300,7 @@
       head += '<form class="ucs-rv__form" hidden novalidate>' +
         '<h3>' + esc(wr.title) + '</h3>' +
         '<fieldset class="ucs-rv__rate"><legend class="ucs-rv__sr">Rating</legend>' + [5, 4, 3, 2, 1].map(function (n) {
-          return '<input type="radio" name="rating" value="' + n + '" id="' + uid + '-r' + n + '"><label for="' + uid + '-r' + n + '" title="' + n + ' / 5">★</label>';
+          return '<input type="radio" name="rating" value="' + n + '" id="' + uid + '-r' + n + '"><label for="' + uid + '-r' + n + '" title="' + n + ' / 5"><span aria-hidden="true">★</span><span class="ucs-rv__sr">' + n + ' out of 5</span></label>';
         }).join('') + '</fieldset>' +
         '<label class="ucs-rv__field"><span>' + esc(wr.name) + '</span><input name="name" maxlength="60" autocomplete="name" required></label>' +
         '<label class="ucs-rv__field"><span>' + esc(wr.review) + '</span><textarea name="text" rows="4" maxlength="2000" required></textarea></label>' +
