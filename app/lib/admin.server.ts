@@ -27,13 +27,31 @@ export async function afterDelete(work: () => Promise<unknown>): Promise<"ok" | 
 
 export class AdminError extends Error {}
 
+/** Shopify's THROTTLED answer (too many calls for the store's API budget): tried again after a short wait, at most 2 times. */
+export const GQL_RETRY = { times: 2, waitMs: 1000 };
+const throttled = (v: unknown) => /THROTTLED|Throttled/.test(v instanceof Error ? v.message : JSON.stringify(v ?? ""));
+
 export async function gql<T = any>(
   admin: AdminClient,
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  const response = await admin.graphql(query, { variables });
-  const json: any = await response.json();
+  let json: any;
+  for (let attempt = 0; ; attempt++) {
+    let thrown: unknown = null;
+    try {
+      json = await (await admin.graphql(query, { variables })).json();
+    } catch (e) {
+      thrown = e;
+    }
+    const busy = thrown ? throttled(thrown) : (json?.errors ?? []).some((e: any) => e?.extensions?.code === "THROTTLED");
+    if (!busy || attempt >= GQL_RETRY.times) {
+      if (thrown) throw thrown;
+      break;
+    }
+    // 1 second, then 2: Shopify refills the budget every second.
+    await new Promise((r) => setTimeout(r, GQL_RETRY.waitMs * (attempt + 1)));
+  }
   if (json.errors?.length) {
     throw new AdminError(json.errors.map((e: any) => e.message).join("; "));
   }
