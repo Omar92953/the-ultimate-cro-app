@@ -79,7 +79,7 @@ export default function AbTests() {
     <s-section key={t.id} heading={t.name}>
       <s-stack gap="small-200">
         <s-stack direction="inline" gap="small-200" alignItems="center">
-          <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
+          <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "paused" ? "Paused (needs Pro)" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
           <s-text color="subdued">Started {new Date(t.startedAt).toLocaleDateString()}{t.endedAt ? `, ended ${new Date(t.endedAt).toLocaleDateString()}` : ""}</s-text>
         </s-stack>
         <s-text color="subdued">Version B changes: {Object.keys(t.b).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.</s-text>

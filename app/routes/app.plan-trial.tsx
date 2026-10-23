@@ -21,7 +21,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const back = String(form.get("back") ?? "/app");
   const { plan } = await getPlan(admin, session.shop);
   if (!FEATURE_KEYS.includes(key) || !canTry(plan, key)) throw new Response("This feature can't be tried on your plan.", { status: 400 });
-  await setTrialFeature(admin, key);
+  await setTrialFeature(admin, key, session.shop);
   forgetShop(session.shop);
   return redirect(back.startsWith("/app") ? back : "/app");
 };

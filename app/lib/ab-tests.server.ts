@@ -25,7 +25,7 @@ export async function listTests(admin: AdminClient): Promise<AbTest[]> {
     return (Array.isArray(raw) ? raw : []).flatMap((t: Partial<AbTest>): AbTest[] => {
       if (!t?.id || !t.offer || !(AB_KINDS as readonly string[]).includes(String(t.kind))) return [];
       const kind = t.kind as AbTest["kind"];
-      return [{ id: String(t.id), name: String(t.name ?? "").slice(0, 80), offer: String(t.offer), kind, status: t.status === "stopped" || t.status === "applied" ? t.status : "running", startedAt: String(t.startedAt ?? ""), endedAt: t.endedAt ? String(t.endedAt) : null, winner: t.winner === "A" || t.winner === "B" ? t.winner : null, b: cleanOverrides(kind, t.b) }];
+      return [{ id: String(t.id), name: String(t.name ?? "").slice(0, 80), offer: String(t.offer), kind, status: t.status === "stopped" || t.status === "applied" || t.status === "paused" ? t.status : "running", startedAt: String(t.startedAt ?? ""), endedAt: t.endedAt ? String(t.endedAt) : null, winner: t.winner === "A" || t.winner === "B" ? t.winner : null, b: cleanOverrides(kind, t.b) }];
     });
   } catch {
     return [];
@@ -33,7 +33,8 @@ export async function listTests(admin: AdminClient): Promise<AbTest[]> {
 }
 
 async function write(admin: AdminClient, tests: AbTest[], rules: Rule[]) {
-  const kept = [...tests.filter((t) => t.status === "running"), ...tests.filter((t) => t.status !== "running").slice(0, MAX_KEPT - 5)].slice(0, MAX_KEPT);
+  const live = (t: AbTest) => t.status === "running" || t.status === "paused";
+  const kept = [...tests.filter(live), ...tests.filter((t) => !live(t)).slice(0, MAX_KEPT - 5)].slice(0, MAX_KEPT);
   await upsert(admin, "$app:cro_design", STATE, { config: JSON.stringify({ tests: kept }) });
   await upsert(admin, "$app:cro_design", "ab_tests", { config: JSON.stringify(toStorefrontAbTests(kept, rules)) });
   return kept;
@@ -92,6 +93,20 @@ export async function applyWinner(admin: AdminClient, id: string, winner: "A" | 
   }
   await write(admin, tests, rules);
   if (changesDiscount(test.b)) await syncDiscounts(admin);
+}
+
+/**
+ * Below Pro running tests pause (every shopper sees the offer as saved); after an upgrade they run again, with the same
+ * groups. True when a paused or resumed test changes a discount (the discount engine must be sent again).
+ */
+export async function setTestsPaused(admin: AdminClient, paused: boolean) {
+  const [tests, rules] = await Promise.all([listTests(admin), listRules(admin)]);
+  const from = paused ? "running" : "paused";
+  const moved = tests.filter((t) => t.status === from);
+  if (!moved.length) return { moved: 0, discounts: false };
+  for (const t of moved) t.status = paused ? "paused" : "running";
+  await write(admin, tests, rules);
+  return { moved: moved.length, discounts: moved.some((t) => changesDiscount(t.b)) };
 }
 
 /* ------------------------------------------------------------------ views -- */
