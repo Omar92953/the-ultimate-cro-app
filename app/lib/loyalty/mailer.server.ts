@@ -11,6 +11,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
 import db from "../../db.server";
+import { appSecret } from "../app-secret.server";
 import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
@@ -21,7 +22,7 @@ import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, r
 const DAY = 86_400_000;
 export const DEFAULT_FROM = () => process.env.LOYALTY_EMAIL_FROM || "rewards@mail.crotoolbox.com";
 const appUrl = () => (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
-const secret = () => process.env.SHOPIFY_API_SECRET || "development-only";
+const secret = () => appSecret();
 const sign = (s: string) => createHmac("sha256", secret()).update(s).digest("base64url");
 
 /* --------------------------------------------------------- unsubscribe -- */

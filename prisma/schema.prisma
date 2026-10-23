@@ -106,6 +106,8 @@ model McpClient {
   name         String
   redirectUris String
   createdAt    DateTime @default(now())
+  /// Last connect or token exchange; registrations unused for 90 days are swept (lib/mcp/auth.server.ts).
+  lastUsedAt   DateTime?
 }
 
 /// A started "Connect" waiting for the merchant's OK in the admin, and then the one use code that follows it.

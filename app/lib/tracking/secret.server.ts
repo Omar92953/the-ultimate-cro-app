@@ -1,8 +1,9 @@
 /** Keys the merchant pastes are stored encrypted (AES-256-GCM) and shown as the last 4 characters only. */
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { appSecret } from "../app-secret.server";
 
 // TRACKING_KEY_SECRET is its own secret; until it is set, the app's API secret stands in (never printed).
-const key = () => createHash("sha256").update(process.env.TRACKING_KEY_SECRET || process.env.SHOPIFY_API_SECRET || "development-only").digest();
+const key = () => createHash("sha256").update(process.env.TRACKING_KEY_SECRET || appSecret()).digest();
 
 export function encrypt(plain: string): string {
   const iv = randomBytes(12);

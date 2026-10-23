@@ -7,6 +7,7 @@
  */
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import db from "../../db.server";
+import { appSecret } from "../app-secret.server";
 
 export type McpScope = "read" | "build";
 export type Grant = { id: string; shop: string; kind: "oauth" | "token"; name: string; scope: McpScope; allowPublish: boolean };
@@ -60,6 +61,7 @@ export async function startRequest(p: { clientId: string; redirectUri: string; s
   if (!(JSON.parse(client.redirectUris) as string[]).includes(p.redirectUri)) throw new Error("The redirect address is not the one this application registered.");
   if (p.method !== "S256" || !/^[A-Za-z0-9_-]{43,128}$/.test(p.challenge)) throw new Error("PKCE with S256 is required.");
   const id = random(18);
+  await db.mcpClient.update({ where: { id: client.id }, data: { lastUsedAt: new Date() } });
   await db.mcpRequest.create({ data: { id, clientId: client.id, redirectUri: p.redirectUri, state: p.state.slice(0, 500), challenge: p.challenge, expiresAt: new Date(Date.now() + REQUEST_MS) } });
   return { id, clientName: client.name };
 }
@@ -71,7 +73,7 @@ export async function startRequest(p: { clientId: string; redirectUri: string; s
  */
 const PAIR_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 export function pairingCode(requestId: string) {
-  const h = createHmac("sha256", process.env.SHOPIFY_API_SECRET ?? "").update(`mcp-pair:${requestId}`).digest();
+  const h = createHmac("sha256", appSecret()).update(`mcp-pair:${requestId}`).digest();
   let out = "";
   for (let i = 0; i < 10; i++) out += PAIR_ALPHABET[h[i] % PAIR_ALPHABET.length];
   return `${out.slice(0, 5)}-${out.slice(5)}`;
@@ -145,7 +147,7 @@ export async function exchange(form: URLSearchParams) {
     // A code works once, also when two requests bring it at the same moment: only one of them removes it.
     const claimed = await db.mcpRequest.deleteMany({ where: { id: r.id, codeHash: r.codeHash } });
     if (claimed.count !== 1) throw new Error("invalid_grant");
-    const client = await db.mcpClient.findUnique({ where: { id: r.clientId } });
+    const client = await db.mcpClient.update({ where: { id: r.clientId }, data: { lastUsedAt: new Date() } }).catch(() => null);
     return issue({ shop: r.shop, kind: "oauth", name: client?.name ?? "AI assistant", scope: r.scope === "build" ? "build" : "read", allowPublish: r.allowPublish }, ACCESS_MS, true);
   }
   if (type === "refresh_token") {
@@ -189,10 +191,12 @@ export async function removeShopMcp(shop: string) {
   await db.mcpRequest.deleteMany({ where: { shop } });
   await db.mcpAudit.deleteMany({ where: { shop } });
 }
-/** Expired requests, old audit rows (90 days) and dead grants: swept now and then. */
-export async function sweepMcp() {
-  const now = new Date();
+/** Expired requests, old audit rows (90 days), dead grants and registrations unused for 90 days: swept daily. */
+export async function sweepMcp(now = new Date()) {
+  const unused = new Date(now.getTime() - 90 * 86_400_000);
   await db.mcpRequest.deleteMany({ where: { expiresAt: { lt: now } } });
   await db.mcpAudit.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 90 * 86_400_000) } } });
   await db.mcpGrant.deleteMany({ where: { OR: [{ revokedAt: { lt: new Date(Date.now() - 30 * 86_400_000) } }, { kind: "oauth", refreshExpires: { lt: now } }] } });
+  // An assistant registers once and comes back with the same id: kept while it is used, removed after 90 days unused.
+  await db.mcpClient.deleteMany({ where: { OR: [{ lastUsedAt: { lt: unused } }, { lastUsedAt: null, createdAt: { lt: unused } }] } });
 }
