@@ -15,6 +15,7 @@ import { trackOffersFor } from "../lib/track-offers.server";
 import { readRecRequest, trackRecs } from "../lib/track-recs.server";
 import { carrierLinksFor, resolveTracking } from "../lib/tracking/tracking.server";
 import { carrierUrl } from "../lib/tracking";
+import { storefrontOpen } from "../lib/rules.server";
 import { getReturnRules } from "../lib/shopify-returns.server";
 import { storeCreditBonus } from "../lib/return-rules";
 
@@ -26,6 +27,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const q = readLookup(body);
   if ("error" in q) return json({ ok: false, error: q.error }, 400);
   if (tooMany(request, session.shop, "track", 12)) return json({ ok: false, error: "Too many tries. Please wait a few minutes." }, 429);
+  // The Track page is a Growth feature: after a downgrade it answers "not available" (its settings are kept).
+  if (!(await storefrontOpen(admin, session.shop, "track"))) return json({ ok: false, error: "Order lookup isn't available right now." }, 403);
   try {
     const order = await findOrder(admin, q.number, q.email);
     if (!order) return json({ ok: false, notFound: true });

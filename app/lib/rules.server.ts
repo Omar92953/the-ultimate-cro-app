@@ -7,6 +7,7 @@ import { checkCheckoutRules, checkCount, checkLimit, getPlan, getPlanState } fro
 import type { CheckoutKind } from "./checkout-rules";
 import { PLANS, type PlanKey } from "./plans";
 import { RuleError, requireFeature } from "./rules";
+import { isLocked } from "./plan-gate";
 import { dealFeature, type FeatureKey } from "./catalog";
 import { validateDeal, type Deal } from "./deals";
 import { validateBundle } from "./validate";
@@ -23,6 +24,15 @@ export async function planContext(admin: AdminClient, shop: string): Promise<{ p
   const info = await getPlan(admin, shop);
   const trial = PLANS[info.plan].limits.trialFeatures ? ((await getPlanState(admin).catch(() => null))?.trial ?? null) : null;
   return { plan: info.plan, trial, planUrl: info.planUrl };
+}
+
+/**
+ * A public storefront page or form (app proxy) of a plan feature: false when the store's plan no longer includes it
+ * (after a downgrade), so the page answers "not available" instead of working for free. Settings are kept.
+ */
+export async function storefrontOpen(admin: AdminClient, shop: string, feature: FeatureKey) {
+  const { plan, trial } = await planContext(admin, shop);
+  return !isLocked(plan, feature, trial);
 }
 
 /** May this offer be on? Every offer type fills one of the plan's offer slots; an offer can always be saved off. */
