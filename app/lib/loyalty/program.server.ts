@@ -10,6 +10,8 @@ import { allowUnit, usedThisMonth } from "../usage.server";
 import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
+/** Points that come in without being earned: the store's own changes, imports, and points back from a reward Shopify refused. */
+const NOT_EARNED = ["adjust", "import", "redeem_back"];
 
 /* ----------------------------------------------------------------- program -- */
 export async function getProgram(shop: string) {
@@ -87,7 +89,7 @@ export class NotEnoughPoints extends Error {
  * already made does nothing (returns null). Taking points away never takes more than the member has.
  */
 export async function record(shop: string, memberId: number, ch: LedgerChange) {
-  const status = ch.status ?? "available";
+  let status = ch.status ?? "available";
   try {
     return await db.$transaction(async (tx) => {
       if (ch.dedupe && (await tx.loyaltyEvent.findUnique({ where: { shop_dedupe: { shop, dedupe: ch.dedupe } }, select: { id: true } }))) return null;
@@ -98,9 +100,12 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
       }
       const m = await tx.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
       let points = ch.points;
+      // Taking back an order's pending points that were released in the meantime (the 10 minute run and a widget read
+      // at the same moment): they are usable points now, so they are taken from there.
+      if (status === "pending" && points < 0 && ch.orderId && m.pending < -points) status = "available";
       if (points < 0) points = -Math.min(-points, Math.max(0, status === "pending" ? m.pending : m.points));
       const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date(), ...(ch.at ? { createdAt: ch.at } : {}) } });
-      const earned = points > 0 && !["adjust", "import"].includes(ch.kind) ? points : 0;
+      const earned = points > 0 && !NOT_EARNED.includes(ch.kind) ? points : 0;
       await tx.loyaltyMember.update({
         where: { id: memberId },
         data: {
@@ -185,7 +190,7 @@ export async function tierValue(shop: string, c: LoyaltyConfig, memberId: number
     const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since } }, _sum: { amount: true } });
     return s._sum.amount ?? 0;
   }
-  const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since }, points: { gt: 0 }, kind: { notIn: ["adjust", "import"] } }, _sum: { points: true } });
+  const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since }, points: { gt: 0 }, kind: { notIn: NOT_EARNED } }, _sum: { points: true } });
   return s._sum.points ?? 0;
 }
 

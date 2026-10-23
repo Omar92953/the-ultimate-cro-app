@@ -306,10 +306,13 @@ const applied = new Map<string, PlanKey>();
 export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo) {
   if (info.source === "error" || info.source === "none" || applied.get(shop) === info.plan) return;
   applied.set(shop, info.plan);
-  applyPlanLimits(admin, info.plan).catch((e) => {
-    applied.delete(shop);
-    console.error(`Plan limits for ${shop}:`, e);
-  });
+  applyPlanLimits(admin, info.plan)
+    // The loyalty widget is not a theme design (plan-park.ts): it is saved again for the new plan.
+    .then(() => import("./loyalty/storefront.server").then((m) => m.republishLoyalty(admin, shop)))
+    .catch((e) => {
+      applied.delete(shop);
+      console.error(`Plan limits for ${shop}:`, e);
+    });
 }
 
 /**

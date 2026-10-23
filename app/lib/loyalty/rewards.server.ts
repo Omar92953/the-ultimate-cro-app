@@ -18,7 +18,8 @@ export const LOYALTY_TAG = "cro-loyalty";
 const money = (n: number) => n.toFixed(2);
 
 /** The Shopify discount input for a code reward (exported for the tests). */
-export function rewardDiscountInput(r: Reward, code: string, customerGid: string, endsAt: Date) {
+/** `price`: a free product's price now (read when the code is made), so the code covers it after a price change. */
+export function rewardDiscountInput(r: Reward, code: string, customerGid: string, endsAt: Date, price?: number) {
   const base = {
     title: `Loyalty reward: ${r.title} (${code})`,
     code,
@@ -35,17 +36,25 @@ export function rewardDiscountInput(r: Reward, code: string, customerGid: string
     r.kind === "percent"
       ? { percentage: r.value / 100 }
       : r.kind === "product"
-        ? { discountAmount: { amount: money(r.product?.price ?? 0), appliesOnEachItem: false } }
+        ? { discountAmount: { amount: money(price ?? r.product?.price ?? 0), appliesOnEachItem: false } }
         : { discountAmount: { amount: money(r.value), appliesOnEachItem: false } };
   const items = r.kind === "product" && r.product ? { products: { productsToAdd: [r.product.id] } } : { all: true };
   // Combines with product discounts: the app's own upsells and bundles are product discounts.
   return { kind: "basic" as const, input: { ...base, customerGets: { value, items }, combinesWith: { productDiscounts: true, orderDiscounts: false, shippingDiscounts: true } } };
 }
 
+/** The product's highest variant price now (the free product reward covers any variant); undefined when Shopify can't say. */
+async function productPrice(admin: AdminClient, productId: string) {
+  const d = await gql(admin, `#graphql
+    query CroLoyaltyProductPrice($id: ID!) { product(id: $id) { priceRangeV2 { maxVariantPrice { amount } } } }`, { id: productId }).catch(() => null);
+  const n = Number(d?.product?.priceRangeV2?.maxVariantPrice?.amount);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 async function makeCode(admin: AdminClient, r: Reward, customerId: string): Promise<{ code: string; discountId: string; expiresAt: Date }> {
   const code = `RWD-${randomBytes(4).toString("hex").toUpperCase()}`;
   const expiresAt = new Date(Date.now() + r.days * DAY);
-  const d = rewardDiscountInput(r, code, `gid://shopify/Customer/${customerId}`, expiresAt);
+  const d = rewardDiscountInput(r, code, `gid://shopify/Customer/${customerId}`, expiresAt, r.kind === "product" && r.product ? await productPrice(admin, r.product.id) : undefined);
   const data =
     d.kind === "shipping"
       ? await gql(admin, `#graphql
@@ -98,7 +107,7 @@ export async function redeem(admin: AdminClient, shop: string, c: LoyaltyConfig,
     return { id: row.id, title: r.title, kind: r.kind, code: made.code, expiresAt: made.expiresAt.toISOString() };
   } catch (e) {
     // Shopify refused: the member gets the points back at once.
-    await record(shop, m.id, { kind: "adjust", points: r.points, note: "Reward could not be made, points returned", dedupe: `redeem-back:${m.id}:${nonce}` });
+    await record(shop, m.id, { kind: "redeem_back", points: r.points, note: r.title, dedupe: `redeem-back:${m.id}:${nonce}` });
     throw e instanceof AdminError ? e : new AdminError("The reward could not be made. Your points were returned.");
   }
 }

@@ -41,9 +41,15 @@ export async function allowUnit(shop: string, plan: PlanKey, meter: MeterKey, us
   if (limit === 0) return false; // Not on this plan at all.
   const on = extra ?? (await db.usageExtra.findUnique({ where: { shop_meter: { shop, meter } } }))?.on ?? false;
   if (!on) return false;
-  await db.usageEvent.create({ data: { shop, meter, month: month(now), key: `${meter}:${key}`.slice(0, 64) } }).catch(() => null);
+  await db.usageEvent.create({ data: { shop, meter, month: month(now), key: unitKey(meter, key) } }).catch(() => null);
   return true;
 }
+
+/** "liveShipments:ship:LX123": short keys stay readable; a longer one is hashed, so two units never share a key. */
+export const unitKey = (meter: MeterKey, key: string) => {
+  const k = `${meter}:${key}`;
+  return k.length <= 64 ? k : `${meter}:${createHash("sha256").update(key).digest("hex").slice(0, 40)}`;
+};
 
 export type MeterUsage = { meter: MeterKey; title: string; unit: string; used: number; limit: number; extra: boolean; over: number; price: number; per: number; atLimit: string };
 
