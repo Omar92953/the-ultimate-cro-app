@@ -315,7 +315,7 @@
         [['newest', ls.newest], ['highest', ls.highest], ['lowest', ls.lowest], ['photos', ls.photos]].map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + '</option>'; }).join('') +
         '</select></label></div>';
     }
-    if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet — add them in the app: Sections → Customer reviews.</p>';
+    if (!shown.length) html += '<p class="ucs-note">No reviews to show here yet. Add them in the app: Sections → Customer reviews.</p>';
     else {
       var nav = carousel ? '<div class="ucs-rv__nav"><button type="button" class="ucs-rv__arrow" data-dir="-1" aria-label="Previous"><span class="ucs-i ucs-i--chev-l" aria-hidden="true"></span></button>' +
         '<span class="ucs-rv__dots"></span>' +

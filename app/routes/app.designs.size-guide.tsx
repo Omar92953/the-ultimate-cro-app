@@ -374,7 +374,7 @@ function FinderEditor({ chart, setChart, setRec, setRow, setUsual }: {
             <s-stack direction="inline" gap="small-200">
               {usual.length < MAX_USUAL ? <Button onClick={() => setUsual([...usual, { answer: "", size: "" }])}>Add an answer</Button> : null}
               <Button variant="tertiary" onClick={() => setChart(usualFromSizes(chart))}>
-                {usual.length ? "Start again from my sizes" : "Start from my sizes"}
+                {usual.length ? "Start again from your sizes" : "Start from your sizes"}
               </Button>
             </s-stack>
           </s-stack>

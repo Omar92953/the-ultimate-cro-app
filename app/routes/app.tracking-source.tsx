@@ -46,7 +46,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 const choices = (live: number): { key: TrackSource; title: string; text: string }[] => [
   { key: "shopify", title: "Shopify's tracking data", text: "Free, every country, every carrier you add a tracking number for. Shows the status, the tracking number, the expected date and any updates Shopify gets from the carrier." },
   { key: "live", title: "Live tracking", text: `Up to ${live.toLocaleString()} shipments a month, included on your plan. Where the parcel is now and its full history, from 3,500+ carriers worldwide, found from the tracking number. Over the limit, the page uses Shopify's data.` },
-  { key: "own", title: "Your own tracking service key", text: "Already use 17TRACK, AfterShip, TrackingMore or Ship24? Paste its key and the page uses it, with no limit from us. Between them they follow thousands of carriers worldwide." },
+  { key: "own", title: "Your own tracking service key", text: "Already use 17TRACK, AfterShip, TrackingMore or Ship24? Paste its key and the page uses it, with no limit from CRO Toolbox. Between them they follow thousands of carriers worldwide." },
   { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
 
@@ -106,7 +106,7 @@ export default function TrackingSource() {
                   </Button>
                 </s-stack>
               ) : null}
-              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. We find which service it belongs to, test it before saving and keep it encrypted.</s-text>
+              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. The app finds which service it belongs to, tests it before saving and keeps it encrypted.</s-text>
               <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
               <s-stack direction="inline">
                 <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
