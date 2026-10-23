@@ -1150,6 +1150,41 @@ test("loyalty orders a month: past the plan's limit orders earn nothing, unless 
   }
 });
 
+test("past orders counted when the program starts earn points but never use the month's limit or get billed (audit 2026-10-23)", async () => {
+  const { planned, accessFor } = await import("../../app/lib/loyalty/plan.server");
+  const { PLANS } = await import("../../app/lib/plans");
+  const U = await import("../../app/lib/usage.server");
+  const shop = "pl3.myshopify.com";
+  const was = PLANS.growth.limits.loyaltyOrders;
+  PLANS.growth.limits.loyaltyOrders = 1;
+  try {
+    await U.setExtra(shop, "loyaltyOrders", true);
+    const c = planned(cfg({ pendingDays: 0 }), accessFor("growth", await U.extrasFor(shop)));
+    const now = new Date();
+    const lastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 5 * 86_400_000).toISOString();
+    // Three orders from before this month (the "last 90 days" when the program starts), then one new order.
+    for (const id of ["p1", "p2", "p3"]) await P.syncOrder(shop, c, order({ id, createdAt: lastMonth, customer: who("9", "past@example.com") }), now);
+    await P.syncOrder(shop, c, order({ id: "new1", createdAt: now.toISOString(), customer: who("9", "past@example.com") }), now);
+    assert.equal((await member(shop, "9")).points, 200, "all four earn");
+    assert.equal(await U.usedThisMonth(shop, "loyaltyOrders", now), 1, "only this month's order counts");
+    assert.equal(await prisma.usageEvent.count({ where: { shop, meter: "loyaltyOrders" } }), 0, "nothing billed: the new order is within the limit");
+    const past = await prisma.loyaltyEvent.findFirstOrThrow({ where: { shop, orderId: "p1", kind: "order" } });
+    assert.equal(past.createdAt.toISOString(), lastMonth, "a past order's row is dated when the order was placed");
+  } finally {
+    PLANS.growth.limits.loyaltyOrders = was;
+  }
+});
+
+test("one new order read twice at once counts as one order (audit 2026-10-23)", async () => {
+  const shop = "twice.myshopify.com";
+  const c = cfg({ pendingDays: 0 });
+  const o = order({ id: "t1", createdAt: new Date().toISOString(), customer: who("5", "twice@example.com") });
+  await Promise.all([P.syncOrder(shop, c, o), P.syncOrder(shop, c, o)]);
+  const m = await member(shop, "5");
+  assert.equal(m.points, 50);
+  assert.equal(m.orders, 1);
+});
+
 test("units over a limit go to Shopify App Pricing once each, as billable events", async () => {
   const U = await import("../../app/lib/usage.server");
   const shop = "pl2.myshopify.com";

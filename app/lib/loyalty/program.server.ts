@@ -74,7 +74,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean, cap:
   return null;
 }
 
-export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; multiplier?: number; credit?: number; note?: string; dedupe?: string; availableAt?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
+export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; multiplier?: number; credit?: number; note?: string; dedupe?: string; availableAt?: Date; /** When it happened (default now): a past order counted when the program starts keeps its own date. */ at?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
 
 export class NotEnoughPoints extends Error {
   constructor() {
@@ -99,7 +99,7 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
       const m = await tx.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
       let points = ch.points;
       if (points < 0) points = -Math.min(-points, Math.max(0, status === "pending" ? m.pending : m.points));
-      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date() } });
+      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date(), ...(ch.at ? { createdAt: ch.at } : {}) } });
       const earned = points > 0 && !["adjust", "import"].includes(ch.kind) ? points : 0;
       await tx.loyaltyMember.update({
         where: { id: memberId },
@@ -144,9 +144,15 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const pendingNow = c.pendingDays > 0;
 
   if (!orderRow && (target > 0 || credit > 0)) {
+    // An order placed before this month (the "last 30 or 90 days" counted when the program starts) earns, keeps its
+    // own date and is not one of this month's orders: it never uses the plan's monthly limit and is never billed.
+    const placed = new Date(o.createdAt);
+    const past = placed.getTime() < Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
     // The plan's loyalty orders a month (plans.ts): past it, orders earn nothing unless the store allows extra.
-    if (c.usage && !(await allowUnit(shop, c.usage.plan, "loyaltyOrders", await usedThisMonth(shop, "loyaltyOrders", now), `order:${o.id}`, c.usage.ordersExtra, now))) return null;
-    await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
+    if (c.usage && !past && !(await allowUnit(shop, c.usage.plan, "loyaltyOrders", await usedThisMonth(shop, "loyaltyOrders", now), `order:${o.id}`, c.usage.ordersExtra, now))) return null;
+    const ev = await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}`, ...(past ? { at: placed } : {}) });
+    // Read twice at once: the other read counted it.
+    if (!ev) return null;
     await db.loyaltyMember.update({ where: { id: m.id }, data: { orders: { increment: 1 } } });
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {
       await record(shop, m.id, { kind: "first_order", points: c.earn.firstOrder.points, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, note: o.name, dedupe: `first:${m.id}` });
