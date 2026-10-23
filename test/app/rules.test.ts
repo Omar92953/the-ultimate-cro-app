@@ -42,6 +42,8 @@ test("styles beyond the plan's count are refused", () => {
 test("Function metafields stay under Shopify's limit", () => {
   requireFunctionSize("x".repeat(FUNCTION_METAFIELD_LIMIT), "Your rules");
   fails(() => requireFunctionSize("x".repeat(FUNCTION_METAFIELD_LIMIT + 1), "Your rules"), "input", /too large/);
+  // Shopify counts bytes: 5,000 Arabic letters are 10,000 bytes (audit 2026-10-23).
+  fails(() => requireFunctionSize("ع".repeat(5000), "Your rules"), "input", /10000 of 9500 bytes/);
 });
 
 test("the size guide's limits are said, not silently cut", () => {

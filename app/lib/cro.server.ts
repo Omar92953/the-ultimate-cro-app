@@ -13,7 +13,7 @@
  *  - the cart transform's $app.bundles
  */
 import { functionAb, type AbTest } from "./ab-tests";
-import { FUNCTION_METAFIELD_LIMIT as RULES_FUNCTION_LIMIT } from "./rules";
+import { FUNCTION_METAFIELD_LIMIT as RULES_FUNCTION_LIMIT, functionBytes } from "./rules";
 import { gql, numericId, AdminError, afterDelete, type AdminClient } from "./admin.server";
 import { timed } from "./timing.server";
 import { remember } from "./short-cache.server";
@@ -771,9 +771,9 @@ async function syncFunctionDiscount(
   const tests = await import("./ab-tests.server").then((m) => m.listTests(admin)).catch(() => []);
   const { config, collectionIds, needed } = buildDiscountConfig(rules, deals, skip, tests);
   const value = JSON.stringify(config);
-  if (value.length > FUNCTION_METAFIELD_LIMIT) {
+  if (functionBytes(value) > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(
-      `Your discounted rules are too large for Shopify's discount engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use collections instead of long product lists, or remove unused rules.`,
+      `Your discounted rules are too large for Shopify's discount engine (${functionBytes(value)} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use collections instead of long product lists, or remove unused rules.`,
     );
   }
   if (collectionIds.length > FUNCTION_LIST_LIMIT) {
@@ -1229,8 +1229,8 @@ export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[], s
   }
   // `st`: the token the cart transform writes on every merged bundle line (_cro_merged) and the bundle guard checks.
   const value = JSON.stringify({ ...(stamp ? { st: stamp } : {}), b });
-  if (value.length > FUNCTION_METAFIELD_LIMIT) {
-    throw new AdminError(`Your bundles list too many single products for Shopify's checkout engine (${value.length} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use a collection for the bigger steps.`);
+  if (functionBytes(value) > FUNCTION_METAFIELD_LIMIT) {
+    throw new AdminError(`Your bundles list too many single products for Shopify's checkout engine (${functionBytes(value)} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use a collection for the bigger steps.`);
   }
   return { value, vars: JSON.stringify({ collections: [...collections] }), ids: Object.keys(b) };
 }
