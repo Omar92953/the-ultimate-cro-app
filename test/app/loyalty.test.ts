@@ -1194,9 +1194,9 @@ test("units over a limit go to Shopify App Pricing once each, as billable events
   await U.setExtra(shop, "liveShipments", true);
   assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 200, "ship:B"), true);
   assert.equal(await U.allowUnit(shop, "starter", "liveShipments", 0, "ship:C"), false, "not on Starter at all");
-  const calls: { url: string; body: Record<string, unknown> }[] = [];
+  const calls: { url: string; body: Record<string, unknown>; agent: string }[] = [];
   const http = (async (url: string, init?: RequestInit) => {
-    calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")) });
+    calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")), agent: String((init?.headers as Record<string, string> | undefined)?.["User-Agent"] ?? "") });
     return new Response(JSON.stringify(url.includes("access_token") ? { access_token: "tok", expires_in: 3600 } : {}), { status: url.includes("access_token") ? 200 : 202 });
   }) as typeof fetch;
   assert.equal(await U.reportUsage(async () => "123", http, now), 0, "no App Events key yet: kept queued");
@@ -1208,6 +1208,7 @@ test("units over a limit go to Shopify App Pricing once each, as billable events
     assert.equal(ev.url, "https://api.shopify.com/app/2026-10/events");
     assert.deepEqual([ev.body.event_handle, (ev.body.attributes as { value: number }).value, ev.body.shop_id], ["live-shipments", 1, "123"]);
     assert.equal(String(ev.body.idempotency_key).length <= 64, true);
+    assert.ok(calls.every((c) => c.agent.startsWith("CRO Toolbox")), "every call names the app (Shopify can answer 403 without it)");
     assert.equal(await U.reportUsage(async () => "123", http, now), 0, "sent once");
   } finally {
     delete process.env.APP_EVENTS_CLIENT_ID;

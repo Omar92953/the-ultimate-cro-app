@@ -69,13 +69,15 @@ export async function usageSummary(shop: string, plan: PlanKey, now = new Date()
 
 /* ------------------------------------------------------------- billing -- */
 let token: { value: string; until: number } | null = null;
+/** Shopify's App Events docs: without a User-Agent the API can answer 403. */
+const USER_AGENT = "CRO Toolbox (https://crotoolbox.com)";
 type Fetch = typeof fetch;
 
 async function accessToken(http: Fetch) {
   if (token && token.until > Date.now() + 60_000) return token.value;
   const res = await http("https://api.shopify.com/auth/access_token", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "User-Agent": USER_AGENT },
     body: JSON.stringify({ client_id: process.env.APP_EVENTS_CLIENT_ID, client_secret: process.env.APP_EVENTS_CLIENT_SECRET, grant_type: "client_credentials" }),
   });
   if (!res.ok) throw new Error(`Shopify refused the App Events key (${res.status})`);
@@ -97,7 +99,7 @@ export async function reportUsage(shopIds: (shop: string) => Promise<string | nu
       if (!shopId) throw new Error("No shop id");
       const res = await http("https://api.shopify.com/app/2026-10/events", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await accessToken(http)}` },
+        headers: { "Content-Type": "application/json", "User-Agent": USER_AGENT, Authorization: `Bearer ${await accessToken(http)}` },
         body: JSON.stringify({ event_handle: METERS[r.meter as MeterKey].handle, attributes: { value: 1 }, idempotency_key: createHash("sha256").update(`${r.shop}|${r.key}`).digest("hex"), timestamp: r.createdAt.toISOString(), shop_id: shopId }),
       });
       if (res.status === 202 || res.ok) {
