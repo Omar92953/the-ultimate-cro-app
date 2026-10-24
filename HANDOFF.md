@@ -5,6 +5,19 @@ deploys, merges and Testing 3 checks from 2026-10-19 to 2026-10-22. Omar asked t
 account, which takes over **all** of that work. Everything is in the repo; never rely on old chats. Where
 `CLAUDE.md` or `docs/WORKBOARD.md` differ from this file, trust them.
 
+## Update 2026-10-24 (read this first)
+
+The state in `CLAUDE.md` (Status) replaces "Where things stand" below. Since 2026-10-22 the lead merged #260 to #303:
+loyalty parts 5 to 11 with languages and guest checkouts, the Points shop, the plan limits with usage extras, the
+discount code box card, the loyalty website pages, and the deep audit (`docs/audit-2026-10-23.md`). The second
+account is no longer used. Lessons from the live checks, worth keeping in mind for storefront scripts:
+
+- Themes like Dawn put a hidden installments form before the product form, and cards carry a hidden second title
+  link: never take "the first" form or link; take the one with a submit button, and links that are visible.
+- Shopify runs cart validation Functions when a product is added to the cart, not only at checkout: apply a discount
+  code (cart/update.js `discount`) before adding a product the guard protects.
+- A PR stacked on another PR's branch merges into that branch, not main: retarget it to main first.
+
 ## How to start
 
 1. Claude desktop app → **Code** tab → new session in `~/Workspace/the-ultimate-cro-app` → model **Opus 5.5**.

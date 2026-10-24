@@ -10,10 +10,11 @@ Updated 2026-10-24.
 - [x] Loyalty parts 1 to 9: core, rewards and widget, Rewards page and Look, VIP tiers and more (#255 to #259), referrals and affiliates (#260), Postmark emails (#265), Klaviyo, Omnisend, Judge.me and review points (#268), Shopify Flow (#270), customer account, thank you, Plus checkout and POS (#272)
 - [x] Loyalty part 10 without languages: analytics page, members CSV export and import (#269)
 - [x] Loyalty part 11: website feature page, area page, help page and menu (loyalty out of SITE_HIDDEN)
-- [ ] Loyalty languages: per store language for the widget, the Rewards page and the emails (lead)
-- [ ] Points shop: products bought with points or points plus money, who sees them, only with points products (Omar, 2026-10-24; claude2, `docs/plans/points-shop.md`). Parts 1 and 2 merged (#292, #300); part 3 #299 ready for the lead (deploy, merge), then the Testing 3 checks in each PR.
+- [x] Loyalty languages: widget, Rewards page, reward names and emails per store language, 7 built in translations, right to left (#295, #296)
+- [x] Guest checkouts earn as the store chooses, and the program's count-from date (Omar, 2026-10-24; #298)
+- [x] Points shop: points or points plus money, who sees it, only with points (checkout guard, hidden), a Points shop collection, card prices (Omar, 2026-10-24; #292, #300, #299, live fixes #301 to #303). A real purchase by a signed in member with points is still to try on Testing 3 (needs a customer sign in)
 - [x] Analytics rebuild with A/B test results (#262); Track and Returns incentives (#263); cart code savings (#266)
-- [ ] Cart Discount code box as its own feature card in the Cart group (Omar said yes, 2026-10-22; lead)
+- [x] Cart Discount code box as its own feature card in the Cart group (#294)
 - [x] Deep code and live audit (2026-10-23 to 24): `docs/audit-2026-10-23.md`, #274 to #291, live as cro-toolbox-63
 - [ ] All candidate listing images, for Omar to choose (#273)
 - [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, usage meters, protected customer

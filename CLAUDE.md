@@ -15,20 +15,26 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
-## Status (2026-10-22)
+## Status (2026-10-24)
 
-- Lead handoff 2026-10-22: read `HANDOFF.md`. Loyalty (Pro) is being built in parts (`docs/plans/loyalty.md`,
-  draft PR #260 next). New prices are in the code; the Partner Dashboard still has the old ones (Omar updates it
-  once, at the end).
-- Live: Shopify app version **cro-toolbox-55**, admin on Render (`https://cro-toolbox.onrender.com`,
+- Live: Shopify app version **cro-toolbox-72**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
-  Test store: **Testing 3** `testing-3-xsslpo6d` (back on the Free plan; switch to a $0 test plan to test paid features).
-- Block G done: G1 to G11, MCP read/build tools (offers, discounts, bundles). Tested on Testing 3 on
-  2026-10-18: Track page (prices, next order code, buy again, timeline by webhook), returns (request,
-  approve, refund confirm, Shopify reason), wishlist page, cart discount box, size guide. Open bugs in
-  `docs/WORKBOARD.md` ("Testing 3 run 2026-10-18").
+  Test store: **Testing 3** `testing-3-xsslpo6d`, on the **Pro** test plan.
+- Loyalty is complete on Growth and Pro (`docs/plans/loyalty.md`): parts 1 to 11, languages (#295, 7 built in
+  translations, right to left #296), guest checkouts (#298, Earn points → Orders placed as a guest; the program's
+  count-from date `LoyaltyProgram.countFrom`), and the Points shop (`docs/plans/points-shop.md`: #292, #300, #299,
+  live fixes #301 to #303). Usage limits and extras per plan (#271).
+- Deep audit 2026-10-23 to 24 done: `docs/audit-2026-10-23.md` (#274 to #291).
+- Discount code box has its own card in the Cart group (#294). Website: loyalty pages live (#293).
+- Testing 3 test data: Points shop on with The Collection Snowboard: Hydrogen (only with points, 2,500 points, in the
+  "Points shop" collection); loyalty language Arabic saved; test discount GUARDTEST100 (100% off two collections)
+  still active: deactivate it in Discounts when done.
+- The second account (claude2) is no longer used (Omar, 2026-10-24): the lead does all the work.
+- Waiting for Omar: Postmark tokens in Render (emails send nothing until then), App Events API key in Render (usage
+  billing), installing Shopify Flow on Testing 3, the single Partner Dashboard update (new prices, usage meters,
+  protected customer data, network access, listing). New prices are in the code only.
 - Website: keyword pages and alternative pages live (SEO plan `docs/plans/seo-geo.md`).
-- Email: support@, info@, features@, pro@, 17track@, omar@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
+- Email: support@, info@, features@, pro@, 17track@, omar@, postmark@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
 - Partner Dashboard: protected customer data saved (works on dev stores; reviewed at submission).
 
 ## Website
