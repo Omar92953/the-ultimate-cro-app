@@ -20,7 +20,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 let P: typeof import("../../app/lib/loyalty/program.server");
 let S: typeof import("../../app/lib/loyalty/shop.server");
 before(async () => {
-  for (const m of ["20261019000000_tracking", "20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations", "20261102000000_usage_extras", "20261103000000_loyalty_account_metafield"]) {
+  for (const m of ["20261019000000_tracking", "20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations", "20261102000000_usage_extras", "20261103000000_loyalty_account_metafield", "20261106000000_loyalty_count_from"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }

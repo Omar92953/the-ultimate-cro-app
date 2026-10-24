@@ -104,11 +104,13 @@ export function checkBundles(bundles, cart, stamp = "") {
 /**
  * Errors for Points shop products sold only with points: each item of such a line may cost at most its money part (the
  * member's code takes the rest off one item, so a second item, or the product without the code, is refused).
- * @param {any} points [{ p: product gid, m: money per item }]
+ * @param {any} points [{ p: product gid, m: money per item, in the shop's currency }]
  * @param {any} cart
+ * @param {number} rate the buyer's currency per 1 of the shop's (input.presentmentCurrencyRate): line costs are in it
  */
-export function checkPoints(points, cart) {
-  const money = new Map(Array.isArray(points) ? points.map((x) => [String(x?.p), Number(x?.m) || 0]) : []);
+export function checkPoints(points, cart, rate = 1) {
+  const r = Number(rate) > 0 ? Number(rate) : 1;
+  const money = new Map(Array.isArray(points) ? points.map((x) => [String(x?.p), (Number(x?.m) || 0) * r]) : []);
   if (!money.size) return [];
   const errors = [];
   for (const line of cart.lines) {
@@ -140,7 +142,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart, Number(input.presentmentCurrencyRate) || 1), ...(rules.length ? check(rules, input.cart) : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }
