@@ -3,10 +3,12 @@
  * (the strict ledger spend, all or nothing), then Shopify makes a one use code for this customer only, for that
  * variant: its price now minus the money part, on one item. The storefront adds the variant to the cart and applies
  * the code. If Shopify refuses, the points come back. Each purchase is kept in LoyaltyReward (kind "shop").
+ * Products sold only with points have a checkout guard, and can be hidden from collections and search (`syncPointsShop`).
  */
 import { randomBytes } from "node:crypto";
 import db from "../../db.server";
 import { AdminError, gql, type AdminClient } from "../admin.server";
+import { syncPointsGuard } from "../checkout-rules.server";
 import { canSeeItem, type LoyaltyConfig, type ShopItem } from "./config";
 import { NotEnoughPoints, record } from "./program.server";
 import { notify } from "./mailer.server";
@@ -92,6 +94,64 @@ export async function buy(admin: AdminClient, shop: string, c: LoyaltyConfig, me
     await record(shop, m.id, { kind: "redeem_back", points: item.points, note: item.product.title, dedupe: `shop-back:${m.id}:${item.id}:${next}` });
     throw e instanceof AdminError ? e : new AdminError("The product could not be added. Your points were returned.");
   }
+}
+
+/* ------------------------------------------------------- only with points -- */
+/** What the app did in the store for the Points shop (LoyaltyProgram.state): the guard is made, products it unlisted. */
+type ShopState = { pointsGuard?: boolean; pointsHidden?: string[] };
+async function readState(shop: string): Promise<Record<string, unknown> & ShopState> {
+  const row = await db.loyaltyProgram.findUnique({ where: { shop }, select: { state: true } });
+  try {
+    const s = JSON.parse(row?.state ?? "{}");
+    return s && typeof s === "object" ? s : {};
+  } catch {
+    return {};
+  }
+}
+async function saveState(shop: string, patch: ShopState) {
+  // Read again just before writing: other parts (referrals, emails) keep their ids in the same place.
+  const s = await readState(shop);
+  await db.loyaltyProgram.updateMany({ where: { shop }, data: { state: JSON.stringify({ ...s, ...patch }) } });
+}
+
+/**
+ * After every save and plan change (storefront.server.ts publishLoyalty): the points guard lists the products sold only
+ * with points (with their money part), and those set to "Hide it from collections and search" are UNLISTED. A product
+ * goes back to ACTIVE when that is switched off, the product is removed, the shop or program is off, or the plan no
+ * longer has loyalty, but only if the app unlisted it (a product the merchant unlisted stays as it is).
+ */
+export async function syncPointsShop(admin: AdminClient, shop: string, c: LoyaltyConfig, running: boolean) {
+  const live = running && c.shop.on ? c.shop.items.filter((x) => x.on && x.only) : [];
+  const state = await readState(shop);
+  const hidden = new Set(Array.isArray(state.pointsHidden) ? state.pointsHidden.map(String) : []);
+  if (live.length || state.pointsGuard) {
+    await syncPointsGuard(admin, live.map((x) => ({ p: x.product.id, m: x.money })));
+  }
+  const want = new Set(live.filter((x) => x.unlisted).map((x) => x.product.id));
+  const ids = [...new Set([...want, ...hidden])];
+  if (ids.length) {
+    const d = await gql(admin, `#graphql
+      query CroPointsStatus($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id status } } }`, { ids });
+    const status = new Map<string, string>(((d?.nodes ?? []) as ({ id: string; status: string } | null)[]).flatMap((n) => (n?.id ? [[n.id, n.status] as [string, string]] : [])));
+    const set = async (id: string, to: "ACTIVE" | "UNLISTED") => {
+      const r = await gql(admin, `#graphql
+        mutation CroPointsListed($p: ProductUpdateInput!) { productUpdate(product: $p) { product { id } userErrors { field message } } }`, { p: { id, status: to } });
+      const errors = (r?.productUpdate?.userErrors ?? []) as { message: string }[];
+      if (errors.length) throw new AdminError(errors[0].message);
+    };
+    for (const id of ids) {
+      const now = status.get(id);
+      if (!now) hidden.delete(id); // The product was deleted.
+      else if (want.has(id) && now === "ACTIVE") {
+        await set(id, "UNLISTED");
+        hidden.add(id);
+      } else if (!want.has(id) && hidden.has(id)) {
+        if (now === "UNLISTED") await set(id, "ACTIVE");
+        hidden.delete(id);
+      }
+    }
+  }
+  await saveState(shop, { pointsGuard: live.length > 0, pointsHidden: [...hidden] });
 }
 
 export { NotEnoughPoints };
