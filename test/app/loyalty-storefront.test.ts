@@ -25,3 +25,10 @@ test("a points purchase puts the code on the cart before the option (the guard r
   assert.match(buy, /discount_codes/, "codes already on the cart are kept");
   assert.match(fs.readFileSync("test/storefront/sections.mjs", "utf8"), /after '\+\(document\.body\.dataset\.codes/);
 });
+
+test("product card points prices go next to a title the shopper sees (Dawn hides a first copy)", () => {
+  const src = fs.readFileSync("extensions/cro-storefront/assets/ucs-loyalty.js", "utf8");
+  const tags = src.slice(src.indexOf("var cardTags = function"), src.indexOf("var buy = function"));
+  assert.match(tags, /getClientRects\(\)\.length/, "hidden title links are skipped");
+  assert.match(fs.readFileSync("test/storefront/sections.mjs", "utf8"), /a hidden title link comes first in each card/);
+});

@@ -228,7 +228,8 @@ pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-booster
   const onlyShop = withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [{ ...loyShop.shop.items[0], only: true, show: "afford" }] } }), true) }));
   pages["loyalty-shop-only.html"] = page("Points shop (only with points, guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   // A collection page (the Points shop collection): the watch's card shows its points price once (image and title links).
-  const card = (h, t) => `<li class="grid__item"><a href="/products/${h}"><img alt="" width="200" height="200"></a><h3><a href="/products/${h}">${t}</a></h3><p>$129.00</p></li>`;
+  // Like Dawn: a hidden title link comes first in each card, the visible one after it.
+  const card = (h, t) => `<li class="grid__item"><a href="/products/${h}"><img alt="" width="200" height="200"></a><div style="display:none"><h3><a href="/products/${h}">${t}</a></h3></div><h3><a href="/products/${h}">${t}</a></h3><p>$129.00</p></li>`;
   pages["loyalty-collection.html"] = page("Points shop collection", `<ul style="display:grid;grid-template-columns:repeat(3,200px);gap:20px;list-style:none;padding:40px">${card("classic-watch", "Classic watch")}${card("sunglasses", "Sunglasses")}</ul>`, (await block("ucs-boosters", {}, { page_type: "collection", shop: shopLoy })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   // Dawn puts a hidden installments form (no buttons) before the product form: the script must use the product form.
   const installments = '<form method="post" action="/cart/add" id="product-form-installment-main" class="installment"><input type="hidden" name="id" value="7701"></form>';
