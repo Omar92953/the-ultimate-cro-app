@@ -30,6 +30,19 @@ cashback, affiliate codes, Klaviyo, Omnisend, Judge.me and Shopify Flow, and sen
 Points from an order count once it is paid. A refund or cancellation takes them back. New points can stay pending for some days
 first (14 by default), so an order that is returned never gives points to spend.
 
+## Guest checkouts
+
+Shoppers who check out without an account give their email, and Shopify keeps a customer for it. Choose under
+**Earn points → Accounts → Orders placed as a guest**:
+
+- **Earn points right away** (the default): the points wait for that email. The customer uses them after creating an
+  account or signing in with it. The thank you page and the rewards widget say so.
+- **Earn points once they create an account**: guest orders earn nothing at first. When the customer creates an
+  account with the email they used, their orders since the program started earn points.
+- **Don't earn points**: only customers with an account earn.
+
+Orders placed before the program started (or before it was turned on again) never earn points.
+
 ## Referrals
 
 On **Referrals**, members share their own link: a friend gets a discount on their first order, and the member gets a

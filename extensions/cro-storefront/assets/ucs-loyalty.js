@@ -115,7 +115,7 @@
     } else if (D.in && !me) {
       h += '<p class="ucs-loy__wait">…</p>';
     } else {
-      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(D.reg) + '">' + esc(t.join) + '</a><a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></div>' + ways() + rewards(null);
+      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small>' + (c.gu && t.guestPast ? '<small>' + esc(t.guestPast) + '</small>' : '') + '<a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(D.reg) + '">' + esc(t.join) + '</a><a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></div>' + ways() + rewards(null);
     }
     body.innerHTML = h;
     if (pageEl) drawPage();
