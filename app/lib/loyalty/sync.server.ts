@@ -9,7 +9,6 @@
  */
 import db from "../../db.server";
 import { gql, type AdminClient } from "../admin.server";
-import { atLeast } from "../plans";
 import { getPlan } from "../billing.server";
 import type { LoyaltyConfig } from "./config";
 import type { OrderFacts } from "./points";
@@ -17,14 +16,18 @@ import { birthdayPoints, expireInactive, getProgram, releasePending, reviewTiers
 import { getReferralState, matchCodes, refreshMemberCodes, syncReferralDiscounts } from "./referrals.server";
 import { pruneEmails, queueScheduled, sendQueued, webhookUrl } from "./mailer.server";
 import { mailProvider } from "../email/provider.server";
-import { judgeMeReviews, sendEvents } from "./integrations.server";
+import { judgeMeReviews, sendEvents, skipEvents } from "./integrations.server";
+import { accessFor, planned } from "./plan.server";
+import { extrasFor, reportUsage } from "../usage.server";
+import { pushAccounts } from "./account.server";
 
 type Money = { shopMoney: { amount: string; currencyCode?: string } } | null;
-type CustomerNode = { id: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
+type CustomerNode = { id: string; updatedAt?: string; locale: string | null; tags: string[]; state: string; defaultEmailAddress: { emailAddress: string; marketingState?: string | null } | null } | null;
 type OrderNode = {
   id: string;
   name: string;
   createdAt: string;
+  updatedAt?: string;
   cancelledAt: string | null;
   discountCodes?: string[];
   displayFinancialStatus: string | null;
@@ -35,7 +38,7 @@ type OrderNode = {
   lineItems?: { nodes: { currentQuantity: number; discountedUnitPriceAfterAllDiscountsSet: Money; product: { id: string } | null }[] };
 };
 
-const ORDER_FIELDS = `id name createdAt cancelledAt discountCodes displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress marketingState } }`;
+const ORDER_FIELDS = `id name createdAt updatedAt cancelledAt discountCodes displayFinancialStatus currentSubtotalPriceSet { shopMoney { amount currencyCode } } currentShippingPriceSet { shopMoney { amount } } currentTotalTaxSet { shopMoney { amount } } customer { id locale tags state defaultEmailAddress { emailAddress marketingState } }`;
 // Lines only when the store has product or collection rules (they make the query heavier).
 const LINE_FIELDS = `lineItems(first: 30) { nodes { currentQuantity discountedUnitPriceAfterAllDiscountsSet { shopMoney { amount } } product { id } } }`;
 const fieldsFor = (c: LoyaltyConfig) => (c.productRules.length ? `${ORDER_FIELDS} ${LINE_FIELDS}` : ORDER_FIELDS);
@@ -50,7 +53,7 @@ export function factsFromNode(n: OrderNode): OrderFacts {
     id: idOf(n.id),
     name: n.name,
     createdAt: n.createdAt,
-    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [], marketing: c.defaultEmailAddress?.marketingState === "SUBSCRIBED" } : null,
+    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [], marketing: c.defaultEmailAddress?.marketingState === "SUBSCRIBED", account: c.state === "ENABLED" } : null,
     paid: PAID.has(String(n.displayFinancialStatus ?? "")),
     cancelled: !!n.cancelledAt,
     subtotal: amount(n.currentSubtotalPriceSet),
@@ -77,10 +80,19 @@ async function fillCollections(admin: AdminClient, c: LoyaltyConfig, facts: Orde
 }
 
 /** Orders and accounts changed since `since`, at most 10 pages of 50 each per read (the rest on the next read). */
+/**
+ * Orders and customers changed since `since`, 10 pages of each a run. When there were more, `resumeAt` is the change
+ * time of the last one read: the next run goes on from there (reading again is safe, every change counts once).
+ */
 async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, since: Date) {
   const q = `updated_at:>='${since.toISOString()}'`;
   let after: string | null = null;
   let orders = 0;
+  let resumeAt: Date | null = null;
+  const stopAt = (iso: string | undefined) => {
+    const at = iso ? new Date(iso) : null;
+    if (at && !Number.isNaN(at.getTime()) && (!resumeAt || at < resumeAt)) resumeAt = at;
+  };
   for (let page = 0; page < 10; page++) {
     const data: { orders: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: OrderNode[] } } = await gql(admin, `#graphql
       query CroLoyaltyOrders($q: String!, $after: String, $first: Int!) { orders(first: $first, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { ${fieldsFor(c)} } } }`, { q, after, first: c.productRules.length ? 25 : 50 });
@@ -91,6 +103,7 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
       if (f.codes?.length) await matchCodes(admin, shop, c, f).catch((e) => console.error(`[loyalty] codes ${shop}:`, e instanceof Error ? e.message : e));
     }
     if (!data.orders.pageInfo.hasNextPage) break;
+    if (page === 9) stopAt(data.orders.nodes.at(-1)?.updatedAt);
     after = data.orders.pageInfo.endCursor;
   }
   let signups = 0;
@@ -98,41 +111,64 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
     after = null;
     for (let page = 0; page < 10; page++) {
       const data: { customers: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: NonNullable<CustomerNode>[] } } = await gql(admin, `#graphql
-        query CroLoyaltyCustomers($q: String!, $after: String) { customers(first: 50, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { id locale tags state defaultEmailAddress { emailAddress marketingState } } } }`, { q, after });
+        query CroLoyaltyCustomers($q: String!, $after: String) { customers(first: 50, after: $after, query: $q, sortKey: UPDATED_AT) { pageInfo { hasNextPage endCursor } nodes { id updatedAt locale tags state defaultEmailAddress { emailAddress marketingState } } } }`, { q, after });
       for (const n of data.customers.nodes) {
         const done = await syncSignup(shop, c, { id: idOf(n.id), email: (n.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: n.locale ?? "", tags: n.tags ?? [], marketing: n.defaultEmailAddress?.marketingState === "SUBSCRIBED", accountActive: n.state === "ENABLED" }).catch(() => null);
         if (done) signups++;
+        // A guest who made an account: the orders they placed as a guest earn now (Orders placed as a guest: when
+        // they create an account). Only while they have no counted order yet, so this runs once or twice per person.
+        if (c.guests === "account" && n.state === "ENABLED" && !((await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: idOf(n.id) } }, select: { orders: true } }))?.orders ?? 0)) {
+          await customerOrders(shop, admin, c, idOf(n.id), 25).catch((e) => console.error(`[loyalty] guest orders ${shop}:`, e instanceof Error ? e.message : e));
+        }
       }
       if (!data.customers.pageInfo.hasNextPage) break;
+      if (page === 9) stopAt(data.customers.nodes.at(-1)?.updatedAt);
       after = data.customers.pageInfo.endCursor;
     }
   }
-  return { orders, signups };
+  return { orders, signups, resumeAt: resumeAt as Date | null };
 }
 
 /** One store: reads what changed since the last read (5 minutes of overlap, so nothing in between is missed). */
 export async function syncShop(shop: string, admin: AdminClient) {
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
-  if (!p?.on) return null;
-  const { plan } = await getPlan(admin, shop);
-  const { config } = await getProgram(shop);
-  if (!atLeast(plan, "pro")) {
-    // Left Pro: referral and affiliate codes stop working (kept, so they work again on Pro).
-    await syncReferralDiscounts(admin, shop, config, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
+  const accounts = (config: LoyaltyConfig, active: boolean) => pushAccounts(admin, shop, config, active).catch((e) => console.error(`[loyalty] account metafields ${shop}:`, e instanceof Error ? e.message : e));
+  // Off: the extensions on customer accounts, checkout and POS hide the program (written once).
+  if (!p?.on) {
+    if (p) await accounts((await getProgram(shop)).config, false);
     return null;
+  }
+  const { plan } = await getPlan(admin, shop);
+  const access = accessFor(plan, await extrasFor(shop));
+  const { config: saved } = await getProgram(shop);
+  if (!access.on) {
+    // Below Growth: referral and affiliate codes stop working (kept, so they work again after an upgrade).
+    await syncReferralDiscounts(admin, shop, saved, false).catch((e) => console.error(`[loyalty] referrals ${shop}:`, e instanceof Error ? e.message : e));
+    await accounts(saved, false);
+    return null;
+  }
+  // Growth runs without the Pro parts (config.ts forPlan), with its member and email limits.
+  const config = planned(saved, access);
+  if (!access.pro && Object.values((await getReferralState(shop)).aff ?? {}).some((a) => a.on)) {
+    await syncReferralDiscounts(admin, shop, config, true).catch((e) => console.error(`[loyalty] affiliates ${shop}:`, e instanceof Error ? e.message : e));
   }
   const started = new Date();
   const since = new Date((p.syncedAt ?? started).getTime() - 5 * 60_000);
   const done = await readChanges(admin, shop, config, since);
-  await db.loyaltyProgram.update({ where: { shop }, data: { syncedAt: started } });
+  // More changes than one run reads: the next run goes on from the last one read (unless that made no progress,
+  // when hundreds share one change time: then from now, so the run can never get stuck).
+  const next = done.resumeAt && done.resumeAt.getTime() > since.getTime() + 5 * 60_000 ? done.resumeAt : started;
+  await db.loyaltyProgram.update({ where: { shop }, data: { syncedAt: next } });
   await expireInactive(shop, config);
   await refreshMemberCodes(admin, shop, await getReferralState(shop)).catch((e) => console.error(`[loyalty] referral codes ${shop}:`, e instanceof Error ? e.message : e));
   await issueCashback(admin, shop).catch((e) => console.error(`[loyalty] cashback ${shop}:`, e instanceof Error ? e.message : e));
   // Emails last, so the ones the changes above queued go out in this run.
   await queueScheduled(shop, config, started).catch((e) => console.error(`[loyalty] email queue ${shop}:`, e instanceof Error ? e.message : e));
   await sendQueued(admin, shop, config, started).catch((e) => console.error(`[loyalty] emails ${shop}:`, e instanceof Error ? e.message : e));
-  await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
-  await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
+  if (access.pro) {
+    await sendEvents(shop, config, fetch, started, admin).catch((e) => console.error(`[loyalty] events ${shop}:`, e instanceof Error ? e.message : e));
+    await judgeMeReviews(shop, config).catch((e) => console.error(`[loyalty] Judge.me ${shop}:`, e instanceof Error ? e.message : e));
+  } else await skipEvents(shop, "Needs the Pro plan").catch(() => null);
   if (config.tiers.on && config.tiers.tag) await syncTierTags(admin, shop, config).catch((e) => console.error(`[loyalty] tier tags ${shop}:`, e instanceof Error ? e.message : e));
   // Once a day per store: birthdays, and tiers measured over the last 12 months.
   const today = started.toISOString().slice(0, 10);
@@ -141,6 +177,8 @@ export async function syncShop(shop: string, admin: AdminClient) {
     await birthdayPoints(shop, config, started);
     if (config.tiers.period === "year") await reviewTiers(shop, config, started);
   }
+  // Last, so the metafields have this run's points, tiers and codes.
+  await accounts(config, true);
   return done;
 }
 const dailyDone = new Map<string, string>();
@@ -188,8 +226,14 @@ export async function syncCustomer(shop: string, admin: AdminClient, customerId:
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
   if (!p?.on) return;
   const { config } = await getProgram(shop);
+  await customerOrders(shop, admin, config, customerId, 10);
+}
+
+/** A customer's last orders placed since the program counts from (older ones never earn), read and counted. */
+async function customerOrders(shop: string, admin: AdminClient, config: LoyaltyConfig, customerId: string, first: number) {
+  const q = config.from ? `created_at:>='${config.from}'` : "";
   const data = await gql(admin, `#graphql
-    query CroLoyaltyMemberOrders($id: ID!) { customer(id: $id) { orders(first: 10, sortKey: CREATED_AT, reverse: true) { nodes { ${fieldsFor(config)} } } } }`, { id: `gid://shopify/Customer/${customerId}` });
+    query CroLoyaltyMemberOrders($id: ID!, $first: Int!, $q: String) { customer(id: $id) { orders(first: $first, sortKey: CREATED_AT, reverse: true, query: $q) { nodes { ${fieldsFor(config)} } } } }`, { id: `gid://shopify/Customer/${customerId}`, first, q: q || null });
   const facts = ((data.customer?.orders?.nodes ?? []) as OrderNode[]).map(factsFromNode);
   await fillCollections(admin, config, facts).catch(() => null);
   for (const f of facts) {
@@ -203,6 +247,36 @@ declare global {
   var croLoyaltyTimer: ReturnType<typeof setInterval> | undefined;
 }
 
+/** A store's run gets this long before the next store starts. */
+const STORE_BUDGET_MS = 3 * 60_000;
+const inFlight = new Set<string>();
+
+/**
+ * Each store in turn, at most `budgetMs` each: a store that takes longer goes on in the background and is skipped by
+ * the next runs until it is done, so one slow store never delays the others (and never runs twice at once).
+ */
+export async function runStores(shops: string[], one: (shop: string) => Promise<unknown>, budgetMs = STORE_BUDGET_MS) {
+  for (const shop of shops) {
+    if (inFlight.has(shop)) {
+      console.error(`[loyalty] ${shop}: the earlier run is still going, skipped this time`);
+      continue;
+    }
+    inFlight.add(shop);
+    const work = one(shop)
+      .catch((e) => console.error(`[loyalty] ${shop}:`, e instanceof Error ? e.message : e))
+      .finally(() => inFlight.delete(shop));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<"late">((r) => (timer = setTimeout(() => r("late"), budgetMs)));
+    if ((await Promise.race([work.then(() => "done" as const), late])) === "late") console.error(`[loyalty] ${shop}: over ${Math.round(budgetMs / 1000)} seconds, the next stores go on`);
+    clearTimeout(timer);
+  }
+}
+
+/** The steps after the stores, each on its own: one failing never skips the next. */
+export async function afterStores(steps: [string, () => Promise<unknown>][]) {
+  for (const [name, step] of steps) await step().catch((e) => console.error(`[loyalty] ${name}:`, e instanceof Error ? e.message : e));
+}
+
 /** Every 10 minutes: each store with loyalty on, then pending points that are due. Not in tests or local development. */
 export function startLoyaltyJobs() {
   if (globalThis.croLoyaltyTimer || process.env.NODE_ENV !== "production") return;
@@ -212,16 +286,27 @@ export function startLoyaltyJobs() {
     running = true;
     try {
       const { unauthenticated } = await import("../../shopify.server");
-      for (const p of await db.loyaltyProgram.findMany({ where: { on: true }, select: { shop: true } })) {
-        try {
-          const { admin } = await unauthenticated.admin(p.shop);
-          await syncShop(p.shop, admin);
-        } catch (e) {
-          console.error(`[loyalty] ${p.shop}:`, e instanceof Error ? e.message : e);
+      // Also stores that turned the program off in the last 20 minutes, so their extensions hide it.
+      const shops = (await db.loyaltyProgram.findMany({ where: { OR: [{ on: true }, { updatedAt: { gte: new Date(Date.now() - 20 * 60_000) } }] }, select: { shop: true } })).map((p) => p.shop);
+      await runStores(shops, async (shop) => {
+        const { admin } = await unauthenticated.admin(shop);
+        await syncShop(shop, admin);
+      });
+      // Units over a plan limit (any store, tracking too) go to Shopify App Pricing as billable events.
+      const ids = new Map<string, string>();
+      const usage = () => reportUsage(async (shop) => {
+        if (!ids.has(shop)) {
+          const { admin } = await unauthenticated.admin(shop);
+          ids.set(shop, String((await gql(admin, `#graphql
+            query CroShopId { shop { id } } `)).shop?.id ?? "").split("/").pop() ?? "");
         }
-      }
-      await releasePending();
-      await pruneEmails().catch(() => null);
+        return ids.get(shop) || null;
+      });
+      await afterStores([
+        ["pending points", () => releasePending()],
+        ["old emails", () => pruneEmails()],
+        ["usage report", usage],
+      ]);
     } finally {
       running = false;
     }

@@ -16,9 +16,10 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 6 | Referrals and affiliate links with fraud checks | Done (#260): one "Loyalty referrals" discount holds every member code, affiliate discounts, fraud rules, gifts pending then usable and taken back on refunds, Referrals page, widget link and share buttons, `?ref=` banner |
 | 7 | Emails with Postmark and the store's own sender | Done (#265): 11 emails, Emails page with preview and test send, own sender with DNS records and Verify, one-click unsubscribe, bounces, log, 10,000 a month |
 | 8 | Klaviyo, Omnisend, Judge.me (review points), Shopify Flow trigger and action | Done: Klaviyo, Omnisend, Judge.me and review points (#268); Shopify Flow, 4 triggers, the Add loyalty points action and the lifecycle callback (#270) |
-| 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | To do |
+| 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | Built in #272 (extensions cro-loyalty-account, cro-loyalty-checkout, cro-loyalty-pos) |
 | 10 | Loyalty analytics, CSV import and export, languages | Analytics and CSV in #269; languages to do |
 | 11 | Website (remove "loyalty" from `SITE_HIDDEN` in `app/lib/catalog.ts`, feature page, help, privacy with Postmark, Klaviyo and Omnisend, pricing highlight), docs, App Store audit, Partner Dashboard list | To do |
+| 12 | Points shop (Omar, 2026-10-24): products bought with points or points plus money, only with points, a collection | Parts 1 and 2 merged (#292, #300); part 3 in #299; plan `docs/plans/points-shop.md` |
 
 Rows follow the plan's "Work, in PRs" list below. Commit messages and PR titles count loyalty parts from the core
 (their "part 1" is row 2), so "part 5" in PR #260 is row 6.
@@ -44,7 +45,14 @@ How it works today (read the code before changing it):
 Omar wants a full loyalty program inside CRO Toolbox, with every feature of Essent Loyalty Program Rewards
 (points, store credit cashback, VIP tiers, referrals and affiliate links, emails, POS, Klaviyo / Omnisend /
 Judge.me / Flow, customer account page, loyalty page, analytics, languages), **including the Shopify Plus
-checkout features**, **Pro plan only**, with emails sent by a **paid email service** (best option chosen below).
+checkout features**, with emails sent by a **paid email service** (best option chosen below). **Plans (Omar,
+2026-10-22): Growth and Pro.** Growth: points, rewards, widget and Rewards page, referrals, birthday, social and
+review points, emails; 500 loyalty orders and 1,000 emails a month. Pro: everything (VIP tiers, campaigns,
+product rules, cashback, affiliates, integrations, own sender, checkout and POS); 2,000 loyalty orders and 5,000
+emails a month. Above a limit: $5 per 100 orders, $2 per 1,000 emails ($4 per 100 live tracked shipments), only when
+the store turns "Allow extra" on (Settings → Usage this month); bars warn at 80%. Billed as Shopify App Pricing usage
+meters (live-shipments, loyalty-orders, loyalty-emails) through the App Events API (app/lib/usage.server.ts).
+Limits live in `app/lib/plans.ts`; Pro only parts in `forPlan` (`app/lib/loyalty/config.ts`).
 Partner Dashboard changes (prices, protected customer data, network access, listing) are done **once, at the
 very end**, after his next messages and audits. He also asked that the **plan cards show how many shipping
 companies** tracking works with. The rest of the audit (Analytics with A/B results, cart Discount code,

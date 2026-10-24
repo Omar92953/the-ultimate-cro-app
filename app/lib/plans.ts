@@ -42,6 +42,12 @@ export type Limits = {
    * protected customer data approval). Soft: going over only shows a banner, nothing switches off.
    */
   monthlyOrders: number | null;
+  /** Shipments tracked live through the app's own tracking account (17TRACK) each calendar month. A store's own tracking key has no limit (Omar, 2026-10-22). */
+  liveShipments: number | null;
+  /** Orders that earn loyalty points each calendar month. At the limit orders stop earning until next month, unless the store allows extra. */
+  loyaltyOrders: number | null;
+  /** Loyalty emails sent each calendar month. */
+  loyaltyEmails: number | null;
 };
 export type LimitKey = keyof Omit<Limits, "trialFeatures">;
 
@@ -76,7 +82,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 0,
     yearly: 0,
     trialDays: 0,
-    limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: 50 },
+    limits: { offerSlots: 3, checkoutRules: 3, countdownPlaces: 1, thankYouModules: 2, trialFeatures: 1, offerStats: 1, designsPerSection: 1, monthlyOrders: 50, liveShipments: 0, loyaltyOrders: 0, loyaltyEmails: 0 },
     highlights: ["3 offers on at once", "Cart offers and announcement bars", "Reviews, FAQ and wishlist", "Sales pop-ups and trust badges", "After purchase offer and thank you", "3 checkout rules", "Try 1 Starter feature free"],
   },
   starter: {
@@ -87,7 +93,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 5.99,
     yearly: 59,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500 },
+    limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500, liveShipments: 0, loyaltyOrders: 0, loyaltyEmails: 0 },
     highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section", "Connect Claude to your store"],
   },
   growth: {
@@ -98,9 +104,9 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 19.99,
     yearly: 199,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000 },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000, liveShipments: 200, loyaltyOrders: 500, loyaltyEmails: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Offer results and a holdout test", "Track and Returns pages", "Basic tracking for any Shopify carrier", "Your tracking page sells too", "Shoppable images"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Offer results and a holdout test", "Track and Returns pages", "Live tracking, 200 shipments a month", "Loyalty for 500 orders a month", "Your tracking page sells too", "Shoppable images"],
   },
   pro: {
     key: "pro",
@@ -110,9 +116,9 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 39.99,
     yearly: 399,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null, liveShipments: 500, loyaltyOrders: 2000, loyaltyEmails: 5000 },
     badge: "No limits",
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Track 3,500+ carriers and any courier", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Live tracking, 500 shipments a month", "Loyalty for 2,000 orders a month", "VIP tiers, Klaviyo and Shopify Flow", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
   },
 };
 
@@ -132,6 +138,8 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   // Cart (these sit in the Storefront hub, group Cart)
   cart_offers: "free",
   cart_extras: "starter",
+  // Same design and theme block as cart_extras (plan-park.ts parks them together), so the same plan.
+  cart_code: "starter",
   // Storefront
   reviews: "free",
   product_reviews: "free",
@@ -174,7 +182,8 @@ export const FEATURE_PLAN: Record<FeatureKey, PlanKey> = {
   post_purchase: "free",
   ab_tests: "pro",
   return_saving: "pro",
-  loyalty: "pro",
+  // Growth: points, rewards, referrals and emails within the loyalty limits; Pro: everything (LOYALTY_PRO in lib/loyalty/config.ts).
+  loyalty: "growth",
 };
 
 /** Things inside a page that need a plan (the page itself stays open). */
@@ -226,6 +235,9 @@ const NOUN: Record<LimitKey, [string, string]> = {
   offerStats: ["offer with its own results", "offers with their own results"],
   designsPerSection: ["style per section", "styles per section"],
   monthlyOrders: ["order a month", "orders a month"],
+  liveShipments: ["live tracked shipment a month", "live tracked shipments a month"],
+  loyaltyOrders: ["loyalty order a month", "loyalty orders a month"],
+  loyaltyEmails: ["loyalty email a month", "loyalty emails a month"],
 };
 export const limitText = (k: LimitKey, n: number) => `${n.toLocaleString("en-US")} ${NOUN[k][n === 1 ? 0 : 1]}`;
 /** "Up to 500 orders monthly" / "Unlimited orders monthly" (the plan card's line). */
@@ -304,3 +316,16 @@ export function planFromSubscription(handleOrName: string | null | undefined): P
 }
 
 export const price = (n: number) => (n === 0 ? "Free" : `$${n % 1 ? n.toFixed(2) : n}`);
+
+/**
+ * Limits a store can go over for a price per unit (Omar, 2026-10-22): off until the store turns "Allow extra" on
+ * (Settings → Usage); the bars warn at 80% and at the limit. Each unit over is a billable event for the usage meter
+ * with this handle in Shopify App Pricing (Partner Dashboard). Prices: `price` for every `per` units.
+ */
+export const METERS = {
+  liveShipments: { handle: "live-shipments", title: "Live tracked shipments", unit: "shipments", per: 100, price: 4, atLimit: "Tracking uses Shopify's data until next month." },
+  loyaltyOrders: { handle: "loyalty-orders", title: "Loyalty orders", unit: "orders", per: 100, price: 5, atLimit: "Orders stop earning points until next month." },
+  loyaltyEmails: { handle: "loyalty-emails", title: "Loyalty emails", unit: "emails", per: 1000, price: 2, atLimit: "Loyalty emails wait until next month." },
+} as const satisfies Partial<Record<LimitKey, { handle: string; title: string; unit: string; per: number; price: number; atLimit: string }>>;
+export type MeterKey = keyof typeof METERS;
+export const METER_KEYS = Object.keys(METERS) as MeterKey[];

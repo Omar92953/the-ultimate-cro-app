@@ -1,11 +1,12 @@
 /**
- * Loyalty program settings (Pro): how members earn points, when points can be used and when they expire.
+ * Loyalty program settings (Growth and Pro; Pro only parts in `forPlan`): how members earn points, when points can be used and when they expire.
  * Stored per store in LoyaltyProgram.config (lib/loyalty/program.server.ts). Rewards, tiers, referrals,
  * emails and the storefront look are added to this same object by their own pages.
  * Shared by client and server; no dashes or first person in the texts.
  */
 import { color, num, pick, str } from "../designs";
-import { DEFAULT_EMAILS, withEmailDefaults, type EmailSettings } from "./emails";
+import type { PlanKey } from "../plans";
+import { DEFAULT_EMAILS, EMAIL_KINDS, withEmailDefaults, type EmailKind, type EmailSettings } from "./emails";
 
 export const REWARD_KINDS = ["amount", "percent", "shipping", "product", "credit"] as const;
 export type RewardKind = (typeof REWARD_KINDS)[number];
@@ -38,15 +39,30 @@ export type FriendKind = (typeof FRIEND_KINDS)[number];
  */
 export type Affiliate = { id: string; on: boolean; name: string; code: string; kind: FriendKind; value: number; minimum: number; commission: number };
 export const MAX_AFFILIATES = 50;
+/** Who sees a Points shop product: everyone (guests see it but can't get it), members with enough points, or members from `from` points. */
+export const SHOP_SHOW = ["all", "afford", "from"] as const;
+export type ShopShow = (typeof SHOP_SHOW)[number];
+export const SHOP_SHOW_LABEL: Record<ShopShow, string> = { all: "Everyone", afford: "Members with enough points", from: "Members from a number of points" };
+/**
+ * A product in the Points shop (Omar, 2026-10-24): members get it for `points`, plus `money` per item (0 = points only,
+ * always less than the price), with a one use code for that variant. `only`: it can't be bought with money;
+ * `unlisted`: hidden from collections and search (only with `only`). `limit` per customer (0 = no limit).
+ */
+export type ShopItem = { id: string; on: boolean; product: { id: string; title: string; handle: string; image: string; price: number }; points: number; money: number; only: boolean; unlisted: boolean; show: ShopShow; from: number; limit: number };
+export const MAX_SHOP_ITEMS = 50;
 /** Affiliate codes: upper case letters, digits, _ and -, 3 to 30 characters. */
 export const cleanCode = (v: unknown) => String(v ?? "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
 
 /** Every word of the storefront widget (the look editor and languages come later on the same object). */
+export const GUEST_ORDERS = ["now", "account", "off"] as const;
+export type GuestOrders = (typeof GUEST_ORDERS)[number];
+
 export const WIDGET_TEXTS = {
   launcher: "Rewards",
   title: "Rewards",
   guestTitle: "Join and earn rewards",
   guestText: "Earn points on every order and spend them on rewards.",
+  guestPast: "Ordered before with your email? Create an account with it and get your points.",
   join: "Create an account",
   tier: "{tier} member",
   nextTier: "{n} to {tier}",
@@ -92,6 +108,11 @@ export const WIDGET_TEXTS = {
   creditGift: "{x} in store credit",
   referWay: "Refer a friend",
   email: "Email",
+  shopTitle: "Shop with points",
+  shopGet: "Get it for {price}",
+  shopSignIn: "Sign in to get it with points",
+  shopMore: "{n} more to get it",
+  shopHave: "You have {have} of {n}",
 } as const;
 export type WidgetTexts = Record<keyof typeof WIDGET_TEXTS, string>;
 
@@ -100,6 +121,12 @@ export type LoyaltyConfig = {
   unit: { one: string; many: string };
   /** Customers join by themselves with their first order or account (on), or only from the widget's Join button (off). */
   autoJoin: boolean;
+  /**
+   * Orders placed as a guest (checkout with an email, no account): "now" they earn right away and the points wait for
+   * that email until the customer signs in or creates an account; "account" they earn once the customer creates an
+   * account with that email; "off" only customers with an account earn. Needs customers to join by themselves.
+   */
+  guests: GuestOrders;
   /** Customers with one of these tags can't earn or redeem (for example wholesale). Comma separated. */
   excludeTags: string;
   earn: {
@@ -133,13 +160,99 @@ export type LoyaltyConfig = {
    */
   referral: { on: boolean; friend: { kind: FriendKind; value: number; minimum: number }; gift: { kind: "points" | "credit"; value: number }; monthly: number };
   affiliates: Affiliate[];
+  /** The Points shop: products members get with points (codes valid `days` days, like the rewards'); `collection`: the app keeps a "Points shop" collection. */
+  shop: { on: boolean; days: number; items: ShopItem[]; collection: boolean };
   /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
   emails: EmailSettings;
+  /** Set by plan.server.ts `planned` only, never saved: the plan, for the monthly limits (plans.ts METERS). */
+  usage?: { plan: PlanKey; ordersExtra: boolean; emailsExtra: boolean };
+  /** Runtime only (program.server.ts getProgram): orders placed before this date never earn. */
+  from?: string;
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
   page: { title: string; sub: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+  /** The store's other languages (Loyalty → Languages, languages.ts). */
+  languages: LoyaltyLanguage[];
 };
+
+/**
+ * Texts in one more store language. Shoppers see the language their store page is in, emails go in the language of
+ * the customer's account; an empty text uses the main language's (the program's own settings).
+ */
+export type LoyaltyLanguage = {
+  /** The store language's code, lower case: "fr", "pt-br". */
+  code: string;
+  texts: Partial<WidgetTexts>;
+  unit: { one: string; many: string };
+  /** The Rewards page; `how` and `faq` follow the main page's items by their place. */
+  page: { title: string; sub: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+  /** Reward titles by reward id. */
+  rewards: Record<string, string>;
+  emails: Partial<Record<EmailKind, { subject: string; heading: string; body: string; button: string }>>;
+  footer: string;
+  unsubscribe: string;
+};
+export const MAX_LANGUAGES = 10;
+const LANG_CODE = /^[a-z]{2,3}(-[a-z0-9]{2,4})?$/;
+
+/** The languages, cleaned: known text keys only, each text cut to its main text's length, empties left out. */
+export function cleanLanguages(raw: unknown): LoyaltyLanguage[] {
+  const line = (v: unknown, max: number) => (typeof v === "string" ? v.replace(/[\r\n]+/g, " ").slice(0, max).trim() : "");
+  const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max).trim() : "");
+  const seen = new Set<string>();
+  const out: LoyaltyLanguage[] = [];
+  for (const x of Array.isArray(raw) ? raw : []) {
+    const l = obj(x);
+    const code = String(l.code ?? "").toLowerCase().trim();
+    if (!LANG_CODE.test(code) || seen.has(code) || out.length >= MAX_LANGUAGES) continue;
+    seen.add(code);
+    const t = obj(l.texts), u = obj(l.unit), g = obj(l.page), rw = obj(l.rewards), em = obj(l.emails);
+    const list = (v: unknown, n: number) => (Array.isArray(v) ? v.slice(0, n).map(obj) : []);
+    out.push({
+      code,
+      texts: Object.fromEntries((Object.keys(WIDGET_TEXTS) as (keyof typeof WIDGET_TEXTS)[]).map((k) => [k, line(t[k], 200)]).filter(([, v]) => v)) as Partial<WidgetTexts>,
+      unit: { one: line(u.one, 20), many: line(u.many, 20) },
+      page: {
+        title: line(g.title, 60),
+        sub: line(g.sub, 200),
+        how: list(g.how, 4).map((h) => ({ t: line(h.t, 40), x: line(h.x, 160) })),
+        faq: list(g.faq, MAX_FAQ).map((f) => ({ q: line(f.q, 160), a: text(f.a, 600) })),
+      },
+      rewards: Object.fromEntries(Object.entries(rw).filter(([id]) => /^[a-z0-9]{1,12}$/i.test(id)).slice(0, 50).map(([id, v]) => [id, line(v, 80)]).filter(([, v]) => v)),
+      emails: Object.fromEntries(
+        EMAIL_KINDS.map((k) => {
+          const e = obj(em[k]);
+          return [k, { subject: line(e.subject, 120), heading: line(e.heading, 120), body: text(e.body, 600), button: line(e.button, 40) }] as const;
+        }).filter(([, e]) => e.subject || e.heading || e.body || e.button),
+      ),
+      footer: line(l.footer, 300),
+      unsubscribe: line(l.unsubscribe, 40),
+    });
+  }
+  return out;
+}
+
+/** Only the texts a language fills in, for the storefront copy ("lg"): the widget's words, points name, page, rewards. */
+type StorefrontPage = { title?: string; sub?: string; how: { t: string; x: string }[]; faq: { q: string; a: string }[] };
+function storefrontLanguages(c: LoyaltyConfig) {
+  return Object.fromEntries(
+    c.languages.map((l) => [
+      l.code,
+      {
+        t: l.texts,
+        u: l.unit.one || l.unit.many ? { one: l.unit.one || c.unit.one, many: l.unit.many || c.unit.many } : null,
+        pg: {
+          ...(l.page.title ? { title: l.page.title } : {}),
+          ...(l.page.sub ? { sub: l.page.sub } : {}),
+          how: c.page.how.map((h, i) => ({ t: l.page.how[i]?.t || h.t, x: l.page.how[i]?.x || h.x })),
+          faq: c.page.faq.map((f, i) => ({ q: l.page.faq[i]?.q || f.q, a: l.page.faq[i]?.a || f.a })),
+        } as StorefrontPage,
+        rw: l.rewards,
+      },
+    ]),
+  );
+}
 
 export const MAX_FAQ = 8;
 export const DEFAULT_PAGE: LoyaltyConfig["page"] = {
@@ -174,6 +287,7 @@ export const applyLoyaltyPreset = (c: LoyaltyConfig, key: string): LoyaltyConfig
 export const DEFAULT_LOYALTY: LoyaltyConfig = {
   unit: { one: "point", many: "points" },
   autoJoin: true,
+  guests: "now",
   excludeTags: "",
   earn: {
     order: { on: true, perUnit: 1, shipping: false, taxes: false },
@@ -205,9 +319,11 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   ],
   referral: { on: false, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 },
   affiliates: [],
+  shop: { on: false, days: 30, items: [], collection: false },
   emails: DEFAULT_EMAILS,
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
+  languages: [],
 };
 
 function cleanReward(raw: unknown, i: number): Reward | null {
@@ -259,6 +375,34 @@ function cleanAffiliates(raw: unknown): Affiliate[] {
   return list.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.code === x.code) === i);
 }
 
+function cleanShop(raw: unknown, d: LoyaltyConfig["shop"]): LoyaltyConfig["shop"] {
+  const r = obj(raw);
+  const items = (Array.isArray(r.items) ? r.items : []).slice(0, MAX_SHOP_ITEMS).flatMap((x, i): ShopItem[] => {
+    const o = obj(x), p = obj(o.product);
+    if (typeof p.id !== "string" || !/^gid:\/\/shopify\/Product\/\d+$/.test(p.id)) return [];
+    const price = money(p.price, 0);
+    const points = num(o.points, 1, 1_000_000, 1000);
+    const m = money(o.money, 0);
+    const image = str(p.image, "", 500).trim();
+    const only = bool(o.only, false);
+    return [{
+      id: idOk(o.id, i, "s"),
+      on: bool(o.on, true),
+      product: { id: p.id, title: str(p.title, "", 120).trim() || "Product", handle: str(p.handle, "", 255).trim(), image: /^https:\/\/\S+$/.test(image) ? image : "", price },
+      points,
+      // The money part is always less than the price (else the code would take nothing off).
+      money: m < price ? m : 0,
+      only,
+      unlisted: only && bool(o.unlisted, false),
+      show: pick(o.show, SHOP_SHOW, "all"),
+      from: num(o.from, 1, points, Math.max(1, Math.floor(points / 2))),
+      limit: num(o.limit, 0, 1000, 0),
+    }];
+  });
+  // Ids and products unique (the first one wins).
+  return { on: bool(r.on, d.on), days: num(r.days, 1, 365, d.days), collection: bool(r.collection, d.collection), items: items.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.product.id === x.product.id) === i) };
+}
+
 const idOk = (v: unknown, i: number, prefix: string) => (/^[a-z0-9]{1,12}$/i.test(String(v)) ? String(v) : `${prefix}${i + 1}`);
 const day = (v: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? String(v) : "");
 const mult = (v: unknown, d: number) => {
@@ -299,6 +443,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
   return {
     unit: { one: str(u.one, d.unit.one, 20) || d.unit.one, many: str(u.many, d.unit.many, 20) || d.unit.many },
     autoJoin: bool(r.autoJoin, d.autoJoin),
+    guests: pick(r.guests, GUEST_ORDERS, d.guests),
     excludeTags: str(r.excludeTags, d.excludeTags, 300),
     earn: {
       order: { on: bool(o.on, d.earn.order.on), perUnit: rate(o.perUnit, d.earn.order.perUnit), shipping: bool(o.shipping, d.earn.order.shipping), taxes: bool(o.taxes, d.earn.order.taxes) },
@@ -337,6 +482,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
       : d.rewards,
     referral: cleanReferral(r.referral, d.referral),
     affiliates: cleanAffiliates(r.affiliates),
+    shop: cleanShop(r.shop, d.shop),
     emails: withEmailDefaults(r.emails),
     widget: (() => {
       const w = obj(r.widget), t = obj(w.texts);
@@ -357,6 +503,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
       const faq = Array.isArray(g.faq) ? g.faq.slice(0, MAX_FAQ).map((x) => ({ q: str(obj(x).q, "", 160).trim(), a: str(obj(x).a, "", 600).trim() })).filter((x) => x.q && x.a) : DEFAULT_PAGE.faq;
       return { title: str(g.title, DEFAULT_PAGE.title, 60).trim() || DEFAULT_PAGE.title, sub: str(g.sub, DEFAULT_PAGE.sub, 200), how, faq };
     })(),
+    languages: cleanLanguages(r.languages),
   };
 }
 
@@ -380,6 +527,40 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
     pg: c.page,
+    // Guests who ordered before are told their points wait for an account (Earn points → Orders placed as a guest).
+    gu: c.autoJoin && c.guests !== "off",
+    lg: c.languages.length ? storefrontLanguages(c) : null,
+    // The Points shop as everyone sees it; members get their own list from the app proxy (`shopFor`).
+    // `po`: products sold only with points (the script hides the theme's add to cart on their pages).
+    ...(c.shop.on ? { ps: shopFor(c, null), po: c.shop.items.filter((x) => x.on && x.only).map((x) => x.product.id.split("/").pop()) } : {}),
+  };
+}
+
+/** The storefront copy of a Points shop product. */
+const shopItem = (x: ShopItem) => ({ id: x.id, t: x.product.title, h: x.product.handle, i: x.product.image, p: x.points, m: x.money, pid: x.product.id.split("/").pop(), o: x.only });
+
+/** May a shopper with these points (null: not a member) see this product? */
+export const canSeeItem = (x: ShopItem, points: number | null) => x.on && (x.show === "all" || (points !== null && points >= (x.show === "afford" ? x.points : x.from)));
+
+/** The Points shop products this shopper sees: "all" ones for everyone, the others only for members with the points. */
+export const shopFor = (c: LoyaltyConfig, points: number | null) => (c.shop.on ? c.shop.items.filter((x) => canSeeItem(x, points)).map(shopItem) : []);
+
+/**
+ * Growth has the loyalty program within its limits (plans.ts loyaltyOrders, loyaltyEmails); these parts are
+ * Pro only (Omar, 2026-10-22). Growth keeps the store's Pro settings saved but runs without them, so they come
+ * back on an upgrade: affiliate codes are turned off, not deleted.
+ */
+export const LOYALTY_PRO = ["VIP tiers", "bonus campaigns", "product and collection rules", "cashback", "affiliate links", "Klaviyo, Omnisend, Judge.me and Shopify Flow", "sending from your own address"] as const;
+export function forPlan(c: LoyaltyConfig, pro: boolean): LoyaltyConfig {
+  if (pro) return c;
+  return {
+    ...c,
+    tiers: { ...c.tiers, on: false },
+    campaigns: [],
+    productRules: [],
+    cashback: { ...c.cashback, on: false },
+    affiliates: c.affiliates.map((x) => ({ ...x, on: false })),
+    emails: { ...c.emails, sender: { email: "", name: "" } },
   };
 }
 

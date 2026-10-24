@@ -7,6 +7,8 @@
  */
 import db from "../db.server";
 import { RETENTION_DAYS } from "./retention";
+import { sweepTracking } from "./tracking/tracking.server";
+import { sweepMcp } from "./mcp/auth.server";
 
 const DAY = 864e5;
 
@@ -24,6 +26,14 @@ export async function pruneOldData(now = new Date()) {
   return results.reduce((n, r) => n + r.count, 0);
 }
 
+/** The daily run: the retention periods, then old tracking usage and expired assistant connections. Each part on its own. */
+export async function dailyCleanup(now = new Date()) {
+  const n = await pruneOldData(now).catch((e) => (console.error("[retention] cleanup failed:", e), 0));
+  await sweepTracking(now).catch((e) => console.error("[retention] tracking sweep failed:", e));
+  await sweepMcp().catch((e) => console.error("[retention] assistant sweep failed:", e));
+  return n;
+}
+
 declare global {
   // eslint-disable-next-line no-var
   var croRetentionTimer: ReturnType<typeof setInterval> | undefined;
@@ -32,10 +42,7 @@ declare global {
 /** Starts the daily cleanup once per server process (not in tests or local development). */
 export function startRetention() {
   if (globalThis.croRetentionTimer || process.env.NODE_ENV !== "production") return;
-  const run = () =>
-    pruneOldData()
-      .then((n) => n && console.log(`[retention] deleted ${n} old records`))
-      .catch((e) => console.error("[retention] cleanup failed:", e));
+  const run = () => dailyCleanup().then((n) => n && console.log(`[retention] deleted ${n} old records`));
   setTimeout(run, 60_000);
   globalThis.croRetentionTimer = setInterval(run, DAY);
 }

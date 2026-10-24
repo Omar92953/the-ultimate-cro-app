@@ -1,4 +1,5 @@
 import "@shopify/shopify-app-react-router/adapters/node";
+import { appSecret } from "./lib/app-secret.server";
 import {
   ApiVersion,
   AppDistribution,
@@ -20,7 +21,7 @@ startLoyaltyJobs();
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
+  apiSecretKey: appSecret(),
   apiVersion: ApiVersion.July26,
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",

@@ -5,6 +5,19 @@ deploys, merges and Testing 3 checks from 2026-10-19 to 2026-10-22. Omar asked t
 account, which takes over **all** of that work. Everything is in the repo; never rely on old chats. Where
 `CLAUDE.md` or `docs/WORKBOARD.md` differ from this file, trust them.
 
+## Update 2026-10-24 (read this first)
+
+The state in `CLAUDE.md` (Status) replaces "Where things stand" below. Since 2026-10-22 the lead merged #260 to #303:
+loyalty parts 5 to 11 with languages and guest checkouts, the Points shop, the plan limits with usage extras, the
+discount code box card, the loyalty website pages, and the deep audit (`docs/audit-2026-10-23.md`). The second
+account is no longer used. Lessons from the live checks, worth keeping in mind for storefront scripts:
+
+- Themes like Dawn put a hidden installments form before the product form, and cards carry a hidden second title
+  link: never take "the first" form or link; take the one with a submit button, and links that are visible.
+- Shopify runs cart validation Functions when a product is added to the cart, not only at checkout: apply a discount
+  code (cart/update.js `discount`) before adding a product the guard protects.
+- A PR stacked on another PR's branch merges into that branch, not main: retarget it to main first.
+
 ## How to start
 
 1. Claude desktop app → **Code** tab → new session in `~/Workspace/the-ultimate-cro-app` → model **Opus 5.5**.
@@ -57,8 +70,8 @@ account, which takes over **all** of that work. Everything is in the repo; never
   - Tracking & Returns split into two tabs. Track page output switches. Tracking stays by email, with no postal
     code lookup (Omar).
   - Tracking for any carrier:
-    - **Basic tracking** (Growth): Shopify's carriers.
-    - **Advanced tracking** (Pro): 17TRACK live tracking with 3,500+ carriers and the carrier code passed through
+    - One tracking on Growth and Pro (Omar, 2026-10-22): Shopify's data, 17TRACK live tracking (200 shipments a
+      month on Growth, 500 on Pro) with 3,500+ carriers and the carrier code passed through
       (Bosta, MyLerz, J&T Express (EG), Aramex, SMSA, iMile and more). AfterShip, TrackingMore and Ship24 keys
       also work.
     - Carrier links and hand-typed updates cover any courier.
@@ -116,9 +129,14 @@ account, which takes over **all** of that work. Everything is in the repo; never
   - new prices on all plans, monthly and yearly;
   - protected customer data: add Name and birthday, the loyalty purpose, and Postmark, Klaviyo and Omnisend as
     processors;
-  - network access for the checkout and customer account extensions;
+  - network access for the checkout and customer account extensions (then put `network_access = true` back in
+    `extensions/cro-loyalty-checkout/shopify.extension.toml` and deploy: it turns on spending points in Plus checkout);
   - listing text with the AOV and LTV lines (`docs/listing.md`), the Loyalty category, and the chosen listing images.
-- Postmark: sign up, add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type two tokens into Render
+- Shopify App Pricing usage meters (part of the single Partner Dashboard update): on Growth and Pro, monthly, add
+  meters with the handles `live-shipments` ($0.04 each), `loyalty-orders` ($0.05 each) and `loyalty-emails` ($0.002
+  each). Then make an API key in the Dev Dashboard for the App Events API and type it into Render as
+  `APP_EVENTS_CLIENT_ID` and `APP_EVENTS_CLIENT_SECRET` himself. Until then extra units are kept and not billed.
+- Postmark: sign up (with postmark@crotoolbox.com), add the DNS records for `mail.crotoolbox.com` in Cloudflare, and type two tokens into Render
   himself: `POSTMARK_SERVER_TOKEN` (the server's API token, sends emails) and `POSTMARK_ACCOUNT_TOKEN` (the account
   API token, adds merchants' own sender domains). The bounce webhook is made by the app on its own.
 - Testing 3: sign in as a customer and place one test order himself, to check loyalty end to end.
@@ -141,4 +159,5 @@ account, which takes over **all** of that work. Everything is in the repo; never
 - Short messages, often screenshots. Explain plainly, say exactly what to click, one step at a time.
 - He likes you to do things yourself and to test in the browser before reporting.
 - Ask questions as **plain text**, never with answer buttons or AskUserQuestion boxes.
-- UI text: no dashes, never first person.
+- UI text: no dashes, never first person (the app's own words; storefront defaults in the store's or the shopper's
+  voice, like "We'll email you" or "Find my order", stay as they are: Omar, 2026-10-24).

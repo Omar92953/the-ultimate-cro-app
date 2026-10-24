@@ -17,13 +17,15 @@ import { MAX_TIERS, type LoyaltyConfig, type Tier } from "../lib/loyalty/config"
 import { Button, Checkbox, NumberField, Switch, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Segmented } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
+import { ProNote } from "../components/ProNote";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const p = await getProgram(session.shop);
+  const { admin, session } = await authenticate.admin(request);
+  const [p, access] = await Promise.all([getProgram(session.shop), loyaltyAccess(admin, session.shop)]);
   const counts = await db.loyaltyMember.groupBy({ by: ["tier"], where: { shop: session.shop }, _count: { _all: true } });
-  return { config: p.config, saved: p.saved, counts: Object.fromEntries(counts.map((c) => [c.tier, c._count._all])) as Record<string, number> };
+  return { pro: access.pro, config: p.config, saved: p.saved, counts: Object.fromEntries(counts.map((c) => [c.tier, c._count._all])) as Record<string, number> };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -32,7 +34,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const config = await saveProgramConfig(session.shop, JSON.parse(String(form.get("config"))));
     // Tiers or their limits changed: every member is placed again now.
-    await reviewTiers(session.shop, config);
+    // On Growth tiers are kept but not used (planned turns them off).
+    await reviewTiers(session.shop, planned(config, await loyaltyAccess(admin, session.shop)));
     await publishLoyalty(admin, session.shop);
     return { ok: true, error: null };
   } catch (e) {
@@ -67,6 +70,7 @@ export default function LoyaltyTiers() {
       <HomeRows>
         <FeatureTabs feature="loyalty" />
         <PageIntro text="VIP tiers reward your best customers: more points per order, a bonus on reaching a tier, and rewards only they can get." />
+        {d.pro ? null : <ProNote text="VIP tiers work on the Pro plan. Set them up now: members are placed in them as soon as the store is on Pro." />}
 
         <HomeRow title="Tiers">
           <s-stack gap="base">

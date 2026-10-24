@@ -62,7 +62,7 @@ function rows(o: Node, links: CarrierLink[]) {
 /** Shipments of orders placed in the last `days` days (newest first, up to 30 orders). */
 /** `source` and `plan`: only answers the Track page would really use are shown (typed updates, then the chosen source and those after it). */
 export async function recentShipments(admin: AdminClient, shop: string, source: TrackSource, plan: PlanKey, days = 30): Promise<ShipmentRow[]> {
-  const used = new Set<string>([...(atLeast(plan, "pro") ? ["manual"] : []), ...sourcesToTry(source)]);
+  const used = new Set<string>([...(atLeast(plan, "growth") ? ["manual"] : []), ...sourcesToTry(source)]);
   const since = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
   const data = await gql(admin, `#graphql
     query CroRecentShipments($q: String!) { orders(first: 30, query: $q, sortKey: CREATED_AT, reverse: true) { nodes { id name createdAt ${FULFILLMENTS} } } }`, { q: `created_at:>=${since} (fulfillment_status:shipped OR fulfillment_status:partial)` });

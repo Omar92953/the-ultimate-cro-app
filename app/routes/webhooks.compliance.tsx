@@ -1,15 +1,11 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import { removeShopMcp } from "../lib/mcp/auth.server";
-import { removeShopTracking } from "../lib/tracking/tracking.server";
-import { removeShopAb } from "../lib/ab-tests.server";
-import { removeShopTrackCodes } from "../lib/track-sell.server";
-import db from "../db.server";
+import { removeShopData } from "../lib/shop-data.server";
 import { recentForOrders, redactRecent } from "../lib/boosters.server";
-import { alertsForEmail, redactEmail, redactShop } from "../lib/stock.server";
-import { redactReviewerEmail, redactReviewerEmails, reviewerEmailsFor } from "../lib/reviewer-email.server";
-import { redactReturnsEmail, redactReturnsShop, returnsForEmail } from "../lib/orders-lookup.server";
-import { loyaltyHeldFor, redactLoyaltyCustomer, removeShopLoyalty } from "../lib/loyalty/program.server";
+import { alertsForEmail, redactEmail } from "../lib/stock.server";
+import { redactReviewerEmail, reviewerEmailsFor } from "../lib/reviewer-email.server";
+import { redactOrders, redactReturnsEmail, returnsForEmail } from "../lib/orders-lookup.server";
+import { loyaltyHeldFor, redactLoyaltyCustomer } from "../lib/loyalty/program.server";
 
 /**
  * Mandatory privacy webhooks (customers/data_request, customers/redact, shop/redact).
@@ -55,21 +51,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     case "CUSTOMERS_REDACT": {
       const removed = admin ? await redactRecent(admin, payload?.orders_to_redact ?? []) : 0;
       const email = String(payload?.customer?.email ?? "");
-      const gone = (email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count : 0) + (await redactLoyaltyCustomer(shop, String(payload?.customer?.id ?? ""), email));
-      console.log(`[redact] ${shop}: removed ${removed} sales pop-up entries, ${gone} back-in-stock requests`);
+      const gone =
+        (email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count : 0) +
+        (await redactLoyaltyCustomer(shop, String(payload?.customer?.id ?? ""), email)) +
+        // Kept by order too: a customer who changed their email still has their return requests and Track page codes removed.
+        (await redactOrders(shop, payload?.orders_to_redact ?? []));
+      console.log(`[redact] ${shop}: removed ${removed} sales pop-up entries and ${gone} other rows`);
       break;
     }
     case "SHOP_REDACT":
-      await db.session.deleteMany({ where: { shop } });
-      await redactShop(shop);
-      await redactReturnsShop(shop);
-      await redactReviewerEmails(shop);
-      await db.featureRequest.deleteMany({ where: { shop } });
-      await removeShopMcp(shop);
-      await removeShopTracking(shop);
-      await removeShopAb(shop);
-      await removeShopTrackCodes(shop);
-      await removeShopLoyalty(shop);
+      // Every table with a shop column (lib/shop-data.server.ts, checked by test/app/shop-data.test.ts).
+      await removeShopData(shop);
       break;
     default:
       break;

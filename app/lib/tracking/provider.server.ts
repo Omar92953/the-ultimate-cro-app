@@ -87,7 +87,7 @@ const seventeen: Provider = {
       const r = await call(key, "/getquota", {});
       return r.code === 0 ? { ok: true } : { ok: false, error: "This key was not accepted." };
     } catch {
-      return { ok: false, error: "We could not reach the service. Try again in a moment." };
+      return { ok: false, error: "The service could not be reached. Try again in a moment." };
     }
   },
   async register(key, s) {
@@ -139,7 +139,7 @@ const aftership: Provider = {
       const r = await asCall(key, "/couriers", { method: "GET" });
       return r.status === 200 ? { ok: true } : { ok: false, error: "This key was not accepted." };
     } catch {
-      return { ok: false, error: "We could not reach the service. Try again in a moment." };
+      return { ok: false, error: "The service could not be reached. Try again in a moment." };
     }
   },
   async register(key, s) {
@@ -194,7 +194,7 @@ const trackingmore: Provider = {
       const r = await tmCall(key, "/couriers/all", { method: "GET" });
       return r.status === 200 && r.code === 200 ? { ok: true } : { ok: false, error: "This key was not accepted." };
     } catch {
-      return { ok: false, error: "We could not reach the service. Try again in a moment." };
+      return { ok: false, error: "The service could not be reached. Try again in a moment." };
     }
   },
   async register(key, s) {
@@ -248,7 +248,7 @@ const ship24: Provider = {
       const r = await s24Call(key, "/trackers?limit=1", { method: "GET" });
       return r.status === 200 ? { ok: true } : { ok: false, error: "This key was not accepted." };
     } catch {
-      return { ok: false, error: "We could not reach the service. Try again in a moment." };
+      return { ok: false, error: "The service could not be reached. Try again in a moment." };
     }
   },
   async register() {

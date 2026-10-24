@@ -107,6 +107,8 @@ model McpClient {
   name         String
   redirectUris String
   createdAt    DateTime @default(now())
+  /// Last connect or token exchange; registrations unused for 90 days are swept (lib/mcp/auth.server.ts).
+  lastUsedAt   DateTime?
 }
 
 /// A started "Connect" waiting for the merchant's OK in the admin, and then the one use code that follows it.
@@ -257,6 +259,8 @@ model LoyaltyProgram {
   config    String    @default("{}")
   /// Orders and customers changed after this were not read yet (lib/loyalty/sync.server.ts).
   syncedAt  DateTime?
+  /// Orders placed before this never earn (the program's start, or when it was turned on again).
+  countFrom DateTime?
   /// Ids the app keeps for the program: the referral discount, each affiliate's discount (JSON).
   state     String    @default("{}")
   updatedAt DateTime  @default(now())
@@ -291,6 +295,9 @@ model LoyaltyMember {
   blocked      Boolean   @default(false)
   joinedAt     DateTime  @default(now())
   lastActivity DateTime  @default(now())
+  /// Set by Prisma on every change; the customer metafield $app:loyalty is written again when it is newer than `pushedAt`.
+  changedAt    DateTime? @updatedAt
+  pushedAt     DateTime?
 
   @@unique([shop, customerId])
   @@index([shop, email])
@@ -426,4 +433,33 @@ model LoyaltyOutbox {
   @@unique([shop, dedupe])
   @@index([shop, status])
   @@index([shop, memberId])
+}
+
+/// A plan limit the store lets go over (Settings → Usage): "liveShipments", "loyaltyOrders" or "loyaltyEmails". Off unless turned on.
+model UsageExtra {
+  shop      String
+  meter     String
+  on        Boolean  @default(false)
+  updatedAt DateTime @default(now())
+
+  @@id([shop, meter])
+}
+
+/// One unit over a plan limit with extra on, reported to Shopify App Pricing (App Events API) as a billable event.
+model UsageEvent {
+  id        Int       @id @default(autoincrement())
+  shop      String
+  meter     String
+  /// "2026-10": the calendar month it counts in.
+  month     String
+  /// Unique: the same unit is never billed twice.
+  key       String
+  status    String    @default("queued")
+  reason    String    @default("")
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@unique([shop, key])
+  @@index([status])
+  @@index([shop, meter, month])
 }

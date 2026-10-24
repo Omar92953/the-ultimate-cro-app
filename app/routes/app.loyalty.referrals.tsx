@@ -17,18 +17,21 @@ import { MAX_AFFILIATES, cleanCode, pointsLabel, type Affiliate, type FriendKind
 import { Button, NumberField, Select, Switch, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Panel, Pill, Segmented, StatGrid, StatTile } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
+import { ProNote } from "../components/ProNote";
 import { SaveControls, changed } from "../components/SaveControls";
 import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [p, stats, shop] = await Promise.all([
+  const [p, stats, shop, access] = await Promise.all([
     getProgram(session.shop),
     referralStats(session.shop),
     gql(admin, `#graphql
       query CroRefShop { shop { currencyCode primaryDomain { url } } }`).catch(() => null),
+    loyaltyAccess(admin, session.shop),
   ]);
-  return { on: p.on, config: p.config, saved: p.saved, stats, currency: String(shop?.shop?.currencyCode ?? "USD"), domain: String(shop?.shop?.primaryDomain?.url ?? `https://${session.shop}`).replace(/\/$/, "") };
+  return { pro: access.pro, on: p.on, config: p.config, saved: p.saved, stats, currency: String(shop?.shop?.currencyCode ?? "USD"), domain: String(shop?.shop?.primaryDomain?.url ?? `https://${session.shop}`).replace(/\/$/, "") };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -37,7 +40,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const config = await saveProgramConfig(session.shop, JSON.parse(String(form.get("config"))));
     const { on } = await getProgram(session.shop);
-    const errors = await syncReferralDiscounts(admin, session.shop, config, on);
+    const access = await loyaltyAccess(admin, session.shop);
+    // Affiliate codes work on Pro; on Growth they are kept and turned off.
+    const errors = await syncReferralDiscounts(admin, session.shop, planned(config, access), on && access.on);
     await publishLoyalty(admin, session.shop);
     return { ok: !errors.length, error: errors.length ? `Saved, but Shopify refused: ${errors.join(" ")}` : null };
   } catch (e) {
@@ -149,6 +154,7 @@ export default function LoyaltyReferrals() {
 
         <HomeRow title={`Affiliates (${cfg.affiliates.length})`} subtitle="A code for each creator or partner. Orders with it count as their sales; pay them their commission yourself.">
           <s-stack gap="base">
+            {d.pro ? null : <ProNote text="Affiliate codes work on the Pro plan. Add them now: their codes start working as soon as the store is on Pro." />}
             {cfg.affiliates.map((a, i) => {
               const sold = d.stats.affiliates[a.id] ?? { orders: 0, sales: 0 };
               const dup = codes.indexOf(a.code) !== i;

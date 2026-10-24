@@ -223,6 +223,15 @@ export const returnsForEmail = (shop: string, email: string) => db.returnRequest
 export const redactReturnsEmail = (shop: string, email: string) => db.returnRequest.deleteMany({ where: { shop, email: email.toLowerCase() } });
 export const redactReturnsShop = (shop: string) => db.returnRequest.deleteMany({ where: { shop } });
 
+/** customers/redact: what is kept by order (return requests, Track page codes) for these orders, whatever email they carry. */
+export async function redactOrders(shop: string, ids: unknown[]) {
+  const nums = ids.map((x) => String(x).split("/").pop() ?? "").filter((x) => /^\d+$/.test(x));
+  if (!nums.length) return 0;
+  const orderId = { in: [...nums, ...nums.map((n) => `gid://shopify/Order/${n}`)] };
+  const [returns, codes] = await Promise.all([db.returnRequest.deleteMany({ where: { shop, orderId } }), db.trackCode.deleteMany({ where: { shop, orderId } })]);
+  return returns.count + codes.count;
+}
+
 /* --------------------------------------------------------- shipments overview -- */
 export type ShipmentOverview = { total: number; inTransit: number; delivered: number; delayed: number };
 

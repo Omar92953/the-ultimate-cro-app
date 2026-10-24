@@ -9,6 +9,7 @@
  * Events wait in LoyaltyOutbox and go out with the loyalty run (sync.server.ts), so a slow service never
  * slows an order or the widget.
  */
+import { appSecret } from "../app-secret.server";
 import db from "../../db.server";
 import { decrypt, encrypt, last4 } from "../tracking/secret.server";
 import type { LoyaltyConfig } from "./config";
@@ -223,6 +224,9 @@ export async function sendEvents(shop: string, c: LoyaltyConfig, http: Fetch = f
   return out;
 }
 
+/** Events that can't go out on this plan: marked skipped with the reason. */
+export const skipEvents = (shop: string, reason: string) => db.loyaltyOutbox.updateMany({ where: { shop, status: "queued" }, data: { status: "skipped", reason } });
+
 /* ------------------------------------------------------------- reviews -- */
 type JudgeMeReview = { id: number; rating?: number; hidden?: boolean; curated?: string; reviewer?: { email?: string | null } | null; pictures?: unknown[] | null };
 
@@ -295,14 +299,21 @@ export async function reviewApproved(admin: AdminClient, shop: string, reviewId:
   if (!email) return null;
   const p = await getProgram(shop);
   if (!p.on || !p.config.earn.review.on) return null;
-  if (!atLeast((await getPlan(admin, shop)).plan, "pro")) return null;
+  if (!atLeast((await getPlan(admin, shop)).plan, "growth")) return null;
   return approvedReviewPoints(shop, p.config, reviewId, email, photo);
 }
 
 /* ---------------------------------------------------------------- Flow --- */
 /** Flow signs its calls like webhooks: base64 HMAC SHA256 of the raw body with the app's secret. */
 export function flowSigned(raw: string, header: string | null) {
-  const want = Buffer.from(createHmac("sha256", process.env.SHOPIFY_API_SECRET || "").update(raw, "utf8").digest("base64"));
+  // No secret: nothing is accepted (never a signature anyone could make with an empty key).
+  let secret: string;
+  try {
+    secret = appSecret();
+  } catch {
+    return false;
+  }
+  const want = Buffer.from(createHmac("sha256", secret).update(raw, "utf8").digest("base64"));
   const got = Buffer.from(String(header ?? ""));
   return want.length === got.length && timingSafeEqual(want, got);
 }

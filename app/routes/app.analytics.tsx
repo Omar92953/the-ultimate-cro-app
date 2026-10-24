@@ -197,7 +197,7 @@ export default function Analytics() {
                 <s-section key={t.id} heading={t.name}>
                   <s-stack gap="small-200">
                     <s-stack direction="inline" gap="small-200" alignItems="center">
-                      <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
+                      <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "paused" ? "Paused (needs Pro)" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
                       <s-text color="subdued">{`Started ${new Date(t.startedAt).toLocaleDateString()}${t.endedAt ? `, ended ${new Date(t.endedAt).toLocaleDateString()}` : ""}`}</s-text>
                     </s-stack>
                     <s-text color="subdued">{`Version B changes: ${Object.keys(t.b).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.`}</s-text>
@@ -317,6 +317,7 @@ export default function Analytics() {
         <s-section heading="Holdout test">
           <s-stack gap="base">
             <s-text color="subdued">A share of shoppers (picked at random, kept for their visits) see your store without the app’s widgets. Orders from each group are compared. It&apos;s the honest way to know what the app adds.</s-text>
+            <s-text color="subdued">The loyalty program stays visible to both groups, so members always see their points.</s-text>
             {data.boostersOn === false ? (
               <s-banner tone="warning" heading="The test runs from the Conversion boosters embed. Turn it on">
                 <s-link href={data.boostersLink} target="_top">

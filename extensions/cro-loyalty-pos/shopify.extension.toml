@@ -1,0 +1,23 @@
+# Loyalty at the POS counter (app: Loyalty). On a customer's details: a block with their points and tier, and
+# "Use points" to spend them on a reward (a code added to the cart, or store credit). Points and rewards come
+# from the app (app/routes/api.loyalty.pos.tsx); POS adds the session token to requests to the app's own address.
+api_version = "2026-07"
+
+[[extensions]]
+type = "ui_extension"
+name = "t:name"
+uid = "4b7f826d-798e-d575-e3d1-e4c54cc8cd803a7ff6f0"
+handle = "cro-loyalty-pos"
+description = "Loyalty points and rewards at the counter"
+
+[[extensions.targeting]]
+module = "./src/Block.jsx"
+target = "pos.customer-details.block.render"
+
+[[extensions.targeting]]
+module = "./src/MenuItem.jsx"
+target = "pos.customer-details.action.menu-item.render"
+
+[[extensions.targeting]]
+module = "./src/Action.jsx"
+target = "pos.customer-details.action.render"

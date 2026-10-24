@@ -24,7 +24,8 @@ export type AbOverrides = {
   /** The style (2 to 5) the offer uses, 1 = the group's default. */
   design?: number;
 };
-export type AbStatus = "running" | "stopped" | "applied";
+/** "paused": was running when the store went below Pro; it runs again after an upgrade (billing.server.ts applyPlanLimits). */
+export type AbStatus = "running" | "paused" | "stopped" | "applied";
 export type AbTest = {
   id: string;
   name: string;

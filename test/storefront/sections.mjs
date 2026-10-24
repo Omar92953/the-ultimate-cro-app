@@ -140,10 +140,11 @@ async function block(name, overrides = {}, ctx = {}) {
   const globals = {
     shop: ctx.shop ?? shop,
     request: { design_mode: !!ctx.design, page_type: ctx.page_type ?? "index" },
-    routes: { root_url: "/", all_products_collection_url: "/collections/all" },
+    routes: { root_url: "/", all_products_collection_url: "/collections/all", account_login_url: "/account/login", account_register_url: "/account/register" },
     cart: { total_price: ctx.cartTotal ?? 45000, items: [] },
     product: ctx.product,
     page: ctx.page,
+    customer: ctx.customer,
     linklists: ctx.linklists ?? {},
   };
   return engine.renderFile(name, { block: { id: `${name}-${Math.random().toString(36).slice(2, 7)}`, settings, shopify_attributes: "" } }, { globals });
@@ -202,7 +203,39 @@ const productForm = `<div class="page-width" style="display:grid;grid-template-c
     </form></div>
     <div style="height:1400px"></div></div></div>
   <script>const pjs=${JSON.stringify(productJs)};const of=window.fetch;window.fetch=(u,o)=>String(u).includes('/products/')?Promise.resolve(new Response(JSON.stringify(pjs))):of(u,o);</script>`;
+// The Points shop (loyalty): a signed in member with 900 points on the watch page (800 points + LE 10), the panel
+// list and the Rewards page grid. The app proxy is faked: "me" gives the member's own list, "buy" gives a code.
+const { shopFor, toStorefrontLoyalty, withLoyaltyDefaults } = await import("../../app/lib/loyalty/config.ts");
+const shopItem = (id, pid, title, handle, image, points, money, show = "all", from = 1) => ({ id, on: true, product: { id: `gid://shopify/Product/${pid}`, title, handle, image, price: 129 }, points, money, only: false, unlisted: false, show, from, limit: 0 });
+const loyShop = withLoyaltyDefaults({ on: true, shop: { on: true, items: [
+  shopItem("s1", 77, "Classic watch", "classic-watch", "https://images.unsplash.com/photo-1523275335684-37898b6baf30", 800, 10),
+  shopItem("s2", 78, "Sunglasses", "sunglasses", "https://images.unsplash.com/photo-1572635196237-14b3f281503f", 500, 0, "afford"),
+  shopItem("s3", 79, "Leather bag", "leather-bag", "", 2000, 0, "from", 400),
+] } });
+const shopLoy = withDesign(mo("loyalty", { config: toStorefrontLoyalty(loyShop, true) }));
+const loyMe = { ok: true, member: { points: 900, pending: 0, rewards: [], history: [], shop: [] } };
+const loyFake = () => `<script>window.__buys=[];(function(){const me=${JSON.stringify(loyMe)};const of=window.fetch;window.fetch=(u,o)=>{if(!String(u).includes('apps/ucro/loyalty'))return of(u,o);const b=JSON.parse(o.body);if(b.intent==='buy')window.__buys.push(b);const r=b.intent==='buy'?{...me,got:{code:'PTS-TEST',kind:'shop'}}:me;return Promise.resolve(new Response(JSON.stringify(r)))};const cf=window.fetch;window.fetch=(u,o)=>{if(String(u).includes('/cart/update')){document.body.dataset.codes=o.body;return Promise.resolve(new Response('{}'))}if(String(u).includes('/cart.js'))return Promise.resolve(new Response(JSON.stringify({discount_codes:[{code:'SPRING',applicable:true}]})));if(String(u).includes('/cart/add')){document.body.dataset.added=o.body+' '+JSON.stringify(window.__buys)+' after '+(document.body.dataset.codes||'no code');return new Promise(()=>{})}return cf(u,o)};if(location.hash==='#buy')setTimeout(()=>document.querySelector('[data-buy]').click(),1500);})();</script>`;
 pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-boosters", {}, { page_type: "product", product: watch })).replace('<link', '<link') + '<link rel="stylesheet" href="assets/ucs-boosters.css">');
+
+{
+  const ctx = { page_type: "product", product: watch, shop: shopLoy, customer: { id: 5 } };
+  const html = await block("ucs-boosters", {}, ctx);
+  // The member's own list from the proxy: all three (900 points: enough for the watch and the sunglasses, past 400 for the bag).
+  loyMe.member.shop = shopFor(loyShop, 900);
+  pages["loyalty-shop.html"] = page("Points shop", productForm + '<div class="page-width" style="max-width:1100px;margin:0 auto;padding:0 40px" data-ucs-loy-page></div>', loyFake() + html + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  pages["loyalty-shop-guest.html"] = page("Points shop (guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // Sold only with points and only for members with enough points: a guest gets no add to cart, only the sign in link.
+  const onlyShop = withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [{ ...loyShop.shop.items[0], only: true, show: "afford" }] } }), true) }));
+  pages["loyalty-shop-only.html"] = page("Points shop (only with points, guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // A collection page (the Points shop collection): the watch's card shows its points price once (image and title links).
+  // Like Dawn: a hidden title link comes first in each card, the visible one after it.
+  const card = (h, t) => `<li class="grid__item"><a href="/products/${h}"><img alt="" width="200" height="200"></a><div style="display:none"><h3><a href="/products/${h}">${t}</a></h3></div><h3><a href="/products/${h}">${t}</a></h3><p>$129.00</p></li>`;
+  pages["loyalty-collection.html"] = page("Points shop collection", `<ul style="display:grid;grid-template-columns:repeat(3,200px);gap:20px;list-style:none;padding:40px">${card("classic-watch", "Classic watch")}${card("sunglasses", "Sunglasses")}</ul>`, (await block("ucs-boosters", {}, { page_type: "collection", shop: shopLoy })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // Dawn puts a hidden installments form (no buttons) before the product form: the script must use the product form.
+  const installments = '<form method="post" action="/cart/add" id="product-form-installment-main" class="installment"><input type="hidden" name="id" value="7701"></form>';
+  pages["loyalty-shop-only-dawn.html"] = page("Points shop (only with points, installments form first)", installments + productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  pages["loyalty-shop-design.html"] = page("Points shop (theme editor)", productForm, (await block("ucs-boosters", {}, { ...ctx, design: true, shop: withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [] } }), true) })) })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+}
 
 // Bundle deals: all four types on the watch page, a sunglasses product for the fixed bundle, and a
 // working fake cart (add/change/cart.js) so the gift can be added and removed.
@@ -445,6 +478,15 @@ check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "produ
   check(cro.includes('data-ucs-sec="email_popup"') && cro.includes("ucs-sec-email_popup.js"), "email pop up not loaded by the boosters embed");
   check(!pages["index.html"].includes("ucs-sec-email_popup.js"), "email pop up must not load when it is off");
   check(cro.includes("Design this section in the app first"), "CRO section: empty note missing in the theme editor");
+}
+{
+  const data = (p) => JSON.parse(/id="ucs-loy-data">(.*?)<\/script>/s.exec(pages[p])?.[1] ?? "null");
+  const d = data("loyalty-shop.html");
+  check(d?.pid === 77 && d.in === true, "Points shop: the product id and the signed in flag should reach the loyalty script");
+  check(JSON.stringify((d?.c.ps ?? []).map((x) => x.id)) === '["s1"]', "Points shop: the public copy should hold only the products everyone sees");
+  check(data("loyalty-shop-guest.html")?.in === false && !data("loyalty-shop.html")?.dm, "Points shop: guest flag or design flag wrong");
+  check(JSON.stringify(data("loyalty-shop-only.html")?.c.po) === '["77"]' && !data("loyalty-shop-only.html")?.c.ps.length, "Points shop: only with points products should be listed for the script, members only products not shown");
+  check(data("loyalty-shop-design.html")?.dm === 1, "Points shop: the theme editor flag (sample product) is missing");
 }
 if (problems.length) {
   console.error("✗ sections harness:\n  " + problems.join("\n  "));

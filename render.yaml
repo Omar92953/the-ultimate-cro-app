@@ -25,7 +25,7 @@ services:
       - key: SHOPIFY_APP_URL
         sync: false        # https://cro-toolbox.onrender.com
       - key: SCOPES
-        value: read_files,write_files,read_returns,write_returns,read_customers,write_customers,read_locations,read_store_credit_accounts,write_merchant_managed_fulfillment_orders,write_store_credit_account_transactions,write_online_store_pages,read_orders,read_all_orders,read_products,write_products,write_publications,read_themes,write_cart_transforms,write_delivery_customizations,write_discounts,write_metaobject_definitions,write_metaobjects,write_payment_customizations,write_validations   # must match shopify.app.toml
+        value: read_files,write_files,read_returns,write_returns,read_customers,write_customers,customer_read_customers,read_locations,read_store_credit_accounts,write_merchant_managed_fulfillment_orders,write_store_credit_account_transactions,write_online_store_pages,read_orders,read_all_orders,read_products,write_products,write_publications,read_themes,write_cart_transforms,write_delivery_customizations,write_discounts,write_metaobject_definitions,write_metaobjects,write_payment_customizations,write_validations   # must match shopify.app.toml
       # Live tracking (docs/research/tracking-returns.md section 9)
       - key: TRACKING_KEY_SECRET
         sync: false        # any long random text: encrypts the tracking keys merchants paste (never change it once keys are saved)
@@ -35,6 +35,10 @@ services:
         sync: false        # Postmark → the server → API Tokens: sends the loyalty emails. Empty: no emails are sent
       - key: POSTMARK_ACCOUNT_TOKEN
         sync: false        # Postmark → Account → API Tokens: adds merchants' own sender domains (Loyalty → Emails)
+      - key: APP_EVENTS_CLIENT_ID
+        sync: false        # Dev Dashboard → API key for the App Events API: bills the units over a plan limit (usage meters)
+      - key: APP_EVENTS_CLIENT_SECRET
+        sync: false        # the same key's secret
       - key: SUPPORT_EMAIL
         value: support@crotoolbox.com   # shown on /privacy, Home and Settings (Cloudflare Email Routing to crotoolbox.app@gmail.com)
       - key: DATABASE_URL

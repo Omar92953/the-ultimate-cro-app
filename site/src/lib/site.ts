@@ -78,9 +78,10 @@ export function installHref(medium: string, campaign: string): string {
 
 export type NavLink = { label: string; href: string; /** A dropdown (desktop) and a section (mobile menu). */ children?: NavLink[] };
 
-/** The Features dropdown: the four areas, then the main features, then everything. Header.astro shows it. */
+/** The Features dropdown: the six areas, then the main features, then everything. Header.astro shows it (AREA_COUNT). */
 export const FEATURES_MENU: NavLink[] = [
   { label: "Offers", href: "/features/offers/" },
+  { label: "Loyalty", href: "/features/loyalty/" },
   { label: "Tracking & Returns", href: "/features/tracking/" },
   { label: "Section library", href: "/features/library/" },
   { label: "Cart & Checkout", href: "/features/cart/" },

@@ -34,7 +34,7 @@ export const APP_STORE_URL = "https://apps.shopify.com/cro-toolbox";
 /** Features with a live demo: every feature of catalog.ts today. */
 export const DEMOS: FeatureKey[] = [
   "upsell", "cross_sell", "bundles", "discounts", "addons", "personalize",
-  "ab_tests", "cart_offers", "cart_extras",
+  "ab_tests", "cart_offers", "cart_extras", "cart_code",
   "reviews", "product_reviews", "sales_pop", "trust_badges", "logos",
   "announcements", "countdown", "shipping_bar", "stock_urgency",
   "sticky_atc", "quick_add", "delivery", "size_guide", "stock", "wishlist",
@@ -51,7 +51,7 @@ export const DEMO_RECIPES: RecipeKey[] = ["fbt", "kit", "mixmatch", "growing", "
  * (template 1 is #design-1…), and how many templates the demo shows. The demo build checks these.
  */
 export const DEMO_TEMPLATES: Partial<Record<FeatureKey, number>> = {
-  upsell: 6, cross_sell: 6, personalize: 4, cart_extras: 4,
+  upsell: 6, cross_sell: 6, personalize: 4, cart_extras: 4, cart_code: 4,
   reviews: 7, product_reviews: 3, logos: 6, announcements: 6, countdown: 6, shipping_bar: 6,
   quick_add: 5, delivery: 4, size_guide: 4, stock: 4, wishlist: 4, videos: 6, faq: 6, quiz: 4,
   header: 6, track: 4, returns: 4,

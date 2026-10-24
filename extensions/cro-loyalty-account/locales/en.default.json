@@ -1,0 +1,16 @@
+{
+  "name": "CRO Toolbox loyalty",
+  "title": "Your rewards",
+  "ready": "{{points}} ready to use",
+  "pending": "{{points}} pending, ready once your orders are final",
+  "tier": "{{tier}} member",
+  "codes": "Your reward codes",
+  "until": "Use by {{date}}",
+  "copy": "Copy",
+  "copied": "Copied",
+  "refer": "Share your link",
+  "referText": "Friends get a discount on their first order, and you get a reward.",
+  "earned": "This order earned you {{points}}",
+  "earnedPending": "This order earns you {{points}} once it is final",
+  "balance": "You have {{points}} ready to use"
+}

@@ -14,6 +14,7 @@ import { area } from "../lib/catalog";
 import { getProgram, programStats, setProgramOn } from "../lib/loyalty/program.server";
 import { syncShop } from "../lib/loyalty/sync.server";
 import { syncReferralDiscounts } from "../lib/loyalty/referrals.server";
+import { loyaltyAccess, planned } from "../lib/loyalty/plan.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { getThemeStatus } from "../lib/cro.server";
 import { sectionLinks } from "../lib/sections.server";
@@ -22,6 +23,7 @@ import { eventLabel } from "../lib/loyalty/labels";
 import { Button, Switch } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Panel, Pill, Segmented, StatGrid, StatTile } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { UsageBars } from "../components/UsageBars";
 import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -56,7 +58,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await setProgramOn(session.shop, on, Number(form.get("past") ?? 0));
       await publishLoyalty(admin, session.shop);
       // Referral and affiliate codes work only while the program is on.
-      const errors = await syncReferralDiscounts(admin, session.shop, (await getProgram(session.shop)).config, on);
+      const access = await loyaltyAccess(admin, session.shop);
+      const errors = await syncReferralDiscounts(admin, session.shop, planned((await getProgram(session.shop)).config, access), on && access.on);
       if (errors.length) return { ok: false, error: errors.join(" "), intent };
     }
     else if (intent === "sync") await syncShop(session.shop, admin);
@@ -123,6 +126,10 @@ export default function LoyaltyHome() {
               </s-stack>
             ) : null}
           </s-stack>
+        </HomeRow>
+
+        <HomeRow title="This month's limits">
+          <UsageBars only={["loyaltyOrders", "loyaltyEmails"]} />
         </HomeRow>
 
         <HomeRow title="Last 30 days" bare>

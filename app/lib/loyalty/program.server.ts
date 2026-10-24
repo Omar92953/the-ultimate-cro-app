@@ -6,9 +6,12 @@
 import db from "../../db.server";
 import { withLoyaltyDefaults, excludedTags, type LoyaltyConfig } from "./config";
 import { notify } from "./mailer.server";
+import { allowUnit, usedThisMonth } from "../usage.server";
 import { isExcluded, multiplierFor, newReferralCode, orderBase, orderCredit, orderPoints, tierFor, type OrderFacts } from "./points";
 
 const DAY = 86_400_000;
+/** Points that come in without being earned: the store's own changes, imports, and points back from a reward Shopify refused. */
+const NOT_EARNED = ["adjust", "import", "redeem_back"];
 
 /* ----------------------------------------------------------------- program -- */
 export async function getProgram(shop: string) {
@@ -19,7 +22,7 @@ export async function getProgram(shop: string) {
   } catch {
     raw = {};
   }
-  return { on: !!row?.on, config: withLoyaltyDefaults(raw), syncedAt: row?.syncedAt ?? null, saved: !!row };
+  return { on: !!row?.on, config: { ...withLoyaltyDefaults(raw), ...(row?.countFrom ? { from: row.countFrom.toISOString() } : {}) }, syncedAt: row?.syncedAt ?? null, saved: !!row };
 }
 
 export async function saveProgramConfig(shop: string, raw: unknown) {
@@ -37,14 +40,19 @@ export async function setProgramOn(shop: string, on: boolean, pastDays = 0) {
   const from = new Date(Date.now() - (row?.syncedAt ? 0 : Math.min(90, Math.max(0, pastDays))) * DAY);
   // Turned on again after a pause: from now (orders paid while it was off don't earn).
   const syncedAt = on && !row?.on ? (row?.syncedAt ? new Date() : from) : row?.syncedAt ?? null;
-  await db.loyaltyProgram.upsert({ where: { shop }, create: { shop, on, syncedAt }, update: { on, syncedAt, updatedAt: new Date() } });
+  // Orders placed before this never earn, however they are read later (a member opening the widget, a guest's account).
+  const countFrom = on && !row?.on ? (row?.syncedAt ? new Date() : from) : row?.countFrom ?? null;
+  await db.loyaltyProgram.upsert({ where: { shop }, create: { shop, on, syncedAt, countFrom }, update: { on, syncedAt, countFrom, updatedAt: new Date() } });
 }
 
 /* ----------------------------------------------------------------- members -- */
 type Customer = NonNullable<OrderFacts["customer"]>;
 
-/** The member for this customer: found, or made when `create` (with a referral code nobody in the store has). */
-export async function memberFor(shop: string, c: Customer, create: boolean) {
+/**
+ * The member for this customer: found, or made when `create` (with a referral code nobody in the store has).
+ * `cap`: no new member once the store has this many (the Growth plan's limit).
+ */
+export async function memberFor(shop: string, c: Customer, create: boolean, cap: number | null = null) {
   const found = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: c.id } } });
   if (found) {
     // Keep the contact details fresh (they are used for the member's emails).
@@ -55,6 +63,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
     return found;
   }
   if (!create) return null;
+  if (cap !== null && (await db.loyaltyMember.count({ where: { shop } })) >= cap) return null;
   for (let i = 0; i < 5; i++) {
     const referralCode = newReferralCode();
     if (await db.loyaltyMember.findFirst({ where: { shop, referralCode }, select: { id: true } })) continue;
@@ -69,7 +78,7 @@ export async function memberFor(shop: string, c: Customer, create: boolean) {
   return null;
 }
 
-export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; multiplier?: number; credit?: number; note?: string; dedupe?: string; availableAt?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
+export type LedgerChange = { kind: string; points: number; status?: "available" | "pending"; orderId?: string; amount?: number; multiplier?: number; credit?: number; note?: string; dedupe?: string; availableAt?: Date; /** When it happened (default now): a past order counted when the program starts keeps its own date. */ at?: Date; /** Spending: all of it or nothing (throws NOT_ENOUGH), checked in the same update so two clicks can't overspend. */ strict?: boolean };
 
 export class NotEnoughPoints extends Error {
   constructor() {
@@ -82,7 +91,7 @@ export class NotEnoughPoints extends Error {
  * already made does nothing (returns null). Taking points away never takes more than the member has.
  */
 export async function record(shop: string, memberId: number, ch: LedgerChange) {
-  const status = ch.status ?? "available";
+  let status = ch.status ?? "available";
   try {
     return await db.$transaction(async (tx) => {
       if (ch.dedupe && (await tx.loyaltyEvent.findUnique({ where: { shop_dedupe: { shop, dedupe: ch.dedupe } }, select: { id: true } }))) return null;
@@ -93,9 +102,12 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
       }
       const m = await tx.loyaltyMember.findUniqueOrThrow({ where: { id: memberId } });
       let points = ch.points;
+      // Taking back an order's pending points that were released in the meantime (the 10 minute run and a widget read
+      // at the same moment): they are usable points now, so they are taken from there.
+      if (status === "pending" && points < 0 && ch.orderId && m.pending < -points) status = "available";
       if (points < 0) points = -Math.min(-points, Math.max(0, status === "pending" ? m.pending : m.points));
-      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date() } });
-      const earned = points > 0 && !["adjust", "import"].includes(ch.kind) ? points : 0;
+      const ev = await tx.loyaltyEvent.create({ data: { shop, memberId, kind: ch.kind, points, status, orderId: ch.orderId ?? "", amount: ch.amount ?? 0, multiplier: ch.multiplier ?? 1, credit: ch.credit ?? 0, note: (ch.note ?? "").slice(0, 200), dedupe: ch.dedupe ?? null, availableAt: ch.availableAt ?? new Date(), ...(ch.at ? { createdAt: ch.at } : {}) } });
+      const earned = points > 0 && !NOT_EARNED.includes(ch.kind) ? points : 0;
       await tx.loyaltyMember.update({
         where: { id: memberId },
         data: {
@@ -121,6 +133,9 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
  */
 export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, now = new Date()) {
   if (!o.customer || isExcluded(o.customer.tags, excludedTags(c))) return null;
+  // New points only (refunds of orders that earned are always taken back): never for an order placed before the
+  // program counts from, and a guest checkout earns only as the store chose (Earn points → Orders placed as a guest).
+  const skipNew = (orderRow: unknown) => !orderRow && ((c.from && Date.parse(o.createdAt) < Date.parse(c.from)) || (o.customer!.account === false && c.guests !== "now"));
   const existing = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: o.customer.id } } });
   const rows = existing ? await db.loyaltyEvent.findMany({ where: { shop, memberId: existing.id, orderId: o.id, kind: { in: ["order", "refund", "cancel"] } } }) : [];
   const orderRow = rows.find((r) => r.kind === "order");
@@ -129,6 +144,7 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const cashback = orderRow ? orderRow.credit > 0 || (orderRow.points === 0 && c.cashback.on) : c.cashback.on;
   const target = cashback ? 0 : orderPoints(c, o, multiplier);
   const credit = cashback ? orderCredit(c, o) : 0;
+  if (skipNew(orderRow)) return null;
   if (!existing && (!c.autoJoin || (target <= 0 && credit <= 0))) return null;
   const m = existing ?? (await memberFor(shop, o.customer, true));
   if (!m || m.blocked) return null;
@@ -139,7 +155,15 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const pendingNow = c.pendingDays > 0;
 
   if (!orderRow && (target > 0 || credit > 0)) {
-    await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}` });
+    // An order placed before this month (the "last 30 or 90 days" counted when the program starts) earns, keeps its
+    // own date and is not one of this month's orders: it never uses the plan's monthly limit and is never billed.
+    const placed = new Date(o.createdAt);
+    const past = placed.getTime() < Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+    // The plan's loyalty orders a month (plans.ts): past it, orders earn nothing unless the store allows extra.
+    if (c.usage && !past && !(await allowUnit(shop, c.usage.plan, "loyaltyOrders", await usedThisMonth(shop, "loyaltyOrders", now), `order:${o.id}`, c.usage.ordersExtra, now))) return null;
+    const ev = await record(shop, m.id, { kind: "order", points: target, credit, multiplier, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, amount: net, note: o.name, dedupe: `order:${o.id}`, ...(past ? { at: placed } : {}) });
+    // Read twice at once: the other read counted it.
+    if (!ev) return null;
     await db.loyaltyMember.update({ where: { id: m.id }, data: { orders: { increment: 1 } } });
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {
       await record(shop, m.id, { kind: "first_order", points: c.earn.firstOrder.points, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, note: o.name, dedupe: `first:${m.id}` });
@@ -172,7 +196,7 @@ export async function tierValue(shop: string, c: LoyaltyConfig, memberId: number
     const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since } }, _sum: { amount: true } });
     return s._sum.amount ?? 0;
   }
-  const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since }, points: { gt: 0 }, kind: { notIn: ["adjust", "import"] } }, _sum: { points: true } });
+  const s = await db.loyaltyEvent.aggregate({ where: { shop, memberId, createdAt: { gte: since }, points: { gt: 0 }, kind: { notIn: NOT_EARNED } }, _sum: { points: true } });
   return s._sum.points ?? 0;
 }
 

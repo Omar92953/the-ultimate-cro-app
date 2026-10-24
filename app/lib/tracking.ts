@@ -4,7 +4,7 @@
  * Pure (no Shopify or database calls): the shopper's page, the app and the tests all use it.
  */
 
-import { atLeast, type PlanKey } from "./plans";
+import { atLeast, limitOf, type PlanKey } from "./plans";
 
 export const TRACK_STATUSES = ["info", "transit", "out", "delivered", "problem"] as const;
 /** Info received, In transit, Out for delivery, Delivered, Problem. */
@@ -24,13 +24,14 @@ export type Tracking = {
 export const TRACK_SOURCES = ["shopify", "live", "own", "webhook"] as const;
 export type TrackSource = (typeof TRACK_SOURCES)[number];
 /**
- * Basic tracking (Growth, with the Track page): Shopify's own data. Advanced tracking (Pro): live tracking from our
- * account, the store's own tracking service key, or a webhook from any carrier or 3PL (Omar, 2026-10-21).
+ * Tracking (Growth and Pro, with the Track page; one tracking with every source since Omar, 2026-10-22): Shopify's
+ * own data, live tracking from our account (limits.liveShipments a month, plans.ts), the store's own tracking
+ * service key, a webhook from any carrier or 3PL, and updates the store types.
  */
-export const SOURCE_PLAN = { shopify: "growth", live: "pro", own: "pro", webhook: "pro" } as const;
+export const SOURCE_PLAN = { shopify: "growth", live: "growth", own: "growth", webhook: "growth" } as const;
 export const sourceAllowed = (plan: PlanKey, s: TrackSource) => atLeast(plan, SOURCE_PLAN[s]);
-/** Live tracking included on Pro: shipments registered per month. */
-export const LIVE_MONTHLY_LIMIT = 500;
+/** Live tracking from our account on this plan: shipments registered per month. */
+export const liveLimit = (plan: PlanKey) => limitOf(plan, "liveShipments") ?? Number.MAX_SAFE_INTEGER;
 /** Order of preference when a source has nothing (docs §9.4). */
 export const FALLBACK_ORDER: TrackSource[] = ["webhook", "own", "live", "shopify"];
 

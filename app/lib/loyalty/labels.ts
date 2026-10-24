@@ -9,6 +9,8 @@ export const EVENT_LABEL: Record<string, string> = {
   adjust: "Changed by the store",
   import: "Imported",
   redeem: "Reward",
+  redeem_back: "Reward not made, points returned",
+  shop: "Bought with points",
   birthday: "Birthday",
   review: "Review",
   social: "Followed on social media",
@@ -21,5 +23,5 @@ export const EVENT_LABEL: Record<string, string> = {
 
 export const eventLabel = (kind: string, note: string) => {
   const base = EVENT_LABEL[kind] ?? kind;
-  return note && ["order", "refund", "cancel", "first_order", "referral", "referral_back"].includes(kind) ? `${base} ${note}` : note && kind === "adjust" ? `${base}: ${note}` : base;
+  return note && ["order", "refund", "cancel", "first_order", "referral", "referral_back"].includes(kind) ? `${base} ${note}` : note && (kind === "adjust" || kind === "shop") ? `${base}: ${note}` : base;
 };

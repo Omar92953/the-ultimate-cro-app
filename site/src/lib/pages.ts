@@ -82,7 +82,8 @@ export const PAGES = {
   },
 } satisfies Record<string, PageMeta>;
 
-export const featureSlug = (k: string) => k.replace(/_/g, "-");
+/** The loyalty feature shares its key with the Loyalty area (/features/loyalty/), so its own page is /features/loyalty-program/. */
+export const featureSlug = (k: string) => (k === "loyalty" ? "loyalty-program" : k.replace(/_/g, "-"));
 export const featurePath = (k: FeatureKey) => `/features/${featureSlug(k)}/`;
 export const areaPath = (a: string) => `/features/${a}/`;
 

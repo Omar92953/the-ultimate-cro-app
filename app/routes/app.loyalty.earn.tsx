@@ -8,16 +8,18 @@ import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
-import { MAX_CAMPAIGNS, MAX_RULES, SOCIAL_LABEL, SOCIAL_NETWORKS, pointsLabel, type LoyaltyConfig, type ProductRule } from "../lib/loyalty/config";
+import { MAX_CAMPAIGNS, MAX_RULES, SOCIAL_LABEL, SOCIAL_NETWORKS, pointsLabel, type GuestOrders, type LoyaltyConfig, type ProductRule } from "../lib/loyalty/config";
 import { Button, Checkbox, DateField, NumberField, Select, Switch, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro } from "../components/ui";
+import { loyaltyAccess } from "../lib/loyalty/plan.server";
+import { ProNote } from "../components/ProNote";
 import { FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const p = await getProgram(session.shop);
-  return { config: p.config, saved: p.saved };
+  const { admin, session } = await authenticate.admin(request);
+  const [p, access] = await Promise.all([getProgram(session.shop), loyaltyAccess(admin, session.shop)]);
+  return { pro: access.pro, config: p.config, saved: p.saved };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -33,6 +35,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 type C = LoyaltyConfig;
+
+/** What each choice for guest checkouts does, under the choice. */
+const GUEST_DETAILS: Record<GuestOrders, string> = {
+  now: "A checkout without an account earns points for the email used. They wait there: the customer uses them after creating an account or signing in with that email.",
+  account: "A checkout without an account earns nothing yet. Once the customer creates an account with the email used, their orders since the program started earn points.",
+  off: "Only customers with an account earn points.",
+};
 
 export default function LoyaltyEarn() {
   const d = useLoaderData<typeof loader>();
@@ -91,6 +100,19 @@ export default function LoyaltyEarn() {
             <Switch label="Points for creating an account" details="Once per customer, when their account is active." checked={cfg.earn.signup.on} onValue={(v) => earn("signup", { on: v })} />
             {cfg.earn.signup.on ? <NumberField label="Account points" suffix={cfg.unit.many} min={0} max={100000} step={10} value={cfg.earn.signup.points} onValue={(v) => earn("signup", { points: v })} /> : null}
             <Checkbox label="Customers join by themselves" details="With their first paid order or their account. Off: only customers who press Join in the rewards widget." checked={cfg.autoJoin} onValue={(v) => setCfg((c) => ({ ...c, autoJoin: v }))} />
+            {cfg.autoJoin ? (
+              <Select
+                label="Orders placed as a guest"
+                details={GUEST_DETAILS[cfg.guests]}
+                value={cfg.guests}
+                onValue={(v) => setCfg((c) => ({ ...c, guests: v as GuestOrders }))}
+                options={[
+                  { value: "now", label: "Earn points right away" },
+                  { value: "account", label: "Earn points once they create an account" },
+                  { value: "off", label: "Don't earn points" },
+                ]}
+              />
+            ) : null}
             <TextField label="Customers who can't join (tags)" details="Separated by commas, for example wholesale." value={cfg.excludeTags} onValue={(v) => setCfg((c) => ({ ...c, excludeTags: v }))} />
           </s-stack>
         </HomeRow>
@@ -126,6 +148,7 @@ export default function LoyaltyEarn() {
         </HomeRow>
 
         <HomeRow title="Bonus campaigns">
+          {d.pro ? null : <ProNote text="Bonus campaigns work on the Pro plan. They are kept and start on Pro." />}
           <s-stack gap="base">
             <s-text color="subdued">Orders placed between two dates earn more, for example double points for a weekend sale. The widget says so while it runs.</s-text>
             {cfg.campaigns.map((x, i) => (
@@ -150,6 +173,7 @@ export default function LoyaltyEarn() {
         </HomeRow>
 
         <HomeRow title="Products and collections">
+          {d.pro ? null : <ProNote text="Product and collection rates work on the Pro plan. On Growth every product earns the main rate." />}
           <s-stack gap="base">
             <s-text color="subdued">Give some products or collections their own points, or none (gift cards, sale items). The first rule that matches a product counts.</s-text>
             {cfg.productRules.map((x, i) => (
@@ -180,6 +204,7 @@ export default function LoyaltyEarn() {
         </HomeRow>
 
         <HomeRow title="Cashback instead of points">
+          {d.pro ? null : <ProNote text="Cashback works on the Pro plan. On Growth orders earn points." />}
           <s-stack gap="base">
             <Switch label="Orders earn store credit instead of points" details="A percent of each paid order goes to the member's store credit once the pending days are over. Shopify uses store credit at checkout by itself. Other ways to earn still give points." checked={cfg.cashback.on} onValue={(v) => setCfg((c) => ({ ...c, cashback: { ...c.cashback, on: v } }))} />
             {cfg.cashback.on ? <NumberField label="Cashback" suffix="%" min={1} max={50} step={1} value={cfg.cashback.percent} onValue={(v) => setCfg((c) => ({ ...c, cashback: { ...c.cashback, percent: v } }))} /> : null}

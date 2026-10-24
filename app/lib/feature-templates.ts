@@ -45,5 +45,6 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   returns: t(ORDER_PAGE_PRESETS),
   personalize: t(PERSONALIZE_PRESETS),
   cart_extras: t(CART_EXTRAS_PRESETS),
+  cart_code: t(CART_EXTRAS_PRESETS),
   quiz: t(QUIZ_PRESETS),
 };

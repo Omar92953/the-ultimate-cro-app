@@ -17,6 +17,7 @@ import { atLeast } from "../lib/plans";
 import { getReturnRules, requestReturn, returnableItems } from "../lib/shopify-returns.server";
 import { DEFAULT_SAVING, excludedTags, matchesAutoRule, settledSay, withSaving } from "../lib/return-rules";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
+import { storefrontOpen } from "../lib/rules.server";
 
 const clean = (v: unknown, max: number) =>
   Array.from(String(v ?? ""))
@@ -36,6 +37,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const q = readLookup(body);
   if ("error" in q) return json({ ok: false, error: q.error }, 400);
   if (tooMany(request, session.shop, "returns", 12)) return json({ ok: false, error: "Too many tries. Please wait a few minutes." }, 429);
+  // Returns are a Growth feature: after a downgrade the page takes no requests (its settings and requests are kept).
+  if (!(await storefrontOpen(admin, session.shop, "returns"))) return json({ ok: false, error: "Returns aren't available right now." }, 403);
   try {
     const order = await findOrder(admin, q.number, q.email);
     if (!order) return json({ ok: false, notFound: true });

@@ -20,8 +20,10 @@ type Limits = typeof import("../../app/lib/mcp/limits.server");
 let A: Auth, L: Limits;
 
 before(async () => {
-  const sql = fs.readFileSync("prisma/migrations/20261018000000_mcp/migration.sql", "utf8");
-  for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  for (const m of ["20261018000000_mcp", "20261104000000_mcp_client_used"]) {
+    const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
+    for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
+  }
   A = await import("../../app/lib/mcp/auth.server");
   L = await import("../../app/lib/mcp/limits.server");
 });
@@ -168,4 +170,21 @@ test("the connection code pairs the authorize page with the signed in admin, wit
   const old = await A.startRequest({ clientId: client.client_id, redirectUri: "https://claude.ai/api/mcp/auth_callback", state: "", challenge: challenge(verifier()), method: "S256" });
   await prisma.mcpRequest.update({ where: { id: old.id }, data: { expiresAt: new Date(Date.now() - 1000) } });
   assert.equal(await A.requestByPairingCode(A.pairingCode(old.id)), null);
+});
+
+test("a code and a refresh token work once even when two requests arrive together (audit 2026-10-23)", async () => {
+  const c = await connect("race.myshopify.com", "read", false);
+  const both = await Promise.allSettled([1, 2].map(() => A.exchange(c.form({ grant_type: "authorization_code", code: c.code, code_verifier: c.v }))));
+  assert.equal(both.filter((x) => x.status === "fulfilled").length, 1, "one grant from one code");
+  const t = (both.find((x) => x.status === "fulfilled") as PromiseFulfilledResult<Awaited<ReturnType<Auth["exchange"]>>>).value;
+  const again = await Promise.allSettled([1, 2].map(() => A.exchange(new URLSearchParams({ grant_type: "refresh_token", refresh_token: t.refreshToken }))));
+  assert.equal(again.filter((x) => x.status === "fulfilled").length, 1, "one new token from one refresh token");
+  assert.equal(await prisma.mcpGrant.count({ where: { shop: "race.myshopify.com" } }), 1);
+});
+
+test("client registration is limited per visitor (audit 2026-10-23)", async () => {
+  const body = { client_name: "Spam", redirect_uris: ["https://spam.example/cb"] };
+  for (let i = 0; i < 10; i++) await A.registerClient(body, "203.0.113.9");
+  await assert.rejects(A.registerClient(body, "203.0.113.9"), /Too many registrations/);
+  assert.ok((await A.registerClient(body, "198.51.100.7")).client_id, "another visitor still can");
 });

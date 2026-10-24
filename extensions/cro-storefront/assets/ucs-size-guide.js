@@ -96,8 +96,8 @@
       var usual = q.usual ? '<label class="ucs-sg__usual">' + esc(t.usual || 'Your usual size') + '<select name="u"><option value="">' + esc(t.usualPick || 'Choose') + '</option>' +
         u.filter(function (a) { return a.answer && a.size; }).map(function (a) { return '<option value="' + esc(a.answer) + '">' + esc(a.answer) + '</option>'; }).join('') + '</select></label>' : '';
       return '<form class="ucs-sg__form" novalidate>' + usual + (q.height || q.weight ? '<div class="ucs-sg__row">' +
-        (q.height ? '<label>' + esc(t.height) + '<span class="ucs-sg__in"><input type="number" inputmode="decimal" min="0" step="any" name="h"><select name="hu"><option value="cm">cm</option><option value="in">in</option></select></span></label>' : '') +
-        (q.weight ? '<label>' + esc(t.weight) + '<span class="ucs-sg__in"><input type="number" inputmode="decimal" min="0" step="any" name="w"><select name="wu"><option value="kg">kg</option><option value="lb">lb</option></select></span></label>' : '') + '</div>' : '') +
+        (q.height ? '<label>' + esc(t.height) + '<span class="ucs-sg__in"><input type="number" inputmode="decimal" min="0" step="any" name="h"><select name="hu" aria-label="' + esc(t.height) + ' unit"><option value="cm">cm</option><option value="in">in</option></select></span></label>' : '') +
+        (q.weight ? '<label>' + esc(t.weight) + '<span class="ucs-sg__in"><input type="number" inputmode="decimal" min="0" step="any" name="w"><select name="wu" aria-label="' + esc(t.weight) + ' unit"><option value="kg">kg</option><option value="lb">lb</option></select></span></label>' : '') + '</div>' : '') +
         fits + '<button type="submit" class="ucs-sg__go">' + esc(t.find) + '</button><div class="ucs-sg__result" role="status" aria-live="polite"></div></form>';
     }
     function close() {

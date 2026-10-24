@@ -11,16 +11,19 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
 import db from "../../db.server";
+import { appSecret } from "../app-secret.server";
 import { gql, type AdminClient } from "../admin.server";
 import { mailProvider, type DomainRecords, type MailProvider, type OutMail } from "../email/provider.server";
 import { pointsLabel, type LoyaltyConfig } from "./config";
+import { inLanguage, languageFor } from "./languages";
 import { eventTargets, queueEvents } from "./integrations.server";
+import { allowUnit } from "../usage.server";
 import { EMAIL_KINDS, MONTHLY_EMAILS, SAMPLE_WORDS, isFreeMailbox, isReminder, renderEmail, validEmail, type EmailKind } from "./emails";
 
 const DAY = 86_400_000;
 export const DEFAULT_FROM = () => process.env.LOYALTY_EMAIL_FROM || "rewards@mail.crotoolbox.com";
 const appUrl = () => (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
-const secret = () => process.env.SHOPIFY_API_SECRET || "development-only";
+const secret = () => appSecret();
 const sign = (s: string) => createHmac("sha256", secret()).update(s).digest("base64url");
 
 /* --------------------------------------------------------- unsubscribe -- */
@@ -176,11 +179,12 @@ export async function verifySender(shop: string, provider: MailProvider = mailPr
 }
 export const removeSender = (shop: string) => saveSender(shop, undefined);
 
-type Store = { name: string; email: string; url: string; currency: string };
+type Store = { name: string; email: string; url: string; currency: string; address?: string };
 async function storeInfo(admin: AdminClient): Promise<Store> {
   const d = await gql(admin, `#graphql
-    query CroLoyaltyStore { shop { name email contactEmail currencyCode primaryDomain { url } } }`);
-  return { name: String(d.shop?.name ?? "Our store"), email: String(d.shop?.contactEmail || d.shop?.email || ""), url: String(d.shop?.primaryDomain?.url ?? "").replace(/\/$/, ""), currency: String(d.shop?.currencyCode ?? "USD") };
+    query CroLoyaltyStore { shop { name email contactEmail currencyCode primaryDomain { url } billingAddress { formatted } } }`);
+  const address = ((d.shop?.billingAddress?.formatted ?? []) as string[]).filter(Boolean).join(", ");
+  return { name: String(d.shop?.name ?? "Our store"), email: String(d.shop?.contactEmail || d.shop?.email || ""), url: String(d.shop?.primaryDomain?.url ?? "").replace(/\/$/, ""), currency: String(d.shop?.currencyCode ?? "USD"), address };
 }
 
 const display = (name: string) => `"${name.replace(/["\\\r\n<>]/g, "").slice(0, 60)}"`;
@@ -199,9 +203,17 @@ export async function fromFor(shop: string, c: LoyaltyConfig, store: Store, prov
 }
 
 /** The words of one email, formatted for the store (points with its unit, money in its currency, dates). */
-export function wordsFor(c: LoyaltyConfig, currency: string, balance: number, d: EmailData): Record<string, string> {
-  const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
-  const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" }) : "");
+/** `locale`: dates and money in the member's language when the store added it (else English). */
+export function wordsFor(c: LoyaltyConfig, currency: string, balance: number, d: EmailData, locale = "en-US"): Record<string, string> {
+  const intl = (() => {
+    try {
+      return Intl.getCanonicalLocales(locale)[0] ?? "en-US";
+    } catch {
+      return "en-US";
+    }
+  })();
+  const money = (n: number) => new Intl.NumberFormat(intl, { style: "currency", currency }).format(n);
+  const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString(intl, { month: "long", day: "numeric", timeZone: "UTC" }) : "");
   return {
     unit: c.unit.many,
     balance: pointsLabel(c, balance),
@@ -267,7 +279,7 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
     else if (m.emailOptOut) refuse(q.id, "Unsubscribed");
     else if (!validEmail(m.email)) refuse(q.id, "No email address");
     else if (isReminder(kind) && !m.emailMarketing) refuse(q.id, "Not subscribed to email marketing");
-    else if (used >= MONTHLY_EMAILS) refuse(q.id, `Monthly limit of ${MONTHLY_EMAILS.toLocaleString("en-US")} reached`);
+    else if (c.usage ? !(await allowUnit(shop, c.usage.plan, "loyaltyEmails", used, `email:${q.id}`, c.usage.emailsExtra, now)) : used >= MONTHLY_EMAILS) refuse(q.id, "Monthly email limit reached");
     else {
       used++;
       let data: EmailData = {};
@@ -276,7 +288,10 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
       } catch {
         data = {};
       }
-      ready.push({ row: q, mail: mailFor(shop, c, store, from, kind, m.email, m.id, wordsFor(c, store.currency, m.points, data), q.id) });
+      // In the language of the customer's account when the store added it (Loyalty → Languages).
+      const lc = inLanguage(c, m.locale);
+      const lang = languageFor(c, m.locale);
+      ready.push({ row: q, mail: mailFor(shop, lc, store, from, kind, m.email, m.id, wordsFor(lc, store.currency, m.points, data, lang ? m.locale : undefined), q.id) });
     }
   }
   for (const [why, ids] of reasons) await skip(ids, why);
@@ -292,10 +307,10 @@ export async function sendQueued(admin: AdminClient, shop: string, c: LoyaltyCon
 }
 
 /** A test email of one kind with sample words, to an address the store types (logged as a test). */
-export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider()) {
+export async function sendTest(admin: AdminClient, shop: string, c: LoyaltyConfig, kind: EmailKind, to: string, provider: MailProvider = mailProvider(), limit = MONTHLY_EMAILS) {
   if (!validEmail(to)) throw new Error("Type the address to send the test to.");
   if (!provider.ready()) throw new Error("The email service is not set up yet.");
-  if ((await emailsThisMonth(shop)) >= MONTHLY_EMAILS) throw new Error("This month's emails are used up.");
+  if ((await emailsThisMonth(shop)) >= limit) throw new Error("This month's emails are used up.");
   const store = await storeInfo(admin);
   const from = await fromFor(shop, c, store, provider);
   const row = await db.loyaltyEmail.create({ data: { shop, memberId: null, kind, to, status: "queued", reason: "Test", data: "{}" } });
