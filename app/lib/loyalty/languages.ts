@@ -65,7 +65,7 @@ const e = (subject: string, heading: string, body: string, button: string): Emai
 export const BUILT_IN: Record<string, BuiltIn> = {
   fr: {
     texts: {
-      launcher: "Récompenses", title: "Récompenses", guestTitle: "Inscrivez-vous et gagnez des récompenses", guestText: "Gagnez des points à chaque commande et échangez-les contre des récompenses.", join: "Créer un compte",
+      launcher: "Récompenses", title: "Récompenses", guestTitle: "Inscrivez-vous et gagnez des récompenses", guestText: "Gagnez des points à chaque commande et échangez-les contre des récompenses.", guestPast: "Vous avez déjà commandé avec votre e-mail ? Créez un compte avec cet e-mail et récupérez vos points.", join: "Créer un compte",
       tier: "Membre {tier}", nextTier: "{n} avant {tier}", birthdayWay: "Votre anniversaire", birthdayAsk: "Ajoutez votre anniversaire", birthdaySave: "Enregistrer", birthdayDone: "Anniversaire enregistré",
       followWay: "Suivez-nous sur {network}", reviewWay: "Écrire un avis produit", follow: "Suivre", campaign: "{x} points jusqu'au {date}", tierOnly: "Réservé aux membres {tiers}", signIn: "Se connecter",
       joinNow: "Rejoindre le programme", have: "Vous avez", pending: "{n} en attente", earn: "Comment gagner des points", rewards: "Récompenses", history: "Votre historique", get: "Obtenir", more: "Encore {n}",
@@ -104,7 +104,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   es: {
     texts: {
-      launcher: "Recompensas", title: "Recompensas", guestTitle: "Únete y gana recompensas", guestText: "Gana puntos con cada pedido y cámbialos por recompensas.", join: "Crear una cuenta",
+      launcher: "Recompensas", title: "Recompensas", guestTitle: "Únete y gana recompensas", guestText: "Gana puntos con cada pedido y cámbialos por recompensas.", guestPast: "¿Ya compraste con tu correo? Crea una cuenta con ese correo y consigue tus puntos.", join: "Crear una cuenta",
       tier: "Miembro {tier}", nextTier: "{n} para {tier}", birthdayWay: "Tu cumpleaños", birthdayAsk: "Añade tu cumpleaños", birthdaySave: "Guardar", birthdayDone: "Cumpleaños guardado",
       followWay: "Síguenos en {network}", reviewWay: "Escribe una reseña de producto", follow: "Seguir", campaign: "{x} puntos hasta el {date}", tierOnly: "Para miembros {tiers}", signIn: "Iniciar sesión",
       joinNow: "Unirse al programa", have: "Tienes", pending: "{n} en camino", earn: "Formas de ganar", rewards: "Recompensas", history: "Tu historial", get: "Obtener", more: "Te faltan {n}",
@@ -143,7 +143,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   de: {
     texts: {
-      launcher: "Prämien", title: "Prämien", guestTitle: "Mitmachen und Prämien sichern", guestText: "Sammle bei jeder Bestellung Punkte und löse sie gegen Prämien ein.", join: "Konto erstellen",
+      launcher: "Prämien", title: "Prämien", guestTitle: "Mitmachen und Prämien sichern", guestText: "Sammle bei jeder Bestellung Punkte und löse sie gegen Prämien ein.", guestPast: "Schon mit deiner E-Mail bestellt? Erstelle damit ein Konto und hol dir deine Punkte.", join: "Konto erstellen",
       tier: "Mitglied {tier}", nextTier: "Noch {n} bis {tier}", birthdayWay: "Dein Geburtstag", birthdayAsk: "Geburtstag hinzufügen", birthdaySave: "Speichern", birthdayDone: "Geburtstag gespeichert",
       followWay: "Folge uns auf {network}", reviewWay: "Eine Produktbewertung schreiben", follow: "Folgen", campaign: "{x} Punkte bis {date}", tierOnly: "Für {tiers} Mitglieder", signIn: "Anmelden",
       joinNow: "Am Programm teilnehmen", have: "Du hast", pending: "{n} unterwegs", earn: "So sammelst du Punkte", rewards: "Prämien", history: "Dein Verlauf", get: "Einlösen", more: "Noch {n}",
@@ -182,7 +182,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   it: {
     texts: {
-      launcher: "Premi", title: "Premi", guestTitle: "Iscriviti e ottieni premi", guestText: "Guadagna punti con ogni ordine e usali per ottenere premi.", join: "Crea un account",
+      launcher: "Premi", title: "Premi", guestTitle: "Iscriviti e ottieni premi", guestText: "Guadagna punti con ogni ordine e usali per ottenere premi.", guestPast: "Hai già ordinato con la tua email? Crea un account con quella email e ottieni i tuoi punti.", join: "Crea un account",
       tier: "Membro {tier}", nextTier: "{n} per {tier}", birthdayWay: "Il tuo compleanno", birthdayAsk: "Aggiungi il tuo compleanno", birthdaySave: "Salva", birthdayDone: "Compleanno salvato",
       followWay: "Seguici su {network}", reviewWay: "Scrivi una recensione", follow: "Segui", campaign: "{x} punti fino al {date}", tierOnly: "Per i membri {tiers}", signIn: "Accedi",
       joinNow: "Iscriviti al programma", have: "Hai", pending: "{n} in arrivo", earn: "Come guadagnare", rewards: "Premi", history: "La tua cronologia", get: "Ottieni", more: "Ancora {n}",
@@ -221,7 +221,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   "pt-br": {
     texts: {
-      launcher: "Recompensas", title: "Recompensas", guestTitle: "Participe e ganhe recompensas", guestText: "Ganhe pontos em cada pedido e troque por recompensas.", join: "Criar uma conta",
+      launcher: "Recompensas", title: "Recompensas", guestTitle: "Participe e ganhe recompensas", guestText: "Ganhe pontos em cada pedido e troque por recompensas.", guestPast: "Já comprou com seu e-mail? Crie uma conta com ele e ganhe seus pontos.", join: "Criar uma conta",
       tier: "Membro {tier}", nextTier: "{n} para {tier}", birthdayWay: "Seu aniversário", birthdayAsk: "Adicione seu aniversário", birthdaySave: "Salvar", birthdayDone: "Aniversário salvo",
       followWay: "Siga a gente no {network}", reviewWay: "Escreva uma avaliação de produto", follow: "Seguir", campaign: "{x} pontos até {date}", tierOnly: "Para membros {tiers}", signIn: "Entrar",
       joinNow: "Participar do programa", have: "Você tem", pending: "{n} a caminho", earn: "Como ganhar", rewards: "Recompensas", history: "Seu histórico", get: "Resgatar", more: "Faltam {n}",
@@ -260,7 +260,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   nl: {
     texts: {
-      launcher: "Beloningen", title: "Beloningen", guestTitle: "Doe mee en verdien beloningen", guestText: "Verdien punten bij elke bestelling en wissel ze in voor beloningen.", join: "Account aanmaken",
+      launcher: "Beloningen", title: "Beloningen", guestTitle: "Doe mee en verdien beloningen", guestText: "Verdien punten bij elke bestelling en wissel ze in voor beloningen.", guestPast: "Al eens besteld met je e-mail? Maak er een account mee aan en krijg je punten.", join: "Account aanmaken",
       tier: "Lid {tier}", nextTier: "Nog {n} tot {tier}", birthdayWay: "Je verjaardag", birthdayAsk: "Voeg je verjaardag toe", birthdaySave: "Opslaan", birthdayDone: "Verjaardag opgeslagen",
       followWay: "Volg ons op {network}", reviewWay: "Schrijf een productreview", follow: "Volgen", campaign: "{x} punten tot {date}", tierOnly: "Voor {tiers} leden", signIn: "Inloggen",
       joinNow: "Doe mee met het programma", have: "Je hebt", pending: "{n} onderweg", earn: "Zo verdien je punten", rewards: "Beloningen", history: "Je geschiedenis", get: "Inwisselen", more: "Nog {n}",
@@ -299,7 +299,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
   },
   ar: {
     texts: {
-      launcher: "المكافآت", title: "المكافآت", guestTitle: "انضم واربح مكافآت", guestText: "اربح نقاطًا مع كل طلب واستبدلها بمكافآت.", join: "أنشئ حسابًا",
+      launcher: "المكافآت", title: "المكافآت", guestTitle: "انضم واربح مكافآت", guestText: "اربح نقاطًا مع كل طلب واستبدلها بمكافآت.", guestPast: "طلبت من قبل باستخدام بريدك الإلكتروني؟ أنشئ حسابًا به واحصل على نقاطك.", join: "أنشئ حسابًا",
       tier: "عضو {tier}", nextTier: "{n} للوصول إلى {tier}", birthdayWay: "عيد ميلادك", birthdayAsk: "أضف تاريخ ميلادك", birthdaySave: "حفظ", birthdayDone: "تم حفظ تاريخ الميلاد",
       followWay: "تابعنا على {network}", reviewWay: "اكتب تقييمًا لمنتج", follow: "متابعة", campaign: "{x} نقاط حتى {date}", tierOnly: "لأعضاء {tiers}", signIn: "تسجيل الدخول",
       joinNow: "انضم إلى البرنامج", have: "لديك", pending: "{n} في الطريق", earn: "طرق الربح", rewards: "المكافآت", history: "سجلك", get: "احصل عليها", more: "يتبقى {n}",

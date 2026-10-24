@@ -105,3 +105,17 @@ test("the storefront copy carries each language's own words, the page items fall
   assert.deepEqual(lg.de.pg.faq, DEFAULT_PAGE.faq);
   assert.deepEqual(lg.de.rw, { r1: "Rabatt" });
 });
+
+test("the storefront script picks the page's language and reads right to left ones that way", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync("extensions/cro-storefront/assets/ucs-loyalty.js", "utf8");
+  assert.match(src, /window\.Shopify && window\.Shopify\.locale/);
+  assert.match(src, /lg\[lc\] \|\| lg\[lc\.split\('-'\)\[0\]\]/);
+  const rtl = /var rtl = \/(.+)\/\.test\(lc\)/.exec(src);
+  assert.ok(rtl, "a right to left check");
+  const re = new RegExp(rtl![1]);
+  for (const code of ["ar", "he", "fa", "ur", "ar-eg"]) assert.ok(re.test(code), code);
+  for (const code of ["fr", "en", "arn", "pt-br"]) assert.ok(!re.test(code), code);
+  assert.match(src, /box\.dir = 'rtl'/);
+  assert.match(src, /pageEl\.dir = 'rtl'/);
+});
