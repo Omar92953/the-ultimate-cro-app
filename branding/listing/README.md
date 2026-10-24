@@ -60,6 +60,10 @@ script and pass it as `CHROME`).
   `benefits`, `delivery`, `thanks`), feature image rendered again, and the 6 screenshots designed:
   `templates/screenshot-1-bundles.html` to `screenshot-6-sections.html`, rendered to
   `branding/screenshots/storefront/`. Waiting on Omar to look at them and upload.
+- 2026-10-24: three more candidates, Track page, Returns and Loyalty (`screenshot-7-track.html` to
+  `screenshot-9-loyalty.html`), from crops that need a lookup or a click first: `live.mjs` lists them and
+  `node scripts/listing/capture-live.mjs` takes them (it opens each demo's design page, runs the steps, waits for the
+  pictures). The listing takes 6 screenshots at most: Omar picks which 6 of the 9.
 
 ## Screenshot alt text (for the listing editor)
 
@@ -69,4 +73,7 @@ script and pass it as `CHROME`).
 4. `4-after-purchase.png`: "One click offer after payment and a next order code on the thank you page"
 5. `5-product-page.png`: "A stock message and a delivery estimate on a product page"
 6. `6-sections.png`: "A benefits row section in a store theme"
+7. `7-track.png`: "A Track order page with the delivery status, a next order code and offers, on its way and delivered"
+8. `8-returns.png`: "A returns page offering store credit with a bonus, a refund or an exchange"
+9. `9-loyalty.png`: "The rewards panel with ways to earn points and rewards to spend them on"
 - Uploading is done by Omar in the listing editor (the browser pane cannot upload files).

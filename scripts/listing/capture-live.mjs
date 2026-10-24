@@ -59,13 +59,16 @@ try {
   await send("Emulation.setDeviceMetricsOverride", { width: 1600, height: 1100, deviceScaleFactor: 2, mobile: false });
   for (const s of SHOTS) {
     if (only.length && !only.includes(s.name)) continue;
-    await send("Page.navigate", { url: `${BASE}/${s.demo}/` });
+    // The demo page shows each design in a frame: open the design page itself.
+    await send("Page.navigate", { url: `${BASE}/${s.demo}/${s.page ?? "design-1.html"}` });
     for (let i = 0; i < 50 && (await run("document.readyState").catch(() => "")) !== "complete"; i++) await sleep(200);
     await sleep(1500);
     for (const step of s.steps) {
       await run(step);
       await sleep(1200);
     }
+    // Pictures load lazily: wait until every image in the crop has loaded (at most 5 seconds).
+    await run(`new Promise((done)=>{const e=document.querySelector(${JSON.stringify(s.crop)});const imgs=e?[...e.querySelectorAll("img")]:[];imgs.forEach((i)=>{i.loading="eager"});let n=0;const t=setInterval(()=>{if(imgs.every((i)=>i.complete&&i.naturalWidth)||++n>25){clearInterval(t);done(true)}},200)})`).catch(() => null);
     await sleep(800);
     const box = await run(`(()=>{const e=document.querySelector(${JSON.stringify(s.crop)});if(!e)return null;e.scrollIntoView({block:"start"});const r=e.getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,w:r.width,h:r.height}})()`);
     if (!box) throw new Error(`${s.name}: ${s.crop} not found`);
