@@ -15,7 +15,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 type P = typeof import("../../app/lib/loyalty/program.server");
 let P: P;
 before(async () => {
-  for (const m of ["20261019000000_tracking", "20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations", "20261102000000_usage_extras", "20261103000000_loyalty_account_metafield"]) {
+  for (const m of ["20261019000000_tracking", "20261027000000_loyalty_core", "20261028000000_loyalty_rewards", "20261029000000_loyalty_tiers", "20261030000000_loyalty_referrals", "20261031000000_loyalty_emails", "20261101000000_loyalty_integrations", "20261102000000_usage_extras", "20261103000000_loyalty_account_metafield", "20261106000000_loyalty_count_from"]) {
     const sql = fs.readFileSync(`prisma/migrations/${m}/migration.sql`, "utf8");
     for (const stmt of sql.split(";").map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await prisma.$executeRawUnsafe(stmt);
   }
@@ -183,7 +183,7 @@ test("an Admin API order reads into the engine's shape", async () => {
     currentSubtotalPriceSet: { shopMoney: { amount: "24.95", currencyCode: "USD" } }, currentShippingPriceSet: { shopMoney: { amount: "5" } }, currentTotalTaxSet: null,
     customer: { id: "gid://shopify/Customer/9", locale: "en", tags: ["vip"], state: "DISABLED", defaultEmailAddress: { emailAddress: "Sara@Example.com" } },
   });
-  assert.deepEqual(f, { id: "123", name: "#1006", createdAt: "2026-10-18T00:00:00Z", customer: { id: "9", email: "sara@example.com", firstName: "", locale: "en", tags: ["vip"], marketing: false }, paid: true, cancelled: false, subtotal: 24.95, shipping: 5, taxes: 0 });
+  assert.deepEqual(f, { id: "123", name: "#1006", createdAt: "2026-10-18T00:00:00Z", customer: { id: "9", email: "sara@example.com", firstName: "", locale: "en", tags: ["vip"], marketing: false, account: false }, paid: true, cancelled: false, subtotal: 24.95, shipping: 5, taxes: 0 });
   assert.equal(factsFromNode({ ...{ id: "gid://shopify/Order/1", name: "#1", createdAt: "", cancelledAt: null, currentSubtotalPriceSet: null, currentShippingPriceSet: null, currentTotalTaxSet: null, customer: null }, displayFinancialStatus: "PENDING" }).paid, false);
 });
 

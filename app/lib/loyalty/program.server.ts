@@ -22,7 +22,7 @@ export async function getProgram(shop: string) {
   } catch {
     raw = {};
   }
-  return { on: !!row?.on, config: withLoyaltyDefaults(raw), syncedAt: row?.syncedAt ?? null, saved: !!row };
+  return { on: !!row?.on, config: { ...withLoyaltyDefaults(raw), ...(row?.countFrom ? { from: row.countFrom.toISOString() } : {}) }, syncedAt: row?.syncedAt ?? null, saved: !!row };
 }
 
 export async function saveProgramConfig(shop: string, raw: unknown) {
@@ -40,7 +40,9 @@ export async function setProgramOn(shop: string, on: boolean, pastDays = 0) {
   const from = new Date(Date.now() - (row?.syncedAt ? 0 : Math.min(90, Math.max(0, pastDays))) * DAY);
   // Turned on again after a pause: from now (orders paid while it was off don't earn).
   const syncedAt = on && !row?.on ? (row?.syncedAt ? new Date() : from) : row?.syncedAt ?? null;
-  await db.loyaltyProgram.upsert({ where: { shop }, create: { shop, on, syncedAt }, update: { on, syncedAt, updatedAt: new Date() } });
+  // Orders placed before this never earn, however they are read later (a member opening the widget, a guest's account).
+  const countFrom = on && !row?.on ? (row?.syncedAt ? new Date() : from) : row?.countFrom ?? null;
+  await db.loyaltyProgram.upsert({ where: { shop }, create: { shop, on, syncedAt, countFrom }, update: { on, syncedAt, countFrom, updatedAt: new Date() } });
 }
 
 /* ----------------------------------------------------------------- members -- */
@@ -131,6 +133,9 @@ export async function record(shop: string, memberId: number, ch: LedgerChange) {
  */
 export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, now = new Date()) {
   if (!o.customer || isExcluded(o.customer.tags, excludedTags(c))) return null;
+  // New points only (refunds of orders that earned are always taken back): never for an order placed before the
+  // program counts from, and a guest checkout earns only as the store chose (Earn points → Orders placed as a guest).
+  const skipNew = (orderRow: unknown) => !orderRow && ((c.from && Date.parse(o.createdAt) < Date.parse(c.from)) || (o.customer!.account === false && c.guests !== "now"));
   const existing = await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: o.customer.id } } });
   const rows = existing ? await db.loyaltyEvent.findMany({ where: { shop, memberId: existing.id, orderId: o.id, kind: { in: ["order", "refund", "cancel"] } } }) : [];
   const orderRow = rows.find((r) => r.kind === "order");
@@ -139,6 +144,7 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
   const cashback = orderRow ? orderRow.credit > 0 || (orderRow.points === 0 && c.cashback.on) : c.cashback.on;
   const target = cashback ? 0 : orderPoints(c, o, multiplier);
   const credit = cashback ? orderCredit(c, o) : 0;
+  if (skipNew(orderRow)) return null;
   if (!existing && (!c.autoJoin || (target <= 0 && credit <= 0))) return null;
   const m = existing ?? (await memberFor(shop, o.customer, true));
   if (!m || m.blocked) return null;

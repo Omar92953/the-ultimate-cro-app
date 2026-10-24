@@ -3,6 +3,8 @@
   "earns": "This order earns {{points}}",
   "earnsCredit": "This order earns {{amount}} in store credit",
   "after": "They are added once the order is final.",
+  "guestNow": "They wait for the email you used at checkout: create an account or sign in with it to use them.",
+  "guestAccount": "Create an account with the email you used at checkout to get them.",
   "balance": "You have {{points}} ready to use",
   "title": "Your rewards",
   "codes": "Your reward codes",

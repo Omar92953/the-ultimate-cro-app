@@ -7,7 +7,7 @@ import { WIDGET_TEXTS } from "./config";
 export type TextKey = keyof typeof WIDGET_TEXTS;
 export const TEXT_GROUPS: { title: string; keys: [TextKey, string][] }[] = [
   { title: "Button and panel", keys: [["launcher", "Button"], ["title", "Panel title"], ["have", "Above the points"], ["pending", "Points on the way ({n})"], ["earn", "Ways to earn heading"], ["rewards", "Rewards heading"], ["history", "History heading"]] },
-  { title: "Shoppers who aren't members", keys: [["guestTitle", "Title"], ["guestText", "Text"], ["join", "Create an account"], ["signIn", "Sign in"], ["joinNow", "Join (signed in)"]] },
+  { title: "Shoppers who aren't members", keys: [["guestTitle", "Title"], ["guestText", "Text"], ["guestPast", "Ordered before as a guest"], ["join", "Create an account"], ["signIn", "Sign in"], ["joinNow", "Join (signed in)"]] },
   { title: "Rewards", keys: [["get", "Get a reward"], ["more", "Points still needed ({n})"], ["code", "Codes heading"], ["copy", "Copy"], ["copied", "After copying"], ["apply", "Use the code"], ["applied", "After using"], ["credit", "After store credit"], ["error", "Something went wrong"]] },
   { title: "Ways to earn", keys: [["orderWay", "Orders"], ["signupWay", "Account"], ["firstWay", "First order"], ["reviewWay", "Product review"]] },
   { title: "Referrals", keys: [["referTitle", "Heading"], ["referText", "Text ({friend}, {gift})"], ["referLink", "Link label"], ["shareText", "Shared message ({friend})"], ["refBanner", "Friend arrives ({friend})"], ["referWay", "Ways to earn"], ["offPercent", "Percent off ({x})"], ["offAmount", "Amount off ({x})"], ["freeShip", "Free shipping"], ["creditGift", "Store credit gift ({x})"], ["email", "Share by email"]] },
