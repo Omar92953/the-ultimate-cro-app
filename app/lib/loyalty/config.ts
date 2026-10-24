@@ -160,8 +160,8 @@ export type LoyaltyConfig = {
    */
   referral: { on: boolean; friend: { kind: FriendKind; value: number; minimum: number }; gift: { kind: "points" | "credit"; value: number }; monthly: number };
   affiliates: Affiliate[];
-  /** The Points shop: products members get with points (codes valid `days` days, like the rewards'). */
-  shop: { on: boolean; days: number; items: ShopItem[] };
+  /** The Points shop: products members get with points (codes valid `days` days, like the rewards'); `collection`: the app keeps a "Points shop" collection. */
+  shop: { on: boolean; days: number; items: ShopItem[]; collection: boolean };
   /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
   emails: EmailSettings;
   /** Set by plan.server.ts `planned` only, never saved: the plan, for the monthly limits (plans.ts METERS). */
@@ -319,7 +319,7 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   ],
   referral: { on: false, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 },
   affiliates: [],
-  shop: { on: false, days: 30, items: [] },
+  shop: { on: false, days: 30, items: [], collection: false },
   emails: DEFAULT_EMAILS,
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
@@ -400,7 +400,7 @@ function cleanShop(raw: unknown, d: LoyaltyConfig["shop"]): LoyaltyConfig["shop"
     }];
   });
   // Ids and products unique (the first one wins).
-  return { on: bool(r.on, d.on), days: num(r.days, 1, 365, d.days), items: items.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.product.id === x.product.id) === i) };
+  return { on: bool(r.on, d.on), days: num(r.days, 1, 365, d.days), collection: bool(r.collection, d.collection), items: items.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.product.id === x.product.id) === i) };
 }
 
 const idOk = (v: unknown, i: number, prefix: string) => (/^[a-z0-9]{1,12}$/i.test(String(v)) ? String(v) : `${prefix}${i + 1}`);

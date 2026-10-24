@@ -43,6 +43,25 @@ Shoppers who check out without an account give their email, and Shopify keeps a 
 
 Orders placed before the program started (or before it was turned on again) never earn points.
 
+## Points shop
+
+On **Points shop**, add products members get with their points, or with points plus a smaller price (for example 800
+points + $10). For each product choose who sees it: everyone (shoppers without enough points see how many more they
+need), only members with enough points, or members from a number of points, so they can work toward it. A limit per
+customer is optional.
+
+Members get it from a button on the product page, under your buy buttons, and from the Points shop list in the rewards
+panel and on the Rewards page. The option they chose goes in their cart with a code for one item, only for them.
+
+- **Only with points**: your add to cart button is hidden on the product's page, and checkout refuses the product
+  without the member's code.
+- **Hide it from collections and search** (with Only with points): the product is Unlisted in Shopify, so only the
+  Points shop opens it. It is listed again when you turn this off or remove the product.
+- **Keep a Points shop collection**: a collection named Points shop holds the products and stays in step. Add it to a
+  menu in **Online Store → Navigation**. Product cards in collections show the points price.
+
+The Points shop is on the Growth and Pro plans.
+
 ## Referrals
 
 On **Referrals**, members share their own link: a friend gets a discount on their first order, and the member gets a

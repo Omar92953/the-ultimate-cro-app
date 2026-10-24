@@ -36,7 +36,7 @@ const item = (o: Partial<ShopItem> = {}): ShopItem => ({
   id: "s1", on: true, product: { id: "gid://shopify/Product/9", title: "Watch", handle: "watch", image: "", price: 50 },
   points: 800, money: 0, only: false, unlisted: false, show: "all", from: 400, limit: 0, ...o,
 });
-const cfg = (items: ShopItem[], patch: Partial<LoyaltyConfig> = {}): LoyaltyConfig => ({ ...DEFAULT_LOYALTY, pendingDays: 0, shop: { on: true, days: 30, items }, ...patch });
+const cfg = (items: ShopItem[], patch: Partial<LoyaltyConfig> = {}): LoyaltyConfig => ({ ...DEFAULT_LOYALTY, pendingDays: 0, shop: { on: true, days: 30, items, collection: false }, ...patch });
 
 type Call = { query: string; variables: Record<string, unknown> };
 /** Shopify as the tests need it: variant 91 of product 9 costs 50 (92 is sold out, 93 belongs to product 8). */
@@ -81,7 +81,7 @@ test("Points shop settings are cleaned: products, money below the price, visibil
   assert.equal(a.product.image, "");
   assert.equal(a.unlisted, false, "hidden only for products sold only with points");
   assert.deepEqual([d.money, d.only, d.unlisted, d.show, d.from, d.limit], [10, true, true, "from", 200, 2]);
-  assert.deepEqual(withLoyaltyDefaults({}).shop, { on: false, days: 30, items: [] });
+  assert.deepEqual(withLoyaltyDefaults({}).shop, { on: false, days: 30, items: [], collection: false });
 });
 
 test("who sees what: everyone, members with enough points, members from a number of points", () => {
@@ -178,7 +178,8 @@ test("points spent in the Points shop count as spent, never as earned", async ()
 });
 
 /** Shopify for the only with points sync: our validations (`guard`), product statuses, and every call made. */
-function storeAdmin(guard: { id: string; enabled: boolean } | null, status: Record<string, string>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function storeAdmin(guard: { id: string; enabled: boolean } | null, status: Record<string, string>, coll: { id: string; products: string[]; input?: any } = { id: "", products: [] }) {
   const calls: { op: string; vars: Record<string, any> }[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
   const admin = {
     graphql: async (query: string, o?: { variables?: Record<string, any> }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -192,6 +193,13 @@ function storeAdmin(guard: { id: string; enabled: boolean } | null, status: Reco
             : op === "CroGuardOn" || op === "CroGuardOff" ? { validationUpdate: { userErrors: [] } }
               : op === "CroPointsStatus" ? { nodes: (vars.ids as string[]).map((id) => (status[id] ? { id, status: status[id] } : null)) }
                 : op === "CroPointsListed" ? (status[vars.p.id] = vars.p.status, { productUpdate: { product: { id: vars.p.id }, userErrors: [] } })
+                  : op === "CroPointsCollection" ? { collection: coll.id === vars.id ? { id: coll.id, products: { nodes: coll.products.map((id) => ({ id })) } } : null }
+                    : op === "CroPointsCollectionCreate" ? (Object.assign(coll, { id: "gid://shopify/Collection/1", products: [], input: vars.c }), { collectionCreate: { collection: { id: coll.id }, userErrors: [] } })
+                      : op === "CroPointsCollectionAdd" ? (coll.products.push(...vars.ids), { collectionAddProducts: { userErrors: [] } })
+                        : op === "CroPointsCollectionRemove" ? (coll.products = coll.products.filter((p) => !vars.ids.includes(p)), { collectionRemoveProducts: { userErrors: [] } })
+                          : op === "CroPointsCollectionDelete" ? (coll.id = "", { collectionDelete: { userErrors: [] } })
+                            : op === "CroPublications" ? { publications: { nodes: [{ id: "gid://shopify/Publication/1", channels: { nodes: [{ handle: "online_store", name: "Online Store" }] } }] } }
+                              : op === "CroPublish" ? { publishablePublish: { userErrors: [] } }
                   : {};
       return new Response(JSON.stringify({ data }));
     },
@@ -237,4 +245,34 @@ test("the storefront copy lists the products sold only with points", () => {
   const sf = toStorefrontLoyalty(c, true);
   assert.deepEqual(sf.po, ["9"]);
   assert.deepEqual(sf.ps?.map((x) => x.id), ["s2"]);
+});
+
+test("the Points shop collection: made and published with the listed products, kept in step, emptied when off, deleted with the option", async () => {
+  const shop = "coll.myshopify.com";
+  await prisma.loyaltyProgram.create({ data: { shop, on: true } });
+  const P9 = "gid://shopify/Product/9", P8 = "gid://shopify/Product/8", P7 = "gid://shopify/Product/7";
+  const status = { [P9]: "ACTIVE", [P8]: "ACTIVE", [P7]: "ACTIVE" };
+  const coll = { id: "", products: [] as string[] } as { id: string; products: string[]; input?: { title: string } };
+  const items = [item(), item({ id: "b", product: { ...item().product, id: P8 }, only: true, unlisted: true }), item({ id: "c", on: false, product: { ...item().product, id: P7 } })];
+  const c = { ...cfg(items), shop: { ...cfg(items).shop, collection: true } };
+  const one = storeAdmin(null, status, coll);
+  await S.syncPointsShop(one.admin, shop, c, true);
+  assert.equal(coll.input?.title, "Points shop");
+  assert.deepEqual(coll.products, [P9], "on and not hidden only");
+  assert.ok(one.calls.some((x) => x.op === "CroPublish" && x.vars.id === "gid://shopify/Collection/1"), "published to the Online Store");
+  const st = () => prisma.loyaltyProgram.findUniqueOrThrow({ where: { shop } }).then((r) => JSON.parse(r.state));
+  assert.equal((await st()).pointsCollection, "gid://shopify/Collection/1");
+
+  // A product switched on and the hidden one shown: added; the shop off: emptied, but kept.
+  const on = [item(), item({ id: "b", product: { ...item().product, id: P8 }, only: true }), item({ id: "c", product: { ...item().product, id: P7 } })];
+  await S.syncPointsShop(storeAdmin(null, status, coll).admin, shop, { ...c, shop: { ...c.shop, items: on } }, true);
+  assert.deepEqual(coll.products.sort(), [P7, P8, P9]);
+  await S.syncPointsShop(storeAdmin(null, status, coll).admin, shop, { ...c, shop: { ...c.shop, items: on, on: false } }, true);
+  assert.deepEqual(coll.products, []);
+  assert.equal(coll.id, "gid://shopify/Collection/1");
+
+  // The option off: the app's collection is deleted.
+  await S.syncPointsShop(storeAdmin(null, status, coll).admin, shop, { ...c, shop: { ...c.shop, collection: false } }, true);
+  assert.equal(coll.id, "");
+  assert.equal((await st()).pointsCollection, "");
 });

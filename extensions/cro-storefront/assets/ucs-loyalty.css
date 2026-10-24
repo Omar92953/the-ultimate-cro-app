@@ -88,3 +88,4 @@
 .ucs-loy__pb .ucs-loy__btn--wide { margin: 0; width: 100%; font-size: 15px; }
 .ucs-loy__pb small { color: #666; }
 .ucs-loy__pb small:empty { display: none; }
+.ucs-loy__tag { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--ucs-loy-a, #111); }

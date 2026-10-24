@@ -160,6 +160,28 @@
     pb.innerHTML = (s.a ? '<a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(s.a) + '">' + esc(s.l) + '</a>' : '<button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-buy="' + esc(x.id) + '"' + (s.ok && !busy ? '' : ' disabled') + '>' + esc(s.l) + '</button>') +
       (s.have ? '<small>' + esc(s.have) + '</small>' : '') + '<small role="status">' + esc(pmsg) + '</small>';
   };
+  /* On collection pages (the Points shop collection, or any other), product cards of the shop show their points price. */
+  var tagged = false;
+  var cardTags = function () {
+    if (D.page !== 'collection' || tagged) return;
+    var l = shopList();
+    if (!l.length || (D.in && !me)) return;
+    tagged = true;
+    l.forEach(function (x) {
+      if (!x.h) return;
+      var seen = [];
+      [].forEach.call(document.querySelectorAll('main a[href*="/products/' + x.h + '"]'), function (a) {
+        var card = a.closest('li, .card-wrapper, .grid__item') || a.parentNode;
+        if (!a.textContent.trim() || seen.indexOf(card) > -1) return;
+        seen.push(card);
+        var at = a.closest('h2, h3, h4, p') || a, tag = document.createElement('p');
+        tag.className = 'ucs-loy__tag';
+        tag.style.setProperty('--ucs-loy-a', w.a || '#111');
+        tag.textContent = price(x);
+        at.parentNode.insertBefore(tag, at.nextSibling);
+      });
+    });
+  };
   /* Points first (the app makes a code for this option and member only), then the option goes in the cart with the code. */
   var buy = function (b, form) {
     var v = form.querySelector('[name="id"]'), vid = v && v.value, id = b.getAttribute('data-buy');
@@ -207,6 +229,7 @@
     body.innerHTML = h;
     if (pageEl) drawPage();
     productButton();
+    cardTags();
   };
   /* The Rewards page (Order & wishlist pages block on the page the app made): the same program, laid out wide. */
   var drawPage = function () {
@@ -261,6 +284,7 @@
   body.addEventListener('click', act);
   if (pageEl) { pageEl.addEventListener('click', act); drawPage(); }
   productButton();
+  cardTags();
 
   /* ---------- A friend arrives on ?ref=CODE: the discount goes on the cart and a banner says so ---------- */
   var toast = function (text, wide) {
