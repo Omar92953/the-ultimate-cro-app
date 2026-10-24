@@ -67,6 +67,8 @@ export function shopPayload(c: LoyaltyConfig, on: boolean, storeUrl: string) {
     sh: c.earn.order.shipping,
     tx: c.earn.order.taxes,
     cb: c.cashback.on ? c.cashback.percent : 0,
+    /** A guest checkout: "now" earns right away, "account" once they make an account, "off" earns nothing. */
+    gu: c.autoJoin ? c.guests : "off",
     ti: c.tiers.on ? c.tiers.list.map((t) => ({ n: t.name, x: t.multiplier })) : [],
     rw: c.rewards.filter((r) => r.on).map((r) => ({ id: r.id, t: r.title, p: r.points, k: r.kind })),
     ref: c.referral.on && storeUrl ? storeUrl.replace(/\/+$/, "") : "",
