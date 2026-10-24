@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { cartValidationsGenerateRun, checkBundles, checkNested } from "../src/cart_validations_generate_run.js";
+import { cartValidationsGenerateRun, checkBundles, checkNested, checkPoints } from "../src/cart_validations_generate_run.js";
 
 const line = (id, title, quantity) => ({ quantity, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${id}`, title } } });
 const run = (rules, total, lines) => cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: String(total) } }, lines }, validation: { metafield: { jsonValue: { rules } } } });
@@ -66,5 +66,29 @@ describe("bundle product inside a bundle", () => {
   });
   test("a plain pick, or a bundle product on its own line, is not this error", () => {
     expect(checkNested({ lines: [nl("Mug", false, "7:abc:0"), nl("Gift box", true, null)] })).toEqual([]);
+  });
+});
+
+describe("points guard", () => {
+  // A line as checkout sees it: `total` is what the line costs after discounts (the member's points code included).
+  const pl = (productId, title, quantity, total) => ({ quantity, cost: { totalAmount: { amount: String(total) } }, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${productId}`, title } } });
+  const cfg = { points: [{ p: "gid://shopify/Product/9", m: 0 }, { p: "gid://shopify/Product/8", m: 10 }] };
+  const run = (lines) => messages(cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: "10" } }, lines }, validation: { metafield: { jsonValue: cfg } } }));
+  test("points only: allowed with the code (costs 0), refused without it", () => {
+    expect(run([pl(9, "Watch", 1, 0)])).toEqual([]);
+    expect(run([pl(9, "Watch", 1, 50)])).toEqual(["Watch can only be bought with points."]);
+  });
+  test("points plus money: allowed at the money part, refused above it", () => {
+    expect(run([pl(8, "Bag", 1, 10)])).toEqual([]);
+    expect(run([pl(8, "Bag", 1, 10.004)])).toEqual([], "rounding");
+    expect(run([pl(8, "Bag", 1, 40)])).toEqual(["Bag can only be bought with points."]);
+  });
+  test("quantity 2 with one code is refused (the code takes the price off one item only)", () => {
+    expect(run([pl(9, "Watch", 2, 50)])).toEqual(["Watch can only be bought with points."]);
+    expect(run([pl(8, "Bag", 2, 50)])).toEqual(["Bag can only be bought with points."]);
+  });
+  test("other products and an empty config are never touched", () => {
+    expect(run([pl(1, "Mug", 3, 30)])).toEqual([]);
+    expect(checkPoints(undefined, { lines: [pl(9, "Watch", 1, 50)] })).toEqual([]);
   });
 });

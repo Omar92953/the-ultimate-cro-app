@@ -15,6 +15,10 @@
  * product can't be bought alone, e.g. through a theme's quick add button. It also refuses a bundle product
  * (tag cro-bundle) added as a pick (a line with the `_bundle` property), which the builder never
  * offers but a hand made request could.
+ *
+ * And as the "points guard" (a third validation, made by the app when the Points shop has a product sold only with points),
+ * configured with { "points": [{ "p": "<product gid>", "m": <money part per item> }] }: a line of such a product that
+ * costs more than its money part per item (after discounts, so with the member's points code) is refused.
  */
 
 /**
@@ -97,6 +101,26 @@ export function checkBundles(bundles, cart, stamp = "") {
   return errors;
 }
 
+/**
+ * Errors for Points shop products sold only with points: each item of such a line may cost at most its money part (the
+ * member's code takes the rest off one item, so a second item, or the product without the code, is refused).
+ * @param {any} points [{ p: product gid, m: money per item }]
+ * @param {any} cart
+ */
+export function checkPoints(points, cart) {
+  const money = new Map(Array.isArray(points) ? points.map((x) => [String(x?.p), Number(x?.m) || 0]) : []);
+  if (!money.size) return [];
+  const errors = [];
+  for (const line of cart.lines) {
+    const m = /** @type {any} */ (line.merchandise);
+    if (m.__typename !== "ProductVariant" || !m.product || !money.has(m.product.id)) continue;
+    const each = (Number(line.cost?.totalAmount?.amount) || 0) / (line.quantity || 1);
+    // Half a cent of room for rounding.
+    if (each > /** @type {number} */ (money.get(m.product.id)) + 0.005) errors.push(`${m.product.title || "This product"} can only be bought with points.`.slice(0, 250));
+  }
+  return errors;
+}
+
 /** Errors for bundle products used as picks inside a bundle. */
 export function checkNested(cart) {
   const errors = [];
@@ -116,7 +140,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...(rules.length ? check(rules, input.cart) : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart), ...(rules.length ? check(rules, input.cart) : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }

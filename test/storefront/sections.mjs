@@ -224,6 +224,9 @@ pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-booster
   loyMe.member.shop = shopFor(loyShop, 900);
   pages["loyalty-shop.html"] = page("Points shop", productForm + '<div class="page-width" style="max-width:1100px;margin:0 auto;padding:0 40px" data-ucs-loy-page></div>', loyFake() + html + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   pages["loyalty-shop-guest.html"] = page("Points shop (guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // Sold only with points and only for members with enough points: a guest gets no add to cart, only the sign in link.
+  const onlyShop = withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [{ ...loyShop.shop.items[0], only: true, show: "afford" }] } }), true) }));
+  pages["loyalty-shop-only.html"] = page("Points shop (only with points, guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   pages["loyalty-shop-design.html"] = page("Points shop (theme editor)", productForm, (await block("ucs-boosters", {}, { ...ctx, design: true, shop: withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [] } }), true) })) })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
 }
 
@@ -475,6 +478,7 @@ check(/"cols": \[500,0\]/.test(pages["deals.html"].replace(/\s+/g, " ")), "produ
   check(d?.pid === 77 && d.in === true, "Points shop: the product id and the signed in flag should reach the loyalty script");
   check(JSON.stringify((d?.c.ps ?? []).map((x) => x.id)) === '["s1"]', "Points shop: the public copy should hold only the products everyone sees");
   check(data("loyalty-shop-guest.html")?.in === false && !data("loyalty-shop.html")?.dm, "Points shop: guest flag or design flag wrong");
+  check(JSON.stringify(data("loyalty-shop-only.html")?.c.po) === '["77"]' && !data("loyalty-shop-only.html")?.c.ps.length, "Points shop: only with points products should be listed for the script, members only products not shown");
   check(data("loyalty-shop-design.html")?.dm === 1, "Points shop: the theme editor flag (sample product) is missing");
 }
 if (problems.length) {

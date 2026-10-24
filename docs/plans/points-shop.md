@@ -3,7 +3,7 @@
 | PR | What | State |
 | --- | --- | --- |
 | 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | Ready for the lead: #292 (Needs Shopify deploy) |
-| 2 | Only with points: checkout guard, hide from collections and search | In progress (claude/points-only) |
+| 2 | Only with points: checkout guard, hide from collections and search | Ready for the lead: #297, after #292 (Needs Shopify deploy) |
 | 3 | Points shop collection, help, website, docs | To do |
 
 Points shop: products bought with loyalty points (Omar, 2026-10-24). Build it in 3 PRs, claim with a draft PR first,
@@ -93,3 +93,18 @@ and without enough points, checkout totals, the guard blocks buying the points o
 - Harness: `test/storefront/sections.mjs` pages `loyalty-shop.html` (member with 900 points; `#buy` clicks the button
   and writes what was sent into `data-added`), `loyalty-shop-guest.html`, `loyalty-shop-design.html`.
 - Not in PR 1: the `only` and `unlisted` switches have no admin field yet (PR 2).
+
+## PR 2 as built (#297)
+- Admin: "Only with points" and, under it, "Hide it from collections and search" per product.
+- Function: `checkPoints` in `extensions/cro-validation` (config `{ points: [{ p, m }] }`, line `cost.totalAmount`
+  per item above `m` + half a cent is refused: "<Product> can only be bought with points."). Input query 497 bytes.
+- App: `syncPointsShop` (lib/loyalty/shop.server.ts), run by `publishLoyalty` after every loyalty save, the program
+  switch and plan changes. The guard is the third cro-validation ("CRO Toolbox points guard", `syncGuard` in
+  checkout-rules.server.ts, shared with the bundle guard); with no such product it is switched off, not deleted (like the
+  bundle guard). `LoyaltyProgram.state` keeps `pointsGuard` and `pointsHidden` (only products the app unlisted go back
+  to ACTIVE). When the shop, the program or the plan's loyalty is off, the guard is off and the products are listed again,
+  so they can be bought with money at their price (Omar can say if he wants them blocked instead).
+- Storefront: `po` (ids of products sold only with points) in the public copy; the script hides the theme's submit,
+  `[name=add]` and `.shopify-payment-button` in the product form; a guest sees "Sign in to get it with points".
+- To check on Testing 3: discount codes show in the line cost the validation reads at checkout (a points only product
+  with the member's code must pass; without it, be refused).

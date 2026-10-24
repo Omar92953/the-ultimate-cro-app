@@ -4,6 +4,7 @@ query CartValidationsGenerateRunInput {
     lines {
       id
       quantity
+      cost { totalAmount { amount } }
       bundle: attribute(key: "_bundle") { value }
       merged: attribute(key: "_cro_merged") { value }
       merchandise { __typename ... on ProductVariant { product { id title isBundle: hasAnyTag(tags: ["cro-bundle"]) } } }

@@ -8,6 +8,7 @@ import { upsert } from "../cro.server";
 import type { AdminClient } from "../admin.server";
 import { toStorefrontLoyalty } from "./config";
 import { getProgram } from "./program.server";
+import { syncPointsShop } from "./shop.server";
 import { loyaltyAccess, planned } from "./plan.server";
 
 export async function publishLoyalty(admin: AdminClient, shop: string) {
@@ -15,6 +16,9 @@ export async function publishLoyalty(admin: AdminClient, shop: string) {
   const access = await loyaltyAccess(admin, shop);
   // The widget shows what this plan runs (no VIP tiers or campaigns on Growth).
   await upsert(admin, "$app:cro_design", "loyalty", { config: JSON.stringify(toStorefrontLoyalty(planned(p.config, access), p.on && access.on)) });
+  // Products sold only with points: the checkout guard and hidden products follow the shop, the program and the plan.
+  // A failure here never blocks saving.
+  await syncPointsShop(admin, shop, p.config, p.on && access.on).catch((e) => console.error(`[points shop] ${shop}:`, e instanceof Error ? e.message : e));
 }
 
 /**

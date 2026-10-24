@@ -12,6 +12,7 @@ import { PrismaClient } from "@prisma/client";
 import { DEFAULT_LOYALTY, canSeeItem, shopFor, toStorefrontLoyalty, withLoyaltyDefaults, type LoyaltyConfig, type ShopItem } from "../../app/lib/loyalty/config";
 import { eventLabel } from "../../app/lib/loyalty/labels";
 
+Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOPIFY_APP_URL: "https://app.example", SCOPES: "read_products" });
 // The database is set before anything that imports it.
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "points-shop-test-"));
 const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(dir, "t.db")}` } } });
@@ -174,4 +175,66 @@ test("points spent in the Points shop count as spent, never as earned", async ()
   const s = summarize({ members: [], events: [{ kind: "order", points: 1000, createdAt: at }, { kind: "shop", points: -800, createdAt: at }, { kind: "redeem_back", points: 100, createdAt: at }], rewards: [], codes: [], referrals: [], orders: [] } as never, 30, now);
   assert.equal(s.points.earned, 1000);
   assert.equal(s.points.spent, 700);
+});
+
+/** Shopify for the only with points sync: our validations (`guard`), product statuses, and every call made. */
+function storeAdmin(guard: { id: string; enabled: boolean } | null, status: Record<string, string>) {
+  const calls: { op: string; vars: Record<string, any> }[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const admin = {
+    graphql: async (query: string, o?: { variables?: Record<string, any> }) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+      const op = /(?:mutation|query)\s+(\w+)/.exec(query)?.[1] ?? "";
+      const vars = o?.variables ?? {};
+      calls.push({ op, vars });
+      const data = op === "CroBundleGuard"
+        ? { validations: { nodes: guard ? [{ id: guard.id, title: "CRO Toolbox points guard", enabled: guard.enabled, shopifyFunction: { app: { apiKey: "k" } } }] : [] } }
+        : op === "CroGuardCreate" ? { validationCreate: { validation: { id: "gid://shopify/Validation/5" }, userErrors: [] } }
+          : op === "CroGuardSet" ? { metafieldsSet: { userErrors: [] } }
+            : op === "CroGuardOn" || op === "CroGuardOff" ? { validationUpdate: { userErrors: [] } }
+              : op === "CroPointsStatus" ? { nodes: (vars.ids as string[]).map((id) => (status[id] ? { id, status: status[id] } : null)) }
+                : op === "CroPointsListed" ? (status[vars.p.id] = vars.p.status, { productUpdate: { product: { id: vars.p.id }, userErrors: [] } })
+                  : {};
+      return new Response(JSON.stringify({ data }));
+    },
+  };
+  return { admin: admin as never, calls };
+}
+
+test("only with points: the guard lists those products with their money part; hidden ones are unlisted and come back", async () => {
+  const shop = "only.myshopify.com";
+  await prisma.loyaltyProgram.create({ data: { shop, on: true, state: JSON.stringify({ referral: { id: "keep me" } }) } });
+  const P9 = "gid://shopify/Product/9", P8 = "gid://shopify/Product/8", P7 = "gid://shopify/Product/7";
+  const status: Record<string, string> = { [P9]: "ACTIVE", [P8]: "ACTIVE", [P7]: "UNLISTED" };
+  const items = [
+    item({ id: "a", only: true, unlisted: true }),
+    item({ id: "b", product: { ...item().product, id: P8 }, only: true, money: 10 }),
+    item({ id: "c", product: { ...item().product, id: P7 }, only: true, unlisted: true }), // the merchant unlisted it before
+  ];
+  const first = storeAdmin(null, status);
+  await S.syncPointsShop(first.admin, shop, cfg(items), true);
+  const made = first.calls.find((x) => x.op === "CroGuardCreate")!.vars.input;
+  assert.equal(made.functionHandle, "cro-validation");
+  assert.equal(made.title, "CRO Toolbox points guard");
+  assert.deepEqual(JSON.parse(made.metafields[0].value), { points: [{ p: P9, m: 0 }, { p: P8, m: 10 }, { p: P7, m: 0 }] });
+  assert.deepEqual(status, { [P9]: "UNLISTED", [P8]: "ACTIVE", [P7]: "UNLISTED" });
+  const state = JSON.parse((await prisma.loyaltyProgram.findUniqueOrThrow({ where: { shop } })).state);
+  assert.deepEqual(state, { referral: { id: "keep me" }, pointsGuard: true, pointsHidden: [P9] }, "only what the app unlisted is kept; other state stays");
+
+  // Hiding switched off for the watch, and the program stops (plan or switch): everything goes back, the guard turns off.
+  const second = storeAdmin({ id: "gid://shopify/Validation/5", enabled: true }, status);
+  await S.syncPointsShop(second.admin, shop, cfg(items), false);
+  assert.ok(second.calls.some((x) => x.op === "CroGuardOff"));
+  assert.deepEqual(status, { [P9]: "ACTIVE", [P8]: "ACTIVE", [P7]: "UNLISTED" }, "the merchant's own unlisted product stays unlisted");
+  assert.deepEqual(JSON.parse((await prisma.loyaltyProgram.findUniqueOrThrow({ where: { shop } })).state).pointsHidden, []);
+
+  // Nothing sold only with points and nothing made before: Shopify isn't called at all.
+  const none = storeAdmin(null, status);
+  await S.syncPointsShop(none.admin, shop, cfg([item()]), true);
+  assert.deepEqual(none.calls.map((x) => x.op), []);
+});
+
+test("the storefront copy lists the products sold only with points", () => {
+  const c = cfg([item({ only: true, show: "afford" }), item({ id: "s2", product: { ...item().product, id: "gid://shopify/Product/8" } }), item({ id: "s3", on: false, only: true, product: { ...item().product, id: "gid://shopify/Product/7" } })]);
+  const sf = toStorefrontLoyalty(c, true);
+  assert.deepEqual(sf.po, ["9"]);
+  assert.deepEqual(sf.ps?.map((x) => x.id), ["s2"]);
 });

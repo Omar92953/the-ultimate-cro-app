@@ -128,7 +128,10 @@
   var productButton = function () {
     var form = D.pid && document.querySelector('form[action*="/cart/add"]');
     if (!form) return;
-    var x = shopList().filter(function (y) { return String(y.pid) === String(D.pid); })[0] || (D.dm ? SAMPLE[0] : null);
+    // Sold only with points: the theme's buy buttons go, and a guest is asked to sign in even when the product is for members.
+    var only = (c.po || []).map(String).indexOf(String(D.pid)) > -1;
+    if (only) [].forEach.call(form.querySelectorAll('[type="submit"], [name="add"], .shopify-payment-button'), function (b) { b.style.display = 'none'; });
+    var x = shopList().filter(function (y) { return String(y.pid) === String(D.pid); })[0] || (D.dm ? SAMPLE[0] : only && !D.in ? { id: '' } : null);
     if (!x) { if (pb) { pb.remove(); pb = null; } return; }
     if (!pb) {
       pb = document.createElement('div');

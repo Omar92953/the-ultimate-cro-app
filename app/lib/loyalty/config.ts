@@ -515,7 +515,8 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     pg: c.page,
     lg: c.languages.length ? storefrontLanguages(c) : null,
     // The Points shop as everyone sees it; members get their own list from the app proxy (`shopFor`).
-    ...(c.shop.on ? { ps: shopFor(c, null) } : {}),
+    // `po`: products sold only with points (the script hides the theme's add to cart on their pages).
+    ...(c.shop.on ? { ps: shopFor(c, null), po: c.shop.items.filter((x) => x.on && x.only).map((x) => x.product.id.split("/").pop()) } : {}),
   };
 }
 
