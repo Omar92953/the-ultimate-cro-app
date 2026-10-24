@@ -1,7 +1,8 @@
 /*
  * CRO Toolbox — loyalty program (Pro): the rewards launcher and panel, "Earn X points" on product pages and in
  * the cart, a small "You earned" note, and Refer a friend (the member's link, and a banner for the friend who
- * lands on ?ref=CODE). The program (rules, rewards, words, look) comes from the Conversion
+ * lands on ?ref=CODE), and the Points shop (a button on the product page, a list in the panel and on the Rewards page).
+ * The program (rules, rewards, words, look) comes from the Conversion
  * boosters embed (#ucs-loy-data); a member's own points come from the app proxy, which Shopify signs with the
  * logged in customer, so nothing here can read or spend anyone else's points.
  */
@@ -97,6 +98,71 @@
       '<div class="ucs-loy__ref"><input readonly value="' + esc(link) + '" aria-label="' + esc(t.referLink) + '"><button type="button" class="ucs-loy__btn" data-copy="' + esc(link) + '">' + esc(t.copy) + '</button></div>' +
       '<p class="ucs-loy__share">' + share.map(function (x) { return '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + esc(x[0]) + '</a>'; }).join('') + '</p>';
   };
+  /* The Points shop: products members get with points, or points plus money (the button is on the product page). */
+  var SAMPLE = [{ id: 'sample', t: 'Sample product', h: '', i: '', p: 800, m: 10 }];
+  var shopList = function () {
+    var l = (me && me.member && me.member.shop) || c.ps || [];
+    return l.length || !D.dm ? l : SAMPLE;
+  };
+  var price = function (x) { return pts(x.p) + (x.m ? ' + ' + fmtMoney(x.m) : ''); };
+  var img = function (x, px) { return x.i ? '<img src="' + esc(x.i + (x.i.indexOf('?') > -1 ? '&' : '?') + 'width=' + px) + '" alt="" loading="lazy" width="' + px + '" height="' + px + '">' : '<span class="ucs-loy__ph"></span>'; };
+  /* What this shopper can do with a product: get it, see how many points are missing, or sign in. */
+  var state = function (x) {
+    var m = me && me.member;
+    if (x.id === 'sample') return { ok: 1, l: String(t.shopGet).replace('{price}', price(x)) };
+    if (!D.in) return { a: D.login, l: t.shopSignIn };
+    if (m && m.points >= x.p) return { ok: 1, l: String(t.shopGet).replace('{price}', price(x)) };
+    if (!m) return { l: me ? fill(t.shopMore, x.p) : '…' };
+    return { l: fill(t.shopMore, x.p - m.points), have: String(t.shopHave).replace('{have}', Number(m.points).toLocaleString()).replace('{n}', pts(x.p)) };
+  };
+  var shopItems = function (grid) {
+    var l = shopList();
+    if (!l.length) return '';
+    return '<h3>' + esc(t.shopTitle) + '</h3><ul class="' + (grid ? 'ucs-loy__grid' : 'ucs-loy__list ucs-loy__shop') + '">' + l.map(function (x) {
+      var s = state(x), href = x.h ? root + 'products/' + encodeURIComponent(x.h) : '#';
+      return '<li>' + img(x, grid ? 360 : 96) + '<span><a href="' + esc(href) + '">' + esc(x.t) + '</a><br><small>' + esc(price(x)) + (s.have ? '<br>' + esc(s.have) : '') + '</small></span>' +
+        (s.ok ? '<a class="ucs-loy__btn" href="' + esc(href) + '">' + esc(t.get) + '</a>' : s.a ? '<a class="ucs-loy__link" href="' + esc(s.a) + '">' + esc(t.signIn) + '</a>' : '<small>' + esc(s.l) + '</small>') + '</li>';
+    }).join('') + '</ul>';
+  };
+  var pb = null, pmsg = '', busy = false;
+  var productButton = function () {
+    var form = D.pid && document.querySelector('form[action*="/cart/add"]');
+    if (!form) return;
+    var x = shopList().filter(function (y) { return String(y.pid) === String(D.pid); })[0] || (D.dm ? SAMPLE[0] : null);
+    if (!x) { if (pb) { pb.remove(); pb = null; } return; }
+    if (!pb) {
+      pb = document.createElement('div');
+      pb.className = 'ucs-loy__pb';
+      pb.style.setProperty('--ucs-loy-a', w.a || '#111');
+      pb.style.setProperty('--ucs-loy-oa', w.oa || '#fff');
+      pb.style.setProperty('--ucs-loy-r', (w.r == null ? 18 : w.r) + 'px');
+      form.parentNode.insertBefore(pb, form.nextSibling);
+      pb.addEventListener('click', function (e) { var b = e.target.closest('[data-buy]'); if (b && !b.disabled) buy(b, form); });
+    }
+    var s = state(x);
+    pb.innerHTML = (s.a ? '<a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(s.a) + '">' + esc(s.l) + '</a>' : '<button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-buy="' + esc(x.id) + '"' + (s.ok && !busy ? '' : ' disabled') + '>' + esc(s.l) + '</button>') +
+      (s.have ? '<small>' + esc(s.have) + '</small>' : '') + '<small role="status">' + esc(pmsg) + '</small>';
+  };
+  /* Points first (the app makes a code for this option and member only), then the option goes in the cart with the code. */
+  var buy = function (b, form) {
+    var v = form.querySelector('[name="id"]'), vid = v && v.value, id = b.getAttribute('data-buy');
+    if (!vid || id === 'sample') return;
+    busy = b.disabled = true;
+    pmsg = '';
+    post({ intent: 'buy', item: id, variant: vid }).then(function (r) {
+      if (!r || !r.ok || !r.got) {
+        busy = false;
+        pmsg = r && r.error === 'not enough' ? fill(t.more, 0) : r && r.error && !/^(unavailable|too many|off|bad request)$/.test(r.error) ? r.error : t.error;
+        productButton();
+        return;
+      }
+      me = r;
+      pmsg = t.applied;
+      productButton();
+      var go = function () { location.href = root + 'discount/' + encodeURIComponent(r.got.code) + '?redirect=' + encodeURIComponent(root + 'cart'); };
+      fetch(root + 'cart/add.js', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(vid), quantity: 1 }] }) }).then(go, go);
+    });
+  };
   var draw = function () {
     var h = msg ? '<p class="ucs-loy__msg" role="status">' + esc(msg) + '</p>' : '';
     if (me && me.member) {
@@ -104,17 +170,18 @@
       h += '<div class="ucs-loy__head"><small>' + esc(t.have) + '</small><strong>' + esc(pts(m.points)) + '</strong>' + (m.pending ? '<small>' + esc(fill(t.pending, m.pending)) + '</small>' : '') +
         (m.tier ? '<span class="ucs-loy__tier">' + esc(String(t.tier).replace('{tier}', m.tier.n)) + '</span>' : '') +
         (m.next ? '<small>' + esc(String(t.nextTier).replace('{n}', m.next.spent ? fmtMoney(m.next.need) : pts(m.next.need)).replace('{tier}', m.next.n)) + '</small>' : '') + '</div>' +
-        got(m.rewards) + rewards(m.points) + refer(m) + ways() +
+        got(m.rewards) + rewards(m.points) + shopItems() + refer(m) + ways() +
         (m.history && m.history.length ? '<h3>' + esc(t.history) + '</h3><ul class="ucs-loy__list ucs-loy__hist">' + m.history.map(function (e) { return '<li><span>' + esc(e.l) + '<br><small>' + esc(e.d) + '</small></span><b>' + (!e.p && e.cr ? (e.cr > 0 ? '+' : '') + esc(fmtMoney(e.cr)) : (e.p > 0 ? '+' : '') + esc(Number(e.p).toLocaleString())) + '</b></li>'; }).join('') + '</ul>' : '');
     } else if (D.in && me && me.canJoin) {
-      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-join>' + esc(t.joinNow) + '</button></div>' + ways() + rewards(null);
+      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><button type="button" class="ucs-loy__btn ucs-loy__btn--wide" data-join>' + esc(t.joinNow) + '</button></div>' + ways() + rewards(null) + shopItems();
     } else if (D.in && !me) {
       h += '<p class="ucs-loy__wait">…</p>';
     } else {
-      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(D.reg) + '">' + esc(t.join) + '</a><a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></div>' + ways() + rewards(null);
+      h += '<div class="ucs-loy__head"><strong>' + esc(t.guestTitle) + '</strong><small>' + esc(t.guestText) + '</small><a class="ucs-loy__btn ucs-loy__btn--wide" href="' + esc(D.reg) + '">' + esc(t.join) + '</a><a class="ucs-loy__link" href="' + esc(D.login) + '">' + esc(t.signIn) + '</a></div>' + ways() + rewards(null) + shopItems();
     }
     body.innerHTML = h;
     if (pageEl) drawPage();
+    productButton();
   };
   /* The Rewards page (Order & wishlist pages block on the page the app made): the same program, laid out wide. */
   var drawPage = function () {
@@ -129,6 +196,7 @@
       ((pg.how || []).length ? '<ol class="ucs-loyp__how">' + pg.how.map(function (x, i) { return '<li><span>' + (i + 1) + '</span><b>' + esc(x.t) + '</b><small>' + esc(x.x) + '</small></li>'; }).join('') + '</ol>' : '') +
       (m && m.ref && rf ? '<section class="ucs-loyp__refer">' + refer(m) + '</section>' : '') +
       '<div class="ucs-loyp__cols"><section>' + ways() + '</section><section>' + (m ? got(m.rewards) : '') + rewards(m ? m.points : null) + '</section></div>' +
+      (shopList().length ? '<section class="ucs-loyp__shop">' + shopItems(1) + '</section>' : '') +
       ((pg.faq || []).length ? '<section class="ucs-loyp__faq">' + pg.faq.map(function (x) { return '<details><summary>' + esc(x.q) + '</summary><p>' + esc(x.a) + '</p></details>'; }).join('') + '</section>' : '') + '</div>';
   };
   var load = function (intent, extra) {
@@ -167,6 +235,7 @@
   };
   body.addEventListener('click', act);
   if (pageEl) { pageEl.addEventListener('click', act); drawPage(); }
+  productButton();
 
   /* ---------- A friend arrives on ?ref=CODE: the discount goes on the cart and a banner says so ---------- */
   var toast = function (text, wide) {

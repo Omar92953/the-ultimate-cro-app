@@ -2,7 +2,7 @@
 
 | PR | What | State |
 | --- | --- | --- |
-| 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | In progress (claude/points-shop) |
+| 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | Ready for the lead: #292 (Needs Shopify deploy) |
 | 2 | Only with points: checkout guard, hide from collections and search | To do |
 | 3 | Points shop collection, help, website, docs | To do |
 
@@ -72,3 +72,24 @@ show: "all" | "afford" | "from"; from: number (1 to points); limit: number (per 
 ## Check on Testing 3 (the lead does it after each deploy)
 Add 2 products (one points only and hidden, one 800 points + $10), each visibility option, buy both as a member with
 and without enough points, checkout totals, the guard blocks buying the points only product with money.
+
+## Note from the lead (2026-10-24, later)
+- Loyalty languages are merged (#295, cro-toolbox-64): app/lib/loyalty/languages.ts. Every new widget word in
+  WIDGET_TEXTS needs a translation in each BUILT_IN language (test/app/loyalty-languages.test.ts asks for every word),
+  and the points shop item names can be added to LoyaltyLanguage later.
+- The lead's usage limit was reached: leave finished PRs as "ready for the lead"; the lead deploys and merges them next.
+
+## PR 1 as built (#292)
+- Config: `shop: { on, days, items }` in `app/lib/loyalty/config.ts` (`cleanShop`, `canSeeItem`, `shopFor`); the code's
+  days are one setting for the whole shop. The storefront copy `ps` holds only "Everyone" products.
+- Admin: Loyalty → Points shop (`app/routes/app.loyalty.shop.tsx`), tab after Rewards in `catalog.ts`.
+- Buying: `app/lib/loyalty/shop.server.ts` `buy`, proxy intent "buy" { item, variant }. The purchase number is in the
+  ledger dedupe key (`shop:<member>:<item>:<n>`), so two clicks at once can't pass the limit; refused codes give the
+  points back as `redeem_back` (`shop-back:` key) and don't count toward the limit. Kept in LoyaltyReward (kind "shop"),
+  so the code also shows under "Your code" in the panel. The member gets the reward email with the code.
+- Storefront: in `ucs-loyalty.js` (6.8 KB gzipped). The boosters embed passes `pid` (product id) and `dm` (theme
+  editor: a sample product). After buying: `cart/add.js` with the variant, then `/discount/CODE?redirect=/cart`.
+  Words: `shopTitle`, `shopGet`, `shopSignIn`, `shopMore`, `shopHave` (Look → "Points shop", all built in languages).
+- Harness: `test/storefront/sections.mjs` pages `loyalty-shop.html` (member with 900 points; `#buy` clicks the button
+  and writes what was sent into `data-added`), `loyalty-shop-guest.html`, `loyalty-shop-design.html`.
+- Not in PR 1: the `only` and `unlisted` switches have no admin field yet (PR 2).

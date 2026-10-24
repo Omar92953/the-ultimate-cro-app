@@ -42,7 +42,7 @@ export const MAX_AFFILIATES = 50;
 /** Who sees a Points shop product: everyone (guests see it but can't get it), members with enough points, or members from `from` points. */
 export const SHOP_SHOW = ["all", "afford", "from"] as const;
 export type ShopShow = (typeof SHOP_SHOW)[number];
-export const SHOP_SHOW_LABEL: Record<ShopShow, string> = { all: "Everyone", afford: "Members with enough points", from: "Members with at least some points" };
+export const SHOP_SHOW_LABEL: Record<ShopShow, string> = { all: "Everyone", afford: "Members with enough points", from: "Members from a number of points" };
 /**
  * A product in the Points shop (Omar, 2026-10-24): members get it for `points`, plus `money` per item (0 = points only,
  * always less than the price), with a one use code for that variant. `only`: it can't be bought with money;

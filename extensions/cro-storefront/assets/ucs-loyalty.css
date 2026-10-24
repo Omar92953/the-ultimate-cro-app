@@ -76,3 +76,15 @@
 .ucs-loyp__faq details { padding: 14px 0; border-bottom: 1px solid rgba(127, 127, 127, 0.25); }
 .ucs-loyp__faq summary { font-weight: 600; cursor: pointer; }
 .ucs-loyp__faq p { margin: 8px 0 0; }
+.ucs-loy__shop img, .ucs-loy__shop .ucs-loy__ph { flex: none; width: 48px; height: 48px; object-fit: cover; background: #f1f1f1; border-radius: 8px; }
+.ucs-loy__shop li > span { flex: 1; }
+.ucs-loy__shop a:not(.ucs-loy__btn), .ucs-loy__grid a:not(.ucs-loy__btn) { color: inherit; font-weight: 600; }
+.ucs-loy__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.ucs-loy__grid li { display: flex; flex-direction: column; gap: 8px; }
+.ucs-loy__grid img, .ucs-loy__grid .ucs-loy__ph { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: #f1f1f1; border-radius: var(--ucs-loy-r, 18px); }
+.ucs-loy__grid li > :last-child { align-self: flex-start; }
+.ucs-loyp__shop { margin-top: 40px; }
+.ucs-loy__pb { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; font-size: 14px; }
+.ucs-loy__pb .ucs-loy__btn--wide { margin: 0; width: 100%; font-size: 15px; }
+.ucs-loy__pb small { color: #666; }
+.ucs-loy__pb small:empty { display: none; }
