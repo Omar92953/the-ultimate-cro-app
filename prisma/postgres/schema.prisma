@@ -259,6 +259,8 @@ model LoyaltyProgram {
   config    String    @default("{}")
   /// Orders and customers changed after this were not read yet (lib/loyalty/sync.server.ts).
   syncedAt  DateTime?
+  /// Orders placed before this never earn (the program's start, or when it was turned on again).
+  countFrom DateTime?
   /// Ids the app keeps for the program: the referral discount, each affiliate's discount (JSON).
   state     String    @default("{}")
   updatedAt DateTime  @default(now())

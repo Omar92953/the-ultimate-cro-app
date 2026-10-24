@@ -1,4 +1,5 @@
 query CartValidationsGenerateRunInput {
+  presentmentCurrencyRate
   cart {
     cost { subtotalAmount { amount } }
     lines {

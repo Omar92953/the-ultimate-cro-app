@@ -87,6 +87,13 @@ describe("points guard", () => {
     expect(run([pl(9, "Watch", 2, 50)])).toEqual(["Watch can only be bought with points."]);
     expect(run([pl(8, "Bag", 2, 50)])).toEqual(["Bag can only be bought with points."]);
   });
+  test("the money part is in the shop's currency: compared in the buyer's (presentment rate)", () => {
+    const cfg = [{ p: "gid://shopify/Product/8", m: 10 }];
+    // 10 in the shop's currency is 1,500 in a currency at 150 to 1: paying 1,500 is right, 1,600 is not.
+    expect(checkPoints(cfg, { lines: [pl(8, "Bag", 1, 1500)] }, 150)).toEqual([]);
+    expect(checkPoints(cfg, { lines: [pl(8, "Bag", 1, 1600)] }, 150)).toEqual(["Bag can only be bought with points."]);
+    expect(checkPoints(cfg, { lines: [pl(8, "Bag", 1, 1500)] })).toEqual(["Bag can only be bought with points."], "no rate: the shop's currency");
+  });
   test("other products and an empty config are never touched", () => {
     expect(run([pl(1, "Mug", 3, 30)])).toEqual([]);
     expect(checkPoints(undefined, { lines: [pl(9, "Watch", 1, 50)] })).toEqual([]);

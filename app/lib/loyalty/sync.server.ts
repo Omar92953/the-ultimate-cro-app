@@ -53,7 +53,7 @@ export function factsFromNode(n: OrderNode): OrderFacts {
     id: idOf(n.id),
     name: n.name,
     createdAt: n.createdAt,
-    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [], marketing: c.defaultEmailAddress?.marketingState === "SUBSCRIBED" } : null,
+    customer: c ? { id: idOf(c.id), email: (c.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: c.locale ?? "", tags: c.tags ?? [], marketing: c.defaultEmailAddress?.marketingState === "SUBSCRIBED", account: c.state === "ENABLED" } : null,
     paid: PAID.has(String(n.displayFinancialStatus ?? "")),
     cancelled: !!n.cancelledAt,
     subtotal: amount(n.currentSubtotalPriceSet),
@@ -115,6 +115,11 @@ async function readChanges(admin: AdminClient, shop: string, c: LoyaltyConfig, s
       for (const n of data.customers.nodes) {
         const done = await syncSignup(shop, c, { id: idOf(n.id), email: (n.defaultEmailAddress?.emailAddress ?? "").toLowerCase(), firstName: "", locale: n.locale ?? "", tags: n.tags ?? [], marketing: n.defaultEmailAddress?.marketingState === "SUBSCRIBED", accountActive: n.state === "ENABLED" }).catch(() => null);
         if (done) signups++;
+        // A guest who made an account: the orders they placed as a guest earn now (Orders placed as a guest: when
+        // they create an account). Only while they have no counted order yet, so this runs once or twice per person.
+        if (c.guests === "account" && n.state === "ENABLED" && !((await db.loyaltyMember.findUnique({ where: { shop_customerId: { shop, customerId: idOf(n.id) } }, select: { orders: true } }))?.orders ?? 0)) {
+          await customerOrders(shop, admin, c, idOf(n.id), 25).catch((e) => console.error(`[loyalty] guest orders ${shop}:`, e instanceof Error ? e.message : e));
+        }
       }
       if (!data.customers.pageInfo.hasNextPage) break;
       if (page === 9) stopAt(data.customers.nodes.at(-1)?.updatedAt);
@@ -221,8 +226,14 @@ export async function syncCustomer(shop: string, admin: AdminClient, customerId:
   const p = await db.loyaltyProgram.findUnique({ where: { shop } });
   if (!p?.on) return;
   const { config } = await getProgram(shop);
+  await customerOrders(shop, admin, config, customerId, 10);
+}
+
+/** A customer's last orders placed since the program counts from (older ones never earn), read and counted. */
+async function customerOrders(shop: string, admin: AdminClient, config: LoyaltyConfig, customerId: string, first: number) {
+  const q = config.from ? `created_at:>='${config.from}'` : "";
   const data = await gql(admin, `#graphql
-    query CroLoyaltyMemberOrders($id: ID!) { customer(id: $id) { orders(first: 10, sortKey: CREATED_AT, reverse: true) { nodes { ${fieldsFor(config)} } } } }`, { id: `gid://shopify/Customer/${customerId}` });
+    query CroLoyaltyMemberOrders($id: ID!, $first: Int!, $q: String) { customer(id: $id) { orders(first: $first, sortKey: CREATED_AT, reverse: true, query: $q) { nodes { ${fieldsFor(config)} } } } }`, { id: `gid://shopify/Customer/${customerId}`, first, q: q || null });
   const facts = ((data.customer?.orders?.nodes ?? []) as OrderNode[]).map(factsFromNode);
   await fillCollections(admin, config, facts).catch(() => null);
   for (const f of facts) {

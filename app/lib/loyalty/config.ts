@@ -54,11 +54,15 @@ export const MAX_SHOP_ITEMS = 50;
 export const cleanCode = (v: unknown) => String(v ?? "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
 
 /** Every word of the storefront widget (the look editor and languages come later on the same object). */
+export const GUEST_ORDERS = ["now", "account", "off"] as const;
+export type GuestOrders = (typeof GUEST_ORDERS)[number];
+
 export const WIDGET_TEXTS = {
   launcher: "Rewards",
   title: "Rewards",
   guestTitle: "Join and earn rewards",
   guestText: "Earn points on every order and spend them on rewards.",
+  guestPast: "Ordered before with your email? Create an account with it and get your points.",
   join: "Create an account",
   tier: "{tier} member",
   nextTier: "{n} to {tier}",
@@ -117,6 +121,12 @@ export type LoyaltyConfig = {
   unit: { one: string; many: string };
   /** Customers join by themselves with their first order or account (on), or only from the widget's Join button (off). */
   autoJoin: boolean;
+  /**
+   * Orders placed as a guest (checkout with an email, no account): "now" they earn right away and the points wait for
+   * that email until the customer signs in or creates an account; "account" they earn once the customer creates an
+   * account with that email; "off" only customers with an account earn. Needs customers to join by themselves.
+   */
+  guests: GuestOrders;
   /** Customers with one of these tags can't earn or redeem (for example wholesale). Comma separated. */
   excludeTags: string;
   earn: {
@@ -156,6 +166,8 @@ export type LoyaltyConfig = {
   emails: EmailSettings;
   /** Set by plan.server.ts `planned` only, never saved: the plan, for the monthly limits (plans.ts METERS). */
   usage?: { plan: PlanKey; ordersExtra: boolean; emailsExtra: boolean };
+  /** Runtime only (program.server.ts getProgram): orders placed before this date never earn. */
+  from?: string;
   /** The storefront widget: launcher, panel, points on product pages and in the cart. */
   widget: { position: "left" | "right"; accent: string; onAccent: string; radius: number; launcher: "text" | "icon"; productPoints: boolean; cartPoints: boolean; texts: WidgetTexts };
   /** The Rewards page (made by the app, shown by the Order & wishlist pages block). */
@@ -275,6 +287,7 @@ export const applyLoyaltyPreset = (c: LoyaltyConfig, key: string): LoyaltyConfig
 export const DEFAULT_LOYALTY: LoyaltyConfig = {
   unit: { one: "point", many: "points" },
   autoJoin: true,
+  guests: "now",
   excludeTags: "",
   earn: {
     order: { on: true, perUnit: 1, shipping: false, taxes: false },
@@ -430,6 +443,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
   return {
     unit: { one: str(u.one, d.unit.one, 20) || d.unit.one, many: str(u.many, d.unit.many, 20) || d.unit.many },
     autoJoin: bool(r.autoJoin, d.autoJoin),
+    guests: pick(r.guests, GUEST_ORDERS, d.guests),
     excludeTags: str(r.excludeTags, d.excludeTags, 300),
     earn: {
       order: { on: bool(o.on, d.earn.order.on), perUnit: rate(o.perUnit, d.earn.order.perUnit), shipping: bool(o.shipping, d.earn.order.shipping), taxes: bool(o.taxes, d.earn.order.taxes) },
@@ -513,6 +527,8 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     w: { pos: c.widget.position, a: c.widget.accent, oa: c.widget.onAccent, r: c.widget.radius, l: c.widget.launcher, pp: c.widget.productPoints, cp: c.widget.cartPoints },
     t: c.widget.texts,
     pg: c.page,
+    // Guests who ordered before are told their points wait for an account (Earn points → Orders placed as a guest).
+    gu: c.autoJoin && c.guests !== "off",
     lg: c.languages.length ? storefrontLanguages(c) : null,
     // The Points shop as everyone sees it; members get their own list from the app proxy (`shopFor`).
     // `po`: products sold only with points (the script hides the theme's add to cart on their pages).
