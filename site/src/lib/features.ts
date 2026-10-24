@@ -174,6 +174,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     points: [
       "Points for orders, account signups, the first order, birthdays, product reviews and social follows",
       "Rewards shoppers spend: amount or percent off, free shipping, a free product or store credit",
+      "A Points shop: products members get with points, or points plus money, and products sold only with points",
       "Referrals: the friend gets a discount and the member gets points when the friend orders",
       "A rewards button and panel, points on product pages and in the cart, and a Rewards page",
       "Points in customer accounts, on the thank you and order status pages, and at Shopify POS",

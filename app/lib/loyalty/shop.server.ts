@@ -9,6 +9,7 @@ import { randomBytes } from "node:crypto";
 import db from "../../db.server";
 import { AdminError, gql, type AdminClient } from "../admin.server";
 import { syncPointsGuard } from "../checkout-rules.server";
+import { publishToOnlineStore } from "../bundle-product.server";
 import { canSeeItem, type LoyaltyConfig, type ShopItem } from "./config";
 import { NotEnoughPoints, record } from "./program.server";
 import { notify } from "./mailer.server";
@@ -98,7 +99,7 @@ export async function buy(admin: AdminClient, shop: string, c: LoyaltyConfig, me
 
 /* ------------------------------------------------------- only with points -- */
 /** What the app did in the store for the Points shop (LoyaltyProgram.state): the guard is made, products it unlisted. */
-type ShopState = { pointsGuard?: boolean; pointsHidden?: string[] };
+type ShopState = { pointsGuard?: boolean; pointsHidden?: string[]; pointsCollection?: string };
 async function readState(shop: string): Promise<Record<string, unknown> & ShopState> {
   const row = await db.loyaltyProgram.findUnique({ where: { shop }, select: { state: true } });
   try {
@@ -118,7 +119,8 @@ async function saveState(shop: string, patch: ShopState) {
  * After every save and plan change (storefront.server.ts publishLoyalty): the points guard lists the products sold only
  * with points (with their money part), and those set to "Hide it from collections and search" are UNLISTED. A product
  * goes back to ACTIVE when that is switched off, the product is removed, the shop or program is off, or the plan no
- * longer has loyalty, but only if the app unlisted it (a product the merchant unlisted stays as it is).
+ * longer has loyalty, but only if the app unlisted it (a product the merchant unlisted stays as it is). With "Keep a
+ * Points shop collection", the app's collection holds the products that are on and not hidden (`syncCollection`).
  */
 export async function syncPointsShop(admin: AdminClient, shop: string, c: LoyaltyConfig, running: boolean) {
   const live = running && c.shop.on ? c.shop.items.filter((x) => x.on && x.only) : [];
@@ -152,6 +154,54 @@ export async function syncPointsShop(admin: AdminClient, shop: string, c: Loyalt
     }
   }
   await saveState(shop, { pointsGuard: live.length > 0, pointsHidden: [...hidden] });
+  if (c.shop.collection || state.pointsCollection) await saveState(shop, { pointsCollection: await syncCollection(admin, c, running, state.pointsCollection ?? "") });
+}
+
+/**
+ * The "Points shop" collection (Omar, 2026-10-24): a manual collection the app makes and publishes to the Online Store,
+ * holding the shop's products that are on and not hidden, so the merchant can link it in a menu. While the shop or the
+ * program is off it stays, empty (menu links keep working); turning the option off deletes it. Returns its id ("" none).
+ */
+async function syncCollection(admin: AdminClient, c: LoyaltyConfig, running: boolean, id: string) {
+  if (!c.shop.collection) {
+    if (id) {
+      const r = await gql(admin, `#graphql
+        mutation CroPointsCollectionDelete($input: CollectionDeleteInput!) { collectionDelete(input: $input) { userErrors { field message } } }`, { input: { id } });
+      const errors = (r?.collectionDelete?.userErrors ?? []) as { message: string }[];
+      // Already deleted in Shopify: nothing to do.
+      if (errors.length && !/not exist|not found/i.test(errors[0].message)) throw new AdminError(errors[0].message);
+    }
+    return "";
+  }
+  const want = running && c.shop.on ? [...new Set(c.shop.items.filter((x) => x.on && !x.unlisted).map((x) => x.product.id))] : [];
+  const now = id
+    ? await gql(admin, `#graphql
+        query CroPointsCollection($id: ID!) { collection(id: $id) { id products(first: 250) { nodes { id } } } }`, { id })
+    : null;
+  if (!now?.collection) {
+    const r = await gql(admin, `#graphql
+      mutation CroPointsCollectionCreate($c: CollectionCreateInput!) { collectionCreate(collection: $c) { collection { id } userErrors { field message } } }`, { c: { title: "Points shop", handle: "points-shop", descriptionHtml: "" } });
+    const errors = (r?.collectionCreate?.userErrors ?? []) as { message: string }[];
+    const made = r?.collectionCreate?.collection?.id as string | undefined;
+    if (errors.length || !made) throw new AdminError(errors[0]?.message ?? "Shopify did not make the collection.");
+    await publishToOnlineStore(admin, made);
+    id = made;
+  }
+  const have = new Set(((now?.collection?.products?.nodes ?? []) as { id: string }[]).map((n) => n.id));
+  const add = want.filter((p) => !have.has(p)), remove = [...have].filter((p) => !want.includes(p));
+  if (add.length) {
+    const r = await gql(admin, `#graphql
+      mutation CroPointsCollectionAdd($id: ID!, $ids: [ID!]!) { collectionAddProducts(id: $id, productIds: $ids) { userErrors { field message } } }`, { id, ids: add });
+    const errors = (r?.collectionAddProducts?.userErrors ?? []) as { message: string }[];
+    if (errors.length) throw new AdminError(errors[0].message);
+  }
+  if (remove.length) {
+    const r = await gql(admin, `#graphql
+      mutation CroPointsCollectionRemove($id: ID!, $ids: [ID!]!) { collectionRemoveProducts(id: $id, productIds: $ids) { userErrors { field message } } }`, { id, ids: remove });
+    const errors = (r?.collectionRemoveProducts?.userErrors ?? []) as { message: string }[];
+    if (errors.length) throw new AdminError(errors[0].message);
+  }
+  return id;
 }
 
 export { NotEnoughPoints };

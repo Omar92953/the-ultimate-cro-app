@@ -227,6 +227,9 @@ pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-booster
   // Sold only with points and only for members with enough points: a guest gets no add to cart, only the sign in link.
   const onlyShop = withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [{ ...loyShop.shop.items[0], only: true, show: "afford" }] } }), true) }));
   pages["loyalty-shop-only.html"] = page("Points shop (only with points, guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // A collection page (the Points shop collection): the watch's card shows its points price once (image and title links).
+  const card = (h, t) => `<li class="grid__item"><a href="/products/${h}"><img alt="" width="200" height="200"></a><h3><a href="/products/${h}">${t}</a></h3><p>$129.00</p></li>`;
+  pages["loyalty-collection.html"] = page("Points shop collection", `<ul style="display:grid;grid-template-columns:repeat(3,200px);gap:20px;list-style:none;padding:40px">${card("classic-watch", "Classic watch")}${card("sunglasses", "Sunglasses")}</ul>`, (await block("ucs-boosters", {}, { page_type: "collection", shop: shopLoy })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   pages["loyalty-shop-design.html"] = page("Points shop (theme editor)", productForm, (await block("ucs-boosters", {}, { ...ctx, design: true, shop: withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [] } }), true) })) })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
 }
 

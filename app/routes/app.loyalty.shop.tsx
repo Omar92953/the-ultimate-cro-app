@@ -109,6 +109,12 @@ export default function LoyaltyShop() {
             <s-grid gridTemplateColumns="repeat(auto-fit, minmax(170px, 1fr))" gap="base">
               <NumberField label="Code works for" suffix="days" min={1} max={365} step={1} value={shop.days} onValue={(v) => setShop({ days: v })} />
             </s-grid>
+            <Switch
+              label="Keep a Points shop collection"
+              details={shop.collection ? "A collection named Points shop holds the products here that are on and not hidden, and stays in step. Add it to a menu in Online Store, Navigation. Turning this off deletes it." : "Turn on to get a Points shop collection to link in your menu."}
+              checked={shop.collection}
+              onValue={(v) => setShop({ collection: v })}
+            />
           </s-stack>
         </HomeRow>
 

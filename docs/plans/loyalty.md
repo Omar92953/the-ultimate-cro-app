@@ -19,6 +19,7 @@ for pro plans and use paid email service ... and include the shopify plus featur
 | 9 | Customer account page, thank you and order status points, Plus checkout redeem, POS | Built in #272 (extensions cro-loyalty-account, cro-loyalty-checkout, cro-loyalty-pos) |
 | 10 | Loyalty analytics, CSV import and export, languages | Analytics and CSV in #269; languages to do |
 | 11 | Website (remove "loyalty" from `SITE_HIDDEN` in `app/lib/catalog.ts`, feature page, help, privacy with Postmark, Klaviyo and Omnisend, pricing highlight), docs, App Store audit, Partner Dashboard list | To do |
+| 12 | Points shop (Omar, 2026-10-24): products bought with points or points plus money, only with points, a collection | Built in #292, #297, #298 (stacked, in that order); plan `docs/plans/points-shop.md` |
 
 Rows follow the plan's "Work, in PRs" list below. Commit messages and PR titles count loyalty parts from the core
 (their "part 1" is row 2), so "part 5" in PR #260 is row 6.

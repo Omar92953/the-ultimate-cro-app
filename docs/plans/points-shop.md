@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | Ready for the lead: #292 (Needs Shopify deploy) |
 | 2 | Only with points: checkout guard, hide from collections and search | Ready for the lead: #297, after #292 (Needs Shopify deploy) |
-| 3 | Points shop collection, help, website, docs | To do |
+| 3 | Points shop collection, help, website, docs | Ready for the lead: #298, after #297 (Needs Shopify deploy: the script) |
 
 Points shop: products bought with loyalty points (Omar, 2026-10-24). Build it in 3 PRs, claim with a draft PR first,
 copy this file to docs/plans/points-shop.md in PR 1 and keep it up to date. Same rules as the audit: worktrees from
@@ -108,3 +108,13 @@ and without enough points, checkout totals, the guard blocks buying the points o
   `[name=add]` and `.shopify-payment-button` in the product form; a guest sees "Sign in to get it with points".
 - To check on Testing 3: discount codes show in the line cost the validation reads at checkout (a points only product
   with the member's code must pass; without it, be refused).
+
+## PR 3 as built (#298)
+- "Keep a Points shop collection" (`shop.collection`): `syncCollection` in shop.server.ts makes a manual collection
+  "Points shop" (handle points-shop), publishes it to the Online Store and keeps it to the products that are on and not
+  hidden; empty while the shop, program or plan's loyalty is off; deleted when the option is turned off. Its id is in
+  `LoyaltyProgram.state.pointsCollection`.
+- Product cards on collection pages show the points price (`cardTags` in ucs-loyalty.js; harness
+  `loyalty-collection.html`).
+- Help (site/src/content/help/loyalty-program.md "Points shop"), the website's loyalty feature points, and
+  docs/plans/loyalty.md row 12.
