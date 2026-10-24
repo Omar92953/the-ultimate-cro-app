@@ -128,9 +128,19 @@
         (s.ok ? '<a class="ucs-loy__btn" href="' + esc(href) + '">' + esc(t.get) + '</a>' : s.a ? '<a class="ucs-loy__link" href="' + esc(s.a) + '">' + esc(t.signIn) + '</a>' : '<small>' + esc(s.l) + '</small>') + '</li>';
     }).join('') + '</ul>';
   };
+  /* The theme's main product form, like the boosters script: not the hidden installments form many themes put first. */
+  var mainForm = function () {
+    var forms = document.querySelectorAll('form[action*="/cart/add"]');
+    for (var i = 0; i < forms.length; i++) {
+      var f = forms[i];
+      if (/installment/i.test(f.id) || f.closest('.ucs, [class*="ucro"], cart-drawer, .cart-drawer')) continue;
+      if (f.querySelector('[type="submit"], button[name="add"]')) return f;
+    }
+    return null;
+  };
   var pb = null, pmsg = '', busy = false;
   var productButton = function () {
-    var form = D.pid && document.querySelector('form[action*="/cart/add"]');
+    var form = D.pid && mainForm();
     if (!form) return;
     // Sold only with points: the theme's buy buttons go, and a guest is asked to sign in even when the product is for members.
     var only = (c.po || []).map(String).indexOf(String(D.pid)) > -1;
@@ -280,7 +290,7 @@
   var line = function (text) { var p = document.createElement('p'); p.className = 'ucs-loy__line'; p.style.setProperty('--ucs-loy-a', w.a || '#111'); p.textContent = text; return p; };
   if (w.pp && c.per && D.price) {
     var n = Math.floor((D.price / 100) * c.per + 1e-9);
-    var form = document.querySelector('form[action*="/cart/add"]');
+    var form = mainForm();
     if (n > 0 && form) form.parentNode.insertBefore(line(fill(t.product, n)), form.nextSibling);
   }
   if (w.cp && c.per && D.page === 'cart') {
