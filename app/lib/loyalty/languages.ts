@@ -73,7 +73,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Gagnez {n} avec ce produit", cart: "Gagnez {n} avec cette commande", earned: "Vous avez gagné {n}", orderWay: "Chaque commande", signupWay: "Créer un compte", firstWay: "Votre première commande",
       error: "Une erreur s'est produite. Veuillez réessayer.", referTitle: "Parrainez un ami", referText: "Offrez {friend} à un ami sur sa première commande. Vous recevez {gift} quand il commande.", referLink: "Votre lien",
       shareText: "Voici {friend} pour ta première commande :", refBanner: "Un ami vous offre {friend}. Il est appliqué au paiement.", offPercent: "{x} % de réduction", offAmount: "{x} de réduction", freeShip: "la livraison gratuite",
-      creditGift: "{x} de crédit en magasin", referWay: "Parrainer un ami", email: "E-mail",
+      creditGift: "{x} de crédit en magasin", referWay: "Parrainer un ami", email: "E-mail", shopTitle: "Boutique de points", shopGet: "L'obtenir pour {price}", shopSignIn: "Connectez-vous pour l'obtenir avec vos points", shopMore: "Encore {n} pour l'obtenir", shopHave: "Vous avez {have} sur {n}",
     },
     unit: { one: "point", many: "points" },
     page: {
@@ -112,7 +112,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Gana {n} con este producto", cart: "Gana {n} con este pedido", earned: "Has ganado {n}", orderWay: "Cada pedido", signupWay: "Crear una cuenta", firstWay: "Tu primer pedido",
       error: "Algo salió mal. Inténtalo de nuevo.", referTitle: "Recomienda a un amigo", referText: "Regala a un amigo {friend} en su primer pedido. Tú recibes {gift} cuando haga su pedido.", referLink: "Tu enlace",
       shareText: "Aquí tienes {friend} para tu primer pedido:", refBanner: "Un amigo te ha regalado {friend}. Se aplica al pagar.", offPercent: "{x}% de descuento", offAmount: "{x} de descuento", freeShip: "envío gratis",
-      creditGift: "{x} en crédito de tienda", referWay: "Recomienda a un amigo", email: "Correo",
+      creditGift: "{x} en crédito de tienda", referWay: "Recomienda a un amigo", email: "Correo", shopTitle: "Compra con puntos", shopGet: "Consíguelo por {price}", shopSignIn: "Inicia sesión para conseguirlo con puntos", shopMore: "Te faltan {n} para conseguirlo", shopHave: "Tienes {have} de {n}",
     },
     unit: { one: "punto", many: "puntos" },
     page: {
@@ -151,7 +151,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Sammle {n} mit diesem Produkt", cart: "Sammle {n} mit dieser Bestellung", earned: "Du hast {n} gesammelt", orderWay: "Jede Bestellung", signupWay: "Konto erstellen", firstWay: "Deine erste Bestellung",
       error: "Etwas ist schiefgelaufen. Bitte versuche es erneut.", referTitle: "Freunde werben", referText: "Schenke einem Freund {friend} auf seine erste Bestellung. Du bekommst {gift}, wenn er bestellt.", referLink: "Dein Link",
       shareText: "Hier ist {friend} für deine erste Bestellung:", refBanner: "Ein Freund schenkt dir {friend}. Es wird an der Kasse abgezogen.", offPercent: "{x} % Rabatt", offAmount: "{x} Rabatt", freeShip: "kostenloser Versand",
-      creditGift: "{x} Guthaben", referWay: "Freunde werben", email: "E-Mail",
+      creditGift: "{x} Guthaben", referWay: "Freunde werben", email: "E-Mail", shopTitle: "Mit Punkten einkaufen", shopGet: "Für {price} holen", shopSignIn: "Melde dich an, um es mit Punkten zu holen", shopMore: "Noch {n}, um es zu holen", shopHave: "Du hast {have} von {n}",
     },
     unit: { one: "Punkt", many: "Punkte" },
     page: {
@@ -190,7 +190,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Guadagna {n} con questo prodotto", cart: "Guadagna {n} con questo ordine", earned: "Hai guadagnato {n}", orderWay: "Ogni ordine", signupWay: "Crea un account", firstWay: "Il tuo primo ordine",
       error: "Qualcosa è andato storto. Riprova.", referTitle: "Invita un amico", referText: "Regala a un amico {friend} sul suo primo ordine. Tu ricevi {gift} quando ordina.", referLink: "Il tuo link",
       shareText: "Ecco {friend} per il tuo primo ordine:", refBanner: "Un amico ti ha regalato {friend}. Viene applicato al pagamento.", offPercent: "{x}% di sconto", offAmount: "{x} di sconto", freeShip: "spedizione gratuita",
-      creditGift: "{x} di credito negozio", referWay: "Invita un amico", email: "Email",
+      creditGift: "{x} di credito negozio", referWay: "Invita un amico", email: "Email", shopTitle: "Acquista con i punti", shopGet: "Ottienilo per {price}", shopSignIn: "Accedi per ottenerlo con i punti", shopMore: "Ancora {n} per ottenerlo", shopHave: "Hai {have} su {n}",
     },
     unit: { one: "punto", many: "punti" },
     page: {
@@ -229,7 +229,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Ganhe {n} com este produto", cart: "Ganhe {n} com este pedido", earned: "Você ganhou {n}", orderWay: "Cada pedido", signupWay: "Criar uma conta", firstWay: "Seu primeiro pedido",
       error: "Algo deu errado. Tente de novo.", referTitle: "Indique um amigo", referText: "Dê {friend} a um amigo no primeiro pedido dele. Você ganha {gift} quando ele comprar.", referLink: "Seu link",
       shareText: "Aqui está {friend} para o seu primeiro pedido:", refBanner: "Um amigo deu {friend} para você. É aplicado ao finalizar a compra.", offPercent: "{x}% de desconto", offAmount: "{x} de desconto", freeShip: "frete grátis",
-      creditGift: "{x} em crédito na loja", referWay: "Indique um amigo", email: "E-mail",
+      creditGift: "{x} em crédito na loja", referWay: "Indique um amigo", email: "E-mail", shopTitle: "Compre com pontos", shopGet: "Resgate por {price}", shopSignIn: "Entre para resgatar com pontos", shopMore: "Faltam {n} para resgatar", shopHave: "Você tem {have} de {n}",
     },
     unit: { one: "ponto", many: "pontos" },
     page: {
@@ -268,7 +268,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "Verdien {n} met dit product", cart: "Verdien {n} met deze bestelling", earned: "Je hebt {n} verdiend", orderWay: "Elke bestelling", signupWay: "Account aanmaken", firstWay: "Je eerste bestelling",
       error: "Er ging iets mis. Probeer het opnieuw.", referTitle: "Nodig een vriend uit", referText: "Geef een vriend {friend} op de eerste bestelling. Jij krijgt {gift} als die bestelt.", referLink: "Je link",
       shareText: "Hier is {friend} voor je eerste bestelling:", refBanner: "Een vriend geeft je {friend}. Het wordt verrekend bij het afrekenen.", offPercent: "{x}% korting", offAmount: "{x} korting", freeShip: "gratis verzending",
-      creditGift: "{x} winkeltegoed", referWay: "Nodig een vriend uit", email: "E-mail",
+      creditGift: "{x} winkeltegoed", referWay: "Nodig een vriend uit", email: "E-mail", shopTitle: "Winkelen met punten", shopGet: "Haal het voor {price}", shopSignIn: "Log in om het met punten te halen", shopMore: "Nog {n} om het te halen", shopHave: "Je hebt {have} van {n}",
     },
     unit: { one: "punt", many: "punten" },
     page: {
@@ -307,7 +307,7 @@ export const BUILT_IN: Record<string, BuiltIn> = {
       product: "اربح {n} مع هذا المنتج", cart: "اربح {n} مع هذا الطلب", earned: "ربحت {n}", orderWay: "كل طلب", signupWay: "إنشاء حساب", firstWay: "طلبك الأول",
       error: "حدث خطأ ما. يرجى المحاولة مرة أخرى.", referTitle: "ادعُ صديقًا", referText: "امنح صديقك {friend} على طلبه الأول، وتحصل أنت على {gift} عندما يطلب.", referLink: "رابطك",
       shareText: "إليك {friend} لطلبك الأول:", refBanner: "أهداك صديق {friend}. يُضاف عند الدفع.", offPercent: "خصم {x}%", offAmount: "خصم {x}", freeShip: "شحن مجاني",
-      creditGift: "{x} رصيد في المتجر", referWay: "ادعُ صديقًا", email: "البريد الإلكتروني",
+      creditGift: "{x} رصيد في المتجر", referWay: "ادعُ صديقًا", email: "البريد الإلكتروني", shopTitle: "تسوّق بالنقاط", shopGet: "احصل عليه مقابل {price}", shopSignIn: "سجّل الدخول للحصول عليه بالنقاط", shopMore: "{n} أخرى للحصول عليه", shopHave: "لديك {have} من {n}",
     },
     unit: { one: "نقطة", many: "نقاط" },
     page: {

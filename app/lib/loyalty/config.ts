@@ -39,6 +39,17 @@ export type FriendKind = (typeof FRIEND_KINDS)[number];
  */
 export type Affiliate = { id: string; on: boolean; name: string; code: string; kind: FriendKind; value: number; minimum: number; commission: number };
 export const MAX_AFFILIATES = 50;
+/** Who sees a Points shop product: everyone (guests see it but can't get it), members with enough points, or members from `from` points. */
+export const SHOP_SHOW = ["all", "afford", "from"] as const;
+export type ShopShow = (typeof SHOP_SHOW)[number];
+export const SHOP_SHOW_LABEL: Record<ShopShow, string> = { all: "Everyone", afford: "Members with enough points", from: "Members from a number of points" };
+/**
+ * A product in the Points shop (Omar, 2026-10-24): members get it for `points`, plus `money` per item (0 = points only,
+ * always less than the price), with a one use code for that variant. `only`: it can't be bought with money;
+ * `unlisted`: hidden from collections and search (only with `only`). `limit` per customer (0 = no limit).
+ */
+export type ShopItem = { id: string; on: boolean; product: { id: string; title: string; handle: string; image: string; price: number }; points: number; money: number; only: boolean; unlisted: boolean; show: ShopShow; from: number; limit: number };
+export const MAX_SHOP_ITEMS = 50;
 /** Affiliate codes: upper case letters, digits, _ and -, 3 to 30 characters. */
 export const cleanCode = (v: unknown) => String(v ?? "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
 
@@ -97,6 +108,11 @@ export const WIDGET_TEXTS = {
   creditGift: "{x} in store credit",
   referWay: "Refer a friend",
   email: "Email",
+  shopTitle: "Shop with points",
+  shopGet: "Get it for {price}",
+  shopSignIn: "Sign in to get it with points",
+  shopMore: "{n} more to get it",
+  shopHave: "You have {have} of {n}",
 } as const;
 export type WidgetTexts = Record<keyof typeof WIDGET_TEXTS, string>;
 
@@ -144,6 +160,8 @@ export type LoyaltyConfig = {
    */
   referral: { on: boolean; friend: { kind: FriendKind; value: number; minimum: number }; gift: { kind: "points" | "credit"; value: number }; monthly: number };
   affiliates: Affiliate[];
+  /** The Points shop: products members get with points (codes valid `days` days, like the rewards'). */
+  shop: { on: boolean; days: number; items: ShopItem[] };
   /** Emails to members (Loyalty → Emails; lib/loyalty/emails.ts). */
   emails: EmailSettings;
   /** Set by plan.server.ts `planned` only, never saved: the plan, for the monthly limits (plans.ts METERS). */
@@ -301,6 +319,7 @@ export const DEFAULT_LOYALTY: LoyaltyConfig = {
   ],
   referral: { on: false, friend: { kind: "percent", value: 10, minimum: 0 }, gift: { kind: "points", value: 200 }, monthly: 10 },
   affiliates: [],
+  shop: { on: false, days: 30, items: [] },
   emails: DEFAULT_EMAILS,
   widget: { position: "right", accent: "#111111", onAccent: "#ffffff", radius: 18, launcher: "text", productPoints: true, cartPoints: true, texts: { ...WIDGET_TEXTS } },
   page: DEFAULT_PAGE,
@@ -354,6 +373,34 @@ function cleanAffiliates(raw: unknown): Affiliate[] {
   });
   // Ids and codes unique (the first one wins).
   return list.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.code === x.code) === i);
+}
+
+function cleanShop(raw: unknown, d: LoyaltyConfig["shop"]): LoyaltyConfig["shop"] {
+  const r = obj(raw);
+  const items = (Array.isArray(r.items) ? r.items : []).slice(0, MAX_SHOP_ITEMS).flatMap((x, i): ShopItem[] => {
+    const o = obj(x), p = obj(o.product);
+    if (typeof p.id !== "string" || !/^gid:\/\/shopify\/Product\/\d+$/.test(p.id)) return [];
+    const price = money(p.price, 0);
+    const points = num(o.points, 1, 1_000_000, 1000);
+    const m = money(o.money, 0);
+    const image = str(p.image, "", 500).trim();
+    const only = bool(o.only, false);
+    return [{
+      id: idOk(o.id, i, "s"),
+      on: bool(o.on, true),
+      product: { id: p.id, title: str(p.title, "", 120).trim() || "Product", handle: str(p.handle, "", 255).trim(), image: /^https:\/\/\S+$/.test(image) ? image : "", price },
+      points,
+      // The money part is always less than the price (else the code would take nothing off).
+      money: m < price ? m : 0,
+      only,
+      unlisted: only && bool(o.unlisted, false),
+      show: pick(o.show, SHOP_SHOW, "all"),
+      from: num(o.from, 1, points, Math.max(1, Math.floor(points / 2))),
+      limit: num(o.limit, 0, 1000, 0),
+    }];
+  });
+  // Ids and products unique (the first one wins).
+  return { on: bool(r.on, d.on), days: num(r.days, 1, 365, d.days), items: items.filter((x, i, a) => a.findIndex((y) => y.id === x.id || y.product.id === x.product.id) === i) };
 }
 
 const idOk = (v: unknown, i: number, prefix: string) => (/^[a-z0-9]{1,12}$/i.test(String(v)) ? String(v) : `${prefix}${i + 1}`);
@@ -435,6 +482,7 @@ export function withLoyaltyDefaults(raw: unknown): LoyaltyConfig {
       : d.rewards,
     referral: cleanReferral(r.referral, d.referral),
     affiliates: cleanAffiliates(r.affiliates),
+    shop: cleanShop(r.shop, d.shop),
     emails: withEmailDefaults(r.emails),
     widget: (() => {
       const w = obj(r.widget), t = obj(w.texts);
@@ -482,8 +530,19 @@ export function toStorefrontLoyalty(c: LoyaltyConfig, on: boolean) {
     // Guests who ordered before are told their points wait for an account (Earn points → Orders placed as a guest).
     gu: c.autoJoin && c.guests !== "off",
     lg: c.languages.length ? storefrontLanguages(c) : null,
+    // The Points shop as everyone sees it; members get their own list from the app proxy (`shopFor`).
+    ...(c.shop.on ? { ps: shopFor(c, null) } : {}),
   };
 }
+
+/** The storefront copy of a Points shop product. */
+const shopItem = (x: ShopItem) => ({ id: x.id, t: x.product.title, h: x.product.handle, i: x.product.image, p: x.points, m: x.money, pid: x.product.id.split("/").pop(), o: x.only });
+
+/** May a shopper with these points (null: not a member) see this product? */
+export const canSeeItem = (x: ShopItem, points: number | null) => x.on && (x.show === "all" || (points !== null && points >= (x.show === "afford" ? x.points : x.from)));
+
+/** The Points shop products this shopper sees: "all" ones for everyone, the others only for members with the points. */
+export const shopFor = (c: LoyaltyConfig, points: number | null) => (c.shop.on ? c.shop.items.filter((x) => canSeeItem(x, points)).map(shopItem) : []);
 
 /**
  * Growth has the loyalty program within its limits (plans.ts loyaltyOrders, loyaltyEmails); these parts are

@@ -2,7 +2,8 @@
  * The loyalty widget on the store posts here through the app proxy (/apps/ucro/loyalty). Shopify signs every
  * request and adds `logged_in_customer_id`, so a shopper only ever sees and spends their own points.
  * Intents: "me" (balance, history, rewards got), "join" (when joining is manual), "redeem" (spend points),
- * "ref" (what a shared referral or affiliate code gives; works for guests too).
+ * "ref" (what a shared referral or affiliate code gives; works for guests too), "buy" (a Points shop product:
+ * { item, variant }; the code it gives is for that variant and this member only).
  * From Growth with the program on (Pro parts only on Pro).
  */
 import type { ActionFunctionArgs } from "react-router";
@@ -14,9 +15,10 @@ import { getProgram, memberFor, setBirthday, socialPoints, tierValue } from "../
 import { syncCustomer } from "../lib/loyalty/sync.server";
 import { codeOffer, ensureMemberCode, getReferralState } from "../lib/loyalty/referrals.server";
 import { NotEnoughPoints, memberRewards, redeem } from "../lib/loyalty/rewards.server";
+import { buy } from "../lib/loyalty/shop.server";
 import { eventLabel } from "../lib/loyalty/labels";
 import { AdminError, gql } from "../lib/admin.server";
-import { excludedTags } from "../lib/loyalty/config";
+import { excludedTags, shopFor } from "../lib/loyalty/config";
 import { isExcluded, nextTier } from "../lib/loyalty/points";
 
 // A member's own orders are read again when they open the widget, at most once a minute (per server process).
@@ -71,6 +73,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       got = await redeem(admin, shop, program.config, m.id, String(body.reward ?? ""));
       m = (await db.loyaltyMember.findUnique({ where: { id: m.id } }))!;
     }
+    if (intent === "buy") {
+      got = await buy(admin, shop, program.config, m.id, String(body.item ?? ""), String(body.variant ?? ""));
+      m = (await db.loyaltyMember.findUnique({ where: { id: m.id } }))!;
+    }
     const history = await db.loyaltyEvent.findMany({ where: { shop, memberId: m.id }, orderBy: { createdAt: "desc" }, take: 12, select: { kind: true, note: true, points: true, credit: true, status: true, createdAt: true } });
     const c = program.config;
     const tier = c.tiers.on ? c.tiers.list.find((t) => t.id === m!.tier) ?? null : null;
@@ -96,6 +102,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         bday: !!m.birthday,
         followed,
         rewards: await memberRewards(shop, m.id),
+        // The Points shop products this member sees (with enough points, or from the merchant's number of points).
+        shop: shopFor(c, m.points),
       },
     });
   } catch (e) {
