@@ -128,9 +128,19 @@
         (s.ok ? '<a class="ucs-loy__btn" href="' + esc(href) + '">' + esc(t.get) + '</a>' : s.a ? '<a class="ucs-loy__link" href="' + esc(s.a) + '">' + esc(t.signIn) + '</a>' : '<small>' + esc(s.l) + '</small>') + '</li>';
     }).join('') + '</ul>';
   };
+  /* The theme's main product form, like the boosters script: not the hidden installments form many themes put first. */
+  var mainForm = function () {
+    var forms = document.querySelectorAll('form[action*="/cart/add"]');
+    for (var i = 0; i < forms.length; i++) {
+      var f = forms[i];
+      if (/installment/i.test(f.id) || f.closest('.ucs, [class*="ucro"], cart-drawer, .cart-drawer')) continue;
+      if (f.querySelector('[type="submit"], button[name="add"]')) return f;
+    }
+    return null;
+  };
   var pb = null, pmsg = '', busy = false;
   var productButton = function () {
-    var form = D.pid && document.querySelector('form[action*="/cart/add"]');
+    var form = D.pid && mainForm();
     if (!form) return;
     // Sold only with points: the theme's buy buttons go, and a guest is asked to sign in even when the product is for members.
     var only = (c.po || []).map(String).indexOf(String(D.pid)) > -1;
@@ -188,8 +198,16 @@
       me = r;
       pmsg = t.applied;
       productButton();
-      var go = function () { location.href = root + 'discount/' + encodeURIComponent(r.got.code) + '?redirect=' + encodeURIComponent(root + 'cart'); };
-      fetch(root + 'cart/add.js', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ items: [{ id: Number(vid), quantity: 1 }] }) }).then(go, go);
+      // The code goes on the cart first (with any code already there), then the option: a product sold only with points
+      // is refused the moment it lands in a cart without its code (the checkout guard runs on the cart too).
+      var json = { 'Content-Type': 'application/json', Accept: 'application/json' };
+      var fallback = function () { location.href = root + 'discount/' + encodeURIComponent(r.got.code) + '?redirect=' + encodeURIComponent(root + 'cart'); };
+      fetch(root + 'cart.js', { credentials: 'same-origin' }).then(function (x) { return x.json(); }).catch(function () { return {}; }).then(function (cart) {
+        var codes = ((cart && cart.discount_codes) || []).map(function (d) { return d.code; }).filter(function (k) { return k && k !== r.got.code; });
+        return fetch(root + 'cart/update.js', { method: 'POST', credentials: 'same-origin', headers: json, body: JSON.stringify({ discount: codes.concat(r.got.code).join(',') }) });
+      }).then(function () {
+        return fetch(root + 'cart/add.js', { method: 'POST', credentials: 'same-origin', headers: json, body: JSON.stringify({ items: [{ id: Number(vid), quantity: 1 }] }) });
+      }).then(function (x) { if (!x.ok) throw x; location.href = root + 'cart'; }).catch(fallback);
     });
   };
   var draw = function () {
@@ -304,7 +322,7 @@
   var line = function (text) { var p = document.createElement('p'); p.className = 'ucs-loy__line'; p.style.setProperty('--ucs-loy-a', w.a || '#111'); p.textContent = text; return p; };
   if (w.pp && c.per && D.price) {
     var n = Math.floor((D.price / 100) * c.per + 1e-9);
-    var form = document.querySelector('form[action*="/cart/add"]');
+    var form = mainForm();
     if (n > 0 && form) form.parentNode.insertBefore(line(fill(t.product, n)), form.nextSibling);
   }
   if (w.cp && c.per && D.page === 'cart') {
