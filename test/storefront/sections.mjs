@@ -227,6 +227,9 @@ pages["boosters.html"] = page("Boosters", productForm, (await block("ucs-booster
   // Sold only with points and only for members with enough points: a guest gets no add to cart, only the sign in link.
   const onlyShop = withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [{ ...loyShop.shop.items[0], only: true, show: "afford" }] } }), true) }));
   pages["loyalty-shop-only.html"] = page("Points shop (only with points, guest)", productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
+  // Dawn puts a hidden installments form (no buttons) before the product form: the script must use the product form.
+  const installments = '<form method="post" action="/cart/add" id="product-form-installment-main" class="installment"><input type="hidden" name="id" value="7701"></form>';
+  pages["loyalty-shop-only-dawn.html"] = page("Points shop (only with points, installments form first)", installments + productForm, (await block("ucs-boosters", {}, { ...ctx, customer: undefined, shop: onlyShop })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
   pages["loyalty-shop-design.html"] = page("Points shop (theme editor)", productForm, (await block("ucs-boosters", {}, { ...ctx, design: true, shop: withDesign(mo("loyalty", { config: toStorefrontLoyalty(withLoyaltyDefaults({ on: true, shop: { on: true, items: [] } }), true) })) })) + '<link rel="stylesheet" href="assets/ucs-loyalty.css">');
 }
 
