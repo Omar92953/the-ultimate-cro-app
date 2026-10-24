@@ -13,7 +13,7 @@ import { errorMessage, gql } from "../lib/admin.server";
 import { getProgram, saveProgramConfig } from "../lib/loyalty/program.server";
 import { publishLoyalty } from "../lib/loyalty/storefront.server";
 import { MAX_SHOP_ITEMS, SHOP_SHOW, SHOP_SHOW_LABEL, type LoyaltyConfig, type ShopItem, type ShopShow } from "../lib/loyalty/config";
-import { Button, NumberField, Select, Switch } from "../components/fields";
+import { Button, Checkbox, NumberField, Select, Switch } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
 import { SaveControls, changed } from "../components/SaveControls";
@@ -155,6 +155,22 @@ export default function LoyaltyShop() {
                         ? "Only signed in members with enough points see it."
                         : `Signed in members see it from ${x.from} ${cfg.unit.many}, with how far they are from the price.`}
                   </s-text>
+                  <s-stack direction="inline" gap="large">
+                    <Checkbox
+                      label="Only with points"
+                      details={x.only ? "The store's add to cart button is hidden on its page, and checkout refuses it without the member's code." : "Shoppers can also buy it with money."}
+                      checked={x.only}
+                      onValue={(v) => setItem(i, { only: v, unlisted: v && x.unlisted })}
+                    />
+                    {x.only ? (
+                      <Checkbox
+                        label="Hide it from collections and search"
+                        details="The product is Unlisted in Shopify: only a link to it opens it. It is listed again when this is turned off or the product is removed."
+                        checked={x.unlisted}
+                        onValue={(v) => setItem(i, { unlisted: v })}
+                      />
+                    ) : null}
+                  </s-stack>
                 </s-stack>
               </s-box>
             ))}
