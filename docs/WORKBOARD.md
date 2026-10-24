@@ -2,27 +2,22 @@
 
 The backlog for all accounts (see `docs/TEAM.md`). What's being worked on right now is in the open
 pull requests (`gh pr list`). Update this file in the PR that finishes or adds an item.
-Updated 2026-10-22.
+Updated 2026-10-24.
 
-## Loyalty and pre-final audit (lead, 2026-10-22; details in `HANDOFF.md`)
+## Loyalty and pre-final audit (lead, updated 2026-10-24; details in `HANDOFF.md`)
 
-- [x] Tracking and loyalty on Growth and Pro, with limits (Omar, 2026-10-22): live tracking 200 or 500 shipments a month, loyalty orders 500 or 2,000, loyalty emails 1,000 or 5,000; extra above each limit only when the store turns it on (usage bars warn at 80%); Pro parts kept for an upgrade
-
-- [x] Loyalty (Pro) parts 1 to 4 (#255 to #259): core, rewards and widget, Rewards page and Look, VIP tiers and more
-- [x] Loyalty part 5: referrals and affiliate links (#260)
-- [x] Loyalty part 6: Postmark emails with the store's own sender (#265)
-- [x] Loyalty part 7a: Klaviyo, Omnisend, Judge.me and review points (#268)
-- [x] Loyalty part 7b: Shopify Flow triggers and action (#270)
-- [ ] Loyalty parts 8 to 10: customer account, checkout (Plus) and POS, analytics, CSV and languages,
-      website (`docs/plans/loyalty.md`)
-- [ ] Loyalty part 9: customer account, thank you and order status points, Plus checkout redeem, POS: **PR #272 ready** (needs Shopify deploy, a new scope customer_read_customers and the Render SCOPES update; network access for the Plus checkout block is part of Omar's final Partner Dashboard update)
-- [ ] Loyalty part 10 (without languages): analytics page and members CSV export and import, **PR #269 ready** (no Shopify deploy; test plan in the PR). Languages still to do
-- [x] Analytics rebuild with A/B test results: an A/B tests tab and a running tests card on the overview; tests are still created on the Offers page (#262)
-- [ ] Cart Discount code box: **PR #266 ready** (each applied code shows what it took off, clearer reasons; needs Shopify deploy, then its test plan on Testing 3). Own feature card in the Cart group waits for Omar's answer
-- [ ] Branding lines and store credit incentives on the Track and Returns pages: **PR #263 ready** (needs Shopify deploy, then the test plan in the PR on Testing 3)
-- [ ] All candidate listing images, for Omar to choose
-- [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, protected customer data,
-      network access, listing)
+- [x] Tracking and loyalty on Growth and Pro, with limits (Omar, 2026-10-22): live tracking 200 or 500 shipments a month, loyalty orders 500 or 2,000, loyalty emails 1,000 or 5,000; extra above each limit only when the store turns it on (usage bars warn at 80%); Pro parts kept for an upgrade (#271)
+- [x] Loyalty parts 1 to 9: core, rewards and widget, Rewards page and Look, VIP tiers and more (#255 to #259), referrals and affiliates (#260), Postmark emails (#265), Klaviyo, Omnisend, Judge.me and review points (#268), Shopify Flow (#270), customer account, thank you, Plus checkout and POS (#272)
+- [x] Loyalty part 10 without languages: analytics page, members CSV export and import (#269)
+- [x] Loyalty part 11: website feature page, area page, help page and menu (loyalty out of SITE_HIDDEN)
+- [ ] Loyalty languages: per store language for the widget, the Rewards page and the emails (lead)
+- [ ] Points shop: products bought with points or points plus money, who sees them, only with points products (Omar, 2026-10-24; claude2, `docs/plans/points-shop.md` once PR 1 is up)
+- [x] Analytics rebuild with A/B test results (#262); Track and Returns incentives (#263); cart code savings (#266)
+- [ ] Cart Discount code box as its own feature card in the Cart group (Omar said yes, 2026-10-22; lead)
+- [x] Deep code and live audit (2026-10-23 to 24): `docs/audit-2026-10-23.md`, #274 to #291, live as cro-toolbox-63
+- [ ] All candidate listing images, for Omar to choose (#273)
+- [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, usage meters, protected customer
+      data, network access, listing); Postmark tokens and App Events key in Render (Omar)
 
 ## App
 

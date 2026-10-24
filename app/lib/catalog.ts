@@ -87,6 +87,7 @@ export const FEATURES = {
   // Storefront · cart
   cart_offers: { title: "Offers in your theme's cart", area: "cart", group: "cart", about: "Cross sell offers inside your theme's own cart drawer.", tabs: [{ label: "Offers", href: "/app/offers/cross-sell" }, design("/app/styles/cross_sell")] },
   cart_extras: { title: "Gift note & delivery date", area: "cart", group: "cart", about: "“This is a gift”, a gift message, a delivery date and a discount code box in the cart. Gift and date details are saved on the order.", tabs: [design("/app/designs/cart-extras")] },
+  cart_code: { title: "Discount code box", area: "cart", group: "cart", about: "A box in the cart where shoppers apply a discount code and see what it takes off, with a clear reason when a code can't be used.", tabs: [design("/app/designs/cart-code")] },
   // Storefront · social proof
   reviews: { title: "Customer reviews", area: "library", group: "social", about: "Text, photo and video reviews with WhatsApp, Instagram and TikTok badges.", tabs: [{ label: "Reviews", href: "/app/sections/reviews" }, design("/app/designs/reviews")] },
   product_reviews: { title: "Product page reviews", area: "library", group: "social", about: "A review card or the star rating next to the price and Add to cart.", tabs: [design("/app/designs/product-reviews"), { label: "Reviews", href: "/app/sections/reviews" }] },
@@ -127,7 +128,7 @@ export const FEATURES = {
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, and that sells too: recommendations, a next order discount, buy again, an after delivery message and an apology for late orders.", tabs: [design("/app/pages/track")], paths: ["/app/tracking-source", "/app/tracking-shipments"] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
   // Loyalty (Pro): one feature with its own menu item and pages under /app/loyalty.
-  loyalty: { title: "Loyalty program", area: "loyalty", about: "Points for orders and signups, rewards shoppers spend, store credit cashback, VIP tiers and referrals, to bring shoppers back.", tabs: [{ label: "Home", href: "/app/loyalty" }, { label: "Earn points", href: "/app/loyalty/earn" }, { label: "Rewards", href: "/app/loyalty/rewards" }, { label: "VIP tiers", href: "/app/loyalty/tiers" }, { label: "Referrals", href: "/app/loyalty/referrals" }, { label: "Emails", href: "/app/loyalty/emails" }, { label: "Integrations", href: "/app/loyalty/integrations" }, { label: "Members", href: "/app/loyalty/members" }, { label: "Analytics", href: "/app/loyalty/analytics" }, { label: "Look", href: "/app/loyalty/look" }] },
+  loyalty: { title: "Loyalty program", area: "loyalty", about: "Points for orders and signups, rewards shoppers spend, store credit cashback, VIP tiers and referrals, to bring shoppers back.", tabs: [{ label: "Home", href: "/app/loyalty" }, { label: "Earn points", href: "/app/loyalty/earn" }, { label: "Rewards", href: "/app/loyalty/rewards" }, { label: "VIP tiers", href: "/app/loyalty/tiers" }, { label: "Referrals", href: "/app/loyalty/referrals" }, { label: "Emails", href: "/app/loyalty/emails" }, { label: "Integrations", href: "/app/loyalty/integrations" }, { label: "Members", href: "/app/loyalty/members" }, { label: "Analytics", href: "/app/loyalty/analytics" }, { label: "Look", href: "/app/loyalty/look" }, { label: "Languages", href: "/app/loyalty/languages" }] },
   // Checkout
   return_saving: { title: "Return saving rules", area: "tracking", about: "Offer store credit (with a bonus) or an exchange before a refund, approve returns by rule and put returned items back in stock.", tabs: [{ label: "Saving rules", href: "/app/returns/saving" }] },
   payment_rules: { title: "Payment rules", area: "cart", group: "checkout", about: "Hide, rename or reorder payment methods at checkout.", tabs: [{ label: "Payment", href: "/app/checkout/payment" }] },
@@ -141,7 +142,7 @@ export const FEATURES = {
 export type FeatureKey = keyof typeof FEATURES;
 export const FEATURE_KEYS = Object.keys(FEATURES) as FeatureKey[];
 /** In the app but not on the website yet (still being built): the site leaves them out of every list and page. */
-export const SITE_HIDDEN: readonly FeatureKey[] = ["loyalty"];
+export const SITE_HIDDEN: readonly FeatureKey[] = [];
 export const feature = (key: FeatureKey): Feature => FEATURES[key];
 /** A feature's main page (its first tab). */
 export const featureHref = (key: FeatureKey) => FEATURES[key].tabs[0].href;

@@ -11,7 +11,17 @@
   window.__ucsLoy = true;
   var D;
   try { D = JSON.parse(el.textContent); } catch (e) { return; }
-  var c = D.c || {}, t = c.t || {}, w = c.w || {};
+  var c = D.c || {};
+  // The page's language when the store added it (Loyalty, Languages): its words over the main ones.
+  var lc = String((window.Shopify && window.Shopify.locale) || document.documentElement.lang || '').toLowerCase(), lg = c.lg || {};
+  var L = lg[lc] || lg[lc.split('-')[0]];
+  if (L) {
+    c.t = Object.assign({}, c.t, L.t);
+    if (L.u) c.u = L.u;
+    if (L.pg) c.pg = Object.assign({}, c.pg, L.pg);
+    if (L.rw) (c.rw || []).forEach(function (r) { if (L.rw[r.id]) r.t = L.rw[r.id]; });
+  }
+  var t = c.t || {}, w = c.w || {};
   if (!c.on) return;
   var root = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
   var url = root + 'apps/ucro/loyalty';

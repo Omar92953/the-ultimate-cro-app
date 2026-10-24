@@ -4,6 +4,11 @@
  * and docs/README-merchant.md before adding one). Template names come from the app (lib/templates.ts).
  */
 import type { FeatureKey } from "./app";
+import { METERS, limitOf, type LimitKey, type PlanKey } from "../../../app/lib/plans";
+import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
+
+/** A plan limit as a number, "2,000". */
+const n = (p: PlanKey, k: LimitKey) => (limitOf(p, k) ?? 0).toLocaleString("en-US");
 
 export type FeatureCopy = {
   /** One sentence: who it's for and why. */
@@ -13,6 +18,8 @@ export type FeatureCopy = {
   related: FeatureKey[];
   /** A fact worth knowing (limits, where it works). */
   note?: string;
+  /** Its own setup steps, when the usual ones (pick a template, Add to theme) don't fit. */
+  steps?: string[];
 };
 
 export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
@@ -75,6 +82,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     who: "For gift shops and stores that deliver on a chosen day.",
     points: ["This is a gift, with a gift message", "A delivery date picker, with time slots if you want", "A discount code box on the cart page and in the cart drawer, with applied codes and an error for codes that do not work", "Gift and date details saved on the order"],
     related: ["addons", "cart_offers", "delivery"],
+  },
+  cart_code: {
+    who: "For stores that share discount codes and want shoppers to use them before checkout.",
+    points: ["A discount code box on the cart page and in the theme's cart drawer", "Each applied code shows what it takes off the cart, and can be removed", "Clear reasons when a code can't be used: already applied, doesn't combine with another code, not valid for the cart", "Every word, the button place and the look are yours"],
+    related: ["cart_extras", "shipping_bar"],
   },
   reviews: {
     who: "For every store: proof from real customers next to your products.",
@@ -159,8 +171,23 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   loyalty: {
     who: "For stores that want shoppers to come back and spend again.",
-    points: ["Points for orders, signups, birthdays and reviews", "Rewards shoppers spend: discounts, free shipping, free products or store credit", "VIP tiers and referrals"],
-    related: ["returns", "track"],
+    points: [
+      "Points for orders, account signups, the first order, birthdays, product reviews and social follows",
+      "Rewards shoppers spend: amount or percent off, free shipping, a free product or store credit",
+      "Referrals: the friend gets a discount and the member gets points when the friend orders",
+      "A rewards button and panel, points on product pages and in the cart, and a Rewards page",
+      "Points in customer accounts, on the thank you and order status pages, and at Shopify POS",
+      "Emails for welcome, points earned, reward ready, reward codes, birthdays and points about to expire",
+      `Growth: ${n("growth", "loyaltyOrders")} orders that earn points and ${n("growth", "loyaltyEmails")} emails a month. Pro: ${n("pro", "loyaltyOrders")} and ${n("pro", "loyaltyEmails")}`,
+      `Pro adds ${LOYALTY_PRO.slice(0, -1).join(", ")}, and ${LOYALTY_PRO.at(-1)}`,
+    ],
+    steps: [
+      "Install CRO Toolbox from the Shopify App Store.",
+      "Open Loyalty in the app: choose what earns points and add the rewards members spend them on.",
+      "Turn the program on, then turn on the Conversion boosters embed in your theme: the rewards button shows on every page.",
+    ],
+    related: ["track", "email_popup"],
+    note: `At a monthly limit orders stop earning and emails wait until next month, unless you turn on extra in the app: $${METERS.loyaltyOrders.price} per ${METERS.loyaltyOrders.per} more orders and $${METERS.loyaltyEmails.price} per ${METERS.loyaltyEmails.per.toLocaleString("en-US")} more emails, billed by Shopify.`,
   },
   coverflow: {
     who: "For lookbooks, customer photos and new arrivals that deserve one big picture at a time.",
