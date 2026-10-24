@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | Ready for the lead: #292 (Needs Shopify deploy) |
 | 2 | Only with points: checkout guard, hide from collections and search | Ready for the lead: #297, after #292 (Needs Shopify deploy) |
-| 3 | Points shop collection, help, website, docs | Ready for the lead: #298, after #297 (Needs Shopify deploy: the script) |
+| 3 | Points shop collection, help, website, docs | Ready for the lead: #299, after #297 (Needs Shopify deploy: the script) |
 
 Points shop: products bought with loyalty points (Omar, 2026-10-24). Build it in 3 PRs, claim with a draft PR first,
 copy this file to docs/plans/points-shop.md in PR 1 and keep it up to date. Same rules as the audit: worktrees from
@@ -109,7 +109,7 @@ and without enough points, checkout totals, the guard blocks buying the points o
 - To check on Testing 3: discount codes show in the line cost the validation reads at checkout (a points only product
   with the member's code must pass; without it, be refused).
 
-## PR 3 as built (#298)
+## PR 3 as built (#299)
 - "Keep a Points shop collection" (`shop.collection`): `syncCollection` in shop.server.ts makes a manual collection
   "Points shop" (handle points-shop), publishes it to the Online Store and keeps it to the products that are on and not
   hidden; empty while the shop, program or plan's loyalty is off; deleted when the option is turned off. Its id is in

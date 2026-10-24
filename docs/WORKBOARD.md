@@ -11,7 +11,7 @@ Updated 2026-10-24.
 - [x] Loyalty part 10 without languages: analytics page, members CSV export and import (#269)
 - [x] Loyalty part 11: website feature page, area page, help page and menu (loyalty out of SITE_HIDDEN)
 - [ ] Loyalty languages: per store language for the widget, the Rewards page and the emails (lead)
-- [ ] Points shop: products bought with points or points plus money, who sees them, only with points products (Omar, 2026-10-24; claude2, `docs/plans/points-shop.md`). #292, #297 and #298 ready for the lead, stacked: deploy and merge them in that order, then the Testing 3 checks in each PR.
+- [ ] Points shop: products bought with points or points plus money, who sees them, only with points products (Omar, 2026-10-24; claude2, `docs/plans/points-shop.md`). #292, #297 and #299 ready for the lead, stacked: deploy and merge them in that order, then the Testing 3 checks in each PR.
 - [x] Analytics rebuild with A/B test results (#262); Track and Returns incentives (#263); cart code savings (#266)
 - [ ] Cart Discount code box as its own feature card in the Cart group (Omar said yes, 2026-10-22; lead)
 - [x] Deep code and live audit (2026-10-23 to 24): `docs/audit-2026-10-23.md`, #274 to #291, live as cro-toolbox-63
