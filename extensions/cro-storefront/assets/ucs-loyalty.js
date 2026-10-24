@@ -172,7 +172,8 @@
       var seen = [];
       [].forEach.call(document.querySelectorAll('main a[href*="/products/' + x.h + '"]'), function (a) {
         var card = a.closest('li, .card-wrapper, .grid__item') || a.parentNode;
-        if (!a.textContent.trim() || seen.indexOf(card) > -1) return;
+        // Only a link the shopper sees: Dawn's cards have a second, hidden title link first.
+        if (!a.textContent.trim() || !a.getClientRects().length || seen.indexOf(card) > -1) return;
         seen.push(card);
         var at = a.closest('h2, h3, h4, p') || a, tag = document.createElement('p');
         tag.className = 'ucs-loy__tag';
