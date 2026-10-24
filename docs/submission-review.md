@@ -1,4 +1,53 @@
-# App Store submission review — CRO Toolbox (2026-10-17)
+# App Store submission review: CRO Toolbox (2026-10-17, last run 2026-10-24)
+
+## Final audit (2026-10-24): before submission (cro-toolbox-72)
+
+**Verdict: the code is ready for review.** Nothing in the code fails a requirement. What is left is Omar's: the Partner
+Dashboard (prices, usage meters, protected customer data, read_all_orders, network access), the listing (pick 6 of the
+9 screenshots), the Render keys, and the review screencast.
+
+Requirements fetched again today with `shopify doc fetch` (self review list and App Store requirements). Two items were
+new to the checklist and apply: **2.3.17** (customer data the app collects must be visible in the admin or the app)
+and **3.2.1** (read_all_orders needs a reason). The groups for payments, purchase options, product sourcing, sales
+channels and mobile app builders don't apply.
+
+Deterministic checks (`check_app.mjs`): compliance webhooks subscribed and handled, no REST Admin API, no theme file
+writes or ScriptTags, 69 theme editor deep links, 29 of 30 theme blocks, 92.1 of 100 KB Liquid, every storefront JS
+file under 10 KB gzipped (largest `ucs-orders.js` 9.7, `ucs-reviews.js` 8.5, `ucs-loyalty.js` 7.7), every Function
+input query under 3,000 bytes. Its one ❌ is not a finding: `webhooks.postmark.tsx` is Postmark's webhook (not
+Shopify's), checked with a secret key in its address and a constant time compare. `webhooks.orders.create.tsx` is
+switched off in the toml and verifies HMAC. Project checks all pass on main: typecheck, lint, test:app (327), build,
+graphql-codegen, build:theme, test:storefront, test:functions (18), site build, `shopify app build`.
+
+| New since the last run | Requirement | Status |
+|---|---|---|
+| Loyalty program on Growth and Pro, with usage limits and extras billed as App Pricing usage events (`app/lib/usage.server.ts`) | 1.2.x billing | ✅ Every charge through Shopify (plans and App Events usage). Extras off until the store turns them on, usage bars warn at 80% |
+| Loyalty widget, Rewards page, points shop on the storefront | 1.1.4 factual, 5.1.x | ✅ Points, rewards and prices come from the store's settings and the member's ledger; nothing made up |
+| Customer account, thank you, checkout (Plus redeem) and POS blocks | 5.6.2, 5.6.3, 5.6.6, 5.6.9 | ✅ Placed and removed by the merchant in Shopify's editors, no app promotion, no timers, no payment fields |
+| Points shop checkout guard (cart validation Function) | 2.x, 5.6 | ✅ Refuses only products the merchant set "only with points" without their code; message names the product |
+| Points shop collection, Unlisted products | 2.x | ✅ Only on the merchant's switch; only the collection and statuses the app set are changed back |
+| Loyalty emails (Postmark) with unsubscribe and the store's address | 1.1.x, privacy | ✅ Reminders only to members subscribed to email marketing; one click unsubscribe; privacy page names Postmark |
+| Klaviyo, Omnisend, Judge.me, Shopify Flow | 3.x data use | ✅ Only with the store's own keys, stated in the privacy page |
+| Customer data the app keeps (2.3.17) | 2.3.17 | ✅ Loyalty members and history (Members page), back in stock requests (Stock page with CSV), return requests (Returns), reviews (Customer reviews), email pop up sign ups (Shopify customers), birthday and points written to the customer's metafield |
+| read_all_orders (3.2.1) | 3.2.1 | ⚠️ Needed for orders older than 60 days on the Track and Returns pages and the loyalty look back. Omar requests it in the Partner Dashboard with that reason (`docs/scopes.md`) |
+| Downgrades | 1.2.x | ✅ Locked features switch off on the store with settings kept and come back after an upgrade (#286, #291) |
+
+### Omar's steps before submitting
+- [ ] Partner Dashboard, once: the new plan prices (`app/lib/plans.ts`), usage meters `live-shipments`, `loyalty-orders`,
+  `loyalty-emails` (prices in `METERS`), protected customer data reasons (loyalty: email, orders), read_all_orders
+  request, network access for the Plus checkout block.
+- [ ] Render: `POSTMARK_SERVER_TOKEN`, `POSTMARK_ACCOUNT_TOKEN` (emails), `APP_EVENTS_CLIENT_ID`,
+  `APP_EVENTS_CLIENT_SECRET` (usage billing).
+- [ ] Listing: pick 6 of the 9 screenshots in `branding/screenshots/storefront/` (alt text in
+  `branding/listing/README.md`), feature image `branding/feature/feature-banner.png`.
+- [ ] Review screencast in English: install, the setup guide, one offer, a bundle, the Track page, the loyalty program.
+- [ ] Testing instructions: Testing 3 is a dev store; the reviewer installs on their own store, nothing to log in to.
+
+### Needs a live check with a customer account (Testing 3)
+- A member with points gets a Points shop product (points taken, code applied, the cart line at its money part,
+  checkout passes) and a reward from the widget.
+- A guest who ordered creates an account with the same email and sees their points.
+- An Arabic store page shows the widget right to left.
 
 ## Audit update (2026-10-20, afternoon): after the 9 CRO sections (cro-toolbox-45, #211, #220)
 
