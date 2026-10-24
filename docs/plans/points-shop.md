@@ -3,7 +3,7 @@
 | PR | What | State |
 | --- | --- | --- |
 | 1 | The points shop: admin tab, proxy "buy", storefront button, panel list and Rewards page grid | Ready for the lead: #292 (Needs Shopify deploy) |
-| 2 | Only with points: checkout guard, hide from collections and search | To do |
+| 2 | Only with points: checkout guard, hide from collections and search | In progress (claude/points-only) |
 | 3 | Points shop collection, help, website, docs | To do |
 
 Points shop: products bought with loyalty points (Omar, 2026-10-24). Build it in 3 PRs, claim with a draft PR first,
