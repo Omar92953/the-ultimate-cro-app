@@ -52,10 +52,14 @@
   box.style.setProperty('--ucs-loy-r', (w.r == null ? 18 : w.r) + 'px');
   box.innerHTML = '<button type="button" class="ucs-loy__launch' + (w.l === 'icon' ? ' ucs-loy__launch--icon' : '') + '" aria-expanded="false" aria-label="' + esc(t.launcher) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg><span>' + esc(t.launcher) + '</span></button>' +
     '<div class="ucs-loy__panel" role="dialog" aria-label="' + esc(t.title) + '" hidden><div class="ucs-loy__top"><b>' + esc(t.title) + '</b><button type="button" class="ucs-loy__x" aria-label="Close">×</button></div><div class="ucs-loy__body"></div></div>';
+  // Right to left languages read the widget and the Rewards page that way, whatever the theme does.
+  var rtl = /^(ar|he|fa|ur)(-|$)/.test(lc);
+  if (rtl) box.dir = 'rtl';
   document.body.appendChild(box);
   var launch = box.querySelector('.ucs-loy__launch'), panel = box.querySelector('.ucs-loy__panel'), body = box.querySelector('.ucs-loy__body');
   var me = null, msg = '';
   var pageEl = document.querySelector('[data-ucs-loy-page]'), pg = c.pg || {};
+  if (pageEl && rtl) pageEl.dir = 'rtl';
 
   var ways = function () {
     var list = [];
