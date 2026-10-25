@@ -10,15 +10,17 @@ import { METER_KEYS, type MeterKey } from "../lib/plans";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const { plan } = await getPlan(admin, session.shop);
-  return { meters: await usageSummary(session.shop, plan) };
+  const { plan, yearly } = await getPlan(admin, session.shop);
+  return { meters: await usageSummary(session.shop, plan, new Date(), yearly) };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
   const meter = String(form.get("meter")) as MeterKey;
   if (!METER_KEYS.includes(meter)) return { ok: false };
+  // Yearly billing has no usage charges (Shopify App Pricing): nothing to turn on.
+  if ((await getPlan(admin, session.shop)).yearly) return { ok: false };
   await setExtra(session.shop, meter, form.get("on") === "true");
   return { ok: true };
 };

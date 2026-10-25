@@ -231,7 +231,7 @@ test("plan cards: an orders line, then at least 3 short feature lines", () => {
 });
 
 test("plan buttons open Shopify's approval page for that plan and period", () => {
-  assert.equal(planApproveUrl("testing-3-xsslpo6d.myshopify.com", "the-ultimate-cro-app", "pro", true), "https://admin.shopify.com/store/testing-3-xsslpo6d/charges/the-ultimate-cro-app/plans/pro?interval=ANNUAL");
+  assert.equal(planApproveUrl("testing-3-xsslpo6d.myshopify.com", "the-ultimate-cro-app", "pro", true), "https://admin.shopify.com/store/testing-3-xsslpo6d/charges/the-ultimate-cro-app/plans/pro-yearly?interval=ANNUAL");
   assert.equal(planApproveUrl("testing-3-xsslpo6d.myshopify.com", "the-ultimate-cro-app", "starter", false), "https://admin.shopify.com/store/testing-3-xsslpo6d/charges/the-ultimate-cro-app/plans/starter?interval=EVERY_30_DAYS");
   // Free has no yearly price.
   assert.match(planApproveUrl("a.myshopify.com", "h", "free", true), /plans\/free\?interval=EVERY_30_DAYS$/);
