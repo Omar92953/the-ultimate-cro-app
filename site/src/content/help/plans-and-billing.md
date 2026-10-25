@@ -16,6 +16,14 @@ An offer switched on: an upsell, cross sell, bundle, bundle product, discount or
 
 It counts all of your store's orders in a calendar month, not only orders with an offer. It is soft: going over shows a reminder in the app and nothing switches off.
 
+## Can I go over a monthly limit?
+
+Growth and Pro include a number of live tracked shipments, loyalty orders and loyalty emails each month (see
+[pricing](/pricing/)). On monthly billing you can turn on **Allow extra** under a usage bar in the app: past the limit
+it keeps going, and the extra is added to your Shopify bill at the price shown next to the switch. Off, the limit stops
+for the month and nothing is charged. Growth yearly and Pro yearly keep the limits as they are, because Shopify only
+bills extras on monthly plans.
+
 ## What happens when I downgrade or cancel?
 
 Nothing is deleted. Offers over the new plan's limits, and features the new plan doesn't include, are switched off with their settings kept, and come back on when you upgrade again.

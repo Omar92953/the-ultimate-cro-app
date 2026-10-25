@@ -106,6 +106,7 @@ export default function Plans() {
             <PlanCard key={k} plan={k} current={k === plan} yearly={yearly} action={choose(k)} />
           ))}
         </div>
+        {yearly ? <s-text color="subdued">On annual billing the monthly limits of Growth and Pro (live tracking, loyalty orders and emails) stop for the month: going over with Allow extra is on monthly billing.</s-text> : null}
         <s-text color="subdued">You confirm the plan and its billing period on Shopify&apos;s approval page. Development stores show $0.</s-text>
         <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
         <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>

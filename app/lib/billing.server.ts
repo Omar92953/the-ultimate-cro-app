@@ -21,6 +21,7 @@ import { listBundles, listDeals, listRules, remove, syncBundles, syncDiscounts, 
 import { parkPlan, parkedHandle } from "./plan-park";
 import { setTestsPaused } from "./ab-tests.server";
 import { forgetShop, remember } from "./short-cache.server";
+import { setBillingYearly } from "./usage.server";
 import { timed } from "./timing.server";
 import { listKitIds } from "./kits.server";
 import { listOffers } from "./offers.server";
@@ -41,9 +42,17 @@ export type PlanInfo = {
   /** The subscription's own name, when there is one. */
   subscription: string | null;
   trialEndsAt: string | null;
+  /**
+   * Billed yearly ("Growth yearly", "Pro yearly"): Shopify App Pricing can't charge usage on a yearly plan, so the
+   * plan's limits are hard stops there and "Allow extra" is off (usage.server.ts `setBillingYearly`).
+   */
+  yearly: boolean;
   /** Shopify's plan selection page for this shop. */
   planUrl: string;
 };
+
+/** A yearly subscription, by its plan's handle or name ("growth-yearly", "Pro yearly") or Shopify's interval. */
+export const isYearly = (...names: (string | null | undefined)[]) => names.some((n) => /year|annual/i.test(n ?? ""));
 
 const PARTNER_VERSION = "2026-07";
 
@@ -79,28 +88,29 @@ async function fromPartnerApi(admin: AdminClient): Promise<Omit<PlanInfo, "planU
   if (!res.ok || !json || json.errors) throw new Error(`Partner API request failed (${res.status})`);
   const sub = json.data?.activeSubscription;
   // The Partner API answered "no subscription": a confirmed Free store.
-  if (!sub) return { plan: "free", source: "partner", subscription: null, trialEndsAt: null };
+  if (!sub) return { plan: "free", source: "partner", subscription: null, trialEndsAt: null, yearly: false };
   const item = sub.items.map((i) => ({ i, plan: planFromSubscription(i.handle) ?? planFromSubscription(i.description) })).find((x) => x.plan);
-  return { plan: item?.plan ?? "free", source: "partner", subscription: item?.i.description ?? item?.i.handle ?? null, trialEndsAt: sub.trialEndsAt };
+  return { plan: item?.plan ?? "free", source: "partner", subscription: item?.i.description ?? item?.i.handle ?? null, trialEndsAt: sub.trialEndsAt, yearly: !!item && isYearly(item.i.handle, item.i.description) };
 }
 
 async function fromAdminApi(admin: AdminClient): Promise<Omit<PlanInfo, "planUrl">> {
   const data = await gql(admin, `#graphql
-    query CroActiveSubscriptions { currentAppInstallation { activeSubscriptions { name status trialDays createdAt } } }`);
-  const subs: { name: string; status: string; trialDays: number; createdAt: string }[] = data.currentAppInstallation?.activeSubscriptions ?? [];
+    query CroActiveSubscriptions { currentAppInstallation { activeSubscriptions { name status trialDays createdAt lineItems { plan { pricingDetails { ... on AppRecurringPricing { interval } } } } } } }`);
+  const subs: { name: string; status: string; trialDays: number; createdAt: string; lineItems?: { plan?: { pricingDetails?: { interval?: string | null } | null } | null }[] | null }[] = data.currentAppInstallation?.activeSubscriptions ?? [];
   const active = subs.filter((s) => s.status === "ACTIVE");
   // The highest plan wins if Shopify ever lists two (e.g. during a plan change).
   const best = active
     .map((s) => ({ s, plan: planFromSubscription(s.name) }))
     .filter((x): x is { s: (typeof subs)[number]; plan: PlanKey } => !!x.plan)
     .sort((a, b) => PLAN_KEYS.indexOf(b.plan) - PLAN_KEYS.indexOf(a.plan))[0];
-  if (!best) return { plan: "free", source: active.length ? "admin" : "none", subscription: active[0]?.name ?? null, trialEndsAt: null };
+  if (!best) return { plan: "free", source: active.length ? "admin" : "none", subscription: active[0]?.name ?? null, trialEndsAt: null, yearly: false };
   const trialEnd = best.s.trialDays ? new Date(Date.parse(best.s.createdAt) + best.s.trialDays * 864e5) : null;
   return {
     plan: best.plan,
     source: "admin",
     subscription: best.s.name,
     trialEndsAt: trialEnd && trialEnd.getTime() > Date.now() ? trialEnd.toISOString() : null,
+    yearly: isYearly(best.s.name, ...(best.s.lineItems ?? []).map((l) => l.plan?.pricingDetails?.interval)),
   };
 }
 
@@ -114,14 +124,14 @@ const PLAN_MS = 5 * 60000;
 export function getPlan(admin: AdminClient, shop: string, fresh = false): Promise<PlanInfo> {
   const planUrl = planPageUrl(shop, appHandle());
   const forced = override();
-  if (forced) return Promise.resolve({ plan: forced, source: "override", subscription: null, trialEndsAt: null, planUrl });
+  if (forced) return Promise.resolve({ plan: forced, source: "override", subscription: null, trialEndsAt: null, yearly: process.env.CRO_PLAN_YEARLY === "1", planUrl });
   const load = async (): Promise<PlanInfo> => {
     try {
       const info = (await fromPartnerApi(admin)) ?? (await fromAdminApi(admin));
       return { ...info, planUrl };
     } catch (e) {
       console.error(`Plan check failed for ${shop}:`, e);
-      return { plan: "pro", source: "error", subscription: null, trialEndsAt: null, planUrl };
+      return { plan: "pro", source: "error", subscription: null, trialEndsAt: null, yearly: false, planUrl };
     }
   };
   // Back from the plan page: everything remembered for the shop may depend on the old plan.
@@ -302,11 +312,14 @@ const checkoutRuleName = (k: CheckoutKind) => (k === "payment" ? "A payment rule
  * when the plan is confirmed: an unconfirmed "Free" (no Partner API set up) must never switch off a
  * paying store's offers.
  */
-const applied = new Map<string, PlanKey>();
+const applied = new Map<string, string>();
 export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo) {
-  if (info.source === "error" || info.source === "none" || applied.get(shop) === info.plan) return;
-  applied.set(shop, info.plan);
-  applyPlanLimits(admin, info.plan)
+  const key = `${info.plan}${info.yearly ? ":yearly" : ""}`;
+  if (info.source === "error" || info.source === "none" || applied.get(shop) === key) return;
+  applied.set(shop, key);
+  // Yearly billing has no usage charges: its limits are hard stops ("Allow extra" off).
+  setBillingYearly(shop, info.yearly)
+    .then(() => applyPlanLimits(admin, info.plan))
     // The loyalty widget is not a theme design (plan-park.ts): it is saved again for the new plan.
     .then(() => import("./loyalty/storefront.server").then((m) => m.republishLoyalty(admin, shop)))
     .catch((e) => {

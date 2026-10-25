@@ -188,7 +188,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "Turn the program on, then turn on the Conversion boosters embed in your theme: the rewards button shows on every page.",
     ],
     related: ["track", "email_popup"],
-    note: `At a monthly limit orders stop earning and emails wait until next month, unless you turn on extra in the app: $${METERS.loyaltyOrders.price} per ${METERS.loyaltyOrders.per} more orders and $${METERS.loyaltyEmails.price} per ${METERS.loyaltyEmails.per.toLocaleString("en-US")} more emails, billed by Shopify.`,
+    note: `At a monthly limit orders stop earning and emails wait until next month, unless you turn on extra in the app: $${METERS.loyaltyOrders.price} per ${METERS.loyaltyOrders.per} more orders and $${METERS.loyaltyEmails.price} per ${METERS.loyaltyEmails.per.toLocaleString("en-US")} more emails, billed by Shopify. Extras are on monthly billing; yearly plans keep the limits.`,
   },
   coverflow: {
     who: "For lookbooks, customer photos and new arrivals that deserve one big picture at a time.",

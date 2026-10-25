@@ -21,9 +21,20 @@ export async function usedThisMonth(shop: string, meter: MeterKey, now = new Dat
   return db.loyaltyEmail.count({ where: { shop, status: "sent", sentAt: { gte: monthStart(now) } } });
 }
 
+/**
+ * Billed yearly ("Growth yearly", "Pro yearly"): Shopify App Pricing can't charge usage on a yearly plan, so there
+ * the limits are hard stops and every "Allow extra" counts as off (the store's choices are kept for a monthly plan).
+ * Kept as a row of its own, written when the app sees the plan (billing.server.ts keepWithinPlan).
+ */
+const YEARLY = "_yearly";
+export async function setBillingYearly(shop: string, yearly: boolean) {
+  await db.usageExtra.upsert({ where: { shop_meter: { shop, meter: YEARLY } }, create: { shop, meter: YEARLY, on: yearly }, update: { on: yearly, updatedAt: new Date() } });
+}
+
 export async function extrasFor(shop: string): Promise<Record<MeterKey, boolean>> {
   const rows = await db.usageExtra.findMany({ where: { shop } });
-  return Object.fromEntries(METER_KEYS.map((k) => [k, !!rows.find((r) => r.meter === k)?.on])) as Record<MeterKey, boolean>;
+  const yearly = !!rows.find((r) => r.meter === YEARLY)?.on;
+  return Object.fromEntries(METER_KEYS.map((k) => [k, !yearly && !!rows.find((r) => r.meter === k)?.on])) as Record<MeterKey, boolean>;
 }
 
 export async function setExtra(shop: string, meter: MeterKey, on: boolean) {
@@ -39,6 +50,8 @@ export async function allowUnit(shop: string, plan: PlanKey, meter: MeterKey, us
   const limit = limitOf(plan, meter);
   if (limit === null || used < limit) return true;
   if (limit === 0) return false; // Not on this plan at all.
+  // A yearly plan never bills extra, even when the caller read the switch before the plan changed.
+  if ((await db.usageExtra.findUnique({ where: { shop_meter: { shop, meter: YEARLY } } }))?.on) return false;
   const on = extra ?? (await db.usageExtra.findUnique({ where: { shop_meter: { shop, meter } } }))?.on ?? false;
   if (!on) return false;
   await db.usageEvent.create({ data: { shop, meter, month: month(now), key: unitKey(meter, key) } }).catch(() => null);
@@ -51,10 +64,11 @@ export const unitKey = (meter: MeterKey, key: string) => {
   return k.length <= 64 ? k : `${meter}:${createHash("sha256").update(key).digest("hex").slice(0, 40)}`;
 };
 
-export type MeterUsage = { meter: MeterKey; title: string; unit: string; used: number; limit: number; extra: boolean; over: number; price: number; per: number; atLimit: string };
+/** `yearly`: the store is billed yearly, so there is no "Allow extra" (the bars say why). */
+export type MeterUsage = { meter: MeterKey; title: string; unit: string; used: number; limit: number; extra: boolean; over: number; price: number; per: number; atLimit: string; yearly: boolean };
 
 /** The usage bars: each limit on this plan, how much is used, and what extra costs. */
-export async function usageSummary(shop: string, plan: PlanKey, now = new Date()): Promise<MeterUsage[]> {
+export async function usageSummary(shop: string, plan: PlanKey, now = new Date(), yearly = false): Promise<MeterUsage[]> {
   const extras = await extrasFor(shop);
   const out: MeterUsage[] = [];
   for (const meter of METER_KEYS) {
@@ -62,7 +76,7 @@ export async function usageSummary(shop: string, plan: PlanKey, now = new Date()
     if (!limit) continue;
     const m = METERS[meter];
     const over = await db.usageEvent.count({ where: { shop, meter, month: month(now) } });
-    out.push({ meter, title: m.title, unit: m.unit, used: await usedThisMonth(shop, meter, now), limit, extra: extras[meter], over, price: m.price, per: m.per, atLimit: m.atLimit });
+    out.push({ meter, title: m.title, unit: m.unit, used: await usedThisMonth(shop, meter, now), limit, extra: !yearly && extras[meter], over, price: m.price, per: m.per, atLimit: m.atLimit, yearly });
   }
   return out;
 }

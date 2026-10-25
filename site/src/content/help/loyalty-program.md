@@ -85,4 +85,5 @@ import members as a CSV file. **Analytics** shows members over time, points earn
 Growth includes 500 orders that earn points and 1,000 loyalty emails a month; Pro includes 2,000 and 5,000. At a limit,
 orders stop earning and emails wait until next month, unless you turn on **Allow extra** under the usage bar
 (Loyalty home, Emails or Settings): then they go on, and the extra is added to your Shopify bill. The bars show how much
-of each limit is used.
+of each limit is used. Extras are on monthly billing: on a yearly plan (Growth yearly, Pro yearly) the limits stop for
+the month.

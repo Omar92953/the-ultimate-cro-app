@@ -62,6 +62,11 @@ export type Plan = {
   /** USD. */
   monthly: number;
   yearly: number;
+  /**
+   * The plan billed yearly as its own plan in Shopify App Pricing (Growth and Pro): usage charges (METERS) only go on
+   * monthly plans, so the yearly one has the same features and hard limits. Absent: one plan with a yearly price.
+   */
+  yearlyHandle?: string;
   trialDays: number;
   limits: Limits;
   /** What the plan includes, short lines for its card (Plans page, upgrade cards). */
@@ -100,6 +105,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "growth",
     name: "Growth",
     handle: "growth",
+    yearlyHandle: "growth-yearly",
     job: "Convert and optimise: checkout control and the numbers behind every offer.",
     monthly: 19.99,
     yearly: 199,
@@ -112,6 +118,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     key: "pro",
     name: "Pro",
     handle: "pro",
+    yearlyHandle: "pro-yearly",
     job: "Test, save returns and sell more, with no limits.",
     monthly: 39.99,
     yearly: 399,
@@ -302,7 +309,8 @@ export function planPageUrl(shop: string, appHandle: string) {
 export function planApproveUrl(shop: string, appHandle: string, plan: PlanKey, yearly: boolean) {
   const store = shop.replace(/\.myshopify\.com$/, "");
   const interval = yearly && plan !== "free" ? "ANNUAL" : "EVERY_30_DAYS";
-  return `https://admin.shopify.com/store/${store}/charges/${appHandle}/plans/${PLANS[plan].handle}?interval=${interval}`;
+  const handle = yearly ? PLANS[plan].yearlyHandle ?? PLANS[plan].handle : PLANS[plan].handle;
+  return `https://admin.shopify.com/store/${store}/charges/${appHandle}/plans/${handle}?interval=${interval}`;
 }
 
 /** Map a subscription's plan handle or name (Partner API / Admin API) to a plan key. */
