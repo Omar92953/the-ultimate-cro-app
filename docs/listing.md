@@ -122,24 +122,26 @@ NOTES
   protected data answers in the submission.
 ```
 
-## 3. Screencast script (3 to 6 minutes, English, one take, no music needed)
+## 3. Screencast script (6 to 8 minutes, English, one take, no music needed)
 
-Record on Testing2 at 1080p. Speak slowly and say what you click. Never show the storefront
-password, the Partner Dashboard or `.env`.
+Shopify asks for 3 to 8 minutes showing the merchant flow and the customer flow, as a YouTube (unlisted) or Loom
+link that opens without a sign in. Record on Testing 3 at 1080p with the Pro plan on. Speak slowly and say what you
+click. Never show the storefront password, the Partner Dashboard, Render or `.env`. Before recording: one bundle and
+one upsell exist, loyalty is on, and one order has tracking (#1006 shows Delivered).
 
-| Time | Screen | Say |
+| Time | Screen | Say and do |
 |---|---|---|
-| 0:00 | App Home | "This is CRO Toolbox. It adds offers, bundles and storefront widgets to a store. Home has a setup guide." |
-| 0:20 | Theme | "The app never edits theme files. Buttons open the theme editor with the block added." Show the app embeds list. |
-| 0:45 | Offers > Bundles > Mix and match | Create a bundle: name, two steps, a price. Save. Click Add to theme, then Save in the editor. |
-| 1:45 | Product page | Pick three items, show the summary, Add to cart. |
-| 2:15 | Cart and checkout | One bundle line at the bundle price. Go to checkout: one item, one price. |
-| 2:45 | Upsell | Create an upsell, show it under Add to cart and the discount at checkout. |
-| 3:30 | Section library | Turn on Reviews and the Announcement bar; show the Style tab with its live preview, then the store. |
-| 4:15 | Cart offers | Turn on offers in your theme's cart, add a product, show the free shipping bar and offer. |
-| 4:45 | Checkout rules | Order limits: set a minimum, show checkout blocked with the message. |
-| 5:15 | Analytics and plans | Show Analytics and the Plans page (upgrade goes to Shopify's hosted page). |
-| 5:40 | Close | "On uninstall Shopify removes the app's data from the store." End. |
+| 0:00 | App Home | "This is CRO Toolbox, a Shopify app to raise average order value and lifetime value. Home has a setup guide and five areas." Point at Offers, Loyalty, Section library, Tracking & Returns, Cart & Checkout. |
+| 0:30 | Setup guide | Click the app embed step: the theme editor opens with the embed on. "The app never edits theme files; everything is a theme app extension." Save in the editor. |
+| 1:00 | Offers → Bundles | Create a mix and match bundle: name, two steps, a price. Save, then Add to theme and Save in the editor. |
+| 1:45 | Storefront product page | Pick the items, Add to cart. In the cart: one bundle line at the bundle price. Go to checkout: the same price. |
+| 2:20 | Offers → Upsell | Turn on an upsell; show it under Add to cart on the product page and its discount in the cart. |
+| 2:50 | Cart & Checkout | Cart offers and the free shipping bar in the cart. Then Checkout rules: an order limit, and checkout showing its message. |
+| 3:30 | Loyalty | Earn points (points per order, guest orders), Rewards, VIP tiers. On the storefront: the rewards launcher, sign in, the balance and a reward. Thank you page shows "This order earns ..." |
+| 4:30 | Tracking & Returns | The Track page on the storefront: find order #1006 by email, the timeline, buy again. Returns: request a return as the shopper, then approve it in the app (Returns list). |
+| 5:30 | Section library | Turn on Reviews or the Announcement bar, show the Style tab with its live preview, then the store. |
+| 6:00 | Analytics, Plans | Analytics with offer results. Plans: an upgrade opens Shopify's approval page (billing is Shopify App Pricing). |
+| 6:30 | Close | "Uninstalling removes the app's blocks from the theme; Shopify's data deletion webhooks remove its data." End. |
 
 ## 4. Protected customer data answers
 
