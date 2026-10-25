@@ -19,7 +19,9 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 
 - Live: Shopify app version **cro-toolbox-72**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
-  Test store: **Testing 3** `testing-3-xsslpo6d`, on the **Pro** test plan.
+  Test store: **Testing 3** `testing-3-xsslpo6d`, on the **Pro** test plan. **Testing 4** `testing-4-liadr97m`
+  (Shopify Plus dev store with Shopify's test data, app installed fresh on 2026-10-25 on the Free plan) is Omar's
+  own run from the beginning: don't change its settings unless he asks.
 - Loyalty is complete on Growth and Pro (`docs/plans/loyalty.md`): parts 1 to 11, languages (#295, 7 built in
   translations, right to left #296), guest checkouts (#298, Earn points → Orders placed as a guest; the program's
   count-from date `LoyaltyProgram.countFrom`), and the Points shop (`docs/plans/points-shop.md`: #292, #300, #299,
