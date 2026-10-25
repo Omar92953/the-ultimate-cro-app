@@ -80,7 +80,7 @@ account is no longer used. Lessons from the live checks, worth keeping in mind f
   - Positioning everywhere: "CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value
     (LTV)". It is in the listing text in `docs/listing.md`, the app Home, the website, `llms.txt` and the privacy page.
   - Loyalty (Pro) parts 1 to 4: see `docs/plans/loyalty.md`.
-- **Prices don't match yet.** The Partner Dashboard App Pricing plans still have the old prices (Starter $5.99,
+- **Prices match since 2026-10-25** (see `CLAUDE.md` Status). Before that the Partner Dashboard App Pricing plans had the old prices (Starter $5.99,
   Growth $14.99, Pro $24.99). Omar wants every Partner Dashboard change done **once, at the very end**, after his
   audits. Until then, the plans page in the app shows the new prices while Shopify would charge the old ones.
   Don't launch before that update.
