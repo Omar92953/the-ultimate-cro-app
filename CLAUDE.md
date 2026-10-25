@@ -28,7 +28,7 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 - Discount code box has its own card in the Cart group (#294). Website: loyalty pages live (#293).
 - Testing 3 test data: Points shop on with The Collection Snowboard: Hydrogen (only with points, 2,500 points, in the
   "Points shop" collection); loyalty language Arabic saved; test discount GUARDTEST100 (100% off two collections)
-  deactivated by Omar (2026-10-24). Testing 3 is on **Pro yearly** (test plan) since 2026-10-25.
+  deactivated by Omar (2026-10-24). Testing 3 is on Pro monthly (test plan; Pro yearly and the switch back checked 2026-10-25).
 - The second account (claude2) is no longer used (Omar, 2026-10-24): the lead does all the work.
 - Partner Dashboard App Pricing done (2026-10-25): Free, Starter $5.99 ($59 a year), Growth $19.99 and Pro $39.99
   (Monthly recurring, each with the meters live-shipments $0.04, loyalty-orders $0.05, loyalty-emails $0.002), and
