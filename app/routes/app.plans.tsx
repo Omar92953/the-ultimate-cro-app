@@ -23,7 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const [info, value] = await Promise.all([getPlan(admin, session.shop), getValue(admin, session.shop)]);
   // Each plan button opens Shopify's approval page for that plan and period directly.
   const approve = Object.fromEntries(PLAN_KEYS.map((k) => [k, { monthly: planApproveUrl(session.shop, appHandle(), k, false), yearly: planApproveUrl(session.shop, appHandle(), k, true) }])) as Record<PlanKey, { monthly: string; yearly: string }>;
-  return { plan: info.plan, approve, trialEndsAt: info.trialEndsAt, value };
+  return { plan: info.plan, billedYearly: info.yearly, approve, trialEndsAt: info.trialEndsAt, value };
 };
 
 const money = (n: number, currency: string) => {
@@ -57,17 +57,20 @@ function limitCell(p: PlanKey, key: LimitKey) {
 }
 
 export default function Plans() {
-  const { plan, approve, trialEndsAt, value } = useLoaderData<typeof loader>();
-  const [yearly, setYearly] = useState(false);
+  const { plan, billedYearly, approve, trialEndsAt, value } = useLoaderData<typeof loader>();
+  const [yearly, setYearly] = useState(billedYearly);
   const current = PLANS[plan];
+  // Growth and Pro bill yearly through their own plans (growth-yearly, pro-yearly), so the same plan in the other
+  // period is a real switch (yearly to monthly turns on Allow extra). Starter's yearly price is on the same plan.
+  const isCurrent = (k: PlanKey) => k === plan && (!PLANS[k].yearlyHandle || yearly === billedYearly);
   const choose = (k: PlanKey) =>
-    k === plan ? (
+    isCurrent(k) ? (
       <Button variant="secondary" inlineSize="fill" disabled>
         Your plan
       </Button>
     ) : (
       <Button href={approve[k][yearly ? "yearly" : "monthly"]} target="_top" inlineSize="fill" variant={planRank(k) > planRank(plan) ? "primary" : "secondary"}>
-        {planRank(k) > planRank(plan) ? (PLANS[k].trialDays ? `Start ${PLANS[k].trialDays}-day free trial` : `Choose ${PLANS[k].name}`) : `Switch to ${PLANS[k].name}`}
+        {k === plan ? `Switch to ${yearly ? "annual" : "monthly"} billing` : planRank(k) > planRank(plan) ? (PLANS[k].trialDays ? `Start ${PLANS[k].trialDays}-day free trial` : `Choose ${PLANS[k].name}`) : `Switch to ${PLANS[k].name}`}
       </Button>
     );
 
@@ -80,7 +83,7 @@ export default function Plans() {
         <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
           <s-stack gap="small-100">
             <s-stack direction="inline" gap="small-200" alignItems="center">
-              <s-heading>{`You're on ${current.name}`}</s-heading>
+              <s-heading>{`You're on ${current.name}${billedYearly && current.yearlyHandle ? ", billed yearly" : ""}`}</s-heading>
               {trialEndsAt ? <Pill tone="ok">{`Free trial until ${new Date(trialEndsAt).toLocaleDateString()}`}</Pill> : null}
             </s-stack>
             {value && value.appOrders > 0 ? (
@@ -103,7 +106,7 @@ export default function Plans() {
 
         <div className={styles.cards}>
           {PLAN_KEYS.filter((k) => k !== "free").map((k) => (
-            <PlanCard key={k} plan={k} current={k === plan} yearly={yearly} action={choose(k)} />
+            <PlanCard key={k} plan={k} current={isCurrent(k)} yearly={yearly} action={choose(k)} />
           ))}
         </div>
         {yearly ? <s-text color="subdued">On annual billing the monthly limits of Growth and Pro (live tracking, loyalty orders and emails) stop for the month: going over with Allow extra is on monthly billing.</s-text> : null}
