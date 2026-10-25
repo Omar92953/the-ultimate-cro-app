@@ -15,7 +15,7 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
-## Status (2026-10-24)
+## Status (2026-10-25)
 
 - Live: Shopify app version **cro-toolbox-72**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
@@ -28,11 +28,14 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 - Discount code box has its own card in the Cart group (#294). Website: loyalty pages live (#293).
 - Testing 3 test data: Points shop on with The Collection Snowboard: Hydrogen (only with points, 2,500 points, in the
   "Points shop" collection); loyalty language Arabic saved; test discount GUARDTEST100 (100% off two collections)
-  still active: deactivate it in Discounts when done.
+  deactivated by Omar (2026-10-24). Testing 3 is on **Pro yearly** (test plan) since 2026-10-25.
 - The second account (claude2) is no longer used (Omar, 2026-10-24): the lead does all the work.
+- Partner Dashboard App Pricing done (2026-10-25): Free, Starter $5.99 ($59 a year), Growth $19.99 and Pro $39.99
+  (Monthly recurring, each with the meters live-shipments $0.04, loyalty-orders $0.05, loyalty-emails $0.002), and
+  separate Growth yearly $199 and Pro yearly $399 (no extras). Network access and protected customer data done; Shopify
+  Flow installed on Testing 3. Listing draft: only Feature media and the Screencast URL left (at the end).
 - Waiting for Omar: Postmark tokens in Render (emails send nothing until then), App Events API key in Render (usage
-  billing), installing Shopify Flow on Testing 3, the single Partner Dashboard update (new prices, usage meters,
-  protected customer data, network access, listing). New prices are in the code only.
+  billing), his own test and audit before submitting.
 - Website: keyword pages and alternative pages live (SEO plan `docs/plans/seo-geo.md`).
 - Email: support@, info@, features@, pro@, 17track@, omar@, postmark@crotoolbox.com forward to crotoolbox.app@gmail.com (Cloudflare Email Routing).
 - Partner Dashboard: protected customer data saved (works on dev stores; reviewed at submission).

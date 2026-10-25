@@ -17,8 +17,10 @@ Updated 2026-10-24.
 - [x] Cart Discount code box as its own feature card in the Cart group (#294)
 - [x] Deep code and live audit (2026-10-23 to 24): `docs/audit-2026-10-23.md`, #274 to #291, live as cro-toolbox-63
 - [ ] All candidate listing images, for Omar to choose (#273)
-- [ ] Final App Store audit, then one Partner Dashboard update with Omar (new prices, usage meters, protected customer
-      data, network access, listing); Postmark tokens and App Events key in Render (Omar)
+- [x] Final App Store audit (`docs/submission-review.md`, #305); Partner Dashboard: new prices, usage meters on Growth
+      and Pro monthly, Growth yearly and Pro yearly plans, network access, protected customer data (2026-10-25)
+- [ ] Listing: Feature media (`branding/feature/feature-banner.png`), Screencast URL, the 3 to 6 chosen screenshots
+- [ ] Postmark tokens and App Events key in Render (Omar)
 
 ## App
 
@@ -134,7 +136,7 @@ Updated 2026-10-24.
 - [ ] Yandex Webmaster: add the site, verify by DNS TXT on Cloudflare, submit the sitemap (step 3)
 - [ ] Cloudflare Web Analytics (`docs/website.md`, "Visibility plan")
 - [ ] Off site visibility checklist (`docs/website.md`, "Off site work")
-- [ ] Partner Dashboard: protected customer data request, App Pricing plans, distribution
+- [x] Partner Dashboard: protected customer data request, App Pricing plans, distribution
 - [ ] App Store listing: screenshots, video, support email; tutorial videos
 
 ## Testing 3 run 2026-10-18 (cro-toolbox-30): open bugs
