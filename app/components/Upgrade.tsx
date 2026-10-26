@@ -17,6 +17,11 @@ import { canTry, type PageLock } from "../lib/plan-gate";
 import type { loader as appLoader } from "../routes/app";
 
 /** The shop's plan and the Plans page as a full admin URL (set by routes/app.tsx for every page). */
+/** Loyalty emails can be sent (the email service is set up); until then the app hides them. */
+export function useEmailsReady(): boolean {
+  return useRouteLoaderData<typeof appLoader>("routes/app")?.emails ?? false;
+}
+
 export function usePlan(): { plan: PlanKey; planUrl: string; trial: FeatureKey | null } {
   const data = useRouteLoaderData<typeof appLoader>("routes/app");
   return { plan: data?.plan ?? "free", planUrl: data?.planUrl ?? "", trial: data?.trial ?? null };

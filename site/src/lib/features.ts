@@ -178,8 +178,8 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "Referrals: the friend gets a discount and the member gets points when the friend orders",
       "A rewards button and panel, points on product pages and in the cart, and a Rewards page",
       "Points in customer accounts, on the thank you and order status pages, and at Shopify POS",
-      "Emails for welcome, points earned, reward ready, reward codes, birthdays and points about to expire",
-      `Growth: ${n("growth", "loyaltyOrders")} orders that earn points and ${n("growth", "loyaltyEmails")} emails a month. Pro: ${n("pro", "loyaltyOrders")} and ${n("pro", "loyaltyEmails")}`,
+      "Coming soon: emails for welcome, points earned, reward ready, reward codes, birthdays and points about to expire",
+      `Growth: ${n("growth", "loyaltyOrders")} orders that earn points a month. Pro: ${n("pro", "loyaltyOrders")}`,
       `Pro adds ${LOYALTY_PRO.slice(0, -1).join(", ")}, and ${LOYALTY_PRO.at(-1)}`,
     ],
     steps: [
@@ -188,7 +188,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "Turn the program on, then turn on the Conversion boosters embed in your theme: the rewards button shows on every page.",
     ],
     related: ["track", "email_popup"],
-    note: `At a monthly limit orders stop earning and emails wait until next month, unless you turn on extra in the app: $${METERS.loyaltyOrders.price} per ${METERS.loyaltyOrders.per} more orders and $${METERS.loyaltyEmails.price} per ${METERS.loyaltyEmails.per.toLocaleString("en-US")} more emails, billed by Shopify. Extras are on monthly billing; yearly plans keep the limits.`,
+    note: `At the monthly limit orders stop earning until next month, unless you turn on extra in the app: $${METERS.loyaltyOrders.price} per ${METERS.loyaltyOrders.per} more orders, billed by Shopify. Extras are on monthly billing; yearly plans keep the limits.`,
   },
   coverflow: {
     who: "For lookbooks, customer photos and new arrivals that deserve one big picture at a time.",

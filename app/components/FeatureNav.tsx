@@ -6,7 +6,7 @@
 import { area, feature, featuresForPath, offerGroupOf, type FeatureKey } from "../lib/catalog";
 import { isLocked } from "../lib/plan-gate";
 import { Tabs } from "./ui";
-import { usePlan } from "./Upgrade";
+import { useEmailsReady, usePlan } from "./Upgrade";
 
 /** Breadcrumb to the feature's hub (Offers, Storefront, Cart, Checkout). */
 export function CategoryCrumb({ feature: key }: { feature: FeatureKey }) {
@@ -28,7 +28,9 @@ const STYLE_EDITORS: Record<string, string[]> = {
 
 export function FeatureTabs({ feature: key }: { feature: FeatureKey }) {
   const { plan, trial } = usePlan();
-  const tabs = offerGroupOf(key)?.tabs ?? feature(key).tabs;
+  const emails = useEmailsReady();
+  // Loyalty → Emails waits for the email service (app.tsx `emails`).
+  const tabs = (offerGroupOf(key)?.tabs ?? feature(key).tabs).filter((t) => emails || t.href !== "/app/loyalty/emails");
   // A tab is locked when every feature on its page is locked by the plan (the free trial feature counts as open).
   const locked = (href: string) => {
     const fs = featuresForPath(href.split("?")[0]);
