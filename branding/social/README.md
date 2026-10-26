@@ -5,6 +5,8 @@ near black `#0b0b0f` with a soft green glow, accent green `#3ddc84`, Inter.
 
 | File | Size | Use |
 |---|---|---|
+| `logo-square-light.png` | 1080 x 1080 | **The social media profile picture** (Omar, 2026-10-26): the full logo (mark and CRO Toolbox) on white, sized to stay inside the round crop |
+| `logo-square-dark.png` | 1080 x 1080 | Same, white on black |
 | `profile-dark-green.png` | 1080 x 1080 | Main profile picture (Instagram, Facebook, TikTok, LinkedIn, X). Safe for the round crop. |
 | `profile-dark-white.png` | 1080 x 1080 | Same, all white mark, exactly like the app icon |
 | `profile-green.png` | 1080 x 1080 | Green background, black mark (stands out in a feed) |
