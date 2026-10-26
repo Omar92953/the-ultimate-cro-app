@@ -12,7 +12,7 @@ free shipping, a free product or store credit. Members see their points in the r
 pages ("Earn 34 points with this"), in the cart, on the Rewards page, in their customer account and on the thank you page.
 
 The program is on the **Growth** and **Pro** plans. Pro adds VIP tiers, bonus campaigns, product and collection rates,
-cashback, affiliate codes, Klaviyo, Omnisend, Judge.me and Shopify Flow, and sending emails from your own address.
+cashback, affiliate codes, Klaviyo, Omnisend, Judge.me and Shopify Flow.
 
 ## Set up (Loyalty in the app)
 
@@ -68,9 +68,9 @@ On **Referrals**, members share their own link: a friend gets a discount on thei
 gift once that order is paid. Fraud rules limit how many referrals a member is rewarded for in 30 days. On Pro,
 **affiliate codes** count the sales of creators and partners (you pay their commission yourself).
 
-## Emails
+## Emails (coming soon)
 
-On **Emails** the app tells members what they earned and when a reward is ready: welcome, points earned, reward ready,
+Soon, on **Emails**, the app will tell members what they earned and when a reward is ready: welcome, points earned, reward ready,
 reward code, store credit added, birthday and points about to expire, among others. Reminders (birthday, points about to
 expire, the monthly summary) only go to members who agreed to email marketing, and every email has an unsubscribe link
 and your store's address. On Pro you can send from your own address.
@@ -82,8 +82,7 @@ import members as a CSV file. **Analytics** shows members over time, points earn
 
 ## Plan limits
 
-Growth includes 500 orders that earn points and 1,000 loyalty emails a month; Pro includes 2,000 and 5,000. At a limit,
-orders stop earning and emails wait until next month, unless you turn on **Allow extra** under the usage bar
-(Loyalty home, Emails or Settings): then they go on, and the extra is added to your Shopify bill. The bars show how much
+Growth includes 500 orders that earn points a month; Pro includes 2,000. At the limit, orders stop earning until next
+month, unless you turn on **Allow extra** under the usage bar (Loyalty home or Settings): then they go on, and the extra is added to your Shopify bill. The bars show how much
 of each limit is used. Extras are on monthly billing: on a yearly plan (Growth yearly, Pro yearly) the limits stop for
 the month.

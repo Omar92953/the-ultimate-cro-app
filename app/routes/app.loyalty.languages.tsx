@@ -19,6 +19,7 @@ import { allTextGroups } from "../lib/loyalty/texts";
 import { Button, Select, TextArea, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { useEmailsReady } from "../components/Upgrade";
 import { SaveControls, changed } from "../components/SaveControls";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -62,6 +63,7 @@ function filled(l: L, c: LoyaltyConfig) {
 export default function LoyaltyLanguages() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const emails = useEmailsReady();
   const shopify = useAppBridge();
   const c = d.config;
   const [langs, setLangs] = useState<L[]>(c.languages);
@@ -207,7 +209,8 @@ export default function LoyaltyLanguages() {
               </HomeRow>
             ) : null}
 
-            {EMAIL_KINDS.map((k) => {
+            {/* Email words only once the email service is set up (app.tsx `emails`). */}
+            {emails && EMAIL_KINDS.map((k) => {
               const m = c.emails.texts[k];
               const x = current.emails[k];
               return (

@@ -7,11 +7,14 @@ import { authenticate } from "../shopify.server";
 import { getPlan } from "../lib/billing.server";
 import { setExtra, usageSummary } from "../lib/usage.server";
 import { METER_KEYS, type MeterKey } from "../lib/plans";
+import { mailProvider } from "../lib/email/provider.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const { plan, yearly } = await getPlan(admin, session.shop);
-  return { meters: await usageSummary(session.shop, plan, new Date(), yearly) };
+  const meters = await usageSummary(session.shop, plan, new Date(), yearly);
+  // No loyalty emails bar until the email service is set up (app.tsx `emails`).
+  return { meters: mailProvider().ready() ? meters : meters.filter((m) => m.meter !== "loyaltyEmails") };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

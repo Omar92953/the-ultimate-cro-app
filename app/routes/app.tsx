@@ -5,6 +5,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
+import { mailProvider } from "../lib/email/provider.server";
 import { timedLoader } from "../lib/timing.server";
 import { getPlan, getPlanState, keepWithinPlan } from "../lib/billing.server";
 import { remember } from "../lib/short-cache.server";
@@ -24,7 +25,8 @@ export const loader = timedLoader("app", async ({ request }: LoaderFunctionArgs)
   keepWithinPlan(admin, session.shop, info);
 
   // eslint-disable-next-line no-undef
-  return { apiKey: process.env.SHOPIFY_API_KEY || "", plan: info.plan, planUrl: info.planUrl, trial };
+  // Loyalty emails show only once the email service has its token (Render POSTMARK_SERVER_TOKEN; Omar, 2026-10-27).
+  return { apiKey: process.env.SHOPIFY_API_KEY || "", plan: info.plan, planUrl: info.planUrl, trial, emails: mailProvider().ready() };
 });
 
 /**

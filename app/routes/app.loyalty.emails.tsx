@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { redirect, useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -27,6 +27,8 @@ import css from "../components/TrackingHub.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
+  // Hidden until the email service is set up (app.tsx `emails`).
+  if (!mailProvider().ready()) throw redirect("/app/loyalty");
   const [p, log, sender, shop, access] = await Promise.all([
     getProgram(session.shop),
     emailLog(session.shop),
@@ -53,6 +55,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
+  if (!mailProvider().ready()) return { ok: false, error: "Emails are not available yet." };
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "save");
   try {

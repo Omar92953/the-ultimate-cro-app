@@ -23,6 +23,7 @@ import { eventLabel } from "../lib/loyalty/labels";
 import { Button, Switch } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Panel, Pill, Segmented, StatGrid, StatTile } from "../components/ui";
 import { FeatureTabs } from "../components/FeatureNav";
+import { useEmailsReady } from "../components/Upgrade";
 import { UsageBars } from "../components/UsageBars";
 import css from "../components/TrackingHub.module.css";
 
@@ -74,6 +75,7 @@ const day = (s: string) => new Date(s).toLocaleDateString(undefined, { month: "s
 export default function LoyaltyHome() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const emails = useEmailsReady();
   const shopify = useAppBridge();
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
@@ -149,7 +151,7 @@ export default function LoyaltyHome() {
               { done: d.saved, title: "Choose how members earn", text: `Now: ${pointsLabel(c, Math.max(1, Math.round(c.earn.order.perUnit)))} per 1 of your currency on paid orders${c.earn.signup.on ? `, ${pointsLabel(c, c.earn.signup.points)} for a new account` : ""}${c.pendingDays ? `, usable after ${c.pendingDays} days` : ""}.`, href: "/app/loyalty/earn", label: "Earning rules" },
               { done: c.rewards.some((r) => r.on), title: "Choose the rewards", text: c.rewards.filter((r) => r.on).map((r) => `${r.title} for ${pointsLabel(c, r.points)}`).join(", ") || "Nothing members can spend points on yet.", href: "/app/loyalty/rewards", label: "Rewards" },
               { done: d.embedOn === true, title: "Show the widget on your store", text: "Turn on the Conversion boosters embed in your theme (App embeds). The rewards button shows on every page.", href: d.embedOn === true ? undefined : d.embedLink, label: "Open the theme editor", external: true },
-              { done: c.emails.on, title: "Turn on emails", text: c.emails.on ? `Members get their emails${c.emails.sender.email ? ` from ${c.emails.sender.email}` : ""}.` : "Tell members what they earned and when a reward is ready. Send from your own address for better inbox placement.", href: "/app/loyalty/emails", label: "Emails" },
+              ...(emails ? [{ done: c.emails.on, title: "Turn on emails", text: c.emails.on ? `Members get their emails${c.emails.sender.email ? ` from ${c.emails.sender.email}` : ""}.` : "Tell members what they earned and when a reward is ready. Send from your own address for better inbox placement.", href: "/app/loyalty/emails", label: "Emails" }] : []),
               { done: on, title: "Turn the program on", text: "Choose which orders earn above and switch it on.", href: undefined, label: "" },
             ].map((x, n) => (
               <div key={x.title} className={css.check}>
