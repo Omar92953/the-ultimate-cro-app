@@ -1,0 +1,384 @@
+<title>Outreach Message Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<style>
+/* Layout: the builder on the left (who, what the store has and misses), the finished DM pinned on the right like a chat bubble; one column on phones. */
+:root {
+  --bg: #f4f6f3; --surface: #ffffff; --fg: #131714; --muted: #5b655e; --line: #dde2dd;
+  --accent: #137f45; --accent-ink: #ffffff; --accent-soft: #e2f3e8;
+  --miss: #a94c17; --miss-soft: #fbece2;
+  --bubble: #eef1ee;
+  --font-ui: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-ar: "IBM Plex Sans Arabic", Tahoma, "Segoe UI", sans-serif;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0d0c; --surface: #141816; --fg: #e8ede9; --muted: #98a39b; --line: #27302a;
+  --accent: #3ddc84; --accent-ink: #08110b; --accent-soft: #16301f; --miss: #f2a06c; --miss-soft: #35241a; --bubble: #1d2420; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0d0c; --surface: #141816; --fg: #e8ede9; --muted: #98a39b; --line: #27302a;
+  --accent: #3ddc84; --accent-ink: #08110b; --accent-soft: #16301f; --miss: #f2a06c; --miss-soft: #35241a; --bubble: #1d2420; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 24px }
+header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start }
+@media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr) } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 16px; min-width: 0 }
+.out { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px) }
+@media (max-width: 860px) { .out { position: static } }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; font-weight: 700 }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px }
+label.f { display: grid; gap: 5px; font-size: 13px; font-weight: 500 }
+input[type=text], textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100% }
+textarea { resize: vertical; min-height: 60px }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap }
+.seg button { font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--fg); padding: 7px 12px; cursor: pointer }
+.seg button + button { border-inline-start: 1px solid var(--line) }
+.seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); font-weight: 600 }
+.choices { display: grid; gap: 12px }
+.choice { display: grid; gap: 6px }
+.choice > span { font-size: 13px; font-weight: 500 }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px }
+.check input { margin-top: 3px; accent-color: var(--accent) }
+.feats { display: grid; border-top: 1px solid var(--line) }
+.feat { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap }
+.feat .name { font-weight: 500; min-width: 0 }
+.feat .name small { display: block; color: var(--muted); font-weight: 400; font-size: 12px }
+.tri button { padding: 5px 10px }
+.tri button.has[aria-pressed=true] { background: var(--accent); color: var(--accent-ink) }
+.tri button.miss[aria-pressed=true] { background: var(--miss); color: var(--surface) }
+.note { font-size: 13px; color: var(--muted); margin: 0 }
+.tally { display: flex; gap: 8px; flex-wrap: wrap }
+.chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 600 }
+.chip.m { background: var(--miss-soft); color: var(--miss) }
+.dm { white-space: pre-wrap; background: var(--bubble); border-radius: 18px 18px 18px 6px; padding: 14px 16px; font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; max-width: 46ch }
+.dm[dir=rtl] { font-family: var(--font-ar); font-size: 16px; border-radius: 18px 18px 6px 18px; justify-self: end }
+.thread { display: grid; gap: 8px }
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between }
+.btn { font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg) }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums }
+.count.long { color: var(--miss) }
+.fuhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 600 }
+.fu { display: grid; gap: 6px }
+.rules { margin: 0; padding-inline-start: 18px; color: var(--muted); font-size: 13px; display: grid; gap: 4px }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Outreach Message Builder</h1>
+    <p>Instagram DMs that name a real problem in the store, praise what it already does well, and offer to fix it for free. Media buyer messages pitch CRO Toolbox as their secret weapon for every brand they manage. Example values are filled in: replace them with the real store.</p>
+  </header>
+
+  <div class="cols">
+    <section class="panel" aria-label="Message settings">
+      <h2>Who</h2>
+      <div class="choices">
+        <div class="choice"><span>Sending to</span>
+          <div class="seg" id="aud" role="group" aria-label="Sending to">
+            <button type="button" data-v="store">Store owner</button>
+            <button type="button" data-v="client">Media buyer, about a brand they run</button>
+            <button type="button" data-v="mb">Media buyer, no brand</button>
+          </div></div>
+        <div class="choice"><span>Language</span>
+          <div class="seg" id="lang" role="group" aria-label="Language">
+            <button type="button" data-v="en">English</button>
+            <button type="button" data-v="ar">Egyptian Arabic</button>
+          </div></div>
+        <label class="check" for="partner" id="partnerRow"><input type="checkbox" id="partner"> Offer the partner deal: they add the app as a bonus in their offers and earn a commission</label>
+      </div>
+      <div class="row">
+        <label class="f" for="name">Their first name <input type="text" id="name" autocomplete="off"></label>
+        <label class="f" for="store" id="storeLabel">Store or brand name <input type="text" id="store" autocomplete="off"></label>
+      </div>
+      <label class="f" for="notes">Something you genuinely liked (optional)
+        <textarea id="notes" placeholder="e.g. Your winter collection photos are beautiful."></textarea></label>
+
+      <div class="bar"><h2>What the store has</h2><div class="tally" id="tally"></div></div>
+      <p class="note" id="featNote"></p>
+      <div class="feats" id="feats"></div>
+      <div class="bar"><button type="button" class="btn" id="clear">Clear all marks</button></div>
+    </section>
+
+    <section class="panel out" aria-label="Message">
+      <div class="bar"><h2>The DM</h2><span class="count" id="count"></span></div>
+      <div class="thread"><div class="dm" id="msg"></div></div>
+      <div class="bar">
+        <button type="button" class="btn" id="shuffle">Change the wording</button>
+        <button type="button" class="btn primary" id="copy">Copy message</button>
+      </div>
+      <h2>Follow ups</h2>
+      <div class="thread" id="fus"></div>
+      <h2>Before you send</h2>
+      <ul class="rules">
+        <li>Send by hand, 20 to 30 a day, and change the wording now and then.</li>
+        <li>Only mark what you actually saw on the store. One real detail beats any template.</li>
+        <li>Never offer anything in return for a review.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+// Every feature, in the order the DM mentions gaps (biggest effect on order value first).
+// has: the phrase in the praise line. gap: the problem, said the way it feels to the store owner. short: unused label for Claude's chat version.
+const F = [
+  { k: "bundles", label: "Bundles", hint: "Pick 3 and save",
+    en: { has: "bundles", gap: "No bundles, so every customer leaves with one piece when many would happily take three." },
+    ar: { has: "باندلز", gap: "مفيش باندلز، فكل عميل بيمشي بقطعة واحدة وهو كان ممكن ياخد ٣ وهو مبسوط." } },
+  { k: "upsell", label: "Quantity discounts (upsell)", hint: "Buy 2, save 10%",
+    en: { has: "quantity discounts", gap: "Nothing nudges people to buy 2 instead of 1. A simple \"buy 2, save 10%\" changes that." },
+    ar: { has: "خصومات على الكمية", gap: "مفيش حاجة بتشجع العميل ياخد ٢ بدل ١. عرض بسيط زي \"اشتري ٢ ووفر ١٠٪\" بيفرق جدا." } },
+  { k: "cross_sell", label: "Cross sell", hint: "Frequently bought together",
+    en: { has: "\"frequently bought together\" suggestions", gap: "The product page doesn't suggest what goes with it, so the second item never makes it to the cart." },
+    ar: { has: "اقتراحات \"بيتشروا مع بعض\"", gap: "صفحة المنتج مش بتقترح حاجة تمشي معاه، فالقطعة التانية عمرها ما بتوصل للسلة." } },
+  { k: "cart_offers", label: "Cart offers", hint: "Add on offer in the cart",
+    en: { has: "offers in the cart", gap: "The cart is where people are ready to pay, and right now nothing extra is waiting for them there." },
+    ar: { has: "عروض جوه السلة", gap: "السلة هي اللحظة اللي العميل فيها جاهز يدفع، ودلوقتي مفيش أي عرض مستنيه هناك." } },
+  { k: "shipping_bar", label: "Free shipping bar", hint: "You're X away",
+    en: { has: "a free shipping bar", gap: "Customers can't see how close they are to free shipping, so they don't add that one extra piece." },
+    ar: { has: "شريط الشحن المجاني", gap: "العميل مش شايف فاضله قد إيه على الشحن المجاني، فمش بيضيف القطعة الزيادة." } },
+  { k: "loyalty", label: "Loyalty points", hint: "A reason to buy again",
+    en: { has: "a loyalty program", gap: "Nothing brings a customer back after the first order, so you end up paying for the same customer again in ads." },
+    ar: { has: "برنامج ولاء", gap: "مفيش حاجة بترجع العميل بعد أول أوردر، فبتدفع على نفس العميل تاني في الإعلانات." } },
+  { k: "cod_rules", label: "Cash on delivery rules", hint: "Hide COD above an amount",
+    en: { has: "rules for cash on delivery", gap: "Cash on delivery is open for every order, and every refused delivery is shipping money gone." },
+    ar: { has: "قواعد للدفع عند الاستلام", gap: "الدفع عند الاستلام مفتوح لكل الأوردرات، وكل أوردر بيترفض بيضيع فلوس شحن." } },
+  { k: "tracking", label: "Order tracking page", hint: "Where is my order?",
+    en: { has: "an order tracking page", gap: "No tracking page, so customers keep asking \"where's my order?\" on WhatsApp, and someone answers the same question all day." },
+    ar: { has: "صفحة تتبع للأوردرات", gap: "مفيش صفحة تتبع، فالعملاء فضلوا يسألوا \"الأوردر فين؟\" على الواتساب، وفيه حد بيرد على نفس السؤال طول اليوم." } },
+  { k: "returns", label: "Returns page", hint: "Exchange or credit first",
+    en: { has: "a returns page", gap: "Returns happen by message, and every refund is money that could have stayed in the store as an exchange or store credit." },
+    ar: { has: "صفحة للمرتجعات", gap: "المرتجعات بتتعمل بالرسايل، وكل فلوس بترجع كان ممكن تفضل في المتجر استبدال أو رصيد." } },
+  { k: "thank_you", label: "Offer after checkout", hint: "Thank you page offer",
+    en: { has: "an offer after checkout", gap: "Right after someone pays they're at their happiest, and the thank you page doesn't offer them anything." },
+    ar: { has: "عرض بعد الدفع", gap: "بعد ما العميل يدفع بيبقى في أحسن حالاته، وصفحة الشكر مش بتعرض عليه أي حاجة." } },
+  { k: "reviews", label: "Customer reviews", hint: "Reviews with photos",
+    en: { has: "customer reviews", gap: "No reviews on the product pages, and new visitors need that proof before they trust a brand they don't know yet." },
+    ar: { has: "تقييمات العملاء", gap: "مفيش تقييمات في صفحات المنتجات، والزائر الجديد محتاج يشوف ده عشان يثق في براند لسه ميعرفوش." } },
+  { k: "back_in_stock", label: "Back in stock alerts", hint: "Tell me when it's back",
+    en: { has: "back in stock alerts", gap: "When a product sells out, interested customers just leave and never hear from you again." },
+    ar: { has: "تنبيه لما المنتج يرجع", gap: "لما منتج يخلص، العميل المهتم بيمشي ومحدش بيكلمه تاني." } },
+  { k: "sticky_atc", label: "Sticky Add to cart", hint: "On mobile",
+    en: { has: "a sticky Add to cart button", gap: "On mobile, the Add to cart button disappears as soon as people scroll." },
+    ar: { has: "زرار إضافة للسلة ثابت", gap: "على الموبايل زرار الإضافة للسلة بيختفي أول ما العميل ينزل في الصفحة." } },
+  { k: "email_popup", label: "Email sign up pop up", hint: "First order code",
+    en: { has: "an email sign up offer", gap: "Visitors who don't buy today leave, and there's no way to reach them again." },
+    ar: { has: "عرض للتسجيل بالإيميل", gap: "الزوار اللي مش بيشتروا النهاردة بيمشوا، ومفيش أي طريقة توصلهم تاني." } },
+  { k: "referrals", label: "Referrals", hint: "Give 10%, get 10%",
+    en: { has: "a referral program", gap: "Happy customers have no reason to bring their friends." },
+    ar: { has: "برنامج إحالة", gap: "العملاء المبسوطين مالهمش أي سبب يجيبوا صحابهم." } },
+  { k: "urgency", label: "Real countdowns and stock", hint: "Sale end, stock left",
+    en: { has: "clear sale deadlines", gap: "Nothing tells people a sale is ending or stock is low, so \"I'll buy later\" turns into never." },
+    ar: { has: "مواعيد واضحة للعروض", gap: "مفيش حاجة بتقول إن العرض هيخلص أو إن الكمية قربت تخلص، فـ\"هشتري بعدين\" بتبقى مش هشتري خالص." } },
+  { k: "size_guide", label: "Size guide", hint: "Fashion stores",
+    en: { has: "a size guide", gap: "No size guide, so doubts about the size stop orders or come back as returns." },
+    ar: { has: "دليل مقاسات", gap: "مفيش دليل مقاسات، فالحيرة في المقاس يا بتوقف الأوردر يا بترجع مرتجع." } },
+  { k: "wishlist", label: "Wishlist", hint: "Save for later",
+    en: { has: "a wishlist", gap: "People who aren't ready yet can't save what they liked, so they forget it." },
+    ar: { has: "قايمة مفضلة", gap: "اللي لسه مش جاهز يشتري مش بيقدر يحفظ اللي عجبه، فبينساه." } },
+];
+
+// The pieces around the features. Arrays are wordings that "Change the wording" rotates.
+const T = {
+  en: {
+    hi: (n) => n ? `Hey ${n} 👋` : "Hey 👋",
+    store: (s) => s || "your store",
+    open: {
+      store: [(s, note) => note ? `I came across ${s}. ${note}` : `I came across ${s} and honestly loved what you're building.`,
+              (s, note) => note ? `I spent some time on ${s} today. ${note}` : `I spent some time on ${s} today, really nice brand.`],
+      client: [(s) => `I saw you run the ads for ${s}, so I checked out the store.`, (s) => `I noticed you handle the ads for ${s} and had a look at their store.`],
+      mb: [() => "I saw you run ads for Shopify brands. Quick question: when a campaign brings the traffic but the ROAS still looks weak, what do you usually fix on the store side?",
+           () => "I saw you do media buying for Shopify brands. Honest question: how often does a good campaign get blamed when the real problem is the store?"],
+    },
+    praise: {
+      store: [(l) => `You already have ${l}, which honestly most stores skip 👏`, (l) => `Great that you already have ${l}, a lot of brands miss that.`],
+      client: [(l) => `They already have ${l}, which is great.`, (l) => `Good to see they already have ${l}.`],
+    },
+    gapsIntro: {
+      store: (n, praised) => `${praised ? "But I" : "I"} noticed ${n === 1 ? "something that's" : "a couple of things that are"} probably costing you sales:`,
+      client: () => "You're sending them good traffic, but the store is losing some of it:",
+    },
+    value: {
+      store: "You're already paying for every visitor. Getting more out of each one is the cheapest growth there is.",
+      client: "Same ad spend, bigger orders, better ROAS, and the client sees it as your win.",
+      mb: "Same ad spend, bigger orders, better ROAS, and your clients see it as your work.",
+    },
+    app: {
+      store: [(s) => `I built CRO Toolbox to fix exactly this on Shopify, and I'd love to set it up on ${s} for you for free. You keep it only if you see the numbers move.`,
+              (s) => `That's exactly why I built CRO Toolbox. I'd be happy to set it up on ${s} myself, free, and let the numbers decide.`],
+      weapon: "That's why I built CRO Toolbox: a secret weapon you can add to any brand you manage. Bundles, upsells, cart offers, a free shipping bar and loyalty points, live in minutes, no theme code.",
+    },
+    withYou: "And I'm with you personally on every brand: I'll set it up myself and help with anything you need.",
+    partner: "If you like, you can also add the app as a bonus in your offer to clients, and we'll work out a commission for you on every brand that subscribes.",
+    close: {
+      store: [() => "Want me to send you a quick video of how it would look on your store?", (s) => `Should I show you what it would look like on ${s}? It takes 2 minutes.`],
+      client: [(s) => `Want to try it on ${s} first?`, () => "Want to try it on this brand first and compare the numbers?"],
+      mb: [() => "Want to try it free on one of your brands first?", () => "Want to test it on one brand this week?"],
+    },
+    join: (a) => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1],
+    fu: {
+      store: [{ when: "3 to 4 days later", text: (n, s) => `Hey${n ? " " + n : ""}, just checking you saw my message 🙂 Happy to send a 2 minute video of how it would look on ${s}.` },
+              { when: "A week after that, the last one", text: () => "No pressure at all. If you ever want more out of each order, I'm here 🙏" }],
+      mb: [{ when: "3 to 4 days later", text: (n) => `Hey${n ? " " + n : ""}, just checking in 🙂 I can set it up on one of your brands this week so you see the numbers yourself.` },
+           { when: "A week after that, the last one", text: () => "No pressure. Whenever you need a hand with a brand's conversion, I'm here 🙏" }],
+    },
+  },
+  ar: {
+    hi: (n) => n ? `أهلا ${n} 👋` : "أهلا 👋",
+    store: (s) => s || "متجركم",
+    open: {
+      store: [(s, note) => note ? `شفت ${s}. ${note}` : `شفت ${s} وبصراحة عجبني جدا اللي بتعملوه.`,
+              (s, note) => note ? `قضيت شوية وقت على ${s} النهاردة. ${note}` : `قضيت شوية وقت على ${s} النهاردة، براند حلو جدا.`],
+      client: [(s) => `شفت إنك ماسك إعلانات ${s}، فبصيت على المتجر.`, (s) => `لاحظت إنك بتعمل إعلانات ${s} وبصيت على المتجر بتاعهم.`],
+      mb: [() => "شفت إنك بتعمل ميديا باينج لبراندات شوبيفاي. سؤال سريع: لما الكامبين بيجيب ترافيك بس الـROAS لسه ضعيف، بتعمل إيه عادة في المتجر نفسه؟",
+           () => "شفت إنك ميديا باير لبراندات شوبيفاي. سؤال بصراحة: كام مرة الكامبين الكويس بيتلام والمشكلة الحقيقية في المتجر؟"],
+    },
+    praise: {
+      store: [(l) => `وعندكم بالفعل ${l}، وده بصراحة حاجة متاجر كتير بتنساها 👏`, (l) => `وحلو إن عندكم ${l}، براندات كتير مش واخدة بالها منها.`],
+      client: [(l) => `وعندهم بالفعل ${l}، وده حلو جدا.`, (l) => `حلو إن عندهم ${l}.`],
+    },
+    gapsIntro: {
+      store: (n, praised) => `${praised ? "بس " : ""}لاحظت ${n === 1 ? "حاجة" : "كام حاجة"} غالبا ${n === 1 ? "بتضيع" : "بيضيعوا"} عليكم مبيعات:`,
+      client: () => "انت بتبعتلهم ترافيك كويس، بس المتجر بيضيع جزء منه:",
+    },
+    value: {
+      store: "انتو بالفعل بتدفعوا على كل زائر. إنكم تطلعوا منه أكتر هو أرخص نمو ممكن.",
+      client: "نفس صرف الإعلانات، أوردرات أكبر، ROAS أحسن، والعميل بيشوفها نجاحك انت.",
+      mb: "نفس الصرف، أوردرات أكبر، ROAS أحسن، والعملاء بيشوفوها شغلك انت.",
+    },
+    app: {
+      store: [(s) => `أنا عامل CRO Toolbox عشان يحل ده بالظبط على شوبيفاي، ونفسي أركبهولكم على ${s} مجانا. تكملوا بيه بس لو شفتوا الأرقام بتتحرك.`,
+              (s) => `وده بالظبط اللي عملت عشانه CRO Toolbox. هركبهولكم على ${s} بنفسي ومجانا، وخلوا الأرقام تحكم.`],
+      weapon: "عشان كده عملت CRO Toolbox: سلاح سري تقدر تضيفه لأي براند انت ماسكه. باندلز وأب سيل وعروض في السلة وشريط شحن مجاني ونقاط ولاء، شغالين في دقايق ومن غير كود.",
+    },
+    withYou: "وأنا معاك بنفسي في كل براند: هركبه بإيدي وهساعدك في أي حاجة تحتاجها.",
+    partner: "ولو حابب، تقدر تضيف التطبيق كبونص في العرض بتاعك للعملاء، ونتفق على عمولة ليك على كل براند يشترك.",
+    close: {
+      store: [() => "تحب أبعتلك فيديو قصير يوريك شكله على متجركم؟", (s) => `أوريك شكله على ${s}؟ مش هياخد غير دقيقتين.`],
+      client: [(s) => `تحب نجربه على ${s} الأول؟`, () => "تحب نجربه على البراند ده الأول ونقارن الأرقام؟"],
+      mb: [() => "تحب نجربه مجانا على براند واحد من عندك الأول؟", () => "تحب نجربه على براند واحد الأسبوع ده؟"],
+    },
+    join: (a) => a.length < 2 ? a.join("") : a.slice(0, -1).join("، ") + " و" + a[a.length - 1],
+    fu: {
+      store: [{ when: "بعد ٣ أو ٤ أيام", text: (n, s) => `أهلا${n ? " " + n : ""}، بس بتأكد إن رسالتي وصلت 🙂 ممكن أبعتلك فيديو دقيقتين يوريك شكله على ${s}.` },
+              { when: "بعدها بأسبوع، آخر رسالة", text: () => "مفيش أي ضغط خالص. لو حبيت في أي وقت تطلع أكتر من كل أوردر، أنا موجود 🙏" }],
+      mb: [{ when: "بعد ٣ أو ٤ أيام", text: (n) => `أهلا${n ? " " + n : ""}، بطمن بس 🙂 ممكن أركبه على براند من عندك الأسبوع ده وتشوف الأرقام بنفسك.` },
+           { when: "بعدها بأسبوع، آخر رسالة", text: () => "مفيش أي ضغط. أي وقت تحتاج مساعدة في كونفرجن براند، أنا موجود 🙏" }],
+    },
+  },
+};
+
+// Example state, clearly an example, so the page opens with a full message.
+const EXAMPLE = { aud: "store", lang: "en", name: "Sara", store: "Example Store", notes: "", seed: 0, partner: true,
+  marks: { upsell: "has", reviews: "has", bundles: "miss", loyalty: "miss", shipping_bar: "miss" } };
+let S = load() || structuredClone(EXAMPLE);
+
+function load() { try { const v = JSON.parse(localStorage.getItem("cro-outreach-dm") || "null"); return v && v.marks ? v : null; } catch { return null; } }
+function save() { try { localStorage.setItem("cro-outreach-dm", JSON.stringify(S)); } catch {} }
+const pick = (arr, slot) => arr[(S.seed + slot) % arr.length];
+const MAX_PRAISE = 2, MAX_GAPS = 2;
+
+function compose() {
+  const L = T[S.lang], aud = S.aud;
+  const store = L.store(S.store.trim()), name = S.name.trim(), note = S.notes.trim();
+  const has = F.filter((f) => S.marks[f.k] === "has").slice(0, MAX_PRAISE);
+  const miss = F.filter((f) => S.marks[f.k] === "miss");
+  const gaps = miss.slice(0, MAX_GAPS);
+  const p = [];
+  p.push(`${L.hi(name)} ${pick(L.open[aud], 0)(store, note)}`);
+  if (aud === "store") {
+    if (has.length) p.push(pick(L.praise.store, 1)(L.join(has.map((f) => f[S.lang].has))));
+    if (gaps.length) p.push(L.gapsIntro.store(gaps.length, has.length > 0) + " " + gaps.map((f) => f[S.lang].gap).join(" "));
+    p.push(L.value.store);
+    p.push(pick(L.app.store, 2)(store));
+    p.push(pick(L.close.store, 3)(store));
+  } else if (aud === "client") {
+    let a = "";
+    if (has.length) a = pick(L.praise.client, 1)(L.join(has.map((f) => f[S.lang].has))) + " ";
+    if (gaps.length) p.push(a + L.gapsIntro.client() + " " + gaps.map((f) => f[S.lang].gap).join(" "));
+    else if (a) p.push(a.trim());
+    p.push(L.value.client);
+    p.push(L.app.weapon);
+    p.push(L.withYou + (S.partner ? " " + L.partner : ""));
+    p.push(pick(L.close.client, 3)(store));
+  } else {
+    p.push(L.app.weapon + " " + L.value.mb);
+    p.push(L.withYou + (S.partner ? " " + L.partner : ""));
+    p.push(pick(L.close.mb, 3)(store));
+  }
+  return { text: p.join(" "), left: miss.length - gaps.length };
+}
+
+const $ = (id) => document.getElementById(id);
+function seg(id, key) { $(id).querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { S[key] = b.dataset.v; render(); })); }
+seg("aud", "aud"); seg("lang", "lang");
+for (const id of ["name", "store", "notes"]) $(id).addEventListener("input", (e) => { S[id] = e.target.value; render(false); });
+$("partner").addEventListener("change", (e) => { S.partner = e.target.checked; render(); });
+
+function buildFeats() {
+  const box = $("feats"); box.textContent = "";
+  for (const f of F) {
+    const row = document.createElement("div"); row.className = "feat";
+    const nm = document.createElement("div"); nm.className = "name"; nm.textContent = f.label;
+    const sm = document.createElement("small"); sm.textContent = f.hint; nm.append(sm);
+    const g = document.createElement("div"); g.className = "seg tri"; g.setAttribute("role", "group"); g.setAttribute("aria-label", f.label);
+    for (const [v, txt] of [["has", "Has it"], ["miss", "Missing"], ["", "Skip"]]) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.dataset.k = f.k; b.dataset.v = v; if (v) b.className = v;
+      b.addEventListener("click", () => { if (v) S.marks[f.k] = v; else delete S.marks[f.k]; render(); });
+      g.append(b);
+    }
+    row.append(nm, g); box.append(row);
+  }
+}
+
+function copy(text, btn, node, label) {
+  const done = () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = label), 1500); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(node); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected, copy it"; setTimeout(() => (btn.textContent = label), 2500); };
+  try { navigator.clipboard.writeText(text).then(done, fallback); } catch { fallback(); }
+}
+
+function render(syncInputs = true) {
+  for (const [id, key] of [["aud", "aud"], ["lang", "lang"]]) $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === S[key])));
+  if (syncInputs) for (const id of ["name", "store", "notes"]) if ($(id).value !== S[id]) $(id).value = S[id];
+  $("partner").checked = !!S.partner;
+  $("partnerRow").hidden = S.aud === "store";
+  $("storeLabel").hidden = S.aud === "mb";
+  document.querySelectorAll(".tri button").forEach((b) => b.setAttribute("aria-pressed", String((S.marks[b.dataset.k] || "") === b.dataset.v)));
+  const nHas = F.filter((f) => S.marks[f.k] === "has").length, nMiss = F.filter((f) => S.marks[f.k] === "miss").length;
+  $("tally").textContent = "";
+  for (const [n, cls, word] of [[nHas, "chip", "has"], [nMiss, "chip m", "missing"]]) { const c = document.createElement("span"); c.className = cls; c.textContent = `${n} ${word}`; $("tally").append(c); }
+  $("featNote").textContent = S.aud === "mb"
+    ? "No brand in this message: it opens with a question and pitches the app as their secret weapon, so the marks below aren't used."
+    : "The DM praises up to 2 things the store has and names its top 2 problems, in the order of this list.";
+  const m = compose(), dir = S.lang === "ar" ? "rtl" : "ltr";
+  $("msg").textContent = m.text; $("msg").dir = dir; $("msg").lang = S.lang;
+  $("count").textContent = `${m.text.length} characters${m.left > 0 ? ` · ${m.left} more problem${m.left === 1 ? "" : "s"} left for the follow up call` : ""}`;
+  $("count").className = "count" + (m.text.length > 900 ? " long" : "");
+  const L = T[S.lang], fus = S.aud === "store" ? L.fu.store : L.fu.mb, store = L.store(S.store.trim()), name = S.name.trim();
+  $("fus").textContent = "";
+  for (const f of fus) {
+    const box = document.createElement("div"); box.className = "fu";
+    const head = document.createElement("div"); head.className = "fuhead";
+    const w = document.createElement("span"); w.textContent = f.when; w.dir = dir;
+    const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn"; btn.textContent = "Copy";
+    const body = document.createElement("div"); body.className = "dm"; body.dir = dir; body.lang = S.lang; body.textContent = f.text(name, store);
+    btn.addEventListener("click", () => copy(body.textContent, btn, body, "Copy"));
+    head.append(w, btn); box.append(head, body); $("fus").append(box);
+  }
+  save();
+}
+
+$("copy").addEventListener("click", () => copy(compose().text, $("copy"), $("msg"), "Copy message"));
+$("shuffle").addEventListener("click", () => { S.seed = (S.seed + 1) % 12; render(); });
+$("clear").addEventListener("click", () => { S.marks = {}; render(); });
+
+buildFeats();
+render();
+</script>
