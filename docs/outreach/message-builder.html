@@ -73,7 +73,7 @@ input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px
 <div class="wrap">
   <header>
     <h1>Outreach Message Builder</h1>
-    <p>Instagram DMs that praise what the store already does well, name its real problems, and offer to fix them for free. Media buyer messages pitch CRO Toolbox as their secret weapon for every brand they manage. Example values are filled in: replace them with the real store.</p>
+    <p>Instagram DMs that praise what the store already does well, name its real problems, and offer to fix them for free. Media buyer messages pitch CRO Toolbox as their secret weapon for every brand they manage. Example values are filled in: replace them with the real brand.</p>
   </header>
 
   <div class="cols">
@@ -95,7 +95,7 @@ input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px
       </div>
       <div class="row">
         <label class="f" for="name">Their first name <input type="text" id="name" autocomplete="off"></label>
-        <label class="f" for="store" id="storeLabel">Store or brand name <input type="text" id="store" autocomplete="off"></label>
+        <label class="f" for="store" id="storeLabel">Brand name <input type="text" id="store" autocomplete="off"></label>
       </div>
       <label class="f" for="notes">Something you genuinely liked (optional)
         <textarea id="notes" placeholder="e.g. Your winter collection photos are beautiful."></textarea></label>
@@ -131,79 +131,79 @@ input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px
 const F = [
   { k: "bundles", label: "Bundles", hint: "Pick 3 and save",
     en: { has: "bundles", gap: "No bundles, so every customer buys one piece when some would buy two or three." },
-    ar: { has: "باندلز", gap: "مفيش باندلز، فكل عميل بيشتري قطعة واحدة مع إن ناس كتير ممكن تاخد ٢ أو ٣." } },
+    ar: { has: "bundles", gap: "مفيش bundles، فكل عميل بيشتري قطعة واحدة مع إن ناس كتير ممكن تاخد ٢ أو ٣." } },
   { k: "upsell", label: "Quantity discounts (upsell)", hint: "Buy 2, save 10%",
     en: { has: "quantity discounts", gap: "Nothing nudges people to buy 2 instead of 1. A simple \"buy 2, save 10%\" changes that." },
-    ar: { has: "خصومات على الكمية", gap: "مفيش حاجة بتشجع العميل ياخد ٢ بدل ١. عرض بسيط زي \"اشتري ٢ ووفر ١٠٪\" بيفرق جدا." } },
+    ar: { has: "upsell", gap: "مفيش upsell بيشجع العميل ياخد ٢ بدل ١. عرض بسيط زي \"اشتري ٢ ووفر ١٠٪\" بيفرق جدا." } },
   { k: "cross_sell", label: "Cross sell", hint: "Frequently bought together",
     en: { has: "\"frequently bought together\" suggestions", gap: "The product page doesn't suggest what goes with it, so the second item never makes it to the cart." },
-    ar: { has: "اقتراحات \"بيتشروا مع بعض\"", gap: "صفحة المنتج مش بتقترح حاجة تمشي معاه، فالقطعة التانية عمرها ما بتوصل للسلة." } },
+    ar: { has: "cross sell", gap: "مفيش cross sell في صفحة المنتج، فالقطعة التانية اللي تمشي معاه عمرها ما بتوصل للـcart." } },
   { k: "cart_offers", label: "Cart offers", hint: "Add on offer in the cart",
     en: { has: "offers in the cart", gap: "The cart is where people are ready to pay, and there's no extra offer there." },
-    ar: { has: "عروض جوه السلة", gap: "السلة هي اللحظة اللي العميل فيها جاهز يدفع، ودلوقتي مفيش أي عرض مستنيه هناك." } },
+    ar: { has: "cart offers", gap: "الـcart هي اللحظة اللي العميل فيها جاهز يدفع، ومفيش أي offer مستنيه هناك." } },
   { k: "shipping_bar", label: "Free shipping bar", hint: "You're X away",
     en: { has: "a free shipping bar", gap: "Customers can't see how close they are to free shipping, so they don't add that one extra piece." },
-    ar: { has: "شريط الشحن المجاني", gap: "العميل مش شايف فاضله قد إيه على الشحن المجاني، فمش بيضيف القطعة الزيادة." } },
+    ar: { has: "free shipping bar", gap: "مفيش free shipping bar، فالعميل مش شايف فاضله قد إيه على الشحن المجاني ومش بيضيف القطعة الزيادة." } },
   { k: "loyalty", label: "Loyalty points", hint: "A reason to buy again",
     en: { has: "a loyalty program", gap: "Nothing brings a customer back after the first order, so you end up paying for the same customer again in ads." },
-    ar: { has: "برنامج ولاء", gap: "مفيش حاجة بترجع العميل بعد أول أوردر، فبتدفع على نفس العميل تاني في الإعلانات." } },
+    ar: { has: "loyalty program", gap: "مفيش loyalty program يرجع العميل بعد أول أوردر، فبتدفع على نفس العميل تاني في الـads." } },
   { k: "cod_rules", label: "Cash on delivery rules", hint: "Hide COD above an amount",
     en: { has: "rules for cash on delivery", gap: "Cash on delivery is open for every order, and every refused delivery is shipping money gone." },
-    ar: { has: "قواعد للدفع عند الاستلام", gap: "الدفع عند الاستلام مفتوح لكل الأوردرات، وكل أوردر بيترفض بيضيع فلوس شحن." } },
+    ar: { has: "COD rules", gap: "الـCOD مفتوح لكل الأوردرات من غير أي rules، وكل أوردر بيترفض بيضيع فلوس شحن." } },
   { k: "tracking", label: "Order tracking page", hint: "Where is my order?",
     en: { has: "an order tracking page", gap: "No tracking page, so customers keep asking \"where's my order?\" on WhatsApp, and someone answers the same question all day." },
-    ar: { has: "صفحة تتبع للأوردرات", gap: "مفيش صفحة تتبع، فالعملاء فضلوا يسألوا \"الأوردر فين؟\" على الواتساب، وفيه حد بيرد على نفس السؤال طول اليوم." } },
+    ar: { has: "tracking page", gap: "مفيش tracking page، فالعملاء فضلوا يسألوا \"الأوردر فين؟\" على الواتساب، وفيه حد بيرد على نفس السؤال طول اليوم." } },
   { k: "returns", label: "Returns page", hint: "Exchange or credit first",
     en: { has: "a returns page", gap: "Returns happen by message, and every refund is money that could have stayed in the store as an exchange or store credit." },
-    ar: { has: "صفحة للمرتجعات", gap: "المرتجعات بتتعمل بالرسايل، وكل فلوس بترجع كان ممكن تفضل في المتجر استبدال أو رصيد." } },
+    ar: { has: "returns page", gap: "مفيش returns page والمرتجعات بتتعمل بالرسايل، وكل refund كان ممكن يفضل في الويبسايت exchange أو store credit." } },
   { k: "thank_you", label: "Offer after checkout", hint: "Thank you page offer",
     en: { has: "an offer after checkout", gap: "Right after someone pays is the best moment to offer one more item, and the thank you page doesn't offer anything." },
-    ar: { has: "عرض بعد الدفع", gap: "بعد الدفع على طول أحسن وقت تعرض فيه منتج كمان، وصفحة الشكر مش بتعرض أي حاجة." } },
+    ar: { has: "post purchase offer", gap: "مفيش post purchase offer، مع إن بعد الدفع على طول أحسن وقت تعرض فيه منتج كمان." } },
   { k: "reviews", label: "Customer reviews", hint: "Reviews with photos",
     en: { has: "customer reviews", gap: "No reviews on the product pages, and new visitors need that proof before they trust a brand they don't know yet." },
-    ar: { has: "تقييمات العملاء", gap: "مفيش تقييمات في صفحات المنتجات، والزائر الجديد محتاج يشوف ده عشان يثق في براند لسه ميعرفوش." } },
+    ar: { has: "reviews", gap: "مفيش reviews في صفحات المنتجات، والزائر الجديد محتاج يشوفها عشان يثق في براند لسه ميعرفوش." } },
   { k: "back_in_stock", label: "Back in stock alerts", hint: "Tell me when it's back",
     en: { has: "back in stock alerts", gap: "When a product sells out, interested customers just leave and never hear from you again." },
-    ar: { has: "تنبيه لما المنتج يرجع", gap: "لما منتج يخلص، العميل المهتم بيمشي ومحدش بيكلمه تاني." } },
+    ar: { has: "back in stock alerts", gap: "لما منتج يخلص، العميل المهتم بيمشي ومحدش بيكلمه تاني عشان مفيش back in stock alerts." } },
   { k: "sticky_atc", label: "Sticky Add to cart", hint: "On mobile",
     en: { has: "a sticky Add to cart button", gap: "On mobile, the Add to cart button disappears as soon as people scroll." },
-    ar: { has: "زرار إضافة للسلة ثابت", gap: "على الموبايل زرار الإضافة للسلة بيختفي أول ما العميل ينزل في الصفحة." } },
+    ar: { has: "sticky add to cart", gap: "على الموبايل زرار الـadd to cart بيختفي أول ما العميل ينزل في الصفحة، ومفيش sticky add to cart." } },
   { k: "email_popup", label: "Email sign up pop up", hint: "First order code",
     en: { has: "an email sign up offer", gap: "Visitors who don't buy today leave, and there's no way to reach them again." },
-    ar: { has: "عرض للتسجيل بالإيميل", gap: "الزوار اللي مش بيشتروا النهاردة بيمشوا، ومفيش أي طريقة توصلهم تاني." } },
+    ar: { has: "email popup", gap: "مفيش email popup، فالزوار اللي مش بيشتروا النهاردة بيمشوا ومفيش أي طريقة توصلهم تاني." } },
   { k: "referrals", label: "Referrals", hint: "Give 10%, get 10%",
     en: { has: "a referral program", gap: "Happy customers have no reason to bring their friends." },
-    ar: { has: "برنامج إحالة", gap: "العملاء المبسوطين مالهمش أي سبب يجيبوا صحابهم." } },
+    ar: { has: "referral program", gap: "مفيش referral program، فالعملاء المبسوطين مالهمش أي سبب يجيبوا صحابهم." } },
   { k: "urgency", label: "Real countdowns and stock", hint: "Sale end, stock left",
     en: { has: "clear sale deadlines", gap: "Nothing tells people a sale is ending or stock is low, so they leave to buy later and don't come back." },
-    ar: { has: "مواعيد واضحة للعروض", gap: "مفيش حاجة بتقول إن العرض هيخلص أو إن الكمية قليلة، فالناس بتمشي على أمل تشتري بعدين ومبترجعش." } },
+    ar: { has: "countdown timers", gap: "مفيش countdown أو stock حقيقي بيقول إن العرض هيخلص، فالناس بتمشي على أمل تشتري بعدين ومبترجعش." } },
   { k: "size_guide", label: "Size guide", hint: "Fashion stores",
     en: { has: "a size guide", gap: "No size guide, so doubts about the size stop orders or come back as returns." },
-    ar: { has: "دليل مقاسات", gap: "مفيش دليل مقاسات، فالحيرة في المقاس يا بتوقف الأوردر يا بترجع مرتجع." } },
+    ar: { has: "size guide", gap: "مفيش size guide، فالحيرة في المقاس يا بتوقف الأوردر يا بترجع مرتجع." } },
   { k: "wishlist", label: "Wishlist", hint: "Save for later",
     en: { has: "a wishlist", gap: "People who aren't ready yet can't save what they liked, so they forget it." },
-    ar: { has: "قايمة مفضلة", gap: "اللي لسه مش جاهز يشتري مش بيقدر يحفظ اللي عجبه، فبينساه." } },
+    ar: { has: "wishlist", gap: "مفيش wishlist، فاللي لسه مش جاهز يشتري مش بيقدر يحفظ اللي عجبه وبينساه." } },
 ];
 
 // The pieces around the features. Arrays are wordings that "Change the wording" rotates.
 const T = {
   en: {
     hi: (n) => n ? `Hi ${n},` : "Hi,",
-    store: (s) => s || "your store",
+    store: (s) => s || "your brand",
     open: {
-      store: [(s, note) => note ? `I came across ${s} today. ${note}` : `I came across ${s} today and had a look around the store.`,
-              (s, note) => note ? `I was checking out ${s} today. ${note}` : `I was checking out ${s} today.`],
-      client: [(s) => `I saw you run the ads for ${s}, so I had a look at the store.`, (s) => `I noticed you handle the ads for ${s} and checked their store.`],
-      mb: [() => "I saw you run ads for Shopify brands. When a campaign brings traffic but the ROAS is still weak, what do you usually change on the store?",
-           () => "I saw you do media buying for Shopify brands. Do you get campaigns that bring traffic but the store doesn't turn it into sales?"],
+      store: [(s, note) => note ? `I came across the ${s} website today. ${note}` : `I came across the ${s} website today and had a look around.`,
+              (s, note) => note ? `I was checking out your website today. ${note}` : `I was checking out your website today.`],
+      client: [(s) => `I saw you run the ads for ${s}, so I had a look at their website.`, (s) => `I noticed you handle the ads for ${s} and checked their website.`],
+      mb: [() => "I saw you run ads for Shopify brands. When a campaign brings traffic but the ROAS is still weak, what do you usually change on the website?",
+           () => "I saw you do media buying for Shopify brands. Do you get campaigns that bring traffic but the website doesn't turn it into sales?"],
     },
     praise: {
-      store: [(l) => `You already have ${l}, which a lot of stores don't.`, (l) => `Good to see you already have ${l}.`],
+      store: [(l) => `You already have ${l}, which a lot of brands don't.`, (l) => `Good to see you already have ${l}.`],
       client: [(l) => `They already have ${l}, which is good.`, (l) => `Good to see they already have ${l}.`],
     },
     gapsIntro: {
       store: (n, praised) => `${praised ? "But I" : "I"} noticed ${n === 1 ? "one thing that could be" : "two things that could be"} costing you sales:`,
-      client: () => "The traffic is good, but the store is losing some of it:",
+      client: () => "The traffic is good, but the website is losing some of it:",
     },
     value: {
       store: "You're already paying for the traffic, so getting more from each visitor makes a big difference.",
@@ -211,20 +211,20 @@ const T = {
       mb: "Same ad spend, bigger orders and a better ROAS for your clients.",
     },
     app: {
-      store: [(s) => `I made a Shopify app called CRO Toolbox that fixes this, and I can set it up on ${s} for you for free.`,
-              (s) => `I built CRO Toolbox for exactly this, and I'd be happy to set it up on ${s} for free.`],
+      store: [(s) => "I made a Shopify app called CRO Toolbox that fixes this, and I can set it up on your website for free.",
+              (s) => "I built CRO Toolbox for exactly this, and I'd be happy to set it up on your website for free."],
       weapon: "I built CRO Toolbox for that. It's like a secret weapon you can add to any brand you manage: bundles, upsells, cart offers, a free shipping bar and loyalty points, set up in minutes without touching the theme code.",
     },
     withYou: "I'll also be with you personally on every brand, setting it up and helping with anything you need.",
     partner: "And if you want, you can add the app as a bonus in your offers to clients, and we'll agree on a commission for you on every brand that subscribes.",
     close: {
-      store: [() => "Want me to send you a short video of how it would look on your store?", (s) => `Can I show you how it would look on ${s}?`],
+      store: [() => "Want me to send you a short video of how it would look on your website?", () => "Can I show you how it would look on your website?"],
       client: [(s) => `Want to try it on ${s} first?`, () => "Want to try it on this brand and compare the numbers?"],
       mb: [() => "Want to try it for free on one of your brands first?", () => "Want to test it on one brand this week?"],
     },
     join: (a) => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1],
     fu: {
-      store: [{ when: "3 to 4 days later", text: (n, s) => `Hi${n ? " " + n : ""}, just checking if you saw my message. I can send you a 2 minute video of how it would look on ${s}.` },
+      store: [{ when: "3 to 4 days later", text: (n, s) => `Hi${n ? " " + n : ""}, just checking if you saw my message. I can send you a 2 minute video of how it would look on your website.` },
               { when: "A week after that, the last one", text: () => "No problem if now isn't a good time. If you want to try it later, just message me." }],
       mb: [{ when: "3 to 4 days later", text: (n) => `Hi${n ? " " + n : ""}, just checking in. I can set it up on one of your brands this week so you can see the numbers yourself.` },
            { when: "A week after that, the last one", text: () => "No problem if now isn't a good time. Whenever you need help with a brand's conversion rate, message me." }],
@@ -232,45 +232,45 @@ const T = {
   },
   ar: {
     hi: (n) => n ? `أهلا ${n}،` : "أهلا،",
-    store: (s) => s || "متجركم",
+    store: (s) => s || "البراند بتاعكم",
     open: {
-      store: [(s, note) => note ? `شفت ${s} النهاردة. ${note}` : `شفت ${s} النهاردة ولفيت في المتجر شوية.`,
-              (s, note) => note ? `كنت بتفرج على ${s} النهاردة. ${note}` : `كنت بتفرج على ${s} النهاردة.`],
-      client: [(s) => `شفت إنك ماسك إعلانات ${s}، فبصيت على المتجر.`, (s) => `لاحظت إنك بتعمل إعلانات ${s} وبصيت على المتجر بتاعهم.`],
-      mb: [() => "شفت إنك بتعمل إعلانات لبراندات شوبيفاي. لما كامبين بيجيب ترافيك بس الـROAS لسه ضعيف، بتغير إيه في المتجر عادة؟",
-           () => "شفت إنك ميديا باير لبراندات شوبيفاي. بيحصل معاك إن كامبين يجيب ترافيك والمتجر ميحولوش لمبيعات؟"],
+      store: [(s, note) => note ? `شفت الويبسايت بتاع ${s} النهاردة. ${note}` : `شفت الويبسايت بتاع ${s} النهاردة ولفيت فيه شوية.`,
+              (s, note) => note ? `كنت بتفرج على الويبسايت بتاعكم النهاردة. ${note}` : `كنت بتفرج على الويبسايت بتاعكم النهاردة.`],
+      client: [(s) => `شفت إنك ماسك الـads بتاعة ${s}، فبصيت على الويبسايت بتاعهم.`, (s) => `لاحظت إنك بتعمل الـads بتاعة ${s} وبصيت على الويبسايت بتاعهم.`],
+      mb: [() => "شفت إنك بتعمل media buying لبراندات Shopify. لما campaign بتجيب traffic بس الـROAS لسه ضعيف، بتغير إيه في الويبسايت عادة؟",
+           () => "شفت إنك media buyer لبراندات Shopify. بيحصل معاك إن campaign تجيب traffic والويبسايت ميحولوش لمبيعات؟"],
     },
     praise: {
-      store: [(l) => `عندكم بالفعل ${l}، ودي حاجة متاجر كتير مش عاملاها.`, (l) => `حلو إن عندكم ${l}.`],
+      store: [(l) => `عندكم بالفعل ${l}، ودي حاجة براندات كتير مش عاملاها.`, (l) => `حلو إن عندكم ${l}.`],
       client: [(l) => `عندهم بالفعل ${l}، وده كويس.`, (l) => `حلو إن عندهم ${l}.`],
     },
     gapsIntro: {
       store: (n, praised) => `${praised ? "بس " : ""}لاحظت ${n === 1 ? "حاجة ممكن تكون مضيعة" : "حاجتين ممكن يكونوا مضيعين"} عليكم مبيعات:`,
-      client: () => "الترافيك كويس، بس المتجر بيضيع جزء منه:",
+      client: () => "الـtraffic كويس، بس الويبسايت بيضيع جزء منه:",
     },
     value: {
-      store: "انتو بالفعل بتدفعوا على الترافيك، فإنكم تطلعوا أكتر من كل زائر بيفرق كتير.",
-      client: "نفس صرف الإعلانات، أوردرات أكبر وROAS أحسن، والعميل بيشوف ده نتيجة شغلك.",
-      mb: "نفس الصرف، أوردرات أكبر وROAS أحسن لعملائك.",
+      store: "انتو بالفعل بتدفعوا على الـtraffic، فإنكم تطلعوا أكتر من كل زائر بيفرق كتير.",
+      client: "نفس الـad spend، أوردرات أكبر وROAS أحسن، والعميل بيشوف ده نتيجة شغلك.",
+      mb: "نفس الـad spend، أوردرات أكبر وROAS أحسن لعملائك.",
     },
     app: {
-      store: [(s) => `أنا عامل تطبيق شوبيفاي اسمه CRO Toolbox بيحل ده، وأقدر أركبهولكم على ${s} مجانا.`,
-              (s) => `عملت CRO Toolbox عشان المشكلة دي بالظبط، ومستعد أركبهولكم على ${s} مجانا.`],
-      weapon: "عملت CRO Toolbox للموضوع ده. هو زي سلاح سري تقدر تضيفه لأي براند انت ماسكه: باندلز وأب سيل وعروض في السلة وشريط شحن مجاني ونقاط ولاء، بيتظبطوا في دقايق من غير ما تلمس كود الثيم.",
+      store: [() => "أنا عامل Shopify app اسمه CRO Toolbox بيحل ده، وأقدر أركبهولكم على الويبسايت مجانا.",
+              () => "عملت CRO Toolbox عشان المشكلة دي بالظبط، ومستعد أركبهولكم على الويبسايت مجانا."],
+      weapon: "عملت CRO Toolbox للموضوع ده. هو زي secret weapon تقدر تضيفه لأي براند انت ماسكه: bundles وupsell وcart offers وfree shipping bar وloyalty points، بيتظبطوا في دقايق من غير ما تلمس كود الـtheme.",
     },
     withYou: "وهكون معاك بنفسي في كل براند، هركبه وهساعدك في أي حاجة تحتاجها.",
-    partner: "ولو حابب، تقدر تضيف التطبيق كبونص في عروضك للعملاء، ونتفق على عمولة ليك على كل براند يشترك.",
+    partner: "ولو حابب، تقدر تضيف الـapp كـbonus في العروض بتاعتك للعملاء، ونتفق على عمولة ليك على كل براند يشترك.",
     close: {
-      store: [() => "تحب أبعتلك فيديو قصير يوريك شكله على متجركم؟", (s) => `أوريك شكله على ${s}؟`],
+      store: [() => "تحب أبعتلك فيديو قصير يوريك شكله على الويبسايت بتاعكم؟", () => "أوريك شكله على الويبسايت بتاعكم؟"],
       client: [(s) => `تحب نجربه على ${s} الأول؟`, () => "تحب نجربه على البراند ده ونقارن الأرقام؟"],
       mb: [() => "تحب نجربه مجانا على براند واحد من عندك الأول؟", () => "تحب نجربه على براند واحد الأسبوع ده؟"],
     },
     join: (a) => a.length < 2 ? a.join("") : a.slice(0, -1).join("، ") + " و" + a[a.length - 1],
     fu: {
-      store: [{ when: "بعد ٣ أو ٤ أيام", text: (n, s) => `أهلا${n ? " " + n : ""}، بس بتأكد إن رسالتي وصلت. أقدر أبعتلك فيديو دقيقتين يوريك شكله على ${s}.` },
+      store: [{ when: "بعد ٣ أو ٤ أيام", text: (n, s) => `أهلا${n ? " " + n : ""}، بس بتأكد إن رسالتي وصلت. أقدر أبعتلك فيديو دقيقتين يوريك شكله على الويبسايت بتاعكم.` },
               { when: "بعدها بأسبوع، آخر رسالة", text: () => "مفيش مشكلة لو الوقت مش مناسب. لو حبيت تجربه بعدين، كلمني." }],
       mb: [{ when: "بعد ٣ أو ٤ أيام", text: (n) => `أهلا${n ? " " + n : ""}، بطمن بس. أقدر أركبه على براند من عندك الأسبوع ده وتشوف الأرقام بنفسك.` },
-           { when: "بعدها بأسبوع، آخر رسالة", text: () => "مفيش مشكلة لو الوقت مش مناسب. أي وقت تحتاج مساعدة في كونفرجن براند، كلمني." }],
+           { when: "بعدها بأسبوع، آخر رسالة", text: () => "مفيش مشكلة لو الوقت مش مناسب. أي وقت تحتاج مساعدة في الـconversion rate بتاع أي براند، كلمني." }],
     },
   },
 };
