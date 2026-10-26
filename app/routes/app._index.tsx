@@ -13,7 +13,9 @@ import { EMBED_KEYS, themeSteps } from "../lib/setup-steps";
 import { cachedResults } from "../lib/value.server";
 import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
 import { listOffers } from "../lib/offers.server";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { getHomeState, setHomeState } from "../lib/home-state.server";
+import { afterReview, reviewDue } from "../lib/review-ask";
 import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
@@ -46,7 +48,7 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
     remember(shop, "home", 30000, () =>
       Promise.all([
         getPlanState(admin).catch(() => ({ plan: null, paused: [], at: null })),
-        getHomeState(admin).catch(() => ({ dismissed: false, manual: [] as string[] })),
+        getHomeState(admin).catch(() => ({ dismissed: false, manual: [] as string[], reviewAt: null, reviewDone: true })),
         listOffers(admin).catch(() => []),
         getMonthlyOrders(admin, shop),
         listReturns(shop).catch(() => []),
@@ -116,6 +118,8 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
       : null,
     attention,
     recommended,
+    // Shopify's review modal, once the app has added orders (review-ask.ts).
+    askReview: reviewDue(homeState, cur?.appOrders),
     supportEmail: process.env.SUPPORT_EMAIL || "",
   };
 });
@@ -129,6 +133,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const step = String(form.get("step") ?? "");
     const { manual } = await getHomeState(admin);
     if (step && !manual.includes(step)) await setHomeState(admin, { manual: [...manual, step] });
+  }
+  if (intent === "review") {
+    const patch = afterReview(String(form.get("code") ?? ""));
+    if (patch) await setHomeState(admin, patch);
   }
   return { ok: true };
 };
@@ -214,6 +222,28 @@ export default function Home() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fetcher and revalidator objects change on every state; their state is read when it runs
   }, [guideOpen, themePending, watchUntil]);
+
+  // An App Store review, asked a few seconds after Home shows the app's results (never on a click: Shopify may hold the
+  // modal back, which would look broken). The answer is saved so the app asks again only when it is due.
+  const shopify = useAppBridge();
+  const reviewSaver = useFetcher();
+  useEffect(() => {
+    if (!data.askReview) return;
+    let gone = false;
+    const timer = setTimeout(() => {
+      shopify.reviews
+        .request()
+        .then((r) => {
+          if (!gone) reviewSaver.submit({ intent: "review", code: r.code }, { method: "post" });
+        })
+        .catch(() => undefined);
+    }, 4000);
+    return () => {
+      gone = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per Home visit where a review is due
+  }, [data.askReview]);
 
   // One banner at most: the most urgent one.
   const banner = data.plan.source === "error"
