@@ -7,6 +7,8 @@
  * INSTALL_URL: the App Store listing. Empty until the listing is live: every Install button then
  * goes to the "Get notified" section on the home page instead.
  */
+import { TUTORIALS_READY } from "../../../app/lib/tutorials";
+
 export const SITE_URL = (process.env.SITE_URL || "https://crotoolbox.com").replace(/\/$/, "");
 
 /** TODO(Omar): the App Store listing link, once it's live (e.g. https://apps.shopify.com/cro-toolbox). */
@@ -129,7 +131,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     title: "Help",
     links: [
       { label: "Help center", href: "/help/" },
-      { label: "Tutorials", href: "/tutorials/" },
+      ...(TUTORIALS_READY.length ? [{ label: "Tutorials", href: "/tutorials/" }] : []),
       { label: "Guides", href: "/blog/" },
       { label: "Support", href: "/support/" },
     ],

@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { CATEGORIES } from "../content.config";
 import type { PageMeta } from "./pages";
+import { TUTORIALS_READY } from "../../../app/lib/tutorials";
 
 export type Article = CollectionEntry<"blog">;
 export type Guide = CollectionEntry<"help">;
@@ -61,5 +62,5 @@ export const TUTORIALS_PAGE: PageMeta = {
 
 /** Every content page, for share images and llms.txt. */
 export async function contentPages(): Promise<PageMeta[]> {
-  return [BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE, ...CATEGORY_LIST.map(categoryMeta), ...(await articles()).map(articleMeta), ...(await guides()).map(guideMeta)];
+  return [BLOG_PAGE, HELP_PAGE, ...(TUTORIALS_READY.length ? [TUTORIALS_PAGE] : []), ...CATEGORY_LIST.map(categoryMeta), ...(await articles()).map(articleMeta), ...(await guides()).map(guideMeta)];
 }
