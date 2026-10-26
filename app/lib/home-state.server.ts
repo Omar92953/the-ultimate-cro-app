@@ -1,12 +1,14 @@
 /**
  * Small per-shop Home choices, kept in the shop's own store ($app:cro_design "home_state"):
- * the setup guide was hidden, and the guide steps the merchant ticked by hand ("Mark as done").
+ * the setup guide was hidden, the guide steps the merchant ticked by hand ("Mark as done"), and when an App Store
+ * review was last asked for (review-ask.ts).
  */
 import { gql, type AdminClient } from "./admin.server";
 import { upsert } from "./cro.server";
+import type { ReviewState } from "./review-ask";
 
-export type HomeState = { dismissed: boolean; manual: string[] };
-const EMPTY: HomeState = { dismissed: false, manual: [] };
+export type HomeState = { dismissed: boolean; manual: string[] } & ReviewState;
+const EMPTY: HomeState = { dismissed: false, manual: [], reviewAt: null, reviewDone: false };
 
 export async function getHomeState(admin: AdminClient): Promise<HomeState> {
   const data = await gql(admin, `#graphql
@@ -14,7 +16,12 @@ export async function getHomeState(admin: AdminClient): Promise<HomeState> {
   try {
     const v = JSON.parse(data.metaobjectByHandle?.field?.value ?? "null");
     if (!v) return EMPTY;
-    return { dismissed: v.dismissed === true, manual: Array.isArray(v.manual) ? v.manual.filter((s: unknown) => typeof s === "string").slice(0, 20) : [] };
+    return {
+      dismissed: v.dismissed === true,
+      manual: Array.isArray(v.manual) ? v.manual.filter((s: unknown) => typeof s === "string").slice(0, 20) : [],
+      reviewAt: typeof v.reviewAt === "string" ? v.reviewAt : null,
+      reviewDone: v.reviewDone === true,
+    };
   } catch {
     return EMPTY;
   }

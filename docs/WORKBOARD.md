@@ -28,7 +28,7 @@ Updated 2026-10-24.
 - [x] **Phase 6 testing on Testing2**: recipes 1 to 6 and checkout (no stacking) verified (2026-10-15). Status in `docs/PROJECT-GUIDE.md` §10.
 - [x] "See live demo" buttons in the app (`app/components/DemoButton.tsx`): every feature page, design
       pages open the template in use, bundle recipe cards, each Conversion boosters card (website PR 5)
-- [ ] Review request in the app ("Enjoying CRO Toolbox?"), after launch
+- [x] Review request in the app: Shopify's review modal on Home once the app added 3 orders in 30 days, at most every 60 days (`app/lib/review-ask.ts`, 2026-10-26)
 - [x] A bare mix and match bundle product bought alone through a theme's quick add: fixed in #183 (cro-toolbox-35): merged lines are stamped, the bundle guard refuses an unstamped one at checkout (`docs/plans/bare-bundle-gap.md`). Verified on Testing 3.
 - [x] Checkout rejects a bundle product picked inside a bundle (PR #46, cro-toolbox-19)
 - [ ] Add to theme places the builder below the theme's Add to cart: the theme editor link can't
