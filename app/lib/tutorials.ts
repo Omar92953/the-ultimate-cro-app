@@ -32,6 +32,9 @@ export const TUTORIALS: Tutorial[] = [
   { title: "Read your Analytics", length: "2:30", feature: null, youtubeId: null },
 ];
 
+/** The recorded ones. Home and the website show tutorials only once at least one has a video (Omar, 2026-10-27). */
+export const TUTORIALS_READY = TUTORIALS.filter((t) => t.youtubeId);
+
 export const tutorialEmbedUrl = (t: Tutorial) => (t.youtubeId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(t.youtubeId)}?autoplay=1&rel=0` : null);
 export const tutorialWatchUrl = (t: Tutorial) => (t.youtubeId ? `https://www.youtube.com/watch?v=${encodeURIComponent(t.youtubeId)}` : null);
 

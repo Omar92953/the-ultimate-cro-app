@@ -22,7 +22,7 @@ import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
 import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOver } from "../lib/plans";
 import { FEATURE_IDEAS_EMAIL, TUTORIALS_URL, helpUrl } from "../lib/site";
-import { TUTORIALS, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
+import { TUTORIALS_READY, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
 import { HomeRow, HomeRows, LinkTiles, PageIntro, Pill } from "../components/ui";
 import ui from "../components/ui.module.css";
@@ -348,10 +348,11 @@ export default function Home() {
           </HomeRow>
         ) : null}
 
-        {/* Tutorials: every one in lib/tutorials.ts; a card without a video yet says "Coming soon" */}
+        {/* Tutorials: only the recorded ones in lib/tutorials.ts; the row is hidden until there is one */}
+        {TUTORIALS_READY.length ? (
         <HomeRow title="Tutorials" subtitle="Short videos for every part of the app." bare>
             <div className={styles.videos}>
-              {TUTORIALS.map((t) => (
+              {TUTORIALS_READY.map((t) => (
                 <button key={t.title} type="button" className={styles.video} disabled={!t.youtubeId} onClick={() => t.youtubeId && setPlaying(t)}>
                   <span className={styles.thumb}>
                     {t.youtubeId ? (
@@ -369,12 +370,13 @@ export default function Home() {
               ))}
             </div>
         </HomeRow>
+        ) : null}
 
         <div className={ui.rowPair}>
           <HomeRow title="Help">
             <ul className={styles.links}>
               <li><a href={helpUrl()} target="_blank" rel="noreferrer">Help center</a></li>
-              <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li>
+              {TUTORIALS_READY.length ? <li><a href={TUTORIALS_URL} target="_blank" rel="noreferrer">Tutorials</a></li> : null}
               {data.supportEmail ? (
                 <li>
                   <a href={`mailto:${data.supportEmail}`} target="_blank" rel="noreferrer">Email support</a>

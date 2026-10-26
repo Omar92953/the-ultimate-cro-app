@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Crumbs from "../../components/Crumbs.astro";
 import NotifyCta from "../../components/NotifyCta.astro";
 import { guides, guidePath, HELP_PAGE, TUTORIALS_PAGE } from "../../lib/content";
+import { TUTORIALS_READY } from "../../../../app/lib/tutorials";
 
 const page = HELP_PAGE;
 const crumbs = [{ name: "Help center", href: page.path }];
@@ -15,7 +16,7 @@ const list = await guides();
       <Crumbs items={crumbs} />
       <span class="eyebrow">Help center</span>
       <h1>How to set up and use CRO Toolbox</h1>
-      <p class="lead">Start with Getting started, then open the guide for what you want to set up. Prefer video? See the <a class="link" href={TUTORIALS_PAGE.path}>tutorials</a>.</p>
+      <p class="lead">Start with Getting started, then open the guide for what you want to set up.{TUTORIALS_READY.length ? <> Prefer video? See the <a class="link" href={TUTORIALS_PAGE.path}>tutorials</a>.</> : null}</p>
     </div>
   </section>
   <section class="section tight mist">

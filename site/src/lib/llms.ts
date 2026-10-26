@@ -10,6 +10,7 @@ import { FEATURE_COPY } from "./features";
 import { BRAND_LINE } from "./brand";
 import { articles, guides, articleMeta, guideMeta, BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE } from "./content";
 import { KEYWORD_PAGES, keywordPath } from "./keywords";
+import { TUTORIALS_READY } from "../../../app/lib/tutorials";
 import { RECIPE_META, recipePath } from "./recipes";
 import { ALTERNATIVES, altMeta } from "./alternatives";
 import { CHANGELOG } from "./changelog";
@@ -65,7 +66,7 @@ export async function llmsTxt(): Promise<string> {
     "",
     "## Guides and help",
     "",
-    ...[BLOG_PAGE, HELP_PAGE, TUTORIALS_PAGE].map(line),
+    ...[BLOG_PAGE, HELP_PAGE, ...(TUTORIALS_READY.length ? [TUTORIALS_PAGE] : [])].map(line),
     ...(await articles()).map(articleMeta).map(line),
     ...(await guides()).map(guideMeta).map(line),
     ...(INSTALL_URL ? [`- [Shopify App Store listing](${INSTALL_URL})`] : []),
