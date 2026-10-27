@@ -1,22 +1,46 @@
 <!doctype html>
-<!-- Feature image (the big image at the top of the App Store listing): one piece from each area, so it differs from shot 1. Render: scripts/listing/render.sh feature -->
-<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"></head>
+<!-- Feature image (the big image at the top of the App Store listing): every area, left to right in the order a shopper meets them
+     (product page offers, product page sections, cart and loyalty, after the order). Render: scripts/listing/render.sh feature -->
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  h1 { margin-top: 22px; }
+  .checks { margin-top: 20px; }
+  .cols { position: absolute; left: 60px; right: 60px; top: 290px; bottom: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
+  .col { display: flex; flex-direction: column; gap: 30px; }
+  .col .card { position: relative; left: auto; top: auto; }
+  .crop { overflow: hidden; border-radius: 10px; }
+  .crop img { border-radius: 0; }
+</style></head>
 <body>
   <div class="top">
     <img class="logo" src="../logo.svg" alt="">
     <h1>Replaces <span>5+ apps</span> with one</h1>
     <div class="checks">
       <div><b>✓</b>Bundles, upsells and cross sells</div>
+      <div><b>✓</b>Reviews and store sections</div>
       <div><b>✓</b>Loyalty and rewards</div>
-      <div><b>✓</b>Store sections</div>
       <div><b>✓</b>Tracking and returns</div>
     </div>
   </div>
 
-  <div class="card" style="left:60px; top:285px; width:360px"><span class="tag">Bundles</span><img src="../widgets/fbt.png"></div>
-  <div class="card" style="left:60px; top:598px; width:360px"><span class="tag">Upsells</span><img src="../widgets/qty.png"></div>
-  <div class="card" style="left:450px; top:285px; width:340px"><span class="tag">Loyalty</span><div style="height:308px;overflow:hidden;border-radius:10px"><img src="../widgets/loyalty.png"></div></div>
-  <div class="card" style="left:450px; top:665px; width:340px"><span class="tag">Cross sells</span><img src="../widgets/cart.png"></div>
-  <div class="card" style="left:820px; top:285px; width:350px"><span class="tag">Order tracking</span><img src="../widgets/track.png"></div>
-  <div class="card" style="left:1200px; top:285px; width:340px"><span class="tag">Returns</span><img src="../widgets/returns.png"></div>
+  <div class="cols">
+    <div class="col">
+      <div class="card"><span class="tag">Bundles</span><img src="../widgets/fbt.png"></div>
+      <div class="card"><span class="tag">Upsells</span><img src="../widgets/qty.png"></div>
+    </div>
+    <div class="col">
+      <div class="card"><span class="tag">Reviews</span><img src="../widgets/review.png"></div>
+      <div class="card thin"><span class="tag">Delivery estimate</span><img src="../widgets/delivery.png"></div>
+      <div class="card thin"><span class="tag">Stock message</span><img src="../widgets/stock.png"></div>
+      <div class="card thin"><span class="tag">Free shipping bar</span><img src="../widgets/ship.png"></div>
+    </div>
+    <div class="col">
+      <div class="card"><span class="tag">Cross sells</span><img src="../widgets/cart.png"></div>
+      <div class="card"><span class="tag">Loyalty</span><div class="crop" style="height:232px"><img src="../widgets/loyalty.png"></div></div>
+    </div>
+    <div class="col">
+      <div class="card"><span class="tag">Order tracking</span><div class="crop" style="height:206px"><img src="../widgets/track.png"></div></div>
+      <div class="card"><span class="tag">Returns</span><div class="crop" style="height:124px;display:flex;align-items:flex-end"><img src="../widgets/returns.png"></div></div>
+    </div>
+  </div>
 </body></html>
