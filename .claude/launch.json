@@ -26,6 +26,18 @@
         "4321"
       ],
       "port": 4321
+    },
+    {
+      "name": "site-dist",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "-d",
+        "site/dist",
+        "4500"
+      ],
+      "port": 4500
     }
   ]
 }

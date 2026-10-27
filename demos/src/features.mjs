@@ -90,7 +90,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   // Bundles: the six recipes (see recipes below); the Bundles page shows one design per recipe.
   // Add-ons and personalization.
   const addonItem = (h, label, text) => ({ productId: String(P[h].id), handle: h, title: P[h].title, image: P[h].featured_image.src, variantId: String(P[h].variants[0].id), variants: P[h].variants.map((v) => ({ id: String(v.id), title: v.title, price: (v.price / 100).toFixed(2) })), label, text });
-  const addonsCfg = (raw) => addonsD.toStorefrontAddons(addonsD.withAddonsDefaults({ items: [addonItem("gift-wrap", "Gift wrapping", "Wrapped in recycled paper with a ribbon"), addonItem("oat-soap", "Add an Oat Soap", "Our best seller, travel size")], ...raw }));
+  const addonsCfg = (raw) => addonsD.toStorefrontAddons(addonsD.withAddonsDefaults({ items: [addonItem("gift-wrap", "Gift wrapping", "Wrapped in recycled paper with a ribbon"), addonItem("oat-soap", "Add an Balance Body Mist", "Our best seller, travel size")], ...raw }));
   const addonsPage = async (title, raw) => ({
     title, layout: "product", product: "cedar-candle", place: "above",
     html: await block("ucs-addons", { product: P["cedar-candle"], page_type: "product", shop: shopWith({ designs: { addons: addonsCfg(raw) } }) }),
@@ -341,7 +341,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
   // 2. Fixed bundle (sold as one product): Shopify's own bundle product, with "What's inside".
   R.kit = [{
     title: "The kit's product page", layout: "product", product: "care-kit",
-    description: `<p><strong>What's inside</strong></p><ul><li>1 × Cedar Candle</li><li>1 × Daily Cream</li><li>1 × Oat Soap</li></ul><p>Sold as one product: one line in the cart, and Shopify takes each item from stock.</p>`,
+    description: `<p><strong>What's inside</strong></p><ul><li>1 × Cedar Soy Candle</li><li>1 × Scented Elixir Set</li><li>1 × Balance Body Mist</li></ul><p>Sold as one product: one line in the cart, and Shopify takes each item from stock.</p>`,
     html: "",
   }];
   // 3. Mix and match: every bundle look the app offers.

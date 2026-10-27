@@ -65,6 +65,20 @@ script and pass it as `CHROME`).
   `node scripts/listing/capture-live.mjs` takes them (it opens each demo's design page, runs the steps, waits for the
   pictures). The listing takes 6 screenshots at most: Omar picks which 6 of the 9.
 
+- 2026-10-27: the 6 listing screenshots Omar asked for, centred like the feature image (`templates/shot-1-offers.html` to
+  `shot-6-analytics.html`, rendered to `branding/screenshots/listing-2026-10-27/`), with the demos switched to fragrance
+  products (`demos/IMAGES.md`). The Analytics one is drawn like the app's Analytics page with example numbers and says
+  "Example data". The feature image was rendered again with the same products.
+
+## Alt text for the 2026-10-27 screenshots
+
+1. `shot-1-offers.png`: "Mix and match bundle, quantity breaks, cart offers, an after purchase offer and a free shipping bar"
+2. `shot-2-loyalty.png`: "The rewards panel with ways to earn points and rewards to spend them on"
+3. `shot-3-sections.png`: "Benefits row, customer reviews, a delivery estimate, a stock message and a free shipping bar"
+4. `shot-4-tracking.png`: "Track order page on its way and delivered, with a next order code and a review link"
+5. `shot-5-returns.png`: "Returns page offering store credit with a bonus, a refund or an exchange"
+6. `shot-6-analytics.png`: "Analytics page with sales from the app, offer results and an A/B test"
+
 ## Screenshot alt text (for the listing editor)
 
 1. `1-bundles.png`: "Frequently bought together and mix and match bundles on a product page"
