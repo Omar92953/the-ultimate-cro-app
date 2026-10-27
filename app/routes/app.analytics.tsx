@@ -177,7 +177,7 @@ export default function Analytics() {
               {kpis.map((k) => (
                 <div key={k.label} className={css.tile}>
                   <span className={css.label}>{k.label}</span>
-                  <span className={css.value}>{k.value}</span>
+                  <span className={/\d/.test(k.value) ? css.value : css.valueText}>{k.value}</span>
                   <span className={k.good === undefined ? css.note : k.good ? css.up : css.down}>{k.note}</span>
                 </div>
               ))}
@@ -282,27 +282,17 @@ export default function Analytics() {
         ) : null}
 
         {tab === "offers" && r ? (
-          <s-section heading="Offers and widgets · last 60 days" padding={r.sources.rows.length ? "none" : undefined}>
+          <s-section heading="Offers and widgets · last 60 days">
             {r.sources.rows.length ? (
-              <s-stack gap="none">
-                <s-table>
-                  <s-table-header-row>
-                    <s-table-header listSlot="primary">Offer or widget</s-table-header>
-                    <s-table-header format="numeric">Revenue</s-table-header>
-                    <s-table-header format="numeric">Orders</s-table-header>
-                    <s-table-header format="numeric">Items</s-table-header>
-                  </s-table-header-row>
-                  <s-table-body>
+              <s-stack gap="small-200">
+                <table className={css.table}>
+                  <thead><tr><th>Offer or widget</th><th className={css.num}>Revenue</th><th className={css.num}>Orders</th><th className={css.num}>Items</th></tr></thead>
+                  <tbody>
                     {r.sources.rows.map((s) => (
-                      <s-table-row key={s.key}>
-                        <s-table-cell>{s.label}</s-table-cell>
-                        <s-table-cell>{fmt(s.revenue)}</s-table-cell>
-                        <s-table-cell>{s.orders}</s-table-cell>
-                        <s-table-cell>{s.lines}</s-table-cell>
-                      </s-table-row>
+                      <tr key={s.key}><td>{s.label}</td><td className={css.num}>{fmt(s.revenue)}</td><td className={css.num}>{s.orders}</td><td className={css.num}>{s.lines}</td></tr>
                     ))}
-                  </s-table-body>
-                </s-table>
+                  </tbody>
+                </table>
                 {teaser(r.sources.hidden, "offer or widget")}
               </s-stack>
             ) : (
@@ -312,29 +302,17 @@ export default function Analytics() {
         ) : null}
 
         {tab === "bundles" && r ? (
-          <s-section heading="Bundles · last 60 days" padding={r.bundles.rows.length ? "none" : undefined}>
+          <s-section heading="Bundles · last 60 days">
             {r.bundles.rows.length ? (
-              <s-stack gap="none">
-                <s-table>
-                  <s-table-header-row>
-                    <s-table-header listSlot="primary">Bundle</s-table-header>
-                    <s-table-header format="numeric">Bundles sold</s-table-header>
-                    <s-table-header format="numeric">Orders</s-table-header>
-                    <s-table-header format="numeric">Revenue</s-table-header>
-                    <s-table-header format="numeric">Average order</s-table-header>
-                  </s-table-header-row>
-                  <s-table-body>
+              <s-stack gap="small-200">
+                <table className={css.table}>
+                  <thead><tr><th>Bundle</th><th className={css.num}>Bundles sold</th><th className={css.num}>Orders</th><th className={css.num}>Revenue</th><th className={css.num}>Average order</th></tr></thead>
+                  <tbody>
                     {r.bundles.rows.map((b) => (
-                      <s-table-row key={b.key}>
-                        <s-table-cell>{b.name}</s-table-cell>
-                        <s-table-cell>{b.units}</s-table-cell>
-                        <s-table-cell>{b.orders}</s-table-cell>
-                        <s-table-cell>{fmt(b.revenue)}</s-table-cell>
-                        <s-table-cell>{fmt(b.aov)}</s-table-cell>
-                      </s-table-row>
+                      <tr key={b.key}><td>{b.name}</td><td className={css.num}>{b.units}</td><td className={css.num}>{b.orders}</td><td className={css.num}>{fmt(b.revenue)}</td><td className={css.num}>{fmt(b.aov)}</td></tr>
                     ))}
-                  </s-table-body>
-                </s-table>
+                  </tbody>
+                </table>
                 {teaser(r.bundles.hidden, "bundle")}
               </s-stack>
             ) : (
@@ -346,7 +324,7 @@ export default function Analytics() {
         {tab === "track" && r ? (
           <s-section heading="Track & Returns · last 30 days">
             <s-stack gap="base">
-              <s-grid gridTemplateColumns="repeat(auto-fit, minmax(190px, 1fr))" gap="base">
+              <div className={css.tiles3}>
                 {[
                   { label: "Orders looked up", value: String(data.lookups), note: "On your Track page (counted from the day this card shipped)" },
                   { label: "Sales from recommendations", value: fmt(r.track.recs.revenue), note: `${r.track.recs.orders} order${r.track.recs.orders === 1 ? "" : "s"} with a recommended item` },
@@ -355,15 +333,13 @@ export default function Analytics() {
                   { label: "Codes used", value: String(r.track.codes.orders), note: `${fmt(r.track.codes.revenue)} in orders · next order ${r.track.codes.byKind.next}, friend ${r.track.codes.byKind.friend}, late order ${r.track.codes.byKind.delay}, offers ${r.track.codes.byKind.offer}` },
                   { label: "Sales kept by return saving", value: data.kept ? `${(data.kept.credit + data.kept.exchanges).toFixed(2)} ${data.kept.currency}` : "No data yet", note: data.kept ? `${data.kept.count} return${data.kept.count === 1 ? "" : "s"} paid back as store credit or exchanged instead of refunded` : "Return saving rules (Pro)" },
                 ].map((k) => (
-                  <s-box key={k.label} padding="base" borderWidth="base" borderRadius="base">
-                    <s-stack gap="small-100">
-                      <s-text color="subdued">{k.label}</s-text>
-                      <s-heading>{k.value}</s-heading>
-                      <s-text color="subdued">{k.note}</s-text>
-                    </s-stack>
-                  </s-box>
+                  <div key={k.label} className={css.tile}>
+                    <span className={css.label}>{k.label}</span>
+                    <span className={/\d/.test(k.value) ? css.value : css.valueText}>{k.value}</span>
+                    <span className={css.note}>{k.note}</span>
+                  </div>
                 ))}
-              </s-grid>
+              </div>
               <s-text color="subdued">Real orders only. Items are counted when the page added them to a new cart (marked on the cart line); codes when an order used a code the Track page gave. An order that used a code and also has a marked item shows in both.</s-text>
             </s-stack>
           </s-section>
@@ -395,20 +371,18 @@ export default function Analytics() {
             </>
             )}
             {r?.groups ? (
-              <s-grid gridTemplateColumns="1fr 1fr" gap="base">
-                <s-box padding="base" borderWidth="base" borderRadius="base">
-                  <s-text type="strong">See the app</s-text>
-                  <s-paragraph>
-                    {r.groups.app.orders} orders · {fmt(r.groups.app.revenue)}
-                  </s-paragraph>
-                </s-box>
-                <s-box padding="base" borderWidth="base" borderRadius="base">
-                  <s-text type="strong">Holdout ({data.xp.holdout}%)</s-text>
-                  <s-paragraph>
-                    {r.groups.holdout.orders} orders · {fmt(r.groups.holdout.revenue)}
-                  </s-paragraph>
-                </s-box>
-              </s-grid>
+              <div className={css.tiles2}>
+                <div className={css.tile}>
+                  <span className={css.label}>See the app</span>
+                  <span className={css.value}>{fmt(r.groups.app.revenue)}</span>
+                  <span className={css.note}>{`${r.groups.app.orders} orders`}</span>
+                </div>
+                <div className={css.tile}>
+                  <span className={css.label}>{`Holdout (${data.xp.holdout}%)`}</span>
+                  <span className={css.value}>{fmt(r.groups.holdout.revenue)}</span>
+                  <span className={css.note}>{`${r.groups.holdout.orders} orders`}</span>
+                </div>
+              </div>
             ) : null}
             {r?.groups ? (
               r.lift === null ? (
