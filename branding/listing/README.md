@@ -70,11 +70,21 @@ script and pass it as `CHROME`).
   products (`demos/IMAGES.md`). The Analytics one is drawn like the app's Analytics page with example numbers and says
   "Example data". The feature image was rendered again with the same products.
 
+- 2026-10-27 (rules pass, App Store requirements 4.3.3, 4.3.4, 4.3.6 and 5.1.4): the feature image headline no longer
+  says "5+ apps" (a number) but "Your whole sales toolkit in one app"; its Reviews card and shot 3's customer review
+  (a quote could read as a testimonial) are replaced by the Thank you page and an FAQ; the thank you crop is taken
+  without the demo's green "CRO Toolbox" marks (the real extension never shows the app name to buyers); shot 6 is redrawn
+  to match the real Analytics Overview tab (`app/routes/app.analytics.tsx`: its four tiles, "Nothing to compare yet", the
+  60 day line and "A/B tests running"), with no comparisons, and its headline is "See what your offers earn". "One click offer after purchase" in
+  shot 1 stays: the app has a real `checkout_post_purchase` extension (`extensions/cro-post-purchase`).
+  Feature image alt text: "Bundles, upsells, thank you page, delivery estimate, stock message, free shipping bar,
+  cross sells, loyalty, order tracking and returns".
+
 ## Alt text for the 2026-10-27 screenshots
 
 1. `shot-1-offers.png`: "Frequently bought together, quantity breaks and cart offers"
 2. `shot-2-loyalty.png`: "The rewards panel with ways to earn points and rewards to spend them on"
-3. `shot-3-sections.png`: "Benefits row, customer reviews, a delivery estimate, a stock message and a free shipping bar"
+3. `shot-3-sections.png`: "Benefits row, an FAQ, a delivery estimate, a stock message and a free shipping bar"
 4. `shot-4-tracking.png`: "Track order page on its way and delivered, with a next order code and a review link"
 5. `shot-5-returns.png`: "Returns page offering store credit with a bonus, a refund or an exchange"
 6. `shot-6-analytics.png`: "Analytics page with sales from the app, offer results and an A/B test"

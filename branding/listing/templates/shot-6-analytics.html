@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Listing screenshot 6: the app's Analytics page (admin), drawn like the app with example numbers, marked "Example data". Render: scripts/listing/render.sh shot-6-analytics -->
+<!-- Listing screenshot 6: the app's Analytics page (admin), drawn like the app (Overview tab, app.analytics.tsx, #329) with example numbers, marked "Example data". Render: scripts/listing/render.sh shot-6-analytics -->
 <html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
 <style>
   .admin { position: absolute; left: 200px; top: 300px; width: 1200px; background: #f1f1f1; border-radius: 18px; padding: 22px 24px 24px; color: #303030;
@@ -43,27 +43,29 @@
       <h3>Last 30 days</h3>
       <div class="tiles">
         <div class="tile"><small>Sales from the app</small><b>$4,820</b><i>+18% vs the 30 days before</i></div>
-        <div class="tile"><small>Orders with app items</small><b>132</b><i>+11%</i></div>
+        <div class="tile"><small>Orders with app items</small><b>132</b><i>+11% vs the 30 days before</i></div>
         <div class="tile"><small>Average order with app items</small><b>$68.40</b><i>$49.10 without</i></div>
         <div class="tile"><small>Share of your sales</small><b>21%</b><i>from offers and widgets</i></div>
       </div>
     </div>
     <div class="row2">
       <div class="panel">
-        <h3>Offers and widgets · last 60 days</h3>
+        <h3>Top offers · last 30 days</h3>
         <table>
           <tr><th>Offer</th><th>Type</th><th class="n">Orders</th><th class="n">Sales</th></tr>
           <tr><td>Buy more, save more</td><td>Quantity breaks</td><td class="n">54</td><td class="n">$1,940</td></tr>
           <tr><td>Build your candle set</td><td>Mix and match</td><td class="n">31</td><td class="n">$1,210</td></tr>
           <tr><td>Pairs well with</td><td>Cross sell</td><td class="n">27</td><td class="n">$860</td></tr>
         </table>
+        <div style="font-size:14px;color:#005bd3;margin-top:10px">See every offer and widget</div>
       </div>
       <div class="panel">
         <h3>A/B test · Buy 2 discount</h3>
         <div class="ab">
-          <div class="v"><span>Version A · 10% off</span><b>$22.40 per visitor</b></div>
-          <div class="v win"><span>Version B · 15% off<span class="pill">Ahead</span></span><b>$25.10 per visitor</b></div>
-          <div style="font-size:13px;color:#616161">Shoppers split evenly · 2,412 visitors so far</div>
+          <div class="v"><span>Version A · as saved</span><b>$22.40 per shopper</b></div>
+          <div class="v win"><span>Version B<span class="pill">Ahead</span></span><b>$25.10 per shopper</b></div>
+          <div style="font-size:13px;color:#616161">Shoppers split evenly · 2,412 shoppers so far</div>
+          <div style="font-size:14px;color:#005bd3">See the results</div>
         </div>
       </div>
     </div>

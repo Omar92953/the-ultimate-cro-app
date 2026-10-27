@@ -1,7 +1,7 @@
 # Widget crops for the listing images, taken from the live demos (https://crotoolbox.com/demo/<demo>/).
-# Coordinates are CSS pixels in a 1600 x 1100 window (the first design on each demo page); capture.sh
+# Coordinates are CSS pixels in a 1600 x 1100 window (or the width in the optional last column) (the first design on each demo page); capture.sh
 # shoots at 2x and crops, so the PNGs stay sharp. After the demos change, check each crop and fix the box.
-# name     demo             x0    y0    x1    y1
+# name     demo             x0    y0    x1    y1    [window width]
 fbt        bundles          833   395   1340  775
 qty        upsell           825   352   1348  584
 cart       cart-offers      1024  500   1403  679
@@ -13,3 +13,4 @@ benefits   benefits         196   240   1404  380
 delivery   delivery         832   622   1340  678
 thanks     thank-you        272   368   852   594
 stock      stock-urgency    826   352   1346  402
+faq        faq              28    392   732   694   760
