@@ -73,8 +73,9 @@ script and pass it as `CHROME`).
 - 2026-10-27 (rules pass, App Store requirements 4.3.3, 4.3.4, 4.3.6 and 5.1.4): the feature image headline no longer
   says "5+ apps" (a number) but "Your whole sales toolkit in one app"; its Reviews card and shot 3's customer review
   (a quote could read as a testimonial) are replaced by the Thank you page and an FAQ; the thank you crop is taken
-  without the demo's green "CRO Toolbox" marks (the real extension never shows the app name to buyers); the Analytics
-  tiles in shot 6 no longer show comparisons (+18%, +11%, "$49.10 without"). "One click offer after purchase" in
+  without the demo's green "CRO Toolbox" marks (the real extension never shows the app name to buyers); shot 6 is redrawn
+  to match the real Analytics Overview tab (`app/routes/app.analytics.tsx`: its four tiles, "Nothing to compare yet", the
+  60 day line and "A/B tests running"), with no comparisons, and its headline is "See what your offers earn". "One click offer after purchase" in
   shot 1 stays: the app has a real `checkout_post_purchase` extension (`extensions/cro-post-purchase`).
   Feature image alt text: "Bundles, upsells, thank you page, delivery estimate, stock message, free shipping bar,
   cross sells, loyalty, order tracking and returns".
