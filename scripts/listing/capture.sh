@@ -7,11 +7,11 @@ cd "$(dirname "$0")/../.."
 . scripts/listing/_chrome.sh
 BASE="${DEMO_URL:-https://crotoolbox.com/demo}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-grep -v '^#' branding/listing/widgets.txt | while read -r name demo x0 y0 x1 y1; do
+grep -v '^#' branding/listing/widgets.txt | while read -r name demo x0 y0 x1 y1 win; do
   [ -n "$name" ] || continue
   if [ $# -gt 0 ] && [[ " $* " != *" $name "* ]]; then continue; fi
-  shot="$TMP/${demo//\//_}.png"   # demo can be a sub page, e.g. bundles/mixmatch
-  shoot "$BASE/$demo/" "$shot" 1600 1100 2
+  shot="$TMP/${demo//\//_}-${win:-1600}.png"   # demo can be a sub page, e.g. bundles/mixmatch
+  shoot "$BASE/$demo/" "$shot" "${win:-1600}" 1100 2
   w=$(( (x1 - x0) * 2 )); h=$(( (y1 - y0) * 2 ))
   out="branding/listing/widgets/$name.png"
   if command -v magick >/dev/null; then magick "$shot" -crop "${w}x${h}+$((x0*2))+$((y0*2))" +repage "$out"
