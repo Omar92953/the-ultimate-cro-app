@@ -23,6 +23,7 @@ import { listOffers } from "../lib/offers.server";
 import { OFFER_TYPES } from "../lib/offer-types";
 import { offerStats } from "../lib/offer-stats";
 import { money } from "../lib/format";
+import css from "../components/AnalyticsOverview.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -172,48 +173,38 @@ export default function Analytics() {
 
         {tab === "overview" && r ? (
           <s-section heading="Last 30 days">
-            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(160px, 1fr))" gap="base">
+            <div className={css.tiles}>
               {kpis.map((k) => (
-                <s-box key={k.label} padding="base" borderWidth="base" borderRadius="base">
-                  <s-stack gap="small-100">
-                    <s-text color="subdued">{k.label}</s-text>
-                    <s-heading>{k.value}</s-heading>
-                    {k.good === undefined ? <s-text color="subdued">{k.note}</s-text> : <s-text tone={k.good ? "success" : "critical"}>{k.note}</s-text>}
-                  </s-stack>
-                </s-box>
+                <div key={k.label} className={css.tile}>
+                  <span className={css.label}>{k.label}</span>
+                  <span className={css.value}>{k.value}</span>
+                  <span className={k.good === undefined ? css.note : k.good ? css.up : css.down}>{k.note}</span>
+                </div>
               ))}
-            </s-grid>
+            </div>
           </s-section>
         ) : null}
 
         {tab === "overview" && r ? (
-          <s-grid gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap="base">
-            <s-section heading="Top offers · last 30 days" padding={data.topOffers.length ? "none" : undefined}>
+          <div className={css.row2}>
+            <s-section heading="Top offers · last 30 days">
               {data.topOffers.length ? (
-                <s-stack gap="none">
-                  <s-table>
-                    <s-table-header-row>
-                      <s-table-header listSlot="primary">Offer</s-table-header>
-                      <s-table-header>Type</s-table-header>
-                      <s-table-header format="numeric">Orders</s-table-header>
-                      <s-table-header format="numeric">Sales</s-table-header>
-                    </s-table-header-row>
-                    <s-table-body>
+                <s-stack gap="small-200">
+                  <table className={css.table}>
+                    <thead>
+                      <tr><th>Offer</th><th>Type</th><th className={css.num}>Orders</th><th className={css.num}>Sales</th></tr>
+                    </thead>
+                    <tbody>
                       {data.topOffers.map((o) => (
-                        <s-table-row key={o.id}>
-                          <s-table-cell>{o.name}</s-table-cell>
-                          <s-table-cell>{o.type}</s-table-cell>
-                          <s-table-cell>{o.orders}</s-table-cell>
-                          <s-table-cell>{fmt(o.revenue)}</s-table-cell>
-                        </s-table-row>
+                        <tr key={o.id}><td>{o.name}</td><td>{o.type}</td><td className={css.num}>{o.orders}</td><td className={css.num}>{fmt(o.revenue)}</td></tr>
                       ))}
-                    </s-table-body>
-                  </s-table>
-                  <s-box padding="base">
+                    </tbody>
+                  </table>
+                  <s-stack direction="inline">
                     <Button variant="tertiary" onClick={() => setTab("offers")}>
                       See every offer and widget
                     </Button>
-                  </s-box>
+                  </s-stack>
                 </s-stack>
               ) : (
                 <s-paragraph>No orders with an offer&apos;s items in the last 30 days yet.</s-paragraph>
@@ -222,18 +213,20 @@ export default function Analytics() {
             <s-section heading={abTest ? `A/B test · ${abTest.name}` : "A/B tests"}>
               {abTest && ab ? (
                 <s-stack gap="small-200">
-                  {(["A", "B"] as const).map((v) => (
-                    <s-box key={v} padding="small-300" borderRadius="base" background={ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close" ? "subdued" : undefined} borderWidth="base">
-                      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                        <s-stack direction="inline" gap="small-200" alignItems="center">
-                          <s-text>{v === "A" ? "Version A · as saved" : "Version B"}</s-text>
-                          {ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close" ? <Pill tone="ok">Ahead</Pill> : null}
-                        </s-stack>
-                        <s-text type="strong">{(v === "A" ? ab.perView.a : ab.perView.b) === null ? "No shoppers yet" : `${money((v === "A" ? ab.perView.a : ab.perView.b)!, r.currency)} per shopper`}</s-text>
-                      </s-stack>
-                    </s-box>
-                  ))}
-                  <s-text color="subdued">{`Shoppers split evenly · ${(ab.a.views + ab.b.views).toLocaleString()} shoppers so far`}</s-text>
+                  {(["A", "B"] as const).map((v) => {
+                    const ahead = ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close";
+                    const per = v === "A" ? ab.perView.a : ab.perView.b;
+                    return (
+                      <div key={v} className={`${css.version} ${ahead ? css.ahead : ""}`}>
+                        <span>
+                          {v === "A" ? "Version A · as saved" : "Version B"}
+                          {ahead ? <span className={css.pill}>Ahead</span> : null}
+                        </span>
+                        <strong>{per === null ? "No shoppers yet" : `${money(per, r.currency)} per shopper`}</strong>
+                      </div>
+                    );
+                  })}
+                  <span className={css.note}>{`Shoppers split evenly · ${(ab.a.views + ab.b.views).toLocaleString()} shoppers so far`}</span>
                   <s-stack direction="inline">
                     <Button variant="tertiary" onClick={() => setTab("tests")}>
                       See the results
@@ -249,7 +242,7 @@ export default function Analytics() {
                 </s-stack>
               )}
             </s-section>
-          </s-grid>
+          </div>
         ) : null}
 
         {tab === "tests" ? (
