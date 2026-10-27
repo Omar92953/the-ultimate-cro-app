@@ -1,0 +1,23 @@
+/* Analytics Overview tab (app.analytics.tsx): number tiles, top offers and the A/B test, like the listing screenshot 6. */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+.tile { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 12px 14px; background: #f7f7f7; border-radius: 10px; }
+.label { font-size: 13px; color: #616161; }
+.value { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.5px; color: #303030; font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: #616161; }
+.up { font-size: 13px; font-weight: 600; color: #0a7d3f; }
+.down { font-size: 13px; font-weight: 600; color: #c70a24; }
+
+.row2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+
+.table { width: 100%; border-collapse: collapse; font-size: 14px; color: #303030; }
+.table th { text-align: left; font-weight: 600; color: #616161; font-size: 13px; padding: 0 0 8px; }
+.table td { padding: 8px 0; border-top: 1px solid #ededed; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.version { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #f7f7f7; border-radius: 10px; padding: 10px 12px; font-size: 14px; color: #303030; }
+.version strong { font-variant-numeric: tabular-nums; }
+.ahead { background: #e3f1df; }
+.pill { font-size: 12px; font-weight: 600; background: #cde9c5; color: #0c5132; padding: 2px 8px; border-radius: 6px; margin-left: 8px; }
