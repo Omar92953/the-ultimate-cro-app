@@ -18,12 +18,16 @@ import { Button, NumberField, Switch } from "../components/fields";
 import { PageIntro, Pill, Segmented } from "../components/ui";
 import { AbResults } from "../components/AbResults";
 import { listTests, testResults } from "../lib/ab-tests.server";
-import { AB_CHANGE_LABELS, testSummary, type AbResult } from "../lib/ab-tests";
+import { AB_CHANGE_LABELS, type AbResult } from "../lib/ab-tests";
+import { listOffers } from "../lib/offers.server";
+import { OFFER_TYPES } from "../lib/offer-types";
+import { offerStats } from "../lib/offer-stats";
+import { money } from "../lib/format";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
-  const [raw, theme, info, lookups, kept, tests] = await Promise.all([
+  const [raw, theme, info, lookups, kept, tests, offers] = await Promise.all([
     // Shared with Home (same key as value.server.ts cachedResults): the slow order read runs once per shop every 10 minutes.
     remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp, session.shop), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
@@ -31,6 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     lookupsSince(session.shop, 30).catch(() => 0),
     returnSavings(session.shop, 30).catch(() => null),
     listTests(admin).catch(() => []),
+    listOffers(admin).catch(() => []),
   ]);
   // A/B test results (tests are created on the Offers page): the running ones and the latest ended ones.
   const abResults = await testResults(admin, session.shop, tests.slice(0, 10)).catch(() => ({}) as Record<string, AbResult>);
@@ -48,7 +53,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const { bySource, byBundle, ...rest } = raw;
     results = { ...rest, sources: cut(bySource), bundles: cut(byBundle) };
   }
-  return { tests, abResults, lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
+  // Overview: the offers that sold the most in the last 30 days (Offers hub keys, results.server.ts byOffer),
+  // as many as the plan shows one by one, three at most.
+  const topOffers = "error" in raw
+    ? []
+    : offers
+        .flatMap((o) => {
+          const st = o.statKeys ? offerStats(raw.byOffer, o.statKeys) : undefined;
+          return st && st.revenue > 0 ? [{ id: o.id, name: o.name, type: OFFER_TYPES[o.type].title, orders: st.orders, revenue: st.revenue }] : [];
+        })
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, Math.min(3, n ?? 3));
+  return { tests, abResults, topOffers, lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -109,14 +125,20 @@ export default function Analytics() {
   const running = data.tests.filter((t) => t.status === "running");
   const cur = r?.periods.current;
   const prev = r?.periods.previous;
-  const kpis = cur && prev
+  const delta = (d: number | null, long = false) => (d === null ? null : `${d >= 0 ? "+" : ""}${d}%${long ? " vs the 30 days before" : ""}`);
+  const avgWith = cur && cur.appOrders ? cur.appOrdersTotal / cur.appOrders : null;
+  const avgWithout = cur && cur.orders > cur.appOrders ? (cur.revenue - cur.appOrdersTotal) / (cur.orders - cur.appOrders) : null;
+  const kpis: { label: string; value: string; note: string; good?: boolean }[] = cur && prev && r
     ? [
-        { label: "Sales from the app", value: fmt(cur.appRevenue), delta: change(cur.appRevenue, prev.appRevenue) },
-        { label: "Orders with the app's items", value: String(cur.appOrders), delta: change(cur.appOrders, prev.appOrders) },
-        { label: "Share of your sales", value: cur.revenue ? `${Math.round((cur.appRevenue / cur.revenue) * 100)}%` : "No data yet", delta: null },
-        { label: "All orders", value: String(cur.orders), delta: change(cur.orders, prev.orders) },
+        { label: "Sales from the app", value: fmt(cur.appRevenue), note: delta(change(cur.appRevenue, prev.appRevenue), true) ?? "Nothing to compare yet", good: change(cur.appRevenue, prev.appRevenue) !== null ? change(cur.appRevenue, prev.appRevenue)! >= 0 : undefined },
+        { label: "Orders with app items", value: String(cur.appOrders), note: delta(change(cur.appOrders, prev.appOrders), true) ?? "Nothing to compare yet", good: change(cur.appOrders, prev.appOrders) !== null ? change(cur.appOrders, prev.appOrders)! >= 0 : undefined },
+        { label: "Average order with app items", value: avgWith === null ? "No orders yet" : money(avgWith, r.currency), note: avgWithout === null ? "No orders without app items" : `${money(avgWithout, r.currency)} without`, good: avgWith !== null && avgWithout !== null ? avgWith >= avgWithout : undefined },
+        { label: "Share of your sales", value: cur.revenue ? `${Math.round((cur.appRevenue / cur.revenue) * 100)}%` : "No data yet", note: "from offers and widgets" },
       ]
     : [];
+  // The A/B test the Overview shows: a running one with results first, else the latest with results.
+  const abTest = [...running, ...data.tests].find((t) => data.abResults[t.id]);
+  const ab = abTest ? data.abResults[abTest.id] : null;
 
   return (
     <s-page heading="Analytics" inlineSize="large">
@@ -150,43 +172,84 @@ export default function Analytics() {
 
         {tab === "overview" && r ? (
           <s-section heading="Last 30 days">
-            <s-stack gap="base">
-              <s-grid gridTemplateColumns="repeat(auto-fit, minmax(160px, 1fr))" gap="base">
-                {kpis.map((k) => (
-                  <s-box key={k.label} padding="base" borderWidth="base" borderRadius="base">
-                    <s-stack gap="small-100">
-                      <s-text color="subdued">{k.label}</s-text>
-                      <s-heading>{k.value}</s-heading>
-                      {k.delta !== null ? (
-                        <s-text tone={k.delta >= 0 ? "success" : "critical"}>{`${k.delta >= 0 ? "+" : ""}${k.delta}% vs the 30 days before`}</s-text>
-                      ) : (
-                        <s-text color="subdued">Nothing to compare yet</s-text>
-                      )}
-                    </s-stack>
-                  </s-box>
-                ))}
-              </s-grid>
-              <s-text color="subdued">{`Last 60 days: ${r.orders} orders · ${fmt(r.revenue)} in sales.`}</s-text>
-            </s-stack>
+            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(160px, 1fr))" gap="base">
+              {kpis.map((k) => (
+                <s-box key={k.label} padding="base" borderWidth="base" borderRadius="base">
+                  <s-stack gap="small-100">
+                    <s-text color="subdued">{k.label}</s-text>
+                    <s-heading>{k.value}</s-heading>
+                    {k.good === undefined ? <s-text color="subdued">{k.note}</s-text> : <s-text tone={k.good ? "success" : "critical"}>{k.note}</s-text>}
+                  </s-stack>
+                </s-box>
+              ))}
+            </s-grid>
           </s-section>
         ) : null}
 
-        {tab === "overview" && running.length ? (
-          <s-section heading="A/B tests running">
-            <s-stack gap="small-200">
-              {running.map((t) => (
-                <s-stack key={t.id} direction="inline" gap="base" alignItems="center" justifyContent="space-between">
-                  <s-text>{t.name}</s-text>
-                  <s-text color="subdued">{testSummary(data.abResults[t.id])}</s-text>
+        {tab === "overview" && r ? (
+          <s-grid gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap="base">
+            <s-section heading="Top offers · last 30 days" padding={data.topOffers.length ? "none" : undefined}>
+              {data.topOffers.length ? (
+                <s-stack gap="none">
+                  <s-table>
+                    <s-table-header-row>
+                      <s-table-header listSlot="primary">Offer</s-table-header>
+                      <s-table-header>Type</s-table-header>
+                      <s-table-header format="numeric">Orders</s-table-header>
+                      <s-table-header format="numeric">Sales</s-table-header>
+                    </s-table-header-row>
+                    <s-table-body>
+                      {data.topOffers.map((o) => (
+                        <s-table-row key={o.id}>
+                          <s-table-cell>{o.name}</s-table-cell>
+                          <s-table-cell>{o.type}</s-table-cell>
+                          <s-table-cell>{o.orders}</s-table-cell>
+                          <s-table-cell>{fmt(o.revenue)}</s-table-cell>
+                        </s-table-row>
+                      ))}
+                    </s-table-body>
+                  </s-table>
+                  <s-box padding="base">
+                    <Button variant="tertiary" onClick={() => setTab("offers")}>
+                      See every offer and widget
+                    </Button>
+                  </s-box>
                 </s-stack>
-              ))}
-              <s-stack direction="inline">
-                <Button variant="tertiary" onClick={() => setTab("tests")}>
-                  See the results
-                </Button>
-              </s-stack>
-            </s-stack>
-          </s-section>
+              ) : (
+                <s-paragraph>No orders with an offer&apos;s items in the last 30 days yet.</s-paragraph>
+              )}
+            </s-section>
+            <s-section heading={abTest ? `A/B test · ${abTest.name}` : "A/B tests"}>
+              {abTest && ab ? (
+                <s-stack gap="small-200">
+                  {(["A", "B"] as const).map((v) => (
+                    <s-box key={v} padding="small-300" borderRadius="base" background={ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close" ? "subdued" : undefined} borderWidth="base">
+                      <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
+                        <s-stack direction="inline" gap="small-200" alignItems="center">
+                          <s-text>{v === "A" ? "Version A · as saved" : "Version B"}</s-text>
+                          {ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close" ? <Pill tone="ok">Ahead</Pill> : null}
+                        </s-stack>
+                        <s-text type="strong">{(v === "A" ? ab.perView.a : ab.perView.b) === null ? "No shoppers yet" : `${money((v === "A" ? ab.perView.a : ab.perView.b)!, r.currency)} per shopper`}</s-text>
+                      </s-stack>
+                    </s-box>
+                  ))}
+                  <s-text color="subdued">{`Shoppers split evenly · ${(ab.a.views + ab.b.views).toLocaleString()} shoppers so far`}</s-text>
+                  <s-stack direction="inline">
+                    <Button variant="tertiary" onClick={() => setTab("tests")}>
+                      See the results
+                    </Button>
+                  </s-stack>
+                </s-stack>
+              ) : (
+                <s-stack gap="small-200">
+                  <s-paragraph>Show half of your shoppers a second version of an upsell or cross sell and see which one sells more.</s-paragraph>
+                  <s-stack direction="inline">
+                    <s-link href="/app/offers/tests">Start a test</s-link>
+                  </s-stack>
+                </s-stack>
+              )}
+            </s-section>
+          </s-grid>
         ) : null}
 
         {tab === "tests" ? (
