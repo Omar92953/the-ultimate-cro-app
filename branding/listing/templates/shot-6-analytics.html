@@ -1,8 +1,8 @@
 <!doctype html>
-<!-- Listing screenshot 6: the app's Analytics page (admin), drawn like the Overview tab of app/routes/app.analytics.tsx (same labels and texts) with example numbers, marked "Example data". Render: scripts/listing/render.sh shot-6-analytics -->
+<!-- Listing screenshot 6: the app's Analytics page (admin), drawn like the app (Overview tab, app.analytics.tsx, #329) with example numbers, marked "Example data". Render: scripts/listing/render.sh shot-6-analytics -->
 <html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
 <style>
-  .admin { position: absolute; left: 200px; top: 320px; width: 1200px; background: #f1f1f1; border-radius: 18px; padding: 22px 24px 24px; color: #303030;
+  .admin { position: absolute; left: 200px; top: 300px; width: 1200px; background: #f1f1f1; border-radius: 18px; padding: 22px 24px 24px; color: #303030;
     box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06); font-family: -apple-system, "SF Pro Text", Inter, sans-serif; }
   .admin .head { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 650; }
   .admin .head .ex { margin-left: auto; font-size: 13px; font-weight: 600; color: #616161; background: #e3e3e3; padding: 4px 10px; border-radius: 8px; }
@@ -12,19 +12,27 @@
   .panel { background: #fff; border-radius: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.07), inset 0 0 0 1px #e8e8e8; padding: 16px 18px; margin-top: 14px; }
   .panel h3 { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .tile { background: #fff; border: 1px solid #e3e3e3; border-radius: 10px; padding: 12px 14px; }
+  .tile { background: #f7f7f7; border-radius: 10px; padding: 12px 14px; }
   .tile small { display: block; font-size: 13px; color: #616161; }
   .tile b { display: block; font-size: 28px; font-weight: 700; margin-top: 6px; letter-spacing: -.5px; }
-  .tile i { display: block; font-style: normal; font-size: 13px; color: #616161; margin-top: 4px; }
-  .note { font-size: 13px; color: #616161; margin-top: 12px; }
-  .test { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
-  .test .sub { color: #616161; }
-  .link { display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 550; color: #005bd3; }
+  .tile i { font-style: normal; font-size: 13px; color: #0a7d3f; font-weight: 600; }
+  .row2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: #616161; font-size: 13px; padding: 0 0 8px; }
+  td { padding: 8px 0; border-top: 1px solid #ededed; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { font-size: 12px; background: #e3f1df; color: #0c5132; padding: 2px 8px; border-radius: 6px; margin-left: 6px; font-weight: 600; }
+  .ab { display: grid; gap: 10px; }
+  .ab .v { display: flex; justify-content: space-between; align-items: center; background: #f7f7f7; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+  .ab .v b { font-variant-numeric: tabular-nums; }
+  .ab .win { background: #e3f1df; }
+  .bar { height: 8px; border-radius: 99px; background: #e3e3e3; margin-top: 6px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: #29845a; border-radius: 99px; }
 </style></head>
 <body>
   <div class="top">
     <img class="logo" src="../logo.svg" alt="">
-    <h1>See what your offers <span>earn</span></h1>
+    <h1>See what every offer <span>earns</span></h1>
     <div class="checks"><div><b>✓</b>Sales from your real orders</div><div><b>✓</b>A/B tests for offers</div><div><b>✓</b>A holdout test for the whole app</div></div>
   </div>
 
@@ -34,18 +42,32 @@
     <div class="panel">
       <h3>Last 30 days</h3>
       <div class="tiles">
-        <div class="tile"><small>Sales from the app</small><b>$4,820</b><i>Nothing to compare yet</i></div>
-        <div class="tile"><small>Orders with the app's items</small><b>132</b><i>Nothing to compare yet</i></div>
-        <div class="tile"><small>Share of your sales</small><b>21%</b><i>Nothing to compare yet</i></div>
-        <div class="tile"><small>All orders</small><b>628</b><i>Nothing to compare yet</i></div>
+        <div class="tile"><small>Sales from the app</small><b>$4,820</b><i>+18% vs the 30 days before</i></div>
+        <div class="tile"><small>Orders with app items</small><b>132</b><i>+11% vs the 30 days before</i></div>
+        <div class="tile"><small>Average order with app items</small><b>$68.40</b><i>$49.10 without</i></div>
+        <div class="tile"><small>Share of your sales</small><b>21%</b><i>from offers and widgets</i></div>
       </div>
-      <p class="note">Last 60 days: 1,190 orders · $44,600 in sales.</p>
     </div>
-    <div class="panel">
-      <h3>A/B tests running</h3>
-      <div class="test"><span>Buy 2 discount</span><span class="sub">Collecting shoppers</span></div>
-      <div class="test"><span>Pairs well with</span><span class="sub">Collecting shoppers</span></div>
-      <span class="link">See the results</span>
+    <div class="row2">
+      <div class="panel">
+        <h3>Top offers · last 30 days</h3>
+        <table>
+          <tr><th>Offer</th><th>Type</th><th class="n">Orders</th><th class="n">Sales</th></tr>
+          <tr><td>Buy more, save more</td><td>Quantity breaks</td><td class="n">54</td><td class="n">$1,940</td></tr>
+          <tr><td>Build your candle set</td><td>Mix and match</td><td class="n">31</td><td class="n">$1,210</td></tr>
+          <tr><td>Pairs well with</td><td>Cross sell</td><td class="n">27</td><td class="n">$860</td></tr>
+        </table>
+        <div style="font-size:14px;color:#005bd3;margin-top:10px">See every offer and widget</div>
+      </div>
+      <div class="panel">
+        <h3>A/B test · Buy 2 discount</h3>
+        <div class="ab">
+          <div class="v"><span>Version A · as saved</span><b>$22.40 per shopper</b></div>
+          <div class="v win"><span>Version B<span class="pill">Ahead</span></span><b>$25.10 per shopper</b></div>
+          <div style="font-size:13px;color:#616161">Shoppers split evenly · 2,412 shoppers so far</div>
+          <div style="font-size:14px;color:#005bd3">See the results</div>
+        </div>
+      </div>
     </div>
   </div>
 </body></html>
