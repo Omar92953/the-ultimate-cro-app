@@ -15,7 +15,10 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
-## Status (2026-10-25)
+## Status (2026-10-28)
+
+- **Submitted to the App Store for review on 2026-10-28** (Omar). While in review: keep Render up, reply to the
+  reviewer's email within a day, fix only what they ask, and avoid deploying extension changes without need.
 
 - Live: Shopify app version **cro-toolbox-72**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
