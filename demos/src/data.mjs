@@ -17,17 +17,17 @@ const IMG = imgUrl;
 
 /** [handle, title, art kind, tint, price $, compare at $, variants?, extra] */
 const P = [
-  ["glow-serum", "Glow Serum", "serum", null, 34, 40, { name: "Size", values: [["30 ml", 34], ["50 ml", 46]] }, { tags: ["skincare", "glow"] }],
-  ["daily-cream", "Daily Cream", "cream", null, 28, null, null, { tags: ["skincare"] }],
-  ["oat-soap", "Oat Soap", "soap", null, 9, null, null, { tags: ["skincare", "gift"] }],
-  ["sea-shampoo", "Sea Shampoo", "bottle", null, 19, null, null, { tags: ["skincare"] }],
-  ["cedar-candle", "Cedar Candle", "candle", null, 22, null, null, { tags: ["home", "candle"] }],
-  ["fig-candle", "Fig Candle", "candle", "#7a4b5c", 22, null, null, { tags: ["home", "candle"] }],
-  ["amber-candle", "Amber Candle", "candle", "#a8692b", 22, null, null, { tags: ["home", "candle"] }],
-  ["linen-candle", "Linen Candle", "candle", "#8e9aa6", 22, null, null, { tags: ["home", "candle"] }],
-  ["sage-candle", "Sage Candle", "candle", "#6f8a6a", 22, null, null, { tags: ["home", "candle"] }],
-  ["rose-candle", "Rose Candle", "candle", "#b86b7b", 24, null, null, { tags: ["home", "candle"], stock: 0 }],
-  ["clay-mug", "Clay Mug", "mug", null, 18, null, null, { tags: ["home", "gift"] }],
+  ["glow-serum", "Daybreak Eau de Parfum", "serum", null, 34, 40, { name: "Size", values: [["30 ml", 34], ["50 ml", 46]] }, { tags: ["skincare", "glow"] }],
+  ["daily-cream", "Scented Elixir Set", "cream", null, 28, null, null, { tags: ["skincare"] }],
+  ["oat-soap", "Balance Body Mist", "soap", null, 9, null, null, { tags: ["skincare", "gift"] }],
+  ["sea-shampoo", "Amber Body Oil", "bottle", null, 19, null, null, { tags: ["skincare"] }],
+  ["cedar-candle", "Cedar Soy Candle", "candle", null, 22, null, null, { tags: ["home", "candle"] }],
+  ["fig-candle", "Bronzed Rose Candle", "candle", "#7a4b5c", 22, null, null, { tags: ["home", "candle"] }],
+  ["amber-candle", "Amber Glow Candle", "candle", "#a8692b", 22, null, null, { tags: ["home", "candle"] }],
+  ["linen-candle", "Linen Soy Candle", "candle", "#8e9aa6", 22, null, null, { tags: ["home", "candle"] }],
+  ["sage-candle", "Sage Glow Candle", "candle", "#6f8a6a", 22, null, null, { tags: ["home", "candle"] }],
+  ["rose-candle", "Rose Soy Candle", "candle", "#b86b7b", 24, null, null, { tags: ["home", "candle"], stock: 0 }],
+  ["clay-mug", "Grey Feather Perfume Oil", "mug", null, 18, null, null, { tags: ["home", "gift"] }],
   ["monstera-pot", "Monstera Pot", "plant", null, 32, null, null, { tags: ["home"] }],
   ["studio-tee", "Studio Tee", "tee", null, 26, null, { name: "Size", values: [["S", 26], ["M", 26], ["L", 26], ["XL", 28]] }, { tags: ["apparel"] }],
   ["canvas-tote", "Canvas Tote", "tote", null, 24, null, null, { tags: ["apparel", "gift"] }],
@@ -131,12 +131,12 @@ for (const [handle, list] of Object.entries(COLS)) {
 const daysAgo = (d) => new Date(Date.UTC(2026, 9, 14) - d * 86400e3).toISOString().slice(0, 10);
 const reviewProduct = (h) => ({ id: products[h].id, title: products[h].title, url: products[h].url, featured_image: products[h].featured_media });
 export const reviews = [
-  ["Maya R.", "The serum sinks in fast and my skin looks brighter after a week. Already ordered a second bottle.", 5, "glow-serum", "Austin", true, "google"],
+  ["Maya R.", "Fresh in the morning and still there in the evening. Already ordered a second bottle.", 5, "glow-serum", "Austin", true, "google"],
   ["Daniel K.", "Smells like a forest after rain. Burns evenly and lasts a long time.", 5, "cedar-candle", "Leeds", true, null],
   ["Priya S.", "Soft, thick and the size guide was spot on.", 5, "studio-tee", "Toronto", true, "instagram"],
-  ["Lucas M.", "Great mug, keeps coffee warm and looks lovely on the shelf.", 4, "clay-mug", "Lyon", false, null],
+  ["Lucas M.", "A few drops last all day. The bottle looks lovely on the shelf.", 4, "clay-mug", "Lyon", false, null],
   ["Hannah B.", "Bought the candle box as a gift. Beautifully packed, my sister loved it.", 5, "candle-box", "Dublin", true, "tiktok"],
-  ["Sam O.", "Light, gentle cream. No greasy feeling at all.", 5, "daily-cream", "Melbourne", true, null],
+  ["Sam O.", "Two scents I actually wear. Lovely as a gift.", 5, "daily-cream", "Melbourne", true, null],
 ].map(([name, text, rating, h, location, verified, source], i) =>
   ({ name, text, rating, product: reviewProduct(h), location, date: daysAgo(i * 4 + 2), verified, featured: i < 4, active: true, position: i + 1, source, media: i === 1 || i === 4 ? products[h].featured_media : null }),
 );
@@ -176,8 +176,8 @@ export const order = {
   payment: "PAID",
   fulfillment: "FULFILLED",
   items: [
-    { key: "11", title: "Glow Serum", variant: "30 ml", quantity: 1, image: IMG("glow-serum"), price: 34, swaps: [{ id: "101", title: "50 ml", price: 46 }] },
-    { key: "12", title: "Cedar Candle", variant: null, quantity: 2, image: IMG("cedar-candle"), price: 22, swaps: [{ id: "201", title: "Fig", price: 22 }, { id: "202", title: "Amber", price: 22 }] },
+    { key: "11", title: "Daybreak Eau de Parfum", variant: "30 ml", quantity: 1, image: IMG("glow-serum"), price: 34, swaps: [{ id: "101", title: "50 ml", price: 46 }] },
+    { key: "12", title: "Cedar Soy Candle", variant: null, quantity: 2, image: IMG("cedar-candle"), price: 22, swaps: [{ id: "201", title: "Fig", price: 22 }, { id: "202", title: "Amber", price: 22 }] },
   ],
   nextOrder: { code: "NEXT-3FA9C2D1", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" },
   prices: { currency: "USD", subtotal: 78, shipping: 0, discounts: 7.8, tax: 0, total: 70.2, refunded: 0 },
@@ -192,18 +192,18 @@ const rec = (handle) => {
 };
 order.recs = { like: ["daily-cream", "oat-soap", "sea-shampoo", "clay-mug"].map(rec), complete: ["fig-candle", "amber-candle"].map(rec) };
 
-/** "Buy again" for the demo order: the serum is in stock (its first demo variant), the candle is shown as sold out. */
+/** "Buy again" for the demo order: the perfume is in stock (its first demo variant), the candle is shown as sold out. */
 /** Track page offers (Pro) for the demo order: a cross sell with a real looking code below the tracking, free shipping above. */
 order.offers = {
   above: { kind: "shipping", headline: "Free shipping on your next order", text: "Add anything in the next 48 hours.", button: "Shop now", products: [], code: { code: "TRACK-91C4E07A", percent: 0, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
   below: { kind: "cross_sell", headline: "Pairs well with your order", text: "10% off for 48 hours.", button: "Add to cart", products: ["daily-cream", "oat-soap"].map(rec), code: { code: "TRACK-3FA9C2D1", percent: 10, minimum: 0, endsAt: "2026-10-22T12:00:00Z", currency: "USD" } },
 };
-order.buyAgain = { items: [{ variantId: catalog["glow-serum"].variants[0].id, quantity: 1, title: "Glow Serum (30 ml)" }], soldOut: ["Cedar Candle"] };
+order.buyAgain = { items: [{ variantId: catalog["glow-serum"].variants[0].id, quantity: 1, title: "Daybreak Eau de Parfum (30 ml)" }], soldOut: ["Cedar Soy Candle"] };
 
 /** Recent purchases for sales pop ups (no names, ever). */
 export const recent = (now) => [
-  { product: "Cedar Candle", handle: "cedar-candle", image: IMG("cedar-candle"), city: "Austin", at: new Date(now - 4 * 60e3).toISOString() },
-  { product: "Glow Serum", handle: "glow-serum", image: IMG("glow-serum"), city: "Leeds", at: new Date(now - 11 * 60e3).toISOString() },
+  { product: "Cedar Soy Candle", handle: "cedar-candle", image: IMG("cedar-candle"), city: "Austin", at: new Date(now - 4 * 60e3).toISOString() },
+  { product: "Daybreak Eau de Parfum", handle: "glow-serum", image: IMG("glow-serum"), city: "Leeds", at: new Date(now - 11 * 60e3).toISOString() },
   { product: "Studio Tee", handle: "studio-tee", image: IMG("studio-tee"), city: null, at: new Date(now - 26 * 60e3).toISOString() },
 ];
 
@@ -212,7 +212,7 @@ export const recent = (now) => [
  * 1044 is late (the apology and its code). Same items, prices, offers and recommendations.
  */
 const lateBox = { gift: "shipping", code: { code: "SORRY-5D90E1AA", percent: 0, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
-const afterBox = { reviewUrl: "", reviews: [{ title: "Glow Serum", handle: "glow-serum" }], returnsHandle: "returns", friend: { code: "FRIEND-8C21A0B7", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
+const afterBox = { reviewUrl: "", reviews: [{ title: "Daybreak Eau de Parfum", handle: "glow-serum" }], returnsHandle: "returns", friend: { code: "FRIEND-8C21A0B7", percent: 10, minimum: 0, endsAt: "2026-11-18T00:00:00Z", currency: "USD" } };
 export const orderStates = {
   1043: { ...order, name: "#1043", afterDelivery: afterBox, shipments: [{ status: "DELIVERED", company: "UPS", number: "1Z999AA10123456785", url: "#", delivered: "2026-10-14T00:00:00Z", estimated: "2026-10-14T00:00:00Z" }] },
   1044: { ...order, name: "#1044", delay: lateBox, shipments: [{ status: "IN_TRANSIT", company: "UPS", number: "1Z999AA10123456786", url: "#", delivered: null, estimated: "2026-10-12T00:00:00Z" }] },

@@ -16,6 +16,25 @@ Each photo's own page names its licence. Both kinds allow what the demos need:
 - **CC0** (https://www.shopify.com/stock-photos/licenses/creative-commons): Creative Commons Zero, free
   for commercial and noncommercial use, no attribution needed.
 
+## Fragrance products (2026-10-27)
+
+For the listing images (Omar: one collection shot the same way), these demo products use the photos of Shopify's
+mock.shop sample catalog "Velvet Aura" (https://fragrance.hydrogen.mock.shop), Shopify's own demo data for building and
+showing stores. Square crops, JPG, in `site/public/products/<handle>.jpg`:
+
+| Handle | Demo name | mock.shop product |
+|---|---|---|
+| `glow-serum` | Daybreak Eau de Parfum | frosted-glass-eau-de-parfum-bottle |
+| `daily-cream` | Scented Elixir Set | scented-elixir-bottle |
+| `oat-soap` | Balance Body Mist | restorative-toner-bottle |
+| `sea-shampoo` | Amber Body Oil | radiant-skincare-oil-in-earth-toned-container |
+| `clay-mug` | Grey Feather Perfume Oil | perfume-oil-edicion-limitada-pluma-gris |
+| `cedar-candle`, `linen-candle` (mirrored) | Cedar Soy Candle, Linen Soy Candle | soy-wax-jar-candle |
+| `fig-candle`, `rose-candle` (mirrored) | Bronzed Rose Candle, Rose Soy Candle | bronzed-rose-luxe-scented-candle |
+| `amber-candle`, `sage-candle` (mirrored) | Amber Glow Candle, Sage Glow Candle | soy-wax-candle-in-decorative-vessel |
+
+The Burst rows below for these candles are replaced by the table above.
+
 ## Rules used when picking
 
 - No people, hands or faces; no brands, logos or readable text on the product.

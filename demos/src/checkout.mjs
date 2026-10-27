@@ -57,9 +57,9 @@ const CSS = `<style>
 const img = (h) => imgUrl(h);
 const top = (label = "") => `<div class="co__top"><div class="page-width"><span class="co__brand">${STORE_NAME}</span><span class="co__bag">${label}</span></div></div>`;
 const LINES = [
-  ["glow-serum", "Glow Serum", "30 ml", 1, 34],
-  ["cedar-candle", "Cedar Candle", "", 2, 22],
-  ["clay-mug", "Clay Mug", "", 1, 18],
+  ["glow-serum", "Daybreak Eau de Parfum", "30 ml", 1, 34],
+  ["cedar-candle", "Cedar Soy Candle", "", 2, 22],
+  ["clay-mug", "Grey Feather Perfume Oil", "", 1, 18],
 ];
 function summary({ lines = LINES, discount = 0, shipping = "Free" } = {}) {
   const sub = lines.reduce((t, l) => t + l[3] * l[4], 0);
@@ -101,11 +101,11 @@ export function checkoutDesigns() {
     order_limits: [
       {
         title: "Minimum order total",
-        html: page(`${contact}<div class="co__err"><span>⚠</span><span><b>The minimum order is $25.00.</b>Add a little more to your cart to check out.</span></div><h2>Payment</h2><div class="co__opts">${opt("Credit card", "VISA · MC · AMEX", { on: true })}</div>${PAY}${note("Limit in CRO Toolbox: minimum order total $25. Checkout won't complete below it.")}`, summary({ lines: [["oat-soap", "Oat Soap", "", 2, 9]] })),
+        html: page(`${contact}<div class="co__err"><span>⚠</span><span><b>The minimum order is $25.00.</b>Add a little more to your cart to check out.</span></div><h2>Payment</h2><div class="co__opts">${opt("Credit card", "VISA · MC · AMEX", { on: true })}</div>${PAY}${note("Limit in CRO Toolbox: minimum order total $25. Checkout won't complete below it.")}`, summary({ lines: [["oat-soap", "Balance Body Mist", "", 2, 9]] })),
       },
       {
         title: "Maximum quantity per product",
-        html: page(`${contact}<div class="co__err"><span>⚠</span><span><b>Glow Serum: you can order up to 3.</b>Change the quantity in your cart to continue.</span></div><h2>Payment</h2><div class="co__opts">${opt("Credit card", "VISA · MC · AMEX", { on: true })}</div>${PAY}${note("Limit in CRO Toolbox: maximum 3 of Glow Serum per order, useful for launches and limited stock.")}`, summary({ lines: [["glow-serum", "Glow Serum", "30 ml", 5, 34]] })),
+        html: page(`${contact}<div class="co__err"><span>⚠</span><span><b>Daybreak Eau de Parfum: you can order up to 3.</b>Change the quantity in your cart to continue.</span></div><h2>Payment</h2><div class="co__opts">${opt("Credit card", "VISA · MC · AMEX", { on: true })}</div>${PAY}${note("Limit in CRO Toolbox: maximum 3 of Daybreak Eau de Parfum per order, useful for launches and limited stock.")}`, summary({ lines: [["glow-serum", "Daybreak Eau de Parfum", "30 ml", 5, 34]] })),
       },
     ],
     thank_you: [
@@ -123,7 +123,7 @@ export function checkoutDesigns() {
       {
         title: "One click offer after payment",
         html: `${CSS}<div class="co">${top("Payment received")}<div class="pp"><p style="color:#0b7a45;font-weight:700;margin:0">✓ Your order is confirmed</p><h1 style="font-size:26px;margin:8px 0 4px">Wait, add this to your order</h1><p style="color:#5a5c66;margin:0">A one time offer for you, shipped with your order. No need to enter your details again.</p>
-<div class="pp__box"><img src="${img("daily-cream")}" alt="Daily Cream"><div><h2 style="margin:0 0 6px;font-size:20px">Daily Cream</h2><p class="pp__price">$23.80<s>$28.00</s><span class="pp__save">15% off</span></p><p style="color:#5a5c66">Light, everyday moisture that pairs with the serum you just bought.</p><button class="pp__accept" type="button" onclick="this.textContent='Added to your order';this.disabled=true">Pay now · $23.80</button><button class="pp__decline" type="button">Decline this offer</button></div></div>
+<div class="pp__box"><img src="${img("daily-cream")}" alt="Scented Elixir Set"><div><h2 style="margin:0 0 6px;font-size:20px">Scented Elixir Set</h2><p class="pp__price">$23.80<s>$28.00</s><span class="pp__save">15% off</span></p><p style="color:#5a5c66">Two calm scents that pair with the perfume you just bought.</p><button class="pp__accept" type="button" onclick="this.textContent='Added to your order';this.disabled=true">Pay now · $23.80</button><button class="pp__decline" type="button">Decline this offer</button></div></div>
 <p class="co__note" style="text-align:left">Set in CRO Toolbox: the product and the discount. Shopify adds it to the paid order with one click; the button words are Shopify's own.</p></div></div>`,
       },
     ],
