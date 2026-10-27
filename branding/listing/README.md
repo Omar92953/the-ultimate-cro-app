@@ -72,7 +72,7 @@ script and pass it as `CHROME`).
 
 ## Alt text for the 2026-10-27 screenshots
 
-1. `shot-1-offers.png`: "Mix and match bundle, quantity breaks, cart offers, an after purchase offer and a free shipping bar"
+1. `shot-1-offers.png`: "Frequently bought together, quantity breaks and cart offers"
 2. `shot-2-loyalty.png`: "The rewards panel with ways to earn points and rewards to spend them on"
 3. `shot-3-sections.png`: "Benefits row, customer reviews, a delivery estimate, a stock message and a free shipping bar"
 4. `shot-4-tracking.png`: "Track order page on its way and delivered, with a next order code and a review link"
