@@ -55,18 +55,18 @@ script and pass it as `CHROME`).
 
 ## Status
 
-- Feature image approved (`branding/feature/feature-banner.png`), built from the current demos.
+- Feature image approved (`branding/app-store/feature-banner.png`), built from the current demos.
 - 2026-10-20: demos show real product photos (`demos/IMAGES.md`). Widgets re-captured (4 new: `mixmatch`,
   `benefits`, `delivery`, `thanks`), feature image rendered again, and the 6 screenshots designed:
   `templates/screenshot-1-bundles.html` to `screenshot-6-sections.html`, rendered to
-  `branding/screenshots/storefront/`. Waiting on Omar to look at them and upload.
+  `branding/old/screenshots/storefront/`. Waiting on Omar to look at them and upload.
 - 2026-10-24: three more candidates, Track page, Returns and Loyalty (`screenshot-7-track.html` to
   `screenshot-9-loyalty.html`), from crops that need a lookup or a click first: `live.mjs` lists them and
   `node scripts/listing/capture-live.mjs` takes them (it opens each demo's design page, runs the steps, waits for the
   pictures). The listing takes 6 screenshots at most: Omar picks which 6 of the 9.
 
 - 2026-10-27: the 6 listing screenshots Omar asked for, centred like the feature image (`templates/shot-1-offers.html` to
-  `shot-6-analytics.html`, rendered to `branding/screenshots/listing-2026-10-27/`), with the demos switched to fragrance
+  `shot-6-analytics.html`, rendered to `branding/app-store/`), with the demos switched to fragrance
   products (`demos/IMAGES.md`). The Analytics one is drawn like the app's Analytics page with example numbers and says
   "Example data". The feature image was rendered again with the same products.
 

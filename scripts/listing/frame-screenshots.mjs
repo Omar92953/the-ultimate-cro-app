@@ -1,14 +1,14 @@
 // Usage: node scripts/listing/frame-screenshots.mjs <repo root>  (needs playwright-core and Google Chrome; not a repo dependency)
-// Puts each real App Store screenshot (branding/screenshots/hires) into a branded 1600 x 900 frame with a
+// Puts each real App Store screenshot (branding/old/screenshots/hires) into a branded 1600 x 900 frame with a
 // short headline. Renders at 2x with Chrome, then the PNG is scaled to 1600 x 900.
 import { chromium } from "playwright-core";
 import fs from "node:fs";
 import path from "node:path";
 const R = process.argv[2];
-const SRC = path.join(R, "branding/screenshots/hires");
-const OUT = path.join(R, "branding/screenshots/framed");
+const SRC = path.join(R, "branding/old/screenshots/hires");
+const OUT = path.join(R, "branding/old/screenshots/framed");
 const FONT = path.join(R, "site/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2");
-const LOGO = fs.readFileSync(path.join(R, "branding/logo-wordmark-black.svg"), "utf8");
+const LOGO = fs.readFileSync(path.join(R, "branding/logos/logo-wordmark-black.svg"), "utf8");
 const SHOTS = [
   ["1-create-offer", "01-create-offer.png", "Every kind of offer in one place", "Upsells, bundles, cross sells and discounts"],
   ["2-bundle-editor", "09-bundle-editor.png", "Build bundles with a live preview", "Six bundle types, priced by Shopify at checkout"],

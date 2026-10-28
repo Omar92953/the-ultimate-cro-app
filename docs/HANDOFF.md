@@ -38,7 +38,7 @@ first, then `AGENTS.md`, `docs/billing.md`, `docs/hosting.md`, `docs/scopes.md`,
 |---|---|
 | Repo | https://github.com/Omar92953/the-ultimate-cro-app (default branch `main`) |
 | Working branch | a new `claude/<topic>` branch per change (PRs from there; never push to `main` directly) |
-| Omar's local clone (Mac) | `/Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox` (i.e. `/Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox`) |
+| Omar's local clone (Mac) | `/Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox`  |
 | App server | Render web service **cro-toolbox**, https://cro-toolbox.onrender.com (Virginia, Starter plan). Auto-deploys when `main` changes. |
 | Database | Supabase project **cro-toolbox** (id `mjrarywblutwmtakdkze`, us-east-1). Old project `ultimate-profit-tracker` is paused. Session pooler URL is in Render env (`DATABASE_URL`, `DIRECT_URL`). |
 | Dev store (all testing) | **Testing2** `testing2-j6mmnywm.myshopify.com` (the old `testing-store-2v65holh` is broken for the app, see above) |
@@ -61,7 +61,7 @@ first, then `AGENTS.md`, `docs/billing.md`, `docs/hosting.md`, `docs/scopes.md`,
 1. Cloud sessions can't run `shopify app deploy` (network blocks Shopify hosts + javy download).
    Omar runs on the Mac, one line so it stops if tests fail:
    ```
-   cd /Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox
+   cd "/Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox"
    git checkout claude/admiring-hypatia-x38z5c && git pull && npm run test:functions && npm run graphql-codegen && shopify app deploy
    ```
    He answers **y** to "Release a new version". (Don't run `shopify app dev clean` on the dev store.)

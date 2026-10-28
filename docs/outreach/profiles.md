@@ -18,8 +18,8 @@ assistants trust what many places agree on. After each profile is live, paste it
 - **Category:** Ecommerce software; Shopify apps; upselling and cross selling; product bundles
 - **Platform:** Shopify (web, any Online Store 2.0 theme)
 - **Languages:** English
-- **Logo:** `branding/app-icon.png` (square icon), `branding/logo-wordmark-black.png` · **Banner:** `branding/feature/feature-banner.png`
-- **Screenshots:** `branding/screenshots/listing/` (6, 1600 x 900)
+- **Logo:** `branding/logos/app-icon.png` (square icon), `branding/logos/logo-wordmark-black.png` · **Banner:** `branding/app-store/feature-banner.png`
+- **Screenshots:** `branding/old/screenshots/listing/` (6, 1600 x 900)
 - **Pricing:** Free plan (50 orders a month, 3 offers on at once). Starter $5.99 a month ($59 a year),
   Growth $19.99 a month ($199 a year), Pro $39.99 a month ($399 a year). 14 day free trial on paid
   plans. Billed through Shopify.
