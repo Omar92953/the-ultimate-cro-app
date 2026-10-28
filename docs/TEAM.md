@@ -13,7 +13,7 @@ What a session can do depends only on **where it runs**, not on which account it
 
 | Where the session runs | Can do |
 |---|---|
-| **On Omar's Mac** (Claude Code desktop or terminal, folder `~/Workspace/the-ultimate-cro-app`) | everything: code, checks, PRs, Shopify CLI (`shopify app deploy`, `shopify app execute`), `npm run test:functions`, the browser on Testing2 |
+| **On Omar's Mac** (Claude Code desktop or terminal, folder `/Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox`) | everything: code, checks, PRs, Shopify CLI (`shopify app deploy`, `shopify app execute`), `npm run test:functions`, the browser on Testing2 |
 | **In the cloud** (claude.ai/code, connected to the GitHub repo) | code, checks, PRs, merges. **Cannot** reach Shopify: no Shopify deploy, no `shopify app execute`, no function tests |
 
 So the only hand off is a Shopify deploy (see below): a cloud session that changes `theme/`,
@@ -69,7 +69,7 @@ by Render on its own when `main` changes.
 Run on the Mac (any account can):
 
 ```bash
-cd ~/Workspace/the-ultimate-cro-app && bash scripts/sync.sh
+cd /Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox && bash scripts/sync.sh
 ```
 
 It fetches GitHub, updates `main`, and reports anything that differs: uncommitted changes, local

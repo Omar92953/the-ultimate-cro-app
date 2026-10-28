@@ -20,7 +20,7 @@ account is no longer used. Lessons from the live checks, worth keeping in mind f
 
 ## How to start
 
-1. Claude desktop app → **Code** tab → new session in `~/Workspace/the-ultimate-cro-app` → model **Opus 5.5**.
+1. Claude desktop app → **Code** tab → new session in `/Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox` → model **Opus 5.5**.
 2. Say: **"Read HANDOFF.md and CLAUDE.md and follow them."**
 3. Run `git fetch --prune && git checkout main && git pull`. Then read `docs/TEAM.md`, `docs/WORKBOARD.md`
    (section "Loyalty and pre-final audit"), `docs/plans/loyalty.md`, `docs/PROJECT-GUIDE.md` and

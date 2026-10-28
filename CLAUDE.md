@@ -15,6 +15,12 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 4. Claim your task with a draft PR before writing code. Never rely on chat history: other accounts
    can't see it. Leave the state in the PR and the workboard.
 
+## Where it lives
+
+On Omar's Mac: `~/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox` (moved 2026-10-28 from
+`~/Workspace/the-ultimate-cro-app`). Old worktrees are in `../old work copies`. The Shopify app handle and the GitHub
+repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and Render depend on them).
+
 ## Status (2026-10-28)
 
 - **Submitted to the App Store for review on 2026-10-28** (Omar). While in review: keep Render up, reply to the
