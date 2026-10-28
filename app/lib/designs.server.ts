@@ -9,7 +9,6 @@ import { COUNTDOWN_PLACES, toStorefrontCountdownBar, withCountdownBarDefaults, t
 import { toStorefrontReviews, withReviewsDefaults, type ReviewsDesign, type ReviewsPlace } from "./reviews-design";
 import { toStorefrontShippingBar, withShippingBarDefaults, type ShippingBarConfig } from "./shipping-bar";
 import { toStorefrontPills, withPillsDefaults, type CollectionPillsConfig } from "./collection-pills";
-import { toStorefrontHeader, withHeaderDefaults, type HeaderConfig } from "./header";
 import { toStorefrontStock, withStockDefaults, type StockDesign } from "./stock-design";
 import { toStorefrontDelivery, withDeliveryDefaults, type DeliveryDesign } from "./delivery-design";
 import { toStorefrontPersonalize, withPersonalizeDefaults, type PersonalizeDesign } from "./personalize-design";
@@ -122,23 +121,6 @@ export async function saveAddons(admin: AdminClient, config: AddonsConfig, draft
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("addons"), { config: JSON.stringify(toStorefrontAddons(clean)) });
   await upsert(admin, "$app:cro_design", slotted("addons_draft"), { config: JSON.stringify(toStorefrontAddons(clean)) });
   if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("addons_editor"), { config: JSON.stringify(clean) });
-  return clean;
-}
-
-/* -------------------------------------------------------------------- header -- */
-export async function getHeader(admin: AdminClient): Promise<{ config: HeaderConfig; saved: boolean }> {
-  const raw = await getDesign(admin, "header_editor");
-  return { config: withHeaderDefaults(raw), saved: raw !== null };
-}
-
-export async function saveHeader(admin: AdminClient, config: HeaderConfig, draftOnly = false) {
-  const clean = withHeaderDefaults(config);
-  const logo = clean.logo.image ? (await imageFiles(admin, [clean.logo.image.id])).get(clean.logo.image.id) : undefined;
-  clean.logo.url = logo?.url ?? null;
-  const store = JSON.stringify(toStorefrontHeader(clean, clean.logo.url));
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("header"), { config: store });
-  await upsert(admin, "$app:cro_design", slotted("header_draft"), { config: store });
-  if (!draftOnly) await upsert(admin, "$app:cro_design", slotted("header_editor"), { config: JSON.stringify(clean) });
   return clean;
 }
 

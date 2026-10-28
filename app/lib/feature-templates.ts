@@ -19,7 +19,6 @@ import { ORDER_PAGE_PRESETS } from "./order-pages";
 import { PERSONALIZE_PRESETS } from "./personalize-design";
 import { CART_EXTRAS_PRESETS } from "./cart-extras-design";
 import { QUIZ_PRESETS } from "./quiz-design";
-import { PRESETS as HEADER_PRESETS } from "./header";
 import type { FeatureKey } from "./catalog";
 
 const t = (list: { title: string }[]) => list.map((p) => p.title);
@@ -42,7 +41,6 @@ export const TEMPLATES: Partial<Record<FeatureKey, string[]>> = {
   stock: t(STOCK_PRESETS),
   wishlist: t(WISHLIST_PRESETS),
   hero: t(HERO_PRESETS),
-  header: t(HEADER_PRESETS),
   track: t(ORDER_PAGE_PRESETS),
   returns: t(ORDER_PAGE_PRESETS),
   personalize: t(PERSONALIZE_PRESETS),

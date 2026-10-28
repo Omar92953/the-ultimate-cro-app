@@ -11,7 +11,6 @@ import type { HeroDesign } from "./hero-design";
 import type { QuickAddDesign } from "./quick-add-design";
 import type { CollectionPillsConfig } from "./collection-pills";
 import type { CountdownBarConfig } from "./designs";
-import type { HeaderConfig } from "./header";
 import type { ImageCarouselConfig } from "./image-carousel";
 import type { ReviewsDesign } from "./reviews-design";
 import type { ShippingBarConfig } from "./shipping-bar";
@@ -42,12 +41,6 @@ export const matchAddons = (c: AddonsConfig, s: ThemeScheme, st: ThemeStyle): Ad
   ...c,
   scheme: s.id,
   look: { ...c.look, accent: s.button, bg: s.bg, border: line(s, 0.15), radius: Math.min(st.radius.card, 24) },
-});
-
-export const matchHeader = (c: HeaderConfig, s: ThemeScheme): HeaderConfig => ({
-  ...c,
-  scheme: s.id,
-  look: { ...c.look, bg: s.bg, text: s.text, border: line(s, 0.12), accent: s.button, accentText: s.buttonText, panelBg: s.bg, panelText: s.text },
 });
 
 export const matchReviews = (c: ReviewsDesign, s: ThemeScheme, st: ThemeStyle): ReviewsDesign => {

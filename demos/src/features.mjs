@@ -15,11 +15,11 @@ const app = async (name) => import(`../../app/lib/${name}.ts`);
 
 const [
   upsellD, crossD, bundleD, videoD, reviewsD, faqD, logosD, annD, shipD, countD, quickD, deliveryD, stockD, wishD, heroD, carouselD, pillsD,
-  orderD, persD, extrasD, addonsD, quizD, deals, boostersD, sizeD, headerD,
+  orderD, persD, extrasD, addonsD, quizD, deals, boostersD, sizeD,
 ] = await Promise.all([
   "upsell-design", "cross-sell-design", "bundle-design", "video-carousel-design", "reviews-design", "faq-design", "logos-design", "announcement-design",
   "shipping-bar", "designs", "quick-add-design", "delivery-design", "stock-design", "wishlist-design", "hero-design", "image-carousel", "collection-pills",
-  "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters", "size-guide", "header",
+  "order-pages", "personalize-design", "cart-extras-design", "addons", "quiz-design", "deals", "boosters", "size-guide",
 ].map(app));
 
 const PAY_CSS = ["ucs-boosters.css"];
@@ -282,19 +282,6 @@ export async function buildFeatures({ block, shopWith, mo }) {
     top: await block("ucs-collection-pills", { collection: collections.candles, page_type: "collection", shop: shopWith({ designs: { collection_pills: pillsOf(look, layout) } }) }),
   })));
 
-  const menu = (titles) => ({ links: titles.map((t, i) => ({ title: t, url: `${BASE}/store/pages/${t.toLowerCase().replace(/ /g, "-")}`, active: i === 0, object: null, links: [] })) });
-  const linklists = { "main-menu": menu(["Shop", "Candles", "Skincare", "Gifts", "About"]) };
-  F.header = await Promise.all(headerD.PRESETS.map(async (p) => {
-    const cfg = headerD.toStorefrontHeader(headerD.applyPreset(headerD.withHeaderDefaults({ logo: { text: "Lumen Goods" }, button: { text: "Shop now" } }), p.key), null);
-    const heroCfg = heroD.toStorefrontHero(heroD.applyHeroPreset(heroD.withHeroDefaults({ text: { heading: "Slow evenings, made better", text: "Hand poured candles and gentle skincare.", b1: "Shop candles", b2: "" } }), "classic"));
-    const banner = mo("hero-demo", { name: "Demo", config: heroCfg, draft: null, image_desktop: heroImg, image_mobile: heroImgM });
-    return {
-      template: p.key, title: p.title, layout: "page", css: ["ucs-header.css"], minHeight: 520,
-      html: await block("ucs-hero", { settings: { banner }, shop: shopWith({ meta: { "$app:cro_hero": [banner] } }) }),
-      embeds: await block("ucs-header", { linklists, shop: shopWith({ designs: { header: cfg } }) }),
-    };
-  }));
-
   const orderPage = (kind) => async (p) => ({
     template: p.key, title: p.title, layout: "page",
     html: await block("ucs-order-page", { settings: { page: kind }, page_type: "page", shop: shopWith({ designs: { [`${kind}_page`]: orderD.toStorefrontOrderPage(orderD.applyOrderPagePreset(orderD.withOrderPageDefaults(kind === "track" ? { recs: { like: { on: true }, complete: { on: true }, count: 4 }, text: { sub: "Demo: try order 1042 (on its way), 1043 (delivered) or 1044 (late), with any email." } } : {}, kind), p.key)) } }) }),
@@ -357,7 +344,7 @@ export async function buildFeatures({ block, shopWith, mo }) {
     announcements: annD.ANNOUNCEMENT_PRESETS, countdown: countD.COUNTDOWN_BAR_PRESETS, shipping_bar: shipD.SHIPPING_BAR_PRESETS,
     quick_add: quickD.QUICK_ADD_PRESETS, delivery: deliveryD.DELIVERY_PRESETS, size_guide: sizeD.SIZE_GUIDE_PRESETS, stock: stockD.STOCK_PRESETS, wishlist: wishD.WISHLIST_PRESETS,
     hero: heroD.HERO_PRESETS, videos: videoD.VIDEO_CAROUSEL_PRESETS, faq: faqD.FAQ_PRESETS, quiz: quizD.QUIZ_PRESETS,
-    header: headerD.PRESETS, track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
+    track: orderD.ORDER_PAGE_PRESETS, returns: orderD.ORDER_PAGE_PRESETS,
   };
   return { features: F, recipes: R, templates: T };
 }

@@ -110,8 +110,7 @@ export const FEATURES = {
   faq: { title: "FAQ", area: "library", group: "content", about: "Questions and answers with search and group buttons.", tabs: [{ label: "Questions", href: "/app/sections/faq" }, design("/app/designs/faq")] },
   quiz: { title: "Product quiz", area: "library", group: "content", about: "A few questions that lead shoppers to the right products, with add to cart.", tabs: [design("/app/designs/quiz")] },
   collection_pills: { title: "Collection pills", area: "library", group: "content", about: "A row of buttons to your collections, with the current one highlighted.", tabs: [design("/app/designs/collection-pills")] },
-  header: { title: "Header", area: "library", group: "content", about: "Your store's header, designed in the app: logo, menu with dropdowns or mega menus, search, cart and glass looks.", tabs: [design("/app/designs/header")] },
-  // Tracking & returns pages
+  // Storefront · header & pages
   track: { title: "Track order page", area: "tracking", about: "A page where shoppers look up their order and its delivery status, and that sells too: recommendations, a next order discount, buy again, an after delivery message and an apology for late orders.", tabs: [design("/app/pages/track")] },
   returns: { title: "Returns", area: "tracking", about: "A page where shoppers ask for a return. It becomes a real Shopify return you approve, send a label for and refund.", tabs: [{ label: "Requests", href: "/app/returns" }, { label: "Rules", href: "/app/returns/rules" }, design("/app/pages/returns")], paths: ["/app/tracking-returns"] },
   // Checkout

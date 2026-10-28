@@ -1,8 +1,8 @@
 ---
 title: "Storefront sections"
-description: "Reviews, logos, FAQ, hero banners, carousels, videos, the quiz, collection pills and the header."
+description: "Reviews, logos, FAQ, hero banners, carousels, videos, the quiz and collection pills."
 order: 8
-features: ["reviews", "product_reviews", "logos", "faq", "hero", "image_carousel", "videos", "quiz", "collection_pills", "header"]
+features: ["reviews", "product_reviews", "logos", "faq", "hero", "image_carousel", "videos", "quiz", "collection_pills"]
 ---
 
 ## How sections work
@@ -28,7 +28,3 @@ Image carousel slides each have a picture, title, text, button and link. For the
 ## Quiz and collection pills
 
 The quiz asks a few questions whose answers point to product tags, then shows the best matching products with add to cart. Collection pills are a row of buttons to your collections, with the current one highlighted.
-
-## Header
-
-Design it in **Section library → Header**: logo, the menu from Online Store → Navigation (dropdowns or mega menus, with collection pictures), search, account, cart count, an optional button, glass and rounded looks, and how it behaves on phones and when scrolling. Click **Add to header** and save in the theme editor. While it's on, your theme's own header bar is hidden (its cart drawer keeps working); switch it off and the theme's header comes back.
