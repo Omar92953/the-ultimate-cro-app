@@ -119,3 +119,12 @@ SEO kicks in (3 to 6 months).
 (one PR each, two at a time). 4. robots, llms.txt, JSON-LD upgrades (one PR). 5. Blog routine. 6. Profiles
 on G2, Capterra, Product Hunt (Omar). 7. MCP directory submissions (after the MCP is tested on Testing 3).
 8. Monthly GEO check routine.
+
+## Status (2026-10-29)
+
+- Share previews: every built page has its image (Tutorials was missing), og:locale, image alt and type, article type
+  and dates on posts. Titles drop " | CRO Toolbox" when too long; descriptions are cut near 160 characters (`Base.astro`).
+- Loyalty on the home page (own section and hero) and in parts on pricing; A/B tests (up to 4 versions) and scheduled
+  offers on the feature pages, pricing and a new help guide. While the app is in review, `site/src/lib/app.ts`
+  `ABOUT_NOW` overrides the A/B line from `catalog.ts` and `LOYALTY_PRO` hides the loyalty email part.
+- Blog: 21 posts (new: loyalty program setup, referral program, schedule a sale).

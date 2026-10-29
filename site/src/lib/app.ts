@@ -76,3 +76,7 @@ export const SITE_AREAS: SiteArea[] = [
     features: [],
   },
 ];
+
+import { LOYALTY_PRO as ALL_LOYALTY_PRO } from "../../../app/lib/loyalty/config";
+/** What Pro adds to loyalty, without the parts of loyalty emails (hidden in the app until Postmark is set up). */
+export const LOYALTY_PRO = ALL_LOYALTY_PRO.filter((t) => !/own address/i.test(t));

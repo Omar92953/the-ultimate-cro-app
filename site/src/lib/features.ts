@@ -5,7 +5,7 @@
  */
 import type { FeatureKey } from "./app";
 import { LIVE_TRACKING, METERS, limitOf, type LimitKey, type PlanKey } from "../../../app/lib/plans";
-import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
+import { LOYALTY_PRO } from "./app";
 
 /** Scheduled offers (Pro, app/lib/schedule.ts): the line shown on each offer type that can be scheduled. */
 const SCHEDULE = "Pro: start and end it at set times in your store's time zone, like a weekend sale";
