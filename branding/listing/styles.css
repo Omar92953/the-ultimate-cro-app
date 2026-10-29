@@ -49,3 +49,15 @@ h1 span { color: var(--green); }
 .side h1 { font-size: 52px; margin-top: 28px; }
 .side p { font-size: 22px; line-height: 1.45; color: var(--muted); margin-top: 22px; }
 .side .checks { flex-direction: column; gap: 12px; justify-content: flex-start; margin-top: 28px; font-size: 20px; }
+
+/* Text left, card right (under the centred top block): shots 2, 4 and 5 (Omar, 2026-10-29) */
+.about { position: absolute; left: 150px; top: 300px; width: 640px; }
+.about h2 { font-size: 34px; font-weight: 800; letter-spacing: -.6px; line-height: 1.15; }
+.about h2 span { color: var(--green); }
+.about p { font-size: 19px; line-height: 1.45; color: var(--muted); margin-top: 12px; }
+.about ul { list-style: none; padding: 0; margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+.about li { display: flex; gap: 12px; font-size: 20px; line-height: 1.35; color: #fff; }
+.about li b { color: var(--green); }
+.about li small { display: block; font-size: 16px; color: var(--muted); margin-top: 2px; }
+.about .note { margin-top: 24px; font-size: 18px; color: var(--muted); }
+.about .note strong { color: #fff; }
