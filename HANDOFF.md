@@ -5,6 +5,32 @@ deploys, merges and Testing 3 checks from 2026-10-19 to 2026-10-22. Omar asked t
 account, which takes over **all** of that work. Everything is in the repo; never rely on old chats. Where
 `CLAUDE.md` or `docs/WORKBOARD.md` differ from this file, trust them.
 
+## Update 2026-10-29 (read this first)
+
+**The app is in App Store review** (resubmitted 2026-10-29, Shopify app version cro-toolbox-75). `CLAUDE.md` Status has
+the rules while in review: reply to the reviewer's email (omar@crotoolbox.com) within a day, fix only what they ask, no
+app or extension deploys without need, keep Render up and Testing 3 as it is (the reviewer may use it: the Track and
+Returns pages are in its Main menu, test order #1006, email ayumu.hirano@example.com).
+
+Done on 2026-10-29 (PRs #336 to #363): live tracking from our 17TRACK account off (`LIVE_TRACKING`); five ways to connect
+any courier with a Copy AI guide and AI assistant tracking tools; scheduled offers and A/B tests with up to 4 versions
+(Pro); Allow extra only for billed meters (`BILLED_METERS`, loyalty orders; live-shipments and loyalty-emails removed
+from the plans); Track page lists refunded items; Tracking & Returns notices deleted pages and guides adding them to the
+menu; listing text, images and pricing updated; `docs/paid-features-check.md`. Lessons: production uses
+`prisma/postgres/schema.prisma` (a test now keeps both schemas in step); the theme build broke silently after the move to a
+folder with spaces (fixed). Tomorrow 2026-10-30: the scheduled cross sell "Pairs well with" on Testing 3 should switch on
+at 09:00 and off at 23:30 New York time (check only).
+
+**Next, Omar's order (2026-10-29), current app first:**
+1. Website (`site/`, Astro on Cloudflare Pages, deploys from `main`): SEO and GEO (`docs/plans/seo-geo.md`), new blog
+   posts, fix the link previews (Open Graph images and tags, `site/src/pages/og`), show loyalty properly, and a clear page
+   for each feature. Website only while the app is in review: don't touch `app/`, `extensions/` or `theme/`.
+2. Later, Omar's ideas: more apps (like the profit tracker, `~/Workspace/Coding/Shopify apps/the-ultimate-profit-tracker`),
+   free and paid ads, a specialised order tracking app or a WhatsApp order confirmation app. Plan each with Omar first.
+
+After approval: add to the existing order from the Track page (`docs/WORKBOARD.md`, Later), Postmark tokens and the App
+Events key in Render (then the loyalty-emails meter back on the plans and in `BILLED_METERS`).
+
 ## Update 2026-10-24 (read this first)
 
 The state in `CLAUDE.md` (Status) replaces "Where things stand" below. Since 2026-10-22 the lead merged #260 to #303:
