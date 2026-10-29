@@ -37,7 +37,7 @@ function needsGrowth(ctx: ToolContext) {
 export const TRACKING_TOOLS: Tool[] = [
   {
     name: "get_tracking_setup",
-    description: `How this store's Track page gets tracking: the source in use, whether a tracking service key or webhook link is set up, the carrier links, the shipping companies on its recent shipments, and every way to connect a shipping company with the steps to pass on to the merchant. Start here to help connect any shipping company.` + DATA_NOTE,
+    description: `How this store's Track page gets tracking: the source in use, whether a tracking service key or webhook link is set up, the carrier links, the shipping companies on its recent shipments, and every way to connect a shipping company with the steps to pass on to the merchant. Start here to help connect any shipping company: ask which courier and country, search the web for what that courier offers merchants (its Shopify app, its API or webhook, which tracking services support it), list the ways that fit with free ones first, then guide one step at a time.` + DATA_NOTE,
     needs: "read",
     schema: obj({}),
     async run(ctx) {

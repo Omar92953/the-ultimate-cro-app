@@ -5,7 +5,7 @@
  */
 export function trackingGuide(store: string) {
   return [
-    `I run a Shopify store (${store}) and use the CRO Toolbox app for my order Track page. Help me connect my shipping company so my customers see live delivery updates there. First ask me which shipping company or courier I use and in which country, then pick the best way below for it and walk me through it one step at a time, waiting for me after each step.`,
+    `I run a Shopify store (${store}) and use the CRO Toolbox app for my order Track page. Help me connect my shipping company so my customers see live delivery updates there. First ask me which shipping company or courier I use and in which country. Then search the web for what that courier offers merchants today: its own Shopify app (check the Shopify App Store and whether the app sends tracking updates to Shopify orders), its own API or webhook for merchants, and which of the tracking services below support it. List the ways that fit, free ones first, with what each costs and what I need (an account, a key, a request to the courier). Say which sources you checked and tell me when something is unclear rather than guessing. Then help me pick one and walk me through it one step at a time, waiting for me after each step.`,
     "",
     "The ways CRO Toolbox can get tracking (in the app: Tracking & Returns, then Where tracking comes from):",
     "1. My courier's own Shopify app, if it has one: it adds the tracking number and its updates to my orders, and the Track page shows what Shopify gets with nothing more to set up. Help me check in the Shopify App Store whether my courier has one and whether it sends tracking updates.",
