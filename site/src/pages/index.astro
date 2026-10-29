@@ -92,6 +92,14 @@ const LOYALTY_POINTS = [
 ];
 const n = (x: number | null) => (x ?? 0).toLocaleString("en-US");
 
+/** The four pillars, as on the App Store listing's feature image. */
+const PILLARS = [
+  { label: "Bundles, upsells and cross sells", href: "#offers" },
+  { label: "Store sections", href: areaPath("library") },
+  { label: "Loyalty and rewards", href: "#loyalty" },
+  { label: "Tracking and returns", href: areaPath("tracking") },
+];
+
 const latest = (await articles()).slice(0, 3);
 
 const paid = plans.filter((p) => p.monthly > 0);
@@ -147,10 +155,12 @@ const schema = [organization(), website(), softwareApplication(page.description)
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <span class="pill">Shopify app · Any Online Store 2.0 theme</span>
-        <h1>Increase AOV and LTV. <span class="soft">All in one Shopify app.</span></h1>
+        <h1>Your whole sales toolkit in <span class="accent">one app</span></h1>
+        <ul class="pillars" role="list">
+          {PILLARS.map((p) => <li><a href={p.href}>{p.label}</a></li>)}
+        </ul>
         <p class="lead">
-          Upsells, bundles and cart offers raise your average order value (AOV). A loyalty program, a Track page that sells the next order and
-          returns that keep the sale raise your customers' lifetime value (LTV). Set up in minutes with a live preview, added to your theme without code.
+          Bigger orders (AOV) and more repeat buyers (LTV) from one Shopify app. Set up in minutes with a live preview, added to your theme without code.
         </p>
         <div class="actions">
           <InstallButton medium="home" campaign="hero" />
@@ -204,7 +214,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
     <div class="wrap">
       <div class="head center">
         <span class="eyebrow">Why CRO Toolbox</span>
-        <h2>Every CRO tool a store needs to increase AOV, in one app</h2>
+        <h2>Why one app works better</h2>
       </div>
       <div class="rows">
         {
@@ -229,8 +239,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
     <div class="wrap">
       <div class="head">
         <span class="eyebrow">Offers</span>
-        <h2>{COUNT_WORDS[offerCount] ? COUNT_WORDS[offerCount][0].toUpperCase() + COUNT_WORDS[offerCount].slice(1) : offerCount} kinds of offers, all on the {free.name} plan</h2>
-        <p class="lead">Upsells, bundles, cross sells and discounts are included on every plan, within your plan's offer slots. Prices and discounts are applied at checkout by Shopify.</p>
+        <h2>Upsells, cross sells and bundles</h2>
+        <p class="lead">{COUNT_WORDS[offerCount] ? COUNT_WORDS[offerCount][0].toUpperCase() + COUNT_WORDS[offerCount].slice(1) : offerCount} kinds of offers, all on the {free.name} plan within its offer slots. Real discounts at checkout, applied by Shopify.</p>
       </div>
       <div class="ogroups" style={`--orows: ${1 + Math.max(...OFFER_GROUPS.map((g) => g.types.length))}`}>
         {
@@ -264,7 +274,7 @@ const schema = [organization(), website(), softwareApplication(page.description)
         </div>
         <div class="row-text">
           <span class="eyebrow">Loyalty program</span>
-          <h2>Bring shoppers back with points and rewards</h2>
+          <h2>Rewards that bring shoppers back</h2>
           <p class="muted">A loyalty program built into the same app, so repeat orders raise your customers' lifetime value (LTV) without another subscription.</p>
           <ul class="ticks">
             {LOYALTY_POINTS.map((t) => <li>{t}</li>)}
@@ -405,8 +415,40 @@ const schema = [organization(), website(), softwareApplication(page.description)
   .hero h1 {
     margin: 22px 0 20px;
   }
-  .hero .soft {
-    color: #8b8d97;
+  .hero .accent {
+    color: var(--accent-deep);
+  }
+  /* The four pillars under the headline, ticked like the App Store feature image. */
+  .pillars {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    font-size: 1.05rem;
+  }
+  .pillars li {
+    position: relative;
+    padding-left: 24px;
+  }
+  .pillars li::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 0.42em;
+    width: 11px;
+    height: 6px;
+    border-left: 2.5px solid var(--accent-deep);
+    border-bottom: 2.5px solid var(--accent-deep);
+    transform: rotate(-45deg);
+  }
+  .pillars a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .pillars a:hover {
+    text-decoration: underline;
   }
   .hero .actions {
     margin-top: 32px;

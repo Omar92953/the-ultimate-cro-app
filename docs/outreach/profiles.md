@@ -8,7 +8,7 @@ assistants trust what many places agree on. After each profile is live, paste it
 ## Shared facts (copy these)
 
 - **Name:** CRO Toolbox
-- **One line (word for word):** CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).
+- **One line (word for word):** CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns.
 - **Website:** https://crotoolbox.com
 - **Shopify App Store:** `[App Store link]` (once live)
 - **Company / operator:** OMC (see https://crotoolbox.com/about/)
@@ -26,12 +26,12 @@ assistants trust what many places agree on. After each profile is live, paste it
 
 ## Short description (about 160 characters)
 
-CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV). Six bundle types, cart offers, an
+CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns. Six bundle types, cart offers, an
 offer after payment, order tracking and returns.
 
 ## Long description (about 600 characters)
 
-CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV). It brings the tools stores add one
+CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns. It brings the tools stores add one
 by one into a single app: six bundle types (frequently bought together, fixed bundles, mix and match,
 build your own, tiered and any N for one price), quantity breaks, cross sells on the product page and
 in the cart, a one click offer after payment, a free shipping bar, a discount code box, reviews, a

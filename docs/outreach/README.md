@@ -9,7 +9,7 @@ from his own accounts, and edits it to sound like him.
 - **Help first.** Each draft answers the question fully without the app. The app is mentioned once, at
   the end, with a plain disclosure ("I make this app").
 - **Same line everywhere.** Use the shared description word for word where a profile or bio asks for
-  one: `CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).` (`site/src/lib/brand.ts`,
+  one: `CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns.` (`site/src/lib/brand.ts`,
   `docs/listing.md`).
 - **Facts from the app's files only.** Prices from `app/lib/plans.ts`: Free; Starter $5.99 a month;
   Growth $19.99; Pro $39.99; yearly $59, $199, $399; 14 day free trial. No invented numbers, results or
