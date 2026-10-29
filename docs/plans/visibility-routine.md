@@ -64,3 +64,18 @@ posts (Google's scaled content abuse policy) and never fake reviews or made up r
 
 Expect search results in weeks once Bing is verified and the first links exist; AI assistants naming the app usually
 follows months of consistent mentions and, after launch, App Store reviews.
+
+## Done on 2026-10-30
+
+- Bing: home page and 99 key pages requested for indexing (Bing's live test: "URL can be indexed"; the noindex it
+  had was from an old crawl on 2026-10-22). The other 92 pages after the daily quota resets.
+- Cloudflare: Redirect Rule www.crotoolbox.com → crotoolbox.com (301, keeps path and query), tested.
+- First posts: Medium, dev.to, Quora, Shopify Community (`docs/outreach/posted.md`). LinkedIn skipped (Omar).
+
+## The routine (Omar asked for it to post on its own, 2026-10-30)
+
+Scheduled task `cro-toolbox-visibility` in the Claude desktop app (Scheduled in the sidebar), Tuesday and Friday at
+11:00 Cairo time, runs while the app is open (or on the next launch). Each run: one Medium import of an existing
+guide, one Shopify Community reply, one Quora answer (each only if a good fit exists), and one new guide on
+crotoolbox.com merged as a PR with the posts logged in `docs/outreach/posted.md`. Never LinkedIn or Reddit. Stops on a
+sign-in page, a CAPTCHA or a removed post and reports it. Edit or pause it from the app's Scheduled list.
