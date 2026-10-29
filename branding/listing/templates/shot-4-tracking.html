@@ -1,13 +1,39 @@
 <!doctype html>
-<!-- Listing screenshot 4 (centred top layout, like feature.html). Render: scripts/listing/render.sh shot-4-tracking -->
-<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"></head>
+<!-- Listing screenshot 4 (centred top layout, like feature.html): the Track page and the ways to connect any courier.
+     Render: scripts/listing/render.sh shot-4-tracking -->
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  .ways { padding: 22px 24px 20px; color: #303030; }
+  .ways h2 { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+  .ways .sub { font-size: 14px; color: #616161; margin-top: 6px; line-height: 1.45; }
+  .ways .list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .way { display: flex; gap: 14px; align-items: center; background: #f6f7f6; border-radius: 12px; padding: 13px 14px; }
+  .way .ic { flex: none; width: 38px; height: 38px; border-radius: 10px; background: #e3f6ea; display: grid; place-items: center; }
+  .way .ic svg { width: 20px; height: 20px; stroke: #0e7a43; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .way b { display: block; font-size: 15px; font-weight: 650; color: #1f1f1f; }
+  .way span { display: block; font-size: 13px; color: #616161; margin-top: 2px; line-height: 1.35; }
+  .ways .ai { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px dashed #b9d9c6; border-radius: 12px; padding: 11px 14px; }
+  .ways .ai span { font-size: 13px; color: #3d4a42; line-height: 1.35; }
+  .ways .ai i { font-style: normal; flex: none; font-size: 13px; font-weight: 650; background: #1f1f1f; color: #fff; padding: 8px 12px; border-radius: 9px; }
+</style></head>
 <body>
   <div class="top">
     <img class="logo" src="../logo.svg" alt="">
     <h1>A tracking page that <span>sells</span></h1>
-    <div class="checks"><div><b>✓</b>Live tracking for any carrier</div><div><b>✓</b>Buy again and a next order code</div><div><b>✓</b>Fewer "where is my order" messages</div></div>
+    <div class="checks"><div><b>✓</b>Works with any courier</div><div><b>✓</b>Buy again and a next order code</div><div><b>✓</b>Fewer "where is my order" messages</div></div>
   </div>
-</body></html>
-  <div class="card" style="left:270px; top:290px; width:510px"><span class="tag">On its way</span><img src="../widgets/track.png" style="height:540px;object-fit:cover;object-position:top"></div>
-  <div class="card" style="left:820px; top:290px; width:510px"><span class="tag">Delivered</span><img src="../widgets/track-delivered.png" style="height:540px;object-fit:cover;object-position:top"></div>
+  <div class="card" style="left:250px; top:290px; width:500px"><span class="tag">Your Track page</span><img src="../widgets/track.png" style="height:540px;object-fit:cover;object-position:top"></div>
+  <div class="card ways" style="left:790px; top:290px; width:560px; height:572px">
+    <span class="tag">Connect any courier</span>
+    <h2>Every courier, your way</h2>
+    <p class="sub">Choose what your shipping company offers. The Track page shows its updates in your theme's style.</p>
+    <div class="list">
+      <div class="way"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div><b>Your courier's Shopify app</b><span>Its updates reach your orders. Nothing to set up.</span></div></div>
+      <div class="way"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/></svg></div><div><b>Tracking service key</b><span>Follows thousands of couriers for you.</span></div></div>
+      <div class="way"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 12h10M10 6l6 6-6 6"/><path d="M20 5v14"/></svg></div><div><b>Webhook link</b><span>Your courier or warehouse sends each update.</span></div></div>
+      <div class="way"><div class="ic"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div><div><b>Carrier link</b><span>Each shipment links to the courier's own page.</span></div></div>
+      <div class="way"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16z"/><path d="M13 7l4 4"/></svg></div><div><b>Type the updates</b><span>For a local courier with no tracking system.</span></div></div>
+    </div>
+    <div class="ai"><span>Not sure which fits? Your AI assistant guides you.</span><i>Copy AI guide</i></div>
+  </div>
 </body></html>
