@@ -53,6 +53,15 @@ const choices = (live: number): { key: TrackSource; title: string; text: string 
   { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
 
+/** Scrolls the app frame to a part of the page (the frame scrolls itself inside Shopify's admin). */
+function jumpTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 16;
+  window.scrollTo({ top, behavior: "smooth" });
+  document.scrollingElement?.scrollTo({ top, behavior: "smooth" });
+}
+
 /** The ways to connect a shipping company, shown as option cards; each button goes where that way is set up. */
 const WAYS: ({ title: string; text: string; button: string; to: string } | { title: string; text: string; button: string; href: string })[] = [
   { title: "Your courier's Shopify app", text: "Many couriers have a Shopify app that adds the tracking number and its updates to your orders. The Track page shows what Shopify gets, with nothing more to set up.", button: "Find its app", href: "https://apps.shopify.com/search?q=shipping%20tracking" },
@@ -98,61 +107,63 @@ export default function TrackingSource() {
     const unavailable = c.key === "live" && !d.cfg.liveReady;
     const on = d.cfg.source === c.key;
     return (
-      <s-section key={c.key} id={`src-${c.key}`} heading={c.title}>
-        <s-stack gap="small-200">
-          {on ? (
-            <s-stack direction="inline">
-              <Pill tone="ok">In use</Pill>
-            </s-stack>
-          ) : null}
-          <s-text color="subdued">{c.text}</s-text>
-          {c.key === "live" && d.cfg.advanced && d.cfg.liveReady ? <s-text color="subdued">{`${d.cfg.live.used} of ${d.cfg.live.limit} shipments used this month`}</s-text> : null}
-          {c.key === "live" && unavailable ? <s-text color="subdued">Live tracking isn&apos;t switched on yet. Use your own key or a webhook link for now.</s-text> : null}
-          {c.key === "own" && d.cfg.advanced ? (
-            <s-stack gap="small-200">
-              {d.cfg.hasKey ? (
-                <s-stack direction="inline" gap="small-200" alignItems="center">
-                  <Pill tone="ok">Connected</Pill>
-                  <s-text color="subdued">{`Key ending ${d.cfg.keyLast4}`}</s-text>
-                  <Button variant="tertiary" tone="critical" onClick={() => fetcher.submit({ intent: "remove-key" }, { method: "post" })}>
-                    Remove
+      <div key={c.key} id={`src-${c.key}`}>
+        <s-section heading={c.title}>
+          <s-stack gap="small-200">
+            {on ? (
+              <s-stack direction="inline">
+                <Pill tone="ok">In use</Pill>
+              </s-stack>
+            ) : null}
+            <s-text color="subdued">{c.text}</s-text>
+            {c.key === "live" && d.cfg.advanced && d.cfg.liveReady ? <s-text color="subdued">{`${d.cfg.live.used} of ${d.cfg.live.limit} shipments used this month`}</s-text> : null}
+            {c.key === "live" && unavailable ? <s-text color="subdued">Live tracking isn&apos;t switched on yet. Use your own key or a webhook link for now.</s-text> : null}
+            {c.key === "own" && d.cfg.advanced ? (
+              <s-stack gap="small-200">
+                {d.cfg.hasKey ? (
+                  <s-stack direction="inline" gap="small-200" alignItems="center">
+                    <Pill tone="ok">Connected</Pill>
+                    <s-text color="subdued">{`Key ending ${d.cfg.keyLast4}`}</s-text>
+                    <Button variant="tertiary" tone="critical" onClick={() => fetcher.submit({ intent: "remove-key" }, { method: "post" })}>
+                      Remove
+                    </Button>
+                  </s-stack>
+                ) : null}
+                <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. The app finds which service it belongs to, tests it before saving and keeps it encrypted.</s-text>
+                <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
+                <s-stack direction="inline">
+                  <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
+                    Test and save
                   </Button>
                 </s-stack>
-              ) : null}
-              <s-text color="subdued">Sign in to your tracking service, open Settings, then API or Developers, create a key and paste it here. The app finds which service it belongs to, tests it before saving and keeps it encrypted.</s-text>
-              <PasswordField label={d.cfg.hasKey ? "Replace the key" : "Key"} value={key} onValue={setKey} error={keyFailed && !busy ? fetcher.data?.error ?? undefined : undefined} />
-              <s-stack direction="inline">
-                <Button loading={busy && fetcher.formData?.get("intent") === "key"} disabled={!key.trim()} onClick={() => fetcher.submit({ intent: "key", key }, { method: "post" })}>
-                  Test and save
-                </Button>
               </s-stack>
-            </s-stack>
-          ) : null}
-          {c.key === "webhook" && d.cfg.advanced && d.cfg.webhookUrl ? (
-            <s-stack gap="small-200">
-              <s-text type="strong">{d.cfg.webhookUrl}</s-text>
-              <s-stack direction="inline" gap="small-200">
-                <Button onClick={() => copy(d.cfg.webhookUrl)}>Copy</Button>
-                <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "secret" }, { method: "post" })}>
-                  Make a new link
-                </Button>
+            ) : null}
+            {c.key === "webhook" && d.cfg.advanced && d.cfg.webhookUrl ? (
+              <s-stack gap="small-200">
+                <s-text type="strong">{d.cfg.webhookUrl}</s-text>
+                <s-stack direction="inline" gap="small-200">
+                  <Button onClick={() => copy(d.cfg.webhookUrl)}>Copy</Button>
+                  <Button variant="tertiary" onClick={() => fetcher.submit({ intent: "secret" }, { method: "post" })}>
+                    Make a new link
+                  </Button>
+                </s-stack>
+                <s-text color="subdued">Send a POST with JSON: number, status (info, transit, out, delivered or problem), estimated, and events (status, city, province, country, message, at). A new link stops the old one.</s-text>
               </s-stack>
-              <s-text color="subdued">Send a POST with JSON: number, status (info, transit, out, delivered or problem), estimated, and events (status, city, province, country, message, at). A new link stops the old one.</s-text>
+            ) : null}
+            <s-stack direction="inline">
+              {on ? null : locked ? (
+                <Button href="/app/plans" variant="primary">
+                  See the plans
+                </Button>
+              ) : unavailable ? null : (
+                <Button loading={busy && fetcher.formData?.get("source") === c.key} disabled={c.key === "own" && !d.cfg.hasKey} onClick={() => choose(c.key)}>
+                  Use this
+                </Button>
+              )}
             </s-stack>
-          ) : null}
-          <s-stack direction="inline">
-            {on ? null : locked ? (
-              <Button href="/app/plans" variant="primary">
-                See the plans
-              </Button>
-            ) : unavailable ? null : (
-              <Button loading={busy && fetcher.formData?.get("source") === c.key} disabled={c.key === "own" && !d.cfg.hasKey} onClick={() => choose(c.key)}>
-                Use this
-              </Button>
-            )}
           </s-stack>
-        </s-stack>
-      </s-section>
+        </s-section>
+      </div>
     );
   };
 
@@ -180,7 +191,7 @@ export default function TrackingSource() {
                           {w.button}
                         </Button>
                       ) : (
-                        <Button onClick={() => (w.to.startsWith("/") ? navigate(w.to) : document.getElementById(w.to)?.scrollIntoView({ behavior: "smooth", block: "start" }))}>{w.button}</Button>
+                        <Button onClick={() => (w.to.startsWith("/") ? navigate(w.to) : jumpTo(w.to))}>{w.button}</Button>
                       )}
                     </s-stack>
                   </s-stack>
