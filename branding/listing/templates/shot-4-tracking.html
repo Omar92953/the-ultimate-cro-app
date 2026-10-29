@@ -1,27 +1,13 @@
 <!doctype html>
-<!-- Listing screenshot 4 (centred top layout): the real Track page card, and the ways to connect any courier as text.
-     Render: scripts/listing/render.sh shot-4-tracking -->
-<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
-<style>
-  .ways { position: absolute; left: 820px; top: 300px; width: 600px; }
-  .ways h2 { font-size: 34px; font-weight: 800; letter-spacing: -.6px; line-height: 1.15; }
-  .ways h2 span { color: var(--green); }
-  .ways p { font-size: 19px; line-height: 1.45; color: var(--muted); margin-top: 12px; }
-  .ways ul { list-style: none; padding: 0; margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
-  .ways li { display: flex; gap: 12px; font-size: 20px; line-height: 1.35; color: #fff; }
-  .ways li b { color: var(--green); }
-  .ways li small { display: block; font-size: 16px; color: var(--muted); margin-top: 2px; }
-  .ways .ai { margin-top: 24px; font-size: 18px; color: var(--muted); }
-  .ways .ai strong { color: #fff; }
-</style></head>
+<!-- Listing screenshot 4: the ways to connect any courier and the real Track page. Text left, card right (styles.css .about). Render: scripts/listing/render.sh <name> -->
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"></head>
 <body>
   <div class="top">
     <img class="logo" src="../logo.svg" alt="">
     <h1>A tracking page that <span>sells</span></h1>
     <div class="checks"><div><b>✓</b>Works with any courier</div><div><b>✓</b>Buy again and a next order code</div><div><b>✓</b>Fewer "where is my order" messages</div></div>
   </div>
-  <div class="card" style="left:200px; top:290px; width:520px"><span class="tag">Your Track page</span><img src="../widgets/track.png" style="height:540px;object-fit:cover;object-position:top"></div>
-  <div class="ways">
+  <div class="about">
     <h2>Connect any courier, <span>your way</span></h2>
     <p>Pick what your shipping company offers. Its updates show on your Track page in your theme's style.</p>
     <ul>
@@ -31,6 +17,7 @@
       <li><b>✓</b><div>A carrier link<small>Each shipment links to the courier's own page</small></div></li>
       <li><b>✓</b><div>Updates you type<small>For a local courier with no tracking system</small></div></li>
     </ul>
-    <div class="ai">Not sure which fits? <strong>Copy AI guide</strong> and your AI assistant guides you.</div>
+    <div class="note">Not sure which fits? <strong>Copy AI guide</strong> and your AI assistant guides you.</div>
   </div>
+  <div class="card" style="left:880px; top:290px; width:520px"><span class="tag">Your Track page</span><img src="../widgets/track.png" style="height:540px;object-fit:cover;object-position:top"></div>
 </body></html>
