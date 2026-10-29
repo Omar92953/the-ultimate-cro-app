@@ -6,7 +6,7 @@
  */
 import db from "../../db.server";
 import type { PlanKey } from "../plans";
-import { atLeast } from "../plans";
+import { LIVE_TRACKING, atLeast } from "../plans";
 import { RuleError } from "../rules";
 import { allowUnit } from "../usage.server";
 import { liveLimit, TRACK_SOURCES, buildTracking, cleanCarrierLinks, isFresh, sourceAllowed, sourcesToTry, type CarrierLink, type TrackSource, type Tracking } from "../tracking";
@@ -20,7 +20,9 @@ export const appBase = () => (process.env.SHOPIFY_APP_URL ?? "").replace(/\/$/, 
 export async function getTrackingConfig(shop: string, plan: PlanKey) {
   const c = await db.trackingConfig.findUnique({ where: { shop } });
   const used = (await db.trackingUsage.findUnique({ where: { shop_month: { shop, month: month() } } }))?.count ?? 0;
-  const source = (TRACK_SOURCES as readonly string[]).includes(c?.source ?? "") ? (c!.source as TrackSource) : "shopify";
+  const saved = (TRACK_SOURCES as readonly string[]).includes(c?.source ?? "") ? (c!.source as TrackSource) : "shopify";
+  // A store that chose live tracking while it was on gets Shopify's data while it is off (plans.ts LIVE_TRACKING).
+  const source = saved === "live" && !LIVE_TRACKING ? "shopify" : saved;
   return {
     chosen: !!c,
     // Below Growth (no Track page) every source falls back to Shopify's data.
@@ -28,7 +30,7 @@ export async function getTrackingConfig(shop: string, plan: PlanKey) {
     /** Every tracking source (live, own key, webhook, typed updates) is on this plan. */
     advanced: atLeast(plan, "growth"),
     /** Our live tracking account is set up (TRACKING_PROVIDER_KEY); without it live tracking can't be chosen. */
-    liveReady: !!ownAccount().key,
+    liveReady: LIVE_TRACKING && !!ownAccount().key,
     carrierLinks: readLinks(c?.carrierLinks),
     keyLast4: c?.keyCipher ? c.keyLast4 : "",
     hasKey: !!c?.keyCipher,
@@ -41,7 +43,7 @@ export async function saveSource(shop: string, plan: PlanKey, source: string) {
   if (!(TRACK_SOURCES as readonly string[]).includes(source)) throw new RuleError("Choose where tracking should come from.", "input", false);
   const s = source as TrackSource;
   if (!sourceAllowed(plan, s)) throw new RuleError("Tracking (live tracking, your own key or a webhook link) is on the Growth and Pro plans.", "plan");
-  if (s === "live" && !ownAccount().key) throw new RuleError("Live tracking isn't switched on yet. Use your own key or a webhook link for now.", "input", false);
+  if (s === "live" && (!LIVE_TRACKING || !ownAccount().key)) throw new RuleError("Live tracking isn't switched on yet. Use your own key or a webhook link for now.", "input", false);
   const cur = await db.trackingConfig.findUnique({ where: { shop } });
   if (s === "own" && !cur?.keyCipher) throw new RuleError("Paste and test your key first.", "input", false);
   const webhookSecret = s === "webhook" && !cur?.webhookSecret ? newSecret() : (cur?.webhookSecret ?? "");

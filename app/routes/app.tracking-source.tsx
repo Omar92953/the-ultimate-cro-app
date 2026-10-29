@@ -1,6 +1,7 @@
 /**
  * Tracking & Returns → where tracking comes from (Growth and Pro): Shopify's data, live tracking (a monthly number of
- * shipments by plan), the merchant's own tracking service key, or a webhook link from any carrier or 3PL. Plus links for
+ * shipments by plan; hidden while plans.ts LIVE_TRACKING is off), the merchant's own tracking service key, or a webhook
+ * link from any carrier or 3PL. Plus links for
  * carriers Shopify has no tracking link for (any plan with the Track page). Our live provider is never named.
  */
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { planContext } from "../lib/rules.server";
-import { atLeast } from "../lib/plans";
+import { LIVE_TRACKING, atLeast } from "../lib/plans";
 import { isRuleError } from "../lib/rules";
 import { MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSource } from "../lib/tracking";
 import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveKey, saveSource } from "../lib/tracking/tracking.server";
@@ -153,20 +154,21 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
-        <HomeRow title="Any shipping company" subtitle="Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:">
+        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Connect your shipping company, including a local courier, in any of these ways:"}>
           <s-stack gap="small-200">
+            {LIVE_TRACKING ? null : <s-text>• Your tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its key, below.</s-text>}
             <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service.</s-text>
             <s-text>• You type its updates on a shipment in Shipments.</s-text>
             <s-text>• Its own tracking page is linked from every shipment, from the carrier links below.</s-text>
           </s-stack>
         </HomeRow>
-        {d.cfg.advanced ? (
+        {d.cfg.advanced && LIVE_TRACKING ? (
           <HomeRow title="This month's live tracking">
             <UsageBars only={["liveShipments"]} />
           </HomeRow>
         ) : null}
-        <HomeRow title="Tracking" subtitle={d.cfg.advanced ? `On your plan: every way below, with ${d.cfg.live.limit.toLocaleString()} live tracked shipments a month. If one has nothing for a shipment, the next one is used, then Shopify's data.` : "On the Growth and Pro plans: live updates for almost any carrier."} action={d.cfg.advanced ? null : <Pill>Growth plan</Pill>} bare>
-          <s-stack gap="base">{choices(d.cfg.live.limit).map(choice)}</s-stack>
+        <HomeRow title="Tracking" subtitle={d.cfg.advanced ? `On your plan: every way below${LIVE_TRACKING ? `, with ${d.cfg.live.limit.toLocaleString()} live tracked shipments a month` : ""}. If one has nothing for a shipment, the next one is used, then Shopify's data.` : "On the Growth and Pro plans: updates from your shipping company or tracking service."} action={d.cfg.advanced ? null : <Pill>Growth plan</Pill>} bare>
+          <s-stack gap="base">{choices(d.cfg.live.limit).filter((c) => LIVE_TRACKING || c.key !== "live").map(choice)}</s-stack>
         </HomeRow>
         <HomeRow title="A courier with no tracking system" subtitle="Type its updates yourself.">
           <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">

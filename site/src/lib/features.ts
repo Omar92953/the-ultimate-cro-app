@@ -4,7 +4,7 @@
  * and docs/README-merchant.md before adding one). Template names come from the app (lib/templates.ts).
  */
 import type { FeatureKey } from "./app";
-import { METERS, limitOf, type LimitKey, type PlanKey } from "../../../app/lib/plans";
+import { LIVE_TRACKING, METERS, limitOf, type LimitKey, type PlanKey } from "../../../app/lib/plans";
 import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
 
 /** A plan limit as a number, "2,000". */
@@ -270,7 +270,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   track: {
     who: "For fewer where is my order messages.",
-    points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify, for any carrier you add a tracking number for", "Live updates from 3,500+ carriers (200 shipments a month on Growth, 500 on Pro), your own 17TRACK, AfterShip, TrackingMore or Ship24 key with no limit, or a webhook link", "Any other shipping company, like a local courier: a webhook link, updates you type, or a link to its own tracking page", "The page sells too (Growth): recommendations, a real next order discount code, a buy again button, a how was your order message after delivery, an apology (and optional code) for late orders", "Offers above and below the tracking with real codes that expire (Pro)", "Orders older than 60 days once Shopify approves access to all orders"],
+    points: ["Shoppers look up their order with the order number and email", "Delivery status, tracking number and the carrier's tracking link", "Estimated and delivered dates from Shopify, for any carrier you add a tracking number for", LIVE_TRACKING ? "Live updates from 3,500+ carriers (200 shipments a month on Growth, 500 on Pro), your own 17TRACK, AfterShip, TrackingMore or Ship24 key with no limit, or a webhook link" : "Live updates from your own 17TRACK, AfterShip, TrackingMore or Ship24 key with no limit, or a webhook link from your shipping company", "Any other shipping company, like a local courier: a webhook link, updates you type, or a link to its own tracking page", "The page sells too (Growth): recommendations, a real next order discount code, a buy again button, a how was your order message after delivery, an apology (and optional code) for late orders", "Offers above and below the tracking with real codes that expire (Pro)", "Orders older than 60 days once Shopify approves access to all orders"],
     related: ["returns", "faq"],
   },
   returns: {

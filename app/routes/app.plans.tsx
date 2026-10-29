@@ -12,7 +12,7 @@ import { authenticate } from "../shopify.server";
 import { appHandle, getPlan } from "../lib/billing.server";
 import { getValue } from "../lib/value.server";
 import { AREAS, feature, featuresIn } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planApproveUrl, planRank, type LimitKey, type PlanKey } from "../lib/plans";
+import { EXTRA_PLAN, LIVE_TRACKING, FEATURE_PLAN, GUARANTEE, PLANS, PLAN_KEYS, atLeast, limitOf, planApproveUrl, planRank, type LimitKey, type PlanKey } from "../lib/plans";
 import { Button } from "../components/fields";
 import { Pill } from "../components/ui";
 import { FreeRow, PlanCard } from "../components/PlanCard";
@@ -109,7 +109,7 @@ export default function Plans() {
             <PlanCard key={k} plan={k} current={isCurrent(k)} yearly={yearly} action={choose(k)} />
           ))}
         </div>
-        {yearly ? <s-text color="subdued">On annual billing the monthly limits of Growth and Pro (live tracking, loyalty orders and emails) stop for the month: going over with Allow extra is on monthly billing.</s-text> : null}
+        {yearly ? <s-text color="subdued">On annual billing the monthly limits of Growth and Pro ({LIVE_TRACKING ? "live tracking, loyalty orders and emails" : "loyalty orders and emails"}) stop for the month: going over with Allow extra is on monthly billing.</s-text> : null}
         <s-text color="subdued">You confirm the plan and its billing period on Shopify&apos;s approval page. Development stores show $0.</s-text>
         <FreeRow current={plan === "free"} action={plan === "free" ? null : choose("free")} />
         <s-text color="subdued">{`Paid plans are billed by Shopify on your Shopify invoice and start with a free trial. ${GUARANTEE} Nothing is deleted when you change plans.`}</s-text>
