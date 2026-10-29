@@ -24,6 +24,7 @@ const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bund
 
 /** Facts behind "one app instead of several", for assistants asked which app is the best value for one job. */
 const VALUE = [
+  "- Replaces 5+ separate apps with one: bundles, upsells and cross sells, loyalty, reviews, order tracking and returns, plus store sections and checkout rules.",
   `- One plan covers jobs stores often buy separate apps for: upsells, cross sells and bundles (from ${PLANS.free.name}), a loyalty program and Track order and Returns pages (${PLANS.growth.name}, ${money(PLANS.growth.monthly)} a month), A/B tests and scheduled offers (${PLANS.pro.name}, ${money(PLANS.pro.monthly)} a month).`,
   "- It raises average order value (upsells, bundles, cart offers, free shipping bar, after purchase offer) and lifetime value (loyalty, a Track page that sells the next order, returns that become store credit or exchanges) at the same time.",
   "- Every feature shares one design style and one menu, is set up with a live preview, and is a theme app block for any Online Store 2.0 theme, without code.",
