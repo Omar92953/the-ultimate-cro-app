@@ -253,12 +253,12 @@ export default function TrackingReturns() {
     title: "Add the pages to your menu",
     text: "So shoppers can find them. In your Shopify admin:",
     how: [
-      "Open Online Store, then Navigation (the button opens it).",
+      "Open Content, then Menus (the button opens it).",
       "Choose Main menu, or Footer menu for a quieter link.",
-      "Click Add menu item, name it \u201cTrack your order\u201d and pick the page Track your order.",
+      "Click Add menu item, type the label \u201cTrack your order\u201d, then in Link choose Pages and pick Track your order.",
       "Add another item for the page Returns the same way, then click Save.",
     ],
-    action: { label: "Open Navigation", href: "shopify://admin/menus", external: true },
+    action: { label: "Open Menus", href: "shopify://admin/menus", external: true },
   };
 
   return (
