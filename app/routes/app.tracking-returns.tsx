@@ -236,8 +236,9 @@ export default function TrackingReturns() {
   const blockStep: Check = {
     done: !!d.inTheme?.track,
     title: "Add the block to your page template",
-    text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on these two pages, so your other pages stay as they are. Then add the pages to your menu or footer.",
-    action: d.inTheme?.track ? undefined : { label: "Open the theme editor", href: d.links.track, external: true },
+    text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on these two pages, so your other pages stay as they are. Then add the pages to your menu or footer (Online Store, Navigation) so shoppers find them.",
+    // Once the block is in, the next step is the store's menu (Online Store, Navigation): the app doesn't edit menus.
+    action: d.inTheme?.track ? { label: "Add to your menu", href: "shopify://admin/menus", external: true } : { label: "Open the theme editor", href: d.links.track, external: true },
   };
 
   return (

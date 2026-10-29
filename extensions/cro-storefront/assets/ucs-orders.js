@@ -73,7 +73,7 @@
         return '<li class="ucs-op__item">' + (pickable ? '<input type="checkbox" name="item" value="' + esc(i.key) + '" aria-label="' + esc(i.title) + '">' : '') +
           (i.image ? '<img src="' + esc(sized(i.image, 160)) + '" alt="" loading="lazy">' : '<span class="ucs-op__ph"></span>') +
           '<span class="ucs-op__it"><b>' + esc(i.title) + '</b>' + (i.variant ? '<small>' + esc(i.variant) + '</small>' : '') + '</span>' +
-          (pickable ? qty : '<span class="ucs-op__q">× ' + i.quantity + (priced && i.price ? ' · ' + money(i.price * i.quantity, cur0) : '') + '</span>') + '</li>';
+          (pickable ? qty : '<span class="ucs-op__q">× ' + i.quantity + (i.gone ? ' · ' + esc(t.priceRefunded) : priced && i.price ? ' · ' + money(i.price * i.quantity, cur0) : '') + '</span>') + '</li>';
       }).join('') + '</ul>';
     };
 
@@ -171,7 +171,7 @@
         '<h2 class="ucs-op__h">' + esc(o.name) + '</h2>' +
         '<p class="ucs-op__t">' + esc(t.placed) + ' ' + esc(day(o.createdAt)) + '</p>' +
         '<p class="ucs-op__pills"><span class="ucs-op__pill">' + esc(o.cancelled ? nice('CANCELED') : nice(o.fulfillment)) + '</span><span class="ucs-op__pill ucs-op__pill--soft">' + esc(nice(o.payment)) + '</span></p>' +
-        delayBox(o.delay) + afterBox(o.afterDelivery) + offerBox(o.offers && o.offers.above, 'above') + tracking + offerBox(o.offers && o.offers.below, 'below') + (sh.items !== false ? items(o.items, false) : '') + (priced ? priceRows(o.prices) : '') + nextBox(o.nextOrder) + buyAgainBox(o.buyAgain) + recRows(o.recs) +
+        delayBox(o.delay) + afterBox(o.afterDelivery) + offerBox(o.offers && o.offers.above, 'above') + tracking + offerBox(o.offers && o.offers.below, 'below') + (sh.items !== false ? items(o.items.concat(o.gone || []), false) : '') + (priced ? priceRows(o.prices) : '') + nextBox(o.nextOrder) + buyAgainBox(o.buyAgain) + recRows(o.recs) +
         '<button type="button" class="ucs-btn ucs-btn--outline ucs-op__again">' + esc(t.again) + '</button>' + brand;
       host.querySelector('.ucs-op__again').addEventListener('click', lookupForm);
       host.querySelectorAll('.ucs-op__offer').forEach(function (box) {

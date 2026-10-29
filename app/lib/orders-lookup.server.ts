@@ -20,6 +20,8 @@ export type OrderSummary = {
   /** What the shopper paid, in the currency of the order (prices only: no payment method, no address). Null when unknown. */
   prices: OrderPrices | null;
   items: { id: string; title: string; variant: string; quantity: number; image: string | null; /** One unit after discounts. */ unitPrice: number; /** Not sent to the page. */ productId: string | null; variantId: number; available: boolean; productType: string; tags: string[]; handle: string }[];
+  /** Refunded or removed items: shown on the Track page so the subtotal adds up, never offered for a return. */
+  gone: { title: string; variant: string; quantity: number; image: string | null; gone: 1 }[];
   shipments: { status: string; company: string | null; number: string | null; url: string | null; delivered: string | null; estimated: string | null; /** What Shopify knows: its fulfillment events, dates and status. */ tracking: Tracking | null }[];
 };
 
@@ -76,7 +78,7 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
       orders(first: 5, query: $q) {
         nodes {
           id name email createdAt cancelledAt displayFinancialStatus displayFulfillmentStatus currentTotalPriceSet { shopMoney { amount currencyCode } } subtotalPriceSet { presentmentMoney { amount currencyCode } } totalShippingPriceSet { presentmentMoney { amount } } totalDiscountsSet { presentmentMoney { amount } } totalTaxSet { presentmentMoney { amount } } totalPriceSet { presentmentMoney { amount } } totalRefundedSet { presentmentMoney { amount } }
-          lineItems(first: 50) { nodes { id title variantTitle currentQuantity image { url } variant { id availableForSale } product { id handle productType tags } discountedUnitPriceSet { presentmentMoney { amount } } } }
+          lineItems(first: 50) { nodes { id title variantTitle quantity currentQuantity image { url } variant { id availableForSale } product { id handle productType tags } discountedUnitPriceSet { presentmentMoney { amount } } } }
           fulfillments(first: 10) { displayStatus deliveredAt inTransitAt estimatedDeliveryAt trackingInfo(first: 3) { company number url } events(first: 30, sortKey: HAPPENED_AT, reverse: true) { nodes { status city province country message happenedAt } } }
         }
       }
@@ -98,6 +100,10 @@ export async function findOrder(admin: AdminClient, number: string, email: strin
     items: order.lineItems.nodes
       .filter((l: { currentQuantity: number }) => l.currentQuantity > 0)
       .map((l: { id: string; title: string; variantTitle: string | null; currentQuantity: number; image: { url: string } | null; product: { id: string; handle?: string; productType?: string; tags?: string[] } | null; discountedUnitPriceSet?: { presentmentMoney: { amount: string } } | null; variant?: { id: string; availableForSale: boolean } | null }) => ({ unitPrice: Number(l.discountedUnitPriceSet?.presentmentMoney.amount) || 0, variantId: Number(l.variant?.id.split("/").pop()) || 0, available: l.variant?.availableForSale ?? false, productType: l.product?.productType ?? "", handle: l.product?.handle ?? "", tags: l.product?.tags ?? [], id: l.id, title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.currentQuantity, image: l.image?.url ?? null, productId: l.product?.id ?? null })),
+    // Refunded or removed items (Track page only, never returnable): listed so the subtotal adds up for the shopper.
+    gone: order.lineItems.nodes
+      .filter((l: { quantity: number; currentQuantity: number }) => l.quantity > l.currentQuantity)
+      .map((l: { title: string; variantTitle: string | null; quantity: number; currentQuantity: number; image: { url: string } | null }) => ({ title: l.title, variant: l.variantTitle && l.variantTitle !== "Default Title" ? l.variantTitle : "", quantity: l.quantity - l.currentQuantity, image: l.image?.url ?? null, gone: 1 })),
     shipments: order.fulfillments.flatMap((f: FulfillmentNode) =>
       (f.trackingInfo.length ? f.trackingInfo : [{ company: null, number: null, url: null }]).map((t) => ({ status: f.displayStatus ?? "", company: t.company, number: t.number, url: t.url, delivered: f.deliveredAt, estimated: f.estimatedDeliveryAt, tracking: shopifyTracking(f) })),
     ),
