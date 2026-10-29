@@ -305,7 +305,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
   },
   ab_tests: {
     who: "For stores that want proof before they change an offer.",
-    points: ["Show half of your shoppers another version of an upsell or cross sell", "Change the words, the discount or the style in version B", "Each shopper keeps one version, so orders can be told apart", "Real shoppers and real orders: we say which is ahead only when there is enough data", "One click to use the winner"],
+    points: ["Show your shoppers up to four versions of an upsell or cross sell, split evenly", "Change the words, the discount or the style in versions B, C and D", "Each shopper keeps one version, so orders can be told apart", "Real shoppers and real orders: we say which is ahead only when there is enough data", "One click to use the winner"],
     related: ["upsell", "cross_sell", "discounts"],
   },
   post_purchase: {

@@ -106,7 +106,7 @@ const page: KeywordPage = {
     },
     {
       q: "Can I A/B test offers?",
-      a: `Yes, on the ${abPlan} plan. Half of your shoppers see version B of an upsell or cross sell, with different words, discount or style. Each shopper keeps one version, the app says which is ahead only when there is enough data, and one click uses the winner.`,
+      a: `Yes, on the ${abPlan} plan. Your shoppers are split evenly between up to four versions of an upsell or cross sell, with different words, discount or style. Each shopper keeps one version, the app says which is ahead only when there is enough data, and one click uses the winner.`,
     },
     {
       q: "Which plan do I need?",

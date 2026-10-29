@@ -12,7 +12,7 @@ const prisma = new PrismaClient({ datasources: { db: { url: `file:${path.join(di
 (globalThis as unknown as { prismaGlobal: PrismaClient }).prismaGlobal = prisma;
 Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOPIFY_APP_URL: "https://app.example", SCOPES: "read_products" });
 
-import { applyOverrides, changesDiscount, cleanOverrides, compareGroups, functionAb, normalCdf, testSummary, toStorefrontAbTests, validateTest, type AbTest } from "../../app/lib/ab-tests";
+import { applyOverrides, changesDiscount, cleanOverrides, compareGroups, compareVersions, functionAb, groupsOf, normalCdf, testChangesDiscount, testSummary, toStorefrontAbTests, validateTest, validateVersions, type AbTest } from "../../app/lib/ab-tests";
 import { buildDiscountConfig } from "../../app/lib/cro.server";
 import type { Rule } from "../../app/lib/types";
 
@@ -82,8 +82,31 @@ test("which version is ahead, and how sure we are", () => {
   assert.equal(close.verdict, "close");
   assert.equal(compareGroups(g(500, 25), g(500, 25)).leader, null);
   assert.equal(compareGroups(g(300, 30), g(300, 20)).leader, "A");
-  assert.equal(clear.rate.a, 0.08);
-  assert.equal(clear.perView.b, 6.5);
+  assert.equal(clear.rate.A, 0.08);
+  assert.equal(clear.perView.B, 6.5);
+});
+
+test("four versions: split groups, the leader must beat the next best, each version checked and none the same", () => {
+  const g = (views: number, orders: number) => ({ views, orders, revenue: orders * 50, adds: orders });
+  const four = compareVersions({ A: g(1000, 50), B: g(1000, 55), C: g(1000, 110), D: g(1000, 60) });
+  assert.deepEqual(four.order, ["A", "B", "C", "D"]);
+  assert.equal(four.leader, "C");
+  assert.equal(four.verdict, "clear");
+  // Two close leaders: no winner called even though both beat A.
+  assert.equal(compareVersions({ A: g(1000, 50), B: g(1000, 100), C: g(1000, 101) }).verdict, "close");
+  assert.equal(compareVersions({ A: g(1000, 50), B: g(1000, 60), C: g(50, 9) }).verdict, "wait", "every version needs its shoppers");
+  const t: AbTest = { id: "ab_4", name: "T", offer: "rule-cross", kind: "cross_sell", status: "running", startedAt: "", endedAt: null, winner: null, b: { headline: "B" }, more: [{ discountPercent: 30 }, { design: 2 }] };
+  assert.deepEqual(groupsOf(t), ["A", "B", "C", "D"]);
+  assert.equal(testChangesDiscount(t), true);
+  const store = toStorefrontAbTests([t], [cross]) as unknown as Record<string, { n: number; b: { headline: string }; v: Record<string, { discount_percent: number; design: number }> }>;
+  assert.equal(store["rule-cross"].n, 4);
+  assert.equal(store["rule-cross"].b.headline, "B");
+  assert.equal(store["rule-cross"].v.C.discount_percent, 30);
+  assert.equal(store["rule-cross"].v.D.design, 2);
+  assert.deepEqual(functionAb(t, cross)?.v, { C: { pct: 30, label: cross.discountLabel || cross.headline }, D: { pct: cross.discountPercent, label: cross.discountLabel || cross.headline } });
+  assert.match(validateVersions(cross, "cross_sell", [{ headline: "X" }, {}]).join(" "), /version C/);
+  assert.match(validateVersions(cross, "cross_sell", [{ headline: "X" }, { headline: "X" }]).join(" "), /same as another version/);
+  assert.deepEqual(validateVersions(cross, "cross_sell", [{ headline: "X" }, { headline: "Y" }, { discountPercent: 15 }]), []);
 });
 
 /* ---------------------------------------------- with a database and orders -- */
@@ -127,8 +150,8 @@ test("results count views we saw and orders that carry the test, inside the test
     order(day(1), "ab_res1:B", "999.00", undefined, true),
   ]), "s.myshopify.com", [t]);
   const r = res[t.id];
-  assert.deepEqual(r.a, { views: 3, orders: 1, revenue: 40, adds: 1 });
-  assert.deepEqual(r.b, { views: 1, orders: 2, revenue: 70, adds: 1 });
+  assert.deepEqual(r.groups.A, { views: 3, orders: 1, revenue: 40, adds: 1 });
+  assert.deepEqual(r.groups.B, { views: 1, orders: 2, revenue: 70, adds: 1 });
   assert.equal(r.verdict, "wait");
   assert.deepEqual(await S.testResults(ordersAdmin([]), "s.myshopify.com", []), {});
 });

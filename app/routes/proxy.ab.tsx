@@ -7,13 +7,14 @@ import { authenticate } from "../shopify.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
 import { remember } from "../lib/short-cache.server";
 import { countView, listTests } from "../lib/ab-tests.server";
+import { isGroup } from "../lib/ab-tests";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.public.appProxy(request);
   if (!admin || !session) return json({ ok: false }, 503);
   const body = await readJson(request);
   const t = String(body?.t ?? ""), g = body?.g;
-  if (!/^ab_[a-z0-9]{4,16}$/.test(t) || (g !== "A" && g !== "B")) return json({ ok: false }, 400);
+  if (!/^ab_[a-z0-9]{4,16}$/.test(t) || !isGroup(g)) return json({ ok: false }, 400);
   if (tooMany(request, session.shop, "ab", 40)) return json({ ok: false }, 429);
   try {
     const running = await remember(session.shop, "ab_running", 60_000, async () => (await listTests(admin)).filter((x) => x.status === "running").map((x) => x.id));

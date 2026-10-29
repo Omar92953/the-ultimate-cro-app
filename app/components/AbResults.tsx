@@ -1,32 +1,47 @@
 import css from "./AnalyticsOverview.module.css";
 import { MIN_ORDERS, MIN_VIEWS, type AbResult } from "../lib/ab-tests";
 
-const n = (v: number | null, digits = 1) => (v === null ? "none yet" : v.toFixed(digits));
+const n = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? "none yet" : v.toFixed(digits));
 
+/** One column per version (A, B and C, D when the test has them). */
 export function AbResults({ r, money }: { r: AbResult; money: (v: number) => string }) {
-  const per100 = (x: number | null) => (x === null ? "none yet" : n(x * 100));
+  const per100 = (x: number | null | undefined) => (x === null || x === undefined ? "none yet" : n(x * 100));
+  const cols = r.order;
+  const rows: [string, (g: (typeof cols)[number]) => string | number][] = [
+    ["Shoppers who saw it", (g) => r.groups[g]?.views ?? 0],
+    ["Added the offer (orders)", (g) => r.groups[g]?.adds ?? 0],
+    ["Orders", (g) => r.groups[g]?.orders ?? 0],
+    ["Orders per 100 shoppers", (g) => per100(r.rate[g])],
+    ["Revenue", (g) => money(r.groups[g]?.revenue ?? 0)],
+    ["Revenue per shopper", (g) => (r.perView[g] === null || r.perView[g] === undefined ? "none yet" : money(r.perView[g]!))],
+  ];
   return (
     <s-stack gap="small-200">
       <table className={css.table}>
         <thead>
-          <tr><th> </th><th className={css.num}>Version A</th><th className={css.num}>Version B</th></tr>
+          <tr>
+            <th> </th>
+            {cols.map((g) => (
+              <th key={g} className={css.num}>{`Version ${g}`}</th>
+            ))}
+          </tr>
         </thead>
         <tbody>
-          {[
-            ["Shoppers who saw it", r.a.views, r.b.views],
-            ["Added the offer (orders)", r.a.adds, r.b.adds],
-            ["Orders", r.a.orders, r.b.orders],
-            ["Orders per 100 shoppers", per100(r.rate.a), per100(r.rate.b)],
-            ["Revenue", money(r.a.revenue), money(r.b.revenue)],
-            ["Revenue per shopper", r.perView.a === null ? "none yet" : money(r.perView.a), r.perView.b === null ? "none yet" : money(r.perView.b)],
-          ].map(([label, a, b]) => (
-            <tr key={String(label)}><td>{label}</td><td className={css.num}>{a}</td><td className={css.num}>{b}</td></tr>
+          {rows.map(([label, cell]) => (
+            <tr key={label}>
+              <td>{label}</td>
+              {cols.map((g) => (
+                <td key={g} className={css.num}>
+                  {cell(g)}
+                </td>
+              ))}
+            </tr>
           ))}
         </tbody>
       </table>
       <s-text>
         {r.verdict === "wait"
-          ? `Not enough shoppers yet: each version needs ${MIN_VIEWS} shoppers and the two together ${MIN_ORDERS} orders before one can be called ahead.`
+          ? `Not enough shoppers yet: each version needs ${MIN_VIEWS} shoppers and all of them together ${MIN_ORDERS} orders before one can be called ahead.`
           : r.verdict === "close"
             ? `No clear difference yet${r.leader ? ` (version ${r.leader} is slightly ahead, ${r.sure}% sure)` : ""}. Let it run longer.`
             : `Version ${r.leader} is ahead, ${r.sure}% sure${r.verdict === "likely" ? " (likely, not certain)" : ""}.`}

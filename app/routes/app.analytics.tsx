@@ -213,20 +213,20 @@ export default function Analytics() {
             <s-section heading={abTest ? `A/B test · ${abTest.name}` : "A/B tests"}>
               {abTest && ab ? (
                 <s-stack gap="small-200">
-                  {(["A", "B"] as const).map((v) => {
+                  {ab.order.map((v) => {
                     const ahead = ab.leader === v && ab.verdict !== "wait" && ab.verdict !== "close";
-                    const per = v === "A" ? ab.perView.a : ab.perView.b;
+                    const per = ab.perView[v] ?? null;
                     return (
                       <div key={v} className={`${css.version} ${ahead ? css.ahead : ""}`}>
                         <span>
-                          {v === "A" ? "Version A · as saved" : "Version B"}
+                          {v === "A" ? "Version A · as saved" : `Version ${v}`}
                           {ahead ? <span className={css.pill}>Ahead</span> : null}
                         </span>
                         <strong>{per === null ? "No shoppers yet" : `${money(per, r.currency)} per shopper`}</strong>
                       </div>
                     );
                   })}
-                  <span className={css.note}>{`Shoppers split evenly · ${(ab.a.views + ab.b.views).toLocaleString()} shoppers so far`}</span>
+                  <span className={css.note}>{`Shoppers split evenly · ${ab.order.reduce((sum, g) => sum + (ab.groups[g]?.views ?? 0), 0).toLocaleString()} shoppers so far`}</span>
                   <s-stack direction="inline">
                     <Button variant="tertiary" onClick={() => setTab("tests")}>
                       See the results

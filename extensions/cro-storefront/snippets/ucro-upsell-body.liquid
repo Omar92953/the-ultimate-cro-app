@@ -10,14 +10,21 @@ assign tiers = nil
 if rule
 assign tiers = rule.tiers.value
 endif
-if ab == 'B' and rule
-assign r_head = ab_test.b.headline
-assign r_sub = ab_test.b.subheadline
-assign r_design = ab_test.b.design
-if ab_test.b.design == 0
+assign abv = nil
+if ab != blank and ab != 'A' and rule
+assign abv = ab_test.v[ab]
+if abv == blank and ab == 'B'
+assign abv = ab_test.b
+endif
+endif
+if abv
+assign r_head = abv.headline
+assign r_sub = abv.subheadline
+assign r_design = abv.design
+if abv.design == 0
 assign r_design = nil
 endif
-assign tiers = ab_test.b.tiers
+assign tiers = abv.tiers
 endif
 if rule and r_design != blank
 capture dk
@@ -77,7 +84,7 @@ assign list = false
 if d.list
 assign list = true
 endif
--%}{%- if renderable -%}{%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab == 'B' %} hidden{% endif %}>{%- endif -%}<ucro-upsell
+-%}{%- if renderable -%}{%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab != 'A' %} hidden{% endif %}>{%- endif -%}<ucro-upsell
 data-offer="{{ rule_handle }}"
 class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if sold_out %} is-sold-out{% endif %}{{ d.cls }}"
 style="{{ d.css | default: '--ucro-gap: 12px; --ucro-pt: 12px; --ucro-pb: 12px;' }}"
