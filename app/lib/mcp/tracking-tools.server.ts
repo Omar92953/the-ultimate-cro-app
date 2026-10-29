@@ -16,6 +16,7 @@ const PAGE = "Tracking & Returns, then Where tracking comes from";
 
 /** The ways to connect a shipping company, in the words the assistant passes on. */
 export const TRACKING_WAYS = [
+  { source: "shopify", title: "The courier's own Shopify app", how: "Many couriers have a Shopify app that adds the tracking number and its updates to the store's orders; the Track page shows what Shopify gets, with nothing more to set up. Help the merchant check the Shopify App Store for their courier's app and whether it sends tracking updates." },
   { source: "own", title: "Tracking service key", how: `The merchant's own account at 17TRACK, AfterShip, TrackingMore or Ship24 (each follows thousands of carriers worldwide). The merchant creates the account, finds the API key (usually Settings, then API or Developers) and pastes it in the Key field on ${PAGE}, then presses Test and save. Never ask for the key in the chat.` },
   { source: "webhook", title: "Webhook link", how: `For a shipping company, warehouse or 3PL that can send updates to a link. The merchant chooses Webhook link on ${PAGE} and copies the private link from there (never ask for it in the chat). Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are; anything else POSTs JSON in webhookFormat.` },
   { source: "carrier_link", title: "Carrier tracking page link", how: "For a courier Shopify has no tracking link for: its name as it shows on fulfillments and its tracking page address with {number} where the tracking number goes. Use set_carrier_link." },

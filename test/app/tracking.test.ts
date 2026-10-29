@@ -303,7 +303,7 @@ test("the AI assistant reads the tracking setup and the shipping companies, adds
   assert.equal(setup.sourceInUse, "webhook");
   assert.equal(setup.webhookLinkReady, true);
   assert.deepEqual(setup.recentShippingCompanies, ["Bosta"]);
-  assert.equal((setup.ways as unknown[]).length, 4);
+  assert.equal((setup.ways as unknown[]).length, 5);
   assert.ok(!JSON.stringify(setup).includes("/tracking/hook/"), "the webhook link stays in the app");
 
   await tool("set_carrier_link").run(ctx("pro"), { name: "Bosta", url: "https://bosta.co/track?n={number}" });
