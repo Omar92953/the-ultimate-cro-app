@@ -12,6 +12,7 @@
 import type { FeatureKey, RecipeKey } from "./app";
 import type { PageMeta } from "./pages";
 import type { QA } from "../components/Faq.astro";
+import { FEATURE_KEYWORD_PAGES } from "./feature-keywords";
 
 /** A block of the page body: a heading, paragraphs, a bullet list and/or numbered steps, then closing paragraphs. */
 export type KeywordSection = { heading: string; paragraphs?: string[]; list?: string[]; steps?: string[]; after?: string[] };
@@ -56,9 +57,11 @@ export type KeywordPage = {
 
 /** Every keyword page, in footer order. */
 const files = import.meta.glob<{ default: KeywordPage }>("../keywords/*.ts", { eager: true });
-export const KEYWORD_PAGES: KeywordPage[] = Object.values(files)
-  .map((m) => m.default)
-  .sort((a, b) => a.order - b.order);
+export const KEYWORD_PAGES: KeywordPage[] = [...Object.values(files).map((m) => m.default), ...FEATURE_KEYWORD_PAGES].sort((a, b) => a.order - b.order);
+/** The hand written pages (src/keywords/), listed in the footer; the per feature pages are linked from their feature page. */
+export const MAIN_KEYWORD_PAGES = KEYWORD_PAGES.filter((p) => p.order < 1000);
+/** The keyword page about one feature, for its feature page. */
+export const keywordPageFor = (k: FeatureKey) => KEYWORD_PAGES.find((p) => p.features[0] === k);
 
 export const keywordPath = (p: Pick<KeywordPage, "slug">) => `/${p.slug}/`;
 

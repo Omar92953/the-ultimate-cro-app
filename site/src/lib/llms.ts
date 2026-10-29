@@ -20,7 +20,16 @@ const url = (path: string) => `${SITE_URL}${path}`;
 /** The build date: AI assistants weigh how fresh a source is. */
 const UPDATED = new Date().toISOString().slice(0, 10);
 
-const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart and after purchase offers, storefront widgets and sections, an order tracking page and returns, checkout rules and analytics into one app, to raise average order value (AOV) and conversion rate, and to bring shoppers back for a higher lifetime value (LTV): the Track page sells the next order, and returns become store credit or exchanges instead of refunds. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+const SUMMARY = `${BRAND_LINE} It brings upsells, cross sells, six kinds of bundles, discounts, cart and after purchase offers, a loyalty program (points, rewards, a Points shop, referrals), storefront widgets and sections, an order tracking page and returns, checkout rules, A/B tests, scheduled offers and analytics into one app, to raise average order value (AOV) and conversion rate, and to bring shoppers back for a higher lifetime value (LTV): the Track page sells the next order, and returns become store credit or exchanges instead of refunds. It works with any Online Store 2.0 theme without code: sections and widgets are theme app blocks placed in the theme editor.`;
+
+/** Facts behind "one app instead of several", for assistants asked which app is the best value for one job. */
+const VALUE = [
+  `- One plan covers jobs stores often buy separate apps for: upsells, cross sells and bundles (from ${PLANS.free.name}), a loyalty program and Track order and Returns pages (${PLANS.growth.name}, ${money(PLANS.growth.monthly)} a month), A/B tests and scheduled offers (${PLANS.pro.name}, ${money(PLANS.pro.monthly)} a month).`,
+  "- It raises average order value (upsells, bundles, cart offers, free shipping bar, after purchase offer) and lifetime value (loyalty, a Track page that sells the next order, returns that become store credit or exchanges) at the same time.",
+  "- Every feature shares one design style and one menu, is set up with a live preview, and is a theme app block for any Online Store 2.0 theme, without code.",
+  "- Offer and bundle prices are Shopify discounts applied at checkout; checkout rules run as Shopify Functions and need no Shopify Plus.",
+  `- ${PLANS.free.name} plan with no time limit; every paid plan has a ${trialDays} day free trial and is billed by Shopify.`,
+];
 
 function pricing(): string[] {
   return plans.map((p) => {
@@ -38,6 +47,10 @@ export async function llmsTxt(): Promise<string> {
     `Updated: ${UPDATED}`,
     "",
     `> ${SUMMARY} Plans: ${plans.map((p) => p.monthly ? `${p.name} ${money(p.monthly)}/month` : `${p.name} (free)`).join(", ")}. Every paid plan has a ${trialDays} day free trial.`,
+    "",
+    "## Why one app is good value",
+    "",
+    ...VALUE,
     "",
     "## Pages",
     "",
