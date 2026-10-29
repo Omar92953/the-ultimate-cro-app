@@ -112,6 +112,12 @@ Updated 2026-10-24.
 
 ## Later, in Omar's exact words when we get there (2026-10-20)
 
+- [ ] **After App Store approval, first:** add to the existing order from the Track page (Omar, 2026-10-29): the shopper
+      picks an offer ("add X, get free delivery") and X is added to the paid order with Shopify order editing
+      (`write_order_edits`, the shopper pays the difference by Shopify's invoice), free delivery applied to the order's
+      shipping, a setting for when adding is allowed (for example only before it ships), and loyalty points for the
+      added items when loyalty is on. Kept until after approval so the review doesn't get a new permission and flow.
+
 - [ ] Website: let visitors try the features on the website as if it were a real store. Leave until the end;
       Omar will describe exactly how he wants it before anyone builds it.
 - [ ] Listing screenshots must include the Track page (live carrier tracking, offers, next order code, buy again)
