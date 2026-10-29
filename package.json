@@ -25,7 +25,7 @@
     "watch:theme": "node scripts/build-theme.mjs --watch",
     "test:storefront": "node scripts/build-theme.mjs --check && node test/storefront/render.mjs && node test/storefront/sections.mjs",
     "check:links": "node --experimental-strip-types --no-warnings scripts/check-links.mjs",
-    "test:app": "node --experimental-strip-types --no-warnings --import ./test/app/resolve-ts.mjs --test test/app/*.test.ts"
+    "test:app": "CRO_TEST_LIVE_TRACKING=1 node --experimental-strip-types --no-warnings --import ./test/app/resolve-ts.mjs --test test/app/*.test.ts"
   },
   "type": "module",
   "engines": {

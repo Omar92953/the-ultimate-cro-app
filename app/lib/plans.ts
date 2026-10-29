@@ -78,6 +78,17 @@ export type Plan = {
 /** Shown on every paid plan (Shopify billing: merchants change or cancel from the plan page). */
 export const GUARANTEE = "Cancel or change your plan anytime. No contract.";
 
+/**
+ * Live tracking from the app's own 17TRACK account. Off until there is at least one paying store (Omar, 2026-10-29):
+ * the account is a trial. Off, Growth and Pro have no live tracked shipments and the Tracking source page offers
+ * the merchant's own key, a webhook link, carrier links and typed updates. Turning it on brings back 200 and 500
+ * (the website reads this too; also put back the live tracking lines in site/src/content/blog/order-tracking-page-that-sells.md
+ * and help/plans-and-billing.md).
+ */
+// The app tests run with it on (CRO_TEST_LIVE_TRACKING=1 in package.json test:app), so the live tracking code stays
+// tested. Never set that on Render: the browser always reads it as off. To turn it on, make this `true`.
+export const LIVE_TRACKING: boolean = typeof process !== "undefined" && process.env?.CRO_TEST_LIVE_TRACKING === "1";
+
 export const PLANS: Record<PlanKey, Plan> = {
   free: {
     key: "free",
@@ -110,9 +121,9 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 19.99,
     yearly: 199,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000, liveShipments: 200, loyaltyOrders: 500, loyaltyEmails: 1000 },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: 1000, liveShipments: LIVE_TRACKING ? 200 : 0, loyaltyOrders: 500, loyaltyEmails: 1000 },
     badge: "Popular",
-    highlights: ["Everything in Starter", "Unlimited checkout rules", "Offer results and a holdout test", "Track and Returns pages", "Live tracking, 200 shipments a month", "Loyalty for 500 orders a month", "Your tracking page sells too", "Shoppable images"],
+    highlights: ["Everything in Starter", "Unlimited checkout rules", "Offer results and a holdout test", "Track and Returns pages", ...(LIVE_TRACKING ? ["Live tracking, 200 shipments a month"] : []), "Loyalty for 500 orders a month", "Your tracking page sells too", "Shoppable images"],
   },
   pro: {
     key: "pro",
@@ -123,9 +134,9 @@ export const PLANS: Record<PlanKey, Plan> = {
     monthly: 39.99,
     yearly: 399,
     trialDays: 14,
-    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null, liveShipments: 500, loyaltyOrders: 2000, loyaltyEmails: 5000 },
+    limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null, liveShipments: LIVE_TRACKING ? 500 : 0, loyaltyOrders: 2000, loyaltyEmails: 5000 },
     badge: "No limits",
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", "Live tracking, 500 shipments a month", "Loyalty for 2,000 orders a month", "VIP tiers, Klaviyo and Shopify Flow", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", ...(LIVE_TRACKING ? ["Live tracking, 500 shipments a month"] : []), "Loyalty for 2,000 orders a month", "VIP tiers, Klaviyo and Shopify Flow", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
   },
 };
 

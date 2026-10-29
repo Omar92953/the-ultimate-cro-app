@@ -16,7 +16,7 @@ import { getThemeStatus } from "../lib/cro.server";
 import { errorMessage } from "../lib/admin.server";
 import { createOrderPage, orderPageContext, pageAdminUrl, type OrderPageKind } from "../lib/order-page-setup.server";
 import { planContext } from "../lib/rules.server";
-import { atLeast } from "../lib/plans";
+import { LIVE_TRACKING, atLeast } from "../lib/plans";
 import { getTrackingConfig } from "../lib/tracking/tracking.server";
 import { getTrackOffers } from "../lib/track-offers.server";
 import { TRACK_OFFER_KINDS } from "../lib/track-offers";
@@ -395,7 +395,7 @@ function TrackingTab({ d, pageStatus, pageButton, template, steps }: TabProps) {
             {
               done: !!d.tracking?.chosen,
               title: "Where should tracking come from?",
-              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : "Tracking uses Shopify's data, live tracking for 3,500+ carriers, your own tracking service key or a webhook link from any carrier.",
+              text: d.tracking?.chosen ? `In use: ${sourceName}${source === "live" ? ` (${d.tracking.used} of ${d.tracking.limit} shipments this month)` : ""}.` : `Tracking uses Shopify's data${LIVE_TRACKING ? ", live tracking for 3,500+ carriers" : ""}, your own tracking service key or a webhook link from any carrier.`,
               action: { label: d.tracking?.chosen ? "Change" : "Choose", href: "/app/tracking-source" },
             },
             ...steps,

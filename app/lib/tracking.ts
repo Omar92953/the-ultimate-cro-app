@@ -4,7 +4,7 @@
  * Pure (no Shopify or database calls): the shopper's page, the app and the tests all use it.
  */
 
-import { atLeast, limitOf, type PlanKey } from "./plans";
+import { LIVE_TRACKING, atLeast, limitOf, type PlanKey } from "./plans";
 
 export const TRACK_STATUSES = ["info", "transit", "out", "delivered", "problem"] as const;
 /** Info received, In transit, Out for delivery, Delivered, Problem. */
@@ -38,7 +38,8 @@ export const FALLBACK_ORDER: TrackSource[] = ["webhook", "own", "live", "shopify
 /** The sources to try, from the one the merchant chose down the preference order. */
 export function sourcesToTry(chosen: TrackSource): TrackSource[] {
   const from = FALLBACK_ORDER.indexOf(chosen);
-  return from < 0 ? ["shopify"] : FALLBACK_ORDER.slice(from);
+  // Live tracking off (plans.ts LIVE_TRACKING): never asked, whatever the store chose before.
+  return from < 0 ? ["shopify"] : FALLBACK_ORDER.slice(from).filter((s) => s !== "live" || LIVE_TRACKING);
 }
 
 /** A fulfillment event's status from Shopify (FulfillmentEventStatus) to ours. */

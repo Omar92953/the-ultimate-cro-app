@@ -11,6 +11,7 @@ import { PLANS, FEATURE_PLAN, type FeatureKey } from "./app";
 import type { PageMeta } from "./pages";
 import type { QA } from "../components/Faq.astro";
 import { SOURCE_PLAN } from "../../../app/lib/tracking";
+import { LIVE_TRACKING } from "../../../app/lib/plans";
 
 const livePlan = PLANS[SOURCE_PLAN.live].name;
 const savingPlan = PLANS[FEATURE_PLAN.return_saving].name;
@@ -209,7 +210,7 @@ export const ALTERNATIVES: Alternative[] = [
     faq: [
       {
         q: "Where does the tracking information come from?",
-        a: `From Shopify's tracking data by default. On ${livePlan}, live tracking shows where the parcel is now from most carriers; you can also use your own key or a webhook link.`,
+        a: LIVE_TRACKING ? `From Shopify's tracking data by default. On ${livePlan}, live tracking shows where the parcel is now from most carriers; you can also use your own key or a webhook link.` : `From Shopify's tracking data by default. On ${livePlan}, you can also use your own key from a shipping company or tracking service, or a webhook link.`,
       },
     ],
   },

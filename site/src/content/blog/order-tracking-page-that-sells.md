@@ -32,8 +32,8 @@ Shoppers look up their order with the order number and the email used for the or
 In **Tracking & Returns** you choose the source:
 
 - **Shopify's tracking data** is the default: the status, tracking number, estimated delivery and any events Shopify has for the shipment, in every country.
-- **Live tracking** on the Growth and Pro plans shows where the parcel is now and the full history, from most carriers worldwide, for up to 200 shipments a month on Growth and 500 on Pro. Over the limit the page uses Shopify's data.
-- **Your own key** from your shipping company or tracking service, or a **webhook link** for carriers or services that send you updates.
+- **Your own key** from your tracking service (17TRACK, AfterShip, TrackingMore or Ship24) on the Growth and Pro plans, for the parcel's full history from most carriers worldwide, or a **webhook link** for carriers or services that send you updates.
+- **Updates you type** for a local courier with no tracking system.
 
 Until Shopify approves the app's access to all orders, orders older than 60 days can't be found on the page. Details on the [Shopify order tracking page](/shopify-order-tracking-page/) overview.
 
@@ -83,7 +83,7 @@ The full walkthrough is in the help guide [Track order and returns pages](/help/
 
 ## Which plan do I need?
 
-The Track order page, with its next order discount, Buy again, recommendations, after delivery message and late order apology, is on the Growth plan ($19.99 a month or $199 a year, with a 14 day free trial). Live tracking and Track page offers are on the Pro plan ($39.99 a month). The same setup also gives you a Returns page; see the [Returns feature](/features/returns/). Plans are on the [pricing](/pricing/) page.
+The Track order page, with its next order discount, Buy again, recommendations, after delivery message and late order apology, is on the Growth plan ($19.99 a month or $199 a year, with a 14 day free trial). Track page offers are on the Pro plan ($39.99 a month). The same setup also gives you a Returns page; see the [Returns feature](/features/returns/). Plans are on the [pricing](/pricing/) page.
 
 ## Quick checklist
 
