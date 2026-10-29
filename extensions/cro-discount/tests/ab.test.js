@@ -19,7 +19,8 @@ const pct = (out) => Object.fromEntries(out.operations[0].productDiscountsAdd.ca
 describe("A/B groups", () => {
   test("reads the cart attribute", () => {
     expect(parseGroups("t1:B,t2:A")).toEqual({ t1: "B", t2: "A" });
-    expect(parseGroups("t1:C,junk,:B")).toEqual({});
+    expect(parseGroups("t1:C,t2:D")).toEqual({ t1: "C", t2: "D" });
+    expect(parseGroups("t1:E,junk,:B")).toEqual({});
     expect(parseGroups(undefined)).toEqual({});
   });
 
@@ -43,6 +44,14 @@ describe("A/B groups", () => {
     const up = { upsell: [{ trigger: { type: "products", products: [P(2)], collections: [] }, tiers: [{ qty: 2, pct: 10 }], label: "Buy more", ab: { id: "u1", b: { tiers: [{ qty: 2, pct: 20 }] } } }] };
     expect(pct(cartLinesDiscountsGenerateRun(input(up, "u1:B")))).toEqual({ l2: 20 });
     expect(pct(cartLinesDiscountsGenerateRun(input(up, "u1:A")))).toEqual({ l2: 10 });
+  });
+
+  test("versions C and D get their own discount; a C without its values gets the rule", () => {
+    const four = { crossSell: [{ ...cross.crossSell[0], ab: { id: "t1", b: { pct: 25 }, v: { C: { pct: 30 }, D: { pct: 40, label: "D deal" } } } }] };
+    expect(pct(cartLinesDiscountsGenerateRun(input(four, "t1:C")))).toEqual({ l2: 30 });
+    expect(pct(cartLinesDiscountsGenerateRun(input(four, "t1:D")))).toEqual({ l2: 40 });
+    expect(pct(cartLinesDiscountsGenerateRun(input(four, "t1:B")))).toEqual({ l2: 25 });
+    expect(pct(cartLinesDiscountsGenerateRun(input(cross, "t1:C")))).toEqual({ l2: 10 });
   });
 
   test("a bundle deal test changes the discount by group", () => {

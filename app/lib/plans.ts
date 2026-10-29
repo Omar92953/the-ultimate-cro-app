@@ -136,7 +136,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: null, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: null, designsPerSection: 5, monthlyOrders: null, liveShipments: LIVE_TRACKING ? 500 : 0, loyaltyOrders: 2000, loyaltyEmails: 5000 },
     badge: "No limits",
-    highlights: ["Everything in Growth", "A/B tests for upsells and cross sells", ...(LIVE_TRACKING ? ["Live tracking, 500 shipments a month"] : []), "Loyalty for 2,000 orders a month", "VIP tiers, Klaviyo and Shopify Flow", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
+    highlights: ["Everything in Growth", "A/B tests with up to 4 versions", "Scheduled offers", ...(LIVE_TRACKING ? ["Live tracking, 500 shipments a month"] : []), "Loyalty for 2,000 orders a month", "VIP tiers, Klaviyo and Shopify Flow", "Store credit and exchanges on returns", "Auto approve and restock returns", "Track page offer slots", "Priority support"],
   },
 };
 

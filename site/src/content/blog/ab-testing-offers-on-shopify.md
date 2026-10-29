@@ -54,7 +54,7 @@ A bigger discount often looks good on acceptance alone. Revenue per shopper tell
 A/B tests are on the Pro plan, at $39.99 a month. You can test an upsell offer or a cross sell offer:
 
 - Version A is the offer as it is saved. Version B changes the words, the discount or the style.
-- Half of your shoppers see version B, and each shopper keeps one version.
+- Shoppers are split evenly between the versions (up to four: A, B, C and D), and each shopper keeps one version.
 - Results count real shoppers and real orders: shoppers who saw each version, orders that added the offer, orders, orders per 100 shoppers, revenue and revenue per shopper.
 - The app says which version is ahead and how sure it is only when there is enough data.
 - When you are done, one click uses the winner.
@@ -66,9 +66,9 @@ One detail for cross sells: if the cross sell also shows in the cart drawer, the
 1. Make sure the offer is switched on. Upsells live in **Offers → Upsell offers**, cross sells in **Offers → Cross sell offers** (see the [upsell offers help guide](/help/upsell-offers/)).
 2. Open **Offers** and, in the **A/B tests** section, click **Open A/B tests**.
 3. Under **Start a test**, choose the **Offer to test** and give the test a name, for example "Bundle offer: bigger discount".
-4. Change one thing for version B: the **Headline**, the **Text under the headline**, the **Button** (cross sells), the **Discount label**, the **Discount**, the tier discounts or the **Style**.
+4. Change one thing for version B: the **Headline**, the **Text under the headline**, the **Button** (cross sells), the **Discount label**, the **Discount**, the tier discounts or the **Style**. To try more ideas at once, click **Add a version** for versions C and D, each with its own change (more versions need more shoppers before a winner shows).
 5. Click **Start the test**.
-6. Check back after a week or two. When the app shows a clear leader, click **Use version B** or **Keep version A**. To end a test with no change, click **Stop without choosing**.
+6. Check back after a week or two. When the app shows a clear leader, click **Use version B** (or C, D) or **Keep version A**. To end a test with no change, click **Stop without choosing**.
 
 More on the feature: [A/B tests feature page](/features/ab-tests/).
 

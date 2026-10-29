@@ -20,4 +20,14 @@ assign ab_test = nil
 if rule_handle != blank and request.design_mode == false
 assign ab_test = shop.metaobjects['$app:cro_design']['ab_tests'].config.value[rule_handle]
 endif
--%}{%- if ab_test -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'A', ab_test: ab_test, scripts: false -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'B', ab_test: ab_test, scripts: true -%}{%- render 'ucro-ab', test: ab_test -%}{%- else -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: '', ab_test: nil, scripts: true -%}{%- endif -%}{% schema %}{"name":"Cross sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}
+-%}{%- if ab_test -%}{%- liquid
+assign ab_n = ab_test.n | default: 2
+assign ab_sb = true
+assign ab_sc = true
+if ab_n > 2
+assign ab_sb = false
+endif
+if ab_n > 3
+assign ab_sc = false
+endif
+-%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'A', ab_test: ab_test, scripts: false -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'B', ab_test: ab_test, scripts: ab_sb -%}{%- if ab_n > 2 -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'C', ab_test: ab_test, scripts: ab_sc -%}{%- endif -%}{%- if ab_n > 3 -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: 'D', ab_test: ab_test, scripts: true -%}{%- endif -%}{%- render 'ucro-ab', test: ab_test -%}{%- else -%}{%- render 'ucro-cross-sell-body', block: block, product: product, cart: cart, enabled: enabled, placement: placement, rule_handle: rule_handle, ab: '', ab_test: nil, scripts: true -%}{%- endif -%}{% schema %}{"name":"Cross sell offers","target":"section","stylesheet":"ucro.css","enabled_on":{"templates":["product","cart"]},"settings":[{"type":"select","id":"design","label":"Style","default":"1","info":"t:s.1","options":[{"value":"1","label":"Style 1"},{"value":"2","label":"Style 2"},{"value":"3","label":"Style 3"},{"value":"4","label":"Style 4"},{"value":"5","label":"Style 5"}]},{"type":"paragraph","content":"t:s.5"}]}{% endschema %}

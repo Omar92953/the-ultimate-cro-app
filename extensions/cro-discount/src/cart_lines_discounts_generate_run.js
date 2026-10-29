@@ -23,8 +23,9 @@
  *   ]
  * Rules arrive sorted by priority; for upsells the first matching rule wins, like on the storefront.
  *
- *   Any rule or deal may carry "ab": { "id": "t1", "b": { "pct": 20, "tiers": [...], "label": "…" } }: an A/B test. The shopper's
- *   group is the cart attribute _cro_ab ("t1:B,t2:A"); group B gets the rule with "b" laid over it.
+ *   Any rule or deal may carry "ab": { "id": "t1", "b": { "pct": 20, "tiers": [...], "label": "…" }, "v": { "C": {…}, "D": {…} } }:
+ *   an A/B test with up to four versions. The shopper's group is the cart attribute _cro_ab ("t1:B,t2:A"); group B gets
+ *   the rule with "b" laid over it, groups C and D with their own from "v".
  *
  *   "skip": ["123", …]   // product ids of bundles (mix & match bundle products, bundle products/kits)
  *
@@ -173,7 +174,7 @@ export function cartLinesDiscountsGenerateRun(input) {
 }
 
 /**
- * "t1:B,t2:A" → { t1: "B", t2: "A" }. Anything else is ignored (everyone is in group A then).
+ * "t1:B,t2:C" → { t1: "B", t2: "C" }. Anything else is ignored (everyone is in group A then).
  * @param {unknown} value
  * @returns {Record<string, string>}
  */
@@ -182,20 +183,23 @@ export function parseGroups(value) {
   const out = {};
   for (const part of String(value || "").split(",")) {
     const [id, g] = part.split(":");
-    if (id && (g === "A" || g === "B")) out[id.trim()] = g;
+    if (id && (g === "A" || g === "B" || g === "C" || g === "D")) out[id.trim()] = g;
   }
   return out;
 }
 
 /**
- * The rule as this shopper's group sees it: B's overrides laid over the rule when it has a test and the
- * shopper is in group B. Only the discount fields (pct, tiers, label) can differ.
+ * The rule as this shopper's group sees it: the group's overrides laid over the rule when it has a test and the
+ * shopper is in group B, C or D. Only the discount fields (pct, tiers, label) can differ.
  * @param {any} rule
  * @param {Record<string, string>} groups
  */
 export function abEffective(rule, groups) {
-  if (!rule || !rule.ab || groups[rule.ab.id] !== "B" || !rule.ab.b) return rule;
-  const { pct, tiers, label } = rule.ab.b;
+  if (!rule || !rule.ab) return rule;
+  const g = groups[rule.ab.id];
+  const over = g === "B" ? rule.ab.b : g === "C" || g === "D" ? rule.ab.v && rule.ab.v[g] : null;
+  if (!over) return rule;
+  const { pct, tiers, label } = over;
   return { ...rule, ...(pct !== undefined ? { pct } : {}), ...(tiers !== undefined ? { tiers } : {}), ...(label !== undefined ? { label } : {}) };
 }
 

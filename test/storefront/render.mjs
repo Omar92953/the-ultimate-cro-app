@@ -263,6 +263,24 @@ fs.writeFileSync(path.join(out, "upsell-size.html"), page("Tee — size upgrade"
   fs.writeFileSync(path.join(out, "ab-upsell.html"), page("A/B upsell", P.tee.id, teeSv.id, sizePicker + up + teeScript));
   fs.writeFileSync(path.join(out, "ab-cross.html"), page("A/B cross sell", P.batman.id, P.batman.variants[0].id, cr));
 }
+// A/B test with four versions: A, B, C and D are on the page, each with its own words; the scripts load once.
+{
+  const v = (head, pct) => ({ headline: head, subheadline: "", button_label: "Add them", discount_percent: pct, discount_label: "", design: 0, tiers: [] });
+  const ab = metaobject("ab_tests", { config: { "rule-cross-1": { id: "ab4", n: 4, b: v("Version B words", 15), v: { B: v("Version B words", 15), C: v("Version C words", 20), D: v("Version D words", 30) } } } });
+  const withAb = { ...shopWith(rules.filter((r) => r.system.handle === "rule-cross-1"), listDesign) };
+  withAb.metaobjects["$app:cro_design"] = collectionOf([ab]);
+  const cr = await block("ucro-cross-sell", { product: P.batman, page_type: "product" }, {}, withAb);
+  const count = (h, needle) => h.split(needle).length - 1;
+  const four = {
+    copies: ["A", "B", "C", "D"].map((g) => count(cr, `data-ab-g="${g}"`)),
+    words: ["Version B words", "Version C words", "Version D words"].every((w) => cr.includes(w)),
+    hidden: ["B", "C", "D"].every((g) => new RegExp(`data-ab-g="${g}"[^>]*hidden`).test(cr)),
+    scriptOnce: count(cr, "ucro-core.js"),
+    splitsFour: cr.includes("'ABCD'.slice(0,n)") && /n=4,/.test(cr),
+  };
+  console.log("ab four:", JSON.stringify(four));
+  if (four.copies.join() !== "1,1,1,1" || !four.words || !four.hidden || four.scriptOnce !== 1 || !four.splitsFour) throw new Error("A/B with four versions did not render as expected: " + JSON.stringify(four));
+}
 // Sold out: the upsell still shows (offers disabled, "Sold out" note) and cross-sell rows keep the sold out product.
 {
   const soldUpsell = await block("ucro-upsell", { product: { ...P.soldout, available: false, selected_or_first_available_variant: P.soldout.variants[0] }, page_type: "product" }, {}, shopWith([quantityListRule]));

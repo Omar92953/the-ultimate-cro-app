@@ -1,6 +1,6 @@
 /**
- * A/B tests for offers (Pro): half the shoppers see version A (the offer as saved), half version B (other
- * words, discount or style). Results are real: shoppers counted by the offer blocks and the store's own orders.
+ * A/B tests for offers (Pro): shoppers are split evenly between version A (the offer as saved) and up to three
+ * other versions, B, C and D (other words, discount or style). Results are real: shoppers counted by the offer blocks and the store's own orders.
  * Logic: lib/ab-tests.ts and lib/ab-tests.server.ts.
  */
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +14,7 @@ import { listRules } from "../lib/cro.server";
 import { planContext } from "../lib/rules.server";
 import { isRuleError } from "../lib/rules";
 import { applyWinner, createTest, listTests, stopTest, testResults } from "../lib/ab-tests.server";
-import { AB_CHANGE_LABELS, type AbResult, type AbTest } from "../lib/ab-tests";
+import { AB_CHANGE_LABELS, AB_GROUPS, MAX_VERSIONS, challengers, groupsOf, isGroup, type AbResult, type AbTest } from "../lib/ab-tests";
 import { Button, NumberField, Select, TextField } from "../components/fields";
 import { PageIntro, Pill } from "../components/ui";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
@@ -39,9 +39,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const intent = String(form.get("intent"));
     const p = await planContext(admin, session.shop);
     if (intent === "create") {
-      await createTest(admin, { plan: p.plan, trial: null }, { name: String(form.get("name") ?? ""), offer: String(form.get("offer")), b: JSON.parse(String(form.get("b") ?? "{}")) });
+      await createTest(admin, { plan: p.plan, trial: null }, { name: String(form.get("name") ?? ""), offer: String(form.get("offer")), versions: JSON.parse(String(form.get("versions") ?? "[]")) });
     } else if (intent === "stop") await stopTest(admin, String(form.get("id")));
-    else if (intent === "apply") await applyWinner(admin, String(form.get("id")), form.get("winner") === "B" ? "B" : "A");
+    else if (intent === "apply") {
+      const winner = form.get("winner");
+      await applyWinner(admin, String(form.get("id")), isGroup(winner) ? winner : "A");
+    }
     else throw new Error("Unknown action.");
     return { ok: true, error: null, intent, upgrade: false };
   } catch (e) {
@@ -56,11 +59,15 @@ export default function AbTests() {
   const [offer, setOffer] = useState(d.offers[0]?.handle ?? "");
   const rule = d.offers.find((o) => o.handle === offer);
   const [name, setName] = useState("");
-  const [b, setB] = useState<Record<string, unknown>>({});
+  // Versions B, C and D: what each changes. `at` is the one being edited.
+  const [versions, setVersions] = useState<Record<string, unknown>[]>([{}]);
+  const [at, setAt] = useState(0);
+  const b = versions[at] ?? {};
   const [form, setForm] = useState(offer);
   if (form !== offer) {
     setForm(offer);
-    setB({});
+    setVersions([{}]);
+    setAt(0);
   }
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
@@ -69,7 +76,8 @@ export default function AbTests() {
   }, [fetcher.state, fetcher.data, shopify]);
   const money = useMemo(() => (v: number) => { try { return new Intl.NumberFormat(undefined, { style: "currency", currency: d.currency }).format(v); } catch { return `${v.toFixed(2)} ${d.currency}`; } }, [d.currency]);
   const busy = fetcher.state !== "idle";
-  const set = (patch: Record<string, unknown>) => setB((x) => ({ ...x, ...patch }));
+  const set = (patch: Record<string, unknown>) => setVersions((all) => all.map((v, i) => (i === at ? { ...v, ...patch } : v)));
+  const letter = AB_GROUPS[at + 1];
   const shown = <K extends string>(key: K, fallback: string) => (typeof b[key] === "string" ? (b[key] as string) : fallback);
   const tiers = (b.tiers as { qty: number; pct: number; value?: string; label?: string; badge?: string }[] | undefined) ?? rule?.tiers ?? [];
   const running = d.tests.filter((t) => t.status === "running");
@@ -82,11 +90,19 @@ export default function AbTests() {
           <Pill tone={t.status === "running" ? "ok" : undefined}>{t.status === "running" ? "Running" : t.status === "paused" ? "Paused (needs Pro)" : t.status === "applied" ? `Ended: version ${t.winner} chosen` : "Stopped"}</Pill>
           <s-text color="subdued">Started {new Date(t.startedAt).toLocaleDateString()}{t.endedAt ? `, ended ${new Date(t.endedAt).toLocaleDateString()}` : ""}</s-text>
         </s-stack>
-        <s-text color="subdued">Version B changes: {Object.keys(t.b).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.</s-text>
+        {challengers(t).map((v, i) => (
+          <s-text key={i} color="subdued">{`Version ${AB_GROUPS[i + 1]} changes: ${Object.keys(v).map((k) => AB_CHANGE_LABELS[k] ?? k).join(", ")}.`}</s-text>
+        ))}
         {d.results[t.id] ? <Results r={d.results[t.id]} money={money} /> : null}
         {t.status === "running" ? (
           <s-stack direction="inline" gap="small-200">
-            <Button variant="primary" loading={busy} onClick={() => fetcher.submit({ intent: "apply", id: t.id, winner: "B" }, { method: "post" })}>Use version B</Button>
+            {groupsOf(t)
+              .filter((g) => g !== "A")
+              .map((g) => (
+                <Button key={g} variant={d.results[t.id]?.leader === g ? "primary" : "secondary"} loading={busy} onClick={() => fetcher.submit({ intent: "apply", id: t.id, winner: g }, { method: "post" })}>
+                  {`Use version ${g}`}
+                </Button>
+              ))}
             <Button loading={busy} onClick={() => fetcher.submit({ intent: "apply", id: t.id, winner: "A" }, { method: "post" })}>Keep version A</Button>
             <Button variant="tertiary" loading={busy} onClick={() => fetcher.submit({ intent: "stop", id: t.id }, { method: "post" })}>Stop without choosing</Button>
           </s-stack>
@@ -100,7 +116,7 @@ export default function AbTests() {
       <CategoryCrumb feature="ab_tests" />
       <s-stack gap="base">
         <FeatureTabs feature="ab_tests" />
-        <PageIntro text="Show half of your shoppers a second version of an offer and see which one sells more." />
+        <PageIntro text="Show your shoppers up to four versions of an offer, split evenly, and see which one sells more." />
         {fetcher.data && !fetcher.data.ok && fetcher.data.upgrade ? <s-banner tone="warning" heading="This needs a higher plan" /> : null}
         {running.map(card)}
         <s-section heading="Start a test">
@@ -114,7 +130,24 @@ export default function AbTests() {
               </s-grid>
               {rule ? (
                 <>
-                  <s-text color="subdued">Change only what you want to test in version B. Anything left as it is stays the same as version A.</s-text>
+                  <s-stack direction="inline" gap="small-200" alignItems="center">
+                    {versions.map((_, i) => (
+                      <Button key={i} variant={i === at ? "primary" : "secondary"} onClick={() => setAt(i)}>
+                        {`Version ${AB_GROUPS[i + 1]}`}
+                      </Button>
+                    ))}
+                    {versions.length < MAX_VERSIONS - 1 ? (
+                      <Button icon="plus" variant="tertiary" onClick={() => { setVersions((all) => [...all, {}]); setAt(versions.length); }}>
+                        Add a version
+                      </Button>
+                    ) : null}
+                    {versions.length > 1 ? (
+                      <Button variant="tertiary" tone="critical" onClick={() => { setVersions((all) => all.filter((_, i) => i !== at)); setAt(0); }}>
+                        {`Remove version ${letter}`}
+                      </Button>
+                    ) : null}
+                  </s-stack>
+                  <s-text color="subdued">{`Change only what you want to test in version ${letter}. Anything left as it is stays the same as version A. Shoppers are split evenly between all ${versions.length + 1} versions.`}</s-text>
                   <s-grid gridTemplateColumns="1fr 1fr" gap="base">
                     <TextField label="Headline" value={shown("headline", rule.headline)} onValue={(v) => set({ headline: v })} />
                     <TextField label="Text under the headline" value={shown("subheadline", rule.subheadline)} onValue={(v) => set({ subheadline: v })} />
@@ -141,11 +174,14 @@ export default function AbTests() {
                       variant="primary"
                       loading={busy && fetcher.formData?.get("intent") === "create"}
                       onClick={() => {
-                        // Only what differs from the offer is version B.
-                        const diff: Record<string, unknown> = {};
-                        for (const k of ["headline", "subheadline", "buttonLabel", "discountLabel", "discountPercent", "design"] as const) if (b[k] !== undefined && b[k] !== (rule as Record<string, unknown>)[k]) diff[k] = b[k];
-                        if (b.tiers && JSON.stringify(b.tiers) !== JSON.stringify(rule.tiers)) diff.tiers = b.tiers;
-                        fetcher.submit({ intent: "create", offer, name, b: JSON.stringify(diff) }, { method: "post" });
+                        // Only what differs from the offer is each version.
+                        const diffs = versions.map((v) => {
+                          const diff: Record<string, unknown> = {};
+                          for (const k of ["headline", "subheadline", "buttonLabel", "discountLabel", "discountPercent", "design"] as const) if (v[k] !== undefined && v[k] !== (rule as Record<string, unknown>)[k]) diff[k] = v[k];
+                          if (v.tiers && JSON.stringify(v.tiers) !== JSON.stringify(rule.tiers)) diff.tiers = v.tiers;
+                          return diff;
+                        });
+                        fetcher.submit({ intent: "create", offer, name, versions: JSON.stringify(diffs) }, { method: "post" });
                       }}
                     >
                       Start the test

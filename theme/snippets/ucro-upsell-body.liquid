@@ -7,7 +7,7 @@
     assign rule = shop.metaobjects['$app:cro_rule'][rule_handle]
   endif
 
-  # What the offer says. Version B of an A/B test (ab == 'B') shows the test's values instead.
+  # What the offer says. Versions B, C and D of an A/B test show the test's values instead.
   assign r_head = rule.headline.value
   assign r_sub = rule.subheadline.value
   assign r_design = rule.design.value
@@ -15,14 +15,21 @@
   if rule
     assign tiers = rule.tiers.value
   endif
-  if ab == 'B' and rule
-    assign r_head = ab_test.b.headline
-    assign r_sub = ab_test.b.subheadline
-    assign r_design = ab_test.b.design
-    if ab_test.b.design == 0
+  assign abv = nil
+  if ab != blank and ab != 'A' and rule
+    assign abv = ab_test.v[ab]
+    if abv == blank and ab == 'B'
+      assign abv = ab_test.b
+    endif
+  endif
+  if abv
+    assign r_head = abv.headline
+    assign r_sub = abv.subheadline
+    assign r_design = abv.design
+    if abv.design == 0
       assign r_design = nil
     endif
-    assign tiers = ab_test.b.tiers
+    assign tiers = abv.tiers
   endif
 
   # An offer with its own style (set in the app: Style tab) shows that style instead of the block's.
@@ -99,7 +106,7 @@
 -%}
 
 {%- if renderable -%}
-  {%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab == 'B' %} hidden{% endif %}>{%- endif -%}
+  {%- if ab != blank -%}<div data-ab="{{ ab_test.id }}" data-ab-g="{{ ab }}" style="display: contents"{% if ab != 'A' %} hidden{% endif %}>{%- endif -%}
   <ucro-upsell
     data-offer="{{ rule_handle }}"
     class="ucro ucro-upsell{% if list %} ucro-upsell--list{% endif %}{% if sold_out %} is-sold-out{% endif %}{{ d.cls }}"
