@@ -287,3 +287,31 @@ test("the Copy guide prompt names the store and every way to connect, and never 
   for (const w of ["17TRACK", "AfterShip", "TrackingMore", "Ship24", "Webhook link", "{number}", "Add update"]) assert.ok(g.includes(w), w);
   assert.ok(!/https?:\/\//.test(g));
 });
+
+test("the AI assistant reads the tracking setup and the shipping companies, adds carrier links, never sees a secret", async () => {
+  Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOPIFY_APP_URL: "https://app.example", SCOPES: "read_products" });
+  const { TRACKING_TOOLS } = await import("../../app/lib/mcp/tracking-tools.server");
+  const tool = (n: string) => TRACKING_TOOLS.find((t) => t.name === n)!;
+  const order = { id: "gid://shopify/Order/1", name: "#1001", createdAt: "2026-10-28T10:00:00Z", fulfillments: [{ trackingInfo: [{ company: "Bosta", number: "BO123", url: null }], displayStatus: "IN_TRANSIT", deliveredAt: null, estimatedDeliveryAt: null, events: { nodes: [] } }] };
+  const admin = { graphql: async () => ({ json: async () => ({ data: { orders: { nodes: [order] } } }) }) };
+  type Ctx = import("../../app/lib/mcp/tools.server").ToolContext;
+  const ctx = (plan: Ctx["plan"]): Ctx => ({ admin: admin as unknown as Ctx["admin"], shop: "ai.myshopify.com", grant: { id: "g", shop: "ai.myshopify.com", kind: "token", name: "t", scope: "build", allowPublish: true }, plan, trial: null, planUrl: "https://plans.example" });
+
+  await T.saveSource("ai.myshopify.com", "pro", "webhook");
+  const setup = (await tool("get_tracking_setup").run(ctx("pro"), {})) as Record<string, unknown>;
+  assert.equal(setup.canConnect, true);
+  assert.equal(setup.sourceInUse, "webhook");
+  assert.equal(setup.webhookLinkReady, true);
+  assert.deepEqual(setup.recentShippingCompanies, ["Bosta"]);
+  assert.equal((setup.ways as unknown[]).length, 4);
+  assert.ok(!JSON.stringify(setup).includes("/tracking/hook/"), "the webhook link stays in the app");
+
+  await tool("set_carrier_link").run(ctx("pro"), { name: "Bosta", url: "https://bosta.co/track?n={number}" });
+  await tool("set_carrier_link").run(ctx("pro"), { name: "bosta", url: "https://bosta.co/tracking/{number}" });
+  assert.deepEqual(await T.carrierLinksFor("ai.myshopify.com"), [{ name: "bosta", url: "https://bosta.co/tracking/{number}" }]);
+  await assert.rejects(tool("set_carrier_link").run(ctx("pro"), { name: "X", url: "https://x.example/track" }), /\{number\}/);
+  await assert.rejects(tool("set_tracking_source").run(ctx("starter"), { source: "webhook" }), /Growth and Pro/);
+  await tool("set_tracking_source").run(ctx("growth"), { source: "shopify" });
+  assert.equal((await T.getTrackingConfig("ai.myshopify.com", "growth")).source, "shopify");
+  assert.ok(TRACKING_TOOLS.every((t) => !JSON.stringify(t.schema).toLowerCase().includes("key")), "no tool takes a tracking service key");
+});
