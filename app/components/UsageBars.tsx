@@ -41,9 +41,9 @@ export function UsageBars({ only, warnOnly = false }: { only?: MeterKey[]; warnO
               <div role="progressbar" aria-label={m.title} aria-valuenow={p} aria-valuemin={0} aria-valuemax={100} style={{ height: 8, borderRadius: 999, background: "#e8e8e8", overflow: "hidden" }}>
                 <div style={{ width: `${p}%`, height: "100%", background: color }} />
               </div>
-              {full && !m.extra ? <s-text tone="critical">{`Limit reached. ${m.atLimit}${m.yearly ? "" : " Allow extra to keep going."}`}</s-text> : p >= 80 && !m.extra ? <s-text tone="warning">{`Almost at your limit. ${m.atLimit.replace("until next month", "once it is reached")}`}</s-text> : null}
+              {full && !m.extra ? <s-text tone="critical">{`Limit reached. ${m.atLimit}${m.yearly || !m.billed ? "" : " Allow extra to keep going."}`}</s-text> : p >= 80 && !m.extra ? <s-text tone="warning">{`Almost at your limit. ${m.atLimit.replace("until next month", "once it is reached")}`}</s-text> : null}
               {m.over ? <s-text color="subdued">{`${m.over.toLocaleString()} extra ${m.unit} this month: $${((m.over / m.per) * m.price).toFixed(2)} on your next Shopify bill.`}</s-text> : null}
-              {m.yearly ? (
+              {!m.billed ? null : m.yearly ? (
                 <s-text color="subdued">{`Extra ${m.unit} ($${m.price} for every ${m.per.toLocaleString()} more) are on monthly billing. Your plan is billed yearly, so the limit stops for the month.`}</s-text>
               ) : (
                 <Switch label={`Allow extra: $${m.price} for every ${m.per.toLocaleString()} more ${m.unit}`} details="Off: nothing is charged and the limit stops for the month. On: it keeps going and the extra is added to your Shopify bill." checked={on} onValue={(v) => save.submit({ meter: m.meter, on: String(v) }, { method: "post", action: "/app/usage" })} />

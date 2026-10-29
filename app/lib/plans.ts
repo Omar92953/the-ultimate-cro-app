@@ -348,3 +348,10 @@ export const METERS = {
 } as const satisfies Partial<Record<LimitKey, { handle: string; title: string; unit: string; per: number; price: number; atLimit: string }>>;
 export type MeterKey = keyof typeof METERS;
 export const METER_KEYS = Object.keys(METERS) as MeterKey[];
+/**
+ * The meters that have a usage charge on the Growth and Pro plans in the Partner Dashboard (App Pricing). Only these can
+ * go over with "Allow extra"; any other limit simply stops for the month. Omar removed live-shipments and loyalty-emails
+ * on 2026-10-29 while live tracking and loyalty emails are off: add a meter here again only once its charge is back.
+ */
+export const BILLED_METERS: readonly MeterKey[] = ["loyaltyOrders"];
+export const isBilled = (m: MeterKey) => BILLED_METERS.includes(m);
