@@ -7,7 +7,7 @@
 import { copyText } from "../lib/copy-text";
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -53,10 +53,20 @@ const choices = (live: number): { key: TrackSource; title: string; text: string 
   { key: "webhook", title: "Webhook link, for any carrier or 3PL", text: "For a shipping company, warehouse or service that can send updates to a link. Every update it sends shows on the Track page. Updates from 17TRACK, AfterShip, TrackingMore and Ship24 are read as they are." },
 ];
 
+/** The ways to connect a shipping company, shown as option cards; each button goes where that way is set up. */
+const WAYS: ({ title: string; text: string; button: string; to: string } | { title: string; text: string; button: string; href: string })[] = [
+  { title: "Your courier's Shopify app", text: "Many couriers have a Shopify app that adds the tracking number and its updates to your orders. The Track page shows what Shopify gets, with nothing more to set up.", button: "Find its app", href: "https://apps.shopify.com/search?q=shipping%20tracking" },
+  { title: "Tracking service", text: "17TRACK, AfterShip, TrackingMore or Ship24 follows thousands of couriers for you. Paste its key.", button: "Paste key", to: "src-own" },
+  { title: "Webhook link", text: "Your courier, warehouse or a tracking service sends each update to your private link.", button: "Get link", to: "src-webhook" },
+  { title: "Carrier link", text: "Each shipment links to the courier's own tracking page.", button: "Add link", to: "carrier-links" },
+  { title: "Type updates yourself", text: "For a courier with no tracking system: add its updates on a shipment.", button: "Open Shipments", to: "/app/tracking-shipments" },
+];
+
 export default function TrackingSource() {
   const d = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
+  const navigate = useNavigate();
   const [key, setKey] = useState("");
   // A key that was accepted is not kept in the box.
   const [seen, setSeen] = useState(d.cfg.keyLast4);
@@ -88,7 +98,7 @@ export default function TrackingSource() {
     const unavailable = c.key === "live" && !d.cfg.liveReady;
     const on = d.cfg.source === c.key;
     return (
-      <s-section key={c.key} heading={c.title}>
+      <s-section key={c.key} id={`src-${c.key}`} heading={c.title}>
         <s-stack gap="small-200">
           {on ? (
             <s-stack direction="inline">
@@ -156,13 +166,28 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
-        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Choose one way to connect your shipping company, including a local courier:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
-          <s-stack gap="small-200">
-            {LIVE_TRACKING ? null : <s-text><s-text type="strong">Tracking service:</s-text> 17TRACK, AfterShip, TrackingMore or Ship24 follows the courier for you. Paste its key below. Shows every scan in your theme&apos;s style.</s-text>}
-            <s-text><s-text type="strong">Webhook link:</s-text> your shipping company, warehouse or a tracking service sends each update to your link.</s-text>
-            <s-text><s-text type="strong">Carrier link:</s-text> each shipment links to the courier&apos;s own tracking page, from the carrier links below.</s-text>
-            <s-text><s-text type="strong">Type updates yourself:</s-text> for a courier with no tracking system, on a shipment in Shipments.</s-text>
-            <s-text color="subdued">Not sure which way fits? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through connecting your shipping company step by step.</s-text>
+        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Every courier works with one of these. Choose the one your shipping company offers:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
+          <s-stack gap="base">
+            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="base">
+              {WAYS.map((w) => (
+                <s-box key={w.title} padding="base" borderWidth="base" borderRadius="base">
+                  <s-stack gap="small-200">
+                    <s-text type="strong">{w.title}</s-text>
+                    <s-text color="subdued">{w.text}</s-text>
+                    <s-stack direction="inline">
+                      {"href" in w ? (
+                        <Button href={w.href} target="_blank">
+                          {w.button}
+                        </Button>
+                      ) : (
+                        <Button onClick={() => (w.to.startsWith("/") ? navigate(w.to) : document.getElementById(w.to)?.scrollIntoView({ behavior: "smooth", block: "start" }))}>{w.button}</Button>
+                      )}
+                    </s-stack>
+                  </s-stack>
+                </s-box>
+              ))}
+            </s-grid>
+            <s-text color="subdued">Not sure which one fits? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through connecting your shipping company step by step.</s-text>
           </s-stack>
         </HomeRow>
         {d.cfg.advanced && LIVE_TRACKING ? (
@@ -179,6 +204,7 @@ export default function TrackingSource() {
             <Button href="/app/tracking-shipments">Open Shipments</Button>
           </s-stack>
         </HomeRow>
+        <div id="carrier-links">
         <HomeRow title="Carriers without a tracking link" subtitle="For a local courier Shopify has no link for: the Track page builds the link from its name and your tracking number.">
           <s-stack gap="base">
             {links.map((l, i) => (
@@ -202,6 +228,7 @@ export default function TrackingSource() {
             </s-stack>
           </s-stack>
         </HomeRow>
+        </div>
       </HomeRows>
     </s-page>
   );
