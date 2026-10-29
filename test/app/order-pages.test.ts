@@ -8,6 +8,8 @@ Object.assign(process.env, { SHOPIFY_API_KEY: "k", SHOPIFY_API_SECRET: "s", SHOP
 function fakeAdmin(existing: Record<string, { id: string; handle: string; title: string }> = {}) {
   const store = new Map<string, string>();
   const created: string[] = [];
+  // The store's pages by id, so a page can be deleted or get a new address in a test.
+  const pages = new Map<string, { handle: string; title: string }>(Object.values(existing).map((p) => [p.id, { handle: p.handle, title: p.title }]));
   const admin = {
     graphql: async (query: string, opts?: { variables?: Record<string, unknown> }) => {
       const v = opts?.variables ?? {};
@@ -15,9 +17,11 @@ function fakeAdmin(existing: Record<string, { id: string; handle: string; title:
       if (query.includes("pageCreate")) {
         const page = v.page as { title: string; handle: string };
         created.push(page.handle);
-        return data({ pageCreate: { page: { id: `gid://shopify/Page/${created.length + 100}`, handle: page.handle, title: page.title }, userErrors: [] } });
+        const id = `gid://shopify/Page/${created.length + 100}`;
+        pages.set(id, { handle: page.handle, title: page.title });
+        return data({ pageCreate: { page: { id, handle: page.handle, title: page.title }, userErrors: [] } });
       }
-      if (query.includes("CroPageTemplates")) return data({ nodes: ((v.ids as string[]) ?? []).map((id) => ({ id, templateSuffix: null })) });
+      if (query.includes("CroPageTemplates")) return data({ nodes: ((v.ids as string[]) ?? []).map((id) => (pages.has(id) ? { id, ...pages.get(id), templateSuffix: null } : null)) });
       if (query.includes("pages(first")) return data({ pages: { nodes: existing[String(v.q).replace("handle:", "")] ? [existing[String(v.q).replace("handle:", "")]] : [] } });
       if (query.includes("metaobjectUpsert")) {
         store.set((v.handle as { handle: string }).handle, ((v.metaobject as { fields: { value: string }[] }).fields[0]).value);
@@ -27,7 +31,7 @@ function fakeAdmin(existing: Record<string, { id: string; handle: string; title:
       return data({});
     },
   };
-  return { admin: admin as unknown as AdminClient, store, created };
+  return { admin: admin as unknown as AdminClient, store, created, pages };
 }
 
 test("it makes the page and saves both handles for the block", async () => {
@@ -90,4 +94,20 @@ test("the Rewards page (loyalty) is made and remembered like the others", async 
   await createOrderPage(f.admin, "loyalty");
   assert.equal((await getOrderPages(f.admin)).loyalty?.handle, "rewards");
   assert.equal(JSON.parse(f.store.get("order_pages")!).loyaltyHandle, "rewards");
+});
+
+test("a page the merchant deleted is forgotten (step 1 comes back); a new address is followed", async () => {
+  const { createOrderPage, getOrderPages, orderPageContext } = await import("../../app/lib/order-page-setup.server");
+  const f = fakeAdmin();
+  const t = await createOrderPage(f.admin, "track");
+  await createOrderPage(f.admin, "returns");
+  f.pages.set(t.id, { handle: "where-is-my-order", title: "Where is my order" });
+  const renamed = await orderPageContext(f.admin, "t.myshopify.com", null);
+  assert.equal(renamed.pages.track?.handle, "where-is-my-order");
+  assert.equal(JSON.parse(f.store.get("order_pages")!).trackHandle, "where-is-my-order", "the block follows the new address");
+  f.pages.delete(t.id);
+  const gone = await orderPageContext(f.admin, "t.myshopify.com", null);
+  assert.equal(gone.pages.track, null);
+  assert.equal((await getOrderPages(f.admin)).track, null);
+  assert.equal((await getOrderPages(f.admin)).returns?.handle, "returns", "the other page stays");
 });

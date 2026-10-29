@@ -68,16 +68,28 @@ export const templateFile = (suffix: string | null | undefined) => (suffix ? `te
 
 /** What the Track, Returns and Wishlist screens need: editor links that open the app's own pages, and whether the block is in the template those pages really use. */
 export async function orderPageContext(admin: AdminClient, shop: string, theme: { files: Record<string, string[]> } | null) {
-  const pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null, wishlist: null, loyalty: null }) as OrderPages);
-  const links = sectionLinks(shop, { trackHandle: pages.track?.handle, returnsHandle: pages.returns?.handle });
+  let pages = await getOrderPages(admin).catch(() => ({ track: null, returns: null, wishlist: null, loyalty: null }) as OrderPages);
   // Each made page can have its own template (templateSuffix): the block must be in that one, not in any page.*.json.
   const made = ([pages.track, pages.returns, pages.wishlist, pages.loyalty].filter(Boolean) as StorePage[]).map((p) => p.id);
   let suffixes = new Map<string, string | null>();
   if (made.length) {
     const d = await gql(admin, `#graphql
-      query CroPageTemplates($ids: [ID!]!) { nodes(ids: $ids) { ... on Page { id templateSuffix } } }`, { ids: made }).catch(() => null);
-    suffixes = new Map((d?.nodes ?? []).filter(Boolean).map((n: { id: string; templateSuffix: string | null }) => [n.id, n.templateSuffix]));
+      query CroPageTemplates($ids: [ID!]!) { nodes(ids: $ids) { ... on Page { id handle title templateSuffix } } }`, { ids: made }).catch(() => null);
+    if (d) {
+      type Node = { id: string; handle: string; title: string; templateSuffix: string | null };
+      const found = new Map<string, Node>((d.nodes ?? []).filter(Boolean).map((n: Node) => [n.id, n]));
+      suffixes = new Map([...found].map(([id, n]) => [id, n.templateSuffix]));
+      // The merchant deleted a page or changed its address in Shopify: forget it (step 1 offers to make it again) or
+      // follow the new address, so the block keeps showing on the right page.
+      const fresh = (p: StorePage | null): StorePage | null => (p ? (found.get(p.id) ? { id: p.id, handle: found.get(p.id)!.handle, title: found.get(p.id)!.title } : null) : null);
+      const next: OrderPages = { track: fresh(pages.track), returns: fresh(pages.returns), wishlist: fresh(pages.wishlist), loyalty: fresh(pages.loyalty) };
+      if (JSON.stringify(next) !== JSON.stringify(pages)) {
+        pages = next;
+        await save(admin, pages).catch(() => null);
+      }
+    }
   }
+  const links = sectionLinks(shop, { trackHandle: pages.track?.handle, returnsHandle: pages.returns?.handle });
   const files = new Set(theme?.files.track ?? []);
   const hasBlock = (p: StorePage | null) => !p || files.has(templateFile(suffixes.get(p.id)));
   const inPageTemplate = !!theme && !!(pages.track || pages.returns) && hasBlock(pages.track) && hasBlock(pages.returns);
