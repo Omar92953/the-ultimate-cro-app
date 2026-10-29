@@ -462,3 +462,20 @@ model UsageEvent {
   @@index([status])
   @@index([shop, meter, month])
 }
+
+// Scheduled offers (Pro, lib/schedule.ts): the app switches an offer on at startsAt and off at endsAt, once each.
+model OfferSchedule {
+  shop      String
+  /// "rule" (upsell, cross sell), "deal" or "bundle".
+  type      String
+  handle    String
+  startsAt  DateTime?
+  endsAt    DateTime?
+  startDone Boolean   @default(false)
+  endDone   Boolean   @default(false)
+  updatedAt DateTime  @default(now())
+
+  @@id([shop, type, handle])
+  @@index([startsAt])
+  @@index([endsAt])
+}

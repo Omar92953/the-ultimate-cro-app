@@ -8,7 +8,11 @@ import { authenticate } from "../shopify.server";
 import { errorMessage, gql } from "../lib/admin.server";
 import { getFbtDesign, resolveDiscountEngine } from "../lib/cro.server";
 import { deleteDeal, listDeals, saveDeal } from "../lib/deals.server";
-import { requireDeal } from "../lib/rules.server";
+import { planContext, requireDeal } from "../lib/rules.server";
+import { checkSchedule, getSchedule, saveSchedule } from "../lib/schedule.server";
+import type { ScheduleInput } from "../lib/schedule";
+import { atLeast } from "../lib/plans";
+import { ScheduleCard } from "../components/ScheduleCard";
 import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import {
@@ -58,10 +62,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   ]);
   const css = storefrontCss("ucs-boosters.css");
   const currency: string = shop.shop.currencyCode;
-  if (params.handle === "new") return { kind, deal: blankDeal(kind), isNew: true, engine, currency, fbt, style, css };
+  const isNew = params.handle === "new";
+  const [{ plan }, schedule] = await Promise.all([planContext(admin, session.shop), getSchedule(admin, session.shop, "deal", isNew ? null : params.handle)]);
+  const pro = atLeast(plan, "pro");
+  if (isNew) return { kind, deal: blankDeal(kind), isNew: true, engine, currency, fbt, style, css, pro, schedule };
   const deal = (await listDeals(admin)).find((d) => d.handle === params.handle && d.kind === kind);
   if (!deal) throw new Response("Deal not found", { status: 404 });
-  return { kind, deal, isNew: false, engine, currency, fbt, style, css };
+  return { kind, deal, isNew: false, engine, currency, fbt, style, css, pro, schedule };
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -73,9 +80,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return redirect(params.kind === "fixed" ? `/app/bundles?tab=fbt&deleted=${done}` : `/app/deals/${params.kind}?deleted=${done}`);
     }
     const deal = JSON.parse(String(form.get("deal"))) as Deal;
+    // A schedule (Pro) decides whether the deal is on now: off before its start.
+    const { plan } = await planContext(admin, session.shop);
+    const timed = await checkSchedule(admin, session.shop, plan, JSON.parse(String(form.get("schedule") ?? "null")) as ScheduleInput | null, { type: "deal", handle: deal.handle });
+    if (timed) deal.active = timed.activeNow;
     // Bundles and deals share one limit on smaller plans (lib/plans.ts); a deal can always be saved off.
     await requireDeal(admin, session.shop, deal);
     const saved = await saveDeal(admin, deal);
+    if (saved.handle) await saveSchedule(session.shop, "deal", saved.handle, timed);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
     return { ok: false, error: errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
@@ -120,9 +132,17 @@ function TargetPicker(props: { label: string; value: Target; onChange: (t: Targe
 }
 
 export default function DealEditor() {
-  const { kind, deal: initial, isNew, engine, currency, fbt: initialFbt, style, css } = useLoaderData<typeof loader>();
+  const { kind, deal: initial, isNew, engine, currency, fbt: initialFbt, style, css, pro, schedule: initialSchedule } = useLoaderData<typeof loader>();
   const t = DEAL_TYPES[kind];
   const [deal, setDeal] = useState<Deal>(initial);
+  const onlyTimes = (x: typeof initialSchedule): ScheduleInput => ({ start: x.start, end: x.end });
+  const [schedule, setSchedule] = useState<ScheduleInput>(onlyTimes(initialSchedule));
+  const [loadedSchedule, setLoadedSchedule] = useState(initialSchedule);
+  if (loadedSchedule !== initialSchedule) {
+    setLoadedSchedule(initialSchedule);
+    setSchedule(onlyTimes(initialSchedule));
+  }
+  const scheduleCard = <ScheduleCard value={schedule} onValue={setSchedule} timeZone={initialSchedule.timeZone} pro={pro} />;
   const [touched, setTouched] = useState(false);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -193,7 +213,7 @@ export default function DealEditor() {
   const save = () => {
     setTouched(true);
     if (problems.length) return setOpen(1);
-    fetcher.submit({ intent: "save", deal: JSON.stringify(deal)}, { method: "post" });
+    fetcher.submit({ intent: "save", deal: JSON.stringify(deal), schedule: JSON.stringify(schedule) }, { method: "post" });
   };
   const remove = () => {
     if (!deal.id) return;
@@ -237,7 +257,7 @@ export default function DealEditor() {
         {kind === "fixed" ? "Bundles" : t.title}
       </s-link>
       {kind === "fixed" ? <DemoButton feature="bundles" recipe="fbt" /> : <DemoButton feature={dealFeature(kind)} />}
-      <SaveControls dirty={changed(deal, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setTouched(false); }} />
+      <SaveControls dirty={changed(deal, initial) || changed(schedule, onlyTimes(initialSchedule))} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setDeal(initial); setSchedule(onlyTimes(initialSchedule)); setTouched(false); }} />
 
       <s-stack gap="base">
         {fetcher.data?.error ? (
@@ -311,6 +331,7 @@ export default function DealEditor() {
             <EditorSection n={2} title="Discount" summary={`${fixedCfg.pct}% off when bought together`} done={fixedCfg.pct > 0} open={open === 2} onToggle={() => setOpen((o) => (o === 2 ? 0 : 2))} onNext={() => setOpen(3)}>
               <NumberField label="Discount on the bundle" suffix="%" value={fixedCfg.pct} min={1} max={90} step={1} onValue={(v) => setConfig({ pct: v })} />
             </EditorSection>
+            {scheduleCard}
             {deleteBlock}
           </EditorLayout>
         ) : (
@@ -329,6 +350,7 @@ export default function DealEditor() {
               <Switch label="Active" checked={deal.active} onValue={(v) => setDeal((d) => ({ ...d, active: v }))} />
             </s-stack>
           </s-section>
+          {scheduleCard}
 
           {kind === "bogo" ? (
             <>
