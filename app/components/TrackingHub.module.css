@@ -17,6 +17,7 @@
 .numDone { color: #fff; background: #29845a; }
 .checkText { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 13px; color: #616161; }
 .checkText strong { font-size: 14px; font-weight: 600; color: #303030; }
+.how { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
 .list { display: flex; flex-direction: column; }
 .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 13px; color: #303030; border-top: 1px solid #ebebeb; }
 .item:first-child { border-top: 0; padding-top: 0; }
