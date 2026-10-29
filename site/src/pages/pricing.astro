@@ -21,6 +21,8 @@ import {
   type PlanKey,
 } from "../lib/app";
 
+import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
+
 const page = PAGES.pricing;
 
 /** The counted limits, in the order the table shows them. */
@@ -33,12 +35,26 @@ const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
   { key: "designsPerSection", label: "Styles per section" },
   { key: "offerStats", label: "Offers with their own results" },
   { key: "trialFeatures", label: "Features of the next plan to try" },
+  { key: "loyaltyOrders", label: "Orders that earn loyalty points a month" },
 ];
 const limitCell = (p: PlanKey, k: keyof Limits) => {
   const n = PLANS[p].limits[k];
   if (n === null) return "Unlimited";
+  // Loyalty is a feature of its own: 0 means the plan has no loyalty program, not a limit of zero.
+  if (n === 0 && k === "loyaltyOrders") return "Not included";
   return n.toLocaleString("en-US");
 };
+
+/** The loyalty program in parts: what Growth includes, and what Pro adds (forPlan and LOYALTY_PRO in app/lib/loyalty/config.ts). */
+const cap = (t: string) => t[0].toUpperCase() + t.slice(1);
+const LOYALTY_ROWS: { label: string; plan: PlanKey }[] = [
+  { label: "Points for orders, signups, the first order, birthdays, reviews and social follows", plan: FEATURE_PLAN.loyalty },
+  { label: "Rewards: amount or percent off, free shipping, a free product or store credit", plan: FEATURE_PLAN.loyalty },
+  { label: "Points shop: products for points, or points plus money", plan: FEATURE_PLAN.loyalty },
+  { label: "Referrals", plan: FEATURE_PLAN.loyalty },
+  { label: "Rewards button and panel, Rewards page, points in customer accounts and at POS", plan: FEATURE_PLAN.loyalty },
+  ...LOYALTY_PRO.map((t) => ({ label: cap(t), plan: "pro" as PlanKey })),
+];
 
 /** Extras inside pages that need a plan (EXTRA_PLAN in plans.ts). */
 const EXTRAS: { key: keyof typeof EXTRA_PLAN; label: string }[] = [
@@ -70,6 +86,14 @@ const faq: QA[] = [
   {
     q: "What is an offer slot?",
     a: `An offer switched on: an upsell, cross sell, bundle, bundle product, discount or after purchase offer. The ${PLANS.free.name} plan has ${PLANS.free.limits.offerSlots} at a time; switch one off to free its slot. Paid plans have unlimited offers.`,
+  },
+  {
+    q: "Which plans include the loyalty program?",
+    a: `${PLANS.growth.name} and ${PLANS.pro.name}. ${PLANS.growth.name} includes points, rewards, the Points shop and referrals for ${PLANS.growth.limits.loyaltyOrders?.toLocaleString("en-US")} orders that earn points a month; ${PLANS.pro.name} raises that to ${PLANS.pro.limits.loyaltyOrders?.toLocaleString("en-US")} and adds ${LOYALTY_PRO.slice(0, -1).join(", ")} and ${LOYALTY_PRO.at(-1)}. At the limit orders stop earning until next month, unless you allow extra on monthly billing. See the <a href="/features/loyalty-program/">loyalty program</a>.`,
+  },
+  {
+    q: "What do A/B tests and scheduled offers need?",
+    a: `The ${PLANS.pro.name} plan. A/B tests split shoppers between up to four versions of an upsell or cross sell; scheduled offers start and end at set times in your store's time zone. See <a href="/help/ab-tests-and-scheduled-offers/">the help guide</a>.`,
   },
   {
     q: "How does billing work?",
@@ -160,14 +184,22 @@ const schema = [softwareApplication(page.description), faqPage(faq)];
                 </tr>
               </thead>
               <tbody>
-                {a.features.map((k) => (
+                {(a.key === "loyalty" ? LOYALTY_ROWS : a.features.map((k) => ({ label: featureTitle(k), plan: FEATURE_PLAN[k] }))).map((r) => (
                   <tr>
-                    <th scope="row">{featureTitle(k)}</th>
+                    <th scope="row">{r.label}</th>
                     {plans.map((p) => (
-                      <td>{atLeast(p.key, FEATURE_PLAN[k]) ? <span class="yes" title="Included"><span class="sr-only">Included</span></span> : <span class="no"><span class="sr-only">Not included</span></span>}</td>
+                      <td>{atLeast(p.key, r.plan) ? <span class="yes" title="Included"><span class="sr-only">Included</span></span> : <span class="no"><span class="sr-only">Not included</span></span>}</td>
                     ))}
                   </tr>
                 ))}
+                {a.key === "offers" && (
+                  <tr>
+                    <th scope="row">Scheduled offers (start and end at set times)</th>
+                    {plans.map((p) => (
+                      <td>{atLeast(p.key, "pro") ? <span class="yes" title="Included"><span class="sr-only">Included</span></span> : <span class="no"><span class="sr-only">Not included</span></span>}</td>
+                    ))}
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

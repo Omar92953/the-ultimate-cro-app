@@ -49,7 +49,7 @@ const schema = [
 ];
 ---
 
-<Base page={page} crumbs={crumbs} schema={schema}>
+<Base page={page} crumbs={crumbs} schema={schema} article={{ published: a.data.date, modified: a.data.updated, section: a.data.category }}>
   <article>
     <header class="page-hero">
       <div class="wrap narrow">

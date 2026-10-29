@@ -7,6 +7,9 @@ import type { FeatureKey } from "./app";
 import { LIVE_TRACKING, METERS, limitOf, type LimitKey, type PlanKey } from "../../../app/lib/plans";
 import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
 
+/** Scheduled offers (Pro, app/lib/schedule.ts): the line shown on each offer type that can be scheduled. */
+const SCHEDULE = "Pro: start and end it at set times in your store's time zone, like a weekend sale";
+
 /** A plan limit as a number, "2,000". */
 const n = (p: PlanKey, k: LimitKey) => (limitOf(p, k) ?? 0).toLocaleString("en-US");
 
@@ -31,6 +34,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "A size picker per item, so Buy 2 can be one M and one L",
       "Upgrade offers: swap the chosen option for a better one for the price difference",
       "Products by all, specific products or collections; the discount applies at checkout",
+      SCHEDULE,
     ],
     related: ["cross_sell", "bundles", "discounts"],
   },
@@ -42,6 +46,7 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "Optional percentage off the offered products while a trigger product is in the cart",
       "Sold out products, the product being viewed and products already in the cart are skipped",
       "Shopify recommendations for products no rule covers",
+      SCHEDULE,
     ],
     related: ["cart_offers", "upsell", "bundles"],
   },
@@ -53,13 +58,14 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
       "One price, a percentage off, or tiers by item count",
       "The app can create and publish the bundle product and its store page for you",
       "Every bundle type is included on the Free plan, within its offer slots",
+      "Pro: start and end a bundle offer at set times in your store's time zone (a bundle sold as its own product stays on until you switch it off)",
     ],
     related: ["upsell", "discounts", "cross_sell"],
     note: "Bundle prices and stock tracking need the app installed from the Shopify App Store (or a Shopify Plus store).",
   },
   discounts: {
     who: "For promotions: buy two get one, spend more save more, or a free gift.",
-    points: ["Buy X get Y, with the same or different products", "Volume discounts by quantity, shown as tiers on the product page", "A free gift once the cart reaches an amount", "Applied by Shopify at checkout"],
+    points: ["Buy X get Y, with the same or different products", "Volume discounts by quantity, shown as tiers on the product page", "A free gift once the cart reaches an amount", "Applied by Shopify at checkout", SCHEDULE],
     related: ["upsell", "bundles", "shipping_bar"],
   },
   addons: {

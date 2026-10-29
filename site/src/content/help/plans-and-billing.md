@@ -18,7 +18,7 @@ It counts all of your store's orders in a calendar month, not only orders with a
 
 ## Can I go over a monthly limit?
 
-Growth and Pro include a number of loyalty orders and loyalty emails each month (see
+Growth and Pro include a number of loyalty orders each month (orders that earn points) (see
 [pricing](/pricing/)). On monthly billing you can turn on **Allow extra** under a usage bar in the app: past the limit
 it keeps going, and the extra is added to your Shopify bill at the price shown next to the switch. Off, the limit stops
 for the month and nothing is charged. Growth yearly and Pro yearly keep the limits as they are, because Shopify only

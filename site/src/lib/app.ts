@@ -46,7 +46,14 @@ export const ordersText = (p: Plan) =>
   p.limits.monthlyOrders === null ? "Unlimited orders" : `${p.limits.monthlyOrders.toLocaleString("en-US")} orders a month`;
 
 export const featureTitle = (k: FeatureKey) => plain(FEATURES[k].title);
-export const featureAbout = (k: FeatureKey) => plain(FEATURES[k].about);
+/**
+ * Where the website's one line must differ from the app's catalog.ts until the app catches up (the app is
+ * frozen while in App Store review). Remove an entry once catalog.ts says the same.
+ */
+const ABOUT_NOW: Partial<Record<FeatureKey, string>> = {
+  ab_tests: "Split your shoppers between up to four versions of an upsell or cross sell (words, discount, style) and see which earns more.",
+};
+export const featureAbout = (k: FeatureKey) => plain(ABOUT_NOW[k] ?? FEATURES[k].about);
 export const planName = (k: PlanKey) => PLANS[k].name;
 
 /** Checkout features run inside Shopify checkout (they have no storefront widget). */

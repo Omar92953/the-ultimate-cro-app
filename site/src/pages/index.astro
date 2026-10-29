@@ -9,10 +9,11 @@ import NotifyCta from "../components/NotifyCta.astro";
 import Shot from "../components/Shot.astro";
 import ArticleCard from "../components/blog/ArticleCard.astro";
 import { PAGES } from "../lib/pages";
-import { SITE_AREAS, OFFER_TYPES, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
+import { SITE_AREAS, OFFER_TYPES, FEATURE_PLAN, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
 import { organization, website, softwareApplication, faqPage } from "../lib/schema";
 import { featurePath, areaPath } from "../lib/pages";
 import { articles, BLOG_PAGE } from "../lib/content";
+import { LOYALTY_PRO } from "../../../app/lib/loyalty/config";
 
 const page = PAGES.home;
 const free = PLANS.free;
@@ -80,6 +81,17 @@ const STEPS = [
   { title: "It shows in your theme", text: "Click Add to theme. The theme editor opens with the block ready: drag it where you want and save." },
 ];
 
+/** The loyalty program on the home page: what members get, and which plans have it (plans.ts, loyalty/config.ts). */
+const loyaltyPlan = PLANS[FEATURE_PLAN.loyalty];
+const LOYALTY_POINTS = [
+  "Points for orders, signups, birthdays, reviews and social follows",
+  "Rewards members spend: money off, free shipping, a free product or store credit",
+  "A Points shop with products for points, or points plus money",
+  "Referrals: the friend gets a discount, the member gets points",
+  "A rewards button and panel, a Rewards page, points in customer accounts and at POS",
+];
+const n = (x: number | null) => (x ?? 0).toLocaleString("en-US");
+
 const latest = (await articles()).slice(0, 3);
 
 const paid = plans.filter((p) => p.monthly > 0);
@@ -137,8 +149,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
         <span class="pill">Shopify app · Any Online Store 2.0 theme</span>
         <h1>Increase AOV and LTV. <span class="soft">All in one Shopify app.</span></h1>
         <p class="lead">
-          Upsells, bundles and cart offers raise your average order value (AOV). A Track page that sells the next order and returns that keep
-          the sale raise your customers' lifetime value (LTV). Set up in minutes with a live preview, added to your theme without code.
+          Upsells, bundles and cart offers raise your average order value (AOV). A loyalty program, a Track page that sells the next order and
+          returns that keep the sale raise your customers' lifetime value (LTV). Set up in minutes with a live preview, added to your theme without code.
         </p>
         <div class="actions">
           <InstallButton medium="home" campaign="hero" />
@@ -243,6 +255,32 @@ const schema = [organization(), website(), softwareApplication(page.description)
     </div>
   </section>
 
+  <!-- Loyalty -->
+  <section class="section" id="loyalty">
+    <div class="wrap">
+      <div class="row loyalty">
+        <div class="row-shot">
+          <Shot name="features/loyalty-program" alt="The CRO Toolbox rewards panel on a store: points balance, ways to earn and rewards to spend" />
+        </div>
+        <div class="row-text">
+          <span class="eyebrow">Loyalty program</span>
+          <h2>Bring shoppers back with points and rewards</h2>
+          <p class="muted">A loyalty program built into the same app, so repeat orders raise your customers' lifetime value (LTV) without another subscription.</p>
+          <ul class="ticks">
+            {LOYALTY_POINTS.map((t) => <li>{t}</li>)}
+          </ul>
+          <p class="muted small">
+            On {loyaltyPlan.name} ({money(loyaltyPlan.monthly)} a month) for {n(PLANS.growth.limits.loyaltyOrders)} orders that earn points a month.
+            {PLANS.pro.name} raises it to {n(PLANS.pro.limits.loyaltyOrders)} and adds {LOYALTY_PRO.slice(0, 3).join(", ")} and more.
+          </p>
+          <div class="actions">
+            <a class="btn" href={featurePath("loyalty")}>See the loyalty program <span aria-hidden="true">→</span></a>
+            <a class="link" href="/help/loyalty-program/">How to set it up</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   <!-- Features by area -->
   <section class="section" id="features">
     <div class="wrap">
@@ -480,6 +518,42 @@ const schema = [organization(), website(), softwareApplication(page.description)
     .row:nth-child(even) .row-shot {
       order: 2;
     }
+  }
+  /* Loyalty: one row like Why CRO Toolbox, with its points as a tick list. */
+  .loyalty h2 {
+    margin: 8px 0 12px;
+  }
+  .ticks {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    display: grid;
+    gap: 10px;
+  }
+  .ticks li {
+    position: relative;
+    padding-left: 28px;
+  }
+  .ticks li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.45em;
+    width: 12px;
+    height: 7px;
+    border-left: 2.5px solid var(--accent-deep);
+    border-bottom: 2.5px solid var(--accent-deep);
+    transform: rotate(-45deg);
+  }
+  .loyalty .small {
+    font-size: 0.95rem;
+  }
+  .loyalty .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
   }
   /* Offers: the four groups as columns, each a plain list with thin lines. */
   .ogroups {
