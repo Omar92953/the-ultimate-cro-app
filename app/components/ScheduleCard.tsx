@@ -4,7 +4,7 @@
  */
 import type { LocalMoment, ScheduleInput } from "../lib/schedule";
 import { TIMES } from "../lib/schedule";
-import { Button, DateField, OptionalSetting, Select } from "./fields";
+import { Button, DateField, Select, Switch } from "./fields";
 import { Pill } from "./ui";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -29,12 +29,15 @@ export function ScheduleCard(props: { value: ScheduleInput; onValue: (v: Schedul
         {props.pro ? (
           <>
             <s-text color="subdued">{`The app switches this offer on at the start and off at the end. Times are in your store's time zone (${props.timeZone}).`}</s-text>
-            <OptionalSetting label="Start at a set time" details="Off until then." initiallyOn={!!value.start} onOn={() => onValue({ ...value, start: { date: tomorrow(), time: "09:00" } })} onOff={() => onValue({ ...value, start: null })}>
+            {/* The switches follow the value, so Discard puts them back too. */}
+            <s-stack gap="small-200">
+              <Switch label="Start at a set time" details="Off until then." checked={!!value.start} onValue={(on) => onValue({ ...value, start: on ? { date: tomorrow(), time: "09:00" } : null })} />
               {value.start ? <Moment label="Start" min={today()} value={value.start} onValue={(start) => onValue({ ...value, start })} /> : null}
-            </OptionalSetting>
-            <OptionalSetting label="End at a set time" details="Switched off then." initiallyOn={!!value.end} onOn={() => onValue({ ...value, end: { date: value.start?.date ?? tomorrow(), time: "23:30" } })} onOff={() => onValue({ ...value, end: null })}>
+            </s-stack>
+            <s-stack gap="small-200">
+              <Switch label="End at a set time" details="Switched off then." checked={!!value.end} onValue={(on) => onValue({ ...value, end: on ? { date: value.start?.date ?? tomorrow(), time: "23:30" } : null })} />
               {value.end ? <Moment label="End" min={value.start?.date ?? today()} value={value.end} onValue={(end) => onValue({ ...value, end })} /> : null}
-            </OptionalSetting>
+            </s-stack>
           </>
         ) : (
           <s-stack direction="inline" gap="base" alignItems="center" justifyContent="space-between">
