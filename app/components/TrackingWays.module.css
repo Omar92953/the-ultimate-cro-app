@@ -1,0 +1,9 @@
+/* Tracking source page (app.tracking-source.tsx): the ways to connect a shipping company, as equal option tiles. */
+.ways { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1000px) { .ways { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 400px) { .ways { grid-template-columns: minmax(0, 1fr); } }
+.way { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px; background: #f7f7f7; border-radius: 10px; }
+.title { font-size: 14px; font-weight: 600; line-height: 1.3; color: #303030; }
+.text { font-size: 13px; line-height: 1.45; color: #616161; }
+.action { margin-top: auto; padding-top: 8px; }
