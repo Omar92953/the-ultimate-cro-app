@@ -156,12 +156,12 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
-        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Connect your shipping company, including a local courier, in any of these ways:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
+        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Choose one way to connect your shipping company, including a local courier:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
           <s-stack gap="small-200">
-            {LIVE_TRACKING ? null : <s-text>• Your tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its key, below.</s-text>}
-            <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service.</s-text>
-            <s-text>• You type its updates on a shipment in Shipments.</s-text>
-            <s-text>• Its own tracking page is linked from every shipment, from the carrier links below.</s-text>
+            {LIVE_TRACKING ? null : <s-text><s-text type="strong">Tracking service:</s-text> 17TRACK, AfterShip, TrackingMore or Ship24 follows the courier for you. Paste its key below. Shows every scan in your theme&apos;s style.</s-text>}
+            <s-text><s-text type="strong">Webhook link:</s-text> your shipping company, warehouse or a tracking service sends each update to your link.</s-text>
+            <s-text><s-text type="strong">Carrier link:</s-text> each shipment links to the courier&apos;s own tracking page, from the carrier links below.</s-text>
+            <s-text><s-text type="strong">Type updates yourself:</s-text> for a courier with no tracking system, on a shipment in Shipments.</s-text>
             <s-text color="subdued">Not sure which way fits? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through connecting your shipping company step by step.</s-text>
           </s-stack>
         </HomeRow>
