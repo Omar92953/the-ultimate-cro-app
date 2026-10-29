@@ -2,7 +2,7 @@
 
 **Where:** https://dev.to (New post), tags `shopify`, `webdev`, `javascript`, `ecommerce`. Then the same
 text on Medium (Import a story from the dev.to URL, which sets the canonical link to dev.to). Cover:
-`branding/feature/feature-banner.png`.
+`branding/app-store/feature-banner.png`.
 
 **Title:** Building bundle discounts on Shopify Functions: five things I learned
 

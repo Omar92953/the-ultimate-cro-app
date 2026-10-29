@@ -59,8 +59,8 @@ What each plan adds (keep in step with `highlights` in `plans.ts`; list only wha
 - Emergency developer contact (email and phone) in the Partner Dashboard.
 
 **Screenshots (3 to 6, 1600 x 900, no browser chrome, no prices, reviews or stats; add alt text):**
-Ready in `branding/screenshots/listing/` (real captures of the app on Testing 3, 2026-10-17, taken at
-2x and scaled to 1600 x 900; the 2x originals are in `branding/screenshots/hires/`). Upload in this order:
+Ready in `branding/old/screenshots/listing/` (real captures of the app on Testing 3, 2026-10-17, taken at
+2x and scaled to 1600 x 900; the 2x originals are in `branding/old/screenshots/hires/`). Upload in this order:
 1. `1-create-offer.png`. Alt: "Create offer: upsells, bundles, cross sells and discounts in one list".
 2. `2-bundle-editor.png`. Alt: "Mix and match bundle editor with a live preview".
 3. `3-upsell-editor.png`. Alt: "Upsell offer editor with the real block preview".
@@ -70,7 +70,7 @@ Ready in `branding/screenshots/listing/` (real captures of the app on Testing 3,
 Not for the listing: `05-upsell-style.png` (plan banner) and `07-home.png` (plan bar and figures, rules 4.2.2 and 4.3.4).
 To retake: the capture script used `screencapture` on Omar's Chrome (window 1292 pt wide, page area 1292 x 727 pt).
 
-Feature image (1600 x 900): `branding/feature/feature-banner.png` (headline + 6 widgets from the live demos; design system and source in `branding/listing/` (README there)). Plain alternative: `branding/feature/feature-bundles.png`.
+Feature image (1600 x 900): `branding/app-store/feature-banner.png` (headline + 6 widgets from the live demos; design system and source in `branding/listing/` (README there)). Plain alternative: `branding/old/feature-bundles.png`.
 
 ## 2. Testing instructions for the reviewer (paste into the submission form)
 
@@ -186,7 +186,7 @@ deploy; reviewers reject broken pages (2.1.1).
 - [x] Create the four **App Pricing plans** exactly as in `app/lib/plans.ts` (Free, $5.99, $19.99, $39.99; yearly; 14-day trial) and check the plan handles the app reads.
 - [x] SUPPORT_EMAIL `support@crotoolbox.com` (render.yaml) and support URL for the listing (2026-10-18).
 - [ ] Add the **emergency developer contact** (email and phone).
-- [ ] Upload the **icon** (`branding/app-icon.png`, 1200 x 1200), 3 to 6 **screenshots**, the feature image or video, and the **screencast**.
+- [ ] Upload the **icon** (`branding/logos/app-icon.png`, 1200 x 1200), 3 to 6 **screenshots**, the feature image or video, and the **screencast**.
 - [ ] Paste the listing text and test instructions from sections 1 and 2; type the storefront password into the form yourself, never into this repo.
 - [ ] Keep Render on a paid plan (a sleeping server fails webhooks and reviews) and the database on a plan that does not pause.
 - [x] crotoolbox.com bought; its privacy and support pages go in the listing (section 1).

@@ -23,7 +23,7 @@ below still needs a real development store.
 These are interactive (browser login, choosing an organization), so you run them, not me.
 
 ```bash
-cd /Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox
+cd "/Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox"
 ```
 
 If your Partner account uses a different email from your store login, log out first:
@@ -69,7 +69,7 @@ shopify theme push --store YOUR-DEV-STORE.myshopify.com --path ~/Workspace/dawn-
 A copy of your **live** theme, from the read-only pull made in step 1:
 
 ```bash
-shopify theme push --store YOUR-DEV-STORE.myshopify.com --path /Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox/_reference/theme-live --unpublished --theme "Live theme copy (test)"
+shopify theme push --store YOUR-DEV-STORE.myshopify.com --path /Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox/_reference/theme-live --unpublished --theme "Live theme copy (test)"
 ```
 
 Both themes are only uploaded to the **dev store**. Your real store's themes are not touched. Product

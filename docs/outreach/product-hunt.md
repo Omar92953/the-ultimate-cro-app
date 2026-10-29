@@ -19,8 +19,8 @@ CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime 
 cart offers, a one click offer after payment, a free shipping bar, reviews, an order tracking page and
 returns. Any Online Store 2.0 theme, no code.
 
-**Gallery:** `branding/feature/feature-banner.png` first, then the six listing screenshots in
-`branding/screenshots/listing/` (same order as `docs/listing.md`). Optional: a 30 to 60 second screen
+**Gallery:** `branding/app-store/feature-banner.png` first, then the six listing screenshots in
+`branding/old/screenshots/listing/` (same order as `docs/listing.md`). Optional: a 30 to 60 second screen
 recording of the mix and match demo at https://crotoolbox.com/demo/.
 
 **Maker's first comment:**

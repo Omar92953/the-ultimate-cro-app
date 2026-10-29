@@ -33,7 +33,7 @@ Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `
 | Thing | Location |
 |---|---|
 | Repo | https://github.com/Omar92953/the-ultimate-cro-app (default branch `main`) |
-| Omar's clone | `/Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox` on his Mac |
+| Omar's clone | `/Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox` on his Mac |
 | App server | Render web service **cro-toolbox**, https://cro-toolbox.onrender.com. Serves the admin pages that load inside Shopify admin, OAuth and webhooks. Not a public website. Auto-deploys on every merge to `main`. Env is managed by `render.yaml` (Blueprint). |
 | Database | Supabase project **cro-toolbox** (Postgres, sessions only via Prisma) |
 | Merchant data | The merchant's own store: `$app:*` metaobjects and metafields (no app database for settings) |
@@ -149,7 +149,7 @@ Rules that keep checkout correct:
 7. Check on Testing2 (§9).
 
 Cloud accounts can't reach Shopify hosts: write the code and PR, and ask Omar to run on his Mac:
-`cd /Users/omarmoaz/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox && git pull && npm run test:functions && shopify app deploy --allow-updates`.
+`cd "/Users/omarmoaz/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox" && git pull && npm run test:functions && shopify app deploy --allow-updates`.
 
 ## 8. House rules
 

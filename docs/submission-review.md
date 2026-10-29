@@ -38,8 +38,8 @@ graphql-codegen, build:theme, test:storefront, test:functions (18), site build, 
   request, network access for the Plus checkout block.
 - [ ] Render: `POSTMARK_SERVER_TOKEN`, `POSTMARK_ACCOUNT_TOKEN` (emails), `APP_EVENTS_CLIENT_ID`,
   `APP_EVENTS_CLIENT_SECRET` (usage billing).
-- [ ] Listing: pick 6 of the 9 screenshots in `branding/screenshots/storefront/` (alt text in
-  `branding/listing/README.md`), feature image `branding/feature/feature-banner.png`.
+- [ ] Listing: pick 6 of the 9 screenshots in `branding/old/screenshots/storefront/` (alt text in
+  `branding/listing/README.md`), feature image `branding/app-store/feature-banner.png`.
 - [ ] Review screencast in English: install, the setup guide, one offer, a bundle, the Track page, the loyalty program.
 - [ ] Testing instructions: Testing 3 is a dev store; the reviewer installs on their own store, nothing to log in to.
 
@@ -188,7 +188,7 @@ The listing is a **Draft**; distribution is public (App Store).
 
 - [x] Supported API versions, configuration issues fixed
 - [ ] Emergency developer contact (email and phone) — Omar types it
-- [ ] Listing content (English): text in `docs/listing.md` section 1, icon `branding/app-icon.png`,
+- [ ] Listing content (English): text in `docs/listing.md` section 1, icon `branding/logos/app-icon.png`,
       3 to 6 screenshots 1600 x 900, feature image or video, screencast (section 3)
 - [ ] Protected customer data request (section 4 answers)
 - [ ] Post purchase extension access request (finding 3)

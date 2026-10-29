@@ -1,7 +1,7 @@
 # LinkedIn article
 
 **Where:** LinkedIn → Write article, from Omar's profile. After publishing, share it from the CRO Toolbox
-company page (once it exists, see `profiles.md`). Cover image: `branding/feature/feature-banner.png`.
+company page (once it exists, see `profiles.md`). Cover image: `branding/app-store/feature-banner.png`.
 
 **Title:** Why I put bundles, upsells and cross sells into one Shopify app
 

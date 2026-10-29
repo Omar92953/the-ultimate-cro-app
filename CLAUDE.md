@@ -17,8 +17,8 @@ website. Only sessions running on Omar's Mac can deploy to Shopify (`docs/TEAM.m
 
 ## Where it lives
 
-On Omar's Mac: `~/Workspace/Coiding/Shopify apps/Cro Toolbox/cro-toolbox` (moved 2026-10-28 from
-`~/Workspace/the-ultimate-cro-app`). Old worktrees are in `../old work copies`. The Shopify app handle and the GitHub
+On Omar's Mac: `~/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox` (moved 2026-10-28 from
+`~/Workspace/the-ultimate-cro-app`). The Shopify app handle and the GitHub
 repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and Render depend on them).
 
 ## Status (2026-10-28)

@@ -19,7 +19,7 @@ Updated 2026-10-24.
 - [ ] All candidate listing images, for Omar to choose (#273)
 - [x] Final App Store audit (`docs/submission-review.md`, #305); Partner Dashboard: new prices, usage meters on Growth
       and Pro monthly, Growth yearly and Pro yearly plans, network access, protected customer data (2026-10-25)
-- [ ] Listing: Feature media (`branding/feature/feature-banner.png`), Screencast URL, the 3 to 6 chosen screenshots
+- [ ] Listing: Feature media (`branding/app-store/feature-banner.png`), Screencast URL, the 3 to 6 chosen screenshots
 - [ ] Postmark tokens and App Events key in Render (Omar)
 
 ## App
@@ -183,15 +183,15 @@ Ticked = fixed and merged (#159 to #172); Omar re-checks on Testing 3 when he ne
 
 ## App Store listing images (Omar, 2026-10-19)
 
-- [x] Feature image style approved: `branding/feature/feature-banner.png` (dark green to black background, logo,
+- [x] Feature image style approved: `branding/app-store/feature-banner.png` (dark green to black background, logo,
       headline, real widgets as white cards with green tags; design system: `branding/listing/README.md`). Keep this style.
 - [x] Demos (`demos/`): real product photos (free Burst photos, `demos/IMAGES.md`, #219). Omar: say if the demos
       are final or a photo should change.
-- [x] Widgets re-captured, feature image rendered again (`branding/feature/feature-banner.png`) and 6 screenshots designed
-      in the same style: `branding/screenshots/storefront/1-bundles.png` to `6-sections.png` (templates in
+- [x] Widgets re-captured, feature image rendered again (`branding/app-store/feature-banner.png`) and 6 screenshots designed
+      in the same style: `branding/old/screenshots/storefront/1-bundles.png` to `6-sections.png` (templates in
       `branding/listing/templates/screenshot-*.html`; 2026-10-20, website session)
 - [ ] Omar: look at the 7 images, then upload them in the listing editor (feature image, then the screenshots in order,
-      alt text in `branding/listing/README.md`). Choose these or the app screenshots in `branding/screenshots/listing/`
+      alt text in `branding/listing/README.md`). Choose these or the app screenshots in `branding/old/screenshots/listing/`
       (or mix them: up to 6 in total).
 
 ## Header back, 2026-10-19 (#208, cro-toolbox-40)
