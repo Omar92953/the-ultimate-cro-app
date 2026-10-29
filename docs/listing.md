@@ -13,6 +13,26 @@ directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see o
 
 ## 1. Listing text (copy and paste)
 
+### As in the Partner Dashboard (2026-10-29, after the withdrawal)
+
+The listing form is the source of truth; the older drafts below are kept for history.
+
+- Name: `CRO Toolbox`. Subtitle: `Bundles, upsells, loyalty and order tracking in one app`.
+- Introduction: `Bigger orders (AOV) and more repeat buyers (LTV) with bundles, upsells and loyalty.`
+- Details: one paragraph on bundles, upsells and cross sells, loyalty, a Track page that sells, returns that suggest
+  store credit first, sections and Analytics (no live tracking, no numbers).
+- Features: bundles, upsells and cross sells with real discounts · loyalty points, rewards, VIP tiers, referrals and a
+  points shop · a Track page that sells and returns that suggest store credit first · reviews, bars, countdowns,
+  sticky add to cart and sections · `Checkout rules, A/B tests, scheduled offers and analytics for every widget`
+  (changed 2026-10-29).
+- Images: `branding/app-store/` feature banner and shots 1 to 6. Shot 4 is now the Track page next to the five ways to
+  connect any courier (alt `Track page next to five ways to connect any courier`); Omar uploads it.
+- Testing instructions: Offers line mentions A/B tests with up to four versions and the Schedule card; Tracking line
+  explains the ways to connect a courier and the Copy AI guide (changed 2026-10-29). The storefront password is typed
+  there by Omar and never copied into this repo.
+- Pricing: usage charges list `live-shipments`, `loyalty-emails`, `loyalty-orders`. Live tracking is off, so remove
+  `live-shipments` from Growth and Pro before resubmitting (Omar, Partner Dashboard).
+
 **App name (30 max):** `CRO Toolbox` (or, Omar's choice, `CRO Toolbox: Upsell & Bundles`, 29: the
 name is the strongest search signal in the App Store; keep the brand first and only two plain words)
 
