@@ -110,7 +110,7 @@ export const PLANS: Record<PlanKey, Plan> = {
     yearly: 59,
     trialDays: 14,
     limits: { offerSlots: null, checkoutRules: 6, countdownPlaces: null, thankYouModules: null, trialFeatures: 0, offerStats: 3, designsPerSection: 5, monthlyOrders: 500, liveShipments: 0, loyaltyOrders: 0, loyaltyEmails: 0 },
-    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section", "Connect Claude to your store"],
+    highlights: ["Unlimited offers", "Every bundle and discount type", "Add-ons and personalization", "Gift note and delivery date", "Quiz, carousels and store pages", "5 styles per section", "Connect AI assistants to your store"],
   },
   growth: {
     key: "growth",
