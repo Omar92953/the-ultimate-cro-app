@@ -3,20 +3,19 @@
  * The app switches the offer on at the start and off at the end.
  */
 import type { LocalMoment, ScheduleInput } from "../lib/schedule";
-import { TIMES } from "../lib/schedule";
-import { Button, DateField, Select, Switch } from "./fields";
+import { Button, DateField, Switch } from "./fields";
+import { TimeWheel } from "./TimeWheel";
 import { Pill } from "./ui";
 
 const today = () => new Date().toISOString().slice(0, 10);
 // New times start tomorrow, so a fresh schedule is never in the past.
 const tomorrow = () => new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-const TIME_OPTIONS = TIMES.map((t) => ({ value: t, label: t }));
 
 function Moment(props: { label: string; value: LocalMoment; onValue: (v: LocalMoment) => void; min: string }) {
   return (
-    <s-grid gridTemplateColumns="minmax(0, 2fr) minmax(0, 1fr)" gap="base" alignItems="end">
+    <s-grid gridTemplateColumns="minmax(0, 1fr) auto" gap="base" alignItems="start">
       <DateField label={`${props.label} date`} allow={`${props.min}--`} value={props.value.date} onValue={(date) => props.onValue({ ...props.value, date })} />
-      <Select label="Time" value={props.value.time} onValue={(time) => props.onValue({ ...props.value, time })} options={TIME_OPTIONS} />
+      <TimeWheel label="Time" value={props.value.time} onValue={(time) => props.onValue({ ...props.value, time })} />
     </s-grid>
   );
 }
