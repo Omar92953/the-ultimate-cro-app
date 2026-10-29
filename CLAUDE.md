@@ -21,13 +21,14 @@ On Omar's Mac: `~/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox` (moved 
 `~/Workspace/the-ultimate-cro-app`). The Shopify app handle and the GitHub
 repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and Render depend on them).
 
-## Status (2026-10-29)
+## Status (2026-10-29, resubmitted)
 
-- **Submission withdrawn on 2026-10-29** (Omar; it was submitted 2026-10-28), back to Draft. Before resubmitting:
-  scheduled offers and A/B tests with up to 4 versions (Pro), a full end to end check of every paid feature
-  (including keys, accounts and quotas outside the code), tracking tested on Testing 3, listing images showing
-  the many ways to connect couriers, then the Partner Dashboard updates (remove the live-shipments meter, Pro's
-  features in pricing and listing) and resubmit.
+- **Resubmitted to the App Store on 2026-10-29** (first submitted 2026-10-28, withdrawn the same day to add scheduled
+  offers and A/B tests with up to 4 versions, fix the listing and pricing). While in review: keep Render up, reply to
+  the reviewer's email (omar@crotoolbox.com) within a day, fix only what they ask, and avoid deploys without need.
+  Live: cro-toolbox-75. Checks before resubmitting: `docs/paid-features-check.md`.
+- After approval, first: add to the existing order from the Track page (`docs/WORKBOARD.md`, Later); then Postmark
+  tokens and the App Events key in Render, with the loyalty-emails meter back on the plans (`BILLED_METERS`).
 - Live tracking from our 17TRACK account is off (`LIVE_TRACKING` in `app/lib/plans.ts`, #336) until there is at least
   one paying store; merchants connect their courier (its Shopify app, their own tracking service key, a webhook link,
   a carrier link or typed updates). Loyalty emails stay hidden until the Postmark tokens are in Render.
