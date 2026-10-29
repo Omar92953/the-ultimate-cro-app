@@ -1189,11 +1189,14 @@ test("units over a limit go to Shopify App Pricing once each, as billable events
   const U = await import("../../app/lib/usage.server");
   const shop = "pl2.myshopify.com";
   const now = new Date();
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 10, "ship:A"), true, "within the limit");
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 200, "ship:B"), false, "at the limit, extra off");
-  await U.setExtra(shop, "liveShipments", true);
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 200, "ship:B"), true);
-  assert.equal(await U.allowUnit(shop, "starter", "liveShipments", 0, "ship:C"), false, "not on Starter at all");
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 10, "ship:A"), true, "within the limit");
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 500, "ship:B"), false, "at the limit, extra off");
+  await U.setExtra(shop, "loyaltyOrders", true);
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 500, "ship:B"), true);
+  assert.equal(await U.allowUnit(shop, "starter", "loyaltyOrders", 0, "ship:C"), false, "not on Starter at all");
+  // A limit with no usage charge on the plans (plans.ts BILLED_METERS) stops, even with extra on.
+  await U.setExtra(shop, "loyaltyEmails", true);
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyEmails", 1000, "mail:A"), false, "loyalty emails are not billed");
   const calls: { url: string; body: Record<string, unknown>; agent: string }[] = [];
   const http = (async (url: string, init?: RequestInit) => {
     calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")), agent: String((init?.headers as Record<string, string> | undefined)?.["User-Agent"] ?? "") });
@@ -1204,9 +1207,9 @@ test("units over a limit go to Shopify App Pricing once each, as billable events
   process.env.APP_EVENTS_CLIENT_SECRET = "secret";
   try {
     assert.ok((await U.reportUsage(async () => "123", http, now)) >= 1, "every store's queued units");
-    const ev = calls.find((c) => c.url.endsWith("/events") && c.body.event_handle === "live-shipments")!;
+    const ev = calls.find((c) => c.url.endsWith("/events") && c.body.event_handle === "loyalty-orders")!;
     assert.equal(ev.url, "https://api.shopify.com/app/2026-10/events");
-    assert.deepEqual([ev.body.event_handle, (ev.body.attributes as { value: number }).value, ev.body.shop_id], ["live-shipments", 1, "123"]);
+    assert.deepEqual([ev.body.event_handle, (ev.body.attributes as { value: number }).value, ev.body.shop_id], ["loyalty-orders", 1, "123"]);
     assert.equal(String(ev.body.idempotency_key).length <= 64, true);
     assert.ok(calls.every((c) => c.agent.startsWith("CRO Toolbox")), "every call names the app (Shopify can answer 403 without it)");
     assert.equal(await U.reportUsage(async () => "123", http, now), 0, "sent once");

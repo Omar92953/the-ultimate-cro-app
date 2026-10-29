@@ -41,11 +41,11 @@ test("3.4: an order's pending points released in the meantime are still taken ba
 test("3.5: two long units with the same start are two units (the key is hashed, not cut)", async () => {
   const U = await import("../../app/lib/usage.server");
   const shop = "keys.myshopify.com";
-  await U.setExtra(shop, "liveShipments", true);
+  await U.setExtra(shop, "loyaltyOrders", true);
   const long = "X".repeat(60);
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 999, `ship:${long}A`), true);
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 999, `ship:${long}B`), true);
-  assert.equal(await U.allowUnit(shop, "growth", "liveShipments", 999, `ship:${long}A`), true);
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 999, `ship:${long}A`), true);
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 999, `ship:${long}B`), true);
+  assert.equal(await U.allowUnit(shop, "growth", "loyaltyOrders", 999, `ship:${long}A`), true);
   assert.equal(await prisma.usageEvent.count({ where: { shop } }), 2, "billed once each");
   assert.equal(U.unitKey("liveShipments", "ship:LX1"), "liveShipments:ship:LX1", "short keys stay readable");
 });
