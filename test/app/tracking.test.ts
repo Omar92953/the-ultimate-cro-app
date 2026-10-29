@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
+import { trackingGuide } from "../../app/lib/tracking-guide";
 import { buildTracking, cleanEvents, fromShopifyEvent, isFresh, sourcesToTry } from "../../app/lib/tracking";
 import { fromTrackInfo } from "../../app/lib/tracking/provider.server";
 import { decrypt, encrypt, last4, sameSecret } from "../../app/lib/tracking/secret.server";
@@ -278,4 +279,11 @@ test("17TRACK carrier codes come from Shopify's carrier name, only when the matc
   assert.equal(carrierKeyFrom(list, "J&T Express"), null); // several countries: left to auto-detection
   assert.equal(carrierKeyFrom(list, "Some local courier"), null);
   assert.equal(carrierKeyFrom(list, ""), null);
+});
+
+test("the Copy guide prompt names the store and every way to connect, and never holds a webhook link", () => {
+  const g = trackingGuide("shop-a.myshopify.com");
+  assert.ok(g.includes("shop-a.myshopify.com"));
+  for (const w of ["17TRACK", "AfterShip", "TrackingMore", "Ship24", "Webhook link", "{number}", "Add update"]) assert.ok(g.includes(w), w);
+  assert.ok(!/https?:\/\//.test(g));
 });

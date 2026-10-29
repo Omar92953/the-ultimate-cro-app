@@ -33,6 +33,7 @@ test("the app's own text is neutral, not first person", () => {
   for (const dir of ["app/routes", "app/components", "app/lib"]) {
     for (const file of walk(dir)) {
       if (/\/(privacy|terms)\.tsx$/.test(file)) continue; // legal text
+      if (/\/tracking-guide\.ts$/.test(file)) continue; // the merchant speaking to their AI assistant
       const lines = withoutComments(fs.readFileSync(file, "utf8")).split("\n");
       lines.forEach((line, i) => {
         for (const [re, instead] of FORBIDDEN) if (re.test(line)) bad.push(`${file}:${i + 1}: ${line.trim().slice(0, 100)}  (write: ${instead})`);

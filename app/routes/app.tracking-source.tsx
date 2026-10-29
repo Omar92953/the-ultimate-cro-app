@@ -15,6 +15,7 @@ import { planContext } from "../lib/rules.server";
 import { LIVE_TRACKING, atLeast } from "../lib/plans";
 import { isRuleError } from "../lib/rules";
 import { MAX_CARRIER_LINKS, carrierLinkProblem, type CarrierLink, type TrackSource } from "../lib/tracking";
+import { trackingGuide } from "../lib/tracking-guide";
 import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveKey, saveSource } from "../lib/tracking/tracking.server";
 import { Button, PasswordField, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
@@ -23,7 +24,7 @@ import { UsageBars } from "../components/UsageBars";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const { plan } = await planContext(admin, session.shop);
-  return { cfg: await getTrackingConfig(session.shop, plan), pro: atLeast(plan, "pro") };
+  return { cfg: await getTrackingConfig(session.shop, plan), pro: atLeast(plan, "pro"), shop: session.shop };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -154,6 +155,13 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
+        <HomeRow title="Get help connecting" subtitle="Copy a guide for your AI assistant (ChatGPT, Claude or Gemini). Paste it there and it walks you through connecting your shipping company, step by step.">
+          <s-stack direction="inline">
+            <Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>
+              Copy guide
+            </Button>
+          </s-stack>
+        </HomeRow>
         <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Connect your shipping company, including a local courier, in any of these ways:"}>
           <s-stack gap="small-200">
             {LIVE_TRACKING ? null : <s-text>• Your tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its key, below.</s-text>}
