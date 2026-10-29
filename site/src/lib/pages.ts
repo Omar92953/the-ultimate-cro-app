@@ -29,7 +29,7 @@ export const PAGES = {
     path: "/",
     title: "CRO Toolbox: increase AOV and LTV with upsells, bundles and more",
     description:
-      `${BRAND_LINE} Bundles, upsells, cart offers, a Track page that sells and returns that keep the sale, for any Online Store 2.0 theme, no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
+      `CRO Toolbox is a Shopify app for bundles, upsells, cart offers, loyalty, a Track page and returns, on any Online Store 2.0 theme with no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
     ogTitle: "Increase AOV and LTV, with one app",
     ogKicker: "Shopify app",
   },
@@ -100,7 +100,8 @@ export const FEATURE_PAGES: Record<FeatureKey, PageMeta> = Object.fromEntries(
       slug: `feature-${featureSlug(k)}`,
       path: featurePath(k),
       title: `${featureTitle(k)} for Shopify`,
-      description: `${featureAbout(k)} ${FEATURE_COPY[k].who} ${planLine(k)} of CRO Toolbox.`.slice(0, 300),
+      // What it does and which plan first (search results show about 160 characters), then who it's for.
+      description: `${featureAbout(k)} ${planLine(k)} of CRO Toolbox. ${FEATURE_COPY[k].who}`,
       ogTitle: featureTitle(k),
       ogKicker: SITE_AREAS.find((a) => a.key === FEATURES[k].area)?.title ?? "Feature",
     },

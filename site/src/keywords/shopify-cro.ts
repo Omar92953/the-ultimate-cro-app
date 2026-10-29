@@ -60,7 +60,7 @@ const page: KeywordPage = {
         "In Shopify's Analytics, look at where shoppers leave: product pages, the cart or checkout.",
         "Fix the biggest gap first. Product pages usually need reviews, trust badges and a delivery estimate.",
         "Change one thing at a time and compare the same number of days before and after.",
-        `Test offers properly: the holdout test (${holdout} plan and above) compares shoppers with and without the app's widgets, and A/B tests (${abPlan} plan) split shoppers between two versions of an offer.`,
+        `Test offers properly: the holdout test (${holdout} plan and above) compares shoppers with and without the app's widgets, and A/B tests (${abPlan} plan) split shoppers between up to four versions of an offer.`,
       ],
     },
     {

@@ -74,7 +74,7 @@ More on the feature: [A/B tests feature page](/features/ab-tests/).
 
 ## What is a holdout test, and when should I use it?
 
-An A/B test compares two versions of one offer. A holdout test answers a different question: what do the app's widgets add to your sales overall?
+An A/B test compares two to four versions of one offer. A holdout test answers a different question: what do the app's widgets add to your sales overall?
 
 In the holdout test, a share of shoppers, picked at random and kept for their visits, see your store without the app's widgets. Orders from each group are compared. It is on the Growth plan and above, from $19.99 a month.
 

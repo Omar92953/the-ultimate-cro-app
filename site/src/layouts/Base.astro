@@ -17,10 +17,22 @@ interface Props {
   /** Breadcrumb trail after Home (adds BreadcrumbList structured data). */
   crumbs?: Crumb[];
   noindex?: boolean;
+  /** Blog posts: shared as an article with its dates. */
+  article?: { published: Date; modified?: Date; section?: string };
 }
 
-const { page, schema = [], crumbs, noindex = false } = Astro.props;
-const title = page.title.includes(SITE_NAME) ? page.title : `${page.title} | ${SITE_NAME}`;
+const { page, schema = [], crumbs, noindex = false, article } = Astro.props;
+/** Search results cut titles near 60 characters: the app's name is added only when it still fits. */
+const title = page.title.includes(SITE_NAME) || page.title.length + SITE_NAME.length + 3 > 65 ? page.title : `${page.title} | ${SITE_NAME}`;
+/** Search results show about 160 characters of a description: cut longer ones at a word, never mid sentence when avoidable. */
+const clip = (s: string, max = 160) => {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1);
+  const sentence = cut.lastIndexOf(". ");
+  return sentence > max * 0.6 ? cut.slice(0, sentence + 1) : `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:]$/, "")}…`;
+};
+const description = clip(page.description);
+const imageAlt = `${page.ogKicker ? `${page.ogKicker}: ` : ""}${page.ogTitle ?? page.title}. CRO Toolbox, a Shopify app.`;
 const canonical = new URL(page.path, SITE_URL).toString();
 const ogImage = new URL(`/og/${page.slug}.png`, SITE_URL).toString();
 
@@ -45,7 +57,7 @@ if (crumbs?.length) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-    <meta name="description" content={page.description} />
+    <meta name="description" content={description} />
     {/* A page kept out of search (the 404 page) has no canonical address of its own. */}
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -54,18 +66,25 @@ if (crumbs?.length) {
     {GOOGLE_SITE_VERIFICATION && <meta name="google-site-verification" content={GOOGLE_SITE_VERIFICATION} />}
     {BING_SITE_VERIFICATION && <meta name="msvalidate.01" content={BING_SITE_VERIFICATION} />}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={page.description} />
+    <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={imageAlt} />
+    {article && <meta property="article:published_time" content={article.published.toISOString()} />}
+    {article?.modified && <meta property="article:modified_time" content={article.modified.toISOString()} />}
+    {article?.section && <meta property="article:section" content={article.section} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={page.description} />
+    <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
     {ld.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
   </head>
