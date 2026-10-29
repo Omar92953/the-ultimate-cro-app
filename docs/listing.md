@@ -30,8 +30,8 @@ The listing form is the source of truth; the older drafts below are kept for his
 - Testing instructions: Offers line mentions A/B tests with up to four versions and the Schedule card; Tracking line
   explains the ways to connect a courier and the Copy AI guide (changed 2026-10-29). The storefront password is typed
   there by Omar and never copied into this repo.
-- Pricing: usage charges list `live-shipments`, `loyalty-emails`, `loyalty-orders`. Live tracking is off, so remove
-  `live-shipments` from Growth and Pro before resubmitting (Omar, Partner Dashboard).
+- Pricing: Growth and Pro keep only the `loyalty-orders` usage charge ($0.05). `live-shipments` and `loyalty-emails`
+  were removed on 2026-10-29 (Omar's OK) while live tracking and loyalty emails are off; add them back with those.
 
 **App name (30 max):** `CRO Toolbox` (or, Omar's choice, `CRO Toolbox: Upsell & Bundles`, 29: the
 name is the strongest search signal in the App Store; keep the brand first and only two plain words)

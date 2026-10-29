@@ -48,7 +48,8 @@ repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and R
   deactivated by Omar (2026-10-24). Testing 3 is on Pro monthly (test plan; Pro yearly and the switch back checked 2026-10-25).
 - The second account (claude2) is no longer used (Omar, 2026-10-24): the lead does all the work.
 - Partner Dashboard App Pricing done (2026-10-25): Free, Starter $5.99 ($59 a year), Growth $19.99 and Pro $39.99
-  (Monthly recurring, each with the meters live-shipments $0.04, loyalty-orders $0.05, loyalty-emails $0.002), and
+  (Monthly recurring, with the meter loyalty-orders $0.05; live-shipments and loyalty-emails were removed on 2026-10-29
+  while live tracking and loyalty emails are off: add them back when those come back), and
   separate Growth yearly $199 and Pro yearly $399 (no extras). Network access and protected customer data done; Shopify
   Flow installed on Testing 3. Listing draft: only Feature media and the Screencast URL left (at the end).
 - Waiting for Omar: Postmark tokens in Render (emails send nothing until then), App Events API key in Render (usage
