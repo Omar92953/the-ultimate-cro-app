@@ -3,6 +3,7 @@
  * four groups as cards (catalog.ts OFFER_GROUPS) and A/B tests. "Create offer" opens the type picker
  * (/app/offers/new). Sales per offer come from the order results (results.server.ts byOffer).
  */
+import { withScheduleLabels } from "../lib/schedule.server";
 import { useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
@@ -24,7 +25,7 @@ import { DemoButton } from "../components/DemoButton";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [offers, results] = await Promise.all([listOffers(admin), cachedResults(admin, session.shop)]);
+  const [offers, results] = await Promise.all([listOffers(admin).then((rows) => withScheduleLabels(admin, session.shop, rows)), cachedResults(admin, session.shop)]);
   return { offers, results: results ? { currency: results.currency, byOffer: results.byOffer, offers: results.offers } : null };
 };
 

@@ -13,6 +13,7 @@ import { redactReviewerEmails } from "./reviewer-email.server";
 import { redactReturnsShop } from "./orders-lookup.server";
 import { removeShopLoyalty } from "./loyalty/program.server";
 import { removeShopUsage } from "./usage.server";
+import { removeShopSchedules } from "./schedule.server";
 
 export async function removeShopData(shop: string) {
   await db.session.deleteMany({ where: { shop } });
@@ -26,4 +27,5 @@ export async function removeShopData(shop: string) {
   await removeShopTrackCodes(shop);
   await removeShopLoyalty(shop);
   await removeShopUsage(shop);
+  await removeShopSchedules(shop);
 }

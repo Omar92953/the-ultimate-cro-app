@@ -14,10 +14,12 @@ import { warnIfApiKeyDiffers } from "./lib/api-key-check.server";
 import { timed } from "./lib/timing.server";
 import { startRetention } from "./lib/retention.server";
 import { startLoyaltyJobs } from "./lib/loyalty/sync.server";
+import { startSchedules } from "./lib/schedule.server";
 
 warnIfApiKeyDiffers();
 startRetention();
 startLoyaltyJobs();
+startSchedules();
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,

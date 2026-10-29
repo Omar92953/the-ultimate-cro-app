@@ -8,7 +8,11 @@ import { authenticate } from "../shopify.server";
 import { bundleBuilderLinks, deleteBundle, getThemeStatus, listBundles, saveBundle } from "../lib/cro.server";
 import { SCOPE_MESSAGE, createBundlePage, createBundleProduct, isScopeError } from "../lib/bundle-product.server";
 import { validateBundle } from "../lib/validate";
-import { requireBundle } from "../lib/rules.server";
+import { planContext, requireBundle } from "../lib/rules.server";
+import { checkSchedule, getSchedule, saveSchedule } from "../lib/schedule.server";
+import type { ScheduleInput } from "../lib/schedule";
+import { atLeast } from "../lib/plans";
+import { ScheduleCard } from "../components/ScheduleCard";
 import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
@@ -59,6 +63,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     getBundleDesign(admin).then((d) => d.config),
     getThemeStyle(admin, session.shop).catch(() => FALLBACK_STYLE),
   ]);
+  const [{ plan }, schedule] = await Promise.all([planContext(admin, session.shop), getSchedule(admin, session.shop, "bundle", params.handle === "new" ? null : params.handle)]);
+  const timing = { pro: atLeast(plan, "pro"), schedule };
   // The live preview: the store's own bundle design, theme look and the storefront stylesheet.
   const look = { design, style, css: storefrontCss("ucro.css") };
   if (params.handle === "new") {
@@ -86,11 +92,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     }
     if (recipe === "browse") Object.assign(bundle, { pricing: "percent", percentOff: 10, storeWide: true, steps: [{ ...blankStep(), label: "Choose 3 items", min: 3, max: 3 }] });
     if (recipe === "anyN") Object.assign(bundle, { pricing: "tiers", tiers: [{ qty: 3, price: 30 }, { qty: 6, price: 55 }], storeWide: false, steps: [{ ...blankStep(), label: "Choose 3 or 6 items", min: 3, max: 6 }] });
-    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop), where, ...look };
+    return { bundle, others: all, isNew: true, shop: session.shop, placed, links: bundleBuilderLinks(session.shop), where, ...look, ...timing };
   }
   const bundle = all.find((b) => b.handle === params.handle);
   if (!bundle) throw new Response("Bundle not found", { status: 404 });
-  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle), where: (bundle.page ? "both" : "product") as "product" | "page" | "both", ...look };
+  return { bundle, others: all, isNew: false, shop: session.shop, placed, links: bundleBuilderLinks(session.shop, bundle.product?.handle, bundle.page?.handle), where: (bundle.page ? "both" : "product") as "product" | "page" | "both", ...look, ...timing };
 };
 
 const WHERE = { product: "Bundle product page", page: "Store page", both: "Product page and store page" } as const;
@@ -127,6 +133,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return redirect(`/app/bundles?deleted=${done}`);
     }
     const bundle = JSON.parse(String(form.get("bundle"))) as Bundle;
+    // A schedule (Pro) decides whether the bundle is on now: off before its start.
+    const { plan } = await planContext(admin, session.shop);
+    const timed = await checkSchedule(admin, session.shop, plan, JSON.parse(String(form.get("schedule") ?? "null")) as ScheduleInput | null, { type: "bundle", handle: bundle.handle });
+    if (timed) bundle.active = timed.activeNow;
     const create = form.get("create") ? (JSON.parse(String(form.get("create"))) as NewProduct) : null;
     const where = (["product", "page", "both"].includes(String(form.get("where"))) ? String(form.get("where")) : "product") as Where;
     // The plan, the bundle's own checks and the offer slots (bundles and deals share one limit on smaller plans; a bundle can always be saved off).
@@ -143,6 +153,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (where === "product") bundle.page = null;
     else if (!bundle.page) bundle.page = await createBundlePage(admin, bundle.name || bundle.product?.title || "Build your bundle");
     const saved = await saveBundle(admin, bundle);
+    if (saved.handle) await saveSchedule(session.shop, "bundle", saved.handle, timed);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
     return { ok: false, error: isScopeError(e) ? SCOPE_MESSAGE : errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
@@ -150,7 +161,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function BundleEditor() {
-  const { bundle: initial, others, isNew, shop, placed, links, where: initialWhere, design, style, css } = useLoaderData<typeof loader>();
+  const { bundle: initial, others, isNew, shop, placed, links, where: initialWhere, design, style, css, pro, schedule: initialSchedule } = useLoaderData<typeof loader>();
+  const onlyTimes = (x: typeof initialSchedule): ScheduleInput => ({ start: x.start, end: x.end });
+  const [schedule, setSchedule] = useState<ScheduleInput>(onlyTimes(initialSchedule));
+  const [loadedSchedule, setLoadedSchedule] = useState(initialSchedule);
+  if (loadedSchedule !== initialSchedule) {
+    setLoadedSchedule(initialSchedule);
+    setSchedule(onlyTimes(initialSchedule));
+  }
   // One step open at a time; a new bundle starts at step 1, an existing one shows its summary.
   const [open, setOpen] = useState(isNew ? 1 : 0);
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
@@ -204,6 +222,7 @@ export default function BundleEditor() {
       {
         intent: "save",
         bundle: JSON.stringify(bundle),
+        schedule: JSON.stringify(schedule),
         where,
         ...(creating ? { create: JSON.stringify({ title: create.title.trim() || bundle.name, price: create.price, imageUrl: create.image?.url ?? null }) } : {}),
       },
@@ -249,7 +268,7 @@ export default function BundleEditor() {
         Bundles
       </s-link>
       <DemoButton feature="bundles" recipe={recipeOfBundle(bundle)} />
-      <SaveControls dirty={changed(bundle, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setTouched(false); }} />
+      <SaveControls dirty={changed(bundle, initial) || changed(schedule, onlyTimes(initialSchedule))} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setBundle(initial); setSchedule(onlyTimes(initialSchedule)); setTouched(false); }} />
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The bundle was not saved">
@@ -600,6 +619,7 @@ export default function BundleEditor() {
           />
           <Checkbox label="Hide sold-out items" checked={bundle.hideSoldOut} onValue={(v) => set("hideSoldOut", v)} />
         </EditorSection>
+        <ScheduleCard value={schedule} onValue={setSchedule} timeZone={initialSchedule.timeZone} pro={pro} />
         {!isNew ? (
           <DeleteOffer busy={busy} onDelete={remove}>
             <s-paragraph>{`“${bundle.name}” stops showing on your store. The bundle product itself is not deleted. This cannot be undone.`}</s-paragraph>

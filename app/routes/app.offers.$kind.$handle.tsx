@@ -13,7 +13,11 @@ import { FALLBACK_STYLE, previewTheme } from "../lib/theme-style";
 import { validateRule } from "../lib/validate";
 import { errorMessage } from "../lib/admin.server";
 import { KINDS } from "../lib/kinds";
-import { requireOfferSlot } from "../lib/rules.server";
+import { planContext, requireOfferSlot } from "../lib/rules.server";
+import { checkSchedule, getSchedule, saveSchedule } from "../lib/schedule.server";
+import type { ScheduleInput } from "../lib/schedule";
+import { atLeast } from "../lib/plans";
+import { ScheduleCard } from "../components/ScheduleCard";
 import { isRuleError } from "../lib/rules";
 import { LimitUpgrade } from "../components/Upgrade";
 import type { Placement, Rule, RuleKind, Tier } from "../lib/types";
@@ -74,7 +78,10 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   if (!rule) throw new Response("Rule not found", { status: 404 });
   // The preview shows the real block: the store's look, its stylesheet and a real product.
   const product = (await productForRule(admin, rule, session.shop).catch(() => null)) ?? (await firstProduct(admin, session.shop).catch(() => null));
+  const [{ plan }, schedule] = await Promise.all([planContext(admin, session.shop), getSchedule(admin, session.shop, "rule", isNew ? null : rule.handle)]);
   return {
+    pro: atLeast(plan, "pro"),
+    schedule,
     kindSlug: params.kind!,
     meta,
     rule,
@@ -98,9 +105,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return redirect(`/app/offers/${params.kind}?deleted=${done}`);
     }
     const rule = JSON.parse(String(form.get("rule"))) as Rule;
+    // A schedule (Pro) decides whether the offer is on now: off before its start.
+    const { plan } = await planContext(admin, session.shop);
+    const timed = await checkSchedule(admin, session.shop, plan, JSON.parse(String(form.get("schedule") ?? "null")) as ScheduleInput | null, { type: "rule", handle: rule.handle });
+    if (timed) rule.active = timed.activeNow;
     // The plan's limit counts offers that are on (lib/plans.ts); an offer can always be saved off.
     await requireOfferSlot(admin, session.shop, rule);
     const saved = await saveRule(admin, rule);
+    if (saved.handle) await saveSchedule(session.shop, "rule", saved.handle, timed);
     return { ok: true, error: null, handle: saved.handle, upgrade: false };
   } catch (e) {
     return { ok: false, error: errorMessage(e), handle: null, upgrade: isRuleError(e) && e.upgrade };
@@ -108,8 +120,15 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function RuleEditor() {
-  const { kindSlug, meta, rule: initial, isNew, engine, style, css, upsellDesign, crossDesign, product } = useLoaderData<typeof loader>();
+  const { kindSlug, meta, rule: initial, isNew, engine, style, css, upsellDesign, crossDesign, product, pro, schedule: initialSchedule } = useLoaderData<typeof loader>();
   const [rule, setRule] = useState<Rule>(initial);
+  const onlyTimes = (x: typeof initialSchedule): ScheduleInput => ({ start: x.start, end: x.end });
+  const [schedule, setSchedule] = useState<ScheduleInput>(onlyTimes(initialSchedule));
+  const [loadedSchedule, setLoadedSchedule] = useState(initialSchedule);
+  if (loadedSchedule !== initialSchedule) {
+    setLoadedSchedule(initialSchedule);
+    setSchedule(onlyTimes(initialSchedule));
+  }
   const [touched, setTouched] = useState(false);
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -166,7 +185,7 @@ export default function RuleEditor() {
   const save = () => {
     setTouched(true);
     if (problems.length) return;
-    fetcher.submit({ intent: "save", rule: JSON.stringify(toSave) }, { method: "post" });
+    fetcher.submit({ intent: "save", rule: JSON.stringify(toSave), schedule: JSON.stringify(schedule) }, { method: "post" });
   };
   const remove = () => {
     if (!rule.id) return;
@@ -184,7 +203,7 @@ export default function RuleEditor() {
         {meta.title}
       </s-link>
       <DemoButton feature={isUpsell ? "upsell" : "cross_sell"} />
-      <SaveControls dirty={changed(rule, initial)} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setRule(initial); setTouched(false); }} />
+      <SaveControls dirty={changed(rule, initial) || changed(schedule, onlyTimes(initialSchedule))} saving={busy} saved={!isNew} allowLeave={busy || (isNew && !!fetcher.data?.handle)} onSave={save} onDiscard={() => { setRule(initial); setSchedule(onlyTimes(initialSchedule)); setTouched(false); }} />
 
       {fetcher.data?.error ? (
         <s-banner tone="critical" heading="The offer was not saved">
@@ -261,6 +280,7 @@ export default function RuleEditor() {
             />
           </s-stack>
         </s-section>
+        <ScheduleCard value={schedule} onValue={setSchedule} timeZone={initialSchedule.timeZone} pro={pro} />
           {isUpsell ? (
             <>
               <s-section heading="1. Choose the offer">

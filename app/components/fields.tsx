@@ -121,13 +121,14 @@ export function TextArea(props: Common & { value: string; onValue: (v: string) =
 }
 
 /** Date picker field. Value is "YYYY-MM-DD" or "". */
-export function DateField(props: Common & { value: string; onValue: (v: string) => void }) {
+/** `allow`: the dates that can be picked, as Polaris ranges ("2026-10-29--" = from that day on). */
+export function DateField(props: Common & { value: string; onValue: (v: string) => void; allow?: string }) {
   const ref = useRef<any>(null);
   useProp(ref, "defaultValue", props.value);
   useProp(ref, "value", props.value);
   useProp(ref, "disabled", !!props.disabled);
   useFieldEvents(ref, (el) => props.onValue(el.value || ""), ["change"]);
-  return <s-date-field ref={ref} label={props.label} details={props.details} error={props.error} />;
+  return <s-date-field ref={ref} label={props.label} details={props.details} error={props.error} allow={props.allow} />;
 }
 
 /** Drag-and-drop / click-to-choose file zone. Calls onFiles with the chosen files. */

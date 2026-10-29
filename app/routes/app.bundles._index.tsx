@@ -3,6 +3,7 @@
  * (active first), then its "Create ... offer" button, and the recipe row while the list is empty.
  * The old ?type=kit|fixed|bundle links still work (they redirect to ?tab=).
  */
+import { withScheduleLabels } from "../lib/schedule.server";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -30,7 +31,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const asked = url.searchParams.get("tab");
   const tab: RecipeKey = isRecipe(asked) ? asked : "fbt";
   const links = editorLinks(session.shop);
-  const [offers, bundles, theme, results] = await Promise.all([listOffers(admin), listBundles(admin), getThemeStatus(admin, session.shop).catch(() => null), cachedResults(admin, session.shop)]);
+  const [offers, bundles, theme, results] = await Promise.all([listOffers(admin).then((rows) => withScheduleLabels(admin, session.shop, rows)), listBundles(admin), getThemeStatus(admin, session.shop).catch(() => null), cachedResults(admin, session.shop)]);
   return {
     results: results ? { currency: results.currency, byOffer: results.byOffer } : null,
     rows: offers.filter((o) => o.recipe).map((o) => ({ ...o, recipe: o.recipe as RecipeKey })),
