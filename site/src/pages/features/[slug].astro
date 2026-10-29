@@ -16,6 +16,7 @@ import { FEATURE_COPY } from "../../lib/features";
 import { TEMPLATES } from "../../lib/templates";
 import { faqPage } from "../../lib/schema";
 import ArticleCard from "../../components/blog/ArticleCard.astro";
+import { keywordPageFor, keywordPath } from "../../lib/keywords";
 import { articles, guides, guidePath, HELP_PAGE } from "../../lib/content";
 
 export function getStaticPaths() {
@@ -71,6 +72,8 @@ const schema = faq.length ? [faqPage(faq)] : [];
 /** The help guide that covers this feature, and articles written about it. */
 const helpGuide = feature ? (await guides()).find((g) => g.data.features.includes(feature)) : undefined;
 const reading = feature ? (await articles()).filter((a) => a.data.feature === feature) : [];
+/** The search page about this feature ("Shopify countdown timer"), with why it's better value in one app. */
+const searchPage = feature ? keywordPageFor(feature) : undefined;
 ---
 
 <Base page={page} crumbs={crumbs} schema={schema}>
@@ -122,6 +125,11 @@ const reading = feature ? (await articles()).filter((a) => a.data.feature === fe
                     ))}
                   </ul>
                 </>
+              )}
+              {searchPage && (
+                <p class="help-link">
+                  <a class="link" href={keywordPath(searchPage)}>{searchPage.keyword}: why get it in one app →</a>
+                </p>
               )}
               <p class="help-link">
                 {helpGuide ? (

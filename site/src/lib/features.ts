@@ -313,6 +313,11 @@ export const FEATURE_COPY: Record<FeatureKey, FeatureCopy> = {
     who: "For stores that want proof before they change an offer.",
     points: ["Show your shoppers up to four versions of an upsell or cross sell, split evenly", "Change the words, the discount or the style in versions B, C and D", "Each shopper keeps one version, so orders can be told apart", "Real shoppers and real orders: we say which is ahead only when there is enough data", "One click to use the winner"],
     related: ["upsell", "cross_sell", "discounts"],
+    steps: [
+      "Install CRO Toolbox and choose the Pro plan, then switch on the upsell or cross sell you want to test.",
+      "Open Offers → A/B tests, choose the offer to test and change one thing for version B (add versions C and D if you like).",
+      "Click Start the test, and when the app shows a clear leader, use the winner in one click.",
+    ],
   },
   post_purchase: {
     who: "For one more sale right after payment.",
