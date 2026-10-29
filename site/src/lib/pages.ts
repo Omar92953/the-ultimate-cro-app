@@ -27,10 +27,10 @@ export const PAGES = {
   home: {
     slug: "home",
     path: "/",
-    title: "CRO Toolbox: increase AOV and LTV with upsells, bundles and more",
+    title: "CRO Toolbox: your whole Shopify sales toolkit in one app",
     description:
-      `CRO Toolbox is a Shopify app for bundles, upsells, cart offers, loyalty, a Track page and returns, on any Online Store 2.0 theme with no code. Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
-    ogTitle: "Increase AOV and LTV, with one app",
+      `${BRAND_LINE} Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
+    ogTitle: "Your whole sales toolkit in one app",
     ogKicker: "Shopify app",
   },
   pricing: {

@@ -226,7 +226,7 @@ IndexNow announces on each change.
 
 Use this sentence word for word everywhere (App Store, YouTube, social profiles, directories):
 
-> CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).
+> CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns.
 
 It lives in `site/src/lib/brand.ts` (the website uses it) and in `docs/listing.md`.
 

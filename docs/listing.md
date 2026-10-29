@@ -6,7 +6,7 @@ listing text, no other apps' names, name identical to `shopify.app.toml`, Englis
 Prices and limits live in `app/lib/plans.ts`; the Partner Dashboard plans must match them exactly.
 
 ## Shared description (use word for word everywhere)
-CRO Toolbox is a Shopify app to increase average order value (AOV) and lifetime value (LTV).
+CRO Toolbox is your whole sales toolkit in one Shopify app: bundles, upsells and cross sells, store sections, loyalty and rewards, tracking and returns.
 
 Same sentence as `site/src/lib/brand.ts` on the website. Use it on YouTube, social profiles and
 directories (G2, Capterra, SaaSworthy) so search engines and AI assistants see one consistent line.
