@@ -31,7 +31,7 @@ export const PAGES = {
     description:
       `${BRAND_LINE} Free plan, paid from ${money(cheapestPaid.monthly)} a month.`,
     ogTitle: "Your whole sales toolkit in one app",
-    ogKicker: "Shopify app",
+    ogKicker: "Replace 5+ apps with one",
   },
   pricing: {
     slug: "pricing",
