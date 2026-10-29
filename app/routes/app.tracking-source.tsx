@@ -179,7 +179,7 @@ export default function TrackingSource() {
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
         <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Every courier works with one of these. Choose the one your shipping company offers:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
           <s-stack gap="base">
-            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="base">
+            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap="base">
               {WAYS.map((w) => (
                 <s-box key={w.title} padding="base" borderWidth="base" borderRadius="base">
                   <s-stack gap="small-200">
