@@ -141,7 +141,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({ currentUrl, nextUrl
 type Data = ReturnType<typeof useLoaderData<typeof loader>>;
 /** The two shopper pages this hub shows (the wishlist page lives in the Section library). */
 type PageKind = "track" | "returns";
-type Check = { done: boolean; title: string; text: string; action?: { label: string; href?: string; external?: boolean; onClick?: () => void; loading?: boolean } };
+type Check = { done: boolean; title: string; text: string; /** Clicks to make, shown as a short numbered list. */ how?: string[]; action?: { label: string; href?: string; external?: boolean; onClick?: () => void; loading?: boolean } };
 
 /** Numbered steps, in the order to do them; each turns green when the app can see it is done. */
 function Checks({ checks }: { checks: Check[] }) {
@@ -156,6 +156,13 @@ function Checks({ checks }: { checks: Check[] }) {
             <span className={css.checkText}>
               <strong>{c.title}</strong>
               {c.text}
+              {c.how ? (
+                <ol className={css.how}>
+                  {c.how.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ol>
+              ) : null}
             </span>
           </div>
           {c.action ? (
@@ -236,9 +243,22 @@ export default function TrackingReturns() {
   const blockStep: Check = {
     done: !!d.inTheme?.track,
     title: "Add the block to your page template",
-    text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on these two pages, so your other pages stay as they are. Then add the pages to your menu or footer (Online Store, Navigation) so shoppers find them.",
-    // Once the block is in, the next step is the store's menu (Online Store, Navigation): the app doesn't edit menus.
-    action: d.inTheme?.track ? { label: "Add to your menu", href: "shopify://admin/menus", external: true } : { label: "Open the theme editor", href: d.links.track, external: true },
+    text: "One block does both pages: in the theme editor choose Add block, CRO Toolbox, Order & wishlist pages, and save. It shows only on these two pages, so your other pages stay as they are.",
+    action: d.inTheme?.track ? undefined : { label: "Open the theme editor", href: d.links.track, external: true },
+  };
+  // Shoppers find the pages through the store's menu. The app doesn't edit menus (Shopify keeps them the merchant's),
+  // so this step says where to click; it can't see when it's done, so it never turns green.
+  const menuStep: Check = {
+    done: false,
+    title: "Add the pages to your menu",
+    text: "So shoppers can find them. In your Shopify admin:",
+    how: [
+      "Open Online Store, then Navigation (the button opens it).",
+      "Choose Main menu, or Footer menu for a quieter link.",
+      "Click Add menu item, name it \u201cTrack your order\u201d and pick the page Track your order.",
+      "Add another item for the page Returns the same way, then click Save.",
+    ],
+    action: { label: "Open Navigation", href: "shopify://admin/menus", external: true },
   };
 
   return (
@@ -260,7 +280,7 @@ export default function TrackingReturns() {
             { label: "Returns", to: "/app/tracking-returns?tab=returns" },
           ]}
         />
-        {tab === "tracking" ? <TrackingTab d={d} pageStatus={pageStatus} pageButton={pageButton} template={template} steps={[pagesStep, blockStep]} /> : <ReturnsTab d={d} pageStatus={pageStatus} pageButton={pageButton} template={template} steps={[pagesStep, blockStep]} />}
+        {tab === "tracking" ? <TrackingTab d={d} pageStatus={pageStatus} pageButton={pageButton} template={template} steps={[pagesStep, blockStep, menuStep]} /> : <ReturnsTab d={d} pageStatus={pageStatus} pageButton={pageButton} template={template} steps={[pagesStep, blockStep, menuStep]} />}
       </HomeRows>
     </s-page>
   );
