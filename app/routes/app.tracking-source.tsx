@@ -155,19 +155,13 @@ export default function TrackingSource() {
       </Button>
       <HomeRows>
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
-        <HomeRow title="Get help connecting" subtitle="Copy a guide for your AI assistant (ChatGPT, Claude or Gemini). Paste it there and it walks you through connecting your shipping company, step by step.">
-          <s-stack direction="inline">
-            <Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>
-              Copy guide
-            </Button>
-          </s-stack>
-        </HomeRow>
-        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Connect your shipping company, including a local courier, in any of these ways:"}>
+        <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Connect your shipping company, including a local courier, in any of these ways:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
           <s-stack gap="small-200">
             {LIVE_TRACKING ? null : <s-text>• Your tracking service (17TRACK, AfterShip, TrackingMore or Ship24) with its key, below.</s-text>}
             <s-text>• Its updates reach your Track page through your webhook link, from the company, your warehouse or a tracking service.</s-text>
             <s-text>• You type its updates on a shipment in Shipments.</s-text>
             <s-text>• Its own tracking page is linked from every shipment, from the carrier links below.</s-text>
+            <s-text color="subdued">Not sure which way fits? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through connecting your shipping company step by step.</s-text>
           </s-stack>
         </HomeRow>
         {d.cfg.advanced && LIVE_TRACKING ? (
