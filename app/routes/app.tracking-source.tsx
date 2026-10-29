@@ -21,6 +21,7 @@ import { getTrackingConfig, regenerateSecret, removeKey, saveCarrierLinks, saveK
 import { Button, PasswordField, TextField } from "../components/fields";
 import { HomeRow, HomeRows, PageIntro, Pill } from "../components/ui";
 import { UsageBars } from "../components/UsageBars";
+import css from "../components/TrackingWays.module.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -64,11 +65,11 @@ function jumpTo(id: string) {
 
 /** The ways to connect a shipping company, shown as option cards; each button goes where that way is set up. */
 const WAYS: ({ title: string; text: string; button: string; to: string } | { title: string; text: string; button: string; href: string })[] = [
-  { title: "Your courier's Shopify app", text: "Many couriers have a Shopify app that adds the tracking number and its updates to your orders. The Track page shows what Shopify gets, with nothing more to set up.", button: "Find its app", href: "https://apps.shopify.com/search?q=shipping%20tracking" },
-  { title: "Tracking service", text: "17TRACK, AfterShip, TrackingMore or Ship24 follows thousands of couriers for you. Paste its key.", button: "Paste key", to: "src-own" },
-  { title: "Webhook link", text: "Your courier, warehouse or a tracking service sends each update to your private link.", button: "Get link", to: "src-webhook" },
-  { title: "Carrier link", text: "Each shipment links to the courier's own tracking page.", button: "Add link", to: "carrier-links" },
-  { title: "Type updates yourself", text: "For a courier with no tracking system: add its updates on a shipment.", button: "Open Shipments", to: "/app/tracking-shipments" },
+  { title: "Courier's Shopify app", text: "Your courier's app sends tracking to your orders. Nothing to set up here.", button: "Find its app", href: "https://apps.shopify.com/search?q=shipping%20tracking" },
+  { title: "Tracking service", text: "17TRACK, AfterShip, TrackingMore or Ship24 follows your courier for you.", button: "Paste key", to: "src-own" },
+  { title: "Webhook link", text: "Your courier or warehouse sends each update to your private link.", button: "Get link", to: "src-webhook" },
+  { title: "Carrier link", text: "Each shipment links to your courier's own tracking page.", button: "Add link", to: "carrier-links" },
+  { title: "Type updates", text: "No tracking system? Add the updates on a shipment yourself.", button: "Open Shipments", to: "/app/tracking-shipments" },
 ];
 
 export default function TrackingSource() {
@@ -179,25 +180,23 @@ export default function TrackingSource() {
         <PageIntro text="Every shipment shows its status on your Track page. Choose where that status comes from; the carrier's own tracking link always shows too. You can change this any time." />
         <HomeRow title="Any shipping company" subtitle={LIVE_TRACKING ? "Live tracking follows 3,500+ carriers. A company it doesn't know, like a local courier, still works:" : "Every courier works with one of these. Choose the one your shipping company offers:"} action={<Button icon="clipboard" onClick={() => copy(trackingGuide(d.shop))}>Copy AI guide</Button>}>
           <s-stack gap="base">
-            <s-grid gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap="base">
+            <div className={css.ways}>
               {WAYS.map((w) => (
-                <s-box key={w.title} padding="base" borderWidth="base" borderRadius="base">
-                  <s-stack gap="small-200">
-                    <s-text type="strong">{w.title}</s-text>
-                    <s-text color="subdued">{w.text}</s-text>
-                    <s-stack direction="inline">
-                      {"href" in w ? (
-                        <Button href={w.href} target="_blank">
-                          {w.button}
-                        </Button>
-                      ) : (
-                        <Button onClick={() => (w.to.startsWith("/") ? navigate(w.to) : jumpTo(w.to))}>{w.button}</Button>
-                      )}
-                    </s-stack>
-                  </s-stack>
-                </s-box>
+                <div key={w.title} className={css.way}>
+                  <div className={css.title}>{w.title}</div>
+                  <div className={css.text}>{w.text}</div>
+                  <div className={css.action}>
+                    {"href" in w ? (
+                      <Button href={w.href} target="_blank">
+                        {w.button}
+                      </Button>
+                    ) : (
+                      <Button onClick={() => (w.to.startsWith("/") ? navigate(w.to) : jumpTo(w.to))}>{w.button}</Button>
+                    )}
+                  </div>
+                </div>
               ))}
-            </s-grid>
+            </div>
             <s-text color="subdued">Not sure which one fits or how to set it up? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through it step by step.</s-text>
           </s-stack>
         </HomeRow>
