@@ -198,7 +198,7 @@ export default function TrackingSource() {
                 </s-box>
               ))}
             </s-grid>
-            <s-text color="subdued">Not sure which one fits? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through connecting your shipping company step by step.</s-text>
+            <s-text color="subdued">Not sure which one fits or how to set it up? Copy AI guide, paste it into ChatGPT, Claude or Gemini, and it walks you through it step by step.</s-text>
           </s-stack>
         </HomeRow>
         {d.cfg.advanced && LIVE_TRACKING ? (
