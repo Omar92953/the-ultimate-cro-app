@@ -21,10 +21,16 @@ On Omar's Mac: `~/Workspace/Coding/Shopify apps/Cro Toolbox/cro-toolbox` (moved 
 `~/Workspace/the-ultimate-cro-app`). The Shopify app handle and the GitHub
 repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and Render depend on them).
 
-## Status (2026-10-28)
+## Status (2026-10-29)
 
-- **Submitted to the App Store for review on 2026-10-28** (Omar). While in review: keep Render up, reply to the
-  reviewer's email within a day, fix only what they ask, and avoid deploying extension changes without need.
+- **Submission withdrawn on 2026-10-29** (Omar; it was submitted 2026-10-28), back to Draft. Before resubmitting:
+  scheduled offers and A/B tests with up to 4 versions (Pro), a full end to end check of every paid feature
+  (including keys, accounts and quotas outside the code), tracking tested on Testing 3, listing images showing
+  the many ways to connect couriers, then the Partner Dashboard updates (remove the live-shipments meter, Pro's
+  features in pricing and listing) and resubmit.
+- Live tracking from our 17TRACK account is off (`LIVE_TRACKING` in `app/lib/plans.ts`, #336) until there is at least
+  one paying store; merchants connect their courier (its Shopify app, their own tracking service key, a webhook link,
+  a carrier link or typed updates). Loyalty emails stay hidden until the Postmark tokens are in Render.
 
 - Live: Shopify app version **cro-toolbox-72**, admin on Render (`https://cro-toolbox.onrender.com`,
   auto-deploys from `main`; if Render skips the last merge, Manual Deploy → Deploy latest commit).
