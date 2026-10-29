@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { copyText } from "../lib/copy-text";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -62,9 +63,8 @@ export default function StockRequests() {
         a.click();
         URL.revokeObjectURL(url);
       } else {
-        navigator.clipboard.writeText(d.rows.map((r) => r.email).join(", ")).then(
-          () => shopify.toast.show(`${d.rows.length} email${d.rows.length === 1 ? "" : "s"} copied`),
-          () => shopify.toast.show("Couldn't copy. Use Download CSV", { isError: true }),
+        void copyText(d.rows.map((r) => r.email).join(", ")).then((ok) =>
+          ok ? shopify.toast.show(`${d.rows.length} email${d.rows.length === 1 ? "" : "s"} copied`) : shopify.toast.show("Couldn't copy. Use Download CSV", { isError: true }),
         );
       }
     } else if (d.intent === "told") shopify.toast.show("Marked as told");

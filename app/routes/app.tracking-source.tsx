@@ -4,6 +4,7 @@
  * link from any carrier or 3PL. Plus links for
  * carriers Shopify has no tracking link for (any plan with the Track page). Our live provider is never named.
  */
+import { copyText } from "../lib/copy-text";
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs, ShouldRevalidateFunction } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
@@ -78,7 +79,7 @@ export default function TrackingSource() {
   // The key error stays next to the field (the toast comes and goes).
   const keyFailed = !!fetcher.data && !fetcher.data.ok && !!key.trim();
   const choose = (source: TrackSource) => fetcher.submit({ intent: "source", source }, { method: "post" });
-  const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => shopify.toast.show("Copied"), () => shopify.toast.show("Select the text and copy it", { isError: true }));
+  const copy = async (v: string) => ((await copyText(v)) ? shopify.toast.show("Copied") : shopify.toast.show("Select the text and copy it", { isError: true }));
   const linkProblems = links.map(carrierLinkProblem);
   const linksDirty = JSON.stringify(links) !== JSON.stringify(d.cfg.carrierLinks);
 

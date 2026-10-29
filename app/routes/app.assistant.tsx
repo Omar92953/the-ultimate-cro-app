@@ -2,6 +2,7 @@
  * Settings → Connect an AI assistant (Starter and up). The connector address for claude.ai and Claude Desktop,
  * a personal access token for developer clients, the connections with Disconnect, and what assistants did.
  */
+import { copyText } from "../lib/copy-text";
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData, useNavigate } from "react-router";
@@ -69,7 +70,7 @@ export default function Assistant() {
   useEffect(() => {
     if (fetcher.data?.req) navigate(`/app/mcp-connect?req=${encodeURIComponent(fetcher.data.req)}`);
   }, [fetcher.data?.req, navigate]);
-  const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => shopify.toast.show("Copied"), () => shopify.toast.show("Select the text and copy it", { isError: true }));
+  const copy = async (v: string) => ((await copyText(v)) ? shopify.toast.show("Copied") : shopify.toast.show("Select the text and copy it", { isError: true }));
 
   return (
     <s-page heading="Connect an AI assistant" inlineSize="base">

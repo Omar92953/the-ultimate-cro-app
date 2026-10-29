@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { copyText } from "../lib/copy-text";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -194,12 +195,8 @@ function ReferralBox({ referral }: { referral: { code: string; link: string; rew
   const shopify = useAppBridge();
   if (!referral) return null;
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(referral.link);
-      shopify.toast.show("Link copied");
-    } catch {
-      shopify.toast.show("Copy didn't work. Select the link and copy it", { isError: true });
-    }
+    if (await copyText(referral.link)) shopify.toast.show("Link copied");
+    else shopify.toast.show("Copy didn't work. Select the link and copy it", { isError: true });
   };
   return (
     <s-box padding="base" borderWidth="base" borderRadius="base">
