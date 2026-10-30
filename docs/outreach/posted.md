@@ -7,6 +7,7 @@ Not used: LinkedIn (Omar, 2026-10-30; company page needs more connections), Redd
 
 | Date | Where | What | Link |
 |---|---|---|---|
+| 2026-10-30 | Quora | Answer: best Shopify upsell app for beginners | https://www.quora.com/What-is-the-best-Shopify-upsell-app-for-beginners/answer/Omar-Moaz-NGI |
 | 2026-10-30 | Shopify Community | Reply: reviews and loyalty in one app | https://community.shopify.com/t/best-shopify-app-for-reviews-and-loyalty-together/694136/9 |
 | 2026-10-30 | Quora | Answer: apps for reviews, loyalty and social proof | https://www.quora.com/Can-you-recommend-some-Shopify-apps-for-product-reviews-and-ratings-customer-loyalty-programs-and-social-proof-notifications/answer/Omar-Moaz-NGI |
 | 2026-10-30 | dev.to | Building bundle discounts on Shopify Functions: five things I learned (AI-assisted label, dev.to rules) | https://dev.to/omar_moaz_2d719674d966d0d/building-bundle-discounts-on-shopify-functions-five-things-i-learned-3koa |
