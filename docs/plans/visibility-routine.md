@@ -79,3 +79,11 @@ Scheduled task `cro-toolbox-visibility` in the Claude desktop app (Scheduled in 
 guide, one Shopify Community reply, one Quora answer (each only if a good fit exists), and one new guide on
 crotoolbox.com merged as a PR with the posts logged in `docs/outreach/posted.md`. Never LinkedIn or Reddit. Stops on a
 sign-in page, a CAPTCHA or a removed post and reports it. Edit or pause it from the app's Scheduled list.
+
+## Shopify Community paused (2026-11-03)
+
+The routine's reply in "Do you show shipping costs on the product page, or leave it for checkout?" was hidden by member
+flags because of its app paragraph (other app makers' replies in the same threads are hidden too). New accounts (trust
+level 0) can't edit a hidden post, so it stays hidden (Omar). A second hidden post goes to Shopify staff, so the
+routine no longer posts there; it only checks the account's activity. If Omar brings it back: plain helpful answers
+with no app name or link, so the account earns trust first.
