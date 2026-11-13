@@ -88,7 +88,15 @@ browser user agent gets 204). `mcp.token` and `mcp.register` already answer OPTI
 - IP allowlist on (Dev Dashboard, Enforcement enabled, Render ranges 74.220.49.0/24 and 74.220.57.0/24); the app
   loads and saves on Testing 3 after it.
 
-Still to run: the same on a brand new development store (install from scratch).
+- **Brand new development store, Testing 5** (`testing-5-fytnvybb`, created 2026-11-13, Shopify's test data, EGP):
+  installed from the install link → the app opened on the Free plan with the setup guide → Cart & Checkout, After-purchase
+  offer: chose The Collection Snowboard: Liquid, switched on (saved on Free), Test connection all OK → Settings,
+  Checkout: Post-purchase page was **None** by default, chose CRO Toolbox → test gateway already active → bought Oxygen
+  with card 1 → the offer showed (EGP 749.95 crossed out, EGP 637.46, breakdown, both buttons) → **Pay now** → Thank you
+  page total E£1,780.46 (E£1,143.00 + E£637.46).
+
+A new store has **None** chosen as its post-purchase app, so the reviewer must choose CRO Toolbox (step 3 of the
+testing instructions); the app's page says so in its banner and checklist.
 
 ## Final audit (2026-10-24): before submission (cro-toolbox-72)
 
