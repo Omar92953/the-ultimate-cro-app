@@ -13,7 +13,7 @@ import { PLANS } from "../lib/plans";
 import { pageLock } from "../lib/plan-gate";
 import { LockedPage } from "../components/Upgrade";
 import frame from "../components/AppFrame.module.css";
-import { ErrorPage, FAILED, NOT_FOUND } from "../components/ErrorPage";
+import { ErrorPage, FailedPage, NOT_FOUND } from "../components/ErrorPage";
 
 export const loader = timedLoader("app", async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -72,7 +72,7 @@ export function ErrorBoundary() {
   // Our own "not found" answers get a friendly page; Shopify's auth responses must go through its boundary.
   if (isRouteErrorResponse(error) && error.status === 404) return <ErrorPage {...NOT_FOUND} />;
   if (isRouteErrorResponse(error)) return boundary.error(error);
-  return <ErrorPage {...FAILED} />;
+  return <FailedPage error={error} />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {
