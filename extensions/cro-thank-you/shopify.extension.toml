@@ -4,7 +4,7 @@
 api_version = "2026-07"
 
 [[extensions]]
-name = "t:name"
+name = "CRO Toolbox thank-you page"
 handle = "cro-thank-you"
 type = "ui_extension"
 uid = "78664deb-68d5-72b5-23f9-6085111f0ad1507af642"

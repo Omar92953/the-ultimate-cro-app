@@ -5,7 +5,7 @@ api_version = "2026-07"
 
 [[extensions]]
 type = "ui_extension"
-name = "t:name"
+name = "CRO Toolbox loyalty"
 uid = "4b7f826d-798e-d575-e3d1-e4c54cc8cd803a7ff6f0"
 handle = "cro-loyalty-pos"
 description = "Loyalty points and rewards at the counter"

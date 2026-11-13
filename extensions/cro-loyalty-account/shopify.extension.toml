@@ -5,7 +5,7 @@
 api_version = "2026-07"
 
 [[extensions]]
-name = "t:name"
+name = "CRO Toolbox loyalty"
 handle = "cro-loyalty-account"
 type = "ui_extension"
 uid = "adae8305-e1c7-03dd-75c7-1f322e39d3f9d023f43f"
