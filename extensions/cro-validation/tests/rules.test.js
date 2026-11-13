@@ -2,13 +2,15 @@ import { describe, expect, test } from "vitest";
 import { cartValidationsGenerateRun, checkBundles, checkNested, checkPoints } from "../src/cart_validations_generate_run.js";
 
 const line = (id, title, quantity) => ({ quantity, merchandise: { __typename: "ProductVariant", product: { id: `gid://shopify/Product/${id}`, title } } });
-const run = (rules, total, lines) => cartValidationsGenerateRun({ cart: { cost: { subtotalAmount: { amount: String(total) } }, lines }, validation: { metafield: { jsonValue: { rules } } } });
+const run = (rules, total, lines, step = "CHECKOUT_INTERACTION", rate = 1) =>
+  cartValidationsGenerateRun({ presentmentCurrencyRate: rate, buyerJourney: { step }, cart: { cost: { subtotalAmount: { amount: String(total), currencyCode: "EGP" } }, lines }, validation: { metafield: { jsonValue: { rules } } } });
 const messages = (out) => (out.operations[0]?.validationAdd.errors ?? []).map((e) => e.message);
 
 describe("order limits", () => {
   test("minimum order total", () => {
-    const rules = [{ kind: "minTotal", value: 300, message: "Minimum order {limit} EGP" }];
-    expect(messages(run(rules, 200, [line(1, "Mug", 1)]))).toEqual(["Minimum order 300 EGP"]);
+    const rules = [{ kind: "minTotal", value: 300, message: "Minimum order {limit}" }];
+    expect(messages(run(rules, 200, [line(1, "Mug", 1)]))).toEqual(["Minimum order EGP 300"]);
+    expect(messages(run([{ kind: "minTotal", value: 1000 }], 600, [line(1, "Mug", 1)]))).toEqual(["The minimum order is EGP 1,000."]);
     expect(messages(run(rules, 300, [line(1, "Mug", 1)]))).toEqual([]);
   });
   test("max per product, only for listed products", () => {
@@ -18,6 +20,19 @@ describe("order limits", () => {
   test("item count limits and targets the cart", () => {
     const out = run([{ kind: "maxItems", value: 4 }], 10, [line(1, "Mug", 3), line(2, "Cap", 2)]);
     expect(out.operations[0].validationAdd.errors).toEqual([{ message: "You can order up to 4 items.", target: "$.cart" }]);
+  });
+  test("minimums wait for checkout: adding the first item to the cart is never refused", () => {
+    const rules = [{ kind: "minTotal", value: 1000 }, { kind: "minItems", value: 3 }, { kind: "minPerProduct", value: 2 }];
+    expect(messages(run(rules, 600, [line(1, "Mug", 1)], "CART_INTERACTION"))).toEqual([]);
+    expect(messages(run(rules, 600, [line(1, "Mug", 1)], "CHECKOUT_COMPLETION")).length).toBe(3);
+  });
+  test("maximums still apply in the cart", () => {
+    expect(messages(run([{ kind: "maxItems", value: 2 }], 10, [line(1, "Mug", 3)], "CART_INTERACTION"))).toEqual(["You can order up to 2 items."]);
+  });
+  test("money limits are converted to the buyer's currency", () => {
+    // 100 in the shop's currency is 50 in the cart's at rate 0.5: a 60 cart passes.
+    expect(messages(run([{ kind: "minTotal", value: 100 }], 60, [line(1, "Mug", 1)], "CHECKOUT_INTERACTION", 0.5))).toEqual([]);
+    expect(messages(run([{ kind: "minTotal", value: 100 }], 40, [line(1, "Mug", 1)], "CHECKOUT_INTERACTION", 0.5))).toEqual(["The minimum order is EGP 50."]);
   });
   test("empty cart is not blocked by minimums", () => {
     expect(messages(run([{ kind: "minItems", value: 2 }, { kind: "minTotal", value: 50 }], 0, []))).toEqual([]);
