@@ -70,11 +70,25 @@ browser user agent gets 204). `mcp.token` and `mcp.register` already answer OPTI
   content). Its route answers the preflight.
 - `cro-loyalty-account`: reads Shopify's own data; no app server call.
 
-### Still to do before resubmitting (needs a deploy)
+### Deployed and tested (2026-11-13)
 
-Merge, Render deploy, `shopify app deploy` and release, then the end to end run on a new development store: offer
-shows after paying with card 1, Pay now adds the product at the discount, Decline goes to the Thank you page, also at
-mobile width. Record the results here.
+- `shopify app deploy`: **cro-toolbox-76** released. PR #373 merged; Render deployed `5c9e370`; the RLS migration ran
+  (`20261113000000_enable_rls`).
+- Production preflight after the deploy: `OPTIONS /api/post-purchase/offer` → **204** with the CORS headers.
+- Testing 3, the after-purchase offer page: **Test connection** all OK (address https://cro-toolbox.onrender.com,
+  offer on, preflight 204, offer request 401 for the test token, product active and in stock).
+- Testing 3 had **None** chosen under Settings → Checkout → Post-purchase page: chosen CRO Toolbox (the reviewer may
+  have had the same; the testing instructions say to choose it).
+- Order #1007 (desktop): bought The Collection Snowboard: Oxygen with Bogus card 1 → the offer page showed The
+  Collection Snowboard: Liquid, $749.95 crossed out, $637.46, subtotal, shipping, taxes, total, "Pay now · $637.46",
+  "Decline this offer" → **Pay now** → Thank you page total $1,662.46; in the admin the order has Liquid at $637.46
+  (original $749.95) and Oxygen at $1,025.00, paid $1,662.46.
+- Order #1008 (375 px phone width): the offer showed laid out for a phone → **Decline this offer** → Thank you page,
+  total $1,025.00, nothing added.
+- IP allowlist on (Dev Dashboard, Enforcement enabled, Render ranges 74.220.49.0/24 and 74.220.57.0/24); the app
+  loads and saves on Testing 3 after it.
+
+Still to run: the same on a brand new development store (install from scratch).
 
 ## Final audit (2026-10-24): before submission (cro-toolbox-72)
 
