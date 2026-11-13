@@ -57,7 +57,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "priceSubtotal", label: "Subtotal", def: "Subtotal", group: "Prices" },
     { key: "priceShipping", label: "Shipping", def: "Shipping", group: "Prices" },
     { key: "priceFree", label: "Free shipping", def: "Free", group: "Prices" },
-    { key: "priceDiscount", label: "Discounts", def: "Discounts", group: "Prices" },
+    { key: "priceDiscount", label: "Savings (already in the subtotal)", def: "You saved", group: "Prices" },
     { key: "priceTax", label: "Taxes", def: "Taxes", group: "Prices" },
     { key: "priceTotal", label: "Total", def: "Total", group: "Prices" },
     { key: "priceRefunded", label: "Refunded", def: "Refunded", group: "Prices" },
