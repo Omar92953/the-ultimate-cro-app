@@ -1,5 +1,57 @@
 # App Store submission review: CRO Toolbox (2026-10-17, last run 2026-11-13)
 
+## Reviewer-style test of every feature (2026-11-13, Testing 5, Pro test plan)
+
+A brand new development store (`testing-5-fytnvybb`), the app installed from its link, every listed feature set up only
+from the app's own pages, then used as a shopper.
+
+### Bugs found and fixed (all deployed; Shopify versions cro-toolbox-77 to -80)
+
+| # | Bug | Fix |
+|---|---|---|
+| 1 | After-purchase offer saved only once: every later save failed ("Key is in use for Shop metafields") | #375 |
+| 2 | Checkout editor listed the Thank you and loyalty blocks as "t:name" | #376 |
+| 3 | Order limits: a minimum refused the first item added to an empty cart (shoppers could never reach it); message showed "1000" | #377 |
+| 4 | Loyalty home: switch said "on" while off; "Last check" showed the count-from date | #378 |
+| 5 | Track page: "Discounts −" taken off a subtotal that already had them (did not add up) | #379 |
+| 6 | Returns page: "Nothing can be returned" for an order not shipped yet | #380 |
+| 7 | Analytics empty ($0) on development stores (test orders skipped) and after-purchase sales not counted | #381, #382 |
+| 8 | A/B tests and loyalty analytics showed dollars on every store (`#graphql query …` on one line commented the query out) | #383 (+ guard test) |
+| 9 | Settings AI card said "Let Claude build" | #384 |
+
+### Passed
+
+- Install, Free plan, Plans → Pro trial (Shopify's approval page, free test charge, only the loyalty orders meter).
+- App embed (Conversion boosters) from the setup guide; Settings shows it On.
+- Upsell (Buy 2 save 10%): block from Add to theme, storefront tiers, cart discount via the discount Function.
+- Frequently bought together bundle: box on the product page, "Buy all 2" → cart total matches (EGP 1,381.25).
+- Buy X get Y: 3 boards → one free ("Buy 2, get 1 free").
+- Cross sell: "Pairs well with" block, "Add selected to cart" adds the product.
+- After-purchase offer: accept (order total EGP 1,780.46) and decline, desktop and phone width; Test connection all OK.
+- Thank you page block: module THANKS10 created and saved in the app, block added in the checkout editor and shown.
+- Order limits: adding to cart allowed, checkout shows "The minimum order is EGP 1,000." and blocks paying.
+- Free shipping bar: saving makes the "CRO Toolbox free shipping" discount; checkout shipping EGP 118.00 → FREE.
+- Loyalty: program on (last 30 days), points for the 2 earlier orders, storefront "Rewards" panel for guests.
+- Track page: pages made from the app, block added; lookup before and after shipping (tracking number shown).
+- Returns: request from the Returns page → Shopify return #1002-R1 in the app → Approve → label form; Refund confirms
+  EGP 637.46 (not issued).
+- A/B test with 3 versions (headline, tier discounts) running; a version B shopper sees version B's headline.
+- Analytics: EGP 1,275 from the app, 2 orders, 36% share.
+- Section library, add-ons, personalization, mix and match bundle editor, Connect an AI assistant page, MCP endpoint (401
+  with OAuth metadata): load and work.
+
+### Not exercised end to end (same engines as the tested ones, or need a signed-in customer)
+
+Volume and gift deals, payment and delivery rules, gift note, scheduled offers (5 minute job; tested on Testing 3 before),
+loyalty rewards spent by a signed-in member, points shop, add-on and personalization on the storefront.
+
+### Notes
+
+- The first order limits save once showed the app's error page; the log shows the request arrived without Shopify's
+  session token ("shop: null"), which happens when the app frame is throttled in a hidden window. Later saves worked.
+- Testing 5 now has: shipped order #1002 with approved return #1002-R1, Track and Returns pages, Pro trial, upsell,
+  bundle, cross sell, Buy 2 get 1 deal, A/B test, free shipping discount, loyalty on, THANKS10.
+
 ## Round after the pause (2026-11-13): requirement 5.6.1, after-purchase offer not shown
 
 Shopify paused the submission on 2026-11-11 until 2026-11-13 (reference 143016): the reviewer set up the after-purchase
