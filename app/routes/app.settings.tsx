@@ -157,7 +157,7 @@ export default function SettingsPage() {
 
         <s-section heading="Connect an AI assistant">
           <s-stack gap="small-200">
-            <s-paragraph>Let Claude build sections and offers for your store as drafts that you publish. Starter plan and up.</s-paragraph>
+            <s-paragraph>Let your AI assistant build sections and offers for your store as drafts that you publish. Starter plan and up.</s-paragraph>
             <s-stack direction="inline">
               <Button href="/app/assistant">Connect an AI assistant</Button>
             </s-stack>
