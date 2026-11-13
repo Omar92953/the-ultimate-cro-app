@@ -78,7 +78,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const options = { credit: creditOk ? { bonus: saving.credit.bonus } : null, signIn: saving.credit.on && !legacy && !hasCustomer ? { bonus: saving.credit.bonus } : null, exchange: saving.exchange.on && !legacy ? { extra: saving.exchange.extra } : null };
     if (body.intent !== "send") {
       const credits = legacy ? [] : await creditsForOrder(session.shop, order.id, q.email);
-      return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
+      // Nothing returnable because nothing has shipped yet: the page says so instead of "nothing can be returned".
+      const notShipped = !choices.length && ["UNFULFILLED", "SCHEDULED", "ON_HOLD", "PENDING_FULFILLMENT", "OPEN"].includes(order.fulfillment);
+      return json({ ok: true, order: { name: order.name, currency: order.currency, items: choices, notShipped }, options, credits, returns: existing, ...(approvedHere ? { after } : {}) });
     }
 
     const wanted = Array.isArray(body.items) ? (body.items as { key?: unknown; qty?: unknown }[]) : [];

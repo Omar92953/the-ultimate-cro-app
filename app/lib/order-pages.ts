@@ -106,6 +106,7 @@ export const TEXTS: Record<OrderPageKind, TextSpec[]> = {
     { key: "shopperPays", label: "Shopper pays shipping", def: "You pay for the return shipping.", long: true, group: "After" },
     { key: "merchantPays", label: "We send a label", def: "We will email you a return label.", long: true, group: "After" },
     { key: "nothing", label: "Nothing to return", def: "Nothing in this order can be returned.", long: true, group: "After" },
+    { key: "notShipped", label: "Not shipped yet", def: "Your order hasn't shipped yet. You can return items once they arrive.", long: true, group: "After" },
     { key: "brand", label: "Lines about your store (one per line)", def: "", long: true, max: 300, group: "Store lines" },
   ],
 };
