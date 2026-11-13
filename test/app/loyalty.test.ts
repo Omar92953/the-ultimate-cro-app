@@ -863,6 +863,8 @@ test("scheduled emails: reward ready once until more is earned, points expiring 
   const exp = withLoyaltyDefaults({ ...c, expiry: { on: true, days: 60 } });
   await P.syncOrder(shop, exp, order({ id: "9501", subtotal: 600, customer: { ...who("950", "e@example.com"), marketing: true } }));
   const m = await member(shop, "950");
+  // Points move "last activity" to the day the test runs; the checks below use fixed dates, so fix it too.
+  await prisma.loyaltyMember.update({ where: { id: m.id }, data: { lastActivity: new Date("2026-10-25T00:00:00Z") } });
   const kinds = async () => (await prisma.loyaltyEmail.findMany({ where: { shop, memberId: m.id }, orderBy: { id: "asc" } })).map((e) => e.kind);
   await E.queueScheduled(shop, exp, new Date("2026-11-10T00:00:00Z"));
   await E.queueScheduled(shop, exp, new Date("2026-11-10T01:00:00Z"));

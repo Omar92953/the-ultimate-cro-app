@@ -28,22 +28,65 @@ export async function getPostPurchase(admin: AdminClient) {
   return { shopId: data.shop.id as string, currency: data.shop.currencyCode as string, saved: !!data.shop.offer, config: withPostPurchaseDefaults(raw) };
 }
 
-async function ensureDefinition(admin: AdminClient) {
-  const data = await gql(
+/**
+ * Makes sure checkout can read the offer: a definition with storefront PUBLIC_READ. Looked up first: gql() throws on
+ * any userError, so creating it again (TAKEN, "Key is in use") made every save after the first fail and the offer
+ * could not be turned off or changed (2026-11-13).
+ */
+async function ensureDefinition(admin: AdminClient, shopId: string) {
+  const found = await gql(
     admin,
     `#graphql
-    mutation CroPostPurchaseDefinition($definition: MetafieldDefinitionInput!) {
-      metafieldDefinitionCreate(definition: $definition) { createdDefinition { id } userErrors { code message } }
+    query CroPostPurchaseDefinitionFind {
+      metafieldDefinitions(first: 1, ownerType: SHOP, namespace: "cro_toolbox", key: "post_purchase") { nodes { id access { storefront } } }
     }`,
-    { definition: { name: "CRO Toolbox after-purchase offer", namespace, key, ownerType: "SHOP", type: "json", access: { storefront: "PUBLIC_READ" } } },
   );
-  const errors = (data.metafieldDefinitionCreate.userErrors as { code: string; message: string }[]).filter((e) => e.code !== "TAKEN");
+  const existing = found.metafieldDefinitions.nodes[0] as { id: string; access: { storefront: string | null } } | undefined;
+  if (existing) {
+    if (existing.access.storefront !== "PUBLIC_READ") {
+      await gql(
+        admin,
+        `#graphql
+        mutation CroPostPurchaseDefinitionAccess($definition: MetafieldDefinitionUpdateInput!) {
+          metafieldDefinitionUpdate(definition: $definition) { userErrors { message } }
+        }`,
+        { definition: { namespace, key, ownerType: "SHOP", access: { storefront: "PUBLIC_READ" } } },
+      );
+    }
+    return;
+  }
+  // Read without gql(), which throws on userErrors: the codes say what to do.
+  const create = async () => {
+    const res = await admin.graphql(
+      `#graphql
+      mutation CroPostPurchaseDefinition($definition: MetafieldDefinitionInput!) {
+        metafieldDefinitionCreate(definition: $definition) { createdDefinition { id } userErrors { code message } }
+      }`,
+      { variables: { definition: { name: "CRO Toolbox after-purchase offer", namespace, key, ownerType: "SHOP", type: "json", access: { storefront: "PUBLIC_READ" } } } },
+    );
+    const json = (await res.json()) as { data?: { metafieldDefinitionCreate?: { userErrors: { code: string; message: string }[] } }; errors?: { message: string }[] };
+    if (json.errors?.length) throw new AdminError(json.errors.map((e) => e.message).join("; "));
+    return (json.data?.metafieldDefinitionCreate?.userErrors ?? []).filter((e) => e.code !== "TAKEN");
+  };
+  let errors = await create();
+  if (errors.some((e) => e.code === "UNSTRUCTURED_ALREADY_EXISTS")) {
+    // An offer saved without a definition (checkout can't read it): remove it, make the definition, and the save writes it again.
+    await gql(
+      admin,
+      `#graphql
+      mutation CroPostPurchaseUnstructured($metafields: [MetafieldIdentifierInput!]!) {
+        metafieldsDelete(metafields: $metafields) { userErrors { message } }
+      }`,
+      { metafields: [{ ownerId: shopId, namespace, key }] },
+    );
+    errors = await create();
+  }
   if (errors.length) throw new AdminError(errors.map((e) => e.message).join(" "));
 }
 
 export async function savePostPurchase(admin: AdminClient, shopId: string, raw: unknown): Promise<PostPurchaseConfig> {
   const config = { ...withPostPurchaseDefaults(raw), url: appUrl() };
-  await ensureDefinition(admin);
+  await ensureDefinition(admin, shopId);
   const set = await gql(
     admin,
     `#graphql
