@@ -99,7 +99,7 @@ export default function LoyaltyHome() {
         <HomeRow title="Program">
           <s-stack gap="small-200">
             <Switch
-              label="Loyalty program is on"
+              label={on ? "Loyalty program is on" : "Loyalty program is off"}
               details={on ? "Paid orders and new accounts earn points. Turning it off stops earning; members keep their points." : "Off: nothing is earned. Turning it on, orders paid from now on earn points."}
               checked={on}
               onValue={(v) => fetcher.submit({ intent: "on", on: String(v), past }, { method: "post" })}
@@ -121,7 +121,12 @@ export default function LoyaltyHome() {
             ) : null}
             {on && d.syncedAt ? (
               <s-stack direction="inline" gap="small-200" alignItems="center">
-                <s-text color="subdued">{`New orders and accounts are checked every 10 minutes. Last check: ${new Date(d.syncedAt).toLocaleString()}.`}</s-text>
+                {/* Until the first check, syncedAt is the date counting starts from, not a check. */}
+                <s-text color="subdued">
+                  {d.config.from && new Date(d.syncedAt).getTime() <= new Date(d.config.from).getTime()
+                    ? "New orders and accounts are checked every 10 minutes. The first check runs within 10 minutes."
+                    : `New orders and accounts are checked every 10 minutes. Last check: ${new Date(d.syncedAt).toLocaleString()}.`}
+                </s-text>
                 <Button variant="tertiary" loading={fetcher.state !== "idle" && fetcher.formData?.get("intent") === "sync"} onClick={() => fetcher.submit({ intent: "sync" }, { method: "post" })}>
                   Check now
                 </Button>
