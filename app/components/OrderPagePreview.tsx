@@ -126,10 +126,11 @@ export function OrderPagePreview({ config: c, step, sample = "transit", sells = 
               ) : null}
               {c.prices ? (
                 <div className="ucs-op__prices">
-                  <div className="ucs-op__pr"><span>{t.priceSubtotal}</span><span>$130.00</span></div>
+                  <div className="ucs-op__pr"><span>{t.priceSubtotal}</span><span>$117.00</span></div>
                   <div className="ucs-op__pr"><span>{t.priceShipping}</span><span>{t.priceFree}</span></div>
-                  <div className="ucs-op__pr"><span>{t.priceDiscount}</span><span>−$13.00</span></div>
                   <div className="ucs-op__pr ucs-op__pr--total"><span>{t.priceTotal}</span><span>$117.00</span></div>
+                  {/* Shopify's subtotal already has the discounts in it: shown as a saving, not taken off again. */}
+                  <div className="ucs-op__pr"><span>{t.priceDiscount}</span><span>$13.00</span></div>
                 </div>
               ) : null}
               {sells.next ? (
