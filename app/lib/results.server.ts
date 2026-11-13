@@ -17,6 +17,7 @@ export const DEFAULT_EXPERIMENT: Experiment = { on: false, holdout: 10, since: n
 
 export const SOURCE_LABELS: Record<string, string> = {
   quick_add: "Quick add to cart",
+  post_purchase: "After-purchase offer",
   cross_sell: "Cross sell offers",
   upsell: "Upsell offers",
   bundle_builder: "Bundle builder",
@@ -100,9 +101,13 @@ const emptyTrack = (): TrackResults => ({ recs: { orders: 0, revenue: 0 }, offer
 /** The kind of a Track page code row ("next", "friend", "delay", "offer-<id>", or the shared code). */
 export const codeGroup = (kind: string): keyof TrackResults["codes"]["byKind"] | null => (kind === "next" || kind === "shared" ? "next" : kind === "friend" ? "friend" : kind === "delay" ? "delay" : kind.startsWith("offer-") ? "offer" : null);
 
+/** The discount the after-purchase offer gives (post-purchase.ts offerChanges): the item added after payment has no other marker. */
+const AFTER_PURCHASE = /after-purchase offer$/i;
+
 const sourceOf = (l: Line) => {
   const a = Object.fromEntries(l.customAttributes.map((x) => [x.key, x.value ?? ""]));
   if (a._source) return a._source;
+  if ((l.discountAllocations ?? []).some((d) => AFTER_PURCHASE.test(d.discountApplication?.title ?? ""))) return "post_purchase";
   if (a._cro_addon) return "addons";
   if (a._cro_gift) return "gift";
   if (a._cro_fee) return "personalize";
@@ -110,7 +115,7 @@ const sourceOf = (l: Line) => {
 };
 
 /** The widget sources that are offers (the rest are sections and tools: quick add, wishlist, quiz…). */
-const OFFER_SOURCES = new Set(["upsell", "cross_sell", "bundle_builder", "bundle_tray", "fixed_bundle", "upgrade", "track_offer"]);
+const OFFER_SOURCES = new Set(["upsell", "cross_sell", "bundle_builder", "bundle_tray", "fixed_bundle", "upgrade", "track_offer", "post_purchase"]);
 
 /** Which offers a line counts for (see Results.byOffer); empty when no offer brought it in. */
 export function offerKeys(l: Line, dealNames: Set<string> = new Set()): string[] {
@@ -124,8 +129,9 @@ export function offerKeys(l: Line, dealNames: Set<string> = new Set()): string[]
     // Only the app's own deals (their discount carries the deal's name); the store's other discounts don't count.
     if (t && dealNames.has(t)) keys.push(`t:${t}`);
   }
-  // Offer items from before `_offer` existed still count toward offers in general.
-  if (!keys.length && a._source && OFFER_SOURCES.has(a._source)) keys.push(`s:${a._source}`);
+  // Offer items from before `_offer` existed still count toward offers in general, and so does the after-purchase item.
+  const src = a._source || sourceOf(l);
+  if (!keys.length && src && OFFER_SOURCES.has(src)) keys.push(`s:${src}`);
   return keys;
 }
 
@@ -149,7 +155,10 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
   let after: string | null = null;
   // Only what the numbers use: the last 60 days (or since the holdout test started, if earlier).
   const since = new Date(Math.min(Date.now() - 60 * 864e5, xp.since ? Date.parse(xp.since) : Infinity)).toISOString();
-  const q = `created_at:>='${since}' test:false`;
+  // Test orders are left out, except on a development store, where every order is one (a reviewer's store would show nothing).
+  const shopInfo: { shop?: { plan?: { partnerDevelopment?: boolean } } } | null = await gql(admin, `#graphql
+    query CroResultsShop { shop { plan { partnerDevelopment } } }`).catch(() => null);
+  const q = `created_at:>='${since}'${shopInfo?.shop?.plan?.partnerDevelopment ? "" : " test:false"}`;
   for (let page = 0; page < MAX_PAGES; page++) {
     const data: { orders: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: Order[] } } = await gql(
       admin,
@@ -161,7 +170,7 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
             id createdAt cancelledAt discountCodes
             totalPriceSet { shopMoney { amount currencyCode } }
             customAttributes { key value }
-            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } discountAllocations { discountApplication { ... on AutomaticDiscountApplication { title } } } } }
+            lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } discountAllocations { discountApplication { ... on AutomaticDiscountApplication { title } ... on ManualDiscountApplication { title } ... on ScriptDiscountApplication { title } } } } }
           }
         }
       }`,
