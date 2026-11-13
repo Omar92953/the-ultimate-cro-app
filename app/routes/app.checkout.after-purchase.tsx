@@ -10,6 +10,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { errorMessage } from "../lib/admin.server";
 import { getPostPurchase, refreshPostPurchaseUrl, savePostPurchase } from "../lib/post-purchase.server";
+import { checkConnection, type ConnectionCheck } from "../lib/post-purchase-api.server";
 import type { OfferProduct, PostPurchaseConfig } from "../lib/post-purchase";
 import { CategoryCrumb, FeatureTabs } from "../components/FeatureNav";
 import { DemoButton } from "../components/DemoButton";
@@ -29,15 +30,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
+  if (form.get("intent") === "test") {
+    try {
+      return { ok: true as const, error: null, config: null, checks: await checkConnection(admin) };
+    } catch (e) {
+      return { ok: false as const, error: errorMessage(e), config: null, checks: null };
+    }
+  }
   try {
     const { shopId } = await getPostPurchase(admin);
     const next = JSON.parse(String(form.get("config") ?? "{}")) as PostPurchaseConfig;
     // Switched on, it fills an offer slot like any other offer (plans.ts offerSlots).
     await requireOfferSlot(admin, session.shop, { active: !!next.on, id: "post_purchase" });
     const config = await savePostPurchase(admin, shopId, next);
-    return { ok: true as const, error: null, config };
+    return { ok: true as const, error: null, config, checks: null };
   } catch (e) {
-    return { ok: false as const, error: errorMessage(e), config: null };
+    return { ok: false as const, error: errorMessage(e), config: null, checks: null };
   }
 };
 
@@ -46,6 +54,8 @@ type Picked = { id: string; title: string; images?: { originalSrc?: string }[]; 
 export default function AfterPurchase() {
   const data = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const tester = useFetcher<typeof action>();
+  const checks: ConnectionCheck[] | null = tester.data?.checks ?? null;
   const shopify = useAppBridge();
   const [c, setC] = useState<PostPurchaseConfig>(data.config);
   const [sent, setSent] = useState(JSON.stringify(data.config));
@@ -98,11 +108,45 @@ export default function AfterPurchase() {
         <FeatureTabs feature="post_purchase" />
         <PageIntro text="One more product right after payment, added to the same order in one click." />
         <s-banner tone="info" heading="Before it shows to shoppers">
-          In Settings → Checkout, under Post-purchase page, choose CRO Toolbox. Shopify shows after-purchase offers for card and Shop Pay payments; publishing an app with this feature needs Shopify’s approval for post-purchase extensions.{" "}
+          In Settings → Checkout, under Post-purchase page, choose CRO Toolbox. Shopify shows after-purchase offers for card and Shop Pay payments.{" "}
           <s-link href={data.settings} target="_blank">
             Open checkout settings
           </s-link>
         </s-banner>
+        <s-section heading="Offer not showing?">
+          <s-stack gap="base">
+            <s-unordered-list>
+              <s-list-item>
+                CRO Toolbox is chosen in Settings → Checkout → Post-purchase page.{" "}
+                <s-link href={data.settings} target="_blank">
+                  Open checkout settings
+                </s-link>
+              </s-list-item>
+              <s-list-item>The offer is on and saved, and its product is active and in stock.</s-list-item>
+              <s-list-item>The order doesn’t already contain the offered product: test by buying a different product.</s-list-item>
+              <s-list-item>The order reaches the minimum order value, if you set one.</s-list-item>
+              <s-list-item>The order is paid by card (or Shopify’s Bogus Gateway in a test store, card number 1). Shopify skips the page for Apple Pay, Google Pay, PayPal, installments, gift cards, cash on delivery and manual payments.</s-list-item>
+              <s-list-item>The order is placed in the Online Store.</s-list-item>
+            </s-unordered-list>
+            <s-stack direction="inline" gap="base" alignItems="center">
+              <Button loading={tester.state !== "idle"} onClick={() => tester.submit({ intent: "test" }, { method: "post" })}>
+                Test connection
+              </Button>
+              {tester.data && !tester.data.ok ? <s-text tone="critical">{tester.data.error}</s-text> : null}
+            </s-stack>
+            {checks ? (
+              <s-stack gap="small-200">
+                {checks.map((x) => (
+                  <s-stack key={x.label} direction="inline" gap="small-200" alignItems="center">
+                    <s-badge tone={x.ok ? "success" : "critical"}>{x.ok ? "OK" : "Check"}</s-badge>
+                    <s-text>{x.label}</s-text>
+                    <s-text color="subdued">{x.detail}</s-text>
+                  </s-stack>
+                ))}
+              </s-stack>
+            ) : null}
+          </s-stack>
+        </s-section>
 
         <EditorLayout
           preview

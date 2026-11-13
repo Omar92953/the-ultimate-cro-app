@@ -1,4 +1,80 @@
-# App Store submission review: CRO Toolbox (2026-10-17, last run 2026-10-24)
+# App Store submission review: CRO Toolbox (2026-10-17, last run 2026-11-13)
+
+## Round after the pause (2026-11-13): requirement 5.6.1, after-purchase offer not shown
+
+Shopify paused the submission on 2026-11-11 until 2026-11-13 (reference 143016): the reviewer set up the after-purchase
+offer, paid a test order, and the offer never showed. Earlier submissions: 2026-10-27 and 2026-10-29. Cooldowns grow
+each time, so the next submission must work end to end.
+
+### Root cause (confirmed)
+
+The extension (`extensions/cro-post-purchase`) runs on another origin and POSTs JSON to the app, so the browser sends
+an OPTIONS preflight first. React Router 7 sends OPTIONS to the route's **loader**, not its action, and both loaders
+answered 405. The preflight failed, `fetch` threw, `ShouldRender` returned `render: false`, and Shopify went straight
+to the Thank you page. "Pay now" (`/api/post-purchase/sign`) had the same bug.
+
+Production before the fix (2026-11-13):
+
+```
+curl -i -X OPTIONS https://cro-toolbox.onrender.com/api/post-purchase/offer \
+  -H "Origin: https://extensions.shopifycdn.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type"
+HTTP/2 405   {"error":"Method not allowed"}        (the same for /api/post-purchase/sign)
+```
+
+The built server (`react-router-serve`, as on Render) with the fix, run locally:
+
+```
+OPTIONS /api/post-purchase/offer  → 204, Access-Control-Allow-Origin: *, Allow-Methods: POST, OPTIONS, Max-Age: 86400
+OPTIONS /api/post-purchase/sign   → 204, same headers
+GET     /api/post-purchase/offer  → 405
+POST    /api/post-purchase/offer (text/plain, bad token) → 401 with Access-Control-Allow-Origin: *
+```
+
+Other cross-origin routes checked in production: `/api/loyalty/checkout` and `/api/loyalty/pos` answer the preflight
+204 (Shopify's `authenticate.public.checkout` handles it; curl's default user agent gets 410 from its bot check, a
+browser user agent gets 204). `mcp.token` and `mcp.register` already answer OPTIONS in their loaders.
+
+### What changed
+
+- `app/lib/cors.ts`: shared CORS headers, `preflight()` and `postOnlyLoader`; every answer, errors included, carries
+  the CORS headers.
+- `app/lib/post-purchase-api.server.ts`: the two routes' logic; the routes' loaders answer the preflight.
+- The extension sends `text/plain` (a simple request with no preflight at all, a second safety), gives up after 4 s,
+  and writes the reason to the console before every `render: false`.
+- After-purchase offer page: an "Offer not showing?" checklist and a **Test connection** button (saved address,
+  preflight, POST, product active and in stock).
+- Tests: `test/app/post-purchase-cors.test.ts`.
+- Supabase: RLS turned on for every `public` table (`prisma/postgres/migrations/20261113000000_enable_rls`). Checked
+  in a rolled back transaction on production: `anon` read 10 `Session` rows before and 0 with RLS; `postgres` (the
+  app) still read 10.
+
+### Other reasons the offer can be skipped (checked)
+
+| Reason | Status |
+|---|---|
+| Metafield `cro_toolbox.post_purchase` unreadable at checkout | Declared in the extension's `[[metafields]]`; `ensureDefinition` creates it with `storefront: PUBLIC_READ` on the first save |
+| Offer off, no product, product inactive or out of stock | Console reason, checklist, Test connection |
+| `offer.url` empty or an old tunnel | Saved from `SHOPIFY_APP_URL` on every save and refreshed when the page opens (`refreshPostPurchaseUrl`) |
+| Order below the minimum; product already in the order | By design; in the checklist and the testing instructions (buy a different product) |
+| JWT payload | `input_data.shop.domain` and `input_data.initialPurchase.referenceId`, as Shopify documents; covered by the test |
+| App not chosen in Settings → Checkout → Post-purchase page | Banner, checklist, testing instructions |
+| Payment method | Shopify skips wallets, PayPal, installments, gift cards, manual payments; Bogus Gateway card 1 works |
+| Slow server | 4 s timeout in the extension |
+| Post-purchase access for live stores | Granted 2026-10-19 (dev stores need none) |
+
+### Other checkout extensions (5.6.1)
+
+- `cro-thank-you`: renders nothing until the merchant turns on a module in the app; the testing instructions say to
+  turn one on first.
+- `cro-loyalty-checkout`: network access approved 2026-10-25; on any failure the blocks render nothing (no broken
+  content). Its route answers the preflight.
+- `cro-loyalty-account`: reads Shopify's own data; no app server call.
+
+### Still to do before resubmitting (needs a deploy)
+
+Merge, Render deploy, `shopify app deploy` and release, then the end to end run on a new development store: offer
+shows after paying with card 1, Pay now adds the product at the discount, Decline goes to the Thank you page, also at
+mobile width. Record the results here.
 
 ## Final audit (2026-10-24): before submission (cro-toolbox-72)
 
