@@ -58,7 +58,7 @@ export async function listOffers(admin: AdminClient): Promise<OfferRow[]> {
   }
   const pp = post?.config;
   if (pp && (pp.product || pp.on)) {
-    rows.push({ id: "post_purchase", type: "post_purchase", name: pp.product ? `${pp.product.title}${pp.pct ? ` · ${pp.pct}% off` : ""}` : "After-purchase offer", active: pp.on, where: "After payment", href: "/app/checkout/after-purchase", statKeys: null });
+    rows.push({ id: "post_purchase", type: "post_purchase", name: pp.product ? `${pp.product.title}${pp.pct ? ` · ${pp.pct}% off` : ""}` : "After-purchase offer", active: pp.on, where: "After payment", href: "/app/checkout/after-purchase", statKeys: ["s:post_purchase"] });
   }
   return rows;
 }
