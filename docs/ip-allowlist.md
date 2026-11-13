@@ -1,4 +1,4 @@
-# IP allowlist (Shopify deadline: 2026-11-20, 11:59 PM ET)
+# IP allowlist (Shopify deadline: 2026-11-20, 11:59 PM ET): **on since 2026-11-13**
 
 Shopify now requires every public app that calls the Admin API to turn on an IP allowlist (changelog, 2026-11-05:
 https://shopify.dev/changelog/ip-allowlists-are-now-required-for-public-apps). With it on, the app's tokens only
@@ -24,18 +24,25 @@ work from the addresses listed, so a leaked token is useless anywhere else.
 ## The list to paste
 
 Render shows the service's fixed outbound addresses: Render dashboard → `cro-toolbox` → **Connect** (top right) →
-**Outbound**. Copy every IP range listed there (Render gives each region a small set of CIDR ranges that all its
-services share).
+**Outbound** (read 2026-11-13). Render shares these ranges with its other services in Virginia; a Dedicated IP
+(paid) would make them unique to us.
 
 ```
-<paste the Render Outbound ranges here, one per line>
+74.220.49.0/24
+74.220.57.0/24
 ```
 
 Prefer these fixed ranges over the ASN option: an ASN allows the whole hosting provider's network (every other
 Render customer too), which is what Shopify suggests only for serverless hosts with changing IPs. Render gives fixed
 ranges, so use them.
 
-## Steps in the Dev Dashboard (Omar)
+## Done on 2026-11-13
+
+Ranges saved and **Enforcement on**. The test against the last 30 days: 24,703 of 25,491 Admin API calls came from
+Render; the 788 others came from home connections in Egypt (Omar's Mac: local development and scripts), which are
+now refused. After saving, the app loaded and saved on Testing 3 as before.
+
+## Steps in the Dev Dashboard (to change it later)
 
 1. Open the Dev Dashboard (dev.shopify.com) → CRO Toolbox → **Settings** → **IP allowlist** → **Manage**.
 2. Add each Render outbound range from above.
@@ -48,7 +55,8 @@ ranges, so use them.
 
 ## Local development once Enforcement is on
 
-`shopify app dev` and `scripts/dev/seed-sections.mjs` run on Omar's Mac and call the Admin API with the same app's
+The Dev Dashboard says dev previews on dev stores (`shopify app dev`) and Direct API access from embedded pages are
+always allowed. `shopify app dev` and `scripts/dev/seed-sections.mjs` run on Omar's Mac and call the Admin API with the same app's
 tokens, so they are refused from a home connection. Options: add the Mac's public IP temporarily while developing
 (it changes with the internet provider), or create a separate development app (its own `shopify.app.dev.toml` and
 client ID) that is never listed, so it has its own allowlist settings (check Shopify's rules for it first). Don't run `shopify app dev` against the live app during
