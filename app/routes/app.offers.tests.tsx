@@ -22,7 +22,8 @@ import { AbResults as Results } from "../components/AbResults";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
-  const [tests, rules, shop] = await Promise.all([listTests(admin), listRules(admin), gql(admin, `#graphql query CroShopCurrency { shop { currencyCode } }`).catch(() => null)]);
+  const [tests, rules, shop] = await Promise.all([listTests(admin), listRules(admin), gql(admin, `#graphql
+    query CroShopCurrency { shop { currencyCode } }`).catch(() => null)]);
   const results = await testResults(admin, session.shop, tests.slice(0, 10)).catch(() => ({}) as Record<string, AbResult>);
   return {
     tests,

@@ -19,7 +19,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const [data, program, shop] = await Promise.all([
     loyaltyAnalytics(admin, session.shop),
     getProgram(session.shop),
-    gql(admin, `#graphql query CroLoyaltyCurrency { shop { currencyCode } }`).catch(() => null),
+    gql(admin, `#graphql
+      query CroLoyaltyCurrency { shop { currencyCode } }`).catch(() => null),
   ]);
   return { ...data, unit: program.config.unit.many, currency: (shop?.shop?.currencyCode as string) ?? "USD" };
 };
