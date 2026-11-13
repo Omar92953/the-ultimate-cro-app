@@ -4,6 +4,7 @@
  * details. The shop metafield cro_toolbox.post_purchase says whether there's an offer and where the
  * app server is; the server answers the product as it is in the store now
  * (POST {url}/api/post-purchase/offer) and signs the change (POST {url}/api/post-purchase/sign).
+ * Every reason the offer isn't shown is written to the browser console.
  * App Store rules for post-purchase (5.8): fixed accept/decline wording, the store's own product
  * name, picture and price, a callout banner with the product and discount, and the price
  * breakdown before paying.
@@ -39,25 +40,62 @@ function readOffer(inputData) {
 
 const numeric = (gid) => Number(String(gid).split('/').pop());
 
+/**
+ * POST to the app server. Sent as text/plain: a "simple" cross-origin request with no preflight, so a
+ * proxy or server that mishandles OPTIONS can't block it (the server also answers the preflight,
+ * lib/cors.ts). The server reads the body as JSON whatever its type. Gives up after 4 seconds, so a
+ * slow server means no offer rather than a long wait.
+ */
+async function callApp(url, path, token) {
+  const abort = typeof AbortController === 'function' ? new AbortController() : null;
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      if (abort) abort.abort();
+      reject(new Error('timeout'));
+    }, 4000);
+  });
+  try {
+    const res = await Promise.race([
+      fetch(`${url}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ token }),
+        signal: abort ? abort.signal : undefined,
+      }),
+      timeout,
+    ]);
+    const body = await Promise.race([res.json(), timeout]);
+    return { ok: res.ok, status: res.status, body };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Each skip says why in the console (no tokens or shopper data), to make "the offer didn't show" easy to check.
+const skip = (reason) => {
+  console.warn(`CRO Toolbox after-purchase offer not shown: ${reason}`);
+  return { render: false };
+};
+
 extend('Checkout::PostPurchase::ShouldRender', async ({ inputData, storage }) => {
   const offer = readOffer(inputData);
-  if (!offer || !offer.on || !offer.product || !offer.url) return { render: false };
+  if (!offer) return skip('no saved offer (save it in the app: Cart & Checkout, After-purchase offer)');
+  if (!offer.on) return skip('the offer is turned off in the app');
+  if (!offer.product) return skip('no product is chosen');
+  if (!offer.url) return skip('the app address is missing; save the offer again');
   const purchase = inputData.initialPurchase;
   // Not for orders below the minimum, nor when the product is already in the order.
-  if (offer.min > 0 && Number(purchase.totalPriceSet.shopMoney.amount) < offer.min) return { render: false };
-  if (purchase.lineItems.some((l) => l.product.id === numeric(offer.product.productId))) return { render: false };
+  if (offer.min > 0 && Number(purchase.totalPriceSet.shopMoney.amount) < offer.min) return skip(`the order is below the minimum of ${offer.min}`);
+  if (purchase.lineItems.some((l) => l.product.id === numeric(offer.product.productId))) return skip('the offered product is already in this order');
   try {
-    const res = await fetch(`${offer.url}/api/post-purchase/offer`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: inputData.token }),
-    });
-    const body = await res.json();
-    if (!res.ok || !body.offer) return { render: false };
-    await storage.update({ ...body.offer, url: offer.url });
+    const res = await callApp(offer.url, '/api/post-purchase/offer', inputData.token);
+    if (!res.ok) return skip(`the app server answered ${res.status}`);
+    if (!res.body.offer) return skip('the product is not active, out of stock, or the offer is off');
+    await storage.update({ ...res.body.offer, url: offer.url });
     return { render: true };
   } catch (e) {
-    return { render: false };
+    return skip(`the app server could not be reached (${e && e.message ? e.message : 'network error'})`);
   }
 });
 
@@ -101,16 +139,12 @@ export function App() {
     setBusy(true);
     setFailed(false);
     try {
-      const res = await fetch(`${offer.url}/api/post-purchase/sign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: inputData.token }),
-      });
-      const body = await res.json();
-      if (!res.ok || !body.token) throw new Error('not signed');
-      await applyChangeset(body.token);
+      const res = await callApp(offer.url, '/api/post-purchase/sign', inputData.token);
+      if (!res.ok || !res.body.token) throw new Error(`not signed (${res.status})`);
+      await applyChangeset(res.body.token);
       await done();
     } catch (e) {
+      console.warn(`CRO Toolbox after-purchase offer could not be added: ${e && e.message ? e.message : 'error'}`);
       setBusy(false);
       setFailed(true);
     }
