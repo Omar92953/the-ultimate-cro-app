@@ -1,7 +1,8 @@
 query CartValidationsGenerateRunInput {
   presentmentCurrencyRate
+  buyerJourney { step }
   cart {
-    cost { subtotalAmount { amount } }
+    cost { subtotalAmount { amount currencyCode } }
     lines {
       id
       quantity

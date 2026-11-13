@@ -6,8 +6,11 @@
  * The dashboard writes the rules to this validation's `$app.function-configuration` metafield:
  * { "rules": [{ "kind": "minTotal" | "maxTotal" | "minItems" | "maxItems" | "minPerProduct" | "maxPerProduct",
  *               "value": 3, "products": [gid] (per-product rules; empty = every product), "message": "…" }] }
- * A broken rule blocks checkout with its message. {limit} in a message is replaced by the rule's value
- * and {product} by the product's name (per-product rules).
+ * A broken rule blocks checkout with its message. {limit} in a message is replaced by the rule's value (a price for
+ * the order total rules, in the buyer's currency, as the admin preview shows it) and {product} by the product's name.
+ * Shopify runs validations on every cart change too: minimums wait for checkout (buyerJourney.step), otherwise the
+ * first item added to an empty cart is refused and the shopper can never reach the minimum (2026-11-13). Maximums,
+ * the bundle guard and the points guard also check the cart.
  *
  * The same function also runs as the "bundle guard" (a second validation made by the app when the
  * store has mix and match bundles), configured with { "bundles": ["<bundle product id>", …], "st": "<token>" }: a line
@@ -29,12 +32,28 @@
 /** @type {RunResult} */
 const EMPTY = { operations: [] };
 
+/** A price as the admin shows it: "EGP 1,000", "USD 12.50". */
+export function price(amount, currency) {
+  const fixed = (Math.round(amount * 100) / 100).toFixed(Number.isInteger(Math.round(amount * 100) / 100) ? 0 : 2);
+  const [whole, cents] = fixed.split(".");
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${currency ? `${currency} ` : ""}${grouped}${cents ? `.${cents}` : ""}`;
+}
+
+const MINIMUMS = new Set(["minTotal", "minItems", "minPerProduct"]);
+
 const fill = (message, limit, product = "") => String(message || "").replace(/\{limit\}/g, String(limit)).replace(/\{product\}/g, product).slice(0, 250);
 
-/** The error messages for a cart, one per broken rule (or per product for per-product rules). */
-export function check(rules, cart) {
+/**
+ * The error messages for a cart, one per broken rule (or per product for per-product rules). `rate` converts the rules'
+ * amounts (the shop's currency) to the cart's; `atCart` is true while the shopper is still filling the cart, when only
+ * maximums apply.
+ */
+export function check(rules, cart, rate = 1, atCart = false) {
   const errors = [];
   const total = Number(cart.cost?.subtotalAmount?.amount) || 0;
+  const currency = cart.cost?.subtotalAmount?.currencyCode || "";
+  const r = Number(rate) > 0 ? Number(rate) : 1;
   const products = new Map();
   let items = 0;
   for (const line of cart.lines) {
@@ -47,14 +66,16 @@ export function check(rules, cart) {
   }
   for (const rule of rules) {
     const value = Number(rule?.value) || 0;
-    if (value <= 0) continue;
+    if (value <= 0 || (atCart && MINIMUMS.has(rule.kind))) continue;
+    const money = value * r;
     const message = (fallback) => fill(rule.message || fallback, value);
+    const moneyMessage = (fallback) => fill(rule.message || fallback, price(money, currency));
     switch (rule.kind) {
       case "minTotal":
-        if (items && total < value) errors.push(message("The minimum order is {limit}."));
+        if (items && total < money) errors.push(moneyMessage("The minimum order is {limit}."));
         break;
       case "maxTotal":
-        if (total > value) errors.push(message("The maximum order is {limit}."));
+        if (total > money) errors.push(moneyMessage("The maximum order is {limit}."));
         break;
       case "minItems":
         if (items && items < value) errors.push(message("Add at least {limit} items to check out."));
@@ -142,7 +163,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart, Number(input.presentmentCurrencyRate) || 1), ...(rules.length ? check(rules, input.cart) : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart, Number(input.presentmentCurrencyRate) || 1), ...(rules.length ? check(rules, input.cart, Number(input.presentmentCurrencyRate) || 1, input.buyerJourney?.step === "CART_INTERACTION") : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }
