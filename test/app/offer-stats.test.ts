@@ -21,6 +21,8 @@ test("a line counts for the offer that added it, a gift deal, a bundle, or an ap
   assert.deepEqual(offerKeys(deal, new Set(["Buy 2 get 1"])), ["t:Buy 2 get 1"]);
   // Offer items from before `_offer` existed still count toward offers in general, but not toward one offer.
   assert.deepEqual(offerKeys(line({ _source: "cross_sell" })), ["s:cross_sell"]);
+  // The after-purchase item has no marker but the offer's discount.
+  assert.deepEqual(offerKeys(line({}, { discountAllocations: [{ discountApplication: { title: "15% off, after-purchase offer" } }] })), ["s:post_purchase"]);
   // Sections and tools are not offers.
   assert.deepEqual(offerKeys(line({ _source: "quick_add" })), []);
 });
