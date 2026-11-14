@@ -1,0 +1,125 @@
+---
+/**
+ * "What the same features cost in separate apps": the entry price of each leader's plan for one feature that CRO Toolbox
+ * Pro includes, next to Pro's price. Prices are read from each app's Shopify App Store listing; update CHECKED and the rows
+ * together (WEBSITE.md item 6 of the 2026-11-14 audit). Only rows where CRO Toolbox Pro really has the feature.
+ */
+import { PLANS, money } from "../lib/app";
+
+const CHECKED = "2026-11-14";
+const ROWS: { need: string; app: string; plan: string; price: number; note?: string; href: string }[] = [
+  { need: "Loyalty with VIP tiers", app: "Smile", plan: "Growth", price: 199, note: "VIP tiers start on this plan", href: "https://apps.shopify.com/smile-io" },
+  { need: "Returns with store credit and exchanges", app: "ReturnGO", plan: "Premium", price: 147, note: "No free plan", href: "https://apps.shopify.com/returngo" },
+  { need: "One click offer after payment", app: "AfterSell", plan: "Post-Purchase", price: 34.99, href: "https://apps.shopify.com/aftersell" },
+  { need: "Bundles and quantity breaks", app: "Kaching Bundles", plan: "Starter", price: 14.99, note: "Up to $1,000 of extra revenue a month", href: "https://apps.shopify.com/bundle-deals" },
+];
+const total = ROWS.reduce((s, r) => s + r.price, 0);
+const pro = PLANS.pro;
+const checkedText = new Date(`${CHECKED}T12:00:00Z`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })}`;
+---
+
+<div class="stack">
+  <div class="table-scroll stack-table">
+    <table>
+      <caption class="sr-only">Monthly price of separate apps for features {pro.name} includes</caption>
+      <thead>
+        <tr>
+          <th scope="col">What you need</th>
+          <th scope="col">Separate app (plan)</th>
+          <th scope="col" class="num">A month</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          ROWS.map((r) => (
+            <tr>
+              <th scope="row">{r.need}</th>
+              <td>
+                <a href={r.href} rel="nofollow noopener" target="_blank">{r.app}</a> ({r.plan})
+                {r.note && <span class="sub">{r.note}</span>}
+              </td>
+              <td class="num">{usd(r.price)}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">Separate apps together</th>
+          <td></td>
+          <td class="num">{usd(total)}</td>
+        </tr>
+        <tr class="ours">
+          <th scope="row">All of it in CRO Toolbox</th>
+          <td>{pro.name} plan</td>
+          <td class="num">{money(pro.monthly)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <p class="muted fine">
+    Prices from each app's Shopify App Store listing on {checkedText}. Each of these apps does more in its own area; the
+    price shown is the first plan that has the feature named. {pro.name} includes loyalty for {pro.limits.loyaltyOrders?.toLocaleString("en-US")} orders a month.
+  </p>
+</div>
+
+<style>
+  .stack {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .stack-table {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  th,
+  td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--mist-2);
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--mist);
+    font-weight: 750;
+  }
+  tbody th {
+    font-weight: 550;
+  }
+  .num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  a {
+    color: var(--accent-deep);
+    font-weight: 600;
+  }
+  .sub {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  tfoot th,
+  tfoot td {
+    font-weight: 750;
+  }
+  .ours th,
+  .ours td {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    border-bottom: 0;
+  }
+  .fine {
+    font-size: 0.85rem;
+    margin-top: 10px;
+  }
+</style>

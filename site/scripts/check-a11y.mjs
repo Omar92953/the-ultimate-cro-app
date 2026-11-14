@@ -82,14 +82,20 @@ const PAIRS = [
   ["ink text on accent buttons", "ink", "accent"],
   ["white text on dark sections", "paper", "ink"],
 ];
+// Fixed colours outside the tokens: the hero picture (src/components/HeroMock.astro), on white or its light grey bar.
+PAIRS.push(
+  ["hero mock grey text", "#6b6b6b", "#ffffff"],
+  ["hero mock Example store tag", "#4a4a4f", "#e6e6e1"],
+);
 for (const [label, fg, bg] of PAIRS) {
-  const a = token(fg), b = token(bg);
+  const a = fg.startsWith("#") ? fg : token(fg), b = bg.startsWith("#") ? bg : token(bg);
   if (!a || !b) {
     fail("contrast", `token missing for ${label} (--${fg} / --${bg})`);
     continue;
   }
   const r = ratio(a, b);
-  console.log(`  ${r >= 4.5 ? "ok" : "✗ "} ${r.toFixed(2)}:1  ${label} (--${fg} ${a} on --${bg} ${b})`);
+  const name = (t, hex) => (t.startsWith("#") ? hex : `--${t} ${hex}`);
+  console.log(`  ${r >= 4.5 ? "ok" : "✗ "} ${r.toFixed(2)}:1  ${label} (${name(fg, a)} on ${name(bg, b)})`);
   if (r < 4.5) failed++;
 }
 console.log(failed ? `✗ ${failed} problem(s)` : "✓ all checks passed");

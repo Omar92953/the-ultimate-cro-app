@@ -13,8 +13,10 @@ interface Props {
   label?: string;
   class?: string;
 }
-const { medium, campaign, label = "Install for free on Shopify", class: cls = "primary" } = Astro.props;
+const { medium, campaign, label: given = "Install for free on Shopify", class: cls = "primary" } = Astro.props;
 const live = Boolean(INSTALL_URL);
+// Until the listing is live the button opens "Be first to install", so it says that instead of promising an install.
+const label = live ? given : "Get it at launch";
 ---
 
 <a class:list={["btn", cls]} href={installHref(medium, campaign)} {...live ? { rel: "noopener" } : {}}>

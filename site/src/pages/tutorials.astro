@@ -7,7 +7,7 @@
 import Base from "../layouts/Base.astro";
 import Crumbs from "../components/Crumbs.astro";
 import NotifyCta from "../components/NotifyCta.astro";
-import { TUTORIALS } from "../../../app/lib/tutorials";
+import { TUTORIALS, TUTORIALS_READY } from "../../../app/lib/tutorials";
 import { TUTORIALS_PAGE, HELP_PAGE } from "../lib/content";
 import { featurePath } from "../lib/pages";
 import { featureTitle, plain } from "../lib/app";
@@ -26,7 +26,8 @@ const schema = ready.map((t) => ({
 }));
 ---
 
-<Base page={page} crumbs={crumbs} schema={schema}>
+{/* Kept out of search (and the sitemap, astro.config.ts) until at least one video is up. */}
+<Base page={page} crumbs={crumbs} schema={schema} noindex={!TUTORIALS_READY.length}>
   <section class="page-hero">
     <div class="wrap">
       <Crumbs items={crumbs} />

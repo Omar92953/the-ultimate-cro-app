@@ -89,7 +89,7 @@ const schema = [faqPage(faq)];
         {
           GALLERY.map((g) => (
             <article class="gcard">
-              <ProductArt kind={g.art} tint={g.tint} class="gart" />
+              <ProductArt kind={g.art} tint={g.tint} class="gart" sizes="(max-width: 700px) 90vw, 360px" />
               <div class="gtext">
                 <span class="pill">{plain(BUNDLE_RECIPES.find((r) => r.key === g.recipe)!.title)}</span>
                 <h3>{g.name}</h3>

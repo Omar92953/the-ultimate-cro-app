@@ -7,6 +7,7 @@ import PlanCards from "../components/PlanCards.astro";
 import Faq, { type QA } from "../components/Faq.astro";
 import NotifyCta from "../components/NotifyCta.astro";
 import Shot from "../components/Shot.astro";
+import StackCost from "../components/StackCost.astro";
 import ArticleCard from "../components/blog/ArticleCard.astro";
 import { PAGES } from "../lib/pages";
 import { SITE_AREAS, OFFER_TYPES, FEATURE_PLAN, featureTitle, featureAbout, plain, plans, cheapestPaid, money, trialDays, PLANS, GUARANTEE, type FeatureKey } from "../lib/app";
@@ -14,8 +15,11 @@ import { organization, website, softwareApplication, faqPage } from "../lib/sche
 import { featurePath, areaPath } from "../lib/pages";
 import { articles, BLOG_PAGE } from "../lib/content";
 import { LOYALTY_PRO } from "../lib/app";
+import { demoUrl } from "../../../app/lib/site";
 
 const page = PAGES.home;
+/** The hero's demo link: a product page of the live demo store (served by this site under /demo/). */
+const heroDemo = new URL(demoUrl("upsell")).pathname;
 const free = PLANS.free;
 
 /** The strip of feature cards, each with a small picture of what it adds to a store. */
@@ -164,7 +168,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
         </p>
         <div class="actions">
           <InstallButton medium="home" campaign="hero" />
-          <a class="btn ghost" href="/features/">See all features <span aria-hidden="true">→</span></a>
+          {/* The live demo store: real storefront blocks. Kept out of search (/demo/ is noindex), so no rank is passed. */}
+          <a class="btn ghost" href={heroDemo} target="_blank" rel="nofollow noopener">Try it on a demo store <span aria-hidden="true">↗</span></a>
         </div>
         <ul class="trust">
           <li>Built for any Online Store 2.0 theme</li>
@@ -231,6 +236,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
           ))
         }
       </div>
+      <div class="stack-head">
+        <h3>What the same features cost in separate apps</h3>
+      </div>
+      <StackCost />
     </div>
   </section>
 
@@ -395,6 +404,10 @@ const schema = [organization(), website(), softwareApplication(page.description)
 </Base>
 
 <style>
+  .stack-head {
+    text-align: center;
+    margin: clamp(48px, 7vw, 80px) 0 20px;
+  }
   .hero {
     padding: clamp(40px, 7vw, 88px) 0 clamp(56px, 8vw, 96px);
     background:

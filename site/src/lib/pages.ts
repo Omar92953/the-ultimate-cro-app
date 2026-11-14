@@ -50,6 +50,14 @@ export const PAGES = {
     ogTitle: "We're here to help",
     ogKicker: "Support",
   },
+  security: {
+    slug: "security",
+    path: "/security/",
+    title: "Your data and security",
+    description: "What CRO Toolbox reads from your Shopify store, what it keeps, where it is kept and how it is deleted, in plain words.",
+    ogTitle: "Your data, in plain words",
+    ogKicker: "Security",
+  },
   about: {
     slug: "about",
     path: "/about/",

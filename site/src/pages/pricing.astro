@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import PlanCards from "../components/PlanCards.astro";
+import StackCost from "../components/StackCost.astro";
 import Faq, { type QA } from "../components/Faq.astro";
 import NotifyCta from "../components/NotifyCta.astro";
 import { PAGES } from "../lib/pages";
@@ -27,7 +28,7 @@ const page = PAGES.pricing;
 
 /** The counted limits, in the order the table shows them. */
 const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
-  { key: "monthlyOrders", label: "Orders a month" },
+  { key: "monthlyOrders", label: "Orders a month (soft: you get a reminder, nothing switches off)" },
   { key: "offerSlots", label: "Offers switched on at once" },
   { key: "checkoutRules", label: "Checkout rules (payment, delivery and order limits)" },
   { key: "countdownPlaces", label: "Countdown timers" },
@@ -239,7 +240,17 @@ const schema = [softwareApplication(page.description), faqPage(faq)];
     </div>
   </section>
 
-  <section class="section" id="faq">
+  <section class="section" id="separate-apps">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">One app instead of several</span>
+        <h2>What the same features cost in separate apps</h2>
+      </div>
+      <StackCost />
+    </div>
+  </section>
+
+  <section class="section mist" id="faq">
     <div class="wrap">
       <div class="head center">
         <span class="eyebrow">Pricing FAQ</span>
