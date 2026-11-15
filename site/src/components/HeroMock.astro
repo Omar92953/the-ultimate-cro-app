@@ -11,11 +11,11 @@ import ProductArt from "./ProductArt.astro";
 <figure class="mock">
   <figcaption class="sr-only">Example product page with CRO Toolbox features: announcement bar with a countdown, reviews, quantity breaks, stock urgency, a delivery estimate, frequently bought together, and a sales pop up.</figcaption>
   <div class="browser">
-    <div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span>yourstore.com/products/glowserum</span></div>
+    <div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span>yourstore.com/products/glowserum</span><b class="tag">Example store</b></div>
     <div class="announce">Free shipping over $50 <span class="dot">•</span> Sale ends in <b data-countdown="8537">02:22:17</b></div>
     <div class="page">
       <div class="media">
-        <ProductArt kind="serum" class="main-art" fit="meet" />
+        <ProductArt kind="serum" class="main-art" fit="meet" sizes="(max-width: 900px) 90vw, 260px" />
         <div class="thumbs"><ProductArt kind="serum" /><ProductArt kind="cream" /><ProductArt kind="soap" /></div>
       </div>
       <div class="info">
@@ -97,10 +97,22 @@ import ProductArt from "./ProductArt.astro";
     border-radius: 999px;
     padding: 3px 12px;
     font-size: 11px;
-    color: #777;
+    color: #6b6b6b;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+  }
+  /* Says plainly that the picture is an example, not a real store's numbers (no invented data). */
+  .chrome .tag {
+    flex: none;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #4a4a4f;
+    background: #e6e6e1;
+    border-radius: 999px;
+    padding: 3px 8px;
   }
   .announce {
     background: #16161a;
@@ -166,7 +178,7 @@ import ProductArt from "./ProductArt.astro";
     font-size: 15px;
   }
   .price s {
-    color: #999;
+    color: #6b6b6b;
     font-weight: 400;
     font-size: 12px;
     margin-left: 4px;
@@ -275,7 +287,7 @@ import ProductArt from "./ProductArt.astro";
     border-radius: 8px;
   }
   .fbt-row > span {
-    color: #999;
+    color: #6b6b6b;
     font-weight: 700;
   }
   .fbt-buy {
@@ -311,7 +323,7 @@ import ProductArt from "./ProductArt.astro";
   }
   .salespop small {
     display: block;
-    color: #888;
+    color: #6b6b6b;
     font-size: 11px;
   }
   @keyframes rise {

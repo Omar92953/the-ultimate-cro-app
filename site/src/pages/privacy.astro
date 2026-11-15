@@ -7,7 +7,7 @@ import { OPERATOR } from "../lib/site";
 const page = PAGES.privacy;
 ---
 
-<Doc page={page} heading="Privacy policy" intro="What the CRO Toolbox Shopify app and this website collect, why, where it's kept and how it's deleted." updated="October 19, 2026">
+<Doc page={page} heading="Privacy policy" intro="What the CRO Toolbox Shopify app and this website collect, why, where it's kept and how it's deleted." updated="November 16, 2026">
   <p>
     This policy covers the CRO Toolbox app for Shopify ("the app") and this website. CRO Toolbox is run by {OPERATOR} ("we"). Questions: contact us
     through <ContactLine />.
@@ -16,7 +16,7 @@ const page = PAGES.privacy;
   <h2>The short version</h2>
   <ul>
     <li>The app's settings are saved in your own Shopify store, not on our servers.</li>
-    <li>Our database holds only what the app needs to work: Shopify login sessions, back in stock requests, return requests and reviewer emails.</li>
+    <li>Our database holds only what the app needs to work: Shopify login sessions, back in stock requests, return requests, reviewer emails and, if you turn on the loyalty program, its members.</li>
     <li>We never store shoppers' names, phone numbers or full addresses.</li>
     <li>When you uninstall, Shopify asks us to delete your store's data and we do.</li>
     <li>This website has no cookies, no analytics and no forms.</li>
@@ -41,7 +41,7 @@ const page = PAGES.privacy;
         <td>Read from Shopify when needed, not copied to our database</td>
       </tr>
       <tr>
-        <td>Orders from the last 60 days</td>
+        <td>Orders (the last 60 days; older orders only for a shopper's own order lookup)</td>
         <td>
           Analytics (which sales came from the app's offers), the monthly order count for your plan, "bought together" suggestions, sales pop ups
           (product and time, and the shipping city only if you turn it on), and the order lookup on the track order and returns pages (order number and
@@ -84,12 +84,22 @@ const page = PAGES.privacy;
         <td>So the merchant can check the review against orders before ticking Verified buyer</td>
         <td>Our database</td>
       </tr>
+      <tr>
+        <td>
+          Loyalty program, only if the store turns it on: each member's Shopify customer id, email address, language, whether they are subscribed to the
+          store's email marketing, their points and every change to them (orders, refunds, rewards), their tier, their referral code, the reward codes
+          they got, the birthday they choose to add (day and month only), the friends' orders that used their referral code, and a log of the loyalty
+          emails sent to them. Names are never read
+        </td>
+        <td>To give and take back points, run tiers, rewards and referrals, and send the loyalty emails the store turns on</td>
+        <td>Our database. Points, tier, codes and birthday are also written to the customer in the store's Shopify admin. The email log is kept 90 days</td>
+      </tr>
     </tbody>
   </table>
   </div>
   <p>
     The app's widgets read your store's own data as the page loads. Only the forms shoppers send (reviews, back in stock requests, return requests,
-    pop up sign ups and order lookups) reach our server, through Shopify. Checkout logic (discounts, bundles, payment and delivery rules, order limits) runs inside
+    pop up sign ups and order lookups) and the loyalty widget (a signed in member's own points and rewards) reach our server, through Shopify. Checkout logic (discounts, bundles, payment and delivery rules, order limits) runs inside
     Shopify. We do not sell data, and we do not use it for advertising.
   </p>
 
@@ -111,22 +121,26 @@ const page = PAGES.privacy;
     <li><strong>GitHub</strong>: stores the encrypted nightly database backups in a private repository.</li>
     <li><strong>17TRACK</strong>: tracking data provider, used only when a store turns on live tracking. It receives the tracking number of a shipment and returns its delivery events. It receives no names, emails or addresses.</li>
     <li><strong>The store's own tracking service</strong> (17TRACK, AfterShip, TrackingMore or Ship24): only when a store connects its own account with its own key. The app sends that service the tracking number of a shipment and reads back its delivery events, on the store's behalf. No names, emails or addresses are sent.</li>
+    <li><strong>Postmark</strong>: our email provider, used only when a store turns on loyalty emails. It receives the member's email address and the email itself (points, reward codes) to deliver it.</li>
+    <li><strong>The store's own Klaviyo or Omnisend account</strong>: only when a store connects it. The member's email address, points, tier and loyalty events are sent to that account on the store's behalf.</li>
+    <li><strong>The store's own Judge.me account</strong>: only when a store connects it. The app reads the store's published reviews to give review points.</li>
   </ul>
 
   <h2>How long we keep it, and deleting it</h2>
   <ul>
     <li>
       <strong>Uninstall:</strong> 48 hours after a store uninstalls the app, Shopify asks us to delete the store's data. We then delete its sessions,
-      back in stock requests, return requests and reviewer emails. App data saved in the store is removed by Shopify together with the app.
+      back in stock requests, return requests, reviewer emails and all loyalty data. App data saved in the store is removed by Shopify together with the app.
     </li>
     <li>
       <strong>Shopper requests:</strong> when a shopper asks a store to delete their data, Shopify tells us and we delete that shopper's back in stock
-      requests, return requests, reviewer emails and sales pop up entries.
+      requests, return requests, reviewer emails and loyalty data (member, points history, rewards, referrals, emails and events), and remove their
+      orders from the sales pop up list. When Shopify asks for a shopper's data, we report what we hold.
     </li>
     <li>
       <strong>Automatic deletion:</strong> while the app is installed, old records are deleted every day: back in stock requests {R.stockAlertSent} days
       after the shopper was told (or after {R.stockAlertWaiting / 365} year if never sent), return requests and reviewer emails after {R.returnRequest / 365}
-      years, live tracking answers {R.trackingCache} days after the last check, and Track page discount codes {R.trackCode} days after they end.
+      years, live tracking answers {R.trackingCache} days after the last check, Track page discount codes {R.trackCode} days after they end, and loyalty email logs after 90 days.
     </li>
     <li>Merchants can also delete reviews, return requests and other content in the app at any time.</li>
   </ul>

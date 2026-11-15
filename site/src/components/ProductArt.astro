@@ -1,5 +1,11 @@
 ---
-/** A demo product picture: the real file site/public/products/<kind>.* when there is one, else the drawn SVG (lib/art.ts). */
+/**
+ * A demo product picture: the real file site/public/products/<kind>.* when there is one, else the drawn SVG (lib/art.ts).
+ * Small copies (site/public/img/products/<kind>-160.webp, -400.webp and -600.webp, made with cwebp, see public/products/README.md)
+ * go in srcset, so a 40 px slot doesn't load the 1200 px photo.
+ */
+import fs from "node:fs";
+import path from "node:path";
 import { artSvg, productImage, type ArtKind } from "../lib/art";
 interface Props {
   kind: ArtKind;
@@ -9,17 +15,22 @@ interface Props {
   /** "slice" fills the box (may crop), "meet" shows the whole product with the background extended. */
   fit?: "slice" | "meet";
   tint?: string;
+  /** How wide the picture shows (the img sizes attribute). The default fits the small thumbnails (34 to 60 px). */
+  sizes?: string;
 }
-const { kind, class: cls, alt = "", fit = "slice", tint } = Astro.props;
+const { kind, class: cls, alt = "", fit = "slice", tint, sizes = "64px" } = Astro.props;
 // Gradient ids must be unique on the page; a module counter keeps builds deterministic.
 const g = globalThis as { __artId?: number };
 const id = `art${(g.__artId = (g.__artId ?? 0) + 1)}`;
 const photo = productImage(kind);
+const src = photo ? `/products/${photo.name}.${photo.ext}` : "";
+const small = photo ? [160, 400, 600].filter((w) => fs.existsSync(path.join(path.dirname(photo.file), "..", "img", "products", `${photo.name}-${w}.webp`))) : [];
+const srcset = small.length ? [...small.map((w) => `/img/products/${photo!.name}-${w}.webp ${w}w`), `${src} 1200w`].join(", ") : undefined;
 ---
 
 {
   photo ? (
-    <img class:list={[cls, "product-art"]} src={`/products/${photo.name}.${photo.ext}`} alt={alt} width="800" height="800" loading="lazy" decoding="async" />
+    <img class:list={[cls, "product-art"]} src={src} srcset={srcset} sizes={srcset ? sizes : undefined} alt={alt} width="800" height="800" loading="lazy" decoding="async" />
   ) : (
     <Fragment set:html={artSvg(kind, { id, alt, fit, tint, cls: [cls, "product-art"].filter(Boolean).join(" ") })} />  )
 }

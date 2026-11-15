@@ -98,7 +98,7 @@ const { kind } = Astro.props;
       <div class="vids">
         {(["serum", "tee", "candle"] as const).map((k) => (
           <div class="vid">
-            <ProductArt kind={k} />
+            <ProductArt kind={k} sizes="120px" />
             <i class="play" />
           </div>
         ))}
@@ -110,7 +110,7 @@ const { kind } = Astro.props;
       <div class="wish">
         {(["mug", "tote"] as const).map((k, i) => (
           <div class="wcard">
-            <ProductArt kind={k} />
+            <ProductArt kind={k} sizes="140px" />
             <i class:list={["heart", { on: i === 0 }]} />
             {i === 0 && <span class="drop">Price dropped</span>}
           </div>
@@ -280,7 +280,7 @@ const { kind } = Astro.props;
   .marks {
     display: flex;
     justify-content: space-between;
-    color: #888;
+    color: #6b6b6b;
     margin-top: 4px;
     font-size: 10px;
   }
@@ -445,7 +445,7 @@ const { kind } = Astro.props;
   }
   .popcard small {
     display: block;
-    color: #888;
+    color: #6b6b6b;
   }
   .vids {
     display: grid;
@@ -521,7 +521,7 @@ const { kind } = Astro.props;
     border: 1.5px solid #e3e3de;
     border-radius: 99px;
     padding: 5px 10px;
-    color: #999;
+    color: #6b6b6b;
     margin-bottom: 8px;
   }
   .q {
@@ -536,7 +536,7 @@ const { kind } = Astro.props;
     position: absolute;
     right: 0;
     top: 6px;
-    color: #999;
+    color: #6b6b6b;
   }
   .q.open::after {
     content: "−";

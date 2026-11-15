@@ -41,7 +41,7 @@ const ticks = Math.max(...plans.map((p) => p.highlights.length));
               {p.yearly > 0 && <em>Save {yearlySaving(p)}%</em>}
             </div>
           </div>
-          <p class="orders">{ordersText(p)}</p>
+          <p class="orders">{ordersText(p)}{p.limits.monthlyOrders !== null ? ", soft limit" : ""}</p>
           <p class="trial">{p.trialDays ? `${p.trialDays} day free trial` : "No card needed"}</p>
           <ul class="check-list">
             {p.highlights.map((h) => (

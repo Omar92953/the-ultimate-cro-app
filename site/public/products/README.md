@@ -29,3 +29,12 @@ Do not add anything else here: every file in this folder is published as is.
 
 The hero banner of the demo store (`hero-desktop.svg`, `hero-mobile.svg`) is still drawn from the
 SVG art; it needs its own wide pictures (2400 x 1000 and 1000 x 1250) and a change in `demos/build.mjs`.
+
+## Small copies
+
+The website loads small copies in the widget cards: `site/public/img/products/<kind>-160.webp`, `-400.webp` and `-600.webp`.
+After changing a photo here, make them again (from `site/`):
+
+```bash
+for k in serum cream candle mug tote soap bottle tee socks gift plant; do for w in 160 400 600; do cwebp -quiet -q 80 -resize $w $w public/products/$k.webp -o public/img/products/$k-$w.webp; done; done
+```

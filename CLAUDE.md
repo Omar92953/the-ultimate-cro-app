@@ -68,7 +68,7 @@ repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and R
 - `demos/`: the live demos, served at https://crotoolbox.com/demo/ by the website build
   (`npm --prefix site run build` builds them and copies them into `site/dist/demo/`), hidden from
   search and opened only from the app ("See live demo", `app/lib/site.ts`). The website links to them
-  only from the keyword pages (`rel="nofollow"`, new tab; Omar, 2026-10-18). Details: `docs/website.md`.
+  from the keyword pages and the home page hero (`rel="nofollow"`, new tab; 2026-11-14). Details: `docs/website.md`.
 
 ## App Store listing images
 

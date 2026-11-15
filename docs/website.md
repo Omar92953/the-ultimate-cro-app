@@ -15,7 +15,7 @@ The website and the live demos are built together and deployed as **one** Cloudf
 (`npm --prefix demos ci && run build`) and copies `demos/dist/demo` into `site/dist/demo`. If the demos build
 fails (or is out of sync with the app, see below), the website build fails too.
 
-The website links to the demos only from the keyword pages (`site/src/keywords/`, "See it on a demo store", `rel="nofollow"`, new tab; Omar, 2026-10-18). Everywhere else it never links to them, and the demos don't link to each other or to the website pages
+The website links to the demos from the keyword pages (`site/src/keywords/`, "See it on a demo store") and from the home page hero ("Try it on a demo store", added 2026-11-14 after the Fable audit), always `rel="nofollow"` and in a new tab. Everywhere else it never links to them, and the demos don't link to each other or to the website pages
 (only the "Install CRO Toolbox" button to the App Store listing). Every address the demos write starts
 with `/demo` (`demos/src/base.mjs`, the build fails on any other absolute address), so a demo never
 resolves to a website page (`/bundles/` is the website's, `/demo/bundles/<recipe>/` is a demo).

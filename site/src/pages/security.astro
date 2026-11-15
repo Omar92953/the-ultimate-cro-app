@@ -1,0 +1,71 @@
+---
+/**
+ * Your data and security, in plain words: the short form of the privacy policy and docs/scopes.md for a merchant deciding
+ * whether to install. Facts must match the app's privacy policy (app/routes/privacy.tsx); change both together.
+ */
+import { RETENTION_DAYS as R } from "../lib/app";
+import Doc from "../layouts/Doc.astro";
+import ContactLine from "../components/ContactLine.astro";
+import { PAGES } from "../lib/pages";
+const page = PAGES.security;
+---
+
+<Doc page={page} heading="Your data and security" intro="What CRO Toolbox reads from your store, what it keeps, where it is kept and how it is deleted." updated="November 14, 2026">
+  <h2>The short version</h2>
+  <ul>
+    <li>Your offers, bundles, sections and settings are saved in your own Shopify store, not on our servers.</li>
+    <li>Discounts, bundles, payment and delivery rules and order limits run inside Shopify's checkout, not on our servers.</li>
+    <li>Widgets on your store read your store's own data as the page loads. They don't call our server.</li>
+    <li>We never read shoppers' names, phone numbers or full addresses.</li>
+    <li>When you uninstall, Shopify asks us to delete your store's data, and we do.</li>
+    <li>We don't sell data and don't use it for advertising.</li>
+  </ul>
+
+  <h2>What reaches our server</h2>
+  <p>Only what a feature needs, and only when you use that feature:</p>
+  <ul>
+    <li><strong>Your login session:</strong> your store's address and access token, so you stay signed in to the app.</li>
+    <li><strong>Forms shoppers send on your store:</strong> back in stock requests (email and product), return requests (order number, email, items, reason), review submissions and pop up sign ups. Pop up emails go straight into your own Shopify customers; we don't keep them.</li>
+    <li><strong>Loyalty, only if you turn it on:</strong> each member's Shopify customer id, email, language, points and their history, tier, referral and reward codes, and the birthday they choose to add (day and month only).</li>
+    <li><strong>Reviewer emails</strong> you type to check a review against your orders. They are never shown on your store.</li>
+  </ul>
+
+  <h2>What the app reads from Shopify, and why</h2>
+  <ul>
+    <li><strong>Products, collections and files:</strong> to let you pick them in the app and to create the bundle products and pages you ask for.</li>
+    <li><strong>Orders from the last 60 days:</strong> for your results (which sales came from the app), the monthly order count, "bought together" suggestions, sales pop ups (product and time; the city only if you turn it on) and the order lookup on your Track and Returns pages. Orders are read when needed, not copied to our database.</li>
+    <li><strong>Customers:</strong> to give store credit on a return and to add pop up sign ups to your customer list.</li>
+    <li><strong>Your theme, read only:</strong> to show whether the app's blocks are in your published theme. The app never edits theme files.</li>
+  </ul>
+  <p>The full list of access scopes, each with its reason, is in the <a href="/privacy/">privacy policy</a> and in the app's listing.</p>
+
+  <h2>Where it is kept</h2>
+  <ul>
+    <li><strong>Render</strong> hosts the app's server, in the United States.</li>
+    <li><strong>Supabase</strong> hosts the database, in the United States (East). It is encrypted at rest.</li>
+    <li>The database is backed up every night. Each backup is encrypted and kept for 14 days.</li>
+    <li>Only the people who run the app can reach the data.</li>
+  </ul>
+
+  <h2>How it is protected</h2>
+  <ul>
+    <li>Every connection uses HTTPS.</li>
+    <li>Every request from Shopify is checked against Shopify's signature, and each store's data is only reached with that store's own access token.</li>
+    <li>On your store, A/B test versions are remembered and counted only after the shopper allows analytics in your cookie banner.</li>
+    <li>If a security incident ever affects personal data, we tell Shopify and the affected merchants within 72 hours.</li>
+  </ul>
+
+  <h2>How it is deleted</h2>
+  <ul>
+    <li><strong>Uninstall:</strong> Shopify removes the data the app saved in your store. 48 hours later Shopify asks us to delete everything we hold for your store, and we do.</li>
+    <li><strong>A shopper asks to be forgotten:</strong> Shopify tells us, and we delete that shopper's requests, reviewer emails and loyalty data.</li>
+    <li>
+      <strong>Every day, automatically:</strong> back in stock requests {R.stockAlertSent} days after the shopper was told, return requests and reviewer emails after {R.returnRequest / 365} years,
+      and loyalty email logs after 90 days.
+    </li>
+    <li>You can delete reviews, return requests and other content in the app at any time.</li>
+  </ul>
+
+  <h2>Questions</h2>
+  <p>Ask anything about your data through <ContactLine />.</p>
+</Doc>

@@ -141,6 +141,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
     links: [
       { label: "About", href: "/about/" },
       { label: "Changelog", href: "/changelog/" },
+      { label: "Your data and security", href: "/security/" },
       { label: "Privacy policy", href: "/privacy/" },
       { label: "Terms of service", href: "/terms/" },
     ],
