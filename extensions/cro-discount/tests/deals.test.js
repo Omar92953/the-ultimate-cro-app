@@ -36,6 +36,26 @@ describe("buy X get Y", () => {
     expect(out[0].targets).toEqual([{ cartLine: { id: "case", quantity: 1 } }]);
     expect(out[0].value.percentage.value).toBe(50);
   });
+  test("groups that partly overlap: buy 2 boards, get any item free (audit A5)", () => {
+    const deal = { t: "bogo", buy: { type: "products", products: [P(1)] }, x: 2, get: { type: "all" }, y: 1, pct: 100 };
+    const out = applyDeal(deal, [line("board", 1, 2, 300), line("wax", 2, 1, 20)], cart);
+    expect(out[0].targets).toEqual([{ cartLine: { id: "wax", quantity: 1 } }]);
+    // Without the wax, 2 boards are not enough: one of them would be both bought and free.
+    expect(applyDeal(deal, [line("board", 1, 2, 300)], cart)).toEqual([]);
+    // 3 boards and no wax: the third board is the free one.
+    expect(applyDeal(deal, [line("board", 1, 3, 300)], cart)[0].targets).toEqual([{ cartLine: { id: "board", quantity: 1 } }]);
+  });
+  test("a cheaper item in both groups is skipped when it is needed as a bought item", () => {
+    // Buy 2 of A or B, get A or C. Cart: 2 A ($10) and 1 C ($50). Both A count as bought, so C is the reward.
+    const deal = { t: "bogo", buy: { type: "products", products: [P(1), P(2)] }, x: 2, get: { type: "products", products: [P(1), P(3)] }, y: 1, pct: 100 };
+    const out = applyDeal(deal, [line("a", 1, 2, 10), line("c", 3, 1, 50)], cart);
+    expect(out[0].targets).toEqual([{ cartLine: { id: "c", quantity: 1 } }]);
+  });
+  test("several sets from one shared pool", () => {
+    const deal = { t: "bogo", buy: { type: "all" }, x: 2, get: { type: "all" }, y: 1, pct: 100 };
+    const out = applyDeal(deal, [line("a", 1, 4, 30), line("b", 2, 2, 10)], cart);
+    expect(out[0].targets).toEqual([{ cartLine: { id: "b", quantity: 2 } }]);
+  });
 });
 
 describe("volume tiers", () => {

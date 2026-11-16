@@ -25,11 +25,14 @@
 const EMPTY = { operations: [] };
 
 /** Whether the cart meets a rule's conditions. Same logic as cro-payment. */
-export function matches(when, cart) {
+export function matches(when, cart, rate = 1) {
   if (!when) return true;
+  // The total is in the buyer's currency; min and max are in the shop's. `rate` (input.presentmentCurrencyRate) is the
+  // buyer's currency per 1 of the shop's, as in cro-validation (audit 2026-11-14, A1).
+  const r = Number(rate) > 0 ? Number(rate) : 1;
   const total = Number(cart.cost?.subtotalAmount?.amount) || 0;
-  if (when.min > 0 && total < when.min) return false;
-  if (when.max > 0 && total > when.max) return false;
+  if (when.min > 0 && total < when.min * r) return false;
+  if (when.max > 0 && total > when.max * r) return false;
   if (Array.isArray(when.countries) && when.countries.length) {
     const codes = (cart.deliveryGroups || []).map((g) => g.deliveryAddress?.countryCode).filter(Boolean);
     if (!codes.some((c) => when.countries.includes(c))) return false;
@@ -60,7 +63,7 @@ export function cartDeliveryOptionsTransformRun(input) {
   const cost = (o) => Number(o.cost?.amount ?? 0) || 0;
   for (const rule of rules) {
     const match = String(rule?.match || "").trim().toLowerCase();
-    if (!match || !matches(rule.when, input.cart)) continue;
+    if (!match || !matches(rule.when, input.cart, input.presentmentCurrencyRate)) continue;
     for (const group of input.cart.deliveryGroups) {
       const visible = group.deliveryOptions.filter((o) => !hidden.has(o.handle));
       for (const option of visible) {

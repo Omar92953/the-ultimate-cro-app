@@ -65,6 +65,13 @@ describe("bundle guard", () => {
     expect(messages(guard([bl("a", 7, "Gift box")], { bundles: [], st: "tok" }))).toEqual([]);
     expect(checkBundles([], { lines: [bl("a", 7, "Gift box")] })).toEqual([]);
   });
+  test("a switched off bundle's product is refused, stamped or not (audit A2)", () => {
+    const OFF = ["Gift box is not available right now. Remove it from your cart."];
+    expect(messages(guard([bl("a", 7, "Gift box")], { bundles: [], off: ["7"], st: "tok" }))).toEqual(OFF);
+    expect(messages(guard([bl("a", 7, "Gift box", "tok")], { bundles: [], off: ["7"], st: "tok" }))).toEqual(OFF);
+    // Other products and live bundles are not touched.
+    expect(messages(guard([bl("b", 9, "Duo", "tok")], { bundles: ["9"], off: ["7"], st: "tok" }))).toEqual([]);
+  });
   test("each bare bundle line gets its own message and the order limits still run", () => {
     expect(messages(guard([bl("a", 7, "Gift box"), bl("b", 9, "Duo")], { bundles: ["7", "9"], st: "tok", rules: [{ kind: "maxItems", value: 1 }] }))).toEqual([
       "Gift box is a bundle. Pick its items on its page, then add it to your cart.",

@@ -267,14 +267,36 @@ export function applyDeal(deal, lines, cart) {
     const y = Math.max(1, Number(deal.y) || 1);
     const buy = paid.filter((l) => matches(deal.buy, l.product));
     const get = paid.filter((l) => matches(deal.get, l.product));
-    const buyQty = buy.reduce((n, l) => n + l.quantity, 0);
-    const getQty = get.reduce((n, l) => n + l.quantity, 0);
-    const shared = get.some((g) => buy.includes(g));
-    // Same pool (buy 2 get 1 of the same items): every x + y items earn y rewards.
-    const rewards = shared ? Math.floor(buyQty / (x + y)) * y : Math.min(Math.floor(buyQty / x) * y, getQty);
+    // Items can be in the buy group, the get group or both (buy 2 get 1 of the same items, or "buy 2 boards, get any
+    // item"). A reward item can't also count as a bought item, so: get only items are used as rewards first, then
+    // items in both groups, as long as x bought items are left per reward set (audit 2026-11-14, A5).
+    const qty = (/** @type {any[]} */ ls) => ls.reduce((n, l) => n + l.quantity, 0);
+    const getOnly = qty(get.filter((l) => !buy.includes(l)));
+    const both = qty(get.filter((l) => buy.includes(l)));
+    const buyOnly = qty(buy.filter((l) => !get.includes(l)));
+    let sets = 0;
+    for (;;) {
+      const k = sets + 1;
+      const fromBoth = Math.max(0, k * y - getOnly);
+      if (fromBoth > both || buyOnly + both - fromBoth < k * x) break;
+      sets = k;
+    }
+    const rewards = sets * y;
     if (rewards <= 0) return [];
-    const cheapestFirst = [...get].sort((a, b) => a.price - b.price);
-    return candidate(take(cheapestFirst, rewards), pct || 100);
+    // The cheapest reward items, using no more items from both groups than leaves x bought items per set.
+    let bothLeft = buyOnly + both - sets * x;
+    let left = rewards;
+    const targets = [];
+    for (const line of [...get].sort((a, b) => a.price - b.price)) {
+      if (left <= 0) break;
+      const cap = buy.includes(line) ? Math.min(line.quantity, bothLeft) : line.quantity;
+      const q = Math.min(cap, left);
+      if (q <= 0) continue;
+      targets.push({ cartLine: { id: line.id, quantity: q } });
+      left -= q;
+      if (buy.includes(line)) bothLeft -= q;
+    }
+    return candidate(targets, pct || 100);
   }
 
   if (deal.t === "volume") {

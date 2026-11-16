@@ -339,6 +339,41 @@ test("a member moves up a tier with their orders, gets its bonus once, and earns
   assert.equal(await prisma.loyaltyEvent.count({ where: { shop, kind: "tier" } }), 1);
 });
 
+test("a tier bonus waits with the order that earned it and is taken back after a refund drops the tier (audit A3)", async () => {
+  const shop = "tb.myshopify.com";
+  const c = tiered({ pendingDays: 14, tiers: { ...DEFAULT_LOYALTY.tiers, on: true, basis: "spent" } });
+  const cust = { id: "410", email: "tb@example.com", firstName: "", locale: "", tags: [] };
+  await P.syncOrder(shop, c, order({ id: "b1", subtotal: 600, customer: cust }));
+  let m = await member(shop, "410");
+  assert.equal(m.tier, "t2");
+  assert.equal(m.points, 0, "nothing usable yet, the Silver bonus included");
+  assert.equal(m.pending, 600 + 50);
+  // The whole order is refunded: back to Bronze, the order points and the waiting bonus are taken back.
+  await P.syncOrder(shop, c, order({ id: "b1", subtotal: 0, shipping: 0, taxes: 0, customer: cust }));
+  m = await member(shop, "410");
+  assert.equal(m.tier, "t1");
+  assert.equal(m.pending, 0);
+  assert.equal(m.points, 0);
+  // Reaching Silver again with a new order gives the bonus again.
+  await P.syncOrder(shop, c, order({ id: "b2", subtotal: 600, customer: cust }));
+  m = await member(shop, "410");
+  assert.equal(m.tier, "t2");
+  assert.equal(m.pending, 600 + 50);
+  assert.equal(await prisma.loyaltyEvent.count({ where: { shop, kind: "tier" } }), 3);
+});
+
+test("with no pending days a recent tier bonus is taken back from usable points", async () => {
+  const shop = "tc.myshopify.com";
+  const c = tiered({ tiers: { ...DEFAULT_LOYALTY.tiers, on: true, basis: "spent" } });
+  const cust = { id: "411", email: "tc@example.com", firstName: "", locale: "", tags: [] };
+  await P.syncOrder(shop, c, order({ id: "c1", subtotal: 600, customer: cust }));
+  assert.equal((await member(shop, "411")).points, 650);
+  await P.syncOrder(shop, c, order({ id: "c1", subtotal: 0, shipping: 0, taxes: 0, customer: cust }));
+  const m = await member(shop, "411");
+  assert.equal(m.tier, "t1");
+  assert.equal(m.points, 0);
+});
+
 test("tiers over the last 12 months: members move down when their points are old", async () => {
   const shop = "u.myshopify.com";
   const c = tiered({ tiers: { ...DEFAULT_LOYALTY.tiers, on: true, period: "year" } });

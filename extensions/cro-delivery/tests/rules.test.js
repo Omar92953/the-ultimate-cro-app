@@ -11,6 +11,13 @@ describe("delivery rules", () => {
     expect(run([{ match: "express", action: "hide", when: { products: ["gid://shopify/Product/1"] } }], c).operations).toEqual([{ deliveryOptionHide: { deliveryOptionHandle: "e" } }]);
     expect(run([{ match: "express", action: "hide", when: { products: ["gid://shopify/Product/9"] } }], c).operations).toEqual([]);
   });
+  test("totals in another currency are compared after converting the rule (audit A1)", () => {
+    const rules = [{ match: "express", action: "hide", when: { min: 200 } }];
+    const runAt = (c, rate) => cartDeliveryOptionsTransformRun({ presentmentCurrencyRate: rate, cart: c, deliveryCustomization: { metafield: { jsonValue: { rules } } } });
+    const groups = [group([["s", "Standard", "50"], ["e", "Express", "120"]])];
+    expect(runAt(cart(5000, groups), "150.0").operations).toEqual([]);
+    expect(runAt(cart(31000, groups), "150.0").operations).toEqual([{ deliveryOptionHide: { deliveryOptionHandle: "e" } }]);
+  });
   test("never hides the last option of a group", () => {
     const c = cart(10, [group([["s", "Standard"]])]);
     expect(run([{ match: "standard", action: "hide" }], c).operations).toEqual([]);

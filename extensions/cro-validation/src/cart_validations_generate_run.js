@@ -105,16 +105,25 @@ export function check(rules, cart, rate = 1, atCart = false) {
  * Only the product ids listed (the store's mix and match bundles) are checked: kits and normal products are never touched.
  * @param {any} bundles numeric product ids
  * @param {any} cart
+ * `off` lists bundle products whose bundle is switched off: they can't be built, so any line of one is refused (audit
+ * 2026-11-14, A2: the product page stays live and the theme's own Add to cart would sell it empty).
  * @param {string} [stamp]
+ * @param {any} [off] numeric product ids of switched off bundles
  */
-export function checkBundles(bundles, cart, stamp = "") {
+export function checkBundles(bundles, cart, stamp = "", off = []) {
   const ids = new Set(Array.isArray(bundles) ? bundles.map(String) : []);
-  if (!ids.size) return [];
+  const offIds = new Set(Array.isArray(off) ? off.map(String) : []);
+  if (!ids.size && !offIds.size) return [];
   const errors = [];
   for (const line of cart.lines) {
     const m = /** @type {any} */ (line.merchandise);
     if (m.__typename !== "ProductVariant" || !m.product) continue;
-    if (!ids.has(String(m.product.id).split("/").pop())) continue;
+    const id = String(m.product.id).split("/").pop();
+    if (offIds.has(id)) {
+      errors.push(`${m.product.title || "This bundle"} is not available right now. Remove it from your cart.`.slice(0, 250));
+      continue;
+    }
+    if (!ids.has(id)) continue;
     const got = line.merged?.value;
     if (stamp ? got === stamp : got) continue;
     errors.push(`${m.product.title || "This bundle"} is a bundle. Pick its items on its page, then add it to your cart.`.slice(0, 250));
@@ -163,7 +172,7 @@ export function cartValidationsGenerateRun(input) {
   /** @type {any} */
   const config = input.validation?.metafield?.jsonValue;
   const rules = Array.isArray(config?.rules) ? config.rules : [];
-  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : ""), ...checkPoints(config?.points, input.cart, Number(input.presentmentCurrencyRate) || 1), ...(rules.length ? check(rules, input.cart, Number(input.presentmentCurrencyRate) || 1, input.buyerJourney?.step === "CART_INTERACTION") : [])];
+  const errors = [...checkNested(input.cart), ...checkBundles(config?.bundles, input.cart, config?.st ? String(config.st) : "", config?.off), ...checkPoints(config?.points, input.cart, Number(input.presentmentCurrencyRate) || 1), ...(rules.length ? check(rules, input.cart, Number(input.presentmentCurrencyRate) || 1, input.buyerJourney?.step === "CART_INTERACTION") : [])];
   if (!errors.length) return EMPTY;
   return { operations: [{ validationAdd: { errors: errors.map((message) => ({ message, target: "$.cart" })) } }] };
 }
