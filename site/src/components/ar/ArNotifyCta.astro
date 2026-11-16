@@ -1,0 +1,70 @@
+---
+/**
+ * The closing call to action of the Arabic pages. While the App Store listing isn't live (INSTALL_URL empty) it is the
+ * Arabic "Get notified" block (id get-notified) that every Arabic Install button points to (AR_NOTIFY_HREF).
+ */
+import InstallButton from "../InstallButton.astro";
+import SignupForm from "../SignupForm.astro";
+import { INSTALL_URL } from "../../lib/site";
+import { PLANS, trialDays } from "../../lib/app";
+import { AR_PAGES } from "../../lib/ar";
+interface Props {
+  campaign: string;
+}
+const { campaign } = Astro.props;
+const live = Boolean(INSTALL_URL);
+---
+
+<section class="section dark final" id={live ? "install" : "get-notified"}>
+  <div class="wrap inner">
+    {
+      live ? (
+        <>
+          <h2>جاهز تبيع أكثر في كل طلب؟</h2>
+          <p class="lead">ثبّت CRO Toolbox مجاناً. كل خطة مدفوعة تبدأ بتجربة مجانية {trialDays} يوماً.</p>
+          <div class="actions">
+            <InstallButton medium="cta" campaign={campaign} lang="ar" />
+            <a class="btn ghost" href={AR_PAGES.pricing.path}>شاهد الأسعار</a>
+          </div>
+        </>
+      ) : (
+        <>
+          <span class="pill">قريباً على متجر تطبيقات Shopify</span>
+          <h2>كن أول من يثبّت CRO Toolbox</h2>
+          <p class="lead">
+            CRO Toolbox في طريقه إلى متجر تطبيقات Shopify. يوم نشره سيأخذك زر التثبيت في هذا الموقع إليه مباشرة، مع خطة {PLANS.free.name} المجانية وتجربة
+            مجانية {trialDays} يوماً على كل خطة مدفوعة. اترك بريدك بالأسفل ونرسل لك الرابط يوم الإطلاق.
+          </p>
+          <SignupForm id={campaign} lang="ar" />
+          <div class="actions">
+            <a class="btn ghost" href={AR_PAGES.pricing.path}>
+              شاهد الأسعار
+            </a>
+          </div>
+        </>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .final {
+    background:
+      radial-gradient(60% 80% at 50% 120%, rgb(62 224 143 / 0.22), transparent 70%),
+      var(--ink);
+  }
+  .inner {
+    text-align: center;
+    max-width: 760px;
+  }
+  h2 {
+    margin: 20px 0 16px;
+  }
+  .lead {
+    margin: 0 auto;
+  }
+  .actions {
+    justify-content: center;
+    margin-top: 32px;
+  }
+</style>

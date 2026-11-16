@@ -1,0 +1,16 @@
+---
+/** Visible breadcrumbs on the Arabic pages (Base adds the matching BreadcrumbList data, starting at /ar/). */
+import { AR_HOME } from "../../lib/ar";
+interface Props {
+  items: { name: string; href: string }[];
+  center?: boolean;
+}
+const { items, center = false } = Astro.props;
+---
+
+<nav aria-label="مسار التنقل">
+  <ol class="breadcrumbs" style={center ? "justify-content:center" : undefined}>
+    <li><a href={AR_HOME}>الرئيسية</a></li>
+    {items.map((c, i) => <li>{i === items.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.href}>{c.name}</a>}</li>)}
+  </ol>
+</nav>

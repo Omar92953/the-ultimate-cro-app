@@ -1,0 +1,172 @@
+---
+/**
+ * /ar/bundles/: the six bundle types in Arabic. Mirrors /bundles/ (hreflang both ways, lib/ar.ts). The recipes and their
+ * order come from the app's bundle-recipes.ts; the Arabic words from AR_RECIPES.
+ */
+import Base from "../../layouts/Base.astro";
+import Shot from "../../components/Shot.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import ArCrumbs from "../../components/ar/ArCrumbs.astro";
+import ArNotifyCta from "../../components/ar/ArNotifyCta.astro";
+import { BUNDLE_RECIPES, PLANS, plain } from "../../lib/app";
+import { faqPage } from "../../lib/schema";
+import { recipePath, recipeSlug } from "../../lib/recipes";
+import { AR_PAGES, AR_RECIPES, arPlan } from "../../lib/ar";
+
+const page = AR_PAGES.bundles;
+const crumbs = [{ name: "الباقات", href: page.path }];
+const free = PLANS.free;
+const recipes = BUNDLE_RECIPES.map((r) => ({ r, ar: AR_RECIPES[r.key] }));
+
+const faq: QA[] = [
+  {
+    q: "كم نوعاً من الباقات في CRO Toolbox؟",
+    a: `${recipes.length} أنواع: ${recipes.map(({ r, ar }) => ar?.title ?? plain(r.title)).join("، و")}.`,
+  },
+  {
+    q: "هل يُطبَّق سعر الباقة في صفحة الدفع؟",
+    a: "نعم. Shopify نفسها تطبّق سعر الباقة في صفحة الدفع، وفي السلة تجتمع القطع التي اختارها العميل في سطر واحد بسعر الباقة.",
+  },
+  {
+    q: "هل ينقص مخزون كل قطعة في الباقة؟",
+    a: "نعم. في صفحة الدفع تُقسَم الباقة إلى القطع التي اختارها العميل، فينقص مخزون كل قطعة وتظهر القطع في الطلب.",
+  },
+  {
+    q: "ما الخطة التي فيها الباقات؟",
+    a: `كل أنواع الباقات متاحة على ${arPlan("free")}، وفيها ${free.limits.offerSlots} من العروض المفعّلة في وقت واحد. الخطط المدفوعة فيها عروض بلا حد. التفاصيل في <a href="${AR_PAGES.pricing.path}">صفحة الأسعار</a>.`,
+  },
+  {
+    q: "هل أحتاج إلى إنشاء منتج الباقة بنفسي؟",
+    a: "لا. في باقات «اختر وامزج» يستطيع التطبيق إنشاء منتج الباقة ونشره، وصفحة خاصة بها في المتجر إذا أردت.",
+  },
+];
+const schema = [faqPage(faq)];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap">
+      <ArCrumbs items={crumbs} />
+      <span class="eyebrow">الباقات</span>
+      <h1>ست طرق لبيع منتجاتك معاً على <bdi>Shopify</bdi></h1>
+      <p class="lead">
+        كل عميل يخرج بقطعة واحدة وكان سيشتري ثلاثاً هو بيع ضاع عليك. الباقات ترفع قيمة الطلب: من صندوق «يُشترى معاً غالباً» بسيط، إلى صندوق يكوّنه العميل بخصم يكبر
+        مع كل قطعة. اختر ما تريد بيعه، ويفتح التطبيق المحرر المناسب مع معاينة مباشرة لمنتجاتك.
+      </p>
+      <nav class="jump" aria-label="أنواع الباقات">
+        {recipes.map(({ r, ar }, i) => <a class="btn ghost small" href={`#${recipeSlug(r.key)}`}>{i + 1}. {ar?.title ?? plain(r.short)}</a>)}
+      </nav>
+    </div>
+  </section>
+
+  {
+    recipes.map(({ r, ar }, i) => (
+      <section class:list={["section tight recipe", { mist: i % 2 === 0 }]} id={recipeSlug(r.key)}>
+        <div class:list={["wrap", "rgrid", { flip: i % 2 === 1 }]}>
+          <div>
+            <span class="eyebrow">نوع الباقة {i + 1}</span>
+            <h2>{ar?.title ?? plain(r.title)}</h2>
+            <p class="lead">{ar?.about ?? plain(r.about)}</p>
+            {ar && (
+              <dl>
+                <dt>الأنسب لـ</dt>
+                <dd>{ar.best}</dd>
+                <dt>السعر</dt>
+                <dd>{ar.price}</dd>
+                <dt>أين تظهر</dt>
+                <dd>{ar.where}</dd>
+                <dt>مثال</dt>
+                <dd>{ar.example}</dd>
+              </dl>
+            )}
+            <p class="rmore">
+              <a class="link" href={recipePath(r.key)} lang="en" hreflang="en">
+                {plain(r.short)}: setup, price and checkout
+              </a>
+              <span class="muted"> (بالإنجليزية)</span>
+            </p>
+          </div>
+          <Shot name={`bundles/${recipeSlug(r.key)}`} alt={`${ar?.title ?? plain(r.title)} على متجر تجريبي`} />
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section tight">
+    <div class="wrap center-actions">
+      <InstallButton medium="bundles" campaign="ar_bundles" lang="ar" />
+      <a class="btn ghost" href={AR_PAGES.pricing.path}>شاهد الأسعار</a>
+    </div>
+  </section>
+
+  <section class="section mist">
+    <div class="wrap">
+      <div class="head center"><h2>أسئلة عن الباقات</h2></div>
+      <Faq items={faq} />
+    </div>
+  </section>
+  <ArNotifyCta campaign="ar_bundles" />
+</Base>
+
+<style>
+  .rmore {
+    margin-top: 18px;
+  }
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  /* Long Arabic names wrap instead of pushing the page wider on a phone. */
+  .jump .btn {
+    white-space: normal;
+    text-align: start;
+  }
+  .rgrid {
+    display: grid;
+    gap: 36px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .rgrid {
+      grid-template-columns: 1fr 1.15fr;
+    }
+    .rgrid.flip > :first-child {
+      order: 2;
+    }
+  }
+  .recipe h2 {
+    margin-bottom: 12px;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+    margin: 22px 0 0;
+    font-size: 0.95rem;
+  }
+  dt {
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+    color: #2b2d35;
+  }
+  @media (max-width: 479px) {
+    dl {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    dd {
+      margin-bottom: 10px;
+    }
+  }
+  .center-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+</style>

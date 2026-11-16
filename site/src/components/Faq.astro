@@ -32,7 +32,8 @@ const { items } = Astro.props;
   summary {
     list-style: none;
     cursor: pointer;
-    padding: 22px 44px 22px 0;
+    padding-block: 22px;
+    padding-inline: 0 44px;
     position: relative;
   }
   summary::-webkit-details-marker {
@@ -41,7 +42,7 @@ const { items } = Astro.props;
   summary::after {
     content: "";
     position: absolute;
-    right: 4px;
+    inset-inline-end: 4px;
     top: 50%;
     width: 28px;
     height: 28px;
@@ -61,7 +62,8 @@ const { items } = Astro.props;
     letter-spacing: -0.015em;
   }
   p {
-    padding: 0 44px 24px 0;
+    padding: 0 0 24px;
+    padding-inline-end: 44px;
     color: var(--muted);
   }
   p :global(a) {

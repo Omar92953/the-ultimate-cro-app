@@ -8,6 +8,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { SITE_NAME, SITE_URL, GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION } from "../lib/site";
 import type { PageMeta } from "../lib/pages";
+import { languagePair, AR_HOME } from "../lib/ar";
 
 type Crumb = { name: string; href: string };
 interface Props {
@@ -32,16 +33,20 @@ const clip = (s: string, max = 160) => {
   return sentence > max * 0.6 ? cut.slice(0, sentence + 1) : `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:]$/, "")}…`;
 };
 const description = clip(page.description);
-const imageAlt = `${page.ogKicker ? `${page.ogKicker}: ` : ""}${page.ogTitle ?? page.title}. CRO Toolbox, a Shopify app.`;
+/** The Arabic section lives under /ar/: right to left, Arabic header and footer. */
+const lang = page.path.startsWith(AR_HOME) ? "ar" : "en";
+/** The same page in the other language, when there is one: hreflang links both ways, English as x-default. */
+const pair = languagePair(page.path);
+const imageAlt = page.ogAlt ?? `${page.ogKicker ? `${page.ogKicker}: ` : ""}${page.ogTitle ?? page.title}. CRO Toolbox, a Shopify app.`;
 const canonical = new URL(page.path, SITE_URL).toString();
-const ogImage = new URL(`/og/${page.slug}.png`, SITE_URL).toString();
+const ogImage = new URL(`/og/${page.ogImageSlug ?? page.slug}.png`, SITE_URL).toString();
 
 const ld = [...schema];
 if (crumbs?.length) {
   ld.push({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [{ name: "Home", href: "/" }, ...crumbs].map((c, i) => ({
+    itemListElement: [lang === "ar" ? { name: "الرئيسية", href: AR_HOME } : { name: "Home", href: "/" }, ...crumbs].map((c, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: c.name,
@@ -52,7 +57,7 @@ if (crumbs?.length) {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,6 +65,15 @@ if (crumbs?.length) {
     <meta name="description" content={description} />
     {/* A page kept out of search (the 404 page) has no canonical address of its own. */}
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {
+      pair && !noindex && (
+        <>
+          <link rel="alternate" hreflang="en" href={new URL(pair.en, SITE_URL).toString()} />
+          <link rel="alternate" hreflang="ar" href={new URL(pair.ar, SITE_URL).toString()} />
+          <link rel="alternate" hreflang="x-default" href={new URL(pair.en, SITE_URL).toString()} />
+        </>
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#0b0b0f" />
@@ -68,7 +82,8 @@ if (crumbs?.length) {
 
     <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:site_name" content={SITE_NAME} />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={lang === "ar" ? "ar_AR" : "en_US"} />
+    {pair && <meta property="og:locale:alternate" content={lang === "ar" ? "en_US" : "ar_AR"} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -89,11 +104,11 @@ if (crumbs?.length) {
     {ld.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
-    <Header />
+    <a class="skip" href="#main">{lang === "ar" ? "انتقل إلى المحتوى" : "Skip to content"}</a>
+    <Header lang={lang} other={pair ? (lang === "ar" ? pair.en : pair.ar) : undefined} />
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    <Footer lang={lang} other={pair ? (lang === "ar" ? pair.en : pair.ar) : undefined} />
   </body>
 </html>

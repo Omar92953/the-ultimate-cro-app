@@ -1,0 +1,280 @@
+---
+/**
+ * /ar/pricing/: the pricing page in Arabic. Mirrors /pricing/ (hreflang both ways, lib/ar.ts). Every number comes from
+ * the app's plans.ts; the full feature table stays on the English page, linked below the Arabic tables.
+ */
+import Base from "../../layouts/Base.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import ArCrumbs from "../../components/ar/ArCrumbs.astro";
+import ArPlanCards from "../../components/ar/ArPlanCards.astro";
+import ArNotifyCta from "../../components/ar/ArNotifyCta.astro";
+import { softwareApplication, faqPage } from "../../lib/schema";
+import { plans, PLANS, FEATURE_PLAN, EXTRA_PLAN, LOYALTY_PRO, METERS, ORDER_GRACE_DAYS, GUARANTEE, atLeast, trialDays, yearlySaving, type Limits, type PlanKey } from "../../lib/app";
+import { AR_PAGES, arLine, arNum, arPlan, arMoney, ltr } from "../../lib/ar";
+
+const page = AR_PAGES.pricing;
+const crumbs = [{ name: "الأسعار", href: page.path }];
+const free = PLANS.free;
+const paid = plans.filter((p) => p.monthly > 0);
+
+/** The counted limits, in the order of the English table. */
+const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
+  { key: "monthlyOrders", label: `الطلبات شهرياً (بعد التجاوز أمامك ${ORDER_GRACE_DAYS} يوماً للانتقال إلى خطة أعلى)` },
+  { key: "offerSlots", label: "عروض مفعّلة في وقت واحد" },
+  { key: "checkoutRules", label: "قواعد صفحة الدفع (الدفع والتوصيل وحدود الطلب)" },
+  { key: "countdownPlaces", label: "مؤقتات العد التنازلي" },
+  { key: "thankYouModules", label: "أقسام صفحة الشكر" },
+  { key: "designsPerSection", label: "تصاميم لكل قسم" },
+  { key: "offerStats", label: "عروض لها نتائج خاصة بها" },
+  { key: "trialFeatures", label: "مزايا من الخطة التالية تجربها" },
+  { key: "loyaltyOrders", label: "طلبات تكسب نقاط الولاء شهرياً" },
+];
+const limitCell = (p: PlanKey, k: keyof Limits) => {
+  const n = PLANS[p].limits[k];
+  // Loyalty is a feature of its own: 0 means the plan has no loyalty program, not a limit of zero.
+  if (n === 0 && k === "loyaltyOrders") return "غير متاح";
+  return arNum(n);
+};
+
+/** Features merchants in the region ask about first, with the plan that unlocks each (plans.ts). */
+const FEATURE_ROWS: { label: string; plan: PlanKey }[] = [
+  { label: "إخفاء الدفع عند الاستلام وقواعد الدفع والتوصيل", plan: FEATURE_PLAN.payment_rules },
+  { label: "حدود الطلب (حد أدنى أو أقصى للطلب)", plan: FEATURE_PLAN.order_limits },
+  { label: "البيع الإضافي والمتقاطع", plan: FEATURE_PLAN.upsell },
+  { label: "كل أنواع الباقات الست", plan: FEATURE_PLAN.bundles },
+  { label: "عروض السلة وعرض بعد الدفع", plan: FEATURE_PLAN.cart_offers },
+  { label: "صفحة تتبع الطلب وصفحة المرتجعات", plan: FEATURE_PLAN.track },
+  { label: "برنامج الولاء: نقاط ومكافآت ومتجر نقاط وإحالات", plan: FEATURE_PLAN.loyalty },
+  ...LOYALTY_PRO.map((t) => ({ label: `الولاء: ${arLine(t)}`, plan: "pro" as PlanKey })),
+  { label: "اختبارات A/B لعدة نسخ من العرض", plan: FEATURE_PLAN.ab_tests },
+  { label: "عروض مجدولة تبدأ وتنتهي في وقت محدد", plan: "pro" },
+  { label: "رصيد المتجر والاستبدال في المرتجعات", plan: FEATURE_PLAN.return_saving },
+  { label: "اختبار المقارنة (جزء من العملاء لا يرى العروض)", plan: EXTRA_PLAN.holdoutTest },
+  { label: "عروض أعلى وأسفل التتبع في صفحة التتبع", plan: EXTRA_PLAN.trackOffers },
+  { label: "دعم بأولوية", plan: EXTRA_PLAN.prioritySupport },
+];
+
+const meter = METERS.loyaltyOrders;
+const faq: QA[] = [
+  {
+    q: "كم سعر CRO Toolbox؟",
+    a: plans.map((p) => (p.monthly ? `${p.name} بسعر ${arMoney(p.monthly)} شهرياً أو ${arMoney(p.yearly)} سنوياً` : `${p.name} مجانية`)).join("، و") + ".",
+  },
+  {
+    q: "هل توجد تجربة مجانية؟",
+    a: `نعم. كل خطة مدفوعة تبدأ بتجربة مجانية ${trialDays} يوماً. وخطة ${free.name} بلا مدة.`,
+  },
+  {
+    q: "ماذا يُحسب في حد الطلبات الشهري؟",
+    a: `كل طلبات متجرك في الشهر الميلادي، وليس الطلبات التي فيها عرض فقط. إذا تجاوز متجرك الحد يذكّرك التطبيق لمدة ${ORDER_GRACE_DAYS} يوماً. بعدها لا يمكنك تفعيل عروض جديدة حتى تنتقل إلى خطة أعلى، والعروض المفعّلة تبقى تعمل.`,
+  },
+  {
+    q: "ما معنى «عرض مفعّل»؟",
+    a: `أي عرض شغّال: بيع إضافي، أو بيع متقاطع، أو باقة، أو منتج باقة، أو خصم، أو عرض بعد الدفع. خطة ${free.name} فيها ${free.limits.offerSlots} منها في وقت واحد، وتوقف عرضاً لتفعّل غيره. الخطط المدفوعة بلا حد.`,
+  },
+  {
+    q: "ما الخطط التي فيها برنامج الولاء؟",
+    a: `${PLANS.growth.name} و${PLANS.pro.name}. في ${PLANS.growth.name} نقاط ومكافآت ومتجر نقاط وإحالات، وعدد الطلبات التي تكسب نقاطاً شهرياً ${arNum(PLANS.growth.limits.loyaltyOrders)}. وفي ${PLANS.pro.name} يصبح ${arNum(PLANS.pro.limits.loyaltyOrders)}، مع ${LOYALTY_PRO.map(arLine).join("، و")}. عند الحد تتوقف الطلبات عن كسب النقاط حتى الشهر التالي، إلا إذا سمحت بالزيادة على الدفع الشهري (${arMoney(meter.price)} لكل ${meter.per} طلب إضافي). التفاصيل في <a href="${AR_PAGES.loyalty.path}">صفحة برنامج الولاء</a>.`,
+  },
+  {
+    q: "ما الخطة التي أحتاجها لإخفاء الدفع عند الاستلام؟",
+    a: `قواعد الدفع متاحة على ${arPlan(FEATURE_PLAN.payment_rules)}. عدد قواعد صفحة الدفع (الدفع والتوصيل وحدود الطلب معاً): ${arNum(free.limits.checkoutRules)} في ${free.name}، و${arNum(PLANS.starter.limits.checkoutRules)} في ${PLANS.starter.name}، وبلا حد من ${PLANS.growth.name}.`,
+  },
+  {
+    q: "كيف يتم الدفع؟",
+    a: "تحاسبك Shopify على الخطة ضمن فاتورة Shopify، والأسعار بالدولار الأمريكي. تختار الخطة أو تغيّرها أو تلغيها من التطبيق، وShopify تعرض صفحة الخطة وتتولى الدفع.",
+  },
+  {
+    q: "كيف أرقّي خطتي أو أغيّرها؟",
+    a: "في التطبيق افتح صفحة Plans من Settings ثم Change plan، واختر الخطة ووافق على الاشتراك في صفحة Shopify. مزايا الخطة الجديدة تُفتح بمجرد تأكيد Shopify.",
+  },
+  {
+    q: "كيف ألغي الاشتراك؟",
+    a: `اختر خطة ${free.name} من صفحة Plans في التطبيق، أو احذف التطبيق، فتتوقف Shopify عن تحصيل رسومه. الإلغاء خلال التجربة المجانية (${trialDays} يوماً) يعني أنك لا تدفع شيئاً.`,
+  },
+  {
+    q: "ماذا يحدث عند النزول إلى خطة أقل أو الإلغاء؟",
+    a: `${arLine(GUARANTEE)} لا يُحذف شيء: العروض التي تتجاوز حدود الخطة الجديدة، والمزايا التي لا تشملها، تتوقف مع حفظ إعداداتها، وتعود عندما ترقّي خطتك.`,
+  },
+  {
+    q: "هل الدفع السنوي أوفر؟",
+    a: `نعم. الدفع السنوي يوفّر حتى ${ltr(`${Math.max(...plans.map(yearlySaving))}%`)} مقارنة بالدفع الشهري لمدة 12 شهراً.`,
+  },
+];
+
+const app = softwareApplication(page.description);
+const schema = [
+  { ...app, inLanguage: "ar", offers: app.offers.map((o) => ({ ...o, name: o.name.replace("(monthly)", "(شهري)").replace("(yearly)", "(سنوي)") })) },
+  faqPage(faq),
+];
+---
+
+<Base page={page} schema={schema} crumbs={crumbs}>
+  <section class="page-hero">
+    <div class="wrap head center">
+      <ArCrumbs items={crumbs} center />
+      <h1>أسعار بسيطة، وخطة مجانية</h1>
+      <p class="lead">
+        خطة {free.name} مجانية، والخطط المدفوعة {paid.map((p) => arMoney(p.monthly)).join(" و")} شهرياً، وكل خطة مدفوعة تبدأ بتجربة مجانية {trialDays} يوماً.
+      </p>
+    </div>
+  </section>
+
+  <section class="section tight cards-section">
+    <div class="wrap">
+      <h2 class="sr-only">الخطط</h2>
+      <ArPlanCards medium="pricing" campaign="ar_pricing" />
+    </div>
+  </section>
+
+  <section class="section mist">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">قارن الخطط</span>
+        <h2>ماذا تشمل كل خطة</h2>
+        <p class="lead">نفس الأرقام التي يستخدمها التطبيق ليفتح المزايا، لذلك الجدول محدّث دائماً.</p>
+      </div>
+
+      <div class="table-scroll">
+        <table class="compare">
+          <caption class="sr-only">حدود الخطط</caption>
+          <thead>
+            <tr>
+              <th scope="col">الحدود</th>
+              {plans.map((p) => <th scope="col">{p.name}<span>{p.monthly ? `${arMoney(p.monthly)} شهرياً` : "$0"}</span></th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              LIMIT_ROWS.map((r) => (
+                <tr>
+                  <th scope="row">{r.label}</th>
+                  {plans.map((p) => (
+                    <td>{limitCell(p.key, r.key)}</td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-scroll">
+        <table class="compare">
+          <caption class="sr-only">مزايا مختارة حسب الخطة</caption>
+          <thead>
+            <tr>
+              <th scope="col">المزايا</th>
+              {plans.map((p) => <th scope="col">{p.name}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              FEATURE_ROWS.map((r) => (
+                <tr>
+                  <th scope="row">{r.label}</th>
+                  {plans.map((p) => (
+                    <td>{atLeast(p.key, r.plan) ? <span class="yes"><span class="sr-only">متاح</span></span> : <span class="no"><span class="sr-only">غير متاح</span></span>}</td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small-note">
+        في خطة {free.name} تعمل العروض ومزايا صفحة الدفع ضمن الحدود أعلاه، ويمكنك تجربة ميزة من {PLANS.starter.name} تختارها. الجدول الكامل لكل المزايا
+        <a class="link" href="/pricing/" lang="en" hreflang="en">في صفحة الأسعار بالإنجليزية</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">أسئلة عن الأسعار</span>
+        <h2>أسئلة عن الخطط والدفع</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <ArNotifyCta campaign="ar_pricing" />
+</Base>
+
+<style>
+  .page-hero {
+    padding-bottom: 0;
+  }
+  .cards-section {
+    padding-top: 24px;
+  }
+  .table-scroll {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .compare {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .compare th,
+  .compare td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--mist-2);
+    text-align: center;
+  }
+  .compare tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .compare th[scope="row"],
+  .compare thead th:first-child {
+    text-align: start;
+    font-weight: 550;
+    width: 40%;
+  }
+  .compare thead th {
+    font-weight: 750;
+    background: var(--mist);
+    font-size: 1rem;
+  }
+  .compare thead th:first-child {
+    font-weight: 800;
+    font-size: 1.05rem;
+    border-start-start-radius: var(--radius);
+  }
+  .compare thead th:last-child {
+    border-start-end-radius: var(--radius);
+  }
+  .compare thead th span {
+    display: block;
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .yes,
+  .no {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    vertical-align: middle;
+    border-radius: 50%;
+  }
+  .yes {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.5 3.5 7.5-8.5' fill='none' stroke='%230b7a45' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      center / 18px no-repeat;
+  }
+  .no {
+    width: 10px;
+    height: 2px;
+    border-radius: 2px;
+    background: #c9c9c3;
+  }
+  .small-note {
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+</style>

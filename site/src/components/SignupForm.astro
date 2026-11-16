@@ -1,0 +1,98 @@
+---
+/**
+ * The "Email me at launch" form (NotifyCta, ArNotifyCta). Posts to the app's server (SIGNUP_URL, app/routes/site.notify.tsx),
+ * which stores the email in the app's database. Without JavaScript the browser posts it and the server answers with a page.
+ */
+import { SIGNUP_URL } from "../lib/site";
+interface Props {
+  id: string;
+  lang?: "en" | "ar";
+}
+const { id, lang = "en" } = Astro.props;
+const ar = lang === "ar";
+const page = Astro.url.pathname;
+const t = ar
+  ? { label: "بريدك الإلكتروني", button: "راسلني عند الإطلاق", fine: "رسالة واحدة يوم الإطلاق، لا شيء غيرها.", ok: "شكراً، أنت في القائمة. سنراسلك مرة واحدة يوم الإطلاق.", bad: "اكتب بريداً إلكترونياً صحيحاً.", busy: "محاولات كثيرة. حاول بعد دقائق.", fail: "لم نتمكن من الوصول إلى الخادم. حاول بعد دقيقة." }
+  : { label: "Your email", button: "Email me at launch", fine: "One email on launch day. Nothing else.", ok: "Thanks, you're on the list. We'll email you once, on launch day.", bad: "Please enter a valid email address.", busy: "Too many tries. Please wait a few minutes.", fail: "We couldn't reach our server. Please try again in a minute." };
+---
+
+<form class="signup" method="post" action={SIGNUP_URL} data-signup data-ok={t.ok} data-bad={t.bad} data-busy={t.busy} data-fail={t.fail}>
+  <label class="sr-only" for={`signup-${id}`}>{t.label}</label>
+  <input id={`signup-${id}`} name="email" type="email" required autocomplete="email" inputmode="email" dir="ltr" placeholder="you@yourstore.com" maxlength="254" />
+  <input type="hidden" name="page" value={page} />
+  <input type="hidden" name="js" value="0" />
+  <div class="hp" aria-hidden="true">
+    <label>Company <input name="company" tabindex="-1" autocomplete="off" /></label>
+  </div>
+  <button class="btn primary" type="submit">{t.button}</button>
+</form>
+<p class="fine" data-signup-status role="status" aria-live="polite">{t.fine}</p>
+
+<script>
+  // Sends the form without leaving the page. Messages come from the form's data attributes (English or Arabic).
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-signup]")) {
+    const status = form.nextElementSibling as HTMLElement | null;
+    const say = (key: "ok" | "bad" | "busy" | "fail") => {
+      if (status) status.textContent = form.dataset[key] ?? "";
+    };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const button = form.querySelector("button");
+      const data = new FormData(form);
+      data.set("js", "1");
+      if (button) button.disabled = true;
+      try {
+        const res = await fetch(form.action, { method: "POST", body: new URLSearchParams(data as unknown as Record<string, string>) });
+        if (res.ok) {
+          say("ok");
+          form.reset();
+        } else say(res.status === 400 ? "bad" : res.status === 429 ? "busy" : "fail");
+      } catch {
+        say("fail");
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .signup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 32px auto 0;
+    max-width: 520px;
+  }
+  .signup input[type="email"] {
+    flex: 1 1 240px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 18px;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.08);
+    color: inherit;
+    font: inherit;
+  }
+  .signup input[type="email"]::placeholder {
+    color: rgb(255 255 255 / 0.7);
+  }
+  .signup input[type="email"]:focus-visible {
+    outline: 2px solid var(--accent, #3ee08f);
+    outline-offset: 2px;
+  }
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .fine {
+    margin: 12px 0 0;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+</style>

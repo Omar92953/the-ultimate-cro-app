@@ -4,14 +4,14 @@
  * "Get notified" section every Install button points to.
  */
 import InstallButton from "./InstallButton.astro";
-import { INSTALL_URL, SIGNUP_URL } from "../lib/site";
+import SignupForm from "./SignupForm.astro";
+import { INSTALL_URL } from "../lib/site";
 import { PLANS, trialDays } from "../lib/app";
 interface Props {
   campaign: string;
 }
 const { campaign } = Astro.props;
 const live = Boolean(INSTALL_URL);
-const page = Astro.url.pathname;
 ---
 
 <section class="section dark final" id={live ? "install" : "get-notified"}>
@@ -34,17 +34,7 @@ const page = Astro.url.pathname;
             CRO Toolbox is on its way to the Shopify App Store. The install button on this site will go straight to the listing the day it's
             live, with the {PLANS.free.name} plan and a {trialDays} day trial on every paid plan.
           </p>
-          <form class="signup" method="post" action={SIGNUP_URL} data-signup>
-            <label class="sr-only" for={`signup-${campaign}`}>Your email</label>
-            <input id={`signup-${campaign}`} name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@yourstore.com" maxlength="254" />
-            <input type="hidden" name="page" value={page} />
-            <input type="hidden" name="js" value="0" />
-            <div class="hp" aria-hidden="true">
-              <label>Company <input name="company" tabindex="-1" autocomplete="off" /></label>
-            </div>
-            <button class="btn primary" type="submit">Email me at launch</button>
-          </form>
-          <p class="fine" data-signup-status role="status" aria-live="polite">One email on launch day. Nothing else.</p>
+          <SignupForm id={campaign} />
           <div class="actions">
             <a class="btn ghost" href="/#features">
               See all features
@@ -56,69 +46,7 @@ const page = Astro.url.pathname;
   </div>
 </section>
 
-<script>
-  // Sends the form without leaving the page; without JavaScript the browser posts it and the server answers with a page.
-  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-signup]")) {
-    const status = form.parentElement?.querySelector<HTMLElement>("[data-signup-status]");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const button = form.querySelector("button");
-      const data = new FormData(form);
-      data.set("js", "1");
-      if (button) button.disabled = true;
-      try {
-        const res = await fetch(form.action, { method: "POST", body: new URLSearchParams(data as unknown as Record<string, string>) });
-        const out = await res.json().catch(() => ({ ok: false, message: "Please try again." }));
-        if (status) status.textContent = out.ok ? `Thanks, you're on the list. ${out.message}` : out.message;
-        if (out.ok) form.reset();
-      } catch {
-        if (status) status.textContent = "We couldn't reach our server. Please try again in a minute.";
-      } finally {
-        if (button) button.disabled = false;
-      }
-    });
-  }
-</script>
-
 <style>
-  .signup {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin: 32px auto 0;
-    max-width: 520px;
-  }
-  .signup input[type="email"] {
-    flex: 1 1 240px;
-    min-width: 0;
-    min-height: 48px;
-    padding: 0 18px;
-    border: 1px solid rgb(255 255 255 / 0.35);
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.08);
-    color: inherit;
-    font: inherit;
-  }
-  .signup input[type="email"]::placeholder {
-    color: rgb(255 255 255 / 0.7);
-  }
-  .signup input[type="email"]:focus-visible {
-    outline: 2px solid var(--accent, #3ee08f);
-    outline-offset: 2px;
-  }
-  .hp {
-    position: absolute;
-    left: -10000px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  }
-  .fine {
-    margin: 12px 0 0;
-    font-size: 0.9rem;
-    opacity: 0.85;
-  }
   .final {
     background:
       radial-gradient(60% 80% at 50% 120%, rgb(62 224 143 / 0.22), transparent 70%),

@@ -1,0 +1,215 @@
+---
+/**
+ * The four plan cards in Arabic, with the Monthly / Yearly switch (same markup and CSS idea as PlanCards.astro).
+ * Every number comes from the app's plans.ts; the plan lines are turned into Arabic by arLine (lib/ar.ts).
+ */
+import InstallButton from "../InstallButton.astro";
+import { plans, money, yearlySaving, plain, GUARANTEE, ORDER_GRACE_DAYS } from "../../lib/app";
+import { arLine, arBadge, arOrders, ltr } from "../../lib/ar";
+interface Props {
+  medium: string;
+  campaign: string;
+}
+const { medium, campaign } = Astro.props;
+const best = Math.max(...plans.map(yearlySaving));
+const id = `billing-${campaign}`;
+const ticks = Math.max(...plans.map((p) => p.highlights.length));
+---
+
+<div class="plans">
+  <div class="switch" role="radiogroup" aria-label="فترة الدفع">
+    <input type="radio" name={id} id={`${id}-m`} value="monthly" checked />
+    <label for={`${id}-m`}>شهري</label>
+    <input type="radio" name={id} id={`${id}-y`} value="yearly" />
+    <label for={`${id}-y`}>سنوي <span class="save">وفّر حتى {ltr(`${best}%`)}</span></label>
+  </div>
+
+  <div class="cards" style={`--ticks: ${ticks}`}>
+    {
+      plans.map((p) => (
+        <article class:list={["plan", { featured: p.badge }]}>
+          {p.badge && <span class="badge">{arBadge(p.badge)}</span>}
+          <h3>{p.name}</h3>
+          <p class="job">{arLine(plain(p.job))}</p>
+          <div class="prices">
+            <div class="price m">
+              <b>{money(p.monthly)}</b>
+              <span>{p.monthly ? "شهرياً" : "دائماً"}</span>
+            </div>
+            <div class="price y">
+              <b>{money(p.yearly)}</b>
+              <span>{p.yearly ? "سنوياً" : "دائماً"}</span>
+              {p.yearly > 0 && <em>وفّر {ltr(`${yearlySaving(p)}%`)}</em>}
+            </div>
+          </div>
+          <p class="orders">{arOrders(p)}</p>
+          <p class="trial">{p.trialDays ? `تجربة مجانية ${p.trialDays} يوماً` : "بدون بطاقة"}</p>
+          <ul class="check-list">
+            {p.highlights.map((h) => (
+              <li>{arLine(h)}</li>
+            ))}
+          </ul>
+          <InstallButton medium={medium} campaign={`${campaign}_${p.key}`} label={p.monthly ? `ابدأ تجربة ${p.trialDays} يوماً` : "ابدأ مجاناً"} class={p.badge ? "primary" : "ghost"} lang="ar" />
+        </article>
+      ))
+    }
+  </div>
+  <p class="fine muted">
+    {arLine(GUARANTEE)} الفاتورة من Shopify وبالدولار الأمريكي. حد الطلبات يحسب كل طلبات متجرك في الشهر الميلادي. إذا تجاوزته فأمامك {ORDER_GRACE_DAYS} يوماً
+    للانتقال إلى خطة أعلى، والعروض المفعّلة تبقى تعمل.
+  </p>
+</div>
+
+<style>
+  .switch {
+    display: inline-flex;
+    position: relative;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--mist-2);
+    margin: 0 auto 32px;
+  }
+  .plans {
+    text-align: center;
+  }
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .switch label {
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-weight: 650;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .switch input:checked + label {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .switch input:focus-visible + label {
+    outline: 3px solid var(--accent-deep);
+    outline-offset: 2px;
+  }
+  .save {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--accent-deep);
+  }
+  .cards {
+    display: grid;
+    gap: 16px;
+    text-align: start;
+  }
+  @media (min-width: 640px) {
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1040px) {
+    .cards {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .plan {
+    position: relative;
+    display: grid;
+    grid-row: span calc(6 + var(--ticks));
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-content: start;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 28px 24px 24px;
+  }
+  .plan > :global(.btn) {
+    align-self: end;
+  }
+  .badge {
+    position: absolute;
+    top: -13px;
+    inset-inline-start: 24px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 12px;
+    border-radius: 999px;
+  }
+  .job {
+    color: var(--muted);
+    font-size: 0.93rem;
+    margin: 8px 0 18px;
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .price b {
+    font-size: 2.6rem;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    line-height: 1;
+    /* "$5.99" keeps its own order inside the Arabic line. */
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .price span {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .price em {
+    font-style: normal;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-deep);
+  }
+  .price.y {
+    display: none;
+  }
+  .plans:has(input[value="yearly"]:checked) .price.m {
+    display: none;
+  }
+  .plans:has(input[value="yearly"]:checked) .price.y {
+    display: flex;
+  }
+  .orders {
+    margin-top: 14px;
+    font-weight: 650;
+  }
+  .trial {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .check-list {
+    font-size: 0.95rem;
+    margin: 0 0 24px;
+    display: grid;
+    grid-row: span var(--ticks);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  .check-list li {
+    padding-block: 5px;
+  }
+  .check-list li::before {
+    top: calc(5px + 0.45em);
+  }
+  .plan :global(.btn) {
+    width: 100%;
+  }
+  .fine {
+    margin: 24px auto 0;
+    font-size: 0.88rem;
+    max-width: 720px;
+  }
+</style>
