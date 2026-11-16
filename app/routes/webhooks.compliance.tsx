@@ -4,6 +4,7 @@ import { removeShopData } from "../lib/shop-data.server";
 import { recentForOrders, redactRecent } from "../lib/boosters.server";
 import { alertsForEmail, redactEmail } from "../lib/stock.server";
 import { redactReviewerEmail, reviewerEmailsFor } from "../lib/reviewer-email.server";
+import { redactLookupEmail } from "../lib/lookup-guard.server";
 import { redactOrders, redactReturnsEmail, returnsForEmail } from "../lib/orders-lookup.server";
 import { loyaltyHeldFor, redactLoyaltyCustomer } from "../lib/loyalty/program.server";
 
@@ -17,7 +18,8 @@ import { loyaltyHeldFor, redactLoyaltyCustomer } from "../lib/loyalty/program.se
  * they want); return requests (order number, email, items, reason); the email a merchant typed to check a review against orders; and loyalty
  * members (customer id, email, points and their history). No names or addresses. So:
  *  - customers/data_request: count (never log) what's held for the listed orders and the customer's email
- *  - customers/redact: remove those orders from the list and that email's back-in-stock requests, return requests and reviewer emails
+ *  - customers/redact: remove those orders from the list and that email's back-in-stock requests, return requests, reviewer emails
+ *    and order lookups that found nothing
  *  - shop/redact (48h after uninstall): delete sessions, back-in-stock requests and reviewer emails for the shop;
  *    the shop's app-owned metaobjects go with the app
  * An error answers 500, so Shopify retries the delivery.
@@ -52,7 +54,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const removed = admin ? await redactRecent(admin, payload?.orders_to_redact ?? []) : 0;
       const email = String(payload?.customer?.email ?? "");
       const gone =
-        (email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count : 0) +
+        (email ? (await redactEmail(shop, email)).count + (await redactReturnsEmail(shop, email)).count + (await redactReviewerEmail(shop, email)).count + (await redactLookupEmail(shop, email)).count : 0) +
         (await redactLoyaltyCustomer(shop, String(payload?.customer?.id ?? ""), email)) +
         // Kept by order too: a customer who changed their email still has their return requests and Track page codes removed.
         (await redactOrders(shop, payload?.orders_to_redact ?? []));

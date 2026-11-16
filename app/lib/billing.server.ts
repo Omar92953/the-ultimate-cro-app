@@ -308,17 +308,29 @@ export async function applyPlanLimits(admin: AdminClient, plan: PlanKey, sync: P
 const checkoutRuleName = (k: CheckoutKind) => (k === "payment" ? "A payment rule" : k === "delivery" ? "A delivery rule" : "An order limit");
 
 /**
- * Runs applyPlanLimits once per plan change per shop (in the background; never slows a page). Only
- * when the plan is confirmed: an unconfirmed "Free" (no Partner API set up) must never switch off a
- * paying store's offers.
+ * Runs applyPlanLimits once per plan change per shop (in the background; never slows a page). Only when the plan is
+ * confirmed: an unconfirmed "Free" must never switch off a paying store's offers. "No subscription" from the Admin API
+ * (source "none", no Partner API keys) counts as confirmed when Shopify's app_subscriptions/update webhook says the
+ * subscription ended (`confirmed`), or when every check for an hour said the same (audit 2026-11-14, A6: before, a store
+ * could start a trial, switch on everything, cancel, and keep it all running on Free).
  */
 const applied = new Map<string, string>();
-export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo) {
+const NONE_CONFIRM_MS = 60 * 60_000;
+const noneSince = new Map<string, number>();
+export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo, opts: { confirmed?: boolean; now?: number } = {}) {
   const key = `${info.plan}${info.yearly ? ":yearly" : ""}`;
-  if (info.source === "error" || info.source === "none" || applied.get(shop) === key) return;
+  if (info.source === "error") return;
+  if (info.source === "none" && !opts.confirmed) {
+    const now = opts.now ?? Date.now();
+    const since = noneSince.get(shop);
+    if (since === undefined) noneSince.set(shop, now);
+    if (since === undefined || now - since < NONE_CONFIRM_MS) return;
+  }
+  if (info.source !== "none") noneSince.delete(shop);
+  if (applied.get(shop) === key) return;
   applied.set(shop, key);
   // Yearly billing has no usage charges: its limits are hard stops ("Allow extra" off).
-  setBillingYearly(shop, info.yearly)
+  return setBillingYearly(shop, info.yearly)
     .then(() => applyPlanLimits(admin, info.plan))
     // The loyalty widget is not a theme design (plan-park.ts): it is saved again for the new plan.
     .then(() => import("./loyalty/storefront.server").then((m) => m.republishLoyalty(admin, shop)))

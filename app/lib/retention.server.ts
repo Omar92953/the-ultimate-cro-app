@@ -22,6 +22,7 @@ export async function pruneOldData(now = new Date()) {
     db.reviewerEmail.deleteMany({ where: { createdAt: { lt: ago(d.reviewerEmail) } } }),
     db.trackingCache.deleteMany({ where: { checkedAt: { lt: ago(d.trackingCache) } } }),
     db.trackCode.deleteMany({ where: { endsAt: { lt: ago(d.trackCode) } } }),
+    db.lookupMiss.deleteMany({ where: { createdAt: { lt: ago(d.lookupMiss) } } }),
   ]);
   return results.reduce((n, r) => n + r.count, 0);
 }
