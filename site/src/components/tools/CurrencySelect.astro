@@ -1,0 +1,17 @@
+---
+/** The currency used to show amounts. It only changes how results are written; nothing is converted. */
+import { CURRENCIES } from "../../lib/calculators";
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+---
+
+<div class="field currency">
+  <label for={id}>Show amounts in</label>
+  <div class="control">
+    <select id={id} name="currency">
+      {CURRENCIES.map((c) => <option value={c.code} selected={c.code === "USD"}>{c.label}</option>)}
+    </select>
+  </div>
+</div>

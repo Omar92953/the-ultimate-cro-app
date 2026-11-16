@@ -42,6 +42,8 @@ To find how many top ups you need:
 
 There is one more effect you can't calculate in advance: some shoppers who would have left at the shipping cost may now buy. Count those when you measure the result, not when you plan.
 
+To run these numbers for your own store, use the [free shipping threshold calculator](/tools/free-shipping-threshold-calculator/).
+
 ## A worked example
 
 The numbers below are made up for this example. Use your own.

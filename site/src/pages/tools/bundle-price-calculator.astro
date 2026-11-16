@@ -1,0 +1,146 @@
+---
+/** /tools/bundle-price-calculator/: bundle price, margin against selling separately and break even uplift. */
+import ToolPage from "../../components/tools/ToolPage.astro";
+import Field from "../../components/tools/Field.astro";
+import CurrencySelect from "../../components/tools/CurrencySelect.astro";
+import Stat from "../../components/tools/Stat.astro";
+import { tool } from "../../lib/tools";
+import { bundleView, type BundleInput } from "../../lib/calculators";
+
+const t = tool("/tools/bundle-price-calculator/");
+/** Example numbers: made up, shown so a result appears straight away. A third item is ready with quantity 0. */
+const d: BundleInput = {
+  items: [
+    { price: 30, cost: 12, qty: 1 },
+    { price: 20, cost: 8, qty: 1 },
+    { price: 15, cost: 5, qty: 0 },
+  ],
+  mode: "percent",
+  percent: 10,
+  fixed: 45,
+};
+const view = bundleView(d, "USD");
+const faq = [
+  {
+    q: "How much discount should a bundle have?",
+    a: 'A small one to start: 10% on a set of two and 15% on a set of three is a common first step. The goal is to make the set the easy choice without cutting your margin on every order. Enter your own prices and costs above to see what each discount leaves you. More in <a href="/blog/how-to-add-frequently-bought-together-to-shopify/">how to add frequently bought together to Shopify</a>.',
+  },
+  {
+    q: "What is break even uplift?",
+    a: "How many more bundles you need to sell to earn the same total margin as selling the same items at full price. It is the margin at full price divided by the margin on the bundle, minus 1. If shoppers would have bought every item anyway, the discount is a cost, and the uplift is what wins it back.",
+  },
+  {
+    q: "When does a bundle discount pay for itself?",
+    a: "When it brings orders you would not have had: a shopper who would have bought one item buys the set. Every such shopper adds the margin of the extra items, less the discount. Shoppers who would have bought the whole set anyway cost you the discount. That is why the discount should be small and the items should really go together.",
+  },
+  {
+    q: "What should I count as the cost of an item?",
+    a: "What you pay for the product, plus anything else that comes with each unit, such as packaging. Leave out costs that stay the same however many you sell.",
+  },
+  {
+    q: "Can I use it for quantity breaks like Buy 2, save 10%?",
+    a: "Yes. Enter one item with a quantity of 2 or 3 and the discount of that tier. The result shows the margin per order at that tier against the same quantity at full price.",
+  },
+];
+---
+
+<ToolPage
+  tool={t}
+  lead="Enter the price and cost of each item and a discount or a fixed bundle price. See the margin per bundle against selling the items separately, and how many more sales the discount needs to break even."
+  featureLine="CRO Toolbox has six bundle types, including frequently bought together and mix and match, and the bundle price is a real Shopify discount applied at checkout."
+  faq={faq}
+>
+  <form class="calc" id="bp-form" aria-label="Bundle price calculator">
+    <div class="calc-inputs">
+      <CurrencySelect id="bp-currency" />
+      {
+        d.items.map((it, i) => (
+          <fieldset>
+            <legend>Item {i + 1}</legend>
+            <div class="calc-fields three">
+              <Field id={`bp-price-${i}`} name={`price${i}`} label="Price" value={it.price} />
+              <Field id={`bp-cost-${i}`} name={`cost${i}`} label="Cost" value={it.cost} />
+              <Field id={`bp-qty-${i}`} name={`qty${i}`} label="Quantity" value={it.qty} step="1" hint={i === 2 ? "0 leaves it out." : undefined} />
+            </div>
+          </fieldset>
+        ))
+      }
+      <fieldset>
+        <legend>Bundle price</legend>
+        <div class="choices">
+          <label><input type="radio" name="mode" value="percent" checked /> Percent off</label>
+          <label><input type="radio" name="mode" value="fixed" /> Fixed price</label>
+        </div>
+        <div class="calc-fields">
+          <Field id="bp-percent" name="percent" label="Discount" value={d.percent} suffix="%" max={100} />
+          <Field id="bp-fixed" name="fixed" label="Bundle price" value={d.fixed} disabled />
+        </div>
+      </fieldset>
+      <p class="calc-note">The numbers filled in are made up, to show how it works. Replace them with your own. Nothing you type leaves this page.</p>
+    </div>
+
+    <div class="calc-result">
+      <h2>Result</h2>
+      <dl>
+        <Stat id="bp-separate" label="Items bought separately" view={view} />
+        <Stat id="bp-price" label="Bundle price" view={view} />
+        <Stat id="bp-margin" label="Margin per bundle" view={view} />
+        <Stat id="bp-change" label="Margin against selling separately" view={view} />
+        <Stat id="bp-uplift" label="Break even uplift" view={view} />
+      </dl>
+      <p class="summary" data-summary>{view.summary}</p>
+      <p class="sr-only" aria-live="polite" data-live></p>
+    </div>
+  </form>
+
+  <Fragment slot="how">
+    <p>
+      A bundle gives up part of the price to make a set the easy choice. The calculator compares the bundle with the same items sold separately at full price, using the framing from
+      our guides to <a href={t.article.href}>quantity breaks</a> and <a href="/blog/how-to-add-frequently-bought-together-to-shopify/">frequently bought together</a>.
+    </p>
+    <ul>
+      <li><strong>Separate price</strong> = the sum of price × quantity for each item; <strong>total cost</strong> = the sum of cost × quantity</li>
+      <li><strong>Bundle price</strong> = separate price × (1 minus the discount), or the fixed price you enter</li>
+      <li><strong>Margin per bundle</strong> = bundle price minus total cost</li>
+      <li><strong>Break even uplift</strong> = margin at full price ÷ margin per bundle, minus 1</li>
+    </ul>
+    <p>
+      With the example numbers: two items at $30 and $20 cost you $12 and $8. Separately they sell for $50 with a margin of $50 minus $20 = $30. At 10% off the bundle sells for $45
+      with a margin of $45 minus $20 = $25, so each bundle earns $5 less. To earn the same $30 of margin per full price set, you need 30 ÷ 25 minus 1 = 20% more bundle sales than you would
+      have had full price sets.
+    </p>
+    <p>
+      The uplift is the worst case: it assumes every bundle buyer would have bought every item anyway. A shopper who would have bought only the first item and takes the bundle instead adds
+      margin: in the example, $25 instead of $18.
+    </p>
+  </Fragment>
+</ToolPage>
+
+<script>
+  import { setupCalc } from "../../lib/calc-ui";
+  import { bundleView } from "../../lib/calculators";
+
+  const form = document.getElementById("bp-form") as HTMLFormElement | null;
+  if (form) {
+    const percent = form.elements.namedItem("percent") as HTMLInputElement;
+    const fixed = form.elements.namedItem("fixed") as HTMLInputElement;
+    const mode = () => ((form.elements.namedItem("mode") as RadioNodeList).value === "fixed" ? "fixed" : "percent");
+    const sync = () => {
+      percent.disabled = mode() === "fixed";
+      fixed.disabled = mode() === "percent";
+    };
+    form.addEventListener("change", sync);
+    sync();
+    setupCalc(form, (n, cur) =>
+      bundleView(
+        {
+          items: [0, 1, 2].map((i) => ({ price: n(`price${i}`), cost: n(`cost${i}`), qty: n(`qty${i}`) })),
+          mode: mode(),
+          percent: n("percent"),
+          fixed: n("fixed"),
+        },
+        cur,
+      ),
+    );
+  }
+</script>

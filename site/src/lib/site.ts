@@ -137,6 +137,7 @@ export const FOOTER: { title: string; links: NavLink[] }[] = [
       { label: "Help center", href: "/help/" },
       ...(TUTORIALS_READY.length ? [{ label: "Tutorials", href: "/tutorials/" }] : []),
       { label: "Guides", href: "/blog/" },
+      { label: "Free tools", href: "/tools/" },
       { label: "Support", href: "/support/" },
     ],
   },

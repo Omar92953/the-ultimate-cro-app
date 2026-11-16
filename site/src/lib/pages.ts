@@ -8,6 +8,7 @@ import { FEATURE_COPY } from "./features";
 import { USE_CASES } from "./usecases";
 import { COMPETITORS } from "./competitors";
 import { BRAND_LINE } from "./brand";
+import { TOOLS, TOOLS_PAGE } from "./tools";
 
 const paidList = plans.filter((p) => p.monthly > 0).map((p) => `${p.name} ${money(p.monthly)}`);
 const free = plans.find((p) => p.monthly === 0)?.name ?? "Free";
@@ -172,4 +173,4 @@ export const COMPARE_PAGES: PageMeta[] = COMPETITORS.map((c) => ({
   ogKicker: "Compare",
 }));
 
-export const ALL_PAGES: PageMeta[] = [...Object.values(PAGES), ...Object.values(MORE_PAGES), ...Object.values(FEATURE_PAGES), ...AREA_PAGES, ...USE_CASE_PAGES, ...COMPARE_PAGES];
+export const ALL_PAGES: PageMeta[] = [...Object.values(PAGES), ...Object.values(MORE_PAGES), ...Object.values(FEATURE_PAGES), ...AREA_PAGES, ...USE_CASE_PAGES, ...COMPARE_PAGES, TOOLS_PAGE, ...TOOLS];

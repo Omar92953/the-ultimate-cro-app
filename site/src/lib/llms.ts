@@ -14,6 +14,7 @@ import { TUTORIALS_READY } from "../../../app/lib/tutorials";
 import { RECIPE_META, recipePath } from "./recipes";
 import { ALTERNATIVES, altMeta } from "./alternatives";
 import { CHANGELOG } from "./changelog";
+import { TOOLS, TOOLS_PAGE } from "./tools";
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
@@ -84,6 +85,10 @@ export async function llmsTxt(): Promise<string> {
     ...(await articles()).map(articleMeta).map(line),
     ...(await guides()).map(guideMeta).map(line),
     ...(INSTALL_URL ? [`- [Shopify App Store listing](${INSTALL_URL})`] : []),
+    "",
+    "## Free tools",
+    "",
+    ...[TOOLS_PAGE, ...TOOLS].map(line),
     "",
     "## Optional",
     "",

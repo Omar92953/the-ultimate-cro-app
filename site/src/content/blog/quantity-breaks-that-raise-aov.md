@@ -21,7 +21,7 @@ They are tiers shown on the product page, usually as selectable rows or cards. E
 - **A badge on the tier you want.** "Most popular" on Buy 2 makes the choice easier.
 - **Products people buy again.** Consumables, basics, gifts and multipacks.
 
-Avoid deep discounts on your best sellers before you've seen how shoppers react.
+Avoid deep discounts on your best sellers before you've seen how shoppers react. To see what each tier leaves you in margin, try the [bundle price calculator](/tools/bundle-price-calculator/) with one item and the tier's quantity.
 
 ## How do I set them up with CRO Toolbox?
 
