@@ -404,6 +404,11 @@ p {
 .prose th {
   background: var(--mist);
 }
+/* Plain text blocks (like the return policy template) wrap, so they read on a phone without scrolling sideways. */
+.prose pre[data-language="text"] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .table-scroll {
   /* Contains the visually hidden labels in cells, which are absolutely positioned. */
   position: relative;
