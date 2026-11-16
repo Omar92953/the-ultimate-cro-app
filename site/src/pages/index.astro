@@ -416,6 +416,8 @@ const schema = [organization(), website(), softwareApplication(page.description)
   }
   .hero-grid {
     display: grid;
+    /* minmax(0, 1fr): the product mockup must shrink to the phone's width instead of widening the page. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 48px;
     align-items: center;
   }

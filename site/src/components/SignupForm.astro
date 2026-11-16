@@ -83,12 +83,18 @@ const t = ar
     outline: 2px solid var(--accent, #3ee08f);
     outline-offset: 2px;
   }
+  /* Spam trap kept off screen with clip, not a big negative offset: on right to left pages an offset widens the page. */
   .hp {
     position: absolute;
-    left: -10000px;
     width: 1px;
     height: 1px;
+    margin: -1px;
+    padding: 0;
     overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
   }
   .fine {
     margin: 12px 0 0;
