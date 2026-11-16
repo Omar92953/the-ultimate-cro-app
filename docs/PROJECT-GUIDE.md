@@ -24,8 +24,8 @@ Admin menu: **Home · Offers · Tracking & Returns · Storefront · Checkout · 
 
 Plans (only in `app/lib/plans.ts`): **Free** (3 offer slots, 50 orders a month), **Starter**
 $5.99 (500 orders), **Growth** $19.99 (1,000), **Pro** $39.99 (unlimited); yearly $59/$199/$399;
-14-day trial. The orders limit counts all store orders in the calendar month and is soft (a banner,
-nothing switches off). Every bundle feature is Free within the offer slots. Billing runs through
+14-day trial. The orders limit counts all store orders in the calendar month: 30 days of banner, then no
+new offers can be switched on until the plan matches (offers already on keep running). Every bundle feature is Free within the offer slots. Billing runs through
 Shopify App Pricing; the app only reads the plan (`app/lib/billing.server.ts`, `docs/billing.md`).
 
 ## 2. Where everything lives

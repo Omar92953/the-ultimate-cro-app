@@ -39,7 +39,8 @@ export type Limits = {
   designsPerSection: number | null;
   /**
    * All of the store's orders in the calendar month (Shopify's order count, which works before the
-   * protected customer data approval). Soft: going over only shows a banner, nothing switches off.
+   * protected customer data approval). Enforced after a grace period (ORDER_GRACE_DAYS, orderGrace below): a store
+   * over it can't switch on new offers until the plan matches. Offers already on keep running.
    */
   monthlyOrders: number | null;
   /** Shipments tracked live through the app's own tracking account (17TRACK) each calendar month. A store's own tracking key has no limit (Omar, 2026-10-22). */
@@ -297,10 +298,51 @@ export function canResume<T>(paused: T[], activeNow: number, limit: number | nul
   return paused.slice(0, Math.max(0, limit - activeNow));
 }
 
-/** Is this month's order count over the plan's (soft) limit? */
+/** Is this month's order count over the plan's limit? */
 export function ordersOver(p: PlanKey, orders: number | null): boolean {
   const n = limitOf(p, "monthlyOrders");
   return n !== null && orders !== null && orders > n;
+}
+
+/** Days a store may stay over its plan's monthly orders before new offers can't be switched on (Omar, 2026-11-16). */
+export const ORDER_GRACE_DAYS = 30;
+/** When the store was first seen over its plan's monthly orders, and on which plan (kept in plan_state). */
+export type OrderGrace = { since: string; plan: PlanKey };
+export type OrderGate = { over: boolean; blocked: boolean; endsAt: string | null };
+
+/**
+ * The monthly order limit, enforced. A store over it gets ORDER_GRACE_DAYS with a reminder, then can't switch on new
+ * offers until it moves to a plan that covers its orders; offers already on keep running. The grace starts the first
+ * time the store is seen over, starts again after an upgrade (a downgrade keeps it), and ends once both last calendar
+ * month and this month so far are within the plan, so a store that is over every month can't wait for the 1st to reset it.
+ * `ordersNow` null (the count couldn't be read) never blocks. `stored` is what to save (`changed` says whether to).
+ */
+export function orderGrace(plan: PlanKey, ordersNow: number | null, ordersLast: number | null, prev: OrderGrace | null, now: Date): OrderGate & { stored: OrderGrace | null; changed: boolean } {
+  const limit = limitOf(plan, "monthlyOrders");
+  if (limit === null) return { over: false, blocked: false, endsAt: null, stored: null, changed: prev !== null };
+  // Same plan or a lower one: the grace goes on. A higher plan starts it again.
+  const kept = prev && planRank(plan) <= planRank(prev.plan) ? { since: prev.since, plan } : null;
+  const ends = (g: OrderGrace) => new Date(Date.parse(g.since) + ORDER_GRACE_DAYS * 86_400_000);
+  if (ordersNow === null) return { over: false, blocked: false, endsAt: kept ? ends(kept).toISOString() : null, stored: prev, changed: false };
+  if (ordersNow > limit) {
+    const g = kept ?? { since: now.toISOString(), plan };
+    const end = ends(g);
+    return { over: true, blocked: now >= end, endsAt: end.toISOString(), stored: g, changed: !prev || prev.since !== g.since || prev.plan !== g.plan };
+  }
+  // Within the plan this month: forget the grace once last month was within it too.
+  const clear = !kept || (ordersLast !== null && ordersLast <= limit);
+  const stored = clear ? null : kept;
+  return { over: false, blocked: false, endsAt: stored ? ends(stored).toISOString() : null, stored, changed: clear ? prev !== null : prev!.plan !== plan };
+}
+
+/** The message when a new offer can't be switched on because the store is past its plan's monthly orders. */
+export function orderBlockText(p: PlanKey, orders: number): string {
+  const n = limitOf(p, "monthlyOrders") ?? 0;
+  const next = planAbove("monthlyOrders", orders, p);
+  return (
+    `Your store has ${orders.toLocaleString("en-US")} orders this month and the ${PLANS[p].name} plan includes ${limitText("monthlyOrders", n)}.` +
+    ` ${next ? `Upgrade to ${PLANS[next].name}` : "Upgrade"} to switch on new offers. Offers already on keep running.`
+  );
 }
 
 /**
