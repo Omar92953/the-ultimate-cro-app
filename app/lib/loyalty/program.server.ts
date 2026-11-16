@@ -168,7 +168,7 @@ export async function syncOrder(shop: string, c: LoyaltyConfig, o: OrderFacts, n
     if (c.earn.firstOrder.on && c.earn.firstOrder.points > 0 && m.orders === 0) {
       await record(shop, m.id, { kind: "first_order", points: c.earn.firstOrder.points, status: pendingNow ? "pending" : "available", availableAt: pendingUntil, orderId: o.id, note: o.name, dedupe: `first:${m.id}` });
     }
-    await updateTier(shop, c, m.id);
+    await updateTier(shop, c, m.id, now, pendingNow ? { availableAt: pendingUntil, orderId: o.id } : undefined);
     // Only for recent orders: counting past orders when the program starts sends nothing.
     if (now.getTime() - new Date(o.createdAt).getTime() < 7 * DAY) await notify(shop, c, m.id, "earned", { points: target, credit, order: o.name, date: (pendingNow ? pendingUntil : now).toISOString() }, `earned:${o.id}`);
     return { member: m.id, points: target, credit };
@@ -200,8 +200,16 @@ export async function tierValue(shop: string, c: LoyaltyConfig, memberId: number
   return s._sum.points ?? 0;
 }
 
-/** Moves a member to the tier they reached (up or down) and gives that tier's bonus the first time. */
-export async function updateTier(shop: string, c: LoyaltyConfig, memberId: number, now = new Date()) {
+/** A tier bonus given this many days ago or less is taken back when the member drops below the tier (a refund). */
+const TIER_BONUS_TAKE_BACK_DAYS = 30;
+
+/**
+ * Moves a member to the tier they reached (up or down) and gives that tier's bonus the first time. `hold`: the order that
+ * moved them up, when its points wait (pending days): the bonus waits with it, so it can't be spent before a refund
+ * could take the order back. Dropping below a tier within 30 days of its bonus (or while it still waits) takes the bonus
+ * back, and reaching the tier again gives it again (audit 2026-11-14, A3).
+ */
+export async function updateTier(shop: string, c: LoyaltyConfig, memberId: number, now = new Date(), hold?: { availableAt: Date; orderId: string }) {
   if (!c.tiers.on) return null;
   const t = tierFor(c, await tierValue(shop, c, memberId, now));
   const id = t?.id ?? "";
@@ -209,10 +217,42 @@ export async function updateTier(shop: string, c: LoyaltyConfig, memberId: numbe
   if (m.tier === id) return null;
   await db.loyaltyMember.update({ where: { id: memberId }, data: { tier: id, tierSince: now } });
   const before = c.tiers.list.find((x) => x.id === m.tier);
+  const down = !!before && (!t || t.min < before.min);
   // A member's first placement (in the lowest tier) isn't news; moving up or down is.
   if (t && (before || t.min > 0)) await notify(shop, c, memberId, !before || t.min > before.min ? "tier" : "tierDown", { tier: t.name }, `tier:${memberId}:${t.id}:${now.toISOString().slice(0, 10)}`);
-  if (t && t.bonus > 0) await record(shop, memberId, { kind: "tier", points: t.bonus, note: t.name, dedupe: `tier:${memberId}:${t.id}` });
+  if (down && before) await takeBackTierBonus(shop, memberId, before.id, before.name, now);
+  if (t && t.bonus > 0 && !down) {
+    // Each take back of this tier's bonus lets the member earn it once more.
+    const takenBack = await db.loyaltyEvent.count({ where: { shop, memberId, dedupe: { startsWith: `tierback:${memberId}:${t.id}:` } } });
+    await record(shop, memberId, {
+      kind: "tier",
+      points: t.bonus,
+      note: t.name,
+      ...(hold ? { status: "pending" as const, availableAt: hold.availableAt, orderId: hold.orderId } : {}),
+      dedupe: takenBack ? `tier:${memberId}:${t.id}:${takenBack}` : `tier:${memberId}:${t.id}`,
+    });
+  }
   return t;
+}
+
+/** Takes back the latest bonus of a tier the member just left, if it still waits or was given in the last 30 days. */
+async function takeBackTierBonus(shop: string, memberId: number, tierId: string, tierName: string, now: Date) {
+  const bonus = await db.loyaltyEvent.findFirst({
+    where: { shop, memberId, kind: "tier", points: { gt: 0 }, OR: [{ dedupe: `tier:${memberId}:${tierId}` }, { dedupe: { startsWith: `tier:${memberId}:${tierId}:` } }] },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!bonus) return;
+  const recent = now.getTime() - bonus.createdAt.getTime() <= TIER_BONUS_TAKE_BACK_DAYS * DAY;
+  if (bonus.status !== "pending" && !recent) return;
+  await record(shop, memberId, {
+    kind: "tier",
+    points: -bonus.points,
+    status: bonus.status === "pending" ? "pending" : "available",
+    // With the order id, a bonus released in the meantime is taken from usable points instead (see record).
+    ...(bonus.orderId ? { orderId: bonus.orderId } : {}),
+    note: `${tierName} bonus taken back`.slice(0, 200),
+    dedupe: `tierback:${memberId}:${tierId}:${bonus.id}`,
+  });
 }
 
 /** Every member's tier again (daily, for tiers measured over the last 12 months). */

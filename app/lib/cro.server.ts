@@ -1232,7 +1232,9 @@ export async function buildBundleConfig(admin: AdminClient, bundles: Bundle[], s
   if (functionBytes(value) > FUNCTION_METAFIELD_LIMIT) {
     throw new AdminError(`Your bundles list too many single products for Shopify's checkout engine (${functionBytes(value)} of ${FUNCTION_METAFIELD_LIMIT} bytes). Use a collection for the bigger steps.`);
   }
-  return { value, vars: JSON.stringify({ collections: [...collections] }), ids: Object.keys(b) };
+  // Bundles switched off (by hand, a schedule or a plan change) keep their product on sale: the guard refuses it (audit A2).
+  const off = [...new Set(bundles.filter((x) => !x.active && x.product).map((x) => numericId(x.product!.id)))].filter((id) => !(id in b));
+  return { value, vars: JSON.stringify({ collections: [...collections] }), ids: Object.keys(b), off };
 }
 
 /** The shop's bundle stamp: derived from the app secret and the shop, so it needs no storage and a shopper cannot guess it. */
@@ -1246,10 +1248,11 @@ async function setBundleMode(admin: AdminClient, mode: "merge" | "line") {
 }
 
 /** The checkout guard that refuses a bare bundle product. A failure here never blocks saving a bundle. */
-async function guardBundles(admin: AdminClient, productIds: string[], stamp = "") {
+async function guardBundles(admin: AdminClient, productIds: string[], stamp = "", off: string[] = []) {
   try {
     // CRO_BUNDLE_GUARD=off on Render switches the guard off without a deploy (rollback).
-    await syncBundleGuard(admin, process.env.CRO_BUNDLE_GUARD === "off" ? [] : productIds, stamp);
+    const guardOff = process.env.CRO_BUNDLE_GUARD === "off";
+    await syncBundleGuard(admin, guardOff ? [] : productIds, stamp, guardOff ? [] : off);
   } catch (error) {
     console.error("[bundle guard]", error);
   }
@@ -1260,7 +1263,7 @@ export async function syncBundles(admin: AdminClient) {
   const shop = await gql(admin, `#graphql
     query CroShopDomain { shop { myshopifyDomain } }`);
   const stamp = process.env.SHOPIFY_API_SECRET && shop.shop?.myshopifyDomain ? bundleStamp(process.env.SHOPIFY_API_SECRET, shop.shop.myshopifyDomain) : "";
-  const { value, vars, ids } = await buildBundleConfig(admin, bundles, stamp);
+  const { value, vars, ids, off } = await buildBundleConfig(admin, bundles, stamp);
   const data = await gql(
     admin,
     `#graphql
@@ -1291,7 +1294,7 @@ export async function syncBundles(admin: AdminClient) {
     const errors = set.metafieldsSet?.userErrors ?? [];
     if (errors.length) throw new AdminError(errors.map((e: { message: string }) => e.message).join(" "));
     // The guard comes after the transform's config is saved, so a real bundle is never stamped with a token the guard does not know.
-    await guardBundles(admin, ids, stamp);
+    await guardBundles(admin, ids, stamp, off);
     return existing.id as string;
   }
   const created = await gql(
@@ -1305,7 +1308,7 @@ export async function syncBundles(admin: AdminClient) {
     }`,
     { metafields },
   );
-  await guardBundles(admin, ids, stamp);
+  await guardBundles(admin, ids, stamp, off);
   return created.cartTransformCreate.cartTransform.id as string;
 }
 

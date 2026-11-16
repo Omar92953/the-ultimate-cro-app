@@ -123,8 +123,9 @@ const GUARD_TITLES = [GUARD_TITLE, POINTS_TITLE];
  * transform stamps merged bundle lines with `st`, and a line of a listed product without it is refused.
  * Made only once there is a bundle; with no ids it stays and just lets everything through.
  */
-export async function syncBundleGuard(admin: AdminClient, productIds: string[], stamp = "") {
-  await syncGuard(admin, GUARD_TITLE, productIds.length ? { bundles: productIds, ...(stamp ? { st: stamp } : {}) } : null);
+export async function syncBundleGuard(admin: AdminClient, productIds: string[], stamp = "", off: string[] = []) {
+  // `off`: products of switched off bundles, refused in any cart (audit 2026-11-14, A2).
+  await syncGuard(admin, GUARD_TITLE, productIds.length || off.length ? { bundles: productIds, ...(off.length ? { off } : {}), ...(stamp ? { st: stamp } : {}) } : null);
 }
 
 /**

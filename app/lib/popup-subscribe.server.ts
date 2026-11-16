@@ -12,6 +12,22 @@ export function popupEmail(raw: unknown) {
   return /^[a-z0-9._%+'-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email) ? email : "";
 }
 
+/**
+ * The address without its "+tag" (name+1@example.com and name+2@example.com are one person): the pop up's code and its
+ * sign up limit use it, so tagged copies of one address don't each get a new code (audit 2026-11-14, A4).
+ */
+export function popupBase(email: string) {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return email;
+  return `${email.slice(0, at).split("+")[0] || email.slice(0, at)}${email.slice(at)}`;
+}
+
+/**
+ * Only a customer who never chose gets subscribed. Nothing proves the visitor owns the address, so someone who
+ * unsubscribed (or is waiting to confirm, or was redacted) is left as they are (audit 2026-11-14, A4).
+ */
+export const mayConsent = (state: string | null | undefined) => !state || state === "NOT_SUBSCRIBED";
+
 const CONSENT = () => ({ marketingState: "SUBSCRIBED", marketingOptInLevel: "SINGLE_OPT_IN", consentUpdatedAt: new Date().toISOString() });
 
 /** Finds (exact email only) or creates the customer and sets email marketing consent. Returns the customer id. */
@@ -27,7 +43,7 @@ export async function subscribe(admin: AdminClient, email: string): Promise<stri
     if (!id) throw new AdminError(made.customerCreate?.userErrors?.[0]?.message ?? "Customer not created");
     return id;
   }
-  if (c.emailMarketingConsent?.marketingState !== "SUBSCRIBED") {
+  if (mayConsent(c.emailMarketingConsent?.marketingState)) {
     await gql(admin, `#graphql
       mutation CroPopupConsent($input: CustomerEmailMarketingConsentUpdateInput!) { customerEmailMarketingConsentUpdate(input: $input) { userErrors { field message } } }`, { input: { customerId: c.id, emailMarketingConsent: CONSENT() } });
   }

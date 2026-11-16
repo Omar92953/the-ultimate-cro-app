@@ -10,17 +10,19 @@ import { AdminError, gql, type AdminClient } from "../lib/admin.server";
 import { getSec } from "../lib/designs.server";
 import type { SecContent } from "../lib/cro-sections";
 import { popupCode } from "../lib/popup-code.server";
-import { popupEmail, subscribe } from "../lib/popup-subscribe.server";
+import { popupBase, popupEmail, subscribe } from "../lib/popup-subscribe.server";
 import { storefrontOpen } from "../lib/rules.server";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
-// A few sign ups per visitor per hour (per server process), against code farming.
+// A few sign ups per visitor and per address an hour, and a ceiling per store an hour (per server process), against
+// code and customer farming by a script (audit 2026-11-14, A4).
+const STORE_PER_HOUR = 60;
 const recent = new Map<string, number[]>();
-function tooMany(key: string) {
+function tooMany(key: string, max: number) {
   const now = Date.now();
   const list = (recent.get(key) ?? []).filter((t) => now - t < 60 * 60_000);
-  if (list.length >= 5) return true;
+  if (list.length >= max) return true;
   recent.set(key, [...list, now]);
   if (recent.size > 5000) recent.clear();
   return false;
@@ -65,14 +67,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!email) return json({ ok: false, error: "Please enter a valid email." }, 400);
   if (body.ok !== true) return json({ ok: false, error: "Please tick the box to sign up." }, 400);
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
-  if (tooMany(`${session.shop}|${ip}`)) return json({ ok: false, error: "Please wait a little and try again." }, 429);
+  const base = popupBase(email);
+  if (tooMany(`${session.shop}|${ip}`, 5) || tooMany(`${session.shop}|@${base}`, 3)) return json({ ok: false, error: "Please wait a little and try again." }, 429);
+  if (tooMany(`${session.shop}|*`, STORE_PER_HOUR)) {
+    console.warn("[popup] store sign up ceiling reached", session.shop);
+    return json({ ok: false, error: "Sign ups are busy right now. Please try again later." }, 429);
+  }
   // The email pop up is a Starter feature: after a downgrade it takes no more sign ups (its settings are kept).
   if (!(await storefrontOpen(admin, session.shop, "email_popup"))) return json({ ok: false, error: "Sign ups are closed right now." }, 403);
   try {
     const { config } = await getSec(admin, "email_popup");
     if (!config.content.on) return json({ ok: false, error: "Sign ups are closed right now." }, 403);
     const customerId = await subscribe(admin, email);
-    const code = popupCode(session.shop, email);
+    // One code per address without its +tag: tagged copies get the same code, which works only for the first customer.
+    const code = popupCode(session.shop, base);
     await ensureCode(admin, code, customerId, config.content.discount);
     return json({ ok: true, code });
   } catch (e) {

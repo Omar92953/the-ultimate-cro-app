@@ -59,3 +59,13 @@ test("an existing guard gets the new ids and stamp and is switched on; no ids sw
   await syncBundleGuard(none.admin, [], "tok");
   assert.ok(!none.calls.some((c) => c.op === "CroGuardCreate"), "nothing to guard: nothing is made");
 });
+
+test("switched off bundles go in the guard as `off`, and keep it on even with no live bundle (audit A2)", async () => {
+  const { syncBundleGuard } = await import("../../app/lib/checkout-rules.server");
+  const a = fake(null);
+  await syncBundleGuard(a.admin, [], "tok", ["7"]);
+  assert.deepEqual(JSON.parse(a.calls.find((c) => c.op === "CroGuardCreate")!.vars.input.metafields[0].value), { bundles: [], off: ["7"], st: "tok" });
+  const b = fake({ id: "gid://shopify/Validation/1", enabled: true });
+  await syncBundleGuard(b.admin, ["9"], "tok", ["7"]);
+  assert.deepEqual(JSON.parse(b.calls.find((c) => c.op === "CroGuardSet")!.vars.metafields[0].value), { bundles: ["9"], off: ["7"], st: "tok" });
+});

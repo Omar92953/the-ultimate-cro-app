@@ -2,17 +2,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AdminClient } from "../../app/lib/admin.server";
-import { popupEmail, subscribe } from "../../app/lib/popup-subscribe.server";
+import { mayConsent, popupBase, popupEmail, subscribe } from "../../app/lib/popup-subscribe.server";
 
 /** A store whose customer search returns `found` for any query, recording every call. */
-function store(found: { id: string; email: string }[]) {
+function store(found: { id: string; email: string; state?: string }[]) {
   const calls: { op: string; vars: Record<string, unknown> }[] = [];
   const admin = {
     graphql: async (q: string, o?: { variables?: Record<string, unknown> }) => {
       const op = /(query|mutation) (\w+)/.exec(q)?.[2] ?? "";
       calls.push({ op, vars: o?.variables ?? {} });
       const data =
-        op === "CroPopupCustomer" ? { customers: { nodes: found.map((c) => ({ id: c.id, defaultEmailAddress: { emailAddress: c.email }, emailMarketingConsent: { marketingState: "NOT_SUBSCRIBED" } })) } }
+        op === "CroPopupCustomer" ? { customers: { nodes: found.map((c) => ({ id: c.id, defaultEmailAddress: { emailAddress: c.email }, emailMarketingConsent: { marketingState: c.state ?? "NOT_SUBSCRIBED" } })) } }
         : op === "CroPopupCreate" ? { customerCreate: { customer: { id: "gid://shopify/Customer/NEW" }, userErrors: [] } }
         : { customerEmailMarketingConsentUpdate: { userErrors: [] }, tagsAdd: { userErrors: [] } };
       return { json: async () => ({ data }) };
@@ -42,4 +42,20 @@ test("emails with search characters are refused before any search", async () => 
   const s = store([]);
   await assert.rejects(subscribe(s.admin, "*@*.*"));
   assert.equal(s.calls.length, 0);
+});
+
+test("someone who unsubscribed is never subscribed again by the pop up (audit A4)", async () => {
+  const s = store([{ id: "gid://shopify/Customer/ME", email: "me@example.com", state: "UNSUBSCRIBED" }]);
+  assert.equal(await subscribe(s.admin, "me@example.com"), "gid://shopify/Customer/ME");
+  assert.deepEqual(s.calls.map((c) => c.op), ["CroPopupCustomer", "CroPopupTag"]);
+  assert.equal(mayConsent("NOT_SUBSCRIBED"), true);
+  assert.equal(mayConsent(null), true);
+  for (const st of ["SUBSCRIBED", "UNSUBSCRIBED", "PENDING", "REDACTED", "INVALID"]) assert.equal(mayConsent(st), false, st);
+});
+
+test("tagged copies of one address share its code and limit (audit A4)", () => {
+  assert.equal(popupBase("name+1@gmail.com"), "name@gmail.com");
+  assert.equal(popupBase("name+a+b@gmail.com"), "name@gmail.com");
+  assert.equal(popupBase("name@gmail.com"), "name@gmail.com");
+  assert.equal(popupBase("+x@gmail.com"), "+x@gmail.com");
 });
