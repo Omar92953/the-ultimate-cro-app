@@ -52,7 +52,7 @@ The [AfterShip listing](https://apps.shopify.com/aftership) shows 4.6 stars from
 
 ParcelPanel's listing now goes by [CWILL Order Tracking](https://apps.shopify.com/parcelpanel) and says it was formerly ParcelPanel and ParcelWILL. It shows 4.9 stars from 3,211 reviews and the Built for Shopify badge, and lists 1,600+ carriers. The free plan has 20 orders a month, a branded and localized tracking page and a dropshipping mode. Essential is $11 for 200 orders and adds shipping notifications, an estimated delivery date after purchase, AI product recommendations and discount upsells. Professional is $59 for 2,000 orders (Klaviyo and PayPal integrations, an API, no CWILL branding), and Enterprise $479 for 25,000. Extra orders cost $0.05 on every paid plan.
 
-**Best for:** stores that want tracking plus selling on the tracking page at a low price, and dropshipping stores.
+**Best for:** stores that want tracking plus selling on the tracking page at a low price, and dropshipping stores. Side by side: [CRO Toolbox vs ParcelPanel](/compare/cro-toolbox-vs-parcelpanel/).
 
 ### Track123
 

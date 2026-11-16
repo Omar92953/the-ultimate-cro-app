@@ -155,7 +155,7 @@ export const MORE_PAGES = {
     slug: "compare",
     path: "/compare/",
     title: "Compare CRO Toolbox with other Shopify apps",
-    description: "How CRO Toolbox compares with Bundler, Simple Bundles, Fast Bundle, Kaching, BOGOS, Rebuy, Vitals and Section Store, with sources and the date we checked.",
+    description: "How CRO Toolbox compares with Kaching, Bundler, Smile, BON, ParcelPanel, ReturnGO, AfterSell, Judge.me and more, with sources and the date we checked.",
     ogTitle: "How CRO Toolbox compares",
     ogKicker: "Compare",
   },

@@ -47,13 +47,13 @@ Prices are per month as shown on each app's Shopify App Store listing on Novembe
 
 The [Smile listing](https://apps.shopify.com/smile-io) shows 4.9 stars from 4,681 reviews and the Built for Shopify badge. The free plan covers up to 200 orders a month with points, rewards, referrals and Shopify POS. Essential is $15 a month (500 orders), Standard $79 (1,000 orders, bonus events, points on product pages) and Growth $199 (2,500 orders, then $20 per 100 more). VIP tiers and points expiry are listed only on Growth, together with redeeming at checkout on Shopify Plus. The listing names Klaviyo, Judge.me, Gorgias and more than 30 other integrations.
 
-**Best for:** established stores that want the best known name in the category and many integrations, and that can budget for Growth when they want VIP tiers.
+**Best for:** established stores that want the best known name in the category and many integrations, and that can budget for Growth when they want VIP tiers. Side by side: [CRO Toolbox vs Smile](/compare/cro-toolbox-vs-smile/).
 
 ### BON Loyalty
 
 The [BON Loyalty listing](https://apps.shopify.com/bon-loyalty-rewards) shows 5.0 stars from 1,992 reviews and the Built for Shopify badge. Its free plan covers up to 150 orders a month and already includes automated emails for points and referrals, plus redeeming at checkout on Shopify Plus. Starter is $15 (300 orders, a loyalty page, birthday rewards, points expiration), Basic $29 (500 orders, Shopify POS, multi language display) and Growth $129 with unlimited monthly orders, VIP tiers and B2B tiers. Paid plans have a 7 day free trial.
 
-**Best for:** stores that want loyalty emails from the first day on a free or low plan, wholesale stores that need B2B tiers, and big stores that want VIP tiers with no order cap.
+**Best for:** stores that want loyalty emails from the first day on a free or low plan, wholesale stores that need B2B tiers, and big stores that want VIP tiers with no order cap. Side by side: [CRO Toolbox vs BON Loyalty](/compare/cro-toolbox-vs-bon-loyalty/).
 
 ### Rivo
 

@@ -2,10 +2,11 @@
 import Base from "../../layouts/Base.astro";
 import Crumbs from "../../components/Crumbs.astro";
 import NotifyCta from "../../components/NotifyCta.astro";
-import { COMPETITORS, CHECKED } from "../../lib/competitors";
+import { COMPETITORS, CHECKED, AREAS } from "../../lib/competitors";
 import { MORE_PAGES } from "../../lib/pages";
 import { ALTERNATIVES, altPath, article } from "../../lib/alternatives";
 
+const groups = AREAS.map((area) => ({ area, items: COMPETITORS.filter((c) => c.area === area) })).filter((g) => g.items.length);
 const page = MORE_PAGES.compare;
 const crumbs = [{ name: "Compare", href: page.path }];
 ---
@@ -17,20 +18,27 @@ const crumbs = [{ name: "Compare", href: page.path }];
       <span class="eyebrow">Compare</span>
       <h1>How CRO Toolbox compares</h1>
       <p class="lead">
-        Side by side with other Shopify apps for bundles, upsells and storefront tools. We only state what a source says, link the source and say when we
-        checked ({CHECKED}). Prices change: confirm on each app's listing.
+        Side by side with other Shopify apps for bundles, upsells, loyalty, order tracking, returns and reviews. We only state what a source says, link the
+        source, say when we checked ({CHECKED}) and say where the other app is stronger. Prices change: confirm on each app's listing.
       </p>
     </div>
   </section>
   <section class="section tight mist">
-    <div class="wrap grid three">
+    <div class="wrap">
       {
-        COMPETITORS.map((c) => (
-          <a class="card ccard" href={`/compare/cro-toolbox-vs-${c.slug}/`}>
-            <h2>CRO Toolbox vs {c.name}</h2>
-            <p class="muted">{c.focus}</p>
-            <span class="link">Compare →</span>
-          </a>
+        groups.map((g) => (
+          <div class="group">
+            <h2 class="alt-h">{g.area}</h2>
+            <div class="grid three">
+              {g.items.map((c) => (
+                <a class="card ccard" href={`/compare/cro-toolbox-vs-${c.slug}/`}>
+                  <h3>CRO Toolbox vs {c.name}</h3>
+                  <p class="muted">{c.focus}</p>
+                  <span class="link">Compare →</span>
+                </a>
+              ))}
+            </div>
+          </div>
         ))
       }
     </div>
@@ -76,6 +84,9 @@ const crumbs = [{ name: "Compare", href: page.path }];
   .alt-h {
     font-size: 1.6rem;
     margin-bottom: 20px;
+  }
+  .group + .group {
+    margin-top: 40px;
   }
   .ccard .link {
     margin-top: auto;

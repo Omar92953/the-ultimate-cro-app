@@ -47,13 +47,13 @@ Prices are per month as shown on each app's Shopify App Store listing on Novembe
 
 The [Aftersell listing](https://apps.shopify.com/aftersell), by Rokt, shows 4.9 stars from 1,128 reviews. Its free plan is only for development and partner stores. The Post Purchase plan ($34.99 a month) has one click offers after payment, smart funnels, thank you page offers, multivariate testing and upsells inside checkout (the listing marks those as Shopify Plus only). The Pre Purchase plan ($59.99) is an AI cart with 18+ blocks, rewards bars, free gifts, product page upsells and A/B testing. Complete ($79.99) has both and a recommendation engine. Each plan has a 30 day free trial. The listing also offers Rokt Thanks, third party offers on the confirmation page that it says earn up to $0.80 per order.
 
-**Best for:** stores that want the most complete after payment funnels and a dedicated cart, and are happy to pay a flat price for them.
+**Best for:** stores that want the most complete after payment funnels and a dedicated cart, and are happy to pay a flat price for them. Side by side: [CRO Toolbox vs AfterSell](/compare/cro-toolbox-vs-aftersell/).
 
 ### Selleasy
 
 The [Selleasy listing](https://apps.shopify.com/upsell-cross-sell-kit-1), by Logbase, shows 4.9 stars from 2,790 reviews. The free plan has unlimited orders, up to 5 campaigns and 18 upsell and cross sell strategies. Starter is $9 a month with unlimited campaigns, Pro $29 with 1,000 AI recommendations a month and checkout upsells for Shopify Plus, and Max $59 with 2,500 AI recommendations and a rules engine. The listing covers frequently bought together, product page add ons, cart drawer upsells, after payment offers and thank you page recommendations. Paid plans have a 30 day free trial.
 
-**Best for:** stores that want many offer types at a low flat price with no order limit, including a usable free plan.
+**Best for:** stores that want many offer types at a low flat price with no order limit, including a usable free plan. Side by side: [CRO Toolbox vs Selleasy](/compare/cro-toolbox-vs-selleasy/).
 
 ### ReConvert
 

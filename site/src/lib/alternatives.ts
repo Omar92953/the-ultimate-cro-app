@@ -52,7 +52,7 @@ export type Alternative = {
 };
 
 /** The day the other apps' listings were opened and the facts below copied. */
-export const CHECKED_ALT = "October 20, 2026";
+export const CHECKED_ALT = "November 16, 2026";
 
 /** "a Bundler alternative", "an AfterShip alternative". */
 export const article = (name: string) => (/^[aeiou]/i.test(name) ? "an" : "a");
@@ -223,9 +223,8 @@ export const ALTERNATIVES: Alternative[] = [
       developer: "Loop",
       launched: "May 27, 2021",
       pricing: [
-        "Checkout+: free, with returns software, US and Canada domestic return labels and package protection",
-        "Essential $155 a month: adds unlimited destinations, automated return policies, carrier rate shopping and workflows",
-        "Advanced $340 a month: adds Shop Now, instant exchange, bonus credit and fraud prevention",
+        "Checkout+: free for brands with 5,000+ orders a year, with returns software, US and Canada domestic return labels and package protection",
+        "Returns: from $340 a month, up to 1,000 returns a year included, with Shop Now, instant exchange, bonus credit and fraud prevention",
       ],
       says: [
         "Returns, exchanges, order editing, tracking and fraud prevention.",

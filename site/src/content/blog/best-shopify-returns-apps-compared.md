@@ -46,13 +46,13 @@ Prices are per month as shown on each app's Shopify App Store listing on Novembe
 
 The [ReturnGO listing](https://apps.shopify.com/returngo) shows 4.9 stars from 410 reviews and pricing from $147 a month, with no free plan. Premium ($147) includes 110 returns a month, then $1.25 per extra return, with product and variant exchanges, Shop Now exchanges, return labels through Ship by ReturnGO, store credit and gift cards, and auto approval. Pro ($297) includes 300 returns, then $0.90 each, and adds advanced automation, ERP integrations, unlimited languages and an API. Both have a 14 day free trial.
 
-**Best for:** stores with a steady volume of returns that want an exchange first returns platform with labels and integrations ready, and can justify the price.
+**Best for:** stores with a steady volume of returns that want an exchange first returns platform with labels and integrations ready, and can justify the price. Side by side: [CRO Toolbox vs ReturnGO](/compare/cro-toolbox-vs-returngo/).
 
 ### Return Prime
 
 The [Return Prime listing](https://apps.shopify.com/return-prime) shows 4.8 stars from 780 reviews. It is free to install with 5 return requests, then $0.49 per request; the free plan already has a branded portal, variant exchanges and an EU withdrawal button. Grow starts at $19.99 a month for 60 requests and adds Shop Now exchanges, instant exchanges and refunds to store credit. Thrive AI is $79.99 for 180 requests (fraud controls, smart exchange discounts and return fees), and Scale $149.99 for 450+ requests with the warehouse system of your choice. Paid plans have a 15 day free trial.
 
-**Best for:** small and mid sized stores that want store credit and exchanges at a low starting price, and stores selling in the EU.
+**Best for:** small and mid sized stores that want store credit and exchanges at a low starting price, and stores selling in the EU. Side by side: [CRO Toolbox vs Return Prime](/compare/cro-toolbox-vs-return-prime/).
 
 ### Loop Returns
 
