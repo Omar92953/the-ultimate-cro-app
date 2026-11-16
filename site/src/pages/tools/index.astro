@@ -1,0 +1,66 @@
+---
+/** /tools/: the free calculators. */
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../../components/Crumbs.astro";
+import { TOOLS, TOOLS_PAGE } from "../../lib/tools";
+import { SITE_URL } from "../../lib/site";
+
+const page = TOOLS_PAGE;
+const crumbs = [{ name: "Free tools", href: page.path }];
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Free tools for Shopify stores",
+    itemListElement: TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.h1, url: new URL(t.path, SITE_URL).toString() })),
+  },
+];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Free tools</span>
+      <h1>Free tools for Shopify stores</h1>
+      <p class="lead">Small calculators for the maths behind common offers. Free, no sign up, and nothing you type leaves the page.</p>
+    </div>
+  </section>
+  <section class="section tight mist">
+    <div class="wrap grid three">
+      {
+        TOOLS.map((t) => (
+          <a class="card tcard" href={t.path}>
+            <span class="pill">Calculator</span>
+            <h2>{t.h1}</h2>
+            <p class="muted">{t.card}</p>
+            <span class="go" aria-hidden="true">Open the calculator →</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .tcard {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .tcard:hover h2 {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .tcard h2 {
+    font-size: 1.3rem;
+  }
+  .go {
+    margin-top: auto;
+    font-size: 0.9rem;
+    font-weight: 650;
+    color: var(--accent-deep);
+  }
+</style>

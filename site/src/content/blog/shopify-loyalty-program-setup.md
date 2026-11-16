@@ -38,7 +38,7 @@ Rewards are what members spend their points on. Common ones:
 - **A free product**, ideally a small item that costs you little and introduces another product.
 - **Store credit**, which stays in your store for the next order.
 
-Price each reward in points so the first one is reachable within a normal number of orders for your store, and the bigger ones give regulars something to aim for. Look at your own repeat order data before choosing; there is no single right number for every store.
+Price each reward in points so the first one is reachable within a normal number of orders for your store, and the bigger ones give regulars something to aim for. Look at your own repeat order data before choosing; there is no single right number for every store. The [loyalty points calculator](/tools/loyalty-points-calculator/) shows what a point is worth and what your rewards cost per order.
 
 ## How should guests, refunds and returns work?
 

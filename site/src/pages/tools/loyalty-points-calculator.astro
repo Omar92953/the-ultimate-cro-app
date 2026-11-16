@@ -1,0 +1,109 @@
+---
+/** /tools/loyalty-points-calculator/: what a point is worth, the reward rate and what a points program costs per order. */
+import ToolPage from "../../components/tools/ToolPage.astro";
+import Field from "../../components/tools/Field.astro";
+import CurrencySelect from "../../components/tools/CurrencySelect.astro";
+import Stat from "../../components/tools/Stat.astro";
+import { tool } from "../../lib/tools";
+import { planLine } from "../../lib/pages";
+import { loyaltyView, type LoyaltyInput } from "../../lib/calculators";
+
+const t = tool("/tools/loyalty-points-calculator/");
+/** Example numbers: made up, shown so a result appears straight away. 100% spent is the most a program can cost. */
+const d: LoyaltyInput = { perUnit: 1, points: 500, value: 5, cost: 5, redemption: 100, aov: 50 };
+const view = loyaltyView(d, "USD");
+const faq = [
+  {
+    q: "How much is a loyalty point worth?",
+    a: "Divide what a reward is worth by the points it takes. A $5 reward for 500 points makes each point worth 1 cent. Multiply that by the points a shopper earns per unit spent to get the share of spend they get back.",
+  },
+  {
+    q: "What is the redemption rate?",
+    a: "The share of earned points that members end up spending. Points that are never spent cost you nothing, so the real cost of a program is lower than its headline rate. If you don't know your rate yet, keep it at 100%: that is the most the program can cost.",
+  },
+  {
+    q: "Why is the cost of a reward different from its value?",
+    a: "For money off or store credit they are the same. For a free product, the shopper sees the price but you pay only what the product costs you, so the reward costs you less than it is worth to the shopper.",
+  },
+  {
+    q: "Should points count shipping and taxes?",
+    a: 'It is your choice. CRO Toolbox lets you count paid orders with or without shipping and taxes. If points are earned on products only, use your average order without shipping and taxes here. More in <a href="/blog/shopify-loyalty-program-setup/">how to set up a loyalty program on Shopify</a>.',
+  },
+  {
+    q: "Does the cost include bonus points for sign ups, birthdays or reviews?",
+    a: "No. The calculator counts points earned on orders. Bonus points add to the cost when they are spent, so keep them modest.",
+  },
+];
+---
+
+<ToolPage
+  tool={t}
+  lead="Enter how many points shoppers earn, what a reward takes and what it costs you. See what one point is worth, how much shoppers get back and what the program costs you per order."
+  featureLine={`The CRO Toolbox loyalty program gives points for orders and other actions, and rewards members spend them on. ${planLine(t.feature)}.`}
+  faq={faq}
+>
+  <form class="calc" id="lp-form" aria-label="Loyalty points calculator">
+    <div class="calc-inputs">
+      <CurrencySelect id="lp-currency" />
+      <fieldset>
+        <legend>Earning</legend>
+        <div class="calc-fields">
+          <Field id="lp-per" name="per" label="Points per unit of currency spent" value={d.perUnit} hint="1 means 1 point for each dollar, euro or pound." />
+          <Field id="lp-aov" name="aov" label="Average order value" value={d.aov} hint="Only what earns points, for example without shipping." />
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>The reward</legend>
+        <div class="calc-fields">
+          <Field id="lp-points" name="points" label="Points the reward takes" value={d.points} step="1" />
+          <Field id="lp-value" name="value" label="What the reward is worth to the shopper" value={d.value} hint="For example 5 for 5 off." />
+          <Field id="lp-reward-cost" name="cost" label="What the reward costs you" value={d.cost} hint="The same for money off; the product's cost for a free product." />
+          <Field id="lp-redemption" name="redemption" label="Points that get spent" value={d.redemption} suffix="%" max={100} hint="100% is the most it can cost. Lower it once you know." />
+        </div>
+      </fieldset>
+      <p class="calc-note">The numbers filled in are made up, to show how it works. Replace them with your own. Nothing you type leaves this page.</p>
+    </div>
+
+    <div class="calc-result">
+      <h2>Result</h2>
+      <dl>
+        <Stat id="lp-point" label="One point is worth" view={view} />
+        <Stat id="lp-rate" label="Shoppers get back" view={view} />
+        <Stat id="lp-reward" label="Spend to reach the reward" view={view} />
+        <Stat id="lp-cost" label="What the program costs you" view={view} />
+        <Stat id="lp-order" label="Cost per average order" view={view} />
+      </dl>
+      <p class="summary" data-summary>{view.summary}</p>
+      <p class="sr-only" aria-live="polite" data-live></p>
+    </div>
+  </form>
+
+  <Fragment slot="how">
+    <p>
+      A points program is a discount paid later. The calculator turns your points and rewards into the two numbers that matter: what shoppers get back, and what it costs you as a share
+      of sales. It follows the plan in our guide <a href={t.article.href}>how to set up a loyalty program on Shopify</a>.
+    </p>
+    <ul>
+      <li><strong>Value of a point</strong> = what the reward is worth ÷ points it takes</li>
+      <li><strong>Reward rate</strong> = points per unit spent × value of a point</li>
+      <li><strong>Spend to reach the reward</strong> = points it takes ÷ points per unit spent</li>
+      <li><strong>Cost as a share of sales</strong> = points per unit spent × (what the reward costs you ÷ points it takes) × share of points spent</li>
+      <li><strong>Cost per order</strong> = average order value × cost as a share of sales</li>
+    </ul>
+    <p>
+      With the example numbers: a $5 reward for 500 points makes a point worth $5 ÷ 500 = $0.01. At 1 point per dollar, shoppers get 1 × $0.01 = 1% back and reach the reward after
+      $500 of spend, 10 orders of $50. If every point is spent, the program costs 1% of sales: $0.50 on a $50 order.
+    </p>
+  </Fragment>
+</ToolPage>
+
+<script>
+  import { setupCalc } from "../../lib/calc-ui";
+  import { loyaltyView } from "../../lib/calculators";
+
+  const form = document.getElementById("lp-form") as HTMLFormElement | null;
+  if (form)
+    setupCalc(form, (n, cur) =>
+      loyaltyView({ perUnit: n("per"), points: n("points"), value: n("value"), cost: n("cost"), redemption: n("redemption"), aov: n("aov") }, cur),
+    );
+</script>

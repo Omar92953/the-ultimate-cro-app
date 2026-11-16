@@ -1,0 +1,36 @@
+---
+/** One number field of a calculator: label, input, optional "%" after it and a hint read with the field. */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  value: number;
+  hint?: string;
+  suffix?: string;
+  max?: number;
+  step?: string;
+  disabled?: boolean;
+}
+const { id, name, label, value, hint, suffix, max, step = "any", disabled = false } = Astro.props;
+---
+
+<div class="field">
+  <label for={id}>{label}</label>
+  <div class:list={["control", { suffixed: suffix }]}>
+    <input
+      id={id}
+      name={name}
+      type="number"
+      inputmode="decimal"
+      min="0"
+      max={max}
+      step={step}
+      value={value}
+      disabled={disabled}
+      required
+      aria-describedby={hint ? `${id}-hint` : undefined}
+    />
+    {suffix && <span class="suffix" aria-hidden="true">{suffix}</span>}
+  </div>
+  {hint && <p class="hint" id={`${id}-hint`}>{hint}</p>}
+</div>

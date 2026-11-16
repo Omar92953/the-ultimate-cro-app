@@ -1,0 +1,19 @@
+---
+/** One result line: label, value and an optional working line under it. Text comes from the page's view (lib/calculators.ts). */
+import type { View } from "../../lib/calculators";
+interface Props {
+  id: string;
+  label: string;
+  view: View;
+}
+const { id, label, view } = Astro.props;
+const note = view.values[`${id}-note`];
+---
+
+<div>
+  <dt>{label}</dt>
+  <dd>
+    <output id={id}>{view.values[id]}</output>
+    {note !== undefined && <small id={`${id}-note`}>{note}</small>}
+  </dd>
+</div>

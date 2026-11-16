@@ -1,0 +1,273 @@
+---
+/**
+ * A free tool page (/tools/<slug>/): title, the calculator (default slot: a <form class="calc">),
+ * "How it works" with the formula (slot "how"), soft links to the feature and the article, and an FAQ.
+ * Structured data: WebApplication, FAQPage and the breadcrumb trail.
+ */
+import Base from "../../layouts/Base.astro";
+import Crumbs from "../Crumbs.astro";
+import Faq, { type QA } from "../Faq.astro";
+import { TOOLS, TOOLS_PAGE, type Tool } from "../../lib/tools";
+import { featurePath } from "../../lib/pages";
+import { featureTitle } from "../../lib/app";
+import { faqPage } from "../../lib/schema";
+import { SITE_NAME, SITE_URL } from "../../lib/site";
+
+interface Props {
+  tool: Tool;
+  lead: string;
+  /** One sentence on what the app does with the result; the feature link follows it. */
+  featureLine: string;
+  faq: QA[];
+}
+const { tool, lead, featureLine, faq } = Astro.props;
+const crumbs = [
+  { name: "Free tools", href: TOOLS_PAGE.path },
+  { name: tool.h1, href: tool.path },
+];
+const url = new URL(tool.path, SITE_URL).toString();
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: tool.h1,
+    description: tool.description,
+    url,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any",
+    browserRequirements: "Requires JavaScript",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+  },
+  faqPage(faq),
+];
+const others = TOOLS.filter((t) => t.path !== tool.path);
+---
+
+<Base page={tool} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap">
+      <Crumbs items={crumbs} />
+      <span class="eyebrow">Free tool</span>
+      <h1>{tool.h1}</h1>
+      <p class="lead">{lead}</p>
+    </div>
+  </section>
+
+  <section class="section tight mist calc-section">
+    <div class="wrap">
+      <slot />
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap prose">
+      <h2>How it works</h2>
+      <slot name="how" />
+
+      <h2>Put it to work</h2>
+      <p>
+        {featureLine} <a href={featurePath(tool.feature)}>See the {featureTitle(tool.feature).toLowerCase()} feature</a>.
+      </p>
+      <p>The maths in more detail, with a worked example: <a href={tool.article.href}>{tool.article.title}</a>.</p>
+      <p>
+        More free tools: {others.map((t, i) => (<>{i > 0 && " and "}<a href={t.path}>{t.h1.toLowerCase()}</a></>))}.
+      </p>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <div class="head center"><h2>Questions</h2></div>
+      <Faq items={faq} />
+    </div>
+  </section>
+</Base>
+
+<style is:global>
+  /* Shared by the three calculators. */
+  .calc {
+    display: grid;
+    gap: 20px;
+  }
+  @media (min-width: 900px) {
+    .calc {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .calc-result {
+      position: sticky;
+      top: 92px;
+    }
+  }
+  .calc-inputs {
+    background: var(--paper);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 32px);
+  }
+  .calc fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 28px;
+    min-width: 0;
+  }
+  .calc fieldset:last-child {
+    margin-bottom: 0;
+  }
+  .calc legend {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    padding: 0;
+  }
+  .calc-fields {
+    display: grid;
+    gap: 18px;
+  }
+  /* Short number fields (price, cost, quantity) stay in one row, even on phones. */
+  .calc-fields.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  @media (min-width: 560px) {
+    .calc-fields:not(.three) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .calc .field label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  /* Fields side by side share rows, so inputs line up even when one label wraps. */
+  .calc-fields .field {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 3;
+    row-gap: 0;
+    align-content: start;
+  }
+  .calc-fields .field label {
+    align-self: end;
+  }
+  .calc .field.currency {
+    margin-bottom: 24px;
+    max-width: 280px;
+  }
+  .calc .control {
+    position: relative;
+  }
+  .calc input,
+  .calc select {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1px solid #7d7f88;
+    border-radius: 10px;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .calc input:disabled {
+    background: var(--mist);
+    color: var(--muted);
+    border-color: var(--line);
+  }
+  .calc .suffixed input {
+    padding-right: 38px;
+  }
+  .calc .suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .calc .hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .calc-note {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+  .calc-result {
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 32px);
+  }
+  .calc-result h2 {
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+  .calc-result dl {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+  }
+  .calc-result dl > div {
+    border-top: 1px solid #2f3039;
+    padding-top: 14px;
+  }
+  .calc-result dt {
+    font-size: 0.85rem;
+    color: var(--muted-dark);
+  }
+  .calc-result dd {
+    margin: 4px 0 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .calc-result dd small {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--muted-dark);
+    margin-top: 2px;
+    min-height: 1.3em;
+  }
+  .calc .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-bottom: 16px;
+  }
+  .calc .choices label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    min-height: 32px;
+    cursor: pointer;
+  }
+  .calc .choices input {
+    width: 20px;
+    min-height: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    accent-color: var(--accent-deep);
+  }
+  .calc-result .summary {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #2f3039;
+    color: #e6e6ea;
+    font-size: 0.98rem;
+  }
+  .calc .formula {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+</style>

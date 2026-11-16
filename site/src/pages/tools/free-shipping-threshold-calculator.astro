@@ -1,0 +1,110 @@
+---
+/** /tools/free-shipping-threshold-calculator/: the maths of blog/free-shipping-threshold-maths as a calculator. */
+import ToolPage from "../../components/tools/ToolPage.astro";
+import Field from "../../components/tools/Field.astro";
+import CurrencySelect from "../../components/tools/CurrencySelect.astro";
+import Stat from "../../components/tools/Stat.astro";
+import { tool } from "../../lib/tools";
+import { shippingView, type ShippingInput } from "../../lib/calculators";
+
+const t = tool("/tools/free-shipping-threshold-calculator/");
+/** Example numbers (the article's example store): made up, shown so a result appears straight away. */
+const d: ShippingInput = { aov: 40, orders: 1000, margin: 60, fee: 5, threshold: 55, above: 15, extra: 20, topUpRate: 15 };
+const view = shippingView(d, "USD");
+const faq = [
+  {
+    q: "What is a good free shipping threshold?",
+    a: "There is no single right amount. Start a little above your average order, at an amount a shopper reaches by adding one more item, then check two things: how many orders already reach it (free shipping on those is pure cost) and whether the margin on the added item covers the shipping fee. The calculator does both.",
+  },
+  {
+    q: "Should the threshold be above my average order value?",
+    a: "Usually, yes. A threshold at or below your average order gives free shipping to many orders that would have been placed anyway, so it costs a lot and asks nothing in return. A threshold one item above a typical order asks shoppers for enough extra spend to cover the fee.",
+  },
+  {
+    q: "What does it mean when each top up loses money?",
+    a: "The margin on what shoppers add is smaller than the shipping fee you stop collecting. Raise the threshold so shoppers add more, or check whether free shipping fits your store at all: with thin margins and heavy parcels, a lower flat rate can be the more honest offer.",
+  },
+  {
+    q: "Does the calculator count new shoppers who buy because shipping is free?",
+    a: "No. Some shoppers who would have left at the shipping cost may now buy, but that can't be known in advance. Count them when you measure the result, by comparing the same number of days before and after.",
+  },
+  {
+    q: "Where do I find these numbers in Shopify?",
+    a: "Average order value is in Shopify Analytics. For the share of orders above an amount, export your orders and count how many were over it. Use the same period for every number, for example the last 30 or 90 days.",
+  },
+];
+---
+
+<ToolPage
+  tool={t}
+  lead="Enter your average order, margin and shipping fee. See a threshold to try, what free shipping costs you on orders that already qualify, and how many shoppers must top up to pay for it."
+  featureLine="Once you pick an amount, a free shipping bar shows shoppers how much more to spend, in the cart and at the top of the store."
+  faq={faq}
+>
+  <form class="calc" id="fs-form" aria-label="Free shipping threshold calculator">
+    <div class="calc-inputs">
+      <CurrencySelect id="fs-currency" />
+      <fieldset>
+        <legend>Your store</legend>
+        <div class="calc-fields">
+          <Field id="fs-aov" name="aov" label="Average order value" value={d.aov} hint="Sales divided by orders, in Shopify Analytics." />
+          <Field id="fs-orders" name="orders" label="Orders a month" value={d.orders} step="1" />
+          <Field id="fs-margin" name="margin" label="Gross margin" value={d.margin} suffix="%" max={100} hint="What you keep from a sale after the product's cost." />
+          <Field id="fs-fee" name="fee" label="Shipping fee per order you would stop charging" value={d.fee} hint="Only the part shoppers pay today is new cost." />
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>The threshold to test</legend>
+        <div class="calc-fields">
+          <Field id="fs-threshold" name="threshold" label="Free shipping threshold" value={d.threshold} />
+          <Field id="fs-above" name="above" label="Orders already at or above it" value={d.above} suffix="%" max={100} hint="Count them in your order export." />
+          <Field id="fs-extra" name="extra" label="What a shopper adds to reach it" value={d.extra} hint="Usually one item, like a refill or an accessory." />
+          <Field id="fs-rate" name="rate" label="Orders under it you expect to top up" value={d.topUpRate} suffix="%" max={100} hint="Your guess. Measure the real share after you start." />
+        </div>
+      </fieldset>
+      <p class="calc-note">The numbers filled in are made up, to show how it works. Replace them with your own. Nothing you type leaves this page.</p>
+    </div>
+
+    <div class="calc-result">
+      <h2>Result</h2>
+      <dl>
+        <Stat id="fs-range" label="Suggested threshold" view={view} />
+        <Stat id="fs-cost" label="Free shipping on orders that already qualify" view={view} />
+        <Stat id="fs-net" label="Net gain per top up" view={view} />
+        <Stat id="fs-break" label="Top ups needed to break even" view={view} />
+        <Stat id="fs-month" label="With your expected top ups, the threshold" view={view} />
+      </dl>
+      <p class="summary" data-summary>{view.summary}</p>
+      <p class="sr-only" aria-live="polite" data-live></p>
+    </div>
+  </form>
+
+  <Fragment slot="how">
+    <p>The calculator uses the same maths as our <a href={t.article.href}>step by step guide to free shipping thresholds</a>. A threshold costs you the shipping fee on two kinds of orders: orders that were already above it, which is pure cost, and orders that top up to reach it, where the margin on what the shopper adds pays for the fee.</p>
+    <ul>
+      <li><strong>Cost of orders that already qualify</strong> = orders a month × share already at or above the threshold × shipping fee</li>
+      <li><strong>Net gain per top up</strong> = what the shopper adds × gross margin, minus the shipping fee</li>
+      <li><strong>Top ups needed to break even</strong> = cost of orders that already qualify ÷ net gain per top up</li>
+      <li><strong>Monthly result</strong> = expected top ups × net gain per top up, minus the cost of orders that already qualify</li>
+    </ul>
+    <p>
+      The suggested threshold runs from your average order plus the smallest top up that pays for its own shipping (fee ÷ margin), rounded up to the next 5, to your average order plus
+      one typical added item, rounded down to the next 5. Inside that range, a shopper with a typical order can reach free shipping with one item, and what they add covers the fee.
+    </p>
+    <p>
+      With the example numbers: 15% of 1,000 orders is 150 orders already at $55 or more, so free shipping on them costs 150 × $5 = $750 a month. A shopper who adds $20 earns
+      $20 × 60% = $12 of margin, minus the $5 fee: $7. Breaking even takes 750 ÷ 7 = 107.1, so 108 top ups, out of the 850 orders under $55.
+    </p>
+  </Fragment>
+</ToolPage>
+
+<script>
+  import { setupCalc } from "../../lib/calc-ui";
+  import { shippingView } from "../../lib/calculators";
+
+  const form = document.getElementById("fs-form") as HTMLFormElement | null;
+  if (form)
+    setupCalc(form, (n, cur) =>
+      shippingView({ aov: n("aov"), orders: n("orders"), margin: n("margin"), fee: n("fee"), threshold: n("threshold"), above: n("above"), extra: n("extra"), topUpRate: n("rate") }, cur),
+    );
+</script>
