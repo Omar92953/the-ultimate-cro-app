@@ -1,18 +1,18 @@
 ---
 import Doc from "../layouts/Doc.astro";
 import { PAGES } from "../lib/pages";
-import { SUPPORT_EMAIL } from "../lib/site";
+import { SUPPORT_EMAIL, SUPPORT_REPLY } from "../lib/site";
 import { PLANS } from "../lib/app";
 const page = PAGES.support;
 ---
 
-<Doc page={page} heading="Support" intro="Questions, a problem, or a feature you need? We're here to help.">
+<Doc page={page} heading="Support" intro="Questions, a problem, or a feature you need? Email us and get a reply within one day.">
   <h2>Contact support</h2>
   {
     SUPPORT_EMAIL ? (
       <p>
-        Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. {PLANS.pro.name} plan stores get priority
-        support.
+        Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. <strong>{SUPPORT_REPLY}</strong> {PLANS.pro.name} plan stores
+        go to the front of the queue.
       </p>
     ) : (
       <p class="note">Our support email will be listed here at launch. Until then, merchants using the app can reach us from Settings → Help inside the app.</p>

@@ -1,6 +1,6 @@
 ---
 import Logo from "./Logo.astro";
-import { FOOTER, OPERATOR, SOCIAL, type SocialKey } from "../lib/site";
+import { FOOTER, OPERATOR, SOCIAL, SUPPORT_REPLY, type SocialKey } from "../lib/site";
 import { BRAND_LINE } from "../lib/brand";
 import { MAIN_KEYWORD_PAGES, keywordPath } from "../lib/keywords";
 // Keyword pages (src/keywords/) list themselves in a Solutions column after Product.
@@ -22,7 +22,7 @@ const socials = (Object.keys(SOCIAL) as SocialKey[]).filter((k) => SOCIAL[k]).ma
     <div class="top">
       <div class="brand">
         <Logo />
-        <p class="muted">{BRAND_LINE} Works with any Online Store 2.0 theme.</p>
+        <p class="muted">{BRAND_LINE} Works with any Online Store 2.0 theme. Support: {SUPPORT_REPLY.charAt(0).toLowerCase() + SUPPORT_REPLY.slice(1)}</p>
         {
           socials.length > 0 && (
             <ul class="social" aria-label="Follow us">

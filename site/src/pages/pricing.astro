@@ -23,6 +23,7 @@ import {
 } from "../lib/app";
 
 import { LOYALTY_PRO } from "../lib/app";
+import { SUPPORT_EMAIL, SUPPORT_REPLY } from "../lib/site";
 
 const page = PAGES.pricing;
 
@@ -111,6 +112,10 @@ const faq: QA[] = [
   {
     q: "What happens when I downgrade or cancel?",
     a: `${GUARANTEE} Nothing is deleted: offers over the new plan's limits, and features the new plan doesn't include, are switched off with their settings kept, and come back on when you upgrade again.`,
+  },
+  {
+    q: "How fast is support?",
+    a: `${SUPPORT_REPLY} Email ${SUPPORT_EMAIL} on any plan, including ${PLANS.free.name}.`,
   },
   {
     q: "Is yearly billing cheaper?",
