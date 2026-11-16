@@ -47,10 +47,15 @@ Checked against `plans.ts` on 2026-10-16: handles free, starter, growth, pro; pr
   the plan is confirmed (Partner API, or a subscription found by the Admin API, or the override):
   **set the Partner API variables before launch**, or Free stores won't have extras switched off. Designs 2–5 made before a downgrade
   stay on the store; the editor for them shows an upgrade card.
-- **Orders a month** is the soft limit (Free 50, Starter 500, Growth 1,000, Pro unlimited): all of
-  the store's orders in the calendar month, from Shopify's order count (works before the protected
-  customer data approval). Home's plan bar shows "N of 500 orders this month" with a meter, and a
-  banner appears when it's passed; nothing is switched off.
+- **Orders a month** (Free 50, Starter 500, Growth 1,000, Pro unlimited): all of the store's orders
+  in the calendar month, from Shopify's order count (works before the protected customer data
+  approval). Home's plan bar shows "N of 500 orders this month" with a meter. Enforced since
+  2026-11-16 (Omar, audit A7; `plans.ts` `orderGrace`, `billing.server.ts` `getOrderGate`): the first
+  time a store is seen over, a 30 day grace starts (Home banner with the end date, kept in
+  `plan_state.orders`). After it, `checkLimit` refuses switching on a new offer (any offer type, MCP
+  too); offers already on keep running and can still be saved. An upgrade starts a new grace, a
+  downgrade keeps it, and it ends only when last calendar month and this month are both within the
+  plan. A count that can't be read never blocks.
 - Analytics' **holdout test** needs Growth to start; a running test can always be stopped.
 - Feature requests were removed (Oct 2026): the app no longer promises to build what merchants ask for. Home's Help card has "Suggest a feature" (mail to features@crotoolbox.com) with no promise attached. Old rows stay in the unused `FeatureRequest` table.
 

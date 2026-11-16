@@ -44,7 +44,7 @@ We compared CRO Toolbox with eight apps. Each comparison lists only facts with a
 
 CRO Toolbox has all six bundle types (Frequently bought together, fixed bundle, mix and match, build your own bundle, tiered bundle, fixed price bundle), plus quantity breaks, cross sells, discounts, a cart drawer, storefront sections and checkout rules in one app. Bundles split into their items at checkout, so each item's stock goes down.
 
-Pricing is by plan: a Free plan with three offers on at once and up to 50 orders a month, then Starter, Growth and Pro. The orders limit is soft: going over shows a reminder and nothing switches off. See [pricing](/pricing/).
+Pricing is by plan: a Free plan with three offers on at once and up to 50 orders a month, then Starter, Growth and Pro. Go over the orders limit and you get 30 days to move up a plan; after that, new offers can't be switched on, and offers already on keep running. See [pricing](/pricing/).
 
 ## When is another app the better choice?
 

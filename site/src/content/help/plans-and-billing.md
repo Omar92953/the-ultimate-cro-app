@@ -14,7 +14,7 @@ An offer switched on: an upsell, cross sell, bundle, bundle product, discount or
 
 ## How does the orders limit work?
 
-It counts all of your store's orders in a calendar month, not only orders with an offer. It is soft: going over shows a reminder in the app and nothing switches off.
+It counts all of your store's orders in a calendar month, not only orders with an offer. Going over shows a reminder in the app for 30 days. After that, new offers can't be switched on until you move up a plan; offers already on keep running. A new month doesn't reset it: it ends once a whole month stays within your plan.
 
 ## Can I go over a monthly limit?
 

@@ -41,7 +41,7 @@ const ticks = Math.max(...plans.map((p) => p.highlights.length));
               {p.yearly > 0 && <em>Save {yearlySaving(p)}%</em>}
             </div>
           </div>
-          <p class="orders">{ordersText(p)}{p.limits.monthlyOrders !== null ? ", soft limit" : ""}</p>
+          <p class="orders">{ordersText(p)}</p>
           <p class="trial">{p.trialDays ? `${p.trialDays} day free trial` : "No card needed"}</p>
           <ul class="check-list">
             {p.highlights.map((h) => (
@@ -53,7 +53,7 @@ const ticks = Math.max(...plans.map((p) => p.highlights.length));
       ))
     }
   </div>
-  <p class="fine muted">{GUARANTEE} Billed by Shopify. The orders limit counts all store orders in a calendar month and is soft: you get a reminder, nothing switches off.</p>
+  <p class="fine muted">{GUARANTEE} Billed by Shopify. The orders limit counts all store orders in a calendar month. Go over and you have 30 days to move up a plan; offers already on keep running.</p>
 </div>
 
 <style>

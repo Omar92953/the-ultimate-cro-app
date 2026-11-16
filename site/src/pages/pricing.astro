@@ -28,7 +28,7 @@ const page = PAGES.pricing;
 
 /** The counted limits, in the order the table shows them. */
 const LIMIT_ROWS: { key: keyof Limits; label: string }[] = [
-  { key: "monthlyOrders", label: "Orders a month (soft: you get a reminder, nothing switches off)" },
+  { key: "monthlyOrders", label: "Orders a month (30 days to move up after going over)" },
   { key: "offerSlots", label: "Offers switched on at once" },
   { key: "checkoutRules", label: "Checkout rules (payment, delivery and order limits)" },
   { key: "countdownPlaces", label: "Countdown timers" },
@@ -82,7 +82,7 @@ const faq: QA[] = [
   },
   {
     q: "What counts toward the orders limit?",
-    a: "All of your store's orders in a calendar month, not only orders with an offer. The limit is soft: going over shows a reminder in the app and nothing switches off.",
+    a: "All of your store's orders in a calendar month, not only orders with an offer. If your store goes over, the app reminds you for 30 days. After that, new offers can't be switched on until you move up a plan; offers already on keep running.",
   },
   {
     q: "What is an offer slot?",

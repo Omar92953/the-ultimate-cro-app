@@ -95,7 +95,7 @@ export async function llmsTxt(): Promise<string> {
 export async function llmsFullTxt(): Promise<string> {
   const out: string[] = [`# ${SITE_NAME}`, "", `Updated: ${UPDATED}`, "", SUMMARY, "", `Website: ${SITE_URL}`];
   if (INSTALL_URL) out.push(`Install: ${INSTALL_URL}`);
-  out.push("", "## Pricing", "", ...pricing(), "", `${GUARANTEE} Billing runs through Shopify. The orders limit counts all store orders in a calendar month and is soft: going over shows a reminder, nothing switches off. The ${PLANS.free.name} plan allows ${PLANS.free.limits.offerSlots} offers switched on at once; paid plans have unlimited offers.`);
+  out.push("", "## Pricing", "", ...pricing(), "", `${GUARANTEE} Billing runs through Shopify. The orders limit counts all store orders in a calendar month. Going over gives a 30 day reminder; after that, new offers can't be switched on until the store moves up a plan, and offers already on keep running. The ${PLANS.free.name} plan allows ${PLANS.free.limits.offerSlots} offers switched on at once; paid plans have unlimited offers.`);
   out.push("", "## Features by area");
   for (const a of SITE_AREAS) {
     out.push("", `### ${a.title}`, "", a.intro);

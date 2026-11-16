@@ -11,7 +11,7 @@ import { authenticate } from "../shopify.server";
 import { timedLoader, timed } from "../lib/timing.server";
 import { EMBED_KEYS, themeSteps } from "../lib/setup-steps";
 import { cachedResults } from "../lib/value.server";
-import { getMonthlyOrders, getPlan, getPlanState } from "../lib/billing.server";
+import { getMonthlyOrders, getOrderGate, getPlan, getPlanState } from "../lib/billing.server";
 import { listOffers } from "../lib/offers.server";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { getHomeState, setHomeState } from "../lib/home-state.server";
@@ -20,7 +20,7 @@ import { listReturns } from "../lib/orders-lookup.server";
 import { waitingEmails } from "../lib/stock.server";
 import { remember } from "../lib/short-cache.server";
 import { feature, featureHref, type FeatureKey } from "../lib/catalog";
-import { EXTRA_PLAN, FEATURE_PLAN, PLANS, atLeast, limitOf, limitText, ordersOver } from "../lib/plans";
+import { EXTRA_PLAN, FEATURE_PLAN, ORDER_GRACE_DAYS, PLANS, atLeast, limitOf, limitText, ordersOver } from "../lib/plans";
 import { FEATURE_IDEAS_EMAIL, TUTORIALS_URL, helpUrl } from "../lib/site";
 import { TUTORIALS_READY, WHATS_NEW, tutorialEmbedUrl, tutorialWatchUrl, type Tutorial } from "../lib/tutorials";
 import { Button } from "../components/fields";
@@ -57,6 +57,8 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
     cachedResults(admin, shop),
   ]);
   const [planState, homeState, offers, monthOrders, returns, waiting] = extras;
+  // Past the plan's monthly orders: the grace end date, or new offers blocked (plans.ts orderGrace).
+  const gate = ordersOver(plan.plan, monthOrders) ? await getOrderGate(admin, shop, plan.plan).catch(() => null) : null;
   const installed = hub.theme?.installed ?? null;
   // Any offer of any type that's switched on (upsells, cross sells, bundles, deals…).
   const offerCount = offers.filter((o) => o.active).length || hub.counts.upsell + hub.counts.cross_sell + hub.counts.bundles;
@@ -93,9 +95,11 @@ export const loader = timedLoader("app._index", async ({ request }: LoaderFuncti
     hub,
     plan: { key: plan.plan, source: plan.source, trialEndsAt: plan.trialEndsAt },
     paused: planState.paused,
-    // All of the store's orders this month (the plans' soft limit).
+    // All of the store's orders this month (the plans' monthly order limit).
     orders: monthOrders,
     ordersOver: ordersOver(plan.plan, monthOrders),
+    ordersBlocked: !!gate?.blocked,
+    ordersGraceEnds: gate?.endsAt ?? null,
     dismissed: homeState.dismissed,
     manual: homeState.manual,
     steps: {
@@ -150,6 +154,14 @@ const money = (n: number, currency: string) => {
 };
 /** "+12%" against the previous 30 days; null when there's nothing to compare. */
 const change = (now: number, before: number) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
+
+/** Home's banner when the store is past its plan's monthly orders: the grace end date, or new offers blocked. */
+function ordersBanner(orders: number, planName: string, included: string, blocked: boolean, endsAt: string | null) {
+  const count = `${orders.toLocaleString("en-US")} orders this month; ${planName} includes ${included}.`;
+  if (blocked) return { tone: "critical" as const, heading: "Upgrade to switch on new offers", text: `${count} Offers already on keep running.`, upgrade: true };
+  const until = endsAt ? new Date(endsAt).toLocaleDateString("en-US", { month: "long", day: "numeric" }) : `${ORDER_GRACE_DAYS} days`;
+  return { tone: "warning" as const, heading: "You're past your plan's monthly orders", text: `${count} Everything keeps working until ${until}. After that, new offers can't be switched on until you upgrade; offers already on keep running.`, upgrade: true };
+}
 
 export default function Home() {
   const data = useLoaderData<typeof loader>();
@@ -251,7 +263,7 @@ export default function Home() {
     : data.paused.length
       ? { tone: "warning" as const, heading: `${data.paused.length} offer${data.paused.length === 1 ? " was" : "s were"} switched off to fit your plan`, text: `Nothing was deleted: ${data.paused.map((p) => p.name).join(", ")}. They switch back on when you upgrade.`, upgrade: true }
       : data.ordersOver && data.orders !== null
-        ? { tone: "warning" as const, heading: "You're past your plan's monthly orders", text: `${data.orders.toLocaleString("en-US")} orders this month; ${current.name} includes ${limitText("monthlyOrders", limitOf(data.plan.key, "monthlyOrders") ?? 0)}. Everything keeps working.`, upgrade: true }
+        ? ordersBanner(data.orders, current.name, limitText("monthlyOrders", limitOf(data.plan.key, "monthlyOrders") ?? 0), data.ordersBlocked, data.ordersGraceEnds)
         : null;
 
   const m = data.metrics;

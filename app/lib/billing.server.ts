@@ -29,7 +29,7 @@ import { getPostPurchase } from "./post-purchase.server";
 import { getCheckoutRules, saveCheckoutRules } from "./checkout-rules.server";
 import type { CheckoutKind } from "./checkout-rules";
 import type { FeatureKey } from "./catalog";
-import { DEFAULT_APP_HANDLE, FEATURE_PLAN, PLAN_KEYS, atLeast, canResume, isPlanKey, limitError, limitOf, overLimit, planFromSubscription, planPageUrl, type LimitKey, type PlanKey } from "./plans";
+import { DEFAULT_APP_HANDLE, FEATURE_PLAN, PLAN_KEYS, atLeast, canResume, isPlanKey, limitError, limitOf, orderBlockText, orderGrace, overLimit, planFromSubscription, planPageUrl, type LimitKey, type OrderGate, type OrderGrace, type PlanKey } from "./plans";
 
 export type PlanInfo = {
   plan: PlanKey;
@@ -158,6 +158,39 @@ export function getMonthlyOrders(admin: AdminClient, shop: string): Promise<numb
   });
 }
 
+/** All of the store's orders last calendar month (UTC), to know when the order grace can end (plans.ts orderGrace). */
+function getLastMonthOrders(admin: AdminClient, shop: string): Promise<number | null> {
+  return remember(shop, "orders-last-month", 6 * 3600_000, async () => {
+    try {
+      const now = new Date();
+      const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toISOString();
+      const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+      const data = await gql(admin, `#graphql
+        query CroOrdersLastMonth($q: String!) { ordersCount(query: $q, limit: 100000) { count } }`, { q: `created_at:>='${from}' AND created_at:<'${to}'` });
+      return typeof data.ordersCount?.count === "number" ? data.ordersCount.count : null;
+    } catch {
+      return null;
+    }
+  });
+}
+
+/**
+ * The monthly order limit, enforced (plans.ts orderGrace): over the plan's orders, is the store still in its grace, or
+ * can it no longer switch on new offers? Saves when the grace starts or ends. Read errors never block.
+ */
+export function getOrderGate(admin: AdminClient, shop: string, plan: PlanKey): Promise<OrderGate & { orders: number | null }> {
+  return remember(shop, `order-gate-${plan}`, 60_000, async () => {
+    const limit = limitOf(plan, "monthlyOrders");
+    if (limit === null) return { over: false, blocked: false, endsAt: null, orders: null };
+    const [orders, state] = await Promise.all([getMonthlyOrders(admin, shop), getPlanState(admin)]);
+    const prev = state.orders ?? null;
+    const last = prev && orders !== null && orders <= limit ? await getLastMonthOrders(admin, shop) : null;
+    const g = orderGrace(plan, orders, last, prev, new Date());
+    if (g.changed) await savePlanState(admin, { ...state, orders: g.stored }).catch((e) => console.error(`Order grace for ${shop}:`, e));
+    return { over: g.over, blocked: g.blocked, endsAt: g.endsAt, orders };
+  });
+}
+
 /* ----------------------------------------------- keeping within the plan -- */
 
 type PausedItem = { type: "rule" | "bundle" | "deal" | "checkout"; handle: string; name: string; limit: LimitKey };
@@ -165,7 +198,7 @@ type PausedItem = { type: "rule" | "bundle" | "deal" | "checkout"; handle: strin
  * `parked`: storefront designs of features the plan locks, moved aside (plan-park.ts). `tried`: features a Free store
  * tried before moving its trial to another one; they keep working on the store until the plan changes.
  */
-export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null; trial?: FeatureKey | null; parked?: string[]; tried?: FeatureKey[] };
+export type PlanState = { plan: PlanKey | null; paused: PausedItem[]; at: string | null; trial?: FeatureKey | null; parked?: string[]; tried?: FeatureKey[]; orders?: OrderGrace | null };
 const EMPTY_STATE: PlanState = { plan: null, paused: [], at: null, trial: null };
 
 export async function getPlanState(admin: AdminClient): Promise<PlanState> {
@@ -174,7 +207,7 @@ export async function getPlanState(admin: AdminClient): Promise<PlanState> {
   try {
     const v = JSON.parse(data.metaobjectByHandle?.field?.value ?? "null");
     return v && Array.isArray(v.paused)
-      ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null, trial: typeof v.trial === "string" && v.trial in FEATURE_PLAN ? (v.trial as FeatureKey) : null, parked: Array.isArray(v.parked) ? v.parked.filter((h: unknown): h is string => typeof h === "string") : [], tried: Array.isArray(v.tried) ? v.tried.filter((f: unknown): f is FeatureKey => typeof f === "string" && f in FEATURE_PLAN) : [] }
+      ? { plan: isPlanKey(v.plan) ? v.plan : null, paused: v.paused, at: v.at ?? null, trial: typeof v.trial === "string" && v.trial in FEATURE_PLAN ? (v.trial as FeatureKey) : null, parked: Array.isArray(v.parked) ? v.parked.filter((h: unknown): h is string => typeof h === "string") : [], tried: Array.isArray(v.tried) ? v.tried.filter((f: unknown): f is FeatureKey => typeof f === "string" && f in FEATURE_PLAN) : [], orders: v.orders && typeof v.orders.since === "string" && isPlanKey(v.orders.plan) ? { since: v.orders.since, plan: v.orders.plan } : null }
       : EMPTY_STATE;
   } catch {
     return EMPTY_STATE;
@@ -343,14 +376,24 @@ export function keepWithinPlan(admin: AdminClient, shop: string, info: PlanInfo,
 /**
  * For save actions: may this offer be switched on? Every offer type fills one of the plan's offer
  * slots (plans.ts). `self` is the offer being saved (its id/handle, or a kit's product id), so it
- * isn't counted twice. Returns null when allowed, otherwise { error, upgrade } for the page.
+ * isn't counted twice. A store past its plan's monthly orders after the grace (getOrderGate) can't
+ * switch on new offers; one already on can still be saved. Returns null when allowed, otherwise
+ * { error, upgrade } for the page.
  */
 export async function checkLimit(admin: AdminClient, shop: string, key: "offerSlots", self: { active: boolean; handle?: string | null; id?: string | null }) {
   if (!self.active) return null;
   const info = await getPlan(admin, shop);
-  if (limitOf(info.plan, key) === null) return null;
+  const slots = limitOf(info.plan, key);
+  const ordersCapped = limitOf(info.plan, "monthlyOrders") !== null;
+  if (slots === null && !ordersCapped) return null;
   const offers = await listOffers(admin);
-  const othersOn = offers.filter((o) => o.active && o.id !== self.id && !(self.handle && o.href.endsWith(`/${self.handle}`))).length;
+  const isSelf = (o: { id: string; href: string }) => (self.id != null && o.id === self.id) || (!!self.handle && o.href.endsWith(`/${self.handle}`));
+  if (ordersCapped && !offers.some((o) => o.active && isSelf(o))) {
+    const gate = await getOrderGate(admin, shop, info.plan).catch(() => null);
+    if (gate?.blocked && gate.orders !== null) return { error: orderBlockText(info.plan, gate.orders), upgrade: info.planUrl };
+  }
+  if (slots === null) return null;
+  const othersOn = offers.filter((o) => o.active && !isSelf(o)).length;
   const error = limitError(info.plan, key, othersOn);
   return error ? { error, upgrade: info.planUrl } : null;
 }
