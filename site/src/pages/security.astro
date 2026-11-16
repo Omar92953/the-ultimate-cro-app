@@ -10,7 +10,7 @@ import { PAGES } from "../lib/pages";
 const page = PAGES.security;
 ---
 
-<Doc page={page} heading="Your data and security" intro="What CRO Toolbox reads from your store, what it keeps, where it is kept and how it is deleted." updated="November 14, 2026">
+<Doc page={page} heading="Your data and security" intro="What CRO Toolbox reads from your store, what it keeps, where it is kept and how it is deleted." updated="November 16, 2026">
   <h2>The short version</h2>
   <ul>
     <li>Your offers, bundles, sections and settings are saved in your own Shopify store, not on our servers.</li>
@@ -28,6 +28,7 @@ const page = PAGES.security;
     <li><strong>Forms shoppers send on your store:</strong> back in stock requests (email and product), return requests (order number, email, items, reason), review submissions and pop up sign ups. Pop up emails go straight into your own Shopify customers; we don't keep them.</li>
     <li><strong>Loyalty, only if you turn it on:</strong> each member's Shopify customer id, email, language, points and their history, tier, referral and reward codes, and the birthday they choose to add (day and month only).</li>
     <li><strong>Reviewer emails</strong> you type to check a review against your orders. They are never shown on your store.</li>
+    <li><strong>Order lookups that find nothing:</strong> the typed email and the time, kept one day, so nobody can guess another shopper's order numbers.</li>
   </ul>
 
   <h2>What the app reads from Shopify, and why</h2>

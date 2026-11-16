@@ -479,3 +479,16 @@ model OfferSchedule {
   @@index([startsAt])
   @@index([endsAt])
 }
+
+/// A shopper's order lookup on the Track or Returns page that found nothing, by store and typed email (audit 2026-11-14,
+/// A8): limits guessing order numbers for someone else's email across visitors and deploys. Kept one day.
+model LookupMiss {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  /// The typed email, lower case.
+  email     String
+  createdAt DateTime @default(now())
+
+  @@index([shop, email, createdAt])
+  @@index([shop, createdAt])
+}

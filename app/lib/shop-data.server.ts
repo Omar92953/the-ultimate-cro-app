@@ -14,6 +14,7 @@ import { redactReturnsShop } from "./orders-lookup.server";
 import { removeShopLoyalty } from "./loyalty/program.server";
 import { removeShopUsage } from "./usage.server";
 import { removeShopSchedules } from "./schedule.server";
+import { removeShopLookups } from "./lookup-guard.server";
 
 export async function removeShopData(shop: string) {
   await db.session.deleteMany({ where: { shop } });
@@ -28,4 +29,5 @@ export async function removeShopData(shop: string) {
   await removeShopLoyalty(shop);
   await removeShopUsage(shop);
   await removeShopSchedules(shop);
+  await removeShopLookups(shop);
 }

@@ -9,6 +9,7 @@ import { buyAgainFor, isLate } from "../lib/track-sell";
 import { getOrderPages } from "../lib/order-page-setup.server";
 import { countLookup, getTrackSell, givenCode, nextOrderCode } from "../lib/track-sell.server";
 import { json, readJson, tooMany } from "../lib/proxy-guard.server";
+import { countMiss, lookupBlocked } from "../lib/lookup-guard.server";
 import { getPlan } from "../lib/billing.server";
 import { EXTRA_PLAN, atLeast } from "../lib/plans";
 import { trackOffersFor } from "../lib/track-offers.server";
@@ -30,8 +31,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   // The Track page is a Growth feature: after a downgrade it answers "not available" (its settings are kept).
   if (!(await storefrontOpen(admin, session.shop, "track"))) return json({ ok: false, error: "Order lookup isn't available right now." }, 403);
   try {
+    // Too many lookups that found nothing for this email (or this store) in the last hour, from any visitor (audit A8).
+    if (await lookupBlocked(session.shop, q.email)) return json({ ok: false, error: "Too many tries. Please wait a while and try again." }, 429);
     const order = await findOrder(admin, q.number, q.email);
-    if (!order) return json({ ok: false, notFound: true });
+    if (!order) {
+      await countMiss(session.shop, q.email);
+      return json({ ok: false, notFound: true });
+    }
     // Where each shipment's tracking comes from is the store's choice (lib/tracking/tracking.server.ts); Shopify's own data is the fallback.
     const { plan } = await getPlan(admin, session.shop);
     // A carrier Shopify has no link for (a local courier) gets the store's own link pattern.

@@ -85,6 +85,11 @@ const page = PAGES.privacy;
         <td>Our database</td>
       </tr>
       <tr>
+        <td>Order lookups that find nothing: the email a shopper typed on the Track or Returns page, and the time</td>
+        <td>So nobody can guess another shopper's order numbers by trying many</td>
+        <td>Our database, kept one day</td>
+      </tr>
+      <tr>
         <td>
           Loyalty program, only if the store turns it on: each member's Shopify customer id, email address, language, whether they are subscribed to the
           store's email marketing, their points and every change to them (orders, refunds, rewards), their tier, their referral code, the reward codes
@@ -134,13 +139,13 @@ const page = PAGES.privacy;
     </li>
     <li>
       <strong>Shopper requests:</strong> when a shopper asks a store to delete their data, Shopify tells us and we delete that shopper's back in stock
-      requests, return requests, reviewer emails and loyalty data (member, points history, rewards, referrals, emails and events), and remove their
+      requests, return requests, reviewer emails, order lookups that found nothing and loyalty data (member, points history, rewards, referrals, emails and events), and remove their
       orders from the sales pop up list. When Shopify asks for a shopper's data, we report what we hold.
     </li>
     <li>
       <strong>Automatic deletion:</strong> while the app is installed, old records are deleted every day: back in stock requests {R.stockAlertSent} days
       after the shopper was told (or after {R.stockAlertWaiting / 365} year if never sent), return requests and reviewer emails after {R.returnRequest / 365}
-      years, live tracking answers {R.trackingCache} days after the last check, Track page discount codes {R.trackCode} days after they end, and loyalty email logs after 90 days.
+      years, live tracking answers {R.trackingCache} days after the last check, Track page discount codes {R.trackCode} days after they end, order lookups that found nothing after {R.lookupMiss} day, and loyalty email logs after 90 days.
     </li>
     <li>Merchants can also delete reviews, return requests and other content in the app at any time.</li>
   </ul>

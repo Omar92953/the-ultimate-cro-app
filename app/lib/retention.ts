@@ -6,4 +6,5 @@ export const RETENTION_DAYS = {
   reviewerEmail: 730, // email typed by the merchant for the verified buyer check
   trackingCache: 90, // live tracking answers, after the last check
   trackCode: 30, // Track page discount codes, after they end
+  lookupMiss: 1, // order lookups that found nothing (typed email), against guessing (audit 2026-11-14, A8)
 } as const;

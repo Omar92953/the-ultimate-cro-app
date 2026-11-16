@@ -39,6 +39,11 @@ api_version = "2026-07"
   topics = [ "products/update" ]
   uri = "/webhooks/products/update"
 
+  # A plan changed or ended (Shopify App Pricing): the store's offers are kept within the new plan (app/routes/webhooks.app_subscriptions.update.tsx).
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/webhooks/app_subscriptions/update"
+
   # A return closed in Shopify's admin: a store credit return waiting for its items gets its credit (app/routes/webhooks.returns.close.tsx).
   [[webhooks.subscriptions]]
   topics = [ "returns/close" ]
