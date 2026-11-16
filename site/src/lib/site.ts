@@ -26,12 +26,12 @@ export const OPERATOR = "OMC";
 
 /**
  * Social profiles: the footer icons and the Organization schema's sameAs both read this. An empty
- * address hides that icon (and leaves it out of sameAs). TODO(Omar): paste the real profile URLs.
+ * address hides that icon (and leaves it out of sameAs). Instagram and Facebook from Omar, 2026-11-16.
  */
 export const SOCIAL = {
   youtube: "",
-  instagram: "",
-  facebook: "",
+  instagram: "https://www.instagram.com/crotoolbox/",
+  facebook: "https://www.facebook.com/profile.php?id=61595426730684",
   tiktok: "",
 };
 export type SocialKey = keyof typeof SOCIAL;
@@ -51,6 +51,10 @@ export const PROFILES = {
 };
 
 export const NOTIFY_HREF = "/#get-notified";
+/** Where the "Email me at launch" form posts (the app's server, app/routes/site.notify.tsx; stored in its database). */
+export const SIGNUP_URL = "https://cro-toolbox.onrender.com/site/notify";
+/** The support reply promise (Omar, 2026-11-16), shown on the support page, pricing and the footer. */
+export const SUPPORT_REPLY = "Replies within one day, from the developer.";
 
 /**
  * Search engine verification (Google Search Console, Bing Webmaster Tools): paste the content value

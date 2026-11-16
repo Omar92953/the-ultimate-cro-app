@@ -492,3 +492,16 @@ model LookupMiss {
   @@index([shop, email, createdAt])
   @@index([shop, createdAt])
 }
+
+/// The website's "Email me at launch" form (crotoolbox.com, route site.notify): one email on launch day, then the
+/// list is deleted. Not store data: no shop column.
+model LaunchSignup {
+  id        Int      @id @default(autoincrement())
+  /// Lower case.
+  email     String   @unique
+  /// The website page the form was sent from, e.g. "/pricing/".
+  page      String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
