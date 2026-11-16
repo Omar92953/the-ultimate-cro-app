@@ -79,8 +79,10 @@ with Chromium on your computer (see the top of `demos/screenshots.mjs`). Commit 
 - Feature pages: `site/src/lib/features.ts` (who it's for, what you can set, related features); the
   one line description comes from `app/lib/catalog.ts`, the template names from the app's design files.
 - Use case and industry pages: `site/src/lib/usecases.ts`.
-- Comparisons: `site/src/lib/competitors.ts`. Only facts with a source and the date checked; anything
-  else shows "Not checked". Check the listings yourself from time to time and update the file.
+- Comparisons: `site/src/lib/competitors.ts`. Only facts with a source and the date checked (`checked` per app).
+  Every cell is filled: a fact from the listing, or "Not on its listing" when the listing doesn't mention it. Each
+  page also says where the other app is stronger (`theirEdge`). Check the listings yourself from time to time and
+  update the file (and the prices in `site/src/components/StackCost.astro`).
 
 ### Adding an article (the blog at /blog/)
 

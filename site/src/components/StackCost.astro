@@ -6,11 +6,11 @@
  */
 import { PLANS, money } from "../lib/app";
 
-const CHECKED = "2026-11-14";
+const CHECKED = "2026-11-16";
 const ROWS: { need: string; app: string; plan: string; price: number; note?: string; href: string }[] = [
   { need: "Loyalty with VIP tiers", app: "Smile", plan: "Growth", price: 199, note: "VIP tiers start on this plan", href: "https://apps.shopify.com/smile-io" },
   { need: "Returns with store credit and exchanges", app: "ReturnGO", plan: "Premium", price: 147, note: "No free plan", href: "https://apps.shopify.com/returngo" },
-  { need: "One click offer after payment", app: "AfterSell", plan: "Post-Purchase", price: 34.99, href: "https://apps.shopify.com/aftersell" },
+  { need: "One click offer after payment", app: "AfterSell", plan: "Post Purchase", price: 34.99, href: "https://apps.shopify.com/aftersell" },
   { need: "Bundles and quantity breaks", app: "Kaching Bundles", plan: "Starter", price: 14.99, note: "Up to $1,000 of extra revenue a month", href: "https://apps.shopify.com/bundle-deals" },
 ];
 const total = ROWS.reduce((s, r) => s + r.price, 0);

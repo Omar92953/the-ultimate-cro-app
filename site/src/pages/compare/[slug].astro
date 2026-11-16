@@ -4,7 +4,8 @@ import Crumbs from "../../components/Crumbs.astro";
 import Faq, { type QA } from "../../components/Faq.astro";
 import InstallButton from "../../components/InstallButton.astro";
 import NotifyCta from "../../components/NotifyCta.astro";
-import { COMPETITORS, CAPABILITIES, OURS, CHECKED, type Competitor } from "../../lib/competitors";
+import { COMPETITORS, CAPABILITIES, OURS, checkedText, type Competitor } from "../../lib/competitors";
+import { ORDER_GRACE_DAYS } from "../../../../app/lib/plans";
 import { COMPARE_PAGES, MORE_PAGES } from "../../lib/pages";
 import { plans, money, ordersText, trialDays, PLANS } from "../../lib/app";
 import { faqPage } from "../../lib/schema";
@@ -23,17 +24,24 @@ const crumbs = [
 ];
 const ourPricing = plans.map((p) => (p.monthly ? `${p.name} ${money(p.monthly)} a month (${ordersText(p).toLowerCase()})` : `${p.name}: ${ordersText(p).toLowerCase()}, ${p.limits.offerSlots} offers at once`));
 const levelText = c.level === "vendor" ? "from the app's own Shopify App Store listing or website" : "from review sites, which are often out of date";
+const checked = checkedText(c.checked);
+const ours = c.ours ?? "CRO Toolbox brings offers, bundles, storefront sections, cart offers and checkout rules into one app.";
+const missing = c.missing ?? "Not on its listing";
+/** Offer apps compare on the shared capabilities; apps for another job on their own rows. */
+const rows = c.rows ?? CAPABILITIES.map((cap) => ({ label: cap.label, ours: OURS[cap.key] ? "Yes" : "No", theirs: c.has![cap.key] }));
+const ourEdge = c.ourEdge ?? ["Offers, bundles, storefront sections and checkout rules in one app and one plan", "A free plan, then paid plans as your store grows", "Works with Online Store 2.0 themes without editing code"];
 const faq: QA[] = [
   {
     q: `What is the difference between CRO Toolbox and ${c.name}?`,
-    a: `CRO Toolbox is one app for offers, six kinds of bundles, storefront sections, cart offers and checkout rules. ${c.name} focuses on: ${c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}`,
+    a: `${c.ours ?? "CRO Toolbox is one app for offers, six kinds of bundles, storefront sections, cart offers and checkout rules."} ${c.name} focuses on: ${c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}`,
   },
   {
     q: `How much does CRO Toolbox cost compared with ${c.name}?`,
     a: `CRO Toolbox has a ${PLANS.free.name} plan and paid plans from ${money(plans.find((p) => p.monthly)!.monthly)} a month, each with a ${trialDays} day trial. For ${c.name}, check its current listing; the prices we found are on this page with their source.`,
   },
 ];
-const others = COMPETITORS.filter((x) => x.slug !== c.slug);
+// Apps for the same job first.
+const others = [...COMPETITORS.filter((x) => x.slug !== c.slug && x.area === c.area), ...COMPETITORS.filter((x) => x.area !== c.area)];
 ---
 
 <Base page={page} crumbs={crumbs} schema={[faqPage(faq)]}>
@@ -43,12 +51,10 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
       <span class="eyebrow">Compare</span>
       <h1>CRO Toolbox vs {c.name}</h1>
       <p class="lead">
-        CRO Toolbox brings offers, bundles, storefront sections, cart offers and checkout rules into one app. {c.name} focuses on: {
-          c.focus.charAt(0).toLowerCase() + c.focus.slice(1)
-        }
+        {ours} {c.name} focuses on: {c.focus.charAt(0).toLowerCase() + c.focus.slice(1)}
       </p>
       <p class="note">
-        Facts about {c.name} are {levelText}, checked on {CHECKED}. Anything we could not check says so. Always confirm on <a href={c.listing} rel="nofollow noopener" target="_blank">the {c.name} listing on the Shopify App Store</a>.
+        Facts about {c.name} are {levelText}, checked on {checked}. Where its sources don't mention something, the table says so. Always confirm on <a href={c.listing} rel="nofollow noopener" target="_blank">the {c.name} listing on the Shopify App Store</a>.
       </p>
     </div>
   </section>
@@ -62,18 +68,20 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
           <thead><tr><th scope="col">Feature</th><th scope="col">CRO Toolbox</th><th scope="col">{c.name}</th></tr></thead>
           <tbody>
             {
-              CAPABILITIES.map((cap) => (
+              rows.map((r) => (
                 <tr>
-                  <th scope="row">{cap.label}</th>
-                  <td>{OURS[cap.key] ? <span class="yes">Yes</span> : "No"}</td>
-                  <td>{c.has[cap.key] ? <span class="yes">Yes, listed</span> : <span class="unk">Not checked</span>}</td>
+                  <th scope="row">{r.label}</th>
+                  <td>{r.ours === "Yes" ? <span class="yes">Yes</span> : r.ours}</td>
+                  <td>{r.theirs === true ? <span class="yes">Yes, listed</span> : r.theirs === false ? <span class="unk">{missing}</span> : r.theirs}</td>
                 </tr>
               ))
             }
           </tbody>
         </table>
       </div>
-      <p class="small muted">"Yes, listed" means the app's listing name or description says so. "Not checked" means we haven't confirmed it either way.</p>
+      <p class="small muted">
+        About {c.name}: "Yes, listed" means its {c.missing ? "pricing page" : "Shopify App Store listing"} says so (description, feature list or plans). "{missing}" means it doesn't mention it; the app may still do it, so ask its developer. Checked {checked}.
+      </p>
     </div>
   </section>
 
@@ -82,6 +90,9 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
       <div class="block">
         <h2 class="h2s">CRO Toolbox pricing</h2>
         <ul class="check-list">{ourPricing.map((l) => <li>{l}</li>)}</ul>
+        <p class="small muted">
+          The orders limit counts all of a store's orders in a calendar month. Go over it and the app reminds you for {ORDER_GRACE_DAYS} days; after that, no new offers can be switched on until you move up a plan. Offers already on keep running.
+        </p>
         <p class="small muted">Yearly billing is cheaper. Every paid plan has a {trialDays} day free trial. <a class="link" href="/pricing/">Full pricing</a></p>
       </div>
       <div class="block">
@@ -98,7 +109,7 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
                 </a>
               </>
             ))
-          }. Checked {CHECKED}.
+          }. Checked {checked}.
         </p>
       </div>
     </div>
@@ -107,19 +118,13 @@ const others = COMPETITORS.filter((x) => x.slug !== c.slug);
   <section class="section tight mist">
     <div class="wrap grid two">
       <div class="block">
-        <h2 class="h2s">CRO Toolbox may suit you if</h2>
-        <ul class="check-list">
-          <li>You want offers, bundles, storefront sections and checkout rules in one app and one plan</li>
-          <li>You want to start on a free plan and move up as your store grows</li>
-          <li>You use an Online Store 2.0 theme and don't want to edit code</li>
-        </ul>
+        <h2 class="h2s">Where CRO Toolbox is stronger</h2>
+        <ul class="check-list">{ourEdge.map((t) => <li>{t}</li>)}</ul>
       </div>
       <div class="block">
-        <h2 class="h2s">{c.name} may suit you if</h2>
-        <ul class="plain">
-          <li>You only need what it focuses on and like its plans</li>
-          <li>You already use it and it works well for your store</li>
-        </ul>
+        <h2 class="h2s">Where {c.name} is stronger</h2>
+        <ul class="plain">{c.theirEdge.map((t) => <li>{t}</li>)}</ul>
+        <p class="small muted">If you already use {c.name} and it works well for your store, that counts too.</p>
       </div>
     </div>
   </section>
