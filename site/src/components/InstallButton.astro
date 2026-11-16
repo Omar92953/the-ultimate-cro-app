@@ -5,6 +5,7 @@
  */
 import ShopifyLogo from "./ShopifyLogo.astro";
 import { installHref, INSTALL_URL } from "../lib/site";
+import { arInstallHref } from "../lib/ar";
 interface Props {
   /** Page type for utm_medium (home, pricing, article…). */
   medium: string;
@@ -12,14 +13,18 @@ interface Props {
   campaign: string;
   label?: string;
   class?: string;
+  /** "ar" on the Arabic pages: Arabic label, and the Arabic "Get notified" block while the listing isn't live. */
+  lang?: "en" | "ar";
 }
-const { medium, campaign, label: given = "Install for free on Shopify", class: cls = "primary" } = Astro.props;
+const { medium, campaign, lang = "en", class: cls = "primary" } = Astro.props;
+const ar = lang === "ar";
+const given = Astro.props.label ?? (ar ? "ثبّت مجاناً من Shopify" : "Install for free on Shopify");
 const live = Boolean(INSTALL_URL);
 // Until the listing is live the button opens "Be first to install", so it says that instead of promising an install.
-const label = live ? given : "Get it at launch";
+const label = live ? given : ar ? "احصل عليه عند الإطلاق" : "Get it at launch";
 ---
 
-<a class:list={["btn", cls]} href={installHref(medium, campaign)} {...live ? { rel: "noopener" } : {}}>
+<a class:list={["btn", cls]} href={ar ? arInstallHref(medium, campaign) : installHref(medium, campaign)} {...live ? { rel: "noopener" } : {}}>
   <ShopifyLogo />
   {label}
 </a>

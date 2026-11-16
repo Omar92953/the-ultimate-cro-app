@@ -84,6 +84,16 @@ with Chromium on your computer (see the top of `demos/screenshots.mjs`). Commit 
   page also says where the other app is stronger (`theirEdge`). Check the listings yourself from time to time and
   update the file (and the prices in `site/src/components/StackCost.astro`).
 
+### Arabic pages (/ar/)
+
+Five pages in `site/src/pages/ar/` (home, pricing, bundles, loyalty program, payment rules), right to left, for stores in
+the Gulf and Egypt (2026-11-16, audit item 9). `site/src/lib/ar.ts` holds their titles, the English page each one
+mirrors (Base.astro prints hreflang en, ar and x-default on both pages, and the header and footer link to the other
+language), the Arabic menu, and Arabic for the plan lines read from `app/lib/plans.ts`. When a plan line changes and
+has no Arabic yet, the build prints `[ar] no Arabic for "…"` and shows it in English: add the line to `LINES` in `ar.ts`.
+Prices and limits always come from plans.ts; wrap prices in Arabic text with `arMoney()` (or `ltr()` for written
+amounts), so "$5.99" keeps its order. Arabic uses the system's Arabic font (no download). No dashes in Arabic text either.
+
 ### Adding an article (the blog at /blog/)
 
 One Markdown file in `site/src/content/blog/`. The file name is the address: `my-question.md` becomes

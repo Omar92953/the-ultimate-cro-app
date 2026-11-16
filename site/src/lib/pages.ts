@@ -22,6 +22,9 @@ export type PageMeta = {
   /** Short line on the share image (defaults to the title). */
   ogTitle?: string;
   ogKicker?: string;
+  /** Share image of another page (the Arabic pages use their English page's image) and its alt text. */
+  ogImageSlug?: string;
+  ogAlt?: string;
 };
 
 export const PAGES = {

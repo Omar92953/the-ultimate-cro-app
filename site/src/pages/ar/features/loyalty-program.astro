@@ -1,0 +1,181 @@
+---
+/**
+ * /ar/features/loyalty-program/: the loyalty program in Arabic. Mirrors /features/loyalty-program/ (hreflang both
+ * ways, lib/ar.ts). Facts from the help guide (content/help/loyalty-program.md), limits from plans.ts.
+ */
+import Base from "../../../layouts/Base.astro";
+import Shot from "../../../components/Shot.astro";
+import Faq, { type QA } from "../../../components/Faq.astro";
+import InstallButton from "../../../components/InstallButton.astro";
+import ArCrumbs from "../../../components/ar/ArCrumbs.astro";
+import ArNotifyCta from "../../../components/ar/ArNotifyCta.astro";
+import { PLANS, FEATURE_PLAN, LOYALTY_PRO, METERS } from "../../../lib/app";
+import { faqPage } from "../../../lib/schema";
+import { AR_PAGES, arLine, arNum, arPlan, arMoney } from "../../../lib/ar";
+
+const page = AR_PAGES.loyalty;
+const crumbs = [{ name: "برنامج الولاء", href: page.path }];
+const plan = PLANS[FEATURE_PLAN.loyalty];
+const meter = METERS.loyaltyOrders;
+
+const POINTS = [
+  "نقاط على الطلبات، وإنشاء حساب، وأول طلب، وعيد الميلاد، وتقييم المنتجات، ومتابعة حسابات التواصل",
+  "مكافآت يصرفها العميل: خصم بمبلغ أو بنسبة، أو شحن مجاني، أو منتج مجاني، أو رصيد في المتجر",
+  "متجر نقاط: منتجات يأخذها الأعضاء بالنقاط، أو بنقاط مع مبلغ أقل، ومنتجات لا تُباع إلا بالنقاط",
+  "إحالات: الصديق يحصل على خصم على أول طلب، والعضو يكسب مكافأة عندما يُدفع طلب صديقه",
+  "زر ولوحة للمكافآت في كل صفحة، والنقاط في صفحات المنتجات وفي السلة، وصفحة مكافآت كاملة",
+  "النقاط في حساب العميل، وفي صفحة الشكر وصفحة حالة الطلب، وفي Shopify POS",
+];
+
+const STEPS = [
+  "ثبّت CRO Toolbox من متجر تطبيقات Shopify.",
+  "افتح Loyalty في التطبيق: اختر ما يكسب النقاط من Earn points، وأضف المكافآت من Rewards.",
+  "من Languages أضف العربية: نصوص البرنامج الافتراضية تمتلئ بترجمة عربية جاهزة، وتعدّل ما تريد.",
+  "شغّل البرنامج، ثم فعّل Conversion boosters من App embeds في محرر الثيم، فيظهر زر المكافآت في كل صفحات متجرك.",
+];
+
+const faq: QA[] = [
+  {
+    q: "ما الخطة التي فيها برنامج الولاء؟",
+    a: `${arPlan(plan.key)} وما فوقها. عدد الطلبات التي تكسب نقاطاً شهرياً: ${arNum(PLANS.growth.limits.loyaltyOrders)} في ${PLANS.growth.name}، و${arNum(PLANS.pro.limits.loyaltyOrders)} في ${PLANS.pro.name}. التفاصيل في <a href="${AR_PAGES.pricing.path}">صفحة الأسعار</a>.`,
+  },
+  {
+    q: "هل يظهر البرنامج لعملائي بالعربية؟",
+    a: "نعم. أضف العربية من Languages فتمتلئ النصوص الافتراضية بترجمة جاهزة. يعرض متجرك البرنامج بلغة الصفحة، فإذا كانت الصفحة بالعربية تظهر لوحة المكافآت وصفحة المكافآت بالعربية ومن اليمين لليسار. لوحة التطبيق نفسها داخل Shopify بالإنجليزية حالياً.",
+  },
+  {
+    q: "متى يكسب العميل نقاط طلبه، ومع الدفع عند الاستلام؟",
+    a: "تُحسب نقاط الطلب عندما يصبح مدفوعاً، فطلب الدفع عند الاستلام يكسب نقاطه بعد أن يُسجَّل مدفوعاً في Shopify. الاسترداد أو الإلغاء يسحب النقاط، ويمكن أن تبقى النقاط الجديدة معلّقة بضعة أيام قبل صرفها (14 يوماً افتراضياً)، فلا يصرف أحد نقاط طلب أعاده.",
+  },
+  {
+    q: "هل يكسب من يشتري بدون حساب؟",
+    a: "أنت تختار من Earn points: إما أن تنتظر النقاط بريد العميل فيستخدمها بعد إنشاء حساب بالبريد نفسه (الخيار الافتراضي)، أو تُحسب طلباته بعد إنشاء الحساب، أو لا يكسب إلا أصحاب الحسابات.",
+  },
+  {
+    q: "ماذا يحدث عند الوصول إلى حد الطلبات الشهري للولاء؟",
+    a: `تتوقف الطلبات عن كسب النقاط حتى الشهر التالي، إلا إذا فعّلت الزيادة في التطبيق: ${arMoney(meter.price)} لكل ${meter.per} طلب إضافي، تضيفها Shopify إلى فاتورتك. الزيادة متاحة مع الدفع الشهري فقط، والخطط السنوية تتوقف عند الحد.`,
+  },
+  {
+    q: "هل يعمل مع قالب متجري؟",
+    a: "نعم، مع أي قالب Online Store 2.0. زر المكافآت يأتي من App embed تفعّله في محرر الثيم، وصفحة المكافآت بلوك تضيفه إلى قالب صفحة، ولا يُعدَّل كود القالب.",
+  },
+];
+const schema = [faqPage(faq)];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap fhero">
+      <div>
+        <ArCrumbs items={crumbs} />
+        <span class="eyebrow">الولاء</span>
+        <h1>برنامج ولاء لمتجرك على <bdi>Shopify</bdi>، بالعربية</h1>
+        <p class="lead">
+          العميل الذي يشتري مرة ولا يعود يكلّفك إعلاناً جديداً في كل مرة. مع برنامج الولاء يكسب نقاطاً على كل طلب، ويصرفها على مكافآت، ويدعو أصدقاءه،
+          فيعود ليشتري منك أنت.
+        </p>
+        <p class="who">لمتاجر تريد أن يعود عملاؤها ويشتروا مرة أخرى، دون اشتراك منفصل في تطبيق ولاء.</p>
+        <p class="pill">على {arPlan(plan.key)} وما فوقها</p>
+        <div class="actions">
+          <InstallButton medium="feature" campaign="ar_loyalty_program" lang="ar" />
+          <a class="btn ghost" href={AR_PAGES.pricing.path}>شاهد الأسعار</a>
+        </div>
+      </div>
+      <Shot name="features/loyalty-program" alt="لوحة المكافآت في متجر تجريبي: انضم واكسب، وطرق كسب النقاط، والمكافآت" caption="على متجر تجريبي بالإنجليزية. في متجرك العربي تظهر اللوحة نفسها بالعربية." eager />
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">ما يحصل عليه عملاؤك</h2>
+        <ul class="check-list">
+          {POINTS.map((p) => <li>{p}</li>)}
+        </ul>
+      </div>
+      <div class="block">
+        <h2 class="h3">بالعربية، ومن اليمين لليسار</h2>
+        <ul class="check-list">
+          <li>ترجمة عربية جاهزة لنصوص البرنامج، تضيفها بنقرة من Languages وتعدّل أي كلمة فيها.</li>
+          <li>يعرض متجرك البرنامج بلغة الصفحة: صفحة عربية تعني لوحة مكافآت عربية من اليمين لليسار.</li>
+          <li>أضف لغات أخرى بجانب العربية إذا كان متجرك يبيع بأكثر من لغة.</li>
+          <li>الألوان ومكان الزر وكل كلمة في اللوحة وصفحة المكافآت تضبطها من Look.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">الخطط والحدود</h2>
+        <ul class="check-list">
+          <li>{PLANS.growth.name} ({arMoney(PLANS.growth.monthly)} شهرياً): نقاط ومكافآت ومتجر نقاط وإحالات. طلبات تكسب نقاطاً شهرياً: {arNum(PLANS.growth.limits.loyaltyOrders)}.</li>
+          <li>{PLANS.pro.name} ({arMoney(PLANS.pro.monthly)} شهرياً): طلبات تكسب نقاطاً شهرياً: {arNum(PLANS.pro.limits.loyaltyOrders)}، ويضيف {LOYALTY_PRO.map(arLine).join("، و")}.</li>
+        </ul>
+        <p class="note">
+          عند الحد تتوقف الطلبات عن كسب النقاط حتى الشهر التالي، إلا إذا فعّلت الزيادة في التطبيق: {arMoney(meter.price)} لكل {meter.per} طلب إضافي، تضيفها Shopify
+          إلى فاتورتك. الزيادة مع الدفع الشهري فقط.
+        </p>
+      </div>
+      <div class="block">
+        <h2 class="h3">طريقة الإعداد</h2>
+        <ol class="steps">
+          {STEPS.map((s) => <li>{s}</li>)}
+        </ol>
+        <p class="help-link">
+          <a class="link" href="/help/loyalty-program/" lang="en" hreflang="en">Loyalty program: step by step help</a>
+          <span class="muted"> (بالإنجليزية)</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <div class="head center">
+        <h2>أسئلة عن برنامج الولاء</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <ArNotifyCta campaign="ar_loyalty_program" />
+</Base>
+
+<style>
+  .fhero {
+    display: grid;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .fhero {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  .who {
+    margin: 14px 0 18px;
+    color: #2b2d35;
+    max-width: 560px;
+  }
+  .actions {
+    margin-top: 24px;
+  }
+  .h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  .steps {
+    margin: 0;
+    padding-inline-start: 22px;
+    display: grid;
+    gap: 10px;
+  }
+  .note {
+    margin-top: 18px;
+  }
+  .help-link {
+    margin-top: 18px;
+  }
+</style>

@@ -15,6 +15,7 @@ import { RECIPE_META, recipePath } from "./recipes";
 import { ALTERNATIVES, altMeta } from "./alternatives";
 import { CHANGELOG } from "./changelog";
 import { TOOLS, TOOLS_PAGE } from "./tools";
+import { AR_PAGE_LIST } from "./ar";
 import { plans, SITE_AREAS, BUNDLE_RECIPES, featureTitle, featureAbout, plain, money, ordersText, trialDays, GUARANTEE, PLANS } from "./app";
 
 const url = (path: string) => `${SITE_URL}${path}`;
@@ -89,6 +90,10 @@ export async function llmsTxt(): Promise<string> {
     "## Free tools",
     "",
     ...[TOOLS_PAGE, ...TOOLS].map(line),
+    "",
+    "## In Arabic",
+    "",
+    ...AR_PAGE_LIST.map(line),
     "",
     "## Optional",
     "",

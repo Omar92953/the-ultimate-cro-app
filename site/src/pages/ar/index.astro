@@ -1,0 +1,322 @@
+---
+/**
+ * /ar/: the Arabic home page, for store owners in the Gulf and Egypt. Mirrors / (hreflang both ways, lib/ar.ts).
+ * Prices and limits come from the app's plans.ts like the English pages.
+ */
+import Base from "../../layouts/Base.astro";
+import InstallButton from "../../components/InstallButton.astro";
+import Shot from "../../components/Shot.astro";
+import Faq, { type QA } from "../../components/Faq.astro";
+import ArPlanCards from "../../components/ar/ArPlanCards.astro";
+import ArNotifyCta from "../../components/ar/ArNotifyCta.astro";
+import { SITE_AREAS, PLANS, FEATURE_PLAN, plans, cheapestPaid, trialDays, ORDER_GRACE_DAYS } from "../../lib/app";
+import { areaPath } from "../../lib/pages";
+import { organization, website, softwareApplication, faqPage } from "../../lib/schema";
+import { AR_PAGES, AR_AREAS, AR_BRAND_LINE, AR_HOME, arLine, arPlan, arMoney } from "../../lib/ar";
+import { GUARANTEE } from "../../lib/app";
+
+const page = AR_PAGES.home;
+const free = PLANS.free;
+const paid = plans.filter((p) => p.monthly > 0);
+const loyaltyPlan = PLANS[FEATURE_PLAN.loyalty];
+
+/** Three jobs, problem first: the reasons a store in the region installs it. */
+const JOBS = [
+  {
+    eyebrow: "الدفع عند الاستلام",
+    title: "طلب كبير يُرفض عند الباب؟",
+    text: "أخفِ الدفع عند الاستلام عندما يتجاوز الطلب مبلغاً تحدده، أو لأول طلب، أو لمن يشتري بدون حساب، أو للشحن إلى دول تختارها. يدفع العميل مسبقاً حيث تكون المخاطرة أكبر.",
+    href: AR_PAGES.payment.path,
+    link: "قواعد الدفع",
+    shot: "features/payment-rules",
+    alt: "صفحة الدفع في متجر تجريبي، والدفع عند الاستلام مخفي لأن الطلب فوق المبلغ المحدد",
+  },
+  {
+    eyebrow: "برنامج الولاء",
+    title: "عميل يشتري مرة ولا يعود؟",
+    text: "نقاط على كل طلب، ومكافآت يصرفها العميل، ومتجر نقاط، وإحالات. ترجمة عربية جاهزة بنقرة، ويظهر البرنامج من اليمين لليسار في متجرك العربي.",
+    href: AR_PAGES.loyalty.path,
+    link: "برنامج الولاء",
+    shot: "features/loyalty-program",
+    alt: "لوحة المكافآت في متجر تجريبي: طرق كسب النقاط والمكافآت",
+  },
+  {
+    eyebrow: "الباقات",
+    title: "قيمة الطلب لا تغطي الشحن والإعلان؟",
+    text: "ست أنواع من الباقات: يُشترى معاً، وطقم كمنتج واحد، واختر وامزج، وخصم يكبر مع عدد القطع، وغيرها. Shopify نفسها تطبّق سعر الباقة في صفحة الدفع.",
+    href: AR_PAGES.bundles.path,
+    link: "أنواع الباقات",
+    shot: "bundles/fbt",
+    alt: "صندوق يُشترى معاً غالباً في صفحة منتج على متجر تجريبي",
+  },
+];
+
+const STEPS = [
+  { title: "ثبّت التطبيق", text: `ثبّت CRO Toolbox من متجر تطبيقات Shopify. خطة ${free.name} المجانية لا تحتاج بطاقة.` },
+  { title: "اختر الميزة", text: "أنشئ عرضاً أو افتح ميزة، واضبطها وأنت ترى معاينة مباشرة بجانبها." },
+  { title: "تظهر في متجرك", text: "اضغط Add to theme فيفتح محرر الثيم والبلوك جاهز. ضعه حيث تريد واحفظ." },
+];
+
+const faq: QA[] = [
+  {
+    q: "ما هو CRO Toolbox؟",
+    a: "تطبيق Shopify يجمع البيع الإضافي والمتقاطع، والباقات، والخصومات، وعروض السلة، وبرنامج الولاء، وأقسام المتجر، وتتبع الطلبات والمرتجعات، وقواعد صفحة الدفع، في تطبيق واحد بقائمة واحدة. هدفه أن ترتفع قيمة كل طلب وأن يعود العميل للشراء.",
+  },
+  {
+    q: "هل يعمل مع قالب متجري؟",
+    a: "نعم، مع أي قالب Online Store 2.0. الأقسام والعروض بلوكات تضعها من محرر الثيم، ولا يُعدَّل كود القالب أبداً.",
+  },
+  {
+    q: "هل أحتاج إلى مبرمج أو كتابة كود؟",
+    a: "لا. تضبط كل شيء داخل التطبيق مع معاينة مباشرة، ثم تضغط Add to theme وتضع البلوك في محرر الثيم.",
+  },
+  {
+    q: "هل يدعم اللغة العربية؟",
+    a: "لوحة التطبيق داخل Shopify بالإنجليزية حالياً. برنامج الولاء فيه ترجمة عربية جاهزة بنقرة واحدة، ويظهر من اليمين لليسار عندما تكون صفحة متجرك بالعربية. وعناوين العروض ونصوص أزرارها تكتبها أنت، فيمكنك كتابتها بالعربية.",
+  },
+  {
+    q: "كم سعر CRO Toolbox؟",
+    a: `خطة ${free.name} مجانية، و${paid.map((p) => `${p.name} بسعر ${arMoney(p.monthly)} شهرياً (${arMoney(p.yearly)} سنوياً)`).join("، و")}. التفاصيل في <a href="${AR_PAGES.pricing.path}">صفحة الأسعار</a>.`,
+  },
+  {
+    q: "هل توجد تجربة مجانية؟",
+    a: `نعم. كل خطة مدفوعة تبدأ بتجربة مجانية ${trialDays} يوماً، وخطة ${free.name} مجانية بلا مدة.`,
+  },
+  {
+    q: "ماذا يحدث إذا تجاوز متجري حد الطلبات الشهري؟",
+    a: `الحد يحسب كل طلبات متجرك في الشهر الميلادي. يذكّرك التطبيق لمدة ${ORDER_GRACE_DAYS} يوماً، وبعدها لا يمكنك تفعيل عروض جديدة حتى تنتقل إلى خطة أعلى. العروض المفعّلة تبقى تعمل.`,
+  },
+  {
+    q: "هل يمكنني إخفاء الدفع عند الاستلام؟",
+    a: `نعم، بقواعد الدفع: حسب قيمة الطلب، أو الدولة، أو المنتجات في السلة، أو نوع العميل. متاحة على ${arPlan("free")}، وفيها ${free.limits.checkoutRules} من قواعد صفحة الدفع. التفاصيل في <a href="${AR_PAGES.payment.path}">صفحة إخفاء الدفع عند الاستلام</a>.`,
+  },
+  {
+    q: "بأي عملة أدفع اشتراك التطبيق؟",
+    a: "الأسعار بالدولار الأمريكي، وتضيفها Shopify إلى فاتورة متجرك. متجرك يبيع بعملته كالمعتاد، والمبالغ في قواعد الدفع تكتبها بعملة متجرك.",
+  },
+  {
+    q: "هل يمكنني الإلغاء أو تغيير الخطة؟",
+    a: `${arLine(GUARANTEE)} لا يُحذف شيء: العروض التي تتجاوز حدود الخطة الأقل، والمزايا التي لا تشملها، تتوقف مع حفظ إعداداتها، وتعود عندما ترقّي خطتك.`,
+  },
+];
+
+const app = softwareApplication(page.description);
+const schema = [
+  { ...organization(), description: AR_BRAND_LINE },
+  { ...website(), url: new URL(AR_HOME, Astro.site).toString(), inLanguage: "ar" },
+  { ...app, inLanguage: "ar", offers: app.offers.map((o) => ({ ...o, name: o.name.replace("(monthly)", "(شهري)").replace("(yearly)", "(سنوي)") })) },
+  faqPage(faq),
+];
+---
+
+<Base page={page} schema={schema}>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="pill">تطبيق واحد بدل خمسة تطبيقات أو أكثر</span>
+        <h1>كل أدوات البيع لمتجرك على <bdi>Shopify</bdi> في تطبيق واحد</h1>
+        <p class="lead">
+          باقات وعروض بيع إضافي، وبرنامج ولاء بالعربية، وإخفاء الدفع عند الاستلام حسب قيمة الطلب أو الدولة، وصفحة لتتبع الطلبات والمرتجعات. تجهّزها في دقائق
+          مع معاينة مباشرة، وتضيفها إلى قالب متجرك بدون كود.
+        </p>
+        <div class="actions">
+          <InstallButton medium="home" campaign="ar_hero" lang="ar" />
+          <a class="btn ghost" href={AR_PAGES.pricing.path}>شاهد الأسعار</a>
+        </div>
+        <ul class="trust">
+          <li>يعمل مع أي قالب <bdi>Online Store 2.0</bdi></li>
+          <li>خطة مجانية، والمدفوعة من {arMoney(cheapestPaid.monthly)} شهرياً</li>
+          <li>تجربة مجانية {trialDays} يوماً</li>
+        </ul>
+      </div>
+      <Shot name="features/upsell" alt="عرض بيع إضافي في صفحة منتج على متجر تجريبي" caption="على متجر تجريبي، بأول قالب في التطبيق." eager />
+    </div>
+  </section>
+
+  <section class="section mist">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">مصمم لمتاجر الخليج ومصر</span>
+        <h2>ثلاث مشاكل يحلها لك من اليوم الأول</h2>
+      </div>
+      <div class="jobs">
+        {
+          JOBS.map((j) => (
+            <article class="job">
+              <Shot name={j.shot} alt={j.alt} sizes="(min-width: 980px) 360px, 100vw" />
+              <span class="eyebrow">{j.eyebrow}</span>
+              <h3>{j.title}</h3>
+              <p class="muted">{j.text}</p>
+              <a class="link" href={j.href}>
+                {j.link} <span aria-hidden="true">←</span>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow">ما في التطبيق</span>
+        <h2>العروض، والولاء، والمتجر، والسلة، وصفحة الدفع</h2>
+        <p class="lead">قائمة التطبيق تتبع رحلة العميل في متجرك. هذا كل ما فيه اليوم، والشرح المفصّل لكل ميزة بالإنجليزية.</p>
+      </div>
+      <ul class="areas">
+        {
+          SITE_AREAS.map((a) => (
+            <li class="block">
+              <h3>{AR_AREAS[a.key]?.title ?? a.title}</h3>
+              <p class="muted">{AR_AREAS[a.key]?.intro ?? a.intro}</p>
+              {a.features.length > 0 && <p class="count">مزايا في هذا القسم: {a.features.length}</p>}
+              <a class="link" href={areaPath(a.key)} lang="en" hreflang="en">
+                {a.title} <span aria-hidden="true">←</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section mist" id="how">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">طريقة العمل</span>
+        <h2>في متجرك بثلاث خطوات</h2>
+        <p class="lead">بدون كود، وبدون تعديل القالب، وبدون مبرمج.</p>
+      </div>
+      <ol class="steps">
+        {
+          STEPS.map((s, i) => (
+            <li class="block">
+              <span class="step-n">{i + 1}.</span>
+              <h3>{s.title}</h3>
+              <p class="muted">{s.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">الأسعار</span>
+        <h2>ابدأ مجاناً، ورقِّ خطتك عندما يكبر متجرك</h2>
+        <p class="lead">
+          الخطط المدفوعة تضيف عروضاً بلا حد، وكل أدوات المتجر، والتحكم في صفحة الدفع، ونتائج كل عرض. برنامج الولاء يبدأ من {arPlan(loyaltyPlan.key)}.
+        </p>
+      </div>
+      <ArPlanCards medium="home" campaign="ar_pricing" />
+      <p class="center-link"><a class="link" href={AR_PAGES.pricing.path}>قارن الخطط بالتفصيل <span aria-hidden="true">←</span></a></p>
+    </div>
+  </section>
+
+  <section class="section mist" id="faq">
+    <div class="wrap">
+      <div class="head center">
+        <span class="eyebrow">الأسئلة الشائعة</span>
+        <h2>أسئلة وأجوبة</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <ArNotifyCta campaign="ar_home" />
+</Base>
+
+<style>
+  .hero {
+    padding: clamp(40px, 7vw, 88px) 0 clamp(56px, 8vw, 96px);
+    background: radial-gradient(60% 50% at 15% 20%, rgb(62 224 143 / 0.16), transparent 70%);
+  }
+  .hero-grid {
+    display: grid;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .hero-grid {
+      grid-template-columns: 1.05fr 1fr;
+    }
+  }
+  .hero h1 {
+    margin: 14px 0 20px;
+    font-size: clamp(2.1rem, 4.8vw, 3.6rem);
+  }
+  .hero .actions {
+    margin-top: 28px;
+  }
+  .trust {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .jobs {
+    display: grid;
+    gap: 32px;
+  }
+  @media (min-width: 980px) {
+    .jobs {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .job {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .job :global(.shot) {
+    margin-bottom: 14px;
+  }
+  .job .eyebrow {
+    margin: 0;
+  }
+  .areas,
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 28px;
+  }
+  @media (min-width: 720px) {
+    .areas {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 980px) {
+    .areas,
+    .steps {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .areas li,
+  .steps li {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+  .count {
+    font-size: 0.9rem;
+    font-weight: 650;
+  }
+  .step-n {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent-deep);
+  }
+  .center-link {
+    text-align: center;
+    margin-top: 28px;
+  }
+</style>

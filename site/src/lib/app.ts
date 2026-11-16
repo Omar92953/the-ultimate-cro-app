@@ -7,7 +7,7 @@
  *   - the offer types: app/lib/offer-types.ts
  *   - data retention periods: app/lib/retention.ts
  */
-import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, type Plan, type PlanKey, type Limits } from "../../../app/lib/plans";
+import { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, ORDER_GRACE_DAYS, METERS, atLeast, type Plan, type PlanKey, type Limits } from "../../../app/lib/plans";
 import { BUNDLE_RECIPES, type Recipe, type RecipeKey } from "../../../app/lib/bundle-recipes";
 import { OFFER_TYPES, type OfferTypeKey } from "../../../app/lib/offer-types";
 export { RETENTION_DAYS } from "../../../app/lib/retention";
@@ -18,7 +18,7 @@ const FEATURE_KEYS = ALL_FEATURE_KEYS.filter((k) => !SITE_HIDDEN.includes(k));
 const featuresIn = (a: AreaKey) => allFeaturesIn(a).filter((k) => !SITE_HIDDEN.includes(k));
 const AREAS = ALL_AREAS.filter((a) => featuresIn(a.key).length > 0);
 
-export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
+export { PLANS, PLAN_KEYS, FEATURE_PLAN, EXTRA_PLAN, GUARANTEE, ORDER_GRACE_DAYS, METERS, atLeast, FEATURES, FEATURE_KEYS, AREAS, featuresIn };
 export { BUNDLE_RECIPES, OFFER_TYPES };
 export type { OfferTypeKey };
 export type { Limits, Plan, PlanKey, FeatureKey, AreaKey, Recipe, RecipeKey };

@@ -1,0 +1,201 @@
+---
+/**
+ * /ar/features/payment-rules/: payment rules in Arabic, led by hiding cash on delivery. Mirrors
+ * /features/payment-rules/ (hreflang both ways, lib/ar.ts). Facts from extensions/cro-payment and the Payment rules
+ * page of the app (app/lib/checkout-rules.ts); rule counts from plans.ts.
+ */
+import Base from "../../../layouts/Base.astro";
+import Shot from "../../../components/Shot.astro";
+import Faq, { type QA } from "../../../components/Faq.astro";
+import InstallButton from "../../../components/InstallButton.astro";
+import ArCrumbs from "../../../components/ar/ArCrumbs.astro";
+import ArNotifyCta from "../../../components/ar/ArNotifyCta.astro";
+import { plans, FEATURE_PLAN } from "../../../lib/app";
+import { featurePath } from "../../../lib/pages";
+import { faqPage } from "../../../lib/schema";
+import { AR_PAGES, arNum, arPlan, ltr } from "../../../lib/ar";
+
+const page = AR_PAGES.payment;
+const crumbs = [{ name: "إخفاء الدفع عند الاستلام", href: page.path }];
+const planKey = FEATURE_PLAN.payment_rules;
+
+const ACTIONS = [
+  "إخفاء طريقة دفع، مثل الدفع عند الاستلام، فلا يراها العميل في صفحة الدفع",
+  "تغيير اسمها إلى ما يفهمه عميلك، مثل «الدفع نقداً عند الاستلام»",
+  "تغيير ترتيبها، فتظهر البطاقة أولاً مثلاً",
+];
+const CONDITIONS = [
+  "قيمة الطلب: أكثر من مبلغ تحدده أو أقل منه، بعملة متجرك",
+  "الشحن إلى دول تختارها",
+  "السلة فيها منتجات تختارها",
+  "نوع العميل: من يطلب بدون تسجيل دخول، أو أول طلب، أو عميل طلب من قبل",
+];
+const EXAMPLES = [
+  "أخفِ الدفع عند الاستلام إذا زاد الطلب على 5,000 جنيه.",
+  "أخفِ الدفع عند الاستلام لأول طلب من العميل.",
+  "أخفِ الدفع عند الاستلام لمن يطلب بدون تسجيل دخول.",
+  "أخفِ الدفع عند الاستلام للشحن إلى دول خارج منطقة التحصيل عندك.",
+  "أخفِ الدفع عند الاستلام عندما تكون في السلة منتجات غالية أو مصنوعة حسب الطلب.",
+];
+const STEPS = [
+  "ثبّت CRO Toolbox من متجر تطبيقات Shopify.",
+  "في التطبيق افتح Cart & Checkout ثم Payment rules.",
+  "أضف قاعدة: في Payment method name contains اكتب اسم طريقة الدفع كما يظهر في صفحة الدفع (مثل Cash on Delivery)، واختر Hide it من Do this.",
+  "فعّل Only under certain conditions واختر الشروط، مثل Order total at least أو Shopper.",
+  "احفظ، ثم جرّب طلباً في صفحة الدفع وتأكد أن طريقة الدفع اختفت.",
+];
+
+const ruleLine = plans.map((p) => `${p.name}: ${arNum(p.limits.checkoutRules)}`).join("، ");
+const faq: QA[] = [
+  {
+    q: "هل أحتاج Shopify Plus لإخفاء الدفع عند الاستلام؟",
+    a: "لا. قواعد الدفع تعمل داخل صفحة الدفع في Shopify من خلال Shopify Functions، ومع تثبيت CRO Toolbox من متجر تطبيقات Shopify لا تحتاج Shopify Plus.",
+  },
+  {
+    q: "هل يرى العميل طريقة الدفع المخفية؟",
+    a: "لا. عندما تتحقق شروط القاعدة لا تظهر طريقة الدفع في صفحة الدفع أصلاً، وتظهر كالمعتاد في باقي الطلبات.",
+  },
+  {
+    q: "كيف يعرف التطبيق أي طريقة دفع أقصد؟",
+    a: "كل قاعدة تختار طرق الدفع التي يحتوي اسمها على النص الذي تكتبه، مثل Cash on Delivery أو PayPal أو Bank transfer، كما يظهر الاسم في صفحة الدفع. والقواعد تعمل بالترتيب من الأعلى إلى الأسفل.",
+  },
+  {
+    q: "بأي عملة أكتب قيمة الطلب في الشرط؟",
+    a: "بعملة متجرك. إذا دفع العميل بعملة أخرى، يحوّل التطبيق المبلغ بسعر الصرف الذي تستخدمه Shopify لطلبه.",
+  },
+  {
+    q: "كم قاعدة أستطيع أن أضيف؟",
+    a: `قواعد صفحة الدفع تشمل قواعد الدفع وقواعد التوصيل وحدود الطلب معاً. عددها في كل خطة: ${ruleLine}. التفاصيل في <a href="${AR_PAGES.pricing.path}">صفحة الأسعار</a>.`,
+  },
+];
+const schema = [faqPage(faq)];
+---
+
+<Base page={page} crumbs={crumbs} schema={schema}>
+  <section class="page-hero">
+    <div class="wrap fhero">
+      <div>
+        <ArCrumbs items={crumbs} />
+        <span class="eyebrow">قواعد الدفع</span>
+        <h1>إخفاء الدفع عند الاستلام في <bdi>Shopify</bdi></h1>
+        <p class="lead">
+          طلب كبير بالدفع عند الاستلام يُرفض عند الباب، فتدفع الشحن ذهاباً وإياباً ويبقى المنتج خارج المخزون أياماً. قواعد الدفع تخفي الدفع عند الاستلام في
+          الطلبات التي تختارها فقط، فيدفع العميل مسبقاً حيث المخاطرة أكبر، ويبقى الدفع عند الاستلام لباقي الطلبات.
+        </p>
+        <p class="who">لمتاجر تبيع بالدفع عند الاستلام وتريد أن تقرر متى يظهر ومتى يختفي.</p>
+        <p class="pill">متاح على {arPlan(planKey)}، وبدون <bdi>Shopify Plus</bdi></p>
+        <div class="actions">
+          <InstallButton medium="feature" campaign="ar_payment_rules" lang="ar" />
+          <a class="btn ghost" href={AR_PAGES.pricing.path}>شاهد الأسعار</a>
+        </div>
+      </div>
+      <Shot
+        name="features/payment-rules"
+        alt="صفحة الدفع في متجر تجريبي: البطاقة وPayPal ظاهرتان، والدفع عند الاستلام مخفي لأن الطلب فوق 100 دولار"
+        caption={ltr("صفحة الدفع على متجر تجريبي: قاعدة تخفي الدفع عند الاستلام للطلبات فوق $100.")}
+        eager
+      />
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">ماذا تفعل القاعدة</h2>
+        <ul class="check-list">
+          {ACTIONS.map((a) => <li>{a}</li>)}
+        </ul>
+        <h3 class="sub">متى تعمل</h3>
+        <ul class="check-list">
+          {CONDITIONS.map((c) => <li>{c}</li>)}
+        </ul>
+        <p class="note">تعمل القاعدة عندما تتحقق كل شروطها، والقواعد تعمل بالترتيب من الأعلى إلى الأسفل.</p>
+      </div>
+      <div class="block">
+        <h2 class="h3">أمثلة تستطيع إعدادها اليوم</h2>
+        <ul class="check-list">
+          {EXAMPLES.map((e) => <li>{e}</li>)}
+        </ul>
+        <p class="muted small">المبالغ أمثلة فقط: اختر ما يناسب متجرك.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="wrap grid two">
+      <div class="block">
+        <h2 class="h3">طريقة الإعداد</h2>
+        <ol class="steps">
+          {STEPS.map((s) => <li>{s}</li>)}
+        </ol>
+      </div>
+      <div class="block">
+        <h2 class="h3">مزايا قريبة في صفحة الدفع</h2>
+        <ul class="check-list">
+          <li>
+            قواعد التوصيل: أخفِ خيار شحن أو غيّر اسمه أو ترتيبه بنفس الشروط.
+            <a class="link" href={featurePath("delivery_rules")} lang="en" hreflang="en">Delivery rules</a>
+          </li>
+          <li>
+            حدود الطلب: حد أدنى أو أقصى لقيمة الطلب أو عدد القطع، مع رسالتك في صفحة الدفع.
+            <a class="link" href={featurePath("order_limits")} lang="en" hreflang="en">Order limits</a>
+          </li>
+        </ul>
+        <p class="muted small">الصفحتان بالإنجليزية.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight mist">
+    <div class="wrap">
+      <div class="head center">
+        <h2>أسئلة عن إخفاء الدفع عند الاستلام</h2>
+      </div>
+      <Faq items={faq} />
+    </div>
+  </section>
+
+  <ArNotifyCta campaign="ar_payment_rules" />
+</Base>
+
+<style>
+  .fhero {
+    display: grid;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .fhero {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  .who {
+    margin: 14px 0 18px;
+    color: #2b2d35;
+    max-width: 560px;
+  }
+  .actions {
+    margin-top: 24px;
+  }
+  .h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  .sub {
+    font-size: 1.05rem;
+    margin: 24px 0 12px;
+  }
+  .steps {
+    margin: 0;
+    padding-inline-start: 22px;
+    display: grid;
+    gap: 10px;
+  }
+  .note {
+    margin-top: 18px;
+  }
+  .small {
+    font-size: 0.9rem;
+    margin-top: 14px;
+  }
+</style>

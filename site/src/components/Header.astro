@@ -1,7 +1,17 @@
 ---
 import Logo from "./Logo.astro";
 import InstallButton from "./InstallButton.astro";
-import { NAV } from "../lib/site";
+import { NAV, type NavLink } from "../lib/site";
+import { AR_NAV, AR_HOME } from "../lib/ar";
+interface Props {
+  /** "ar" on the Arabic pages (/ar/): Arabic menu and labels. */
+  lang?: "en" | "ar";
+  /** The same page in the other language (the Arabic header links to it). */
+  other?: string;
+}
+const { lang = "en", other } = Astro.props;
+const ar = lang === "ar";
+const nav: NavLink[] = ar ? AR_NAV : NAV;
 /** The first items of the Features menu are the area pages; the rest are single features. */
 const AREA_COUNT = 6;
 const here = Astro.url.pathname;
@@ -9,10 +19,10 @@ const here = Astro.url.pathname;
 
 <header class="site-header">
   <div class="wrap bar">
-    <a href="/" class="home" aria-label="CRO Toolbox home"><Logo /></a>
-    <nav aria-label="Main" class="desktop">
+    <a href={ar ? AR_HOME : "/"} class="home" aria-label={ar ? "CRO Toolbox، الصفحة الرئيسية" : "CRO Toolbox home"}><Logo /></a>
+    <nav aria-label={ar ? "القائمة الرئيسية" : "Main"} class="desktop">
       {
-        NAV.map((l) =>
+        nav.map((l) =>
           l.children ? (
             <div class="menu" data-menu>
               <button type="button" class="trigger" aria-expanded="false" aria-controls="menu-features" aria-haspopup="true">
@@ -32,14 +42,15 @@ const here = Astro.url.pathname;
           )
         )
       }
+      {ar && <a href={other ?? "/"} lang="en" hreflang="en">English</a>}
     </nav>
-    <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" /></div>
+    <div class="cta"><InstallButton medium="header" campaign={here === "/" ? "home" : here.replace(/^\/|\/$/g, "").replace(/\//g, "_")} class="primary small" lang={lang} /></div>
     <details class="mobile">
-      <summary aria-label="Menu"><span></span><span></span><span></span></summary>
+      <summary aria-label={ar ? "القائمة" : "Menu"}><span></span><span></span><span></span></summary>
       <div class="sheet">
-        <nav aria-label="Main mobile">
+        <nav aria-label={ar ? "القائمة الرئيسية للهاتف" : "Main mobile"}>
           {
-            NAV.map((l) =>
+            nav.map((l) =>
               l.children ? (
                 <details class="group">
                   <summary>
@@ -56,9 +67,15 @@ const here = Astro.url.pathname;
               )
             )
           }
-          <a href="/help/" class="top" aria-current={here === "/help/" ? "page" : undefined}>Help</a>
+          {
+            ar ? (
+              <a href={other ?? "/"} class="top" lang="en" hreflang="en">English</a>
+            ) : (
+              <a href="/help/" class="top" aria-current={here === "/help/" ? "page" : undefined}>Help</a>
+            )
+          }
         </nav>
-        <div class="sheet-cta"><InstallButton medium="header" campaign="mobile_menu" class="primary" /></div>
+        <div class="sheet-cta"><InstallButton medium="header" campaign="mobile_menu" class="primary" lang={lang} /></div>
       </div>
     </details>
   </div>
@@ -94,7 +111,7 @@ const here = Astro.url.pathname;
   .desktop {
     display: none;
     gap: 4px;
-    margin-left: 16px;
+    margin-inline-start: 16px;
   }
   .desktop a {
     padding: 8px 14px;
@@ -135,7 +152,7 @@ const here = Astro.url.pathname;
   .panel {
     position: absolute;
     top: 100%;
-    left: 0;
+    inset-inline-start: 0;
     z-index: 60;
     min-width: 230px;
     margin: 6px 0 0;
@@ -188,11 +205,11 @@ const here = Astro.url.pathname;
     background: var(--mist);
   }
   .cta {
-    margin-left: auto;
+    margin-inline-start: auto;
     display: none;
   }
   .mobile {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
   .mobile > summary {
     list-style: none;
@@ -281,7 +298,8 @@ const here = Astro.url.pathname;
   }
   .sheet a.sub {
     display: block;
-    padding: 9px 0 9px 2px;
+    padding-block: 9px;
+    padding-inline: 2px 0;
     font-size: 1rem;
     font-weight: 500;
     color: #34363f;
