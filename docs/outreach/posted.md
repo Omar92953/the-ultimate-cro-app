@@ -7,6 +7,8 @@ Paused: Shopify Community (2026-11-03, a reply was hidden by flags; only plain a
 
 | Date | Where | What | Link |
 |---|---|---|---|
+| 2026-11-17 | Quora | Answer: best Shopify apps for an order tracking page. **Saved as a draft, not posted**: Post stayed disabled after the draft reopened and the browser then refused quora.com. Publish the draft (Answer button on the question) | https://www.quora.com/unanswered/What-are-the-best-Shopify-apps-for-a-tracking-order-page-2024 |
+| 2026-11-17 | Medium | Post purchase upsell examples for Shopify (imported, title fixed, disclosure line added). **Draft, not published**: the browser refused actions on medium.com at the Publish step. Publish it with 5 topics; don't import this guide again | https://medium.com/p/efdf717fcdba/edit |
 | 2026-11-14 | Quora | Answer: one Shopify app for an affiliate program and a loyalty program, or two that work together | https://www.quora.com/Is-there-a-Shopify-app-that-can-be-used-as-an-affiliate-program-as-well-as-a-customer-loyalty-program-or-2-apps-which-are-compatible-with-each-other/answer/Omar-Moaz-NGI |
 | 2026-11-14 | Medium | How to raise average order value on Shopify: a 30 day plan (imported, canonical crotoolbox.com) | https://medium.com/@omarmoaz903/how-to-raise-average-order-value-on-shopify-a-30-day-plan-c3d417e3e81e |
 | 2026-11-03 | Quora | Answer: best Shopify apps for product bundles to increase AOV in 2026 | https://www.quora.com/What-are-the-best-Shopify-apps-for-product-bundles-to-increase-AOV-in-2026/answer/Omar-Moaz-NGI |
