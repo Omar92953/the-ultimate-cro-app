@@ -149,7 +149,7 @@ export async function testResults(admin: AdminClient, shop: string, tests: AbTes
           pageInfo { hasNextPage endCursor }
           nodes { createdAt cancelledAt totalPriceSet { shopMoney { amount } } customAttributes { key value } lineItems(first: 30) { nodes { customAttributes { key value } } } }
         }
-      }`, { after, q: `created_at:>='${new Date(first).toISOString()}' test:false` });
+      }`, { after, q: `created_at:>='${new Date(first).toISOString()}'` }); // test orders count too, so a test shows at once
     orders.push(...data.orders.nodes.filter((o) => !o.cancelledAt));
     if (!data.orders.pageInfo.hasNextPage) break;
     after = data.orders.pageInfo.endCursor;

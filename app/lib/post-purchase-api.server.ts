@@ -7,6 +7,7 @@
 import { unauthenticated } from "../shopify.server";
 import { corsJson as json, preflight } from "./cors";
 import { currentOffer, getPostPurchase, signOfferChangeset, verifyPostPurchaseToken } from "./post-purchase.server";
+import { forgetOrders } from "./short-cache.server";
 
 /** The token from the body, or a ready error answer. */
 async function readToken(request: Request): Promise<string | Response> {
@@ -58,7 +59,10 @@ export async function signAction(request: Request) {
   try {
     const { admin } = await unauthenticated.admin(verified.shop);
     const { config } = await getPostPurchase(admin);
-    return json({ token: await signOfferChangeset(config, verified.referenceId) });
+    const signed = await signOfferChangeset(config, verified.referenceId);
+    // The item is added to the order right after this answer: Analytics shows it on the next visit.
+    forgetOrders(verified.shop, 20_000);
+    return json({ token: signed });
   } catch {
     return json({ error: "No offer" }, 404);
   }

@@ -99,7 +99,7 @@ export type LoyaltySummary = ReturnType<typeof summarize>;
 
 type OrderNode = { createdAt: string; cancelledAt: string | null; discountCodes: string[]; totalPriceSet: { shopMoney: { amount: string } }; customer: { id: string } | null };
 
-/** The store's orders of the last 90 days (not cancelled, not test orders), newest first; `capped` when there were more to read. */
+/** The store's orders of the last 90 days (not cancelled; test orders count too), newest first; `capped` when there were more to read. */
 async function readOrders(admin: AdminClient, now: Date) {
   const orders: AnalyticsOrder[] = [];
   let after: string | null = null;
@@ -111,7 +111,7 @@ async function readOrders(admin: AdminClient, now: Date) {
           pageInfo { hasNextPage endCursor }
           nodes { createdAt cancelledAt discountCodes totalPriceSet { shopMoney { amount } } customer { id } }
         }
-      }`, { after, q: `created_at:>='${new Date(now.getTime() - 90 * DAY).toISOString()}' test:false` });
+      }`, { after, q: `created_at:>='${new Date(now.getTime() - 90 * DAY).toISOString()}'` });
     for (const n of d.orders.nodes) {
       if (n.cancelledAt) continue;
       orders.push({ createdAt: n.createdAt, total: Number(n.totalPriceSet.shopMoney.amount) || 0, customerId: n.customer?.id.split("/").pop() ?? null, codes: n.discountCodes ?? [] });

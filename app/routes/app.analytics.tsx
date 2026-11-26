@@ -29,8 +29,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
   const [raw, theme, info, lookups, kept, tests, offers] = await Promise.all([
-    // Shared with Home (same key as value.server.ts cachedResults): the slow order read runs once per shop every 10 minutes.
-    remember(session.shop, "home-results", 10 * 60000, () => getResults(admin, xp, session.shop), 60 * 60000).catch((e) => ({ error: errorMessage(e) })),
+    // Shared with Home (same key as value.server.ts cachedResults). Analytics never shows a read older than a minute;
+    // a new order (webhooks.orders.create) or an after-purchase item forgets it at once, and Refresh reads again.
+    remember(session.shop, "home-results", 60000, () => getResults(admin, xp, session.shop)).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
     getPlan(admin, session.shop),
     lookupsSince(session.shop, 30).catch(() => 0),
@@ -71,6 +72,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const form = await request.formData();
+  // Refresh: any save forgets the shop's remembered reads (shopify.server.ts), so the page reads the orders again.
+  if (form.get("intent") === "refresh") return { ok: true, error: null, xp: null, refreshed: true };
   try {
     // Starting the test needs a plan that includes it (lib/plans.ts); stopping it is always allowed.
     if (form.get("on") === "true" && !(await getExperiment(admin)).on && !atLeast((await getPlan(admin, session.shop)).plan, EXTRA_PLAN.holdoutTest)) {
@@ -97,6 +100,7 @@ export default function Analytics() {
   const [holdout, setHoldout] = useState(data.xp.holdout);
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
+    if ("refreshed" in fetcher.data) return;
     if (fetcher.data.ok) shopify.toast.show(fetcher.data.xp?.on ? "Holdout test running" : "Holdout test stopped");
     else shopify.toast.show(fetcher.data.error || "Not saved", { isError: true });
   }, [fetcher.state, fetcher.data, shopify]);
@@ -144,7 +148,19 @@ export default function Analytics() {
   return (
     <s-page heading="Analytics" inlineSize="large">
       <s-stack gap="base">
-        <PageIntro text="What the app's offers and sections sell, counted from your real orders." />
+        <PageIntro text="What the app's offers and sections sell, counted from your orders." />
+        {r ? (
+          <s-stack direction="inline" gap="small-200" alignItems="center">
+            <s-text color="subdued">
+              {/* The time is in the viewer's own time zone, so the server's text may differ: React keeps the browser's. */}
+              <span suppressHydrationWarning>{`Updated ${new Date(r.readAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}.`}</span>
+              {r.testOrders ? ` Includes ${r.testOrders} test order${r.testOrders === 1 ? "" : "s"} from the last 30 days.` : ""}
+            </s-text>
+            <Button variant="tertiary" loading={fetcher.state !== "idle" && fetcher.formData?.get("intent") === "refresh"} onClick={() => fetcher.submit({ intent: "refresh" }, { method: "post" })}>
+              Refresh
+            </Button>
+          </s-stack>
+        ) : null}
         {"error" in data.results ? (
           /not approved to access/i.test(data.results.error) ? (
             <s-banner tone="warning" heading="Analytics need access to your orders">
