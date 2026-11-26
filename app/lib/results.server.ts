@@ -2,7 +2,7 @@
  * Results: revenue the app's widgets brought in, and the holdout test.
  *  - Every cart line the app adds carries `_source` (quick_add, cross_sell, upsell…) or one of the
  *    app's own markers (_cro_addon, _cro_gift, _cro_fee). Orders from the last 60 days (the last 30
- *    and the 30 before, for comparisons) are summed by it; test orders are left out.
+ *    and the 30 before, for comparisons) are summed by it; test orders count (the page says how many).
  *  - Holdout test: a share of shoppers don't see the app's widgets; their cart (and so their order)
  *    carries `_cro_group` = "holdout", everyone else "app". Because shoppers are split at random,
  *    orders per group divided by the group's share compares how often each group buys.
@@ -63,7 +63,7 @@ type Line = {
   /** Checkout discounts on the line; a deal's discount carries the deal's name as its title. */
   discountAllocations?: { discountApplication: { title?: string | null } }[];
 };
-type Order = { id: string; createdAt: string; cancelledAt: string | null; discountCodes: string[]; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
+type Order = { id: string; createdAt: string; cancelledAt: string | null; test?: boolean; discountCodes: string[]; totalPriceSet: { shopMoney: { amount: string; currencyCode: string } }; customAttributes: { key: string; value: string | null }[]; lineItems: { nodes: Line[] } };
 
 export type Period = { appRevenue: number; appOrders: number; appOrdersTotal: number; orders: number; revenue: number };
 const emptyPeriod = (): Period => ({ appRevenue: 0, appOrders: 0, appOrdersTotal: 0, orders: 0, revenue: 0 });
@@ -87,6 +87,10 @@ export type Results = {
   /** Offers only (not sections or widgets), last 30 days and the 30 before. */
   offers: { current: Period; previous: Period };
   from: string | null;
+  /** Test orders among the last 30 days' orders (they count, so a test order shows at once; the page says how many). */
+  testOrders: number;
+  /** When the orders were read (ISO), shown as "Updated …" next to the Refresh button. */
+  readAt: string;
 };
 
 export type TrackResults = {
@@ -155,10 +159,9 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
   let after: string | null = null;
   // Only what the numbers use: the last 60 days (or since the holdout test started, if earlier).
   const since = new Date(Math.min(Date.now() - 60 * 864e5, xp.since ? Date.parse(xp.since) : Infinity)).toISOString();
-  // Test orders are left out, except on a development store, where every order is one (a reviewer's store would show nothing).
-  const shopInfo: { shop?: { plan?: { partnerDevelopment?: boolean } } } | null = await gql(admin, `#graphql
-    query CroResultsShop { shop { plan { partnerDevelopment } } }`).catch(() => null);
-  const q = `created_at:>='${since}'${shopInfo?.shop?.plan?.partnerDevelopment ? "" : " test:false"}`;
+  // Test orders count too: a merchant (or an App Store reviewer) who places a test order sees it at once, on any
+  // kind of store. The page says how many of the last 30 days' orders were test orders (Results.testOrders).
+  const q = `created_at:>='${since}'`;
   for (let page = 0; page < MAX_PAGES; page++) {
     const data: { orders: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: Order[] } } = await gql(
       admin,
@@ -167,7 +170,7 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
         orders(first: 25, after: $after, query: $q, sortKey: CREATED_AT, reverse: true) {
           pageInfo { hasNextPage endCursor }
           nodes {
-            id createdAt cancelledAt discountCodes
+            id createdAt cancelledAt test discountCodes
             totalPriceSet { shopMoney { amount currencyCode } }
             customAttributes { key value }
             lineItems(first: 30) { nodes { customAttributes { key value } discountedTotalSet { shopMoney { amount } } lineItemGroup { id title productId quantity } discountAllocations { discountApplication { ... on AutomaticDiscountApplication { title } ... on ManualDiscountApplication { title } ... on ScriptDiscountApplication { title } } } } }
@@ -189,11 +192,13 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
   const byOffer = new Map<string, { revenue: number; orders: Set<string> }>();
   const day = 864e5;
   const now = Date.now();
+  let testOrders = 0;
   for (const o of orders) {
     const total = Number(o.totalPriceSet.shopMoney.amount) || 0;
     revenue += total;
     const age = now - Date.parse(o.createdAt);
     const period = age < 30 * day ? periods.current : age < 60 * day ? periods.previous : null;
+    if (o.test && age < 30 * day) testOrders += 1;
     let appHere = 0;
     const trackHere = { track_recs: 0, track_offer: 0, buy_again: 0 };
     const bundlesHere = new Set<string>();
@@ -294,5 +299,7 @@ export async function getResults(admin: AdminClient, xp: Experiment, shop?: stri
     track: { ...track, recs: round2(track.recs), offers: round2(track.offers), buyAgain: round2(track.buyAgain), codes: { ...track.codes, revenue: Math.round(track.codes.revenue * 100) / 100 } },
     lift,
     from: orders.length ? orders[orders.length - 1].createdAt : null,
+    testOrders,
+    readAt: new Date(now).toISOString(),
   };
 }

@@ -50,6 +50,19 @@ export function forgetShop(shop: string, names?: string[]) {
   }
 }
 
+/** The remembered reads of the shop's orders (Home and Analytics results, loyalty analytics). */
+export const ORDER_READS = ["home-results", "loyalty-analytics-orders"];
+
+/**
+ * A new order, or an item added to one (the after-purchase offer): forget the order reads so the
+ * next visit to Home or Analytics reads the orders again and shows it. `again` (ms) forgets them once
+ * more after a delay, for changes Shopify applies to the order a moment later.
+ */
+export function forgetOrders(shop: string, again?: number) {
+  forgetShop(shop, ORDER_READS);
+  if (again) setTimeout(() => forgetShop(shop, ORDER_READS), again).unref?.();
+}
+
 /**
  * What a save (a non-GET request to this page) makes old. Unknown pages clear everything, so a page
  * never shows old data after a save; known ones clear only what they can change:

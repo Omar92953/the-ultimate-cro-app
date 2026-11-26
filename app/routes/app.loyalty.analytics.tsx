@@ -138,7 +138,7 @@ export default function LoyaltyAnalytics() {
         ) : null}
 
         <s-text color="subdued">
-          {`Repeat purchase rate: of the customers who ordered in the period, the share who ordered at least twice. Orders with a reward code are orders that used a code the program gave (tag cro-loyalty). Real orders only, not cancelled, not test orders.${d.capped ? " This store has many orders: the newest 10,000 are counted." : ""}`}
+          {`Repeat purchase rate: of the customers who ordered in the period, the share who ordered at least twice. Orders with a reward code are orders that used a code the program gave (tag cro-loyalty). Cancelled orders don't count; test orders do, so a test order shows at once.${d.capped ? " This store has many orders: the newest 10,000 are counted." : ""}`}
         </s-text>
       </HomeRows>
     </s-page>

@@ -1,5 +1,16 @@
 # App Store submission review: CRO Toolbox (2026-10-17, last run 2026-11-13)
 
+## Reviewer feedback 2026-11-25 (reference 143016): 2.1.4 Synchronize data accurately
+
+The reviewer placed an order, accepted the after-purchase offer and opened Analytics straight away: it showed CHF 0
+and 0 orders with app items. Cause: Home and Analytics reused the order read for 10 minutes (and an older one for up
+to an hour), so a new order showed only later; test orders also counted only on stores Shopify marks as development
+stores. Fix (#400):
+- A new order (orders/create webhook) and an accepted after-purchase offer (again 20 seconds later, when Shopify has
+  added the item) forget the remembered order reads; Analytics never shows a read older than a minute.
+- Analytics shows "Updated <time>" and a Refresh button.
+- Test orders count on every store (Analytics, A/B tests, loyalty analytics); Analytics says how many it includes.
+
 ## Reviewer-style test of every feature (2026-11-13, Testing 5, Pro test plan)
 
 A brand new development store (`testing-5-fytnvybb`), the app installed from its link, every listed feature set up only
