@@ -7,6 +7,8 @@ Paused: Shopify Community (2026-11-03, a reply was hidden by flags; only plain a
 
 | Date | Where | What | Link |
 |---|---|---|---|
+| 2026-11-27 | Medium | How to set a free shipping threshold: the maths, step by step (imported, promo box replaced with the disclosure line, 5 topics, canonical crotoolbox.com) | https://medium.com/@omarmoaz903/how-to-set-a-free-shipping-threshold-the-maths-step-by-step-dc7eabae918f |
+| 2026-11-27 | Quora | Not posted: the browser needed an approval the unattended run could not get. Question picked for next run (unanswered): most recommended Shopify app for a free shipping bar; draft in docs/outreach/quora-free-shipping-bar.md | https://www.quora.com/unanswered/What-is-the-most-recommended-Shopify-app-for-displaying-a-free-shipping-bar |
 | 2026-11-20 | Quora | Answer: best Shopify apps for an order tracking page (the 2026-11-17 draft, now posted) | https://www.quora.com/What-are-the-best-Shopify-apps-for-a-tracking-order-page-2024/answer/Omar-Moaz-NGI |
 | 2026-11-20 | Medium | Post purchase upsell examples for Shopify (the 2026-11-17 draft, published with 5 topics, canonical crotoolbox.com) | https://medium.com/@omarmoaz903/post-purchase-upsell-examples-for-shopify-efdf717fcdba |
 | 2026-11-17 | Quora | Answer: best Shopify apps for an order tracking page. Draft at first; posted 2026-11-20 (row above) | https://www.quora.com/unanswered/What-are-the-best-Shopify-apps-for-a-tracking-order-page-2024 |
