@@ -23,6 +23,9 @@ repo are still named `the-ultimate-cro-app`; don't rename them (admin URLs and R
 
 ## Status (2026-10-29, resubmitted)
 
+- **2026-11-28: answered App Review feedback 143016** (2.1.4, Analytics didn't show a new order; fixed in #400 and #402,
+  video https://youtu.be/o5emmEoSp8o, marked resolved and resubmitted). Status "In review, we're reviewing your response".
+  Details: `docs/submission-review.md`.
 - **Resubmitted to the App Store on 2026-10-29** (first submitted 2026-10-28, withdrawn the same day to add scheduled
   offers and A/B tests with up to 4 versions, fix the listing and pricing). While in review: keep Render up, reply to
   the reviewer's email (omar@crotoolbox.com) within a day, fix only what they ask, and avoid deploys without need.
