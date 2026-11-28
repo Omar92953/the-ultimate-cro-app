@@ -13,6 +13,9 @@ stores. Fix (#400):
 - Big stores (#402): a new order marks the order read old instead of dropping it. Analytics waits up to 2.5 s for the new
   read (Home 1.5 s); a longer read goes on in the background while the last numbers show with "Reading new orders…",
   and Analytics reloads itself until the new read is in (`rememberLive` in `app/lib/short-cache.server.ts`).
+- Video for the reviewer (2026-11-28, Testing 3, unlisted): https://youtu.be/o5emmEoSp8o (2:55, file
+  `branding/app-store/cro-toolbox-analytics-fix-2026-11-28.mp4`, not in git). Analytics went from $1,275 and 2 orders
+  with app items to $1,912 and 3 right after test order #1010 with the after-purchase offer accepted.
 
 ## Reviewer-style test of every feature (2026-11-13, Testing 5, Pro test plan)
 
