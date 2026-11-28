@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useRevalidator } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -9,7 +9,7 @@ import { EXTRA_PLAN, PLANS, atLeast, limitOf, planAbove } from "../lib/plans";
 import { UpgradeButton, UpgradeCard, usePlan } from "../components/Upgrade";
 import { errorMessage } from "../lib/admin.server";
 import { getExperiment, getResults, saveExperiment, type Results } from "../lib/results.server";
-import { remember } from "../lib/short-cache.server";
+import { rememberLive } from "../lib/short-cache.server";
 import { lookupsSince } from "../lib/track-sell.server";
 import { returnSavings } from "../lib/orders-lookup.server";
 import { getThemeStatus } from "../lib/cro.server";
@@ -28,10 +28,12 @@ import css from "../components/AnalyticsOverview.module.css";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const xp = await getExperiment(admin);
-  const [raw, theme, info, lookups, kept, tests, offers] = await Promise.all([
-    // Shared with Home (same key as value.server.ts cachedResults). Analytics never shows a read older than a minute;
-    // a new order (webhooks.orders.create) or an after-purchase item forgets it at once, and Refresh reads again.
-    remember(session.shop, "home-results", 60000, () => getResults(admin, xp, session.shop)).catch((e) => ({ error: errorMessage(e) })),
+  const [live, theme, info, lookups, kept, tests, offers] = await Promise.all([
+    // Shared with Home (same key as value.server.ts cachedResults). A read older than a minute, or one from before a new
+    // order (webhooks.orders.create, an after-purchase item) or Refresh, is read again. The page waits up to 2.5 s;
+    // a big store's longer read goes on in the background while the last numbers show (`stale`), and the page
+    // reloads itself until the new read is in.
+    rememberLive(session.shop, "home-results", 60000, () => getResults(admin, xp, session.shop), 2500).catch((e) => ({ error: errorMessage(e) })),
     getThemeStatus(admin, session.shop).catch(() => null),
     getPlan(admin, session.shop),
     lookupsSince(session.shop, 30).catch(() => 0),
@@ -49,6 +51,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const hidden = n === null ? [] : sorted.slice(n);
     return { rows: n === null ? sorted : sorted.slice(0, n), hidden: { count: hidden.length, revenue: hidden.reduce((t, r) => t + r.revenue, 0) } };
   };
+  const stale = "stale" in live && live.stale;
+  const raw: Results | { error: string } = "error" in live ? live : live.value;
   let results: { error: string } | (Omit<Results, "bySource" | "byBundle"> & { sources: ReturnType<typeof cut<Results["bySource"][number]>>; bundles: ReturnType<typeof cut<Results["byBundle"][number]>> });
   if ("error" in raw) results = raw;
   else {
@@ -66,7 +70,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         })
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, Math.min(3, n ?? 3));
-  return { tests, abResults, topOffers, lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
+  return { stale, tests, abResults, topOffers, lookups, kept: kept ? { credit: kept.credit.value, exchanges: kept.exchanges.value, count: kept.credit.count + kept.exchanges.count, currency: kept.currency } : null, xp, results, boostersOn: theme ? theme.installed.boosters : null, boostersLink: sectionLinks(session.shop).boosters };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -98,6 +102,21 @@ export default function Analytics() {
   const { plan } = usePlan();
   const [tab, setTab] = useState<Tab>("overview");
   const [holdout, setHoldout] = useState(data.xp.holdout);
+  // The orders are still being read (a big store): ask again until the new numbers are in, at most about 2 minutes.
+  const revalidator = useRevalidator();
+  const tries = useRef(0);
+  useEffect(() => {
+    if (!data.stale) {
+      tries.current = 0;
+      return;
+    }
+    if (revalidator.state !== "idle" || tries.current >= 40) return;
+    const t = setTimeout(() => {
+      tries.current += 1;
+      revalidator.revalidate();
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [data, revalidator]);
   useEffect(() => {
     if (fetcher.state !== "idle" || !fetcher.data) return;
     if ("refreshed" in fetcher.data) return;
@@ -154,9 +173,10 @@ export default function Analytics() {
             <s-text color="subdued">
               {/* The time is in the viewer's own time zone, so the server's text may differ: React keeps the browser's. */}
               <span suppressHydrationWarning>{`Updated ${new Date(r.readAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}.`}</span>
+              {data.stale ? " Reading new orders…" : ""}
               {r.testOrders ? ` Includes ${r.testOrders} test order${r.testOrders === 1 ? "" : "s"} from the last 30 days.` : ""}
             </s-text>
-            <Button variant="tertiary" loading={fetcher.state !== "idle" && fetcher.formData?.get("intent") === "refresh"} onClick={() => fetcher.submit({ intent: "refresh" }, { method: "post" })}>
+            <Button variant="tertiary" loading={data.stale || (fetcher.state !== "idle" && fetcher.formData?.get("intent") === "refresh")} onClick={() => fetcher.submit({ intent: "refresh" }, { method: "post" })}>
               Refresh
             </Button>
           </s-stack>

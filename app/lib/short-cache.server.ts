@@ -4,34 +4,99 @@
  * the app (any non-GET request) forgets that shop's entries at once, so pages never show old data
  * after a save. A failed read is not remembered.
  */
-const store = new Map<string, { at: number; value: Promise<unknown>; refreshing?: boolean }>();
+type Entry = {
+  at: number;
+  value: Promise<unknown>;
+  /** The value has arrived (a read still running has nothing to show yet). */
+  settled?: boolean;
+  /** Something changed since this read (a new order): the next visit reads again. */
+  old?: boolean;
+  /** Counts how often the entry was marked old, so a read started before a new order can't hide it. */
+  gen?: number;
+  refreshing?: boolean;
+  next?: Promise<unknown>;
+};
+const store = new Map<string, Entry>();
+
+function put(key: string, entry: Entry) {
+  store.set(key, entry);
+  entry.value.then(() => (entry.settled = true), () => {});
+  if (store.size > 1000) store.delete(store.keys().next().value!);
+}
 
 /**
  * `ttlMs`: how long a read counts as fresh. `staleMs` (optional): for that long after it, the old
  * value is still answered at once while a fresh read runs in the background for the next visit —
  * pages stay fast and catch up one visit later (theme changes made outside the app, for example).
+ * An entry marked old (`markOld`) counts as expired.
  */
 export function remember<T>(shop: string, name: string, ttlMs: number, load: () => Promise<T>, staleMs = 0): Promise<T> {
   const key = `${shop}|${name}`;
   const hit = store.get(key);
-  const age = hit ? Date.now() - hit.at : Infinity;
+  const age = hit && !hit.old ? Date.now() - hit.at : Infinity;
   if (hit && age < ttlMs) return hit.value as Promise<T>;
   if (hit && age < ttlMs + staleMs) {
     if (!hit.refreshing) {
       hit.refreshing = true;
       const fresh = load();
       fresh.then(
-        () => store.set(key, { at: Date.now(), value: fresh }),
+        () => put(key, { at: Date.now(), value: fresh }),
         () => (hit.refreshing = false),
       );
     }
     return hit.value as Promise<T>;
   }
   const value = load();
-  store.set(key, { at: Date.now(), value });
-  value.catch(() => store.delete(key));
-  if (store.size > 1000) store.delete(store.keys().next().value!);
+  put(key, { at: Date.now(), value });
+  value.catch(() => store.get(key)?.value === value && store.delete(key));
   return value;
+}
+
+/**
+ * For reads that must show changes at once but can be slow on big stores (the orders behind Home and
+ * Analytics). Fresh (younger than `maxAgeMs` and nothing changed since): answered at once. Otherwise a
+ * new read starts and the page waits for it up to `waitMs`; if it takes longer, the last value is
+ * answered with `stale: true` and the read goes on in the background, so the page can ask again and
+ * get it (Analytics reloads itself). With nothing to show yet, the page waits for the read.
+ */
+export async function rememberLive<T>(shop: string, name: string, maxAgeMs: number, load: () => Promise<T>, waitMs: number): Promise<{ value: T; stale: boolean }> {
+  const key = `${shop}|${name}`;
+  const hit = store.get(key);
+  if (!hit || !hit.settled) {
+    const value = await remember(shop, name, Infinity, load);
+    return { value, stale: Boolean(store.get(key)?.old) };
+  }
+  if (!hit.old && Date.now() - hit.at < maxAgeMs) return { value: (await hit.value) as T, stale: false };
+  if (!hit.refreshing) {
+    hit.refreshing = true;
+    const gen = hit.gen ?? 0;
+    const fresh = load();
+    hit.next = fresh;
+    fresh.then(
+      () => {
+        // Marked old again while this read ran (another order): keep it old, so the next visit reads again.
+        const changed = (store.get(key)?.gen ?? 0) !== gen;
+        if (store.get(key) === hit) put(key, { at: Date.now(), value: fresh, old: changed, gen: changed ? hit.gen : 0 });
+      },
+      () => {
+        hit.refreshing = false;
+        hit.next = undefined;
+      },
+    );
+  }
+  const next = hit.next as Promise<T>;
+  const won = await Promise.race([
+    next.then((value) => ({ value }), () => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs)),
+  ]);
+  if (won) return { value: won.value, stale: Boolean(store.get(key)?.old) };
+  return { value: (await hit.value) as T, stale: true };
+}
+
+/** Mark entries old without dropping them: the next visit reads again, and can show the last value meanwhile. */
+function markOld(entry: Entry) {
+  entry.old = true;
+  entry.gen = (entry.gen ?? 0) + 1;
 }
 
 /** Store a value that was just read fresh, so the next page uses it instead of reading again. */
@@ -46,7 +111,13 @@ export function prime<T>(shop: string, name: string, value: T) {
 export function forgetShop(shop: string, names?: string[]) {
   for (const key of store.keys()) {
     if (!key.startsWith(`${shop}|`)) continue;
-    if (!names || names.some((n) => key.slice(shop.length + 1).startsWith(n))) store.delete(key);
+    const name = key.slice(shop.length + 1);
+    if (names && !names.some((n) => name.startsWith(n))) continue;
+    // The order reads are kept, marked old: big stores take a while to read, and the last numbers can
+    // show meanwhile (rememberLive).
+    const entry = store.get(key)!;
+    if (ORDER_READS.some((n) => name === n) && entry.settled) markOld(entry);
+    else store.delete(key);
   }
 }
 
@@ -54,7 +125,7 @@ export function forgetShop(shop: string, names?: string[]) {
 export const ORDER_READS = ["home-results", "loyalty-analytics-orders"];
 
 /**
- * A new order, or an item added to one (the after-purchase offer): forget the order reads so the
+ * A new order, or an item added to one (the after-purchase offer): mark the order reads old so the
  * next visit to Home or Analytics reads the orders again and shows it. `again` (ms) forgets them once
  * more after a delay, for changes Shopify applies to the order a moment later.
  */

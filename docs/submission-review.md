@@ -10,6 +10,9 @@ stores. Fix (#400):
   added the item) forget the remembered order reads; Analytics never shows a read older than a minute.
 - Analytics shows "Updated <time>" and a Refresh button.
 - Test orders count on every store (Analytics, A/B tests, loyalty analytics); Analytics says how many it includes.
+- Big stores (#402): a new order marks the order read old instead of dropping it. Analytics waits up to 2.5 s for the new
+  read (Home 1.5 s); a longer read goes on in the background while the last numbers show with "Reading new orders…",
+  and Analytics reloads itself until the new read is in (`rememberLive` in `app/lib/short-cache.server.ts`).
 
 ## Reviewer-style test of every feature (2026-11-13, Testing 5, Pro test plan)
 
