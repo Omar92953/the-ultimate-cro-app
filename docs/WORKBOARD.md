@@ -118,6 +118,13 @@ Updated 2026-10-24.
       shipping, a setting for when adding is allowed (for example only before it ships), and loyalty points for the
       added items when loyalty is on. Kept until after approval so the review doesn't get a new permission and flow.
 
+- [ ] **After approval (needs a Shopify deploy):** quantity tiers can show one cent less than the cart charges (found
+      2026-11-28 on Testing 3: Buy 2 of $699.95 at 10% shows $1,259.91, the cart charges $1,259.92). The block rounds the
+      tier total (`theme/snippets/ucro-upsell-body.liquid`, `assign total = was | times: keep | divided_by: 100.0 |
+      round`), while Shopify rounds a percentage discount per item ($69.995 becomes $69.99 off each). Fix: round the
+      discount per item in the block the way Shopify does, or have the discount engine
+      (`extensions/cro-discount`) give a fixed amount per line. Check against the cart for odd prices and every tier.
+
 - [ ] Website: let visitors try the features on the website as if it were a real store. Leave until the end;
       Omar will describe exactly how he wants it before anyone builds it.
 - [ ] Listing screenshots must include the Track page (live carrier tracking, offers, next order code, buy again)
